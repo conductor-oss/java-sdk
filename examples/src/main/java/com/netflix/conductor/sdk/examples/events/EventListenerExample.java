@@ -28,8 +28,8 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import io.orkes.conductor.sdk.examples.util.ClientUtil;
 
 import com.sun.net.httpserver.HttpServer;
-import io.micrometer.prometheus.PrometheusConfig;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 /**

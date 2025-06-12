@@ -38,3 +38,4 @@ tasks.withType(Test) {
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
 }
+tasks.forEach(task -> task.onlyIf { project.hasProperty('IntegrationTests') })

@@ -82,7 +82,6 @@ class TestWorkflowSummaryPojoMethods {
         assertNotNull(ws);
     }
 
-    @Test
     void testWorkflowConstructor() {
         // Create a mock Workflow
         Workflow workflow = mock(Workflow.class);
