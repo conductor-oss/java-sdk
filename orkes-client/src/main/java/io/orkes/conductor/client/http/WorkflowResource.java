@@ -68,53 +68,65 @@ class WorkflowResource {
         return resp.getData();
     }
 
-    WorkflowRun executeWorkflow(StartWorkflowRequest req,
-                                String name,
-                                Integer version,
-                                String waitUntilTaskRef,
-                                String requestId,
-                                Integer waitForSeconds,
-                                Consistency consistency) {
+    SignalResponse executeWorkflow(StartWorkflowRequest req,
+                                   String name,
+                                   Integer version,
+                                   List<String> waitUntilTaskRef,
+                                   String requestId,
+                                   Integer waitForSeconds,
+                                   Consistency consistency) {
+
+        String waitUntilTaskRefStr = null;
+        if (waitUntilTaskRef != null && !waitUntilTaskRef.isEmpty()) {
+            waitUntilTaskRefStr = String.join(",", waitUntilTaskRef);
+        }
+
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/workflow/execute/{name}/{version}")
                 .addPathParam("name", name)
                 .addPathParam("version", version)
                 .addQueryParam("requestId", requestId)
-                .addQueryParam("waitUntilTaskRef", waitUntilTaskRef)
+                .addQueryParam("waitUntilTaskRef", waitUntilTaskRefStr)
                 .addQueryParam("waitForSeconds", waitForSeconds)
                 .addQueryParam("consistency", consistency.name())
                 .body(req)
                 .build();
 
-        ConductorClientResponse<WorkflowRun> resp = client.execute(request, new TypeReference<>() {
+        ConductorClientResponse<SignalResponse> resp = client.execute(request, new TypeReference<>() {
         });
 
         return resp.getData();
     }
 
-    WorkflowRun executeWorkflow(StartWorkflowRequest req,
-                                String name,
-                                Integer version,
-                                String waitUntilTaskRef,
-                                String requestId,
-                                Integer waitForSeconds,
-                                Consistency consistency,
-                                ReturnStrategy returnStrategy) {
+    SignalResponse executeWorkflow(StartWorkflowRequest req,
+                                   String name,
+                                   Integer version,
+                                   List<String> waitUntilTaskRef,
+                                   String requestId,
+                                   Integer waitForSeconds,
+                                   Consistency consistency,
+                                   ReturnStrategy returnStrategy) {
+
+        String waitUntilTaskRefStr = null;
+        if (waitUntilTaskRef != null && !waitUntilTaskRef.isEmpty()) {
+            waitUntilTaskRefStr = String.join(",", waitUntilTaskRef);
+        }
+
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/workflow/execute/{name}/{version}")
                 .addPathParam("name", name)
                 .addPathParam("version", version)
                 .addQueryParam("requestId", requestId)
-                .addQueryParam("waitUntilTaskRef", waitUntilTaskRef)
+                .addQueryParam("waitUntilTaskRef", waitUntilTaskRefStr)
                 .addQueryParam("waitForSeconds", waitForSeconds)
                 .addQueryParam("consistency", consistency.name())
                 .addQueryParam("returnStrategy", returnStrategy.name())
                 .body(req)
                 .build();
 
-        ConductorClientResponse<WorkflowRun> resp = client.execute(request, new TypeReference<>() {
+        ConductorClientResponse<SignalResponse> resp = client.execute(request, new TypeReference<>() {
         });
 
         return resp.getData();

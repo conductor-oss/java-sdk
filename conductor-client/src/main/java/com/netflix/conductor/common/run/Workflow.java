@@ -25,7 +25,6 @@ import lombok.*;
 
 @Data
 @NoArgsConstructor
-@Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Workflow extends Auditable {
 
