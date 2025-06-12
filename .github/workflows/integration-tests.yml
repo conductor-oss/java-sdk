@@ -35,7 +35,7 @@ jobs:
           CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
           CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v5
         if: always()
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
