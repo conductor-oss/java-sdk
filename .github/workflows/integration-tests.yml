@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           repository: ${{ github.event.workflow_run.repository.full_name }}
       - name: Set up Zulu JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
