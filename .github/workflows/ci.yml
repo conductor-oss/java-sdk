@@ -1,4 +1,4 @@
-name: Java Client v4 Build
+name: Java Client Build
 
 on:
   push:

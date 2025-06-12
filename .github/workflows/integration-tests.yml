@@ -1,4 +1,4 @@
-name: Java Client v4 Integration Tests
+name: Java Client Integration Tests
 
 on:
   workflow_run:

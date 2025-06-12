@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Publish Java Client v4 to Maven Central
+name: Publish Java Client to Maven Central
 
 on:
   workflow_dispatch:
