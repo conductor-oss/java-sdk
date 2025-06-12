@@ -29,8 +29,8 @@ import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 import com.netflix.conductor.client.metrics.MetricsCollector;
 
 import com.sun.net.httpserver.HttpServer;
-import io.micrometer.prometheus.PrometheusConfig;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 public class PrometheusMetricsCollector implements MetricsCollector {
 

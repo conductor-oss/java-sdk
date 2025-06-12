@@ -19,89 +19,69 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.netflix.conductor.common.validation.ValidationError;
 
+import lombok.Data;
+import lombok.Setter;
+
+@Data
 public class ConductorClientException extends RuntimeException {
 
     private int status;
     private String instance;
     private String code;
+    @Setter
     private boolean retryable;
-
-    public List<ValidationError> getValidationErrors() {
-        return validationErrors;
-    }
-
-    public void setValidationErrors(List<ValidationError> validationErrors) {
-        this.validationErrors = validationErrors;
-    }
-
-    private List<ValidationError> validationErrors;
-
+    private List<ValidationError> validationErrors; //List of validation errors. Available when the status code is 400
     private Map<String, List<String>> responseHeaders;
     private String responseBody;
 
-    public ConductorClientException() {
-    }
-
-    public ConductorClientException(Throwable throwable) {
-        super(throwable.getMessage(), throwable);
-    }
-
     public ConductorClientException(String message) {
         super(message);
+        this.responseBody = message;
     }
 
-    public ConductorClientException(String message,
-                                    Throwable throwable,
-                                    int code,
-                                    Map<String, List<String>> responseHeaders,
-                                    String responseBody) {
-        super(message, throwable);
-        setCode(String.valueOf(code));
-        setStatus(code);
-        this.responseHeaders = responseHeaders;
-        this.responseBody = responseBody;
-    }
-
-    public ConductorClientException(String message,
-                                    int code,
-                                    Map<String, List<String>> responseHeaders,
-                                    String responseBody) {
-        this(message, null, code, responseHeaders, responseBody);
-        setCode(String.valueOf(code));
-        setStatus(code);
-    }
-
-    public ConductorClientException(String message,
-                                    Throwable throwable,
-                                    int code,
-                                    Map<String, List<String>> responseHeaders) {
-        this(message, throwable, code, responseHeaders, null);
-        setCode(String.valueOf(code));
-        setStatus(code);
-    }
-
-    public ConductorClientException(int code, Map<String, List<String>> responseHeaders, String responseBody) {
-        this(null, null, code, responseHeaders, responseBody);
-        setCode(String.valueOf(code));
-        setStatus(code);
-    }
-
-    public ConductorClientException(int code, String message) {
+    public ConductorClientException(int statusCode, String message) {
         super(message);
-        setCode(String.valueOf(code));
-        setStatus(code);
+        this.status = statusCode;
+        this.responseBody = message;
     }
 
-    public ConductorClientException(int code,
-                                    String message,
+    public ConductorClientException(Throwable t) {
+        super(t.getMessage(), t);
+        this.responseBody = t.getMessage();
+    }
+
+    public ConductorClientException(String message, Throwable t) {
+        super(message, t);
+        this.responseBody = message;
+    }
+
+    public ConductorClientException(String message,
+        int code,
+        Map<String, List<String>> responseHeaders,
+        String responseBody) {
+        this(message, null, code, responseHeaders, responseBody);
+    }
+
+    public ConductorClientException(String message,
+        Throwable t,
+        int code,
+        Map<String, List<String>> responseHeaders) {
+        this(message, t, code, responseHeaders, message);
+    }
+
+    public ConductorClientException(String message,
+                                    Throwable t,
+                                    int code,
                                     Map<String, List<String>> responseHeaders,
                                     String responseBody) {
-        this(code, message);
+        super(message, t);
+        this.code = String.valueOf(code);
+        this.status = code;
         this.responseHeaders = responseHeaders;
         this.responseBody = responseBody;
-        setCode(String.valueOf(code));
-        setStatus(code);
     }
+
+
 
     public boolean isClientError() {
         return getStatus() > 399 && getStatus() < 499;
@@ -114,29 +94,9 @@ public class ConductorClientException extends RuntimeException {
         return getStatus();
     }
 
-    /**
-     * Get the HTTP response headers.
-     *
-     * @return A map of list of string
-     */
-    public Map<String, List<String>> getResponseHeaders() {
-        return responseHeaders;
-    }
-
-    /**
-     * Get the HTTP response body.
-     *
-     * @return Response body in the form of string
-     */
-    public String getResponseBody() {
-        return responseBody;
-    }
-
     @Override
     public String getMessage() {
-        return getStatusCode()
-                + ": "
-                + (StringUtils.isBlank(responseBody) ? super.getMessage() : responseBody);
+        return (StringUtils.isNotBlank(super.getMessage()) ? super.getMessage() : responseBody);
     }
 
     @Override
@@ -169,36 +129,4 @@ public class ConductorClientException extends RuntimeException {
         return builder.toString();
     }
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-
-    public String getInstance() {
-        return instance;
-    }
-
-    public void setInstance(String instance) {
-        this.instance = instance;
-    }
-
-    public boolean isRetryable() {
-        return retryable;
-    }
-
-    public void setRetryable(boolean retryable) {
-        this.retryable = retryable;
-    }
-
-    public int getStatus() {
-        return this.status;
-    }
 }

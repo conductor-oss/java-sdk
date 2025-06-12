@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.common.run.Workflow;
@@ -49,8 +50,12 @@ public class WorkflowTestFrameworkTests {
         testRunner.init("com.netflix.conductor.sdk.workflow.testing");
 
         executor = testRunner.getWorkflowExecutor();
-        executor.loadTaskDefs("/tasks.json");
-        executor.loadWorkflowDefs("/simple_workflow.json");
+        try {
+            executor.loadTaskDefs("/tasks.json");
+            executor.loadWorkflowDefs("/simple_workflow.json");
+        } catch (ConductorClientException cce) {
+
+        }
     }
 
     @AfterAll

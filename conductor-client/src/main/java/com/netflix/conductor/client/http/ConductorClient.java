@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -275,6 +276,13 @@ public class ConductorClient {
     protected <T> T handleResponse(Response response, Type returnType) {
         if (!response.isSuccessful()) {
             String respBody = bodyAsString(response);
+            try {
+                ConductorClientException exception = objectMapper.readValue(respBody, ConductorClientException.class);
+                exception.setStatus(response.code());
+                throw exception;
+            } catch (JsonProcessingException jpe) {
+                //Ignore
+            }
             throw new ConductorClientException(response.message(),
                     response.code(),
                     response.headers().toMultimap(),
@@ -293,6 +301,7 @@ public class ConductorClient {
             }
         }
     }
+
 
     protected Request buildRequest(String method,
                                  String path,
