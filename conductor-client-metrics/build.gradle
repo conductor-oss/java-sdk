@@ -13,7 +13,7 @@ plugins {
 //apply plugin: 'publish-config'
 
 dependencies {
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.10.5'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.1'
     implementation project(":conductor-client")
 
     testImplementation 'org.mockito:mockito-core:5.4.0'
