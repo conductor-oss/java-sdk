@@ -6,16 +6,10 @@
 name: Publish Java Client to Maven Central
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to publish (e.g., v1.0.0)'
-        required: true
-      maven_central:
-        description: 'Publish to Maven Central'
-        required: true
-        default: 'true'
-
+  release:
+    types:
+      - released
+      - prereleased
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -31,7 +25,7 @@ jobs:
           java-version: '17'
       - name: Publish
         run: |
-          export VERSION="${{ github.event.inputs.version }}"
+          export VERSION="${{github.ref_name}}"          
           export CONDUCTOR_CLIENT_VERSION=`echo ${VERSION:1}`
           echo Publishing version $CONDUCTOR_CLIENT_VERSION
           ./gradlew publish -Pversion=$CONDUCTOR_CLIENT_VERSION -PmavenCentral=${{ github.event.inputs.maven_central }} -Pusername=${{ secrets.SONATYPE_USERNAME }} -Ppassword=${{ secrets.SONATYPE_PASSWORD }}
