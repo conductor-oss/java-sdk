@@ -244,7 +244,7 @@ public final class TaskClient {
         Validate.notBlank(taskId, "Task id cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
-                .path("tasks/{taskId}/ack")
+                .path("/tasks/{taskId}/ack")
                 .addPathParam("taskId", taskId)
                 .addQueryParam("workerid", workerId)
                 .build();
@@ -323,7 +323,7 @@ public final class TaskClient {
         Validate.notBlank(taskId, "Task id cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("tasks/queue/{taskType}/{taskId}")
+                .path("/tasks/queue/{taskType}/{taskId}")
                 .addPathParam("taskType", taskType)
                 .addPathParam("taskId", taskId)
                 .build();
@@ -451,7 +451,7 @@ public final class TaskClient {
     public SearchResult<Task> searchV2(String query) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("tasks/search-v2")
+                .path("/tasks/search-v2")
                 .addQueryParam("query", query)
                 .build();
 
@@ -501,7 +501,7 @@ public final class TaskClient {
     public SearchResult<Task> searchV2(Integer start, Integer size, String sort, String freeText, String query) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("tasks/search-v2")
+                .path("/tasks/search-v2")
                 .addQueryParam("start", start)
                 .addQueryParam("size", size)
                 .addQueryParam("sort", sort)
