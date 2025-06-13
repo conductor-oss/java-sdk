@@ -8,7 +8,7 @@ plugins {
 apply plugin: 'publish-config'
 
 ext {
-    artifactId = 'conductor-sdk'
+    artifactId = 'java-sdk'
     artifactName = 'Conductor OSS SDK'
     artifactDescription = 'Workflow as Code SDK'
 }
