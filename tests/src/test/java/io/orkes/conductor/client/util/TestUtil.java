@@ -123,7 +123,7 @@ public class TestUtil {
         // Timeout
         Workflow finalState = workflowClient.getWorkflow(workflowId, true);
         throw new TimeoutException(
-                String.format("Workflow did not reach status %s within %dms. Current status: %s",
-                        expectedStatus, maxWaitTimeMs, finalState.getStatus()));
+                String.format("Workflow %s did not reach status %s within %dms. Current status: %s",
+                        workflowId, expectedStatus, maxWaitTimeMs, finalState.getStatus()));
     }
 }
