@@ -5,15 +5,13 @@ plugins {
     id 'signing'
 }
 
-apply plugin: 'publish-config'
-
 ext {
     artifactId = 'java-sdk'
     artifactName = 'Conductor OSS SDK'
     artifactDescription = 'Workflow as Code SDK'
 }
 
-
+apply plugin: 'publish-config'
 
 dependencies {
     implementation project(":conductor-client")
