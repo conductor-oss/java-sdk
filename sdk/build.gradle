@@ -8,9 +8,12 @@ plugins {
 apply plugin: 'publish-config'
 
 ext {
+    artifactId = 'conductor-sdk'
     artifactName = 'Conductor OSS SDK'
     artifactDescription = 'Workflow as Code SDK'
 }
+
+
 
 dependencies {
     implementation project(":conductor-client")
