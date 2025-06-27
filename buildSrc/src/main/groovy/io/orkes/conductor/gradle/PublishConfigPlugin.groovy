@@ -51,11 +51,11 @@ class PublishConfigPlugin implements Plugin<Project> {
                 pom {
                     name = project.findProperty('artifactName')
                     description = project.findProperty('artifactDescription')
-                    url = 'https://github.com/conductor-oss/conductor.git'
+                    url = 'https://github.com/conductor-oss/conductor-java-sdk.git'
                     scm {
-                        connection = 'scm:git:git://github.com/conductor-oss/conductor.git'
-                        developerConnection = 'scm:git:ssh://github.com/conductor-oss/conductor.git'
-                        url = 'https://github.com/conductor-oss/conductor.git'
+                        connection = 'scm:git:git://github.com/conductor-oss/conductor-java-sdk.git'
+                        developerConnection = 'scm:git:ssh://github.com/conductor-oss/conductor-java-sdk.git'
+                        url = 'https://github.com/conductor-oss/conductor-java-sdk.git'
                     }
                     licenses {
                         license {
