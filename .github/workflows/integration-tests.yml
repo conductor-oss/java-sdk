@@ -29,7 +29,7 @@ jobs:
           java-version: "17"
       - name: Run Integration tests
         run: |          
-          ./gradlew -p tests test
+          ./gradlew test -PIntegrationTests
         env:
           CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
           CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}

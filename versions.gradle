@@ -13,5 +13,7 @@ ext {
             wiremock      : '2.33.2',
             mockito       : '5.12.0',
             testContainers: '1.19.8',
+            revGroovy     : '4.0.9',
+            revSpock      : '2.4-M1-groovy-4.0'
     ]
 }

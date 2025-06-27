@@ -12,33 +12,48 @@
  */
 package com.netflix.conductor.client.sample;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
-import com.netflix.conductor.client.http.TaskClient;
-import com.netflix.conductor.client.worker.Worker;
+import com.netflix.conductor.client.exception.ConductorClientException;
+import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.MetadataClient;
+import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
+import com.netflix.conductor.common.validation.ValidationError;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class Main {
 
     public static void main(String[] args) {
 
-        TaskClient taskClient = new TaskClient();
-        taskClient.setRootURI("http://localhost:8080/api/"); // Point this to the server API
+        testUpdateWorkflowDef();
+    }
 
-        int threadCount =
-                2; // number of threads used to execute workers.  To avoid starvation, should be
-        // same or more than number of workers
 
-        Worker worker1 = new SampleWorker("task_1");
-        Worker worker2 = new SampleWorker("task_5");
-
-        // Create TaskRunnerConfigurer
-        TaskRunnerConfigurer configurer =
-                new TaskRunnerConfigurer.Builder(taskClient, Arrays.asList(worker1, worker2))
-                        .withThreadCount(threadCount)
-                        .build();
-
-        // Start the polling and execution of tasks
-        configurer.init();
+    public static void testUpdateWorkflowDef() {
+        try {
+            ConductorClient client = new ConductorClient();
+            MetadataClient metadataClient = new MetadataClient(client);
+            WorkflowDef workflowDef = new WorkflowDef();
+            List<WorkflowDef> workflowDefList = new ArrayList<>();
+            workflowDefList.add(workflowDef);
+            metadataClient.updateWorkflowDefs(workflowDefList);
+        } catch (ConductorClientException e) {
+            assertEquals(400, e.getStatus());
+            assertEquals("Validation failed, check below errors for detail.", e.getMessage());
+            assertFalse(e.isRetryable());
+            List<ValidationError> errors = e.getValidationErrors();
+            List<String> errorMessages =
+                errors.stream().map(ValidationError::getMessage).collect(Collectors.toList());
+            assertEquals(3, errors.size());
+            assertTrue(errorMessages.contains("WorkflowTask list cannot be empty"));
+            assertTrue(errorMessages.contains("WorkflowDef name cannot be null or empty"));
+            assertTrue(errorMessages.contains("ownerEmail cannot be empty"));
+        }
     }
 }

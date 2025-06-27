@@ -62,7 +62,7 @@ class MetadataClientSpec extends ClientSpecification {
                     .addPathParam("version", version)
                     .build()) >> { throw new ConductorClientException(200, "Error while deleting workflow") }
             def ex = thrown(ConductorClientException.class)
-            ex.message == "200: Error while deleting workflow"
+            ex.message == "Error while deleting workflow"
     }
 
     def "workflow delete version missing"() {

@@ -12,7 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Java Client v4 Build
+    name: Java Client Build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +23,11 @@ jobs:
           java-version: "17"
       - name: Build
         run: |
-          ./gradlew clean build -x :tests:build
+          ./gradlew -PIntegrationTests clean build
+        env:
+          CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
+          CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
+          CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v5
         if: always()

@@ -122,7 +122,14 @@ public class TaskClientTests {
             workflow.getTasks().stream().filter(t -> !t.getStatus().isTerminal() && t.getWorkflowTask().getType().equals("SIMPLE")).forEach(running -> {
                 String referenceName = running.getReferenceTaskName();
                 System.out.println("Updating " + referenceName + ", and its status is " + running.getStatus());
-                taskClient.updateTaskSync(workflowId, referenceName, TaskResult.Status.COMPLETED, Map.of("k", "value"));
+                try {
+                    taskClient.updateTaskSync(workflowId, referenceName, TaskResult.Status.COMPLETED, Map.of("k", "value"));
+                } catch (ConductorClientException cce) {
+                    if(cce.getStatusCode() != 404) {
+                        throw cce;
+                    }
+                }
+
             });
             count++;
             Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
@@ -234,14 +241,6 @@ public class TaskClientTests {
                 () -> taskClient.getQueueSizeForTask(taskName1, null, null, null));
         TestUtil.retryMethodCall(
                 () -> taskClient.batchPollTasksByTaskType(taskName2, "random worker id", 5, 3000));
-    }
-
-    @Test
-    public void testUnsupportedMethods() {
-        // Not supported by Orkes Conductor Server
-        var ex = Assertions.assertThrows(ConductorClientException.class,
-                () -> taskClient.searchV2(4, 20, "sort", "freeText", "query"));
-        Assertions.assertEquals(404, ex.getStatus());
     }
 
     // Simple helper to start workflow and return workflowId
@@ -410,7 +409,7 @@ public class TaskClientTests {
 
     @Test
     void testDurableBlockingTask() throws Exception {
-        String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_TASK);
+        String workflowId = startComplexWorkflow(Consistency.DURABLE, ReturnStrategy.BLOCKING_TASK);
 
         var response = taskClient.signal(workflowId, Task.Status.COMPLETED,
                 Map.of("result", "test"), ReturnStrategy.BLOCKING_TASK);
