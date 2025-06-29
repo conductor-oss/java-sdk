@@ -25,7 +25,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
-import com.netflix.conductor.client.http.ServiceRegistryClient;
 import com.netflix.conductor.client.http.WorkflowClient;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
@@ -52,15 +51,12 @@ public abstract class AbstractWorkflowTests {
 
     protected WorkflowClient workflowClient;
 
-    protected ServiceRegistryClient serviceRegistryClient;
-
     @BeforeAll
     public void setup() {
         String baseURL = "http://localhost:8080/api/";
         ConductorClient apiClient = new ConductorClient(baseURL);
         metadataClient = new MetadataClient(apiClient);
         workflowClient = new WorkflowClient(apiClient);
-        serviceRegistryClient = new ServiceRegistryClient(apiClient);
     }
 
     protected WorkflowTestRequest getWorkflowTestRequest(WorkflowDef def) throws IOException {

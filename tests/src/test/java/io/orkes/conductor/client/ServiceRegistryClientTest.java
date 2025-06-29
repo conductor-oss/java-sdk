@@ -11,7 +11,6 @@
  * specific language governing permissions and limitations under the License.
  */
 package io.orkes.conductor.client;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -23,11 +22,9 @@ import org.junit.jupiter.api.Test;
 import io.orkes.conductor.client.model.OrkesCircuitBreakerConfig;
 import io.orkes.conductor.client.model.ServiceMethod;
 import io.orkes.conductor.client.model.ServiceRegistry;
-
 import io.orkes.conductor.client.util.ClientTestUtil;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ServiceRegistryClientTest {
 
@@ -125,9 +122,10 @@ public class ServiceRegistryClientTest {
         client.addOrUpdateServiceMethod(GRPC_SERVICE_NAME, method);
         actualService = client.getService(GRPC_SERVICE_NAME);
         assertEquals(size + 1, actualService.getMethods().size());
-        
+
         byte[] binaryData;
         try (InputStream inputStream = getClass().getResourceAsStream("/compiled.bin")) {
+            assert inputStream != null;
             binaryData = inputStream.readAllBytes();
         }
 
@@ -135,7 +133,7 @@ public class ServiceRegistryClientTest {
 
         actualService = client.getService(GRPC_SERVICE_NAME);
 
-        assertTrue(actualService.getMethods().size() > 0);
+        assertFalse(actualService.getMethods().isEmpty());
 
         OrkesCircuitBreakerConfig actualConfig = actualService.getConfig().getCircuitBreakerConfig();
         assertEquals(actualConfig.getFailureRateThreshold(), 50);
@@ -146,6 +144,13 @@ public class ServiceRegistryClientTest {
         assertEquals(actualConfig.getSlowCallRateThreshold(), 50);
         assertEquals(actualConfig.getMaxWaitDurationInHalfOpenState(), 1);
 
+        client.getAllProtos(GRPC_SERVICE_NAME)
+                .forEach(proto -> assertEquals(proto.getFilename(), PROTO_FILENAME));
+        byte[] protoData = client.getProtoData(GRPC_SERVICE_NAME, PROTO_FILENAME);
+        assertNotNull(protoData);
+        assertTrue(protoData.length > 0);
+
+        client.deleteProto(GRPC_SERVICE_NAME, PROTO_FILENAME);
         client.removeService(GRPC_SERVICE_NAME);
     }
 }
