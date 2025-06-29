@@ -10,22 +10,23 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.netflix.conductor.client.http;
-
-import java.util.List;
-
-import org.apache.commons.lang3.Validate;
-
-import com.netflix.conductor.client.config.ConductorClientConfiguration;
-import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
-import com.netflix.conductor.client.http.ConductorClientRequest.Method;
-import com.netflix.conductor.common.model.CircuitBreakerTransitionResponse;
-import com.netflix.conductor.common.model.ProtoRegistryEntry;
-import com.netflix.conductor.common.model.ServiceMethod;
-import com.netflix.conductor.common.model.ServiceRegistry;
+package io.orkes.conductor.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.netflix.conductor.client.config.ConductorClientConfiguration;
+import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
+import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.ConductorClientRequest;
+import com.netflix.conductor.client.http.ConductorClientRequest.Method;
+import com.netflix.conductor.client.http.ConductorClientResponse;
+import io.orkes.conductor.client.model.CircuitBreakerTransitionResponse;
+import io.orkes.conductor.client.model.ProtoRegistryEntry;
+import io.orkes.conductor.client.model.ServiceMethod;
+import io.orkes.conductor.client.model.ServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
+
+import java.util.List;
 
 /**
  * Client for the Service Registry API

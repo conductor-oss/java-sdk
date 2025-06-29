@@ -20,10 +20,9 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.netflix.conductor.client.http.ServiceRegistryClient;
-import com.netflix.conductor.common.model.OrkesCircuitBreakerConfig;
-import com.netflix.conductor.common.model.ServiceMethod;
-import com.netflix.conductor.common.model.ServiceRegistry;
+import io.orkes.conductor.client.model.OrkesCircuitBreakerConfig;
+import io.orkes.conductor.client.model.ServiceMethod;
+import io.orkes.conductor.client.model.ServiceRegistry;
 
 import io.orkes.conductor.client.util.ClientTestUtil;
 
