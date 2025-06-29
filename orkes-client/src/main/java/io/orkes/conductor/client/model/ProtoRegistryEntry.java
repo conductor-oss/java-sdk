@@ -16,7 +16,7 @@ import lombok.Data;
 
 @Data
 public class ProtoRegistryEntry {
-    private final String serviceName;
-    private final String filename;
-    private final byte[] data;
+    private String serviceName;
+    private String filename;
+    private byte[] data;
 }
