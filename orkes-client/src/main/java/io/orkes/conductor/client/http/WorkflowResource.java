@@ -234,18 +234,31 @@ class WorkflowResource {
             waitUntilTaskRefStr = String.join(",", waitUntilTaskRef);
         }
 
-        ConductorClientRequest request = ConductorClientRequest.builder()
+        ConductorClientRequest.Builder requestBuilder = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/workflow/execute/{name}/{version}")
                 .addPathParam("name", name)
                 .addPathParam("version", version)
-                .addQueryParam("requestId", requestId)
-                .addQueryParam("waitUntilTaskRef", waitUntilTaskRefStr)
-                .addQueryParam("waitForSeconds", waitForSeconds)
-                .addQueryParam("consistency", consistency.name())
-                .addQueryParam("returnStrategy", returnStrategy.name())
-                .body(req)
-                .build();
+                .body(req);
+
+        // Only add query parameters if they are not null - let server use defaults
+        if (requestId != null) {
+            requestBuilder.addQueryParam("requestId", requestId);
+        }
+        if (waitUntilTaskRefStr != null) {
+            requestBuilder.addQueryParam("waitUntilTaskRef", waitUntilTaskRefStr);
+        }
+        if (waitForSeconds != null) {
+            requestBuilder.addQueryParam("waitForSeconds", waitForSeconds);
+        }
+        if (consistency != null) {
+            requestBuilder.addQueryParam("consistency", consistency.name());
+        }
+        if (returnStrategy != null) {
+            requestBuilder.addQueryParam("returnStrategy", returnStrategy.name());
+        }
+
+        ConductorClientRequest request = requestBuilder.build();
 
         ConductorClientResponse<SignalResponse> resp = client.execute(request, new TypeReference<SignalResponse>() {
         });

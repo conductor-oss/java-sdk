@@ -269,6 +269,7 @@ public class OrkesWorkflowClient implements AutoCloseable {
      *
      * @param request workflow execution request
      * @return SignalResponse with target workflow details (default strategy)
+     * Uses server defaults: waitForSeconds=10, consistency=DURABLE, returnStrategy=TARGET_WORKFLOW
      */
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(StartWorkflowRequest request) {
         return executeWorkflowWithReturnStrategy(request, null, 10, Consistency.SYNCHRONOUS, ReturnStrategy.TARGET_WORKFLOW);
@@ -282,7 +283,17 @@ public class OrkesWorkflowClient implements AutoCloseable {
      * @return SignalResponse based on the return strategy
      */
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(StartWorkflowRequest request, ReturnStrategy returnStrategy) {
-        return executeWorkflowWithReturnStrategy(request, null, 10, Consistency.SYNCHRONOUS, returnStrategy);
+        return executeWorkflowWithReturnStrategy(request, null, null, null, returnStrategy);
+    }
+
+    /**
+     * Executes a workflow with consistency and return strategy
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            Consistency consistency,
+            ReturnStrategy returnStrategy) {
+        return executeWorkflowWithReturnStrategy(request, null, null, consistency, returnStrategy);
     }
 
     /**

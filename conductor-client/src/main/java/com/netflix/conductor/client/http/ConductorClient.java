@@ -210,12 +210,29 @@ public class ConductorClient {
             return null;
         }
 
+        String contentType = response.header("Content-Type");
+        
+        // Handle binary data (byte[]) for application/octet-stream
+        if ("application/octet-stream".equals(contentType) && returnType.equals(byte[].class)) {
+            if (response.body() == null) {
+                return null;
+            }
+            try {
+                //noinspection unchecked
+                return (T) response.body().bytes();
+            } catch (IOException e) {
+                throw new ConductorClientException(response.message(),
+                        e,
+                        response.code(),
+                        response.headers().toMultimap());
+            }
+        }
+
         String body = bodyAsString(response);
         if (body == null || "".equals(body)) {
             return null;
         }
 
-        String contentType = response.header("Content-Type");
         if (contentType == null || isJsonMime(contentType)) {
             // This is hacky. It's required because Conductor's API is returning raw strings as JSON
             if (returnType.equals(String.class)) {

@@ -154,6 +154,17 @@ public class ServiceRegistryClientTest {
         assertEquals(actualConfig.getSlowCallRateThreshold(), 50);
         assertEquals(actualConfig.getMaxWaitDurationInHalfOpenState(), 1);
 
+        client.getAllProtos(GRPC_SERVICE_NAME)
+                .forEach(proto -> assertEquals(PROTO_FILENAME, proto.getFilename()));
+
+        byte[] protoData = client.getProtoData(GRPC_SERVICE_NAME, PROTO_FILENAME);
+        assertEquals(binaryData.length, protoData.length);
+        assertNotNull(protoData);
+
+        client.deleteProto(GRPC_SERVICE_NAME, PROTO_FILENAME);
+        // check if proto deleted successfully
+        client.getAllProtos(GRPC_SERVICE_NAME)
+                .forEach(proto -> assertNotEquals(PROTO_FILENAME, proto.getFilename()));
         client.removeService(GRPC_SERVICE_NAME);
     }
 }
