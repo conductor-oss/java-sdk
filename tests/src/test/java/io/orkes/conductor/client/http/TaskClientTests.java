@@ -30,20 +30,20 @@ import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptib
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
+import com.netflix.conductor.common.enums.Consistency;
+import com.netflix.conductor.common.enums.ReturnStrategy;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.tasks.TaskExecLog;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
+import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 
-import io.orkes.conductor.client.enums.Consistency;
-import io.orkes.conductor.client.enums.ReturnStrategy;
-import io.orkes.conductor.client.model.SignalResponse;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.TestUtil;
 
@@ -125,7 +125,7 @@ public class TaskClientTests {
                 try {
                     taskClient.updateTaskSync(workflowId, referenceName, TaskResult.Status.COMPLETED, Map.of("k", "value"));
                 } catch (ConductorClientException cce) {
-                    if(cce.getStatusCode() != 404) {
+                    if (cce.getStatusCode() != 404) {
                         throw cce;
                     }
                 }

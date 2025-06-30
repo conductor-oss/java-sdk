@@ -18,9 +18,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
@@ -34,15 +40,14 @@ import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
+import com.netflix.conductor.common.enums.Consistency;
+import com.netflix.conductor.common.enums.ReturnStrategy;
 import com.netflix.conductor.common.metadata.workflow.RerunWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.SkipTaskRequest;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.model.BulkResponse;
-import com.netflix.conductor.common.run.ExternalStorageLocation;
-import com.netflix.conductor.common.run.SearchResult;
-import com.netflix.conductor.common.run.Workflow;
-import com.netflix.conductor.common.run.WorkflowSummary;
-import com.netflix.conductor.common.run.WorkflowTestRequest;
+import com.netflix.conductor.common.model.SignalResponse;
+import com.netflix.conductor.common.run.*;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -60,9 +65,13 @@ public final class WorkflowClient {
 
     private ConductorClient client;
 
+    private final ExecutorService executorService;
+
     private PayloadStorage payloadStorage;
 
-    /** Creates a default workflow client */
+    /**
+     * Creates a default workflow client
+     */
     public WorkflowClient() {
         // client will be set once root uri is set
         this(null, new DefaultConductorClientConfiguration());
@@ -76,6 +85,11 @@ public final class WorkflowClient {
         this.client = client;
         this.payloadStorage = new PayloadStorage(client);
         this.conductorClientConfiguration = config;
+
+        ThreadFactory factory = new BasicThreadFactory.Builder()
+                .namingPattern("WorkflowClient Executor %d")
+                .build();
+        this.executorService = Executors.newCachedThreadPool(factory);
     }
 
     /**
@@ -139,7 +153,7 @@ public final class WorkflowClient {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled() ||
                         (workflowInputSize > conductorClientConfiguration.getWorkflowInputMaxPayloadThresholdKB() * 1024L)) {
                     String errorMsg = String.format("Input payload larger than the allowed threshold of: %d KB",
-                                    conductorClientConfiguration.getWorkflowInputPayloadThresholdKB());
+                            conductorClientConfiguration.getWorkflowInputPayloadThresholdKB());
                     throw new ConductorClientException(errorMsg);
                 } else {
                     eventDispatcher.publish(new WorkflowPayloadUsedEvent(startWorkflowRequest.getName(),
@@ -148,15 +162,15 @@ public final class WorkflowClient {
                             ExternalPayloadStorage.PayloadType.WORKFLOW_INPUT.name()));
 
                     String externalStoragePath = uploadToExternalPayloadStorage(
-                                    workflowInputBytes,
-                                    workflowInputSize);
+                            workflowInputBytes,
+                            workflowInputSize);
                     startWorkflowRequest.setExternalInputPayloadStoragePath(externalStoragePath);
                     startWorkflowRequest.setInput(null);
                 }
             }
         } catch (IOException e) {
             String errorMsg = String.format("Unable to start workflow:%s, version:%s",
-                            startWorkflowRequest.getName(), startWorkflowRequest.getVersion());
+                    startWorkflowRequest.getName(), startWorkflowRequest.getVersion());
             log.error(errorMsg, e);
 
             eventDispatcher.publish(new WorkflowStartedEvent(startWorkflowRequest.getName(),
@@ -179,7 +193,7 @@ public final class WorkflowClient {
     /**
      * Retrieve a workflow by workflow id
      *
-     * @param workflowId the id of the workflow
+     * @param workflowId   the id of the workflow
      * @param includeTasks specify if the tasks in the workflow need to be returned
      * @return the requested workflow
      */
@@ -203,13 +217,13 @@ public final class WorkflowClient {
     /**
      * Retrieve all workflows for a given correlation id and name
      *
-     * @param name the name of the workflow
+     * @param name          the name of the workflow
      * @param correlationId the correlation id
      * @param includeClosed specify if all workflows are to be returned or only running workflows
-     * @param includeTasks specify if the tasks in the workflow need to be returned
+     * @param includeTasks  specify if the tasks in the workflow need to be returned
      * @return list of workflows for the given correlation id and name
      */
-    public List<Workflow> getWorkflows(String name, String correlationId, boolean includeClosed, boolean includeTasks){
+    public List<Workflow> getWorkflows(String name, String correlationId, boolean includeClosed, boolean includeTasks) {
         Validate.notBlank(name, "name cannot be blank");
         Validate.notBlank(correlationId, "correlationId cannot be blank");
 
@@ -233,7 +247,7 @@ public final class WorkflowClient {
     /**
      * Removes a workflow from the system
      *
-     * @param workflowId the id of the workflow to be deleted
+     * @param workflowId      the id of the workflow to be deleted
      * @param archiveWorkflow flag to indicate if the workflow should be archived before deletion
      */
     public void deleteWorkflow(String workflowId, boolean archiveWorkflow) {
@@ -252,7 +266,7 @@ public final class WorkflowClient {
      * Terminates the execution of all given workflows instances
      *
      * @param workflowIds the ids of the workflows to be terminated
-     * @param reason the reason to be logged and displayed
+     * @param reason      the reason to be logged and displayed
      * @return the {@link BulkResponse} contains bulkErrorResults and bulkSuccessfulResults
      */
     public BulkResponse terminateWorkflows(List<String> workflowIds, String reason) {
@@ -275,7 +289,7 @@ public final class WorkflowClient {
      * Retrieve all running workflow instances for a given name and version
      *
      * @param workflowName the name of the workflow
-     * @param version the version of the wokflow definition. Defaults to 1.
+     * @param version      the version of the wokflow definition. Defaults to 1.
      * @return the list of running workflow instances
      */
     public List<String> getRunningWorkflow(String workflowName, Integer version) {
@@ -286,9 +300,9 @@ public final class WorkflowClient {
      * Retrieve all workflow instances for a given workflow name between a specific time period
      *
      * @param workflowName the name of the workflow
-     * @param version the version of the workflow definition. Defaults to 1.
-     * @param startTime the start time of the period
-     * @param endTime the end time of the period
+     * @param version      the version of the workflow definition. Defaults to 1.
+     * @param startTime    the start time of the period
+     * @param endTime      the end time of the period
      * @return returns a list of workflows created during the specified during the time period
      */
     public List<String> getWorkflowsByTimePeriod(String workflowName, int version, Long startTime, Long endTime) {
@@ -350,7 +364,7 @@ public final class WorkflowClient {
     /**
      * Skips a given task from a current RUNNING workflow
      *
-     * @param workflowId the id of the workflow instance
+     * @param workflowId        the id of the workflow instance
      * @param taskReferenceName the reference name of the task to be skipped
      */
     public void skipTaskFromWorkflow(String workflowId, String taskReferenceName) {
@@ -373,7 +387,7 @@ public final class WorkflowClient {
     /**
      * Reruns the workflow from a specific task
      *
-     * @param workflowId the id of the workflow
+     * @param workflowId           the id of the workflow
      * @param rerunWorkflowRequest the request containing the task to rerun from
      * @return the id of the workflow
      */
@@ -396,10 +410,10 @@ public final class WorkflowClient {
     /**
      * Restart a completed workflow
      *
-     * @param workflowId the workflow id of the workflow to be restarted
+     * @param workflowId           the workflow id of the workflow to be restarted
      * @param useLatestDefinitions if true, use the latest workflow and task definitions when
-     *     restarting the workflow if false, use the workflow and task definitions embedded in the
-     *     workflow execution when restarting the workflow
+     *                             restarting the workflow if false, use the workflow and task definitions embedded in the
+     *                             workflow execution when restarting the workflow
      */
     public void restart(String workflowId, boolean useLatestDefinitions) {
         Validate.notBlank(workflowId, "workflow id cannot be blank");
@@ -448,7 +462,7 @@ public final class WorkflowClient {
      * Terminates the execution of the given workflow instance
      *
      * @param workflowId the id of the workflow to be terminated
-     * @param reason the reason to be logged and displayed
+     * @param reason     the reason to be logged and displayed
      */
     public void terminateWorkflow(String workflowId, String reason) {
         Validate.notBlank(workflowId, "workflow id cannot be blank");
@@ -494,11 +508,11 @@ public final class WorkflowClient {
     /**
      * Paginated search for workflows based on payload
      *
-     * @param start start value of page
-     * @param size number of workflows to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of workflows to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
+     * @param query    the search query
      * @return the {@link SearchResult} containing the {@link WorkflowSummary} that match the query
      */
     public SearchResult<WorkflowSummary> search(
@@ -522,11 +536,11 @@ public final class WorkflowClient {
     /**
      * Paginated search for workflows based on payload
      *
-     * @param start start value of page
-     * @param size number of workflows to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of workflows to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
+     * @param query    the search query
      * @return the {@link SearchResult} containing the {@link Workflow} that match the query
      */
     public SearchResult<Workflow> searchV2(Integer start, Integer size, String sort, String freeText, String query) {
@@ -601,6 +615,172 @@ public final class WorkflowClient {
 
         ConductorClientResponse<List<String>> resp = client.execute(request, new TypeReference<>() {
         });
+
+        return resp.getData();
+    }
+
+    /**
+     * Shuts down the WorkflowClient and cleans up resources
+     */
+    public void shutdown() {
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+    }
+
+    /**
+     * Executes a workflow with return strategy - basic version with server defaults
+     * Uses server defaults: waitForSeconds=10, consistency=DURABLE, returnStrategy=TARGET_WORKFLOW
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request) {
+        return executeWorkflowWithReturnStrategy(request, (List<String>) null, null, null, null);
+    }
+
+    /**
+     * Executes a workflow with specified return strategy only
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            ReturnStrategy returnStrategy) {
+        return executeWorkflowWithReturnStrategy(request, (List<String>) null, null, null, returnStrategy);
+    }
+
+    /**
+     * Executes a workflow with single task reference to wait for
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            String waitUntilTaskRef) {
+        List<String> taskRefs = waitUntilTaskRef != null ? List.of(waitUntilTaskRef) : null;
+        return executeWorkflowWithReturnStrategy(request, taskRefs, null, null, null);
+    }
+
+    /**
+     * Executes a workflow with single task reference and wait time
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            String waitUntilTaskRef,
+            Integer waitForSeconds) {
+        List<String> taskRefs = waitUntilTaskRef != null ? List.of(waitUntilTaskRef) : null;
+        return executeWorkflowWithReturnStrategy(request, taskRefs, waitForSeconds, null, null);
+    }
+
+    /**
+     * Executes a workflow with single task reference, wait time, and return strategy
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            String waitUntilTaskRef,
+            Integer waitForSeconds,
+            ReturnStrategy returnStrategy) {
+        List<String> taskRefs = waitUntilTaskRef != null ? List.of(waitUntilTaskRef) : null;
+        return executeWorkflowWithReturnStrategy(request, taskRefs, waitForSeconds, null, returnStrategy);
+    }
+
+    /**
+     * Executes a workflow with multiple task references to wait for
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef) {
+        return executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, null, null, null);
+    }
+
+    /**
+     * Executes a workflow with multiple task references and wait time
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef,
+            Integer waitForSeconds) {
+        return executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, waitForSeconds, null, null);
+    }
+
+    /**
+     * Executes a workflow with multiple task references, wait time, and return strategy
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef,
+            Integer waitForSeconds,
+            ReturnStrategy returnStrategy) {
+        return executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, waitForSeconds, null, returnStrategy);
+    }
+
+    /**
+     * Executes a workflow with consistency and return strategy
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            Consistency consistency,
+            ReturnStrategy returnStrategy) {
+        return executeWorkflowWithReturnStrategy(request, (List<String>) null, null, consistency, returnStrategy);
+    }
+
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef,
+            Integer waitForSeconds,
+            Consistency consistency,
+            ReturnStrategy returnStrategy) {
+
+        CompletableFuture<SignalResponse> future = new CompletableFuture<>();
+        String requestId = UUID.randomUUID().toString();
+
+        executorService.submit(() -> {
+            try {
+                SignalResponse response = executeWorkflowWithReturnStrategySync(
+                        request, waitUntilTaskRef, waitForSeconds, consistency, returnStrategy, requestId);
+                future.complete(response);
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
+
+        return future;
+    }
+
+    private SignalResponse executeWorkflowWithReturnStrategySync(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef,
+            Integer waitForSeconds,
+            Consistency consistency,
+            ReturnStrategy returnStrategy,
+            String requestId) {
+
+        String waitUntilTaskRefStr = null;
+        if (waitUntilTaskRef != null && !waitUntilTaskRef.isEmpty()) {
+            waitUntilTaskRefStr = String.join(",", waitUntilTaskRef);
+        }
+
+        ConductorClientRequest.Builder requestBuilder = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/workflow/execute/{name}/{version}")
+                .addPathParam("name", request.getName())
+                .addPathParam("version", request.getVersion())
+                .body(request);
+
+        // Only add query parameters if they are not null - let server use defaults
+        if (requestId != null) {
+            requestBuilder.addQueryParam("requestId", requestId);
+        }
+        if (waitUntilTaskRefStr != null) {
+            requestBuilder.addQueryParam("waitUntilTaskRef", waitUntilTaskRefStr);
+        }
+        if (waitForSeconds != null) {
+            requestBuilder.addQueryParam("waitForSeconds", waitForSeconds);
+        }
+        if (consistency != null) {
+            requestBuilder.addQueryParam("consistency", consistency.name());
+        }
+        if (returnStrategy != null) {
+            requestBuilder.addQueryParam("returnStrategy", returnStrategy.name());
+        }
+
+        ConductorClientRequest httpRequest = requestBuilder.build();
+        ConductorClientResponse<SignalResponse> resp = client.execute(httpRequest, new TypeReference<SignalResponse>() {});
 
         return resp.getData();
     }

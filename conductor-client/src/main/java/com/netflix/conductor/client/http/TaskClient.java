@@ -34,10 +34,12 @@ import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
+import com.netflix.conductor.common.enums.ReturnStrategy;
 import com.netflix.conductor.common.metadata.tasks.PollData;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskExecLog;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.ExternalStorageLocation;
 import com.netflix.conductor.common.run.SearchResult;
 import com.netflix.conductor.common.run.TaskSummary;
@@ -232,6 +234,7 @@ public final class TaskClient {
             throw new ConductorClientException(e);
         }
     }
+
     /**
      * Ack for the task poll.
      *
@@ -310,6 +313,67 @@ public final class TaskClient {
         });
 
         return resp.getData();
+    }
+
+    /**
+     * Signals a task with default return strategy (TARGET_WORKFLOW)
+     *
+     * @param workflowId Workflow Id of the workflow to be signaled
+     * @param status Signal status to be set for the workflow
+     * @param output Output for the task
+     * @return SignalResponse with target workflow details
+     */
+    public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output) {
+        return signal(workflowId, status, output, ReturnStrategy.TARGET_WORKFLOW);
+    }
+
+    /**
+     * Signals a task in a workflow synchronously and returns data based on the specified return strategy.
+     *
+     * @param workflowId     Workflow Id of the workflow to be signaled
+     * @param status         Signal status to be set for the workflow
+     * @param output         Output for the task
+     * @param returnStrategy Strategy for what data to return
+     * @return SignalResponse with data based on the return strategy
+     */
+    public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output, ReturnStrategy returnStrategy) {
+        Validate.notBlank(workflowId, "Workflow id cannot be blank");
+        Validate.notNull(status, "Status cannot be null");
+        
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/tasks/{workflowId}/{status}/signal/sync")
+                .addPathParam("workflowId", workflowId)
+                .addPathParam("status", status.name())
+                .addQueryParam("returnStrategy", returnStrategy.name())
+                .body(output)
+                .build();
+
+        ConductorClientResponse<SignalResponse> resp = client.execute(request, new TypeReference<>() {
+        });
+        return resp.getData();
+    }
+
+    /**
+     * Signals a task in a workflow asynchronously.
+     *
+     * @param workflowId Workflow Id of the workflow to be signaled
+     * @param status     Signal status to be set for the workflow
+     * @param output     Output for the task
+     */
+    public void signalAsync(String workflowId, Task.Status status, Map<String, Object> output) {
+        Validate.notBlank(workflowId, "Workflow id cannot be blank");
+        Validate.notNull(status, "Status cannot be null");
+        
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/tasks/{workflowId}/{status}/signal")
+                .addPathParam("workflowId", workflowId)
+                .addPathParam("status", status.name())
+                .body(output)
+                .build();
+
+        client.execute(request);
     }
 
     /**
@@ -422,6 +486,7 @@ public final class TaskClient {
 
         return resp.getData();
     }
+
     /**
      * Search for tasks based on payload
      *

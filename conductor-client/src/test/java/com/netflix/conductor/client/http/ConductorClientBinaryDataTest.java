@@ -15,9 +15,6 @@ package com.netflix.conductor.client.http;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import okhttp3.MediaType;
 import okhttp3.Protocol;

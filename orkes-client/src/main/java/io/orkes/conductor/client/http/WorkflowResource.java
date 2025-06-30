@@ -19,12 +19,13 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
+import com.netflix.conductor.common.enums.Consistency;
+import com.netflix.conductor.common.enums.ReturnStrategy;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.UpgradeWorkflowRequest;
+import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.Workflow;
 
-import io.orkes.conductor.client.enums.Consistency;
-import io.orkes.conductor.client.enums.ReturnStrategy;
 import io.orkes.conductor.client.model.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
