@@ -12,23 +12,20 @@
  */
 package io.orkes.conductor.client;
 
+import com.netflix.conductor.client.http.ServiceRegistryClient;
+import com.netflix.conductor.common.model.OrkesCircuitBreakerConfig;
+import com.netflix.conductor.common.model.ServiceMethod;
+import com.netflix.conductor.common.model.ServiceRegistry;
+import io.orkes.conductor.client.util.ClientTestUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import com.netflix.conductor.client.http.ServiceRegistryClient;
-import com.netflix.conductor.common.model.OrkesCircuitBreakerConfig;
-import com.netflix.conductor.common.model.ServiceMethod;
-import com.netflix.conductor.common.model.ServiceRegistry;
-
-import io.orkes.conductor.client.util.ClientTestUtil;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ServiceRegistryClientTest {
 
@@ -64,10 +61,18 @@ public class ServiceRegistryClientTest {
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("No http service found with name: " + HTTP_SERVICE_NAME));
 
-        assertEquals(actualService.getName(), HTTP_SERVICE_NAME);
-        assertEquals(actualService.getType(), ServiceRegistry.Type.HTTP);
-        assertEquals(actualService.getServiceURI(), "https://petstore.swagger.io/v2/swagger.json");
+        assertEquals(HTTP_SERVICE_NAME, actualService.getName());
+        assertEquals(ServiceRegistry.Type.HTTP, actualService.getType());
+        assertEquals("https://petstore.swagger.io/v2/swagger.json", actualService.getServiceURI());
         assertTrue(actualService.getMethods().size() > 0);
+        assertFalse(actualService.isCircuitBreakerEnabled());
+
+        // Enabled CB for Service registry
+        serviceRegistry.setCircuitBreakerEnabled(true);
+        client.addOrUpdateService(serviceRegistry);
+
+        actualService = client.getService(HTTP_SERVICE_NAME);
+        assertTrue(actualService.isCircuitBreakerEnabled());
 
         int size = actualService.getMethods().size();
 
@@ -126,7 +131,7 @@ public class ServiceRegistryClientTest {
         client.addOrUpdateServiceMethod(GRPC_SERVICE_NAME, method);
         actualService = client.getService(GRPC_SERVICE_NAME);
         assertEquals(size + 1, actualService.getMethods().size());
-        
+
         byte[] binaryData;
         try (InputStream inputStream = getClass().getResourceAsStream("/compiled.bin")) {
             binaryData = inputStream.readAllBytes();
