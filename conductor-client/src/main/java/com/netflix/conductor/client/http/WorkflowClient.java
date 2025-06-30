@@ -12,22 +12,8 @@
  */
 package com.netflix.conductor.client.http;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
@@ -49,10 +35,22 @@ import com.netflix.conductor.common.model.BulkResponse;
 import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.*;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 @Slf4j
 public final class WorkflowClient {
@@ -62,11 +60,8 @@ public final class WorkflowClient {
     private final ConductorClientConfiguration conductorClientConfiguration;
 
     private final EventDispatcher<WorkflowClientEvent> eventDispatcher = new EventDispatcher<>();
-
-    private ConductorClient client;
-
     private final ExecutorService executorService;
-
+    private ConductorClient client;
     private PayloadStorage payloadStorage;
 
     /**
@@ -634,7 +629,7 @@ public final class WorkflowClient {
      */
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
             StartWorkflowRequest request) {
-        return executeWorkflowWithReturnStrategy(request, (List<String>) null, null, null, null);
+        return executeWorkflowWithReturnStrategy(request, null, null, null, null);
     }
 
     /**
@@ -643,7 +638,7 @@ public final class WorkflowClient {
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
             StartWorkflowRequest request,
             ReturnStrategy returnStrategy) {
-        return executeWorkflowWithReturnStrategy(request, (List<String>) null, null, null, returnStrategy);
+        return executeWorkflowWithReturnStrategy(request, null, null, null, returnStrategy);
     }
 
     /**
@@ -716,7 +711,7 @@ public final class WorkflowClient {
             StartWorkflowRequest request,
             Consistency consistency,
             ReturnStrategy returnStrategy) {
-        return executeWorkflowWithReturnStrategy(request, (List<String>) null, null, consistency, returnStrategy);
+        return executeWorkflowWithReturnStrategy(request, null, null, consistency, returnStrategy);
     }
 
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
@@ -780,7 +775,8 @@ public final class WorkflowClient {
         }
 
         ConductorClientRequest httpRequest = requestBuilder.build();
-        ConductorClientResponse<SignalResponse> resp = client.execute(httpRequest, new TypeReference<SignalResponse>() {});
+        ConductorClientResponse<SignalResponse> resp = client.execute(httpRequest, new TypeReference<SignalResponse>() {
+        });
 
         return resp.getData();
     }
