@@ -49,10 +49,11 @@ public class ServiceRegistryClientTest {
 
     @Test
     public void testHttpServiceRegistry() throws InterruptedException {
+        String serviceUrl = "http://httpBin:8081/api-docs";
         ServiceRegistry serviceRegistry = new ServiceRegistry();
         serviceRegistry.setName(HTTP_SERVICE_NAME);
         serviceRegistry.setType(ServiceRegistry.Type.HTTP);
-        serviceRegistry.setServiceURI("https://petstore.swagger.io/v2/swagger.json");
+        serviceRegistry.setServiceURI(serviceUrl);
         client.addOrUpdateService(serviceRegistry);
 
         client.discover(HTTP_SERVICE_NAME, true);
@@ -65,7 +66,7 @@ public class ServiceRegistryClientTest {
 
         assertEquals(HTTP_SERVICE_NAME, actualService.getName());
         assertEquals(ServiceRegistry.Type.HTTP, actualService.getType());
-        assertEquals("https://petstore.swagger.io/v2/swagger.json", actualService.getServiceURI());
+        assertEquals(serviceUrl, actualService.getServiceURI());
         assertTrue(actualService.getMethods().size() > 0);
         assertFalse(actualService.isCircuitBreakerEnabled());
 
