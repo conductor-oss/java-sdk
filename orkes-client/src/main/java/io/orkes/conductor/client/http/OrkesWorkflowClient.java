@@ -265,10 +265,6 @@ public class OrkesWorkflowClient implements AutoCloseable {
         return future;
     }
 
-    // ================================================================================================
-    // executeWorkflowWithReturnStrategy methods - All delegate to conductor-client implementation
-    // ================================================================================================
-
     /**
      * Executes a workflow with return strategy - basic version with server defaults
      * Uses server defaults: waitForSeconds=10, consistency=DURABLE, returnStrategy=TARGET_WORKFLOW
