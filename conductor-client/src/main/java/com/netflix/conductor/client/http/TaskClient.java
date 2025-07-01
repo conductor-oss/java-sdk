@@ -12,17 +12,8 @@
  */
 package com.netflix.conductor.client.http;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
@@ -43,13 +34,23 @@ import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.ExternalStorageLocation;
 import com.netflix.conductor.common.run.SearchResult;
 import com.netflix.conductor.common.run.TaskSummary;
+import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
-/** Client for conductor task management including polling for task, updating task status etc. */
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * Client for conductor task management including polling for task, updating task status etc.
+ */
 @Slf4j
 public final class TaskClient {
 
@@ -63,7 +64,9 @@ public final class TaskClient {
 
     private ConductorClient client;
 
-    /** Creates a default task client */
+    /**
+     * Creates a default task client
+     */
     public TaskClient() {
         // client will be set once root uri is set
         this(null, new DefaultConductorClientConfiguration());
@@ -101,11 +104,11 @@ public final class TaskClient {
      * Perform a poll for a task of a specific task type.
      *
      * @param taskType The taskType to poll for
-     * @param domain The domain of the task type
+     * @param domain   The domain of the task type
      * @param workerId Name of the client worker. Used for logging.
      * @return Task waiting to be executed.
      */
-    public Task pollTask(String taskType, String workerId, String domain){
+    public Task pollTask(String taskType, String workerId, String domain) {
         Validate.notBlank(taskType, "Task type cannot be blank");
         Validate.notBlank(workerId, "Worker id cannot be blank");
 
@@ -128,10 +131,10 @@ public final class TaskClient {
     /**
      * Perform a batch poll for tasks by task type. Batch size is configurable by count.
      *
-     * @param taskType Type of task to poll for
-     * @param workerId Name of the client worker. Used for logging.
-     * @param count Maximum number of tasks to be returned. Actual number of tasks returned can be
-     *     less than this number.
+     * @param taskType             Type of task to poll for
+     * @param workerId             Name of the client worker. Used for logging.
+     * @param count                Maximum number of tasks to be returned. Actual number of tasks returned can be
+     *                             less than this number.
      * @param timeoutInMillisecond Long poll wait timeout.
      * @return List of tasks awaiting to be executed.
      */
@@ -148,15 +151,15 @@ public final class TaskClient {
     /**
      * Batch poll for tasks in a domain. Batch size is configurable by count.
      *
-     * @param taskType Type of task to poll for
-     * @param domain The domain of the task type
-     * @param workerId Name of the client worker. Used for logging.
-     * @param count Maximum number of tasks to be returned. Actual number of tasks returned can be
-     *     less than this number.
+     * @param taskType             Type of task to poll for
+     * @param domain               The domain of the task type
+     * @param workerId             Name of the client worker. Used for logging.
+     * @param count                Maximum number of tasks to be returned. Actual number of tasks returned can be
+     *                             less than this number.
      * @param timeoutInMillisecond Long poll wait timeout.
      * @return List of tasks awaiting to be executed.
      */
-    public List<Task> batchPollTasksInDomain(String taskType, String domain, String workerId, int count, int timeoutInMillisecond){
+    public List<Task> batchPollTasksInDomain(String taskType, String domain, String workerId, int count, int timeoutInMillisecond) {
         Validate.notBlank(taskType, "Task type cannot be blank");
         Validate.notBlank(workerId, "Worker id cannot be blank");
         Validate.isTrue(count > 0, "Count must be greater than 0");
@@ -194,10 +197,10 @@ public final class TaskClient {
     public Task updateTaskV2(TaskResult taskResult) {
         Validate.notNull(taskResult, "Task result cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
-            .method(Method.POST)
-            .path("/tasks/update-v2")
-            .body(taskResult)
-            .build();
+                .method(Method.POST)
+                .path("/tasks/update-v2")
+                .body(taskResult)
+                .build();
 
         ConductorClientResponse<Task> response = client.execute(request, new TypeReference<>() {
         });
@@ -216,7 +219,7 @@ public final class TaskClient {
             eventDispatcher.publish(new TaskResultPayloadSizeEvent(taskType, taskResultSize));
             long payloadSizeThreshold = conductorClientConfiguration.getTaskOutputPayloadThresholdKB() * 1024L;
             if (taskResultSize > payloadSizeThreshold) {
-                if (!conductorClientConfiguration.isExternalPayloadStorageEnabled()  || taskResultSize
+                if (!conductorClientConfiguration.isExternalPayloadStorageEnabled() || taskResultSize
                         > conductorClientConfiguration.getTaskOutputMaxPayloadThresholdKB() * 1024L) {
                     throw new IllegalArgumentException(
                             String.format("The TaskResult payload size: %d is greater than the permissible %d bytes",
@@ -238,10 +241,10 @@ public final class TaskClient {
     /**
      * Ack for the task poll.
      *
-     * @param taskId Id of the task to be polled
+     * @param taskId   Id of the task to be polled
      * @param workerId user identified worker.
      * @return true if the task was found with the given ID and acknowledged. False otherwise. If
-     *     the server returns false, the client should NOT attempt to ack again.
+     * the server returns false, the client should NOT attempt to ack again.
      */
     public Boolean ack(String taskId, String workerId) {
         Validate.notBlank(taskId, "Task id cannot be blank");
@@ -261,7 +264,7 @@ public final class TaskClient {
     /**
      * Log execution messages for a task.
      *
-     * @param taskId id of the task
+     * @param taskId     id of the task
      * @param logMessage the message to be logged
      */
     public void logMessageForTask(String taskId, String logMessage) {
@@ -281,7 +284,7 @@ public final class TaskClient {
      *
      * @param taskId id of the task.
      */
-    public List<TaskExecLog> getTaskLogs(String taskId){
+    public List<TaskExecLog> getTaskLogs(String taskId) {
         Validate.notBlank(taskId, "Task id cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -319,8 +322,8 @@ public final class TaskClient {
      * Signals a task with default return strategy (TARGET_WORKFLOW)
      *
      * @param workflowId Workflow Id of the workflow to be signaled
-     * @param status Signal status to be set for the workflow
-     * @param output Output for the task
+     * @param status     Signal status to be set for the workflow
+     * @param output     Output for the task
      * @return SignalResponse with target workflow details
      */
     public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output) {
@@ -339,7 +342,7 @@ public final class TaskClient {
     public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output, ReturnStrategy returnStrategy) {
         Validate.notBlank(workflowId, "Workflow id cannot be blank");
         Validate.notNull(status, "Status cannot be null");
-        
+
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/tasks/{workflowId}/{status}/signal/sync")
@@ -364,7 +367,7 @@ public final class TaskClient {
     public void signalAsync(String workflowId, Task.Status status, Map<String, Object> output) {
         Validate.notBlank(workflowId, "Workflow id cannot be blank");
         Validate.notNull(status, "Status cannot be null");
-        
+
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/tasks/{workflowId}/{status}/signal")
@@ -380,7 +383,7 @@ public final class TaskClient {
      * Removes a task from a taskType queue
      *
      * @param taskType the taskType to identify the queue
-     * @param taskId the id of the task to be removed
+     * @param taskId   the id of the task to be removed
      */
     public void removeTaskFromQueue(String taskType, String taskId) {
         Validate.notBlank(taskType, "Task type cannot be blank");
@@ -492,7 +495,7 @@ public final class TaskClient {
      *
      * @param query the search string
      * @return returns the {@link SearchResult} containing the {@link TaskSummary} matching the
-     *     query
+     * query
      */
     public SearchResult<TaskSummary> search(String query) {
         ConductorClientRequest request = ConductorClientRequest.builder()
@@ -529,11 +532,11 @@ public final class TaskClient {
     /**
      * Paginated search for tasks based on payload
      *
-     * @param start start value of page
-     * @param size number of tasks to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of tasks to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
+     * @param query    the search query
      * @return the {@link SearchResult} containing the {@link TaskSummary} that match the query
      */
     public SearchResult<TaskSummary> search(Integer start, Integer size, String sort, String freeText, String query) {
@@ -556,11 +559,11 @@ public final class TaskClient {
     /**
      * Paginated search for tasks based on payload
      *
-     * @param start start value of page
-     * @param size number of tasks to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of tasks to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
+     * @param query    the search query
      * @return the {@link SearchResult} containing the {@link Task} that match the query
      */
     public SearchResult<Task> searchV2(Integer start, Integer size, String sort, String freeText, String query) {

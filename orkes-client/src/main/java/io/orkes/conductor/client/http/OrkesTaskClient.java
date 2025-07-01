@@ -12,14 +12,8 @@
  */
 package io.orkes.conductor.client.http;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.Validate;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientResponse;
@@ -33,9 +27,13 @@ import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.SearchResult;
 import com.netflix.conductor.common.run.TaskSummary;
 import com.netflix.conductor.common.run.Workflow;
+import org.apache.commons.lang3.Validate;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class OrkesTaskClient {
 
@@ -71,7 +69,7 @@ public class OrkesTaskClient {
      * @return Status of the workflow after updating the task
      */
     public Workflow updateTaskSync(String workflowId, String taskReferenceName, TaskResult.Status status, Object output) {
-        return updateTaskSync(getOutputMap(output), workflowId, taskReferenceName, status.toString(), getWorkerId());
+        return updateTaskSync(workflowId, taskReferenceName, status.toString(), getWorkerId(), getOutputMap(output));
     }
 
     private Map<String, Object> getOutputMap(Object output) {
@@ -115,11 +113,11 @@ public class OrkesTaskClient {
         return resp.getData();
     }
 
-    private Workflow updateTaskSync(Map<String, Object> output,
-                                    String workflowId,
+    private Workflow updateTaskSync(String workflowId,
                                     String taskRefName,
                                     String status,
-                                    String workerId) {
+                                    String workerId,
+                                    Map<String, Object> output) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(ConductorClientRequest.Method.POST)
                 .path("/tasks/{workflowId}/{taskRefName}/{status}/sync")
