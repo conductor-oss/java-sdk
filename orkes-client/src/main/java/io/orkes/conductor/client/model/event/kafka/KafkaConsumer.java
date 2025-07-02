@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Orkes, Inc.
+ * Copyright 2022 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,8 +12,9 @@
  */
 package io.orkes.conductor.client.model.event.kafka;
 
-import io.orkes.conductor.client.model.event.QueueWorkerConfiguration;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+
+import io.orkes.conductor.client.model.event.QueueWorkerConfiguration;
 
 public class KafkaConsumer extends QueueWorkerConfiguration {
     private static final String MAX_POLL_RECORDS_CONFIG = "1000";
