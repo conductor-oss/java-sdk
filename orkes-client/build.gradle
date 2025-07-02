@@ -19,6 +19,7 @@ apply plugin: 'publish-config'
 
 dependencies {
     implementation project(':conductor-client')
+    implementation project(':java-sdk')
     implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
 
     // test dependencies
@@ -29,6 +30,7 @@ dependencies {
     testImplementation "org.powermock:powermock-api-mockito2:2.0.9"
 
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
+    implementation 'org.springframework:spring-context:6.2.8'
     testImplementation 'org.codehaus.groovy:groovy:3.0.25'
     testImplementation 'ch.qos.logback:logback-classic:1.5.6'
 
