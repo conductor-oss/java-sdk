@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Orkes, Inc.
+ * Copyright 2023 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,9 +12,10 @@
  */
 package io.orkes.conductor.client.spring;
 
-import com.netflix.conductor.sdk.workflow.executor.task.WorkerConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import com.netflix.conductor.sdk.workflow.executor.task.WorkerConfiguration;
 
 @Component
 public class OrkesSpringWorkerConfiguration extends WorkerConfiguration {

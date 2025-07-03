@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Orkes, Inc.
+ * Copyright 2023 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,14 +12,15 @@
  */
 package io.orkes.conductor.client.spring;
 
-import com.netflix.conductor.client.http.TaskClient;
-import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
+import java.util.Map;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import com.netflix.conductor.client.http.TaskClient;
+import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 
 @Component
 public class OrkesConductorWorkerAutoConfiguration implements ApplicationListener<ContextRefreshedEvent> {

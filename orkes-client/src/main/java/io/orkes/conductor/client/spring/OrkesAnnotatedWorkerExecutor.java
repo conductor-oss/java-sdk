@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Orkes, Inc.
+ * Copyright 2023 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 import com.netflix.conductor.sdk.workflow.executor.task.WorkerConfiguration;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

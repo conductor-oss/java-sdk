@@ -12,26 +12,29 @@
  */
 package io.orkes.conductor.client;
 
-import com.netflix.conductor.client.exception.ConductorClientException;
-import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.Param;
-import io.orkes.conductor.client.http.ApiCallback;
-import io.orkes.conductor.client.http.ApiResponse;
-import io.orkes.conductor.client.http.OrkesAuthentication;
-import io.orkes.conductor.client.http.Pair;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import com.netflix.conductor.client.exception.ConductorClientException;
+import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.Param;
+
+import io.orkes.conductor.client.http.ApiCallback;
+import io.orkes.conductor.client.http.ApiResponse;
+import io.orkes.conductor.client.http.OrkesAuthentication;
+import io.orkes.conductor.client.http.Pair;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * This class exists to maintain backward compatibility and facilitate the migration for

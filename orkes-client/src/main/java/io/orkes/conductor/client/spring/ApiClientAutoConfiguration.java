@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Orkes, Inc.
+ * Copyright 2020 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,12 +13,14 @@
 package io.orkes.conductor.client.spring;
 
 
-import io.orkes.conductor.client.ApiClient;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import io.orkes.conductor.client.ApiClient;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration(proxyBeanMethods = false)
 @Slf4j
