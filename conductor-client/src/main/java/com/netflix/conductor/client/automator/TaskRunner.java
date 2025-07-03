@@ -315,6 +315,18 @@ class TaskRunner {
             return;
         }
 
+        // Calculate  inbound network latency
+        try {
+            if (task.getOutputData().containsKey("_severSendTime")) {
+                long serverSentTime = ((Number) task.getOutputData().get("_severSendTime")).longValue();
+                long networkLatency = System.currentTimeMillis() - serverSentTime;
+                task.getOutputData().put("_pollNetworkLatency", networkLatency);
+                LOGGER.debug("Task {} inbound network latency: {} ms", task.getTaskId(), networkLatency);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Error calculating inbound network latency for task {}: {}", task.getTaskId(), e.getMessage());
+        }
+
         Stopwatch stopwatch = Stopwatch.createStarted();
         TaskResult result = null;
         try {
@@ -376,6 +388,15 @@ class TaskRunner {
                 result.setExternalOutputPayloadStoragePath(optionalExternalStorageLocation.get());
                 result.setOutputData(null);
             }
+
+            // Add outbound timing
+            long clientSendTime = System.currentTimeMillis();
+            if (result.getOutputData() == null) {
+                result.setOutputData(new HashMap<>());
+            }
+            result.getOutputData().put("_clientSendTime", clientSendTime);
+            LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
+
             if(enableUpdateV2) {
                 Task nextTask = retryOperation(taskClient::updateTaskV2, count, result, "updateTaskV2");
                 if (nextTask != null) {
