@@ -15,26 +15,35 @@ package com.netflix.conductor.common.metadata.tasks;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ExecutionMetadata {
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long serverSendTime;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long clientReceiveTime;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long executionStartTime;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long executionEndTime;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long clientSendTime;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long pollNetworkLatency;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long updateNetworkLatency;
 
     // Additional context as Map for flexibility
