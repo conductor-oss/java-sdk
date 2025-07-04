@@ -133,11 +133,11 @@ class TaskRunner {
 
         LOGGER.info("Initialized the task lease extend executor");
         leaseExtendExecutorService = Executors.newSingleThreadScheduledExecutor(
-            new BasicThreadFactory.Builder()
-                .namingPattern("workflow-lease-extend-%d")
-                .daemon(true)
-                .uncaughtExceptionHandler(uncaughtExceptionHandler)
-                .build()
+                new BasicThreadFactory.Builder()
+                        .namingPattern("workflow-lease-extend-%d")
+                        .daemon(true)
+                        .uncaughtExceptionHandler(uncaughtExceptionHandler)
+                        .build()
         );
     }
 
@@ -173,10 +173,10 @@ class TaskRunner {
 
                         long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
                         ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
-                            extendLease(task, taskFuture),
-                            delay,
-                            delay,
-                            TimeUnit.SECONDS
+                                extendLease(task, taskFuture),
+                                delay,
+                                delay,
+                                TimeUnit.SECONDS
                         );
                         leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
                     }
@@ -317,10 +317,10 @@ class TaskRunner {
 
         // Calculate  inbound network latency
         try {
-            if (task.getOutputData().containsKey("_severSendTime")) {
-                long serverSentTime = ((Number) task.getOutputData().get("_severSendTime")).longValue();
+            if(task.getExecutionMetadata().getServerSendTime() != null ){
+                long serverSentTime = task.getExecutionMetadata().getServerSendTime();
                 long networkLatency = System.currentTimeMillis() - serverSentTime;
-                task.getOutputData().put("_pollNetworkLatency", networkLatency);
+                task.getExecutionMetadata().setPollNetworkLatency(networkLatency);
                 LOGGER.debug("Task {} inbound network latency: {} ms", task.getTaskId(), networkLatency);
             }
         } catch (Exception e) {
@@ -391,10 +391,7 @@ class TaskRunner {
 
             // Add outbound timing
             long clientSendTime = System.currentTimeMillis();
-            if (result.getOutputData() == null) {
-                result.setOutputData(new HashMap<>());
-            }
-            result.getOutputData().put("_clientSendTime", clientSendTime);
+            result.getExecutionMetadata().setClientSendTime(clientSendTime);
             LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
 
             if(enableUpdateV2) {
@@ -404,13 +401,13 @@ class TaskRunner {
                 }
             } else {
                 retryOperation(
-                    (TaskResult taskResult) -> {
-                        taskClient.updateTask(taskResult);
-                        return null;
-                    },
-                    count,
-                    result,
-                    "updateTask");
+                        (TaskResult taskResult) -> {
+                            taskClient.updateTask(taskResult);
+                            return null;
+                        },
+                        count,
+                        result,
+                        "updateTask");
             }
 
         } catch (Exception e) {
@@ -462,8 +459,8 @@ class TaskRunner {
         return () -> {
             if (taskCompletableFuture.isDone()) {
                 LOGGER.warn(
-                    "Task processing for {} completed, but its lease extend was not cancelled",
-                    task.getTaskId());
+                        "Task processing for {} completed, but its lease extend was not cancelled",
+                        task.getTaskId());
                 return;
             }
             LOGGER.info("Attempting to extend lease for {}", task.getTaskId());
@@ -471,13 +468,13 @@ class TaskRunner {
                 TaskResult result = new TaskResult(task);
                 result.setExtendLease(true);
                 retryOperation(
-                    (TaskResult taskResult) -> {
-                        taskClient.updateTask(taskResult);
-                        return null;
-                    },
-                    LEASE_EXTEND_RETRY_COUNT,
-                    result,
-                    "extend lease");
+                        (TaskResult taskResult) -> {
+                            taskClient.updateTask(taskResult);
+                            return null;
+                        },
+                        LEASE_EXTEND_RETRY_COUNT,
+                        result,
+                        "extend lease");
             } catch (Exception e) {
                 LOGGER.error("Failed to extend lease for {}", task.getTaskId(), e);
             }
