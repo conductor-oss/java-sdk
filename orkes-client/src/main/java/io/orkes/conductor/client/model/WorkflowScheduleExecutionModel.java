@@ -24,18 +24,25 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class WorkflowScheduleExecutionModel {
 
+    @Builder.Default
     private String executionId = null;
 
+    @Builder.Default
     private Long executionTime = null;
 
+    @Builder.Default
     private String reason = null;
 
+    @Builder.Default
     private String scheduleName = null;
 
+    @Builder.Default
     private Long scheduledTime = null;
 
+    @Builder.Default
     private String stackTrace = null;
 
+    @Builder.Default
     private StartWorkflowRequest startWorkflowRequest = null;
 
     public enum StateEnum {
@@ -68,12 +75,16 @@ public class WorkflowScheduleExecutionModel {
         }
     }
 
+    @Builder.Default
     private StateEnum state = null;
 
+    @Builder.Default
     private String workflowId = null;
 
+    @Builder.Default
     private String workflowName = null;
 
+    @Builder.Default
     private String zoneId = "UTC";
 
     private String orgId;

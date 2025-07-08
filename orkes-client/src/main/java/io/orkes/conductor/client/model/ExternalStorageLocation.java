@@ -21,8 +21,10 @@ import lombok.*;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExternalStorageLocation {
+    @Builder.Default
     private String path = null;
 
+    @Builder.Default
     private String uri = null;
 
     public ExternalStorageLocation path(String path) {

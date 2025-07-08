@@ -27,8 +27,10 @@ import lombok.*;
 @NoArgsConstructor
 public class SearchResultWorkflowSummary {
 
+    @Builder.Default
     private List<WorkflowSummary> results = null;
 
+    @Builder.Default
     private Long totalHits = null;
 
     public SearchResultWorkflowSummary results(List<WorkflowSummary> results) {

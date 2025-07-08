@@ -28,10 +28,13 @@ public class LLMWorkerInput {
     private String embeddingModel;
     private String embeddingModelProvider;
     private String prompt;
+    @Builder.Default
     private double temperature = 0.1;
+    @Builder.Default
     private double topP = 0.9;
     private List<String> stopWords;
     private int maxTokens;
+    @Builder.Default
     private int maxResults = 1;
 
 }

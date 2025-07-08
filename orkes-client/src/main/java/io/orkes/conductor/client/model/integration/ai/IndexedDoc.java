@@ -26,6 +26,7 @@ public class IndexedDoc {
     private String parentDocId;
     private String text;
     private double score;
+    @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
 
     public IndexedDoc(String docId, String parentDocId, String text, double score) {

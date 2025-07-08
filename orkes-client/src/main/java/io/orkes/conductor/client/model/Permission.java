@@ -22,6 +22,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Permission {
 
+    @Builder.Default
     private String name = null;
 
     public Permission name(String name) {
