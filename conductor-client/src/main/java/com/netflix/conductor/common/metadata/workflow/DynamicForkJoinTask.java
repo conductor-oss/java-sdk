@@ -42,6 +42,7 @@ public class DynamicForkJoinTask {
         this.taskName = taskName;
         this.workflowName = workflowName;
         this.referenceName = referenceName;
-        this.input = input;
+        this.input = input != null ? input : new HashMap<>();
+        this.type = TaskType.SIMPLE.name();
     }
 }

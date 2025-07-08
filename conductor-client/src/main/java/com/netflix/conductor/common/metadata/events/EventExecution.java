@@ -51,6 +51,7 @@ public class EventExecution {
     public EventExecution(String id, String messageId) {
         this.id = id;
         this.messageId = messageId;
+        this.output = new HashMap<>();
     }
 
     public boolean equals(Object o) {
