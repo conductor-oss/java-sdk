@@ -22,7 +22,7 @@ import io.orkes.conductor.client.enums.ReturnStrategy;
 
 import lombok.*;
 
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @ToString
 @Data
 @NoArgsConstructor

@@ -119,11 +119,29 @@ public class TaskDef extends Auditable {
 
     public TaskDef(String name) {
         this.name = name;
+        this.retryCount = 3;
+        this.inputKeys = new ArrayList<>();
+        this.outputKeys = new ArrayList<>();
+        this.timeoutPolicy = TimeoutPolicy.TIME_OUT_WF;
+        this.retryLogic = RetryLogic.FIXED;
+        this.retryDelaySeconds = 60;
+        this.responseTimeoutSeconds = ONE_HOUR;
+        this.inputTemplate = new HashMap<>();
+        this.backoffScaleFactor = 1;
     }
 
     public TaskDef(String name, String description) {
         this.name = name;
         this.description = description;
+        this.retryCount = 3;
+        this.inputKeys = new ArrayList<>();
+        this.outputKeys = new ArrayList<>();
+        this.timeoutPolicy = TimeoutPolicy.TIME_OUT_WF;
+        this.retryLogic = RetryLogic.FIXED;
+        this.retryDelaySeconds = 60;
+        this.responseTimeoutSeconds = ONE_HOUR;
+        this.inputTemplate = new HashMap<>();
+        this.backoffScaleFactor = 1;
     }
 
     public TaskDef(String name, String description, int retryCount, long timeoutSeconds) {
@@ -131,6 +149,14 @@ public class TaskDef extends Auditable {
         this.description = description;
         this.retryCount = retryCount;
         this.timeoutSeconds = timeoutSeconds;
+        this.inputKeys = new ArrayList<>();
+        this.outputKeys = new ArrayList<>();
+        this.timeoutPolicy = TimeoutPolicy.TIME_OUT_WF;
+        this.retryLogic = RetryLogic.FIXED;
+        this.retryDelaySeconds = 60;
+        this.responseTimeoutSeconds = ONE_HOUR;
+        this.inputTemplate = new HashMap<>();
+        this.backoffScaleFactor = 1;
     }
 
     public TaskDef(String name, String description, String ownerEmail, int retryCount, long timeoutSeconds, long responseTimeoutSeconds) {
@@ -140,6 +166,13 @@ public class TaskDef extends Auditable {
         this.retryCount = retryCount;
         this.timeoutSeconds = timeoutSeconds;
         this.responseTimeoutSeconds = responseTimeoutSeconds;
+        this.inputKeys = new ArrayList<>();
+        this.outputKeys = new ArrayList<>();
+        this.timeoutPolicy = TimeoutPolicy.TIME_OUT_WF;
+        this.retryLogic = RetryLogic.FIXED;
+        this.retryDelaySeconds = 60;
+        this.inputTemplate = new HashMap<>();
+        this.backoffScaleFactor = 1;
     }
 
     /**
