@@ -34,5 +34,6 @@ public class IndexedDoc {
         this.parentDocId = parentDocId;
         this.text = text;
         this.score = score;
+        this.metadata = new HashMap<>();
     }
 }
