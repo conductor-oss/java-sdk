@@ -233,6 +233,13 @@ class TaskRunner {
         try {
             LOGGER.trace("Polling task of type: {} in domain: '{}' with size {}", taskType, domain, pollCount);
             tasks = pollTask(pollCount);
+
+            // Set client receive time for all polled tasks
+            long receiveTime = System.currentTimeMillis();
+            for (Task task : tasks) {
+                task.getExecutionMetadata().setClientReceiveTime(receiveTime);
+            }
+
             permits.release(pollCount - tasks.size());        //release extra permits
             stopwatch.stop();
             long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
@@ -288,6 +295,10 @@ class TaskRunner {
 
     private Task processTask(Task task) {
         eventDispatcher.publish(new TaskExecutionStarted(taskType, task.getTaskId(), worker.getIdentity()));
+
+        // record execution start time for a task
+        task.getExecutionMetadata().setExecutionStartTime(System.currentTimeMillis());
+
         LOGGER.trace("Executing task: {} of type: {} in worker: {} at {}", task.getTaskId(), taskType, worker.getClass().getSimpleName(), worker.getIdentity());
         LOGGER.trace("task {} is getting executed after {} ms of getting polled", task.getTaskId(), (System.currentTimeMillis() - task.getStartTime()));
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -338,6 +349,8 @@ class TaskRunner {
             result = worker.execute(task);
             stopwatch.stop();
             eventDispatcher.publish(new TaskExecutionCompleted(taskType, task.getTaskId(), worker.getIdentity(), stopwatch.elapsed(TimeUnit.MILLISECONDS)));
+            // record execution end time in task
+            task.getExecutionMetadata().setExecutionEndTime(System.currentTimeMillis());
             result.setWorkflowInstanceId(task.getWorkflowInstanceId());
             result.setTaskId(task.getTaskId());
             result.setWorkerId(worker.getIdentity());
