@@ -115,4 +115,8 @@ public class SubWorkflowParams {
         SubWorkflowParams that = (SubWorkflowParams) o;
         return Objects.equals(getName(), that.getName()) && Objects.equals(getVersion(), that.getVersion()) && Objects.equals(getTaskToDomain(), that.getTaskToDomain()) && Objects.equals(getWorkflowDefinition(), that.getWorkflowDefinition());
     }
+
+    public int hashCode() {
+        return Objects.hash(getName(), getVersion(), getTaskToDomain(), getWorkflowDefinition());
+    }
 }

@@ -45,6 +45,7 @@ public class EventExecution {
 
     private Action.Type action;
 
+    @Builder.Default
     private Map<String, Object> output = new HashMap<>();
 
     public EventExecution(String id, String messageId) {

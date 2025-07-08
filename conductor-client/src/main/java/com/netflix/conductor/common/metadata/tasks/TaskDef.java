@@ -48,24 +48,31 @@ public class TaskDef extends Auditable {
 
     private String description;
 
-    private int // Default
-    retryCount = 3;
+    // Default
+    @Builder.Default
+    private int retryCount = 3;
 
     private long timeoutSeconds;
 
+    @Builder.Default
     private List<String> inputKeys = new ArrayList<>();
 
+    @Builder.Default
     private List<String> outputKeys = new ArrayList<>();
 
+    @Builder.Default
     private TimeoutPolicy timeoutPolicy = TimeoutPolicy.TIME_OUT_WF;
 
+    @Builder.Default
     private RetryLogic retryLogic = RetryLogic.FIXED;
 
+    @Builder.Default
     private int retryDelaySeconds = 60;
 
     /**
      * the timeout for task to send response. After this timeout, the task will be re-queued
      */
+    @Builder.Default
     private long responseTimeoutSeconds = ONE_HOUR;
 
     /**
@@ -74,6 +81,7 @@ public class TaskDef extends Auditable {
      */
     private Integer concurrentExecLimit;
 
+    @Builder.Default
     private Map<String, Object> inputTemplate = new HashMap<>();
 
     // This field is deprecated, do not use id 13.
@@ -96,6 +104,7 @@ public class TaskDef extends Auditable {
 
     private Integer pollTimeoutSeconds;
 
+    @Builder.Default
     private Integer backoffScaleFactor = 1;
 
     private String baseType;

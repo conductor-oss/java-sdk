@@ -24,6 +24,7 @@ public class WorkflowDefSummary implements Comparable<WorkflowDefSummary> {
 
     private String name;
 
+    @Builder.Default
     private int version = 1;
 
     private Long createTime;
