@@ -5,6 +5,7 @@ plugins {
     id 'signing'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'groovy'
+    id "org.openapi.generator" version "7.14.0"
 }
 
 ext {
@@ -46,4 +47,16 @@ shadowJar {
 
 tasks.build {
     dependsOn shadowJar
+}
+
+openApiGenerate {
+    generatorName = 'java'
+    inputSpec = "$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json"
+    outputDir = "$buildDir/generated/conductor-client-v2"
+    apiPackage = 'com.netflix.conductor.client.http.v2'
+    modelPackage = 'com.netflix.conductor.client.http.v2.model'
+    library = 'okhttp-gson'
+    configOptions = [
+        dateLibrary: 'java8'
+    ]
 }
