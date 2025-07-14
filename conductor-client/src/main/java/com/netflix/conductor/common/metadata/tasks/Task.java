@@ -165,6 +165,8 @@ public class Task {
 
     private String subWorkflowId;
 
+    private ExecutionMetadata executionMetadata;
+
     /**
      * Use to note that a sub workflow associated with SUB_WORKFLOW task has an action performed on
      * it directly.
@@ -232,6 +234,13 @@ public class Task {
 
     public boolean isLoopOverTask() {
         return iteration > 0;
+    }
+
+    public ExecutionMetadata getExecutionMetadata() {
+        if (executionMetadata == null) {
+            executionMetadata = new ExecutionMetadata();
+        }
+        return executionMetadata;
     }
 
     public String getSubWorkflowId() {
