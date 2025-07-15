@@ -190,6 +190,16 @@ class TaskRunner {
     public void shutdown(int timeout) {
         try {
             pollingAndExecuting = false;
+            
+            leaseExtendMap.values().forEach(future -> future.cancel(false));
+            leaseExtendMap.clear();
+            
+            leaseExtendExecutorService.shutdown();
+            if (!leaseExtendExecutorService.awaitTermination(timeout, TimeUnit.SECONDS)) {
+                LOGGER.warn("Lease extend executor service did not terminate within {} seconds, forcing shutdown", timeout);
+                leaseExtendExecutorService.shutdownNow();
+            }
+            
             executorService.shutdown();
             if (executorService.awaitTermination(timeout, TimeUnit.SECONDS)) {
                 LOGGER.debug("tasks completed, shutting down");
@@ -199,6 +209,7 @@ class TaskRunner {
             }
         } catch (InterruptedException ie) {
             LOGGER.warn("shutdown interrupted, invoking shutdownNow");
+            leaseExtendExecutorService.shutdownNow();
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
@@ -315,6 +326,7 @@ class TaskRunner {
             TaskResult result = new TaskResult(task);
             handleException(t, result, worker, task);
         } finally {
+            cancelLeaseExtension(task.getTaskId());
             permits.release();
         }
         return task;
@@ -471,9 +483,7 @@ class TaskRunner {
     private Runnable extendLease(Task task, Future<Task> taskCompletableFuture) {
         return () -> {
             if (taskCompletableFuture.isDone()) {
-                LOGGER.warn(
-                        "Task processing for {} completed, but its lease extend was not cancelled",
-                        task.getTaskId());
+                LOGGER.trace("Task {} completed, skipping lease extension", task.getTaskId());
                 return;
             }
             LOGGER.info("Attempting to extend lease for {}", task.getTaskId());
@@ -492,5 +502,13 @@ class TaskRunner {
                 LOGGER.error("Failed to extend lease for {}", task.getTaskId(), e);
             }
         };
+    }
+
+    private void cancelLeaseExtension(String taskId) {
+        ScheduledFuture<?> scheduledFuture = leaseExtendMap.remove(taskId);
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+            LOGGER.trace("Cancelled lease extension for task {}", taskId);
+        }
     }
 }
