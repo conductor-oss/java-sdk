@@ -10,13 +10,10 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.netflix.conductor.common.model;
+package com.netflix.conductor.common.enums;
 
-import lombok.Data;
-
-@Data
-public class ProtoRegistryEntry {
-    private String serviceName;
-    private String filename;
-    private byte[] data;
+public enum Consistency {
+    SYNCHRONOUS,
+    DURABLE,  // Default
+    REGION_DURABLE
 }

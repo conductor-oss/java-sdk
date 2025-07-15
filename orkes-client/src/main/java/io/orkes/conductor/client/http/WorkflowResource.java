@@ -19,12 +19,13 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
+import com.netflix.conductor.common.enums.Consistency;
+import com.netflix.conductor.common.enums.ReturnStrategy;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.UpgradeWorkflowRequest;
+import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.Workflow;
 
-import io.orkes.conductor.client.enums.Consistency;
-import io.orkes.conductor.client.enums.ReturnStrategy;
 import io.orkes.conductor.client.model.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -234,18 +235,31 @@ class WorkflowResource {
             waitUntilTaskRefStr = String.join(",", waitUntilTaskRef);
         }
 
-        ConductorClientRequest request = ConductorClientRequest.builder()
+        ConductorClientRequest.Builder requestBuilder = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/workflow/execute/{name}/{version}")
                 .addPathParam("name", name)
                 .addPathParam("version", version)
-                .addQueryParam("requestId", requestId)
-                .addQueryParam("waitUntilTaskRef", waitUntilTaskRefStr)
-                .addQueryParam("waitForSeconds", waitForSeconds)
-                .addQueryParam("consistency", consistency.name())
-                .addQueryParam("returnStrategy", returnStrategy.name())
-                .body(req)
-                .build();
+                .body(req);
+
+        // Only add query parameters if they are not null - let server use defaults
+        if (requestId != null) {
+            requestBuilder.addQueryParam("requestId", requestId);
+        }
+        if (waitUntilTaskRefStr != null) {
+            requestBuilder.addQueryParam("waitUntilTaskRef", waitUntilTaskRefStr);
+        }
+        if (waitForSeconds != null) {
+            requestBuilder.addQueryParam("waitForSeconds", waitForSeconds);
+        }
+        if (consistency != null) {
+            requestBuilder.addQueryParam("consistency", consistency.name());
+        }
+        if (returnStrategy != null) {
+            requestBuilder.addQueryParam("returnStrategy", returnStrategy.name());
+        }
+
+        ConductorClientRequest request = requestBuilder.build();
 
         ConductorClientResponse<SignalResponse> resp = client.execute(request, new TypeReference<SignalResponse>() {
         });

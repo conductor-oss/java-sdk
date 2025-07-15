@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Conductor Authors.
+ * Copyright 2022 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,11 +10,15 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.orkes.conductor.client.enums;
+package io.orkes.conductor.client.model.event.kafka;
 
-public enum ReturnStrategy {
-    TARGET_WORKFLOW,  // Default
-    BLOCKING_WORKFLOW,
-    BLOCKING_TASK,
-    BLOCKING_TASK_INPUT
+import org.apache.kafka.clients.producer.ProducerConfig;
+
+import io.orkes.conductor.client.model.event.QueueWorkerConfiguration;
+
+public class KafkaProducer extends QueueWorkerConfiguration {
+    public KafkaProducer(String bootstrapServersConfig) throws Exception {
+        super(ProducerConfig.configNames());
+        withConfiguration(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServersConfig);
+    }
 }

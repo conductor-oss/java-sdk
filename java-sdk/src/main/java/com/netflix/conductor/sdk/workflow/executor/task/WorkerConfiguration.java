@@ -20,7 +20,8 @@ public class WorkerConfiguration {
         this.defaultPollingInterval = defaultPollingInterval;
     }
 
-    public WorkerConfiguration() {}
+    public WorkerConfiguration() {
+    }
 
     public int getPollingInterval(String taskName) {
         return defaultPollingInterval;

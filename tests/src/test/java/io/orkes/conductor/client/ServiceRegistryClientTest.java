@@ -27,8 +27,7 @@ import com.netflix.conductor.common.model.ServiceRegistry;
 
 import io.orkes.conductor.client.util.ClientTestUtil;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ServiceRegistryClientTest {
 
@@ -50,10 +49,11 @@ public class ServiceRegistryClientTest {
 
     @Test
     public void testHttpServiceRegistry() throws InterruptedException {
+        String serviceUrl = "http://httpBin:8081/api-docs";
         ServiceRegistry serviceRegistry = new ServiceRegistry();
         serviceRegistry.setName(HTTP_SERVICE_NAME);
         serviceRegistry.setType(ServiceRegistry.Type.HTTP);
-        serviceRegistry.setServiceURI("https://petstore.swagger.io/v2/swagger.json");
+        serviceRegistry.setServiceURI(serviceUrl);
         client.addOrUpdateService(serviceRegistry);
 
         client.discover(HTTP_SERVICE_NAME, true);
@@ -64,10 +64,18 @@ public class ServiceRegistryClientTest {
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("No http service found with name: " + HTTP_SERVICE_NAME));
 
-        assertEquals(actualService.getName(), HTTP_SERVICE_NAME);
-        assertEquals(actualService.getType(), ServiceRegistry.Type.HTTP);
-        assertEquals(actualService.getServiceURI(), "https://petstore.swagger.io/v2/swagger.json");
+        assertEquals(HTTP_SERVICE_NAME, actualService.getName());
+        assertEquals(ServiceRegistry.Type.HTTP, actualService.getType());
+        assertEquals(serviceUrl, actualService.getServiceURI());
         assertTrue(actualService.getMethods().size() > 0);
+        assertFalse(actualService.isCircuitBreakerEnabled());
+
+        // Enabled CB for Service registry
+        serviceRegistry.setCircuitBreakerEnabled(true);
+        client.addOrUpdateService(serviceRegistry);
+
+        actualService = client.getService(HTTP_SERVICE_NAME);
+        assertTrue(actualService.isCircuitBreakerEnabled());
 
         int size = actualService.getMethods().size();
 
@@ -126,7 +134,7 @@ public class ServiceRegistryClientTest {
         client.addOrUpdateServiceMethod(GRPC_SERVICE_NAME, method);
         actualService = client.getService(GRPC_SERVICE_NAME);
         assertEquals(size + 1, actualService.getMethods().size());
-        
+
         byte[] binaryData;
         try (InputStream inputStream = getClass().getResourceAsStream("/compiled.bin")) {
             binaryData = inputStream.readAllBytes();
@@ -147,6 +155,17 @@ public class ServiceRegistryClientTest {
         assertEquals(actualConfig.getSlowCallRateThreshold(), 50);
         assertEquals(actualConfig.getMaxWaitDurationInHalfOpenState(), 1);
 
+        client.getAllProtos(GRPC_SERVICE_NAME)
+                .forEach(proto -> assertEquals(PROTO_FILENAME, proto.getFilename()));
+
+        byte[] protoData = client.getProtoData(GRPC_SERVICE_NAME, PROTO_FILENAME);
+        assertEquals(binaryData.length, protoData.length);
+        assertNotNull(protoData);
+
+        client.deleteProto(GRPC_SERVICE_NAME, PROTO_FILENAME);
+        // check if proto deleted successfully
+        client.getAllProtos(GRPC_SERVICE_NAME)
+                .forEach(proto -> assertNotEquals(PROTO_FILENAME, proto.getFilename()));
         client.removeService(GRPC_SERVICE_NAME);
     }
 }

@@ -25,7 +25,8 @@ public class ServiceRegistry {
     private String serviceURI;
     private final List<ServiceMethod> methods = new ArrayList<>();
     private final List<RequestParam> requestParams = new ArrayList<>();
-    private final Config config = new Config();
+    private Config config = new Config();
+    private boolean circuitBreakerEnabled = false;
 
     public enum Type {
         HTTP, gRPC

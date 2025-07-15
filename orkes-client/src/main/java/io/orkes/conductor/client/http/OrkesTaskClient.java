@@ -25,15 +25,14 @@ import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
+import com.netflix.conductor.common.enums.ReturnStrategy;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskExecLog;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.SearchResult;
 import com.netflix.conductor.common.run.TaskSummary;
 import com.netflix.conductor.common.run.Workflow;
-
-import io.orkes.conductor.client.enums.ReturnStrategy;
-import io.orkes.conductor.client.model.SignalResponse;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -141,7 +140,7 @@ public class OrkesTaskClient {
      * Signals a task with default return strategy (TARGET_WORKFLOW)
      */
     public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output) {
-        return signal(workflowId, status, output, ReturnStrategy.TARGET_WORKFLOW);
+        return taskClient.signal(workflowId, status, output, ReturnStrategy.TARGET_WORKFLOW);
     }
 
     /**
@@ -154,18 +153,7 @@ public class OrkesTaskClient {
      * @return SignalResponse with data based on the return strategy
      */
     public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output, ReturnStrategy returnStrategy) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(ConductorClientRequest.Method.POST)
-                .path("/tasks/{workflowId}/{status}/signal/sync")
-                .addPathParam("workflowId", workflowId)
-                .addPathParam("status", status.name())
-                .addQueryParam("returnStrategy", returnStrategy.name())
-                .body(output)
-                .build();
-
-        ConductorClientResponse<SignalResponse> resp = client.execute(request, new TypeReference<SignalResponse>() {
-        });
-        return resp.getData();
+        return taskClient.signal(workflowId, status, output, returnStrategy);
     }
 
     /**
@@ -176,15 +164,7 @@ public class OrkesTaskClient {
      * @param output     Output for the task
      */
     public void signalAsync(String workflowId, Task.Status status, Map<String, Object> output) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(ConductorClientRequest.Method.POST)
-                .path("/tasks/{workflowId}/{status}/signal")
-                .addPathParam("workflowId", workflowId)
-                .addPathParam("status", status.name())
-                .body(output)
-                .build();
-
-        client.execute(request);
+        taskClient.signalAsync(workflowId, status, output);
     }
 
     public Task pollTask(String taskType, String workerId, String domain) {

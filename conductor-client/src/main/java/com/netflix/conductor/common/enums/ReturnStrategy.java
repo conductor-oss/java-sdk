@@ -10,10 +10,11 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.orkes.conductor.client.enums;
+package com.netflix.conductor.common.enums;
 
-public enum Consistency {
-    SYNCHRONOUS,
-    DURABLE,  // Default
-    REGION_DURABLE
+public enum ReturnStrategy {
+    TARGET_WORKFLOW,  // Default
+    BLOCKING_WORKFLOW,
+    BLOCKING_TASK,
+    BLOCKING_TASK_INPUT
 }

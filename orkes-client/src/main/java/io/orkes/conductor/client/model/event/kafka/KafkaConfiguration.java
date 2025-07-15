@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Conductor Authors.
+ * Copyright 2022 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,13 +10,14 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.netflix.conductor.common.model;
+package io.orkes.conductor.client.model.event.kafka;
 
-import lombok.Data;
+import io.orkes.conductor.client.model.event.QueueConfiguration;
 
-@Data
-public class ProtoRegistryEntry {
-    private String serviceName;
-    private String filename;
-    private byte[] data;
+public class KafkaConfiguration extends QueueConfiguration {
+    private static String QUEUE_NAME = "kafka";
+
+    public KafkaConfiguration(String queueTopicName) {
+        super(QUEUE_NAME, queueTopicName);
+    }
 }

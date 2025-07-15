@@ -43,6 +43,8 @@ public class AnnotatedWorkerExecutor {
 
     private TaskRunnerConfigurer taskRunner;
 
+    protected List<Worker> executors = new ArrayList<>();
+
     protected List<Worker> workers = new ArrayList<>();
 
     protected Map<String, Integer> workerToThreadCount = new HashMap<>();

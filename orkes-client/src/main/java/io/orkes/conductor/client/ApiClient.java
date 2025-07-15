@@ -42,6 +42,12 @@ import okhttp3.Response;
  */
 public final class ApiClient extends ConductorClient {
 
+    private boolean useGRPC;
+    private boolean useSSL;
+
+    private String grpcHost = "localhost";
+    private int grpcPort = 8090;
+
     public ApiClient(String rootUri, String keyId, String secret) {
         this(ApiClient.builder()
                 .basePath(rootUri)
@@ -56,14 +62,43 @@ public final class ApiClient extends ConductorClient {
         this(createBuilderWithEnvVars());
     }
 
+    private ApiClient(ApiClientBuilder builder) {
+        super(builder);
+    }
+
     private static ApiClientBuilder createBuilderWithEnvVars() {
         ApiClientBuilder builder = builder().useEnvVariables(true);
         builder.applyEnvVariables();
         return builder;
     }
 
-    private ApiClient(ApiClientBuilder builder) {
-        super(builder);
+    public static ApiClientBuilder builder() {
+        return new ApiClientBuilder();
+    }
+
+    public boolean isUseGRPC() {
+        return useGRPC;
+    }
+
+    /**
+     * Used for GRPC
+     *
+     * @param useSSL set f using SSL connection for gRPC
+     */
+    public void setUseSSL(boolean useSSL) {
+        this.useSSL = useSSL;
+    }
+
+    /**
+     * Set the gRPC host and port to use for worker communication.
+     *
+     * @param host gRPC server host
+     * @param port gRPC server port
+     */
+    public void setUseGRPC(String host, int port) {
+        this.grpcHost = host;
+        this.grpcPort = port;
+        this.useGRPC = true;
     }
 
     public Call buildCall(
@@ -114,7 +149,7 @@ public final class ApiClient extends ConductorClient {
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 T result;
                 try {
-                    result = (T) handleResponse(response, returnType);
+                    result = handleResponse(response, returnType);
                 } catch (ConductorClientException e) {
                     callback.onFailure(e, response.code(), response.headers().toMultimap());
                     return;
@@ -152,10 +187,6 @@ public final class ApiClient extends ConductorClient {
         } catch (IOException e) {
             throw new ConductorClientException(e);
         }
-    }
-
-    public static ApiClientBuilder builder() {
-        return new ApiClientBuilder();
     }
 
     public static class ApiClientBuilder extends Builder<ApiClientBuilder> {

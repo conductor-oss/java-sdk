@@ -17,30 +17,28 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.common.enums.Consistency;
+import com.netflix.conductor.common.enums.ReturnStrategy;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.UpgradeWorkflowRequest;
 import com.netflix.conductor.common.model.BulkResponse;
+import com.netflix.conductor.common.model.SignalResponse;
 import com.netflix.conductor.common.run.SearchResult;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.run.WorkflowSummary;
 import com.netflix.conductor.common.run.WorkflowTestRequest;
 
-import io.orkes.conductor.client.enums.Consistency;
-import io.orkes.conductor.client.enums.ReturnStrategy;
-import io.orkes.conductor.client.model.*;
+import io.orkes.conductor.client.model.CorrelationIdsSearchRequest;
+import io.orkes.conductor.client.model.WorkflowRun;
+import io.orkes.conductor.client.model.WorkflowStateUpdate;
+import io.orkes.conductor.client.model.WorkflowStatus;
 
 public class OrkesWorkflowClient implements AutoCloseable {
 
@@ -78,9 +76,10 @@ public class OrkesWorkflowClient implements AutoCloseable {
 
     /**
      * Synchronously executes a workflow
-     * @param request workflow execution request
-     * @param waitUntilTask waits until workflow has reached this task.
-     *                      Useful for executing it synchronously until this task and then continuing asynchronous execution
+     *
+     * @param request        workflow execution request
+     * @param waitUntilTask  waits until workflow has reached this task.
+     *                       Useful for executing it synchronously until this task and then continuing asynchronous execution
      * @param waitForSeconds maximum amount of time to wait before returning
      * @return WorkflowRun
      */
@@ -90,7 +89,8 @@ public class OrkesWorkflowClient implements AutoCloseable {
 
     /**
      * Synchronously executes a workflow
-     * @param request workflow execution request
+     *
+     * @param request        workflow execution request
      * @param waitUntilTasks waits until workflow has reached one of these tasks.
      *                       Useful for executing it synchronously until this task and then continuing asynchronous execution
      *                       Useful when workflow has multiple branches to wait for any of the branches to reach the task
@@ -104,10 +104,11 @@ public class OrkesWorkflowClient implements AutoCloseable {
 
     /**
      * Synchronously executes a workflow
-     * @param request workflow execution request
+     *
+     * @param request       workflow execution request
      * @param waitUntilTask waits until workflow has reached one of these tasks.
-     *                       Useful for executing it synchronously until this task and then continuing asynchronous execution
-     * @param waitTimeout maximum amount of time to wait before returning
+     *                      Useful for executing it synchronously until this task and then continuing asynchronous execution
+     * @param waitTimeout   maximum amount of time to wait before returning
      * @return WorkflowRun
      */
     public WorkflowRun executeWorkflow(StartWorkflowRequest request, String waitUntilTask, Duration waitTimeout) throws ExecutionException, InterruptedException, TimeoutException {
@@ -265,34 +266,98 @@ public class OrkesWorkflowClient implements AutoCloseable {
     }
 
     /**
-     * Executes a workflow with return strategy - new unified API
-     *
-     * @param request workflow execution request
-     * @return SignalResponse with target workflow details (default strategy)
+     * Executes a workflow with return strategy - basic version with server defaults
+     * Uses server defaults: waitForSeconds=10, consistency=DURABLE, returnStrategy=TARGET_WORKFLOW
      */
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(StartWorkflowRequest request) {
-        return executeWorkflowWithReturnStrategy(request, null, 10, Consistency.SYNCHRONOUS, ReturnStrategy.TARGET_WORKFLOW);
+        return workflowClient.executeWorkflowWithReturnStrategy(request);
     }
 
     /**
-     * Executes a workflow with specified return strategy
-     *
-     * @param request workflow execution request
-     * @param returnStrategy strategy for what data to return
-     * @return SignalResponse based on the return strategy
+     * Executes a workflow with specified return strategy only
      */
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(StartWorkflowRequest request, ReturnStrategy returnStrategy) {
-        return executeWorkflowWithReturnStrategy(request, null, 10, Consistency.SYNCHRONOUS, returnStrategy);
+        return workflowClient.executeWorkflowWithReturnStrategy(request, returnStrategy);
+    }
+
+    /**
+     * Executes a workflow with single task reference to wait for
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            String waitUntilTaskRef) {
+        return workflowClient.executeWorkflowWithReturnStrategy(request, waitUntilTaskRef);
+    }
+
+    /**
+     * Executes a workflow with single task reference and wait time
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            String waitUntilTaskRef,
+            Integer waitForSeconds) {
+        return workflowClient.executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, waitForSeconds);
+    }
+
+    /**
+     * Executes a workflow with single task reference, wait time, and return strategy
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            String waitUntilTaskRef,
+            Integer waitForSeconds,
+            ReturnStrategy returnStrategy) {
+        return workflowClient.executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, waitForSeconds, returnStrategy);
+    }
+
+    /**
+     * Executes a workflow with multiple task references to wait for
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef) {
+        return workflowClient.executeWorkflowWithReturnStrategy(request, waitUntilTaskRef);
+    }
+
+    /**
+     * Executes a workflow with multiple task references and wait time
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef,
+            Integer waitForSeconds) {
+        return workflowClient.executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, waitForSeconds);
+    }
+
+    /**
+     * Executes a workflow with multiple task references, wait time, and return strategy
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            List<String> waitUntilTaskRef,
+            Integer waitForSeconds,
+            ReturnStrategy returnStrategy) {
+        return workflowClient.executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, waitForSeconds, returnStrategy);
+    }
+
+    /**
+     * Executes a workflow with consistency and return strategy
+     */
+    public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
+            StartWorkflowRequest request,
+            Consistency consistency,
+            ReturnStrategy returnStrategy) {
+        return workflowClient.executeWorkflowWithReturnStrategy(request, consistency, returnStrategy);
     }
 
     /**
      * Executes a workflow with full control over execution parameters
      *
-     * @param request workflow execution request
+     * @param request          workflow execution request
      * @param waitUntilTaskRef reference name of the task to wait for
-     * @param waitForSeconds maximum time to wait in seconds
-     * @param consistency execution consistency mode
-     * @param returnStrategy strategy for what data to return
+     * @param waitForSeconds   maximum time to wait in seconds
+     * @param consistency      execution consistency mode
+     * @param returnStrategy   strategy for what data to return
      * @return SignalResponse based on the return strategy
      */
     public CompletableFuture<SignalResponse> executeWorkflowWithReturnStrategy(
@@ -301,27 +366,6 @@ public class OrkesWorkflowClient implements AutoCloseable {
             Integer waitForSeconds,
             Consistency consistency,
             ReturnStrategy returnStrategy) {
-
-        CompletableFuture<SignalResponse> future = new CompletableFuture<>();
-        String requestId = UUID.randomUUID().toString();
-
-        executorService.submit(() -> {
-            try {
-                SignalResponse response = workflowResource.executeWorkflowWithReturnStrategy(
-                        request,
-                        request.getName(),
-                        request.getVersion(),
-                        waitUntilTaskRef,
-                        requestId,
-                        waitForSeconds,
-                        consistency,
-                        returnStrategy);
-                future.complete(response);
-            } catch (Throwable t) {
-                future.completeExceptionally(t);
-            }
-        });
-
-        return future;
+        return workflowClient.executeWorkflowWithReturnStrategy(request, waitUntilTaskRef, waitForSeconds, consistency, returnStrategy);
     }
 }
