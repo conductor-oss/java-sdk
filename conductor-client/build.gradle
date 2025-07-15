@@ -45,10 +45,6 @@ shadowJar {
     mergeServiceFiles()
 }
 
-tasks.build {
-    dependsOn shadowJar
-}
-
 openApiGenerate {
     generatorName = 'java'
     inputSpec = "$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json"
@@ -59,4 +55,9 @@ openApiGenerate {
     configOptions = [
         dateLibrary: 'java8'
     ]
+}
+
+tasks.build {
+    dependsOn shadowJar
+    dependsOn tasks.openApiGenerate
 }
