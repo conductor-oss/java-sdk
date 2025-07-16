@@ -12,6 +12,10 @@
  */
 package io.orkes.conductor.client.spring;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URI;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -20,6 +24,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 
 import com.netflix.conductor.client.spring.ClientProperties;
 
@@ -45,7 +50,7 @@ public class OrkesConductorClientAutoConfiguration {
     @Primary
     @ConditionalOnMissingBean
     public ApiClient orkesConductorClient(ClientProperties clientProperties,
-                                          OrkesClientProperties orkesClientProperties) {
+                                          OrkesClientProperties orkesClientProperties, Environment environment) {
         var basePath = StringUtils.isBlank(clientProperties.getRootUri()) ? clientProperties.getBasePath() : clientProperties.getRootUri();
         if (basePath == null) {
             basePath = orkesClientProperties.getConductorServerUrl();
@@ -62,6 +67,14 @@ public class OrkesConductorClientAutoConfiguration {
                 .writeTimeout(clientProperties.getTimeout().getWrite())
                 .verifyingSsl(clientProperties.isVerifyingSsl());
 
+        var proxy = environment.getProperty("CONDUCTOR_SERVER_PROXY_URL");
+
+        if (proxy != null) {
+            var uri = URI.create(proxy);
+            var address = new InetSocketAddress(uri.getHost(), uri.getPort() == -1 ? 80 : uri.getPort());
+
+            builder.proxy(new Proxy(Proxy.Type.HTTP, address));
+        }
 
         if (orkesClientProperties.getKeyId() != null) {
             builder.credentials(orkesClientProperties.getKeyId(), orkesClientProperties.getSecret());
