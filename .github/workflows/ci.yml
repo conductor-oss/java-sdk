@@ -14,23 +14,48 @@ jobs:
     runs-on: ubuntu-latest
     name: Java Client Build
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
+        
       - name: Set up Zulu JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
+          
       - name: Build
-        run: |
-          ./gradlew -PIntegrationTests clean build
+        id: build
+        run: ./gradlew clean build -x test
         env:
           CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
           CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
           CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
+          
+      - name: Run Tests
+        id: tests
+        if: success()
+        continue-on-error: true
+        run: ./gradlew test jacocoTestReport
+        env:
+          CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
+          CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
+          CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
+          
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v5
         if: always()
+        uses: mikepenz/action-junit-report@v5
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
-
+          
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
+        
+      - name: Check Tests Status
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
+        

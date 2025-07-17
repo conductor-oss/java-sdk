@@ -9,6 +9,7 @@ apply from: "$rootDir/versions.gradle"
 subprojects {
     apply plugin: 'java'
     apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'jacoco'
     group = 'org.conductoross'
 
     spotless {
@@ -17,6 +18,35 @@ subprojects {
             importOrder('java', 'javax', 'org', 'com.netflix', 'io.orkes', '', '\\#com.netflix', '\\#')
             licenseHeaderFile("$rootDir/licenseheader.txt")
         }
+    }
+
+    jacoco {
+        toolVersion = "0.8.11"
+    }
+
+    jacocoTestReport {
+        dependsOn test
+        reports {
+            xml.required = true
+            html.required = true
+        }
+        
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                    '**/generated/**',
+                    '**/model/**',
+                    '**/test/**'
+                ])
+            }))
+        }
+    }
+
+    test {
+        jacoco {
+            excludes = ['**/generated/**']
+        }
+        finalizedBy jacocoTestReport
     }
 
     compileJava {
