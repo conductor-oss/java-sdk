@@ -117,21 +117,14 @@ public class TaskDef extends Auditable {
     private long totalTimeoutSeconds;
 
     public TaskDef(String name) {
-        this.name = name;
         this(name, null);
     }
 
     public TaskDef(String name, String description) {
-        this.name = name;
-        this.description = description;
         this(name, description, 3, 0L);
     }
 
     public TaskDef(String name, String description, int retryCount, long timeoutSeconds) {
-        this.name = name;
-        this.description = description;
-        this.retryCount = retryCount;
-        this.timeoutSeconds = timeoutSeconds;
         this(name, description, null, retryCount, timeoutSeconds, ONE_HOUR);
     }
 
