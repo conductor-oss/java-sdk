@@ -419,6 +419,21 @@
         "logs" : [ "${TaskExecLog}" ],
         "taskId" : "sample_taskId",
         "status" : "${TaskResult.Status}",
+        "executionMetadata": {
+          "serverSendTime": 1720054800000,
+          "clientReceiveTime": 1720054800100,
+          "executionStartTime": 1720054800200,
+          "executionEndTime": 1720054800500,
+          "clientSendTime": 1720054799900,
+          "pollNetworkLatency": 50,
+          "updateNetworkLatency": 40,
+          "additionalContext": {
+            "workflowId": "my_workflow_123",
+            "taskType": "http",
+            "status": "COMPLETED",
+            "retryCount": 2
+          }
+        },
         "externalOutputPayloadStoragePath" : "sample_externalOutputPayloadStoragePath"
       },
       "dependencies" : [ "TaskResult.Status", "TaskExecLog" ]
