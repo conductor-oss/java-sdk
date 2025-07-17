@@ -1,4 +1,6 @@
 # Conductor Java SDK v4
+[![Build Status](https://github.com/conductor-oss/java-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/conductor-oss/java-sdk/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/conductor-oss/java-sdk/graph/badge.svg?token=AQGBLGUR09)](https://codecov.io/gh/conductor-oss/java-sdk)
 
 [Conductor](https://www.conductor-oss.org/) is the leading open-source orchestration platform allowing developers to build highly scalable distributed applications.
 
