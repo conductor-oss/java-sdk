@@ -22,6 +22,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class TargetRef {
 
+    @Builder.Default
     private String id = null;
 
     public enum TypeEnum {
@@ -58,6 +59,7 @@ public class TargetRef {
         }
     }
 
+    @Builder.Default
     private TypeEnum type = null;
 
     public TargetRef id(String id) {

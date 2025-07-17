@@ -24,6 +24,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DynamicForkJoinTaskList {
 
+    @Builder.Default
     private List<DynamicForkJoinTask> dynamicTasks = new ArrayList<>();
 
     public void add(String taskName, String workflowName, String referenceName, Map<String, Object> input) {

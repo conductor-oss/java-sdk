@@ -25,8 +25,10 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class WorkflowStatus {
 
+    @Builder.Default
     private String correlationId = null;
 
+    @Builder.Default
     private Map<String, Object> output = null;
 
     public enum StatusEnum {
@@ -62,10 +64,13 @@ public class WorkflowStatus {
         }
     }
 
+    @Builder.Default
     private StatusEnum status = null;
 
+    @Builder.Default
     private Map<String, Object> variables = null;
 
+    @Builder.Default
     private String workflowId = null;
 
     public WorkflowStatus correlationId(String correlationId) {

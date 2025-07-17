@@ -67,8 +67,10 @@ public class TaskResult {
      */
     private Status status;
 
+    @Builder.Default
     private Map<String, Object> outputData = new HashMap<>();
 
+    @Builder.Default
     private List<TaskExecLog> logs = new CopyOnWriteArrayList<>();
 
     private String externalOutputPayloadStoragePath;

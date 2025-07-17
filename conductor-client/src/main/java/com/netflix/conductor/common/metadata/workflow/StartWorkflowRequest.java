@@ -30,14 +30,17 @@ public class StartWorkflowRequest {
 
     private String correlationId;
 
+    @Builder.Default
     private Map<String, Object> input = new HashMap<>();
 
+    @Builder.Default
     private Map<String, String> taskToDomain = new HashMap<>();
 
     private WorkflowDef workflowDef;
 
     private String externalInputPayloadStoragePath;
 
+    @Builder.Default
     private Integer priority = 0;
 
     private String createdBy;
