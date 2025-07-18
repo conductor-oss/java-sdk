@@ -483,12 +483,13 @@ class TaskRunner {
     private Runnable extendLease(Task task, Future<Task> taskCompletableFuture) {
         return () -> {
             if (taskCompletableFuture.isDone()) {
-                LOGGER.info(
+                LOGGER.warn(
                     "Task {} has already completed. Skipping lease extension. "
                     + "This is expected and can occasionally occur due to a race condition. "
                     + "Cleaning up the lease extension future.",
                     task.getTaskId()
                 );
+                cancelLeaseExtension(task.getTaskId());
                 return;
             }
             LOGGER.info("Attempting to extend lease for {}", task.getTaskId());
