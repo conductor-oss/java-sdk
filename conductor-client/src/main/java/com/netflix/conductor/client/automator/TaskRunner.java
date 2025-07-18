@@ -16,11 +16,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -75,7 +75,7 @@ class TaskRunner {
     private static final int LEASE_EXTEND_RETRY_COUNT = 3;
     private static final double LEASE_EXTEND_DURATION_FACTOR = 0.8;
     private final ScheduledExecutorService leaseExtendExecutorService;
-    private Map<String, ScheduledFuture<?>> leaseExtendMap = new HashMap<>();
+    private Map<String, ScheduledFuture<?>> leaseExtendMap = new ConcurrentHashMap<>();
 
     TaskRunner(Worker worker,
                TaskClient taskClient,
@@ -166,9 +166,9 @@ class TaskRunner {
                     Future<Task> taskFuture = this.executorService.submit(() -> this.processTask(task));
 
                     if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
-                        ScheduledFuture<?> scheduledFuture = leaseExtendMap.get(task.getTaskId());
-                        if (scheduledFuture != null) {
-                            scheduledFuture.cancel(false);
+                        ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
+                        if (existingFuture != null) {
+                            existingFuture.cancel(false);
                         }
 
                         long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
