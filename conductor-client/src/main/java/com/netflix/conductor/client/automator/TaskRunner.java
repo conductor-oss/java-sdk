@@ -483,13 +483,43 @@ class TaskRunner {
     private Runnable extendLease(Task task, Future<Task> taskCompletableFuture) {
         return () -> {
             if (taskCompletableFuture.isDone()) {
-                LOGGER.trace("Task {} completed, skipping lease extension", task.getTaskId());
+                LOGGER.info(
+                    "Task {} has already completed. Skipping lease extension. "
+                    + "This is expected and can occasionally occur due to a race condition. "
+                    + "Cleaning up the lease extension future.",
+                    task.getTaskId()
+                );
                 return;
             }
             LOGGER.info("Attempting to extend lease for {}", task.getTaskId());
             try {
                 TaskResult result = new TaskResult(task);
                 result.setExtendLease(true);
+                /*
+                 // @formatter:off
+                 It's safe to call this even after the task is completed.
+
+                 On the server side, if TaskResult.extendLease is true, all other fields in TaskResult are ignored.
+                 Example server logic:
+                   public void updateTask(TaskResult taskResult) {
+                       // some validation logic
+                       if (taskResult.isExtendLease()) {
+                           extendLease(taskResult);
+                           return;
+                       }
+                       // normal task update logic
+                   }
+
+                 The server also checks the task status and will not extend the lease if the task is already completed.
+
+                 // NOTE: The current Conductor API design is not ideal for lease extension.
+                 // Ideally, extending a lease should be handled by a dedicated API endpoint,
+                 // rather than by overloading the updateTask endpoint with an extendLease flag.
+                 // Using a separate endpoint would make the intent clear and avoid confusion
+                 // about possible race conditions between task completion and lease extension.
+                 // The current approach can be confusing, as it mixes lease extension with task updates.
+                 // @formatter:on
+                */
                 retryOperation(
                         (TaskResult taskResult) -> {
                             taskClient.updateTask(taskResult);

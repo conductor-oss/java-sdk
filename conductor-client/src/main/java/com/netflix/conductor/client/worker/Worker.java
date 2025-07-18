@@ -23,6 +23,11 @@ import com.netflix.conductor.client.config.PropertyFactory;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 
+/**
+ * Interface for Conductor task workers.
+ *
+ * Implementations must be thread-safe, as {@link #execute(Task)} may be called concurrently.
+ */
 public interface Worker {
 
     String PROP_DOMAIN = "domain";
