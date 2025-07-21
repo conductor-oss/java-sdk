@@ -87,7 +87,7 @@ class PublishConfigPlugin implements Plugin<Project> {
                         if (responseCode == 200) {
                             project.logger.lifecycle("Successfully promoted repository ${repo.key}")
                         } else {
-                            def errorMessage = "Failed to promote repository ${repo.key}. Response code: ${responseCode}"
+                            def errorMessage = "Failed to promote repository ${repo.key}. Response code: ${responseCode}. Response: ${connection.responseMessage}"
                             project.logger.error(errorMessage)
                             throw new GradleException(errorMessage)
                         }
