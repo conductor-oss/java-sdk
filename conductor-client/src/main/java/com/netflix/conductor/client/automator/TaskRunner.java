@@ -16,11 +16,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -75,7 +75,7 @@ class TaskRunner {
     private static final int LEASE_EXTEND_RETRY_COUNT = 3;
     private static final double LEASE_EXTEND_DURATION_FACTOR = 0.8;
     private final ScheduledExecutorService leaseExtendExecutorService;
-    private Map<String, ScheduledFuture<?>> leaseExtendMap = new HashMap<>();
+    private Map<String, ScheduledFuture<?>> leaseExtendMap = new ConcurrentHashMap<>();
 
     TaskRunner(Worker worker,
                TaskClient taskClient,
@@ -166,9 +166,9 @@ class TaskRunner {
                     Future<Task> taskFuture = this.executorService.submit(() -> this.processTask(task));
 
                     if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
-                        ScheduledFuture<?> scheduledFuture = leaseExtendMap.get(task.getTaskId());
-                        if (scheduledFuture != null) {
-                            scheduledFuture.cancel(false);
+                        ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
+                        if (existingFuture != null) {
+                            existingFuture.cancel(false);
                         }
 
                         long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
@@ -190,6 +190,16 @@ class TaskRunner {
     public void shutdown(int timeout) {
         try {
             pollingAndExecuting = false;
+            
+            leaseExtendMap.values().forEach(future -> future.cancel(false));
+            leaseExtendMap.clear();
+            
+            leaseExtendExecutorService.shutdown();
+            if (!leaseExtendExecutorService.awaitTermination(timeout, TimeUnit.SECONDS)) {
+                LOGGER.warn("Lease extend executor service did not terminate within {} seconds, forcing shutdown", timeout);
+                leaseExtendExecutorService.shutdownNow();
+            }
+            
             executorService.shutdown();
             if (executorService.awaitTermination(timeout, TimeUnit.SECONDS)) {
                 LOGGER.debug("tasks completed, shutting down");
@@ -199,6 +209,7 @@ class TaskRunner {
             }
         } catch (InterruptedException ie) {
             LOGGER.warn("shutdown interrupted, invoking shutdownNow");
+            leaseExtendExecutorService.shutdownNow();
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
@@ -315,6 +326,7 @@ class TaskRunner {
             TaskResult result = new TaskResult(task);
             handleException(t, result, worker, task);
         } finally {
+            cancelLeaseExtension(task.getTaskId());
             permits.release();
         }
         return task;
@@ -472,14 +484,43 @@ class TaskRunner {
         return () -> {
             if (taskCompletableFuture.isDone()) {
                 LOGGER.warn(
-                        "Task processing for {} completed, but its lease extend was not cancelled",
-                        task.getTaskId());
+                    "Task {} has already completed. Skipping lease extension. "
+                    + "This is expected and can occasionally occur due to a race condition. "
+                    + "Cleaning up the lease extension future.",
+                    task.getTaskId()
+                );
+                cancelLeaseExtension(task.getTaskId());
                 return;
             }
             LOGGER.info("Attempting to extend lease for {}", task.getTaskId());
             try {
                 TaskResult result = new TaskResult(task);
                 result.setExtendLease(true);
+                /*
+                 // @formatter:off
+                 It's safe to call this even after the task is completed.
+
+                 On the server side, if TaskResult.extendLease is true, all other fields in TaskResult are ignored.
+                 Example server logic:
+                   public void updateTask(TaskResult taskResult) {
+                       // some validation logic
+                       if (taskResult.isExtendLease()) {
+                           extendLease(taskResult);
+                           return;
+                       }
+                       // normal task update logic
+                   }
+
+                 The server also checks the task status and will not extend the lease if the task is already completed.
+
+                 // NOTE: The current Conductor API design is not ideal for lease extension.
+                 // Ideally, extending a lease should be handled by a dedicated API endpoint,
+                 // rather than by overloading the updateTask endpoint with an extendLease flag.
+                 // Using a separate endpoint would make the intent clear and avoid confusion
+                 // about possible race conditions between task completion and lease extension.
+                 // The current approach can be confusing, as it mixes lease extension with task updates.
+                 // @formatter:on
+                */
                 retryOperation(
                         (TaskResult taskResult) -> {
                             taskClient.updateTask(taskResult);
@@ -492,5 +533,13 @@ class TaskRunner {
                 LOGGER.error("Failed to extend lease for {}", task.getTaskId(), e);
             }
         };
+    }
+
+    private void cancelLeaseExtension(String taskId) {
+        ScheduledFuture<?> scheduledFuture = leaseExtendMap.remove(taskId);
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+            LOGGER.trace("Cancelled lease extension for task {}", taskId);
+        }
     }
 }
