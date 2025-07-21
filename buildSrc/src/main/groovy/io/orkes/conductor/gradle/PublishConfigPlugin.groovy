@@ -100,6 +100,6 @@ class PublishConfigPlugin implements Plugin<Project> {
     }
 
     static String getMavenRepoUrl(Project project) {
-        return "https://s01.oss.sonatype.org/${project.version.endsWith('-SNAPSHOT') ? 'content/repositories/snapshots/' : 'service/local/staging/deploy/maven2/'}"
+        return "https://ossrh-staging-api.central.sonatype.com/${project.version.endsWith('-SNAPSHOT') ? 'content/repositories/snapshots/' : 'service/local/staging/deploy/maven2/'}"
     }
 }
