@@ -143,7 +143,7 @@ public class PropertyFactory {
         Properties properties = new Properties();
         try (InputStream input = PropertyFactory.class.getClassLoader().getResourceAsStream(file)) {
             if (input == null) {
-                return null;
+                return properties;
             }
             properties.load(input);
         }

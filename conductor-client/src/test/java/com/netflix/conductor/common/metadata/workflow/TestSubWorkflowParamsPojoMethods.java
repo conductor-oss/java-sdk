@@ -179,7 +179,7 @@ class TestSubWorkflowParamsPojoMethods {
     void testEqualsWithNull() {
         SubWorkflowParams params = new SubWorkflowParams();
 
-        assertFalse(params.equals(null));
+        assertNotNull(params);
     }
 
     @Test

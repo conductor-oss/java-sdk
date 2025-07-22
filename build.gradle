@@ -1,5 +1,6 @@
 plugins {
     id 'com.diffplug.spotless' version '6.+'
+    id 'pmd'
 }
 
 group = 'io.orkes.conductor'
@@ -10,6 +11,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'com.diffplug.spotless'
     apply plugin: 'jacoco'
+    apply plugin: 'pmd'
     group = 'org.conductoross'
 
     spotless {
@@ -47,6 +49,26 @@ subprojects {
             excludes = ['**/generated/**']
         }
         finalizedBy jacocoTestReport
+    }
+
+    pmd {
+        consoleOutput = true
+        ruleSetFiles = files("$rootDir/config/pmd/custom-ruleset.xml")
+        rulesMinimumPriority = 1
+    }
+
+    pmdMain {
+        reports {
+            html.required = true
+            xml.required = true
+        }
+    }
+
+    pmdTest {
+        reports {
+            html.required = true
+            xml.required = true
+        }
     }
 
     compileJava {
