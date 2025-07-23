@@ -35,9 +35,9 @@ import io.orkes.conductor.sdk.examples.util.ClientUtil;
  */
 public class MetadataManagement {
 
-    public static String taskName = "test11_task";
-    public static String taskName2 = "test11_task1";
-    public static String taskName3 = "test11_task2";
+    private static final String taskName = "test11_task";
+    private static final String taskName2 = "test11_task1";
+    private static final String taskName3 = "test11_task2";
     private static TaskDef taskDef;
     private static TaskDef taskDef2;
     private static TaskDef taskDef3;
