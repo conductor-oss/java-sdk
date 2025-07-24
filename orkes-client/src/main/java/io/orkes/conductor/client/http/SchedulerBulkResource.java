@@ -12,14 +12,15 @@
  */
 package io.orkes.conductor.client.http;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.List;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.common.model.BulkResponse;
 
-import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 
 class SchedulerBulkResource {
