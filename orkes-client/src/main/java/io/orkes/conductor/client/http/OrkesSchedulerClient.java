@@ -15,6 +15,7 @@ package io.orkes.conductor.client.http;
 import java.util.List;
 
 import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.common.model.BulkResponse;
 
 import io.orkes.conductor.client.SchedulerClient;
 import io.orkes.conductor.client.model.SaveScheduleRequest;
@@ -25,9 +26,11 @@ import io.orkes.conductor.client.model.WorkflowSchedule;
 public class OrkesSchedulerClient implements SchedulerClient {
 
     private final SchedulerResource schedulerResource;
+    private final SchedulerBulkResource schedulerBulkResource;
 
     public OrkesSchedulerClient(ConductorClient apiClient) {
         this.schedulerResource = new SchedulerResource(apiClient);
+        this.schedulerBulkResource = new SchedulerBulkResource(apiClient);
     }
 
     @Override
@@ -103,4 +106,13 @@ public class OrkesSchedulerClient implements SchedulerClient {
     public List<TagObject> getSchedulerTags(String name) {
         return schedulerResource.getTagsForSchedule(name);
     }
+
+    public BulkResponse pauseSchedulers(List<String> schedulerIds) {
+        return schedulerBulkResource.pauseSchedulers(schedulerIds);
+    }
+
+    public BulkResponse resumeSchedulers(List<String> schedulerIds) {
+        return schedulerBulkResource.resumeSchedulers(schedulerIds);
+    }
+
 }
