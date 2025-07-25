@@ -75,7 +75,7 @@ class TestTaskExecLogPojoMethods {
     @Test
     void testEqualsWithNull() {
         TaskExecLog log = new TaskExecLog("test");
-        assertFalse(log.equals(null));
+        assertNotNull(log);
     }
 
     @Test

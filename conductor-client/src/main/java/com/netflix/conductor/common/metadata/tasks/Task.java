@@ -182,10 +182,7 @@ public class Task {
     private long firstStartTime;
 
     public void setInputData(Map<String, Object> inputData) {
-        if (inputData == null) {
-            inputData = new HashMap<>();
-        }
-        this.inputData = inputData;
+        this.inputData = (inputData == null) ? new HashMap<>() : inputData;
     }
 
     public long getQueueWaitTime() {

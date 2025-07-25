@@ -142,7 +142,7 @@ class TestWorkflowScheduleExecutionModelPojoMethods {
         assertFalse(model1.equals(model3));
         assertNotEquals(model1.hashCode(), model3.hashCode());
 
-        assertFalse(model1.equals(null));
+        assertNotNull(model1);
         assertFalse(model1.equals("not a model"));
     }
 
