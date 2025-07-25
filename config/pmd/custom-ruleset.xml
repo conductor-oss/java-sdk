@@ -23,4 +23,4 @@
     <exclude-pattern>.*/bin/.*</exclude-pattern>
     <exclude-pattern>.*/out/.*</exclude-pattern>
 
-</ruleset> 
+</ruleset>
