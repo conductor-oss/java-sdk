@@ -376,7 +376,7 @@ public final class TaskClient {
      *
      * @return returns a list of poll data for all task types
      */
-    public List<PollData> getAllPollData() {
+    public List<PollData> getAllPollData() { // TODO: wrong according to swagger
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
                 .path("/tasks/queue/polldata")
@@ -392,7 +392,7 @@ public final class TaskClient {
      *
      * @return returns the number of tasks that have been requeued
      */
-    public String requeueAllPendingTasks() {
+    public String requeueAllPendingTasks() { // TODO: wrong according to swagger
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/tasks/queue/requeue")

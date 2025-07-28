@@ -128,7 +128,7 @@ public class TagsResource {
 
     public void setWorkflowTags(List<TagObject> tagObjects, String workflow) {
         ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.GET)
+                .method(Method.PUT)
                 .path("/metadata/workflow/{workflow}/tags")
                 .addPathParam("workflow", workflow)
                 .body(tagObjects)
