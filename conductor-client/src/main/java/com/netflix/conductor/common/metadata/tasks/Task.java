@@ -72,6 +72,7 @@ public class Task {
 
     private Status status;
 
+    @Builder.Default
     private Map<String, Object> inputData = new HashMap<>();
 
     private String referenceTaskName;
@@ -121,6 +122,7 @@ public class Task {
      */
     private boolean executed;
 
+    @Builder.Default
     private boolean callbackFromWorker = true;
 
     /**
@@ -140,6 +142,7 @@ public class Task {
 
     private String workerId;
 
+    @Builder.Default
     private Map<String, Object> outputData = new HashMap<>();
 
     private WorkflowTask workflowTask;
@@ -164,6 +167,8 @@ public class Task {
     private int iteration;
 
     private String subWorkflowId;
+
+    private ExecutionMetadata executionMetadata;
 
     /**
      * Use to note that a sub workflow associated with SUB_WORKFLOW task has an action performed on
@@ -232,6 +237,13 @@ public class Task {
 
     public boolean isLoopOverTask() {
         return iteration > 0;
+    }
+
+    public ExecutionMetadata getExecutionMetadata() {
+        if (executionMetadata == null) {
+            executionMetadata = new ExecutionMetadata();
+        }
+        return executionMetadata;
     }
 
     public String getSubWorkflowId() {

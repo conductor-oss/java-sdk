@@ -29,6 +29,7 @@ jobs:
           export CONDUCTOR_CLIENT_VERSION=`echo ${VERSION:1}`
           echo Publishing version $CONDUCTOR_CLIENT_VERSION
           ./gradlew publish -Pversion=$CONDUCTOR_CLIENT_VERSION -PmavenCentral=${{ github.event.inputs.maven_central }} -Pusername=${{ secrets.SONATYPE_USERNAME }} -Ppassword=${{ secrets.SONATYPE_PASSWORD }}
+
     env:
       ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
       ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}

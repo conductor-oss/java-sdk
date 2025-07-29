@@ -26,26 +26,37 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class WorkflowSchedule {
 
+    @Builder.Default
     private Long createTime = null;
 
+    @Builder.Default
     private String createdBy = null;
 
+    @Builder.Default
     private String cronExpression = null;
 
+    @Builder.Default
     private String name = null;
 
+    @Builder.Default
     private Boolean paused = null;
 
+    @Builder.Default
     private Boolean runCatchupScheduleInstances = null;
 
+    @Builder.Default
     private Long scheduleEndTime = null;
 
+    @Builder.Default
     private Long scheduleStartTime = null;
 
+    @Builder.Default
     private StartWorkflowRequest startWorkflowRequest = null;
 
+    @Builder.Default
     private String updatedBy = null;
 
+    @Builder.Default
     private Long updatedTime = null;
 
     private String zoneId;

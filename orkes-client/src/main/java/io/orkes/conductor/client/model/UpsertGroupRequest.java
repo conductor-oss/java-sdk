@@ -63,8 +63,10 @@ public class UpsertGroupRequest {
 
     }
 
+    @Builder.Default
     private Map<String, List<String>> defaultAccess = null;
 
+    @Builder.Default
     private String description = null;
 
     /** Gets or Sets roles */
@@ -101,6 +103,7 @@ public class UpsertGroupRequest {
 
     }
 
+    @Builder.Default
     private List<RolesEnum> roles = null;
 
     public UpsertGroupRequest defaultAccess(Map<String, List<String>> defaultAccess) {

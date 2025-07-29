@@ -28,6 +28,7 @@ public class BulkResponse<T> {
 
     private List<T> bulkSuccessfulResults;
 
+    @Builder.Default
     private String message = "Bulk Request has been processed.";
 
     public BulkResponse() {

@@ -67,8 +67,10 @@ public class TaskResult {
      */
     private Status status;
 
+    @Builder.Default
     private Map<String, Object> outputData = new HashMap<>();
 
+    @Builder.Default
     private List<TaskExecLog> logs = new CopyOnWriteArrayList<>();
 
     private String externalOutputPayloadStoragePath;
@@ -76,6 +78,8 @@ public class TaskResult {
     private String subWorkflowId;
 
     private boolean extendLease;
+
+    private ExecutionMetadata executionMetadata;
 
     public TaskResult(Task task) {
         this.workflowInstanceId = task.getWorkflowInstanceId();
@@ -86,6 +90,7 @@ public class TaskResult {
         this.outputData = task.getOutputData();
         this.externalOutputPayloadStoragePath = task.getExternalOutputPayloadStoragePath();
         this.subWorkflowId = task.getSubWorkflowId();
+        this.executionMetadata = task.getExecutionMetadata();
         switch(task.getStatus()) {
             case CANCELED:
             case COMPLETED_WITH_ERRORS:
@@ -100,6 +105,13 @@ public class TaskResult {
                 this.status = Status.valueOf(task.getStatus().name());
                 break;
         }
+    }
+
+    public ExecutionMetadata getExecutionMetadata() {
+        if (executionMetadata == null) {
+            executionMetadata = new ExecutionMetadata();
+        }
+        return executionMetadata;
     }
 
     public void setReasonForIncompletion(String reasonForIncompletion) {

@@ -24,6 +24,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class GrantedAccessResponse {
+    @Builder.Default
     private List<GrantedAccess> grantedAccess = null;
 
     public GrantedAccessResponse grantedAccess(List<GrantedAccess> grantedAccess) {

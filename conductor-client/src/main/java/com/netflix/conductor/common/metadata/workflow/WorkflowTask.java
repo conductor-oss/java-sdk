@@ -47,8 +47,10 @@ public class WorkflowTask {
 
     private String description;
 
+    @Builder.Default
     private Map<String, Object> inputParameters = new HashMap<>();
 
+    @Builder.Default
     private String type = TaskType.SIMPLE.name();
 
     private String dynamicTaskNameParam;
@@ -71,6 +73,7 @@ public class WorkflowTask {
     }
 
     // Populates for the tasks of the decision type
+    @Builder.Default
     private Map<String, List<WorkflowTask>> decisionCases = new LinkedHashMap<>();
 
     @Deprecated
@@ -80,8 +83,10 @@ public class WorkflowTask {
 
     private String dynamicForkTasksInputParamName;
 
+    @Builder.Default
     private List<WorkflowTask> defaultCase = new LinkedList<>();
 
+    @Builder.Default
     private List<List<WorkflowTask>> forkTasks = new LinkedList<>();
 
     private int // No. of seconds (at-least) to wait before starting a task.
@@ -89,6 +94,7 @@ public class WorkflowTask {
 
     private SubWorkflowParams subWorkflowParam;
 
+    @Builder.Default
     private List<String> joinOn = new LinkedList<>();
 
     private String sink;
@@ -97,21 +103,25 @@ public class WorkflowTask {
      * If the task is optional. When set to true, the workflow execution continues even when
      *     the task is in failed status.
      */
+    @Builder.Default
     private boolean optional = false;
 
     private TaskDef taskDefinition;
 
     private Boolean rateLimited;
 
+    @Builder.Default
     private List<String> defaultExclusiveJoinTask = new LinkedList<>();
 
     /**
      * whether wait for an external event to complete the task, for EVENT and HTTP tasks
      */
+    @Builder.Default
     private Boolean asyncComplete = false;
 
     private String loopCondition;
 
+    @Builder.Default
     private List<WorkflowTask> loopOver = new LinkedList<>();
 
     private Integer retryCount;
@@ -129,6 +139,7 @@ public class WorkflowTask {
     key can be comma separated values of the status changes prefixed with "on"<STATUS>
     */
     // @ProtoField(id = 29)
+    @Builder.Default
     private Map<String, List<StateChangeEvent>> onStateChange = new HashMap<>();
 
     private String joinStatus;
