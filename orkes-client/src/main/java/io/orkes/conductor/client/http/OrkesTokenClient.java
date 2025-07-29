@@ -36,80 +36,17 @@ public class OrkesTokenClient {
      * @param request The token generation request containing necessary parameters
      * @return ConductorClientResponse containing the generated token
      */
-    public ConductorClientResponse<TokenResponse> generateToken(GenerateTokenRequest request) {
-        return tokenResource.generate(request);
+    public TokenResponse generateToken(GenerateTokenRequest request) {
+        return tokenResource.generate(request).getData();
     }
 
-    /**
-     * Generate a new authentication token with default parameters
-     * Convenience method for simple token generation
-     *
-     * @return ConductorClientResponse containing the generated token
-     */
-    public ConductorClientResponse<TokenResponse> generateToken() {
-        return generateToken(new GenerateTokenRequest());
-    }
 
     /**
      * Get current user information from the token context
      *
      * @return ConductorClientResponse containing user information
      */
-    public ConductorClientResponse<ConductorUser> getUserInfo() {
-        return tokenResource.getUserInfo();
-    }
-
-    /**
-     * Convenience method to get user info directly without wrapper
-     *
-     * @return ConductorUser object or null if failed
-     */
-    public ConductorUser getCurrentUser() {
-        try {
-            ConductorClientResponse<ConductorUser> response = getUserInfo();
-            return response != null ? response.getData() : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /**
-     * Check if current token/user context is valid
-     *
-     * @return true if user info can be retrieved successfully, false otherwise
-     */
-    public boolean isTokenValid() {
-        try {
-            ConductorClientResponse<ConductorUser> response = getUserInfo();
-            return response != null && response.getData() != null;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * Generate token and extract the token string directly
-     * Convenience method for simple use cases
-     *
-     * @param request The token generation request
-     * @return The token string or null if generation failed
-     */
-    public String generateTokenString(GenerateTokenRequest request) {
-        try {
-            ConductorClientResponse<TokenResponse> response = generateToken(request);
-            return response != null && response.getData() != null ?
-                    response.getData().getToken() : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /**
-     * Generate token string with default parameters
-     *
-     * @return The token string or null if generation failed
-     */
-    public String generateTokenString() {
-        return generateTokenString(new GenerateTokenRequest());
+    public ConductorUser getUserInfo() {
+        return tokenResource.getUserInfo().getData();
     }
 }

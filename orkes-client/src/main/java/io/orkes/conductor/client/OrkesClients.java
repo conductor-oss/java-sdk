@@ -57,6 +57,10 @@ public class OrkesClients {
         return new OrkesTaskClient(client);
     }
 
+    public OrkesTokenClient getTokenClient() {
+        return new OrkesTokenClient(client);
+    }
+
     public IntegrationClient getIntegrationClient() {
         return new OrkesIntegrationClient(client);
     }
