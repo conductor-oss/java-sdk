@@ -148,3 +148,13 @@ tasks.build {
     dependsOn tasks.openApiGenerate
 }
 
+tasks.named('sourcesJar') {
+    dependsOn tasks.openApiGenerate
+}
+tasks.named('javadoc') {
+    dependsOn tasks.openApiGenerate
+}
+tasks.named('compileJava') {
+    dependsOn tasks.openApiGenerate
+}
+
