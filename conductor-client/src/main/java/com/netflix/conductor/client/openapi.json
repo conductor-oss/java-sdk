@@ -306,7 +306,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -395,7 +397,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -445,7 +449,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -667,7 +673,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -725,7 +733,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -855,7 +865,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Task" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
             }
           }
         }
@@ -877,7 +889,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -1018,7 +1032,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -1039,7 +1055,9 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
           }
         }
       }
@@ -1083,7 +1101,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Workflow" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Workflow" }
+              }
             }
           }
         }
@@ -1501,7 +1521,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Task" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
             }
           }
         }
@@ -1676,7 +1698,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "type": "integer", "format": "int32" } }
+              "application/json": {
+                "schema": { "type": "integer", "format": "int32" }
+              }
             }
           }
         }
@@ -1811,7 +1835,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Task" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
             }
           }
         }
@@ -2078,7 +2104,9 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/TaskDef" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskDef" }
+              }
             }
           }
         }
