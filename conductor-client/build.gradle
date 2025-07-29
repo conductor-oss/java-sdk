@@ -17,6 +17,10 @@ apply plugin: 'publish-config'
 
 dependencies {
     implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
+    implementation 'com.google.code.gson:gson:2.13.1'
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation 'io.gsonfire:gson-fire:1.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 
     // test dependencies
     testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
@@ -35,6 +39,19 @@ java {
     withJavadocJar()
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/conductor-client-v2/src/main/java"
+        }
+    }
+    test {
+        java {
+            srcDir "$buildDir/generated/conductor-client-v2/src/main/java"
+        }
+    }
+}
+
 test {
     useJUnitPlatform()
     maxParallelForks = 1
@@ -45,12 +62,81 @@ shadowJar {
     mergeServiceFiles()
 }
 
+task downloadOpenApiSpec {
+    doLast {
+        def openApiUrl = 'http://localhost:8080/api-docs'
+        def outputFile = file("$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json")
+        
+        println "Downloading OpenAPI specification from $openApiUrl..."
+        
+        try {
+            def connection = new URL(openApiUrl).openConnection() as HttpURLConnection
+            connection.setRequestMethod('GET')
+            connection.setRequestProperty('Accept', 'application/json')
+            
+            if (connection.responseCode == 200) {
+                def inputStream = connection.inputStream
+                outputFile.parentFile.mkdirs()
+                outputFile.withOutputStream { outputStream ->
+                    inputStream.transferTo(outputStream)
+                }
+                println "Successfully downloaded OpenAPI specification to ${outputFile.absolutePath}"
+            } else {
+                println "Failed to download OpenAPI specification. HTTP response code: ${connection.responseCode}"
+                println "Response message: ${connection.responseMessage}"
+            }
+        } catch (Exception e) {
+            println "Error downloading OpenAPI specification: ${e.message}"
+            println "Make sure the Conductor server is running on localhost:8080"
+        }
+    }
+}
+
+task fixContentTypes {
+    doLast {
+        def openApiFile = file("$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json")
+        
+        if (!openApiFile.exists()) {
+            println "OpenAPI specification file not found. Skipping content type fixes."
+            return
+        }
+        
+        println "Fixing content types in OpenAPI specification..."
+        
+        try {
+            def content = openApiFile.text
+            
+            // Replace text/plain with application/json
+            def originalContent = content
+            content = content.replaceAll('"text/plain"', '"application/json"')
+            
+            // Replace */* with application/json
+            content = content.replaceAll('"\\*\\/\\*"', '"application/json"')
+            
+            // Replace */* (without quotes) with application/json
+            content = content.replaceAll('\\*\\*', 'application/json')
+            
+            if (content != originalContent) {
+                openApiFile.text = content
+                println "Successfully updated content types in OpenAPI specification"
+            } else {
+                println "No content type replacements needed"
+            }
+        } catch (Exception e) {
+            println "Error fixing content types: ${e.message}"
+        }
+    }
+}
+
+// Make fixContentTypes depend on downloadOpenApiSpec
+tasks.fixContentTypes.dependsOn tasks.downloadOpenApiSpec
+
 openApiGenerate {
     generatorName = 'java'
     inputSpec = "$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json"
     outputDir = "$buildDir/generated/conductor-client-v2"
-    apiPackage = 'com.netflix.conductor.client.http.v2'
-    modelPackage = 'com.netflix.conductor.client.http.v2.model'
+    apiPackage = 'com.netflix.conductor.clientv2.http'
+    modelPackage = 'com.netflix.conductor.clientv2.http.model'
     library = 'okhttp-gson'
     configOptions = [
         dateLibrary: 'java8'
@@ -59,5 +145,7 @@ openApiGenerate {
 
 tasks.build {
     dependsOn shadowJar
-    dependsOn tasks.openApiGenerate
 }
+
+// Make openApiGenerate depend on downloadOpenApiSpec
+tasks.openApiGenerate.dependsOn tasks.fixContentTypes
