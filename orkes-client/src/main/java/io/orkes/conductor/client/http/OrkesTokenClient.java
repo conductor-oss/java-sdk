@@ -13,7 +13,7 @@
 package io.orkes.conductor.client.http;
 
 import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.ConductorClientResponse;
+
 import io.orkes.conductor.client.model.ConductorUser;
 import io.orkes.conductor.client.model.GenerateTokenRequest;
 import io.orkes.conductor.client.model.TokenResponse;
