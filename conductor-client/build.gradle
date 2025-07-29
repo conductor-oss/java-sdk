@@ -145,7 +145,6 @@ openApiGenerate {
 
 tasks.build {
     dependsOn shadowJar
+    dependsOn tasks.openApiGenerate
 }
 
-// Make openApiGenerate depend on downloadOpenApiSpec
-tasks.openApiGenerate.dependsOn tasks.fixContentTypes
