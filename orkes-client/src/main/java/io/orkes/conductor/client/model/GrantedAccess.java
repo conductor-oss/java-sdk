@@ -59,10 +59,8 @@ public class GrantedAccess {
         }
     }
 
-    @Builder.Default
     private List<AccessEnum> access = null;
 
-    @Builder.Default
     private TargetRef target = null;
 
     private String tag;

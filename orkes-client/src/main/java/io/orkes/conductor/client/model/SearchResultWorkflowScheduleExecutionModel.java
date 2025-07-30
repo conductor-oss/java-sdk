@@ -23,10 +23,8 @@ import lombok.*;
 @NoArgsConstructor
 public class SearchResultWorkflowScheduleExecutionModel {
 
-    @Builder.Default
     private List<WorkflowScheduleExecutionModel> results = null;
 
-    @Builder.Default
     private Long totalHits = null;
 
     public SearchResultWorkflowScheduleExecutionModel results(List<WorkflowScheduleExecutionModel> results) {

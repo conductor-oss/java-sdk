@@ -35,45 +35,35 @@ public class WorkflowDef extends Auditable {
 
     private String description;
 
-    @Builder.Default
     private int version = 1;
 
-    @Builder.Default
     private List<WorkflowTask> tasks = new LinkedList<>();
 
-    @Builder.Default
     private List<String> inputParameters = new LinkedList<>();
 
-    @Builder.Default
     private Map<String, Object> outputParameters = new HashMap<>();
 
     private String failureWorkflow;
 
-    @Builder.Default
     private int schemaVersion = 2;
 
     // By default a workflow is restartable
-    @Builder.Default
     private boolean restartable = true;
 
     /**
      * Specify if workflow listener is enabled to invoke a callback for completed or terminated
      * workflows
      */
-    @Builder.Default
     private boolean workflowStatusListenerEnabled = false;
 
     private String ownerEmail;
 
-    @Builder.Default
     private TimeoutPolicy timeoutPolicy = TimeoutPolicy.ALERT_ONLY;
 
     private long timeoutSeconds;
 
-    @Builder.Default
     private Map<String, Object> variables = new HashMap<>();
 
-    @Builder.Default
     private Map<String, Object> inputTemplate = new HashMap<>();
 
     private String workflowStatusListenerSink;
@@ -84,10 +74,8 @@ public class WorkflowDef extends Auditable {
 
     private SchemaDef outputSchema;
 
-    @Builder.Default
     private boolean enforceSchema = true;
 
-    @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
 
     public String key() {

@@ -26,22 +26,16 @@ import lombok.*;
 public class ConductorUser {
 
     @Deprecated
-    @Builder.Default
     private Boolean applicationUser = null;
 
-    @Builder.Default
     private List<Group> groups = null;
 
-    @Builder.Default
     private String id = null;
 
-    @Builder.Default
     private String name = null;
 
-    @Builder.Default
     private List<Role> roles = null;
 
-    @Builder.Default
     private String uuid = null;
 
     private Boolean encryptedId;

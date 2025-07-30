@@ -20,11 +20,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.netflix.conductor.common.validation.ValidationError;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Setter;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
 public class ConductorClientException extends RuntimeException {
 
     private int status;

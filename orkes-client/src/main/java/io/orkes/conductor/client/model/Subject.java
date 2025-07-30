@@ -22,7 +22,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Subject {
 
-    @Builder.Default
     private String id = null;
 
     /** Gets or Sets type */
@@ -56,7 +55,6 @@ public class Subject {
         }
     }
 
-    @Builder.Default
     private TypeEnum type = null;
 
     public Subject id(String id) {

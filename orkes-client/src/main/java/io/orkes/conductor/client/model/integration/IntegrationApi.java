@@ -24,7 +24,6 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode(callSuper=false)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class IntegrationApi extends Auditable {
 

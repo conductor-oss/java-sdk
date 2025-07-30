@@ -22,10 +22,8 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class TerminateWorkflow {
 
-    @Builder.Default
     private String terminationReason = null;
 
-    @Builder.Default
     private String workflowId = null;
 
     public TerminateWorkflow terminationReason(String terminationReason) {
