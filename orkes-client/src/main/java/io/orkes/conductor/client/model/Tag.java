@@ -17,9 +17,9 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class Tag {
 
-    private String key;
-    private String value;
+    public String key;
+    public String value;
 }

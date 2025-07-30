@@ -13,27 +13,29 @@
 package io.orkes.conductor.client.http;
 
 import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.ConductorClientRequest;
-import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 
 import io.orkes.conductor.client.model.WebhookConfig;
 import io.orkes.conductor.client.model.Tag;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.util.List;
 
 /**
- * Resource class for webhook configuration operations.
- * Provides HTTP client methods to interact with webhook endpoints.
+ * Client for managing webhook configurations in Orkes Conductor.
+ * Provides functionality to create, update, delete, and manage webhook configurations
+ * that can trigger workflows based on external events.
  */
-public class WebhookResource {
+public class OrkesWebhookClient {
 
-    private final ConductorClient client;
+    private final WebhookResource webhookResource;
 
-    public WebhookResource(ConductorClient client) {
-        this.client = client;
+    /**
+     * Constructs a new OrkesWebhookClient with the specified ConductorClient.
+     *
+     * @param client the ConductorClient to use for making HTTP requests to the server
+     */
+    public OrkesWebhookClient(ConductorClient client) {
+        this.webhookResource = new WebhookResource(client);
     }
 
     /**
@@ -43,14 +45,7 @@ public class WebhookResource {
      * @return ConductorClientResponse containing the created webhook configuration
      */
     public ConductorClientResponse<WebhookConfig> createWebhook(WebhookConfig webhookConfig) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/metadata/webhook")
-                .body(webhookConfig)
-                .build();
-
-        return client.execute(request, new TypeReference<>() {
-        });
+        return webhookResource.createWebhook(webhookConfig);
     }
 
     /**
@@ -61,14 +56,7 @@ public class WebhookResource {
      * @return ConductorClientResponse containing the updated webhook configuration
      */
     public ConductorClientResponse<WebhookConfig> updateWebhook(String id, WebhookConfig webhookConfig) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.PUT)
-                .path("/metadata/webhook/" + id)
-                .body(webhookConfig)
-                .build();
-
-        return client.execute(request, new TypeReference<>() {
-        });
+        return webhookResource.updateWebhook(id, webhookConfig);
     }
 
     /**
@@ -78,13 +66,7 @@ public class WebhookResource {
      * @return ConductorClientResponse for the delete operation
      */
     public ConductorClientResponse<Void> deleteWebhook(String id) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.DELETE)
-                .path("/metadata/webhook/" + id)
-                .build();
-
-        return client.execute(request, new TypeReference<>() {
-        });
+        return webhookResource.deleteWebhook(id);
     }
 
     /**
@@ -94,13 +76,7 @@ public class WebhookResource {
      * @return ConductorClientResponse containing the webhook configuration
      */
     public ConductorClientResponse<WebhookConfig> getWebhook(String id) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.GET)
-                .path("/metadata/webhook/" + id)
-                .build();
-
-        return client.execute(request, new TypeReference<>() {
-        });
+        return webhookResource.getWebhook(id);
     }
 
     /**
@@ -109,13 +85,7 @@ public class WebhookResource {
      * @return ConductorClientResponse containing a list of all webhook configurations
      */
     public ConductorClientResponse<List<WebhookConfig>> getAllWebhooks() {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.GET)
-                .path("/metadata/webhook")
-                .build();
-
-        return client.execute(request, new TypeReference<>() {
-        });
+        return webhookResource.getAllWebhooks();
     }
 
     /**
@@ -125,13 +95,7 @@ public class WebhookResource {
      * @return ConductorClientResponse containing a list of tags
      */
     public ConductorClientResponse<List<Tag>> getTagsForWebhook(String id) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.GET)
-                .path("/metadata/webhook/" + id + "/tags")
-                .build();
-
-        return client.execute(request, new TypeReference<>() {
-        });
+        return webhookResource.getTagsForWebhook(id);
     }
 
     /**
@@ -142,14 +106,7 @@ public class WebhookResource {
      * @return ConductorClientResponse for the put operation
      */
     public ConductorClientResponse<Void> putTagsForWebhook(String id, List<Tag> tags) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.PUT)
-                .path("/metadata/webhook/" + id + "/tags")
-                .body(tags)
-                .build();
-
-        return client.execute(request, new TypeReference<>() {
-        });
+        return webhookResource.putTagsForWebhook(id, tags);
     }
 
     /**
@@ -160,13 +117,50 @@ public class WebhookResource {
      * @return ConductorClientResponse for the delete operation
      */
     public ConductorClientResponse<Void> deleteTagsForWebhook(String id, List<Tag> tags) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.DELETE)
-                .path("/metadata/webhook/" + id + "/tags")
-                .body(tags)
-                .build();
+        return webhookResource.deleteTagsForWebhook(id, tags);
+    }
 
-        return client.execute(request, new TypeReference<>() {
-        });
+    /**
+     * Convenience method to get a webhook configuration directly without wrapper.
+     *
+     * @param id the webhook ID to retrieve
+     * @return WebhookConfig object or null if failed
+     */
+    public WebhookConfig getWebhookConfig(String id) {
+        try {
+            ConductorClientResponse<WebhookConfig> response = getWebhook(id);
+            return response != null ? response.getData() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Convenience method to get all webhook configurations directly without wrapper.
+     *
+     * @return List of WebhookConfig objects or empty list if failed
+     */
+    public List<WebhookConfig> getWebhookConfigs() {
+        try {
+            ConductorClientResponse<List<WebhookConfig>> response = getAllWebhooks();
+            return response != null && response.getData() != null ? response.getData() : List.of();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    /**
+     * Check if a webhook exists by ID.
+     *
+     * @param id the webhook ID to check
+     * @return true if webhook exists, false otherwise
+     */
+    public boolean webhookExists(String id) {
+        try {
+            ConductorClientResponse<WebhookConfig> response = getWebhook(id);
+            return response != null && response.getData() != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

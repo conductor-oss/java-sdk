@@ -16,7 +16,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WebhookConfigModel {
+public class WebhookConfig {
 
     private String name;
 
