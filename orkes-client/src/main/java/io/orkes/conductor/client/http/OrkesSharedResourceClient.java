@@ -12,10 +12,11 @@
  */
 package io.orkes.conductor.client.http;
 
-import com.netflix.conductor.client.http.ConductorClient;
-import io.orkes.conductor.client.model.SharedResourceModel;
-
 import java.util.List;
+
+import com.netflix.conductor.client.http.ConductorClient;
+
+import io.orkes.conductor.client.model.SharedResourceModel;
 
 /**
  * Client for managing shared resources in Orkes Conductor.

@@ -12,13 +12,15 @@
  */
 package io.orkes.conductor.client.http;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.List;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientResponse;
+
 import io.orkes.conductor.client.model.SharedResourceModel;
 
-import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 public class SharedResource {
     private final ConductorClient client;
