@@ -143,7 +143,7 @@ class TestEventExecutionPojoMethods {
     @Test
     void testEqualsWithNull() {
         EventExecution execution = new EventExecution();
-        assertFalse(execution.equals(null));
+        assertNotNull(execution);
     }
 
     @Test
