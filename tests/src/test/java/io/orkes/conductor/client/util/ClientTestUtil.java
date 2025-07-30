@@ -16,7 +16,6 @@ import com.netflix.conductor.client.http.ConductorClient;
 
 import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.OrkesClients;
-import io.orkes.conductor.client.http.OrkesWebhookClientTest;
 
 public class ClientTestUtil {
     private static final ConductorClient CLIENT = ApiClient.builder()
