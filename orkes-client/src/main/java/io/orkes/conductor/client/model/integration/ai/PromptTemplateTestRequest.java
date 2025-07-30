@@ -27,11 +27,8 @@ public class PromptTemplateTestRequest {
     private String llmProvider;
     private String model;
     private String prompt;
-    @Builder.Default
     private Map<String, Object> promptVariables = new HashMap<>();
-    @Builder.Default
     private double temperature = 0.1;
-    @Builder.Default
     private double topP = 0.9;
     private List<String> stopWords;
 

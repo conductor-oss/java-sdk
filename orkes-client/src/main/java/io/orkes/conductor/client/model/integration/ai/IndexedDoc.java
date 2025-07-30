@@ -26,7 +26,6 @@ public class IndexedDoc {
     private String parentDocId;
     private String text;
     private double score;
-    @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
 
     public IndexedDoc(String docId, String parentDocId, String text, double score) {
@@ -34,6 +33,5 @@ public class IndexedDoc {
         this.parentDocId = parentDocId;
         this.text = text;
         this.score = score;
-        this.metadata = new HashMap<>();
     }
 }

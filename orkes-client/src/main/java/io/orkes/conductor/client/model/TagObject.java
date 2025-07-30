@@ -22,7 +22,6 @@ import lombok.*;
 @NoArgsConstructor
 public class TagObject {
 
-    @Builder.Default
     private String key = null;
 
     /**
@@ -58,11 +57,9 @@ public class TagObject {
     }
 
     @Deprecated
-    @Builder.Default
     // This is not required anymore. Type has been moved to WorkflowDef.RateLimitConfig as METADATA type
     private TypeEnum type = null;
 
-    @Builder.Default
     private Object value = null;
 
     public TagObject key(String key) {

@@ -56,7 +56,6 @@ public class Workflow extends Auditable {
         }
     }
 
-    @Builder.Default
     private WorkflowStatus status = WorkflowStatus.RUNNING;
 
     private long endTime;
@@ -67,13 +66,10 @@ public class Workflow extends Auditable {
 
     private String parentWorkflowTaskId;
 
-    @Builder.Default
     private List<Task> tasks = new LinkedList<>();
 
-    @Builder.Default
     private Map<String, Object> input = new HashMap<>();
 
-    @Builder.Default
     private Map<String, Object> output = new HashMap<>();
 
     // ids 10,11 are reserved
@@ -86,10 +82,8 @@ public class Workflow extends Auditable {
     // id 15 is reserved
     private String event;
 
-    @Builder.Default
     private Map<String, String> taskToDomain = new HashMap<>();
 
-    @Builder.Default
     private Set<String> failedReferenceTaskNames = new HashSet<>();
 
     private WorkflowDef workflowDefinition;
@@ -100,15 +94,12 @@ public class Workflow extends Auditable {
 
     private int priority;
 
-    @Builder.Default
     private Map<String, Object> variables = new HashMap<>();
 
     private long lastRetriedTime;
 
-    @Builder.Default
     private Set<String> failedTaskNames = new HashSet<>();
 
-    @Builder.Default
     private List<Workflow> history = new LinkedList<>();
 
     private String idempotencyKey;

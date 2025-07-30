@@ -25,16 +25,12 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class TaskDetails {
 
-    @Builder.Default
     private Map<String, Object> output = null;
 
-    @Builder.Default
     private String taskId = null;
 
-    @Builder.Default
     private String taskRefName = null;
 
-    @Builder.Default
     private String workflowId = null;
 
     public TaskDetails output(Map<String, Object> output) {
