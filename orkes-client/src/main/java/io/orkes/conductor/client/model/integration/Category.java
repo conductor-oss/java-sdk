@@ -26,6 +26,8 @@ public enum Category {
 
     GIT,
 
-    EMAIL
+    EMAIL,
+
+    MCP
 
 }
