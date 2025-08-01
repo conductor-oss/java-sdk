@@ -43,6 +43,7 @@ public class OrkesPromptClient implements PromptClient {
                 .path("/prompts/{name}")
                 .addPathParam("name", promptName)
                 .addQueryParam("description", description)
+                .body(promptTemplate) // TODO: it is assumption, not clear from swagger
                 .build();
         client.execute(request);
     }
@@ -145,5 +146,16 @@ public class OrkesPromptClient implements PromptClient {
         });
 
         return resp.getData();
+    }
+
+    // POST /api/prompts
+    public void savePrompt(List<PromptTemplate> prompts) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/prompts")
+                .body(prompts)
+                .build();
+
+        client.execute(request);
     }
 }

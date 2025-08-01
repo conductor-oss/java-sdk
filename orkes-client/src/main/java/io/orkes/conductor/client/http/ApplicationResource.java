@@ -191,4 +191,16 @@ class ApplicationResource {
 
         client.execute(request);
     }
+
+    ConductorApplication getApplicationIdByKeyId(String accessKeyId) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/applications/key/{accessKeyId}")
+                .addPathParam("accessKeyId", accessKeyId)
+                .build();
+        ConductorClientResponse<ConductorApplication> response = client.execute(request, new TypeReference<>() {
+        });
+
+        return response.getData();
+    }
 }

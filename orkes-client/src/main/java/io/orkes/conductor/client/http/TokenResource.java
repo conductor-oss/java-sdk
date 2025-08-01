@@ -44,9 +44,14 @@ public class TokenResource {
     }
 
     public ConductorClientResponse<ConductorUser> getUserInfo() {
+        return getUserInfo(false);
+    }
+
+    public ConductorClientResponse<ConductorUser> getUserInfo(boolean claims) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
                 .path("/token/userInfo")
+                .addQueryParam("claims", String.valueOf(claims))
                 .build();
 
         return client.execute(request, new TypeReference<>() {
