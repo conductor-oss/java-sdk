@@ -16,6 +16,7 @@ apply plugin: 'publish-config'
 
 dependencies {
     implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
+    implementation "org.projectlombok:lombok:${versions.lombok}"
 
     // test dependencies
     testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
@@ -46,4 +47,50 @@ shadowJar {
 
 tasks.build {
     dependsOn shadowJar
+}
+
+task delombokTaskResult {
+    description 'Delomboks only the TaskResult.java file'
+    def srcDelomboked = 'build/delombok-taskresult'
+    def srcJava = 'src/main/java'
+    def taskResultFile = 'src/main/java/com/netflix/conductor/common/metadata/tasks/TaskResult.java'
+
+    inputs.files file( taskResultFile )
+    outputs.dir file( srcDelomboked )
+
+    doLast {
+        mkdir srcDelomboked + '/com/netflix/conductor/common/metadata/tasks'
+        
+        def classpath = configurations.compileClasspath + configurations.testCompileClasspath
+        
+        def lombokJar = classpath.find { it.name.contains('lombok') }
+        if (!lombokJar) {
+            throw new GradleException("Lombok jar not found in classpath")
+        }
+        
+        println "Using Lombok jar: ${lombokJar}"
+        
+        ant.taskdef(
+            name: 'delombok',
+            classname: 'lombok.delombok.ant.Tasks$Delombok',
+            classpath: lombokJar.absolutePath
+        )
+        
+        ant.delombok(
+            from: srcJava + '/com/netflix/conductor/common/metadata/tasks',
+            to: srcDelomboked + '/com/netflix/conductor/common/metadata/tasks',
+            classpath: classpath.asPath,
+            encoding: 'UTF-8'
+        )
+
+        copy {
+            from srcDelomboked + '/com/netflix/conductor/common/metadata/tasks/TaskResult.java'
+            into srcJava + '/com/netflix/conductor/common/metadata/tasks'
+            rename { String fileName ->
+                fileName.replace('TaskResult.java', 'TaskResult.java_delomboked')
+            }
+        }
+        
+        println "TaskResult.java has been delomboked successfully!"
+    }
 }

@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.conductoross:conductor-client:4.0.12'
+}
+
+application {
+    mainClass = 'com.example.Main'
+}
+
+compileJava {
+    sourceCompatibility = 17
+    targetCompatibility = 17
+}
