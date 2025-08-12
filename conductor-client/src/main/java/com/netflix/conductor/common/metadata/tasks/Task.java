@@ -72,7 +72,6 @@ public class Task {
 
     private Status status;
 
-    @Builder.Default
     private Map<String, Object> inputData = new HashMap<>();
 
     private String referenceTaskName;
@@ -122,7 +121,6 @@ public class Task {
      */
     private boolean executed;
 
-    @Builder.Default
     private boolean callbackFromWorker = true;
 
     /**
@@ -142,7 +140,6 @@ public class Task {
 
     private String workerId;
 
-    @Builder.Default
     private Map<String, Object> outputData = new HashMap<>();
 
     private WorkflowTask workflowTask;

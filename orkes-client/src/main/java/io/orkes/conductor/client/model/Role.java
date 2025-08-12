@@ -25,10 +25,8 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Role {
 
-    @Builder.Default
     private String name = null;
 
-    @Builder.Default
     private List<Permission> permissions = null;
 
     public Role name(String name) {

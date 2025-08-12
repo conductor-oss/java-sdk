@@ -21,7 +21,6 @@ import lombok.*;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CreateOrUpdateApplicationRequest {
-    @Builder.Default
     private String name = null;
 
     public CreateOrUpdateApplicationRequest name(String name) {

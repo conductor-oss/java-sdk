@@ -22,22 +22,16 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConductorApplication {
 
-    @Builder.Default
     private String createdBy = null;
 
-    @Builder.Default
     private String id = null;
 
-    @Builder.Default
     private String name = null;
 
-    @Builder.Default
     private Long createTime = null;
 
-    @Builder.Default
     private Long updateTime = null;
 
-    @Builder.Default
     private String updatedBy = null;
 
     public ConductorApplication createdBy(String createdBy) {

@@ -45,13 +45,11 @@ public class EventExecution {
 
     private Action.Type action;
 
-    @Builder.Default
     private Map<String, Object> output = new HashMap<>();
 
     public EventExecution(String id, String messageId) {
         this.id = id;
         this.messageId = messageId;
-        this.output = new HashMap<>();
     }
 
     public boolean equals(Object o) {

@@ -59,13 +59,10 @@ public class AuthorizationRequest {
         }
     }
 
-    @Builder.Default
     private List<AccessEnum> access = new ArrayList<>();
 
-    @Builder.Default
     private SubjectRef subject = null;
 
-    @Builder.Default
     private TargetRef target = null;
 
     public AuthorizationRequest access(List<AccessEnum> access) {

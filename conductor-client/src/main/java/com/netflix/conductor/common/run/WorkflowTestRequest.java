@@ -19,23 +19,23 @@ import java.util.Map;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class WorkflowTestRequest extends StartWorkflowRequest {
 
     // Map of task reference name to mock output for the task
-    @Builder.Default
     private Map<String, List<TaskMock>> taskRefToMockOutput = new HashMap<>();
 
     // If there are sub-workflows inside the workflow
     // The map of task reference name to the mock for the sub-workflow
-    @Builder.Default
     private Map<String, WorkflowTestRequest> subWorkflowTestRequest = new HashMap<>();
 
     public static class TaskMock {

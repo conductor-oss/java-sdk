@@ -48,30 +48,24 @@ public class TaskDef extends Auditable {
 
     private String description;
 
-    @Builder.Default
-    private int retryCount = 3;
+    private int // Default
+    retryCount = 3;
 
     private long timeoutSeconds;
 
-    @Builder.Default
     private List<String> inputKeys = new ArrayList<>();
 
-    @Builder.Default
     private List<String> outputKeys = new ArrayList<>();
 
-    @Builder.Default
     private TimeoutPolicy timeoutPolicy = TimeoutPolicy.TIME_OUT_WF;
 
-    @Builder.Default
     private RetryLogic retryLogic = RetryLogic.FIXED;
 
-    @Builder.Default
     private int retryDelaySeconds = 60;
 
     /**
      * the timeout for task to send response. After this timeout, the task will be re-queued
      */
-    @Builder.Default
     private long responseTimeoutSeconds = ONE_HOUR;
 
     /**
@@ -80,7 +74,6 @@ public class TaskDef extends Auditable {
      */
     private Integer concurrentExecLimit;
 
-    @Builder.Default
     private Map<String, Object> inputTemplate = new HashMap<>();
 
     // This field is deprecated, do not use id 13.
@@ -103,7 +96,6 @@ public class TaskDef extends Auditable {
 
     private Integer pollTimeoutSeconds;
 
-    @Builder.Default
     private Integer backoffScaleFactor = 1;
 
     private String baseType;
@@ -117,15 +109,19 @@ public class TaskDef extends Auditable {
     private long totalTimeoutSeconds;
 
     public TaskDef(String name) {
-        this(name, null);
+        this.name = name;
     }
 
     public TaskDef(String name, String description) {
-        this(name, description, 3, 0L);
+        this.name = name;
+        this.description = description;
     }
 
     public TaskDef(String name, String description, int retryCount, long timeoutSeconds) {
-        this(name, description, null, retryCount, timeoutSeconds, ONE_HOUR);
+        this.name = name;
+        this.description = description;
+        this.retryCount = retryCount;
+        this.timeoutSeconds = timeoutSeconds;
     }
 
     public TaskDef(String name, String description, String ownerEmail, int retryCount, long timeoutSeconds, long responseTimeoutSeconds) {
@@ -135,13 +131,6 @@ public class TaskDef extends Auditable {
         this.retryCount = retryCount;
         this.timeoutSeconds = timeoutSeconds;
         this.responseTimeoutSeconds = responseTimeoutSeconds;
-        this.inputKeys = new ArrayList<>();
-        this.outputKeys = new ArrayList<>();
-        this.timeoutPolicy = TimeoutPolicy.TIME_OUT_WF;
-        this.retryLogic = RetryLogic.FIXED;
-        this.retryDelaySeconds = 60;
-        this.inputTemplate = new HashMap<>();
-        this.backoffScaleFactor = 1;
     }
 
     /**

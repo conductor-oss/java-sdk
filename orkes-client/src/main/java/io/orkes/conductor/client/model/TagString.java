@@ -22,7 +22,6 @@ import lombok.*;
 @NoArgsConstructor
 public class TagString {
 
-    @Builder.Default
     private String key = null;
 
     public enum TypeEnum {
@@ -55,10 +54,8 @@ public class TagString {
     }
 
     @Deprecated
-    @Builder.Default
     private TypeEnum type = null;
 
-    @Builder.Default
     private String value = null;
 
     public TagString key(String key) {

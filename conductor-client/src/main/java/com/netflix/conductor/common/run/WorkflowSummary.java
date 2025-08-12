@@ -68,7 +68,6 @@ public class WorkflowSummary {
 
     private String event;
 
-    @Builder.Default
     private String failedReferenceTaskNames = "";
 
     private String externalInputPayloadStoragePath;
@@ -77,12 +76,10 @@ public class WorkflowSummary {
 
     private int priority;
 
-    @Builder.Default
     private Set<String> failedTaskNames = new HashSet<>();
 
     private String createdBy;
-
-    @Builder.Default
+    
     private Map<String, String> taskToDomain = new HashMap<>();
 
     public WorkflowSummary(Workflow workflow) {

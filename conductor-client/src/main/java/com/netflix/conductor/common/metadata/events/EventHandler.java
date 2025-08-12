@@ -38,7 +38,6 @@ public class EventHandler {
 
     private String condition;
 
-    @Builder.Default
     private List<Action> actions = new LinkedList<>();
 
     private boolean active;

@@ -15,23 +15,30 @@ package com.netflix.conductor.common.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ServiceRegistry {
 
     private String name;
     private Type type;
     private String serviceURI;
-    private final List<ServiceMethod> methods = new ArrayList<>();
-    private final List<RequestParam> requestParams = new ArrayList<>();
-    private final Config config = new Config();
+    private List<ServiceMethod> methods = new ArrayList<>();
+    private List<RequestParam> requestParams = new ArrayList<>();
+    private Config config = new Config();
+    private boolean circuitBreakerEnabled = false;
 
     public enum Type {
         HTTP, gRPC
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Config {
         private OrkesCircuitBreakerConfig circuitBreakerConfig = new OrkesCircuitBreakerConfig();
     }

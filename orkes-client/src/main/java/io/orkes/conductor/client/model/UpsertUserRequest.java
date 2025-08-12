@@ -25,10 +25,8 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UpsertUserRequest {
 
-    @Builder.Default
     private List<String> groups = null;
 
-    @Builder.Default
     private String name = null;
 
     public enum RolesEnum {
@@ -63,7 +61,6 @@ public class UpsertUserRequest {
         }
     }
 
-    @Builder.Default
     private List<RolesEnum> roles = null;
 
     public UpsertUserRequest groups(List<String> groups) {

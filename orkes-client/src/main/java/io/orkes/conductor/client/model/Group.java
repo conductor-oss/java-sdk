@@ -59,16 +59,12 @@ public class Group {
         }
     }
 
-    @Builder.Default
     private Map<String, List<String>> defaultAccess = null;
 
-    @Builder.Default
     private String description = null;
 
-    @Builder.Default
     private String id = null;
 
-    @Builder.Default
     private List<Role> roles = null;
 
     public Group defaultAccess(Map<String, List<String>> defaultAccess) {

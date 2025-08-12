@@ -24,31 +24,22 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SaveScheduleRequest {
 
-    @Builder.Default
     private String createdBy = null;
 
-    @Builder.Default
     private String cronExpression = null;
 
-    @Builder.Default
     private String name = null;
 
-    @Builder.Default
     private Boolean paused = null;
 
-    @Builder.Default
     private Boolean runCatchupScheduleInstances = null;
 
-    @Builder.Default
     private Long scheduleEndTime = null;
 
-    @Builder.Default
     private Long scheduleStartTime = null;
 
-    @Builder.Default
     private StartWorkflowRequest startWorkflowRequest = null;
 
-    @Builder.Default
     private String updatedBy = null;
 
     private String zoneId;
