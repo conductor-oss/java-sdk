@@ -85,6 +85,10 @@ public class TaskRunnerConfigurer {
         return this.threadCount;
     }
 
+    public int getWorkerCount() {
+        return workers.size();
+    }
+
     /**
      * @return Thread Count for individual task type
      */

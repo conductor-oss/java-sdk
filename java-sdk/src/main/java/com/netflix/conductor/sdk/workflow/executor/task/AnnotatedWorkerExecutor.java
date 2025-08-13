@@ -12,6 +12,7 @@
  */
 package com.netflix.conductor.sdk.workflow.executor.task;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -83,6 +85,35 @@ public class AnnotatedWorkerExecutor {
         startPolling();
     }
 
+    public synchronized void initWorkersFromInstances(List<Object> workerInstances) {
+        for (var worker : workerInstances) {
+            addBean(worker);
+        }
+
+        startPolling();
+    }
+
+    public synchronized void initWorkersFromClasses(List<? extends Class<?>> classesToScan) {
+        var workerClasses = classesToScan.stream()
+                .map(workerClass -> {
+                    LOGGER.trace("Scanning class {} from class loader {}", workerClass, workerClass.getClassLoader());
+
+                    try {
+                        return Optional.of(workerClass.getConstructor().newInstance());
+                    } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                        LOGGER.error("Error while scanning class {}: {}", workerClass.getName(), e.getMessage());
+
+                        return Optional.empty();
+                    }
+                })
+                .filter(Optional::isPresent)
+                .map(optional -> (Object) optional.get())
+                .toList();
+
+        initWorkersFromInstances(workerClasses);
+    }
+
+
     /** Shuts down the workers */
     public void shutdown() {
         if (taskRunner != null) {
@@ -109,39 +140,33 @@ public class AnnotatedWorkerExecutor {
             LOGGER.info("packages to scan {}", packagesToScan);
 
             long s = System.currentTimeMillis();
-            ClassPath.from(AnnotatedWorkerExecutor.class.getClassLoader())
-                    .getAllClasses()
-                    .forEach(
-                            classMeta -> {
-                                String name = classMeta.getName();
-                                if (!includePackage(packagesToScan, name)) {
-                                    return;
-                                }
-                                try {
-                                    Class<?> clazz = classMeta.load();
-                                    Object obj = clazz.getConstructor().newInstance();
-                                    addBean(obj);
-                                } catch (Throwable t) {
-                                    // trace because many classes won't have a default no-args
-                                    // constructor and will fail
-                                    LOGGER.trace(
-                                            "Caught exception while loading and scanning class {}",
-                                            t.getMessage());
-                                }
-                            });
-            LOGGER.info(
+
+            var classLoader = AnnotatedWorkerExecutor.class.getClassLoader();
+
+            LOGGER.trace("Scanning for classes in package {} in classloader {}", packagesToScan, classLoader);
+
+            var classesOnClasspath = ClassPath.from(classLoader).getAllClasses();
+
+            var classes = classesOnClasspath.stream()
+                    .filter(classMeta -> classBelongsToPackage(packagesToScan, classMeta.getName()))
+                    .map(ClassPath.ClassInfo::load)
+                    .toList();
+
+            LOGGER.trace(
                     "Took {} ms to scan all the classes, loading {} tasks",
                     (System.currentTimeMillis() - s),
                     workers.size());
+
+            initWorkersFromClasses(classes);
 
         } catch (Exception e) {
             LOGGER.error("Error while scanning for workers: ", e);
         }
     }
 
-    private boolean includePackage(List<String> packagesToScan, String name) {
+    private boolean classBelongsToPackage(List<String> packagesToScan, String className) {
         for (String scanPkg : packagesToScan) {
-            if (name.startsWith(scanPkg)) return true;
+            if (className.startsWith(scanPkg)) return true;
         }
         return false;
     }
@@ -197,7 +222,7 @@ public class AnnotatedWorkerExecutor {
             return;
         }
 
-        LOGGER.info("Starting workers with threadCount {}", workerToThreadCount);
+        LOGGER.info("Starting {} workers with threadCount {}", workers.size(), workerToThreadCount);
         LOGGER.info("Worker domains {}", workerDomains);
 
         var builder = new TaskRunnerConfigurer.Builder(taskClient, workers)
@@ -207,8 +232,15 @@ public class AnnotatedWorkerExecutor {
             builder.withMetricsCollector(metricsCollector);
         }
 
+        var oldTaskRunner = Optional.ofNullable(taskRunner);
+
         taskRunner = builder.build();
         taskRunner.init();
+
+        oldTaskRunner.ifPresent(taskRunner -> {
+            LOGGER.trace("Shutting down previous task runner with {} workers.", taskRunner.getWorkerCount());
+            taskRunner.shutdown();
+        });
     }
 
     @VisibleForTesting
