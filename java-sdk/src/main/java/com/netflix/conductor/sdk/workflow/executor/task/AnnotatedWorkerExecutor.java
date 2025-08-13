@@ -48,7 +48,7 @@ public class AnnotatedWorkerExecutor {
 
     private MetricsCollector metricsCollector;
 
-    private static final Set<String> scannedPackages = new HashSet<>();
+    private final Set<String> scannedPackages = new HashSet<>();
 
     private final WorkerConfiguration workerConfiguration;
 
