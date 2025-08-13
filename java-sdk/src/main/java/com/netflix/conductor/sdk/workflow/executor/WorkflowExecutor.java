@@ -166,8 +166,16 @@ public class WorkflowExecutor {
                 TimeUnit.MILLISECONDS);
     }
 
-    public void initWorkers(String packagesToScan) {
+    public void initWorkers(String... packagesToScan) {
         annotatedWorkerExecutor.initWorkers(packagesToScan);
+    }
+
+    public void initWorkersFromInstances(List<Object> workerInstances) {
+        annotatedWorkerExecutor.initWorkersFromInstances(workerInstances);
+    }
+
+    public void initWorkersFromClasses(List<? extends Class<?>> classesToScan) {
+        annotatedWorkerExecutor.initWorkersFromClasses(classesToScan);
     }
 
     public CompletableFuture<Workflow> executeWorkflow(String name, Integer version, Object input) {

@@ -75,16 +75,42 @@ Output:
 ```
 
 ## Managing Task Workers
-Annotated Workers are managed by [WorkflowExecutor](https://github.com/conductor-oss/conductor/blob/main/java-sdk/src/main/java/com/netflix/conductor/sdk/workflow/executor/WorkflowExecutor.java)
+Annotated Workers are managed by [WorkflowExecutor](https://github.com/conductor-oss/java-sdk/blob/main/java-sdk/src/main/java/com/netflix/conductor/sdk/workflow/executor/WorkflowExecutor.java)
 
 ### Start Workers
+To start workers via classpath scanning, use either of the `initWorkers` methods in the `WorkflowExecutor` class.
 ```java
 WorkflowExecutor executor = new WorkflowExecutor("http://server/api/");
-//List of packages  (comma separated) to scan for annotated workers.  
-// Please note, the worker method MUST be public and the class in which they are defined
-//MUST have a no-args constructor        
+// List of packages  (comma separated) to scan for annotated workers.  
+// Please note, the worker method(s) MUST be public and the class in which they are defined
+// MUST have a no-args constructor        
 executor.initWorkers("com.company.package1,com.company.package2");
+
+// You may also specify packages as separate variadic arguments rather than comma-separated
+executor.initWorkers("com.company.package1", "com.company.package2");
 ```
+
+To start workers via a specific class (or list of classes) use the `initWorkersFromClasses` method. This will not scan
+the entire classpath, but only the classes you specify.
+```java
+WorkflowExecutor executor = new WorkflowExecutor("http://server/api/");
+
+// As above, note that the worker method(s) MUST be public and the class in which they are defined
+// MUST have a no-args constructor
+executor.initWorkersFromClasses(List.of(MyCoolWorker.class, SomeOtherWorker.class));
+```
+
+Finally, if you want to manage your workers in a way that requires you to construct them without no-args constructors,
+you may use the `initWorkersFromInstances` method. This allows you to pass in instances of your worker classes.
+```java
+WorkflowExecutor executor = new WorkflowExecutor("http://server/api/");
+
+// As above, note that the worker method(s) MUST be public
+executor.initWorkersFromInstances(List.of(
+        myCoolWorkerInstance, someOtherWorkerInstance
+))
+```
+
 
 ### Stop Workers
 The code fragment to stop workers at shutdown of the application.

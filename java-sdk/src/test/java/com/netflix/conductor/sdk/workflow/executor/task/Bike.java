@@ -13,13 +13,13 @@
 package com.netflix.conductor.sdk.workflow.executor.task;
 
 public class Bike {
-    String brand;
+    public String brand;
 
-    String getBrand() {
+    public String getBrand() {
         return brand;
     }
 
-    void setBrand(String brand) {
+    public void setBrand(String brand) {
         this.brand = brand;
     }
 }
