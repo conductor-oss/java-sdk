@@ -65,7 +65,7 @@ shadowJar {
 task downloadOpenApiSpec {
     doLast {
         def openApiUrl = 'http://localhost:8080/api-docs'
-        def outputFile = file("$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json")
+        def outputFile = file("$rootDir/conductor-client/src/main/resources/conductor-openapi.json")
         
         println "Downloading OpenAPI specification from $openApiUrl..."
         
@@ -94,7 +94,7 @@ task downloadOpenApiSpec {
 
 task fixContentTypes {
     doLast {
-        def openApiFile = file("$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json")
+        def openApiFile = file("$rootDir/conductor-client/src/main/resources/conductor-openapi.json")
         
         if (!openApiFile.exists()) {
             println "OpenAPI specification file not found. Skipping content type fixes."
@@ -133,8 +133,8 @@ tasks.fixContentTypes.dependsOn tasks.downloadOpenApiSpec
 
 openApiGenerate {
     generatorName = 'java'
-    inputSpec = "$rootDir/conductor-client/src/main/java/com/netflix/conductor/client/openapi.json"
-    outputDir = "$buildDir/generated/conductor-client-v2"
+    inputSpec = "$rootDir/conductor-client/src/main/resources/conductor-openapi.json"
+    outputDir = "$rootDir/.conductor-client-v2"
     apiPackage = 'com.netflix.conductor.clientv2.http'
     modelPackage = 'com.netflix.conductor.clientv2.http.model'
     library = 'okhttp-gson'
