@@ -14,14 +14,7 @@ package com.netflix.conductor.sdk.workflow.executor.task;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,11 +70,11 @@ public class AnnotatedWorkerExecutor {
     /**
      * Finds any worker implementation and starts polling for tasks
      *
-     * @param basePackage list of packages - comma separated - to scan for annotated worker
+     * @param basePackages list of packages - comma separated - to scan for annotated worker
      *     implementation
      */
-    public synchronized void initWorkers(String basePackage) {
-        scanWorkers(basePackage);
+    public synchronized void initWorkers(String... basePackages) {
+        scanWorkers(basePackages);
         startPolling();
     }
 
@@ -121,23 +114,25 @@ public class AnnotatedWorkerExecutor {
         }
     }
 
-    private void scanWorkers(String basePackage) {
+    private void scanWorkers(String... basePackages) {
         try {
-            if (scannedPackages.contains(basePackage)) {
-                // skip
-                LOGGER.info("Package {} already scanned and will skip", basePackage);
-                return;
-            }
-            // Add here so to avoid infinite recursion where a class in the package contains the
-            // code to init workers
-            scannedPackages.add(basePackage);
             List<String> packagesToScan = new ArrayList<>();
-            if (basePackage != null) {
-                String[] packages = basePackage.split(",");
-                Collections.addAll(packagesToScan, packages);
-            }
 
-            LOGGER.info("packages to scan {}", packagesToScan);
+            Arrays.stream(basePackages)
+                    .flatMap(basePackage -> Arrays.stream(basePackage.split(",")))
+                    .forEach(basePackage -> {
+                        if (scannedPackages.contains(basePackage)) {
+                            LOGGER.info("Package {} already scanned and will skip", basePackage);
+                        } else {
+                            // Add here so to avoid infinite recursion where a class in the package contains the
+                            // code to init workers
+                            scannedPackages.add(basePackage);
+                            packagesToScan.add(basePackage);
+                        }
+                    });
+
+
+            LOGGER.info("Packages to scan {}", packagesToScan);
 
             long s = System.currentTimeMillis();
 

@@ -166,7 +166,7 @@ public class WorkflowExecutor {
                 TimeUnit.MILLISECONDS);
     }
 
-    public void initWorkers(String packagesToScan) {
+    public void initWorkers(String... packagesToScan) {
         annotatedWorkerExecutor.initWorkers(packagesToScan);
     }
 
