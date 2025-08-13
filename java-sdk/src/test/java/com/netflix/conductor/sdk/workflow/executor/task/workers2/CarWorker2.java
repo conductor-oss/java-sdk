@@ -12,12 +12,12 @@
  */
 package com.netflix.conductor.sdk.workflow.executor.task.workers2;
 
+import java.util.List;
+
 import com.netflix.conductor.sdk.workflow.executor.task.Car;
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.OutputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
-
-import java.util.List;
 
 public class CarWorker2 {
     @WorkerTask("test_2")

@@ -21,10 +21,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import com.netflix.conductor.sdk.workflow.executor.task.workers1.CarWorker1;
-import com.netflix.conductor.sdk.workflow.executor.task.workers1.JumboWorker1;
-import com.netflix.conductor.sdk.workflow.executor.task.workers2.CarWorker2;
-import com.netflix.conductor.sdk.workflow.executor.task.workers2.JumboWorker2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +28,10 @@ import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.sdk.workflow.executor.task.workers1.CarWorker1;
+import com.netflix.conductor.sdk.workflow.executor.task.workers1.JumboWorker1;
+import com.netflix.conductor.sdk.workflow.executor.task.workers2.CarWorker2;
+import com.netflix.conductor.sdk.workflow.executor.task.workers2.JumboWorker2;
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.OutputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
