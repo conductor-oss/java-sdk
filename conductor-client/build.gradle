@@ -42,12 +42,12 @@ java {
 sourceSets {
     main {
         java {
-            srcDir "$buildDir/generated/conductor-client-v2/src/main/java"
+            srcDir "$rootDir/conductor-client/src/main/java/.conductor-client-v2/src/main/java"
         }
     }
     test {
         java {
-            srcDir "$buildDir/generated/conductor-client-v2/src/main/java"
+            srcDir "$rootDir/conductor-client/src/main/java/.conductor-client-v2/src/main/java"
         }
     }
 }
@@ -134,10 +134,12 @@ tasks.fixContentTypes.dependsOn tasks.downloadOpenApiSpec
 openApiGenerate {
     generatorName = 'java'
     inputSpec = "$rootDir/conductor-client/src/main/resources/conductor-openapi.json"
-    outputDir = "$rootDir/.conductor-client-v2"
+    outputDir = "$rootDir/conductor-client/src/main/java/.conductor-client-v2"
     apiPackage = 'com.netflix.conductor.clientv2.http'
     modelPackage = 'com.netflix.conductor.clientv2.http.model'
     library = 'okhttp-gson'
+    generateApiTests = false
+    generateModelTests = false
     configOptions = [
         dateLibrary: 'java8'
     ]
@@ -157,4 +159,3 @@ tasks.named('javadoc') {
 tasks.named('compileJava') {
     dependsOn tasks.openApiGenerate
 }
-

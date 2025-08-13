@@ -17,7 +17,7 @@ subprojects {
             removeUnusedImports()
             importOrder('java', 'javax', 'org', 'com.netflix', 'io.orkes', '', '\\#com.netflix', '\\#')
             licenseHeaderFile("$rootDir/licenseheader.txt")
-            targetExclude('build/generated/**')
+            targetExclude("src/main/java/.conductor-client-v2/**")
         }
     }
 
