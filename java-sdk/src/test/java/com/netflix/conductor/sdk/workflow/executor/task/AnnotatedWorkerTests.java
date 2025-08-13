@@ -19,7 +19,12 @@ import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
+import com.netflix.conductor.sdk.workflow.executor.task.workers1.CarWorker1;
+import com.netflix.conductor.sdk.workflow.executor.task.workers1.JumboWorker1;
+import com.netflix.conductor.sdk.workflow.executor.task.workers2.CarWorker2;
+import com.netflix.conductor.sdk.workflow.executor.task.workers2.JumboWorker2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -37,11 +42,52 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.mock;
 
 public class AnnotatedWorkerTests {
+    private void testAnnotatedWorkersExecutor(Consumer<AnnotatedWorkerExecutor> test) {
+        var taskClient = mock(TaskClient.class);
+        var annotatedWorkersExecutor = new AnnotatedWorkerExecutor(taskClient);
+
+        test.accept(annotatedWorkersExecutor);
+
+        assertEquals(16, annotatedWorkersExecutor.getTaskRunner().getWorkerCount());
+
+        annotatedWorkersExecutor.shutdown();
+    }
+
+    @Test
+    @DisplayName("should pick up all worker tasks from the classpath")
+    void classpathScanningTestWithCommaSeparation() {
+        testAnnotatedWorkersExecutor(executor -> executor.initWorkers("com.netflix.conductor.sdk.workflow.executor.task.workers1,com.netflix.conductor.sdk.workflow.executor.task.workers2"));
+    }
+
+    @Test
+    @DisplayName("should pick up all worker tasks from the classpath")
+    void classpathScanningTestWithVariadicArguments() {
+        testAnnotatedWorkersExecutor(executor -> executor.initWorkers(
+                "com.netflix.conductor.sdk.workflow.executor.task.workers1",
+                "com.netflix.conductor.sdk.workflow.executor.task.workers2"
+        ));
+    }
+
+    @Test
+    @DisplayName("should pick up all worker tasks from the provided classes")
+    void directClassSupply() {
+        testAnnotatedWorkersExecutor(executor -> executor.initWorkersFromClasses(List.of(
+                CarWorker1.class, JumboWorker1.class, CarWorker2.class, JumboWorker2.class
+        )));
+    }
+
+    @Test
+    @DisplayName("should pick up all worker tasks from the provided instances")
+    void directInstanceSupply() {
+        testAnnotatedWorkersExecutor(executor -> executor.initWorkersFromInstances(List.of(
+                new CarWorker1(), new JumboWorker1(), new CarWorker2(), new JumboWorker2()
+        )));
+    }
 
     @Test
     @DisplayName("it should handle null values when InputParam is a List")
     void nullListAsInputParam() throws NoSuchMethodException {
-        var worker = new CarWorker();
+        var worker = new CarWorker1();
         var annotatedWorker =
                 new AnnotatedWorker(
                         "test_1", worker.getClass().getMethod("doWork", List.class), worker);
@@ -57,7 +103,7 @@ public class AnnotatedWorkerTests {
     @Test
     @DisplayName("it should handle an empty List as InputParam")
     void emptyListAsInputParam() throws NoSuchMethodException {
-        var worker = new CarWorker();
+        var worker = new CarWorker1();
         var annotatedWorker =
                 new AnnotatedWorker(
                         "test_1", worker.getClass().getMethod("doWork", List.class), worker);
@@ -77,7 +123,7 @@ public class AnnotatedWorkerTests {
     @Test
     @DisplayName("it should handle a non empty List as InputParam")
     void nonEmptyListAsInputParam() throws NoSuchMethodException {
-        var worker = new CarWorker();
+        var worker = new CarWorker1();
         var annotatedWorker =
                 new AnnotatedWorker(
                         "test_1", worker.getClass().getMethod("doWork", List.class), worker);
