@@ -51,7 +51,8 @@ public class OrkesTaskClient {
     }
 
     /**
-     * Update the task status and output based given workflow id and task reference name
+     * Update the task status and output based given workflow id and task reference
+     * name
      *
      * @param workflowId        Workflow Id
      * @param taskReferenceName Reference name of the task to be updated
@@ -63,7 +64,8 @@ public class OrkesTaskClient {
     }
 
     /**
-     * Update the task status and output based given workflow id and task reference name and return back the updated workflow status
+     * Update the task status and output based given workflow id and task reference
+     * name and return back the updated workflow status
      *
      * @param workflowId        Workflow Id
      * @param taskReferenceName Reference name of the task to be updated
@@ -71,7 +73,8 @@ public class OrkesTaskClient {
      * @param output            Output for the task
      * @return Status of the workflow after updating the task
      */
-    public Workflow updateTaskSync(String workflowId, String taskReferenceName, TaskResult.Status status, Object output) {
+    public Workflow updateTaskSync(String workflowId, String taskReferenceName, TaskResult.Status status,
+            Object output) {
         return updateTaskSync(getOutputMap(output), workflowId, taskReferenceName, status.toString(), getWorkerId());
     }
 
@@ -86,7 +89,7 @@ public class OrkesTaskClient {
         }
     }
 
-    //TODO extract this to a strategy that will be used by TaskResource
+    // TODO extract this to a strategy that will be used by TaskResource
     private String getWorkerId() {
         try {
             return InetAddress.getLocalHost().getHostName();
@@ -96,10 +99,10 @@ public class OrkesTaskClient {
     }
 
     private String updateTaskByRefName(Map<String, Object> output,
-                                       String workflowId,
-                                       String taskRefName,
-                                       String status,
-                                       String workerId) {
+            String workflowId,
+            String taskRefName,
+            String status,
+            String workerId) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(ConductorClientRequest.Method.POST)
                 .path("/tasks/{workflowId}/{taskRefName}/{status}")
@@ -117,10 +120,10 @@ public class OrkesTaskClient {
     }
 
     private Workflow updateTaskSync(Map<String, Object> output,
-                                    String workflowId,
-                                    String taskRefName,
-                                    String status,
-                                    String workerId) {
+            String workflowId,
+            String taskRefName,
+            String status,
+            String workerId) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(ConductorClientRequest.Method.POST)
                 .path("/tasks/{workflowId}/{taskRefName}/{status}/sync")
@@ -145,7 +148,8 @@ public class OrkesTaskClient {
     }
 
     /**
-     * Signals a task in a workflow synchronously and returns data based on the specified return strategy.
+     * Signals a task in a workflow synchronously and returns data based on the
+     * specified return strategy.
      *
      * @param workflowId     Workflow Id of the workflow to be signaled
      * @param status         Signal status to be set for the workflow
@@ -153,7 +157,8 @@ public class OrkesTaskClient {
      * @param returnStrategy Strategy for what data to return
      * @return SignalResponse with data based on the return strategy
      */
-    public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output, ReturnStrategy returnStrategy) {
+    public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output,
+            ReturnStrategy returnStrategy) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(ConductorClientRequest.Method.POST)
                 .path("/tasks/{workflowId}/{status}/signal/sync")
@@ -195,7 +200,8 @@ public class OrkesTaskClient {
         return taskClient.batchPollTasksByTaskType(taskType, workerId, count, timeoutInMillisecond);
     }
 
-    public List<Task> batchPollTasksInDomain(String taskType, String domain, String workerId, int count, int timeoutInMillisecond) {
+    public List<Task> batchPollTasksInDomain(String taskType, String domain, String workerId, int count,
+            int timeoutInMillisecond) {
         return taskClient.batchPollTasksInDomain(taskType, domain, workerId, count, timeoutInMillisecond);
     }
 
@@ -251,4 +257,46 @@ public class OrkesTaskClient {
         return taskClient.searchV2(start, size, sort, freeText, query);
     }
 
+    public Map<String, Long> getAllTasksInQueue() {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(ConductorClientRequest.Method.GET)
+                .path("/tasks/queue/all")
+                .build();
+
+        ConductorClientResponse<Map<String, Long>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    public Map<String, Map<String, Map<String, Long>>> getAllTasksInQueueVerbose() {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(ConductorClientRequest.Method.GET)
+                .path("/tasks/queue/all/verbose")
+                .build();
+
+        ConductorClientResponse<Map<String, Map<String, Map<String, Long>>>> resp = client.execute(request,
+                new TypeReference<>() {
+                });
+
+        return resp.getData();
+    }
+ 
+    // TODO: List<PollData> ??
+    public Map<String, Object> getAllPollData(Long workerSize, String workerOpt, Long queueSize, String queueOpt,
+            Long lastPollTimeSize, String lastPollTimeOpt) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(ConductorClientRequest.Method.GET)
+                .path("/tasks/queue/polldata/all")
+                .addQueryParam("workerSize", workerSize)
+                .addQueryParam("workerOpt", workerOpt)
+                .addQueryParam("queueSize", queueSize)
+                .addQueryParam("queueOpt", queueOpt)
+                .addQueryParam("lastPollTimeSize", lastPollTimeSize)
+                .addQueryParam("lastPollTimeOpt", lastPollTimeOpt)
+                .build();
+        ConductorClientResponse<Map<String, Object>> resp = client.execute(request, new TypeReference<>() {
+        });
+        return resp.getData();
+    }
 }
