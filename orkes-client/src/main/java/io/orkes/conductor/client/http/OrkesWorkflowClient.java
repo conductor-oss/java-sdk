@@ -30,6 +30,10 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.common.metadata.workflow.IdempotencyStrategy;
+import com.netflix.conductor.common.metadata.workflow.RerunWorkflowRequest;
+import com.netflix.conductor.common.metadata.workflow.SkipTaskRequest;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.UpgradeWorkflowRequest;
 import com.netflix.conductor.common.model.BulkResponse;
@@ -323,5 +327,92 @@ public class OrkesWorkflowClient implements AutoCloseable {
         });
 
         return future;
+    }
+
+    public SearchResult<Task> getExecutionStatusTaskList(String workflowId,
+                                                         Integer start,
+                                                         Integer count,
+                                                         List<String> status) {
+        return workflowResource.getExecutionStatusTaskList(workflowId, start, count, status);
+    }
+
+    public Map<String, List<Workflow>> getWorkflows(String name,
+                                                    List<String> correlationIds,
+                                                    Boolean includeClosed,
+                                                    Boolean includeTasks) {
+        return workflowResource.getWorkflows(name, correlationIds, includeClosed, includeTasks);
+    }
+
+    public List<Workflow> getWorkflows(String name,
+                                       String correlationId,
+                                       Boolean includeClosed,
+                                       Boolean includeTasks) {
+        return workflowResource.getWorkflows(name, correlationId, includeClosed, includeTasks);
+    }
+
+    public Workflow getExecutionStatus(String workflowId, Boolean includeTasks, Boolean summarize) {
+        return workflowResource.getExecutionStatus(workflowId, includeTasks, summarize);
+    }
+
+    public void jumpToTask(String workflowId, String taskReferenceName, Map<String, Object> input) {
+        workflowResource.jumpToTask(workflowId, taskReferenceName, input);
+    }
+
+    public Map<String, Object> executeWorkflowAsAPI(String name,
+                                                    Integer version,
+                                                    String requestId,
+                                                    String waitUntilTaskRef,
+                                                    Integer waitForSeconds,
+                                                    String idempotencyKey,
+                                                    IdempotencyStrategy onConflict,
+                                                    Map<String, Object> input) {
+        return workflowResource.executeWorkflowAsAPI(name, version, requestId, waitUntilTaskRef, waitForSeconds, idempotencyKey, onConflict, input);
+    }
+
+    public SearchResult<WorkflowSummary> search(Integer start,
+                                                Integer size,
+                                                String sort,
+                                                String freeText,
+                                                String query,
+                                                Boolean skipCache) {
+        return workflowResource.search(start, size, sort, freeText, query, skipCache);
+    }
+
+    public String startWorkflow(String name,
+                                Integer version,
+                                String correlationId,
+                                Integer priority,
+                                String idempotencyKey,
+                                IdempotencyStrategy onConflict,
+                                Map<String, Object> input) {
+        return workflowResource.startWorkflow(name, version, correlationId, priority, idempotencyKey, onConflict, input);
+    }
+
+    public String rerun(String workflowId, RerunWorkflowRequest rerunRequest) {
+        return workflowResource.rerun(workflowId, rerunRequest);
+    }
+
+    public void resetWorkflow(String workflowId) {
+        workflowResource.resetWorkflow(workflowId);
+    }
+
+    public void retryWorkflow(String workflowId, Boolean resumeSubworkflowTasks, Boolean retryIfRetriedByParent) {
+        workflowResource.retryWorkflow(workflowId, resumeSubworkflowTasks, retryIfRetriedByParent);
+    }
+
+    public void restartWorkflow(String workflowId, Boolean useLatestDefinitions) {
+        workflowResource.restartWorkflow(workflowId, useLatestDefinitions);
+    }
+
+    public void skipTaskFromWorkflow(String workflowId, String taskReferenceName, SkipTaskRequest request) {
+        workflowResource.skipTaskFromWorkflow(workflowId, taskReferenceName, request);
+    }
+
+    public List<String> getRunningWorkflow(String name, Integer version, Long startTime, Long endTime) {
+        return workflowResource.getRunningWorkflow(name, version, startTime, endTime);
+    }
+
+    public void decide(String workflowId) {
+        workflowResource.decide(workflowId);
     }
 }
