@@ -81,8 +81,6 @@ public class ConductorClientException extends RuntimeException {
         this.responseBody = responseBody;
     }
 
-
-
     public boolean isClientError() {
         return getStatus() > 399 && getStatus() < 499;
     }
@@ -96,7 +94,7 @@ public class ConductorClientException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return (StringUtils.isNotBlank(super.getMessage()) ? super.getMessage() : responseBody);
+        return StringUtils.isNotBlank(responseBody) ? responseBody : super.getMessage();
     }
 
     @Override
