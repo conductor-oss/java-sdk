@@ -372,33 +372,6 @@ class WorkflowResource {
         return resp.getData();
     }
 
-    Map<String, Object> executeWorkflowAsAPI(String name,
-                                             Integer version,
-                                             String requestId,
-                                             String waitUntilTaskRef,
-                                             Integer waitForSeconds,
-                                             String idempotencyKey,
-                                             IdempotencyStrategy onConflict,
-                                             Map<String, Object> input) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/workflow/execute/{name}")
-                .addPathParam("name", name)
-                .addQueryParam("version", version)
-                .addHeaderParam("requestId", requestId)
-                .addHeaderParam("waitUntilTaskRef", waitUntilTaskRef)
-                .addHeaderParam("waitForSeconds", waitForSeconds.toString())
-                .addHeaderParam("X-Idempotency-key", idempotencyKey)
-                .addHeaderParam("X-on-conflict", onConflict != null ? onConflict.toString() : null)
-                .body(input)
-                .build();
-
-        ConductorClientResponse<Map<String, Object>> resp = client.execute(request, new TypeReference<>() {
-        });
-
-        return resp.getData();
-    }
-
     SearchResult<WorkflowSummary> search(Integer start,
                                          Integer size,
                                          String sort,

@@ -354,17 +354,6 @@ public class OrkesWorkflowClient implements AutoCloseable {
         return workflowResource.getExecutionStatus(workflowId, includeTasks, summarize);
     }
 
-    public Map<String, Object> executeWorkflowAsAPI(String name,
-                                                    Integer version,
-                                                    String requestId,
-                                                    String waitUntilTaskRef,
-                                                    Integer waitForSeconds,
-                                                    String idempotencyKey,
-                                                    IdempotencyStrategy onConflict,
-                                                    Map<String, Object> input) {
-        return workflowResource.executeWorkflowAsAPI(name, version, requestId, waitUntilTaskRef, waitForSeconds, idempotencyKey, onConflict, input);
-    }
-
     public SearchResult<WorkflowSummary> search(Integer start,
                                                 Integer size,
                                                 String sort,

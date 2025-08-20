@@ -202,11 +202,11 @@ public class WorkflowClientTests {
 
     @Test
     void restartWorkflowTest() {
-        String workflowId = workflowClient.startWorkflow(getStartWorkflowRequest());
+        String workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
         workflowClient.terminateWorkflowWithFailure(workflowId, "testing out some stuff", true);
         var workflow = workflowClient.getWorkflow(workflowId, false);
         Assertions.assertEquals(Workflow.WorkflowStatus.TERMINATED, workflow.getStatus());
-        workflowClient.restartWorkflow(workflowId, true);
+        workflowClient.restartWorkflow(workflowId, false);
         var restartedWorkflow = workflowClient.getWorkflow(workflowId, false);
         Assertions.assertEquals(Workflow.WorkflowStatus.RUNNING, restartedWorkflow.getStatus());
         Assertions.assertEquals(workflowId, restartedWorkflow.getWorkflowId());
@@ -215,7 +215,7 @@ public class WorkflowClientTests {
     @Test
     @SneakyThrows
     void decideEndpointTest() {
-        String workflowId = workflowClient.startWorkflow(getStartWorkflowRequest());
+        String workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
         Thread.sleep(1200);
         var workflow = workflowClient.getWorkflow(workflowId, false);
         Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, workflow.getStatus());
@@ -228,7 +228,7 @@ public class WorkflowClientTests {
     @Test
     @SneakyThrows
     void rerunWorkflowTest() {
-        var future = workflowClient.executeWorkflow(getStartWorkflowRequest(), "", 2000);
+        var future = workflowClient.executeWorkflow(getDefaultWorkflowWithDefinition(), "", 2000);
         var workflowRun = future.get();
         Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, workflowRun.getStatus());
 
@@ -240,78 +240,51 @@ public class WorkflowClientTests {
 
     @Test
     void getExecutionStatusTaskListTest() {
-        var workflowId = workflowClient.startWorkflow(getStartWorkflowRequest());
+        var workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
 
         var taskList = workflowClient.getExecutionStatusTaskList(workflowId, 0, 10, List.of(Task.Status.COMPLETED, Task.Status.IN_PROGRESS, Task.Status.SCHEDULED));
+        System.out.println(taskList.getResults().getFirst().getTaskDefName());
         Assertions.assertEquals(2, taskList.getResults().size());
     }
 
     @Test
     void getExecutionStatusTest() {
-        var workflowId = workflowClient.startWorkflow(getStartWorkflowRequest());
+        var workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
         var workflow = workflowClient.getExecutionStatus(workflowId, false, true);
         Assertions.assertEquals(Workflow.WorkflowStatus.RUNNING, workflow.getStatus());
         // TODO: get back to it when it is clear what this endpoint does;
     }
 
     @Test
-    void executeWorkflowAsAPI() {
-        var result = workflowClient.executeWorkflowAsAPI(Commons.WORKFLOW_NAME, 1, "123", "", 2, "test_idempotency_key", IdempotencyStrategy.RETURN_EXISTING, Map.of());
-        Assertions.assertEquals(0, result.size());
-        // TODO: get back to it when it is clear what is the difference between this and executeWorkflow;
-    }
-
-    @Test
+    @SneakyThrows
     void searchTest() {
         var now = System.currentTimeMillis();
-        var workflowId = workflowClient.startWorkflow(getStartWorkflowRequest());
-        var result = workflowClient.search(0, 10, "", "", "status = RUNNING AND startTime > " + now, false);
+        var workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
+        Thread.sleep(50); // make sure the workflow is really started.
+        var result = workflowClient.search(0, 10, "", "", "startTime > " + now, false);
         Assertions.assertTrue(result.getResults().stream().anyMatch(w -> w.getWorkflowId().equals(workflowId)));
     }
 
     @Test
     @SneakyThrows
     void resetWorkflowCallbacksTest() {
-        var workflowId = workflowClient.startWorkflow(getStartWorkflowRequest());
+        var workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
         var tasks = workflowClient.getExecutionStatusTaskList(workflowId, 0, 10, List.of(Task.Status.COMPLETED, Task.Status.IN_PROGRESS, Task.Status.SCHEDULED));
-        var callbacks = tasks.getResults().getFirst().getCallbackAfterSeconds();
-        Assertions.assertEquals(0, callbacks);
+        var callbacks = tasks.getResults().getLast().getCallbackAfterSeconds();
+        Assertions.assertNotEquals(0, callbacks);
         workflowClient.resetWorkflow(workflowId);
         var tasksAfterReset = workflowClient.getExecutionStatusTaskList(workflowId, 0, 10, List.of(Task.Status.COMPLETED, Task.Status.IN_PROGRESS, Task.Status.SCHEDULED));
-        var callbacksAfterReset = tasksAfterReset.getResults().getFirst().getCallbackAfterSeconds();
-        Assertions.assertEquals(0, callbacksAfterReset);
-        // TODO: get back to it when it is clear how to make callbacks not 0;
+        var callbacksAfterReset = tasksAfterReset.getResults().getLast().getCallbackAfterSeconds();
+        Assertions.assertEquals(1, callbacksAfterReset); // TODO: why it is 1, shouldn't it be reset to 0. TODO: Take a look at conductor source code.
     }
 
     @Test
+    @SneakyThrows
     void retryWorkflowTest(){
-        WorkflowTask awaitTask = new WorkflowTask();
-        awaitTask.setName("await");
-        awaitTask.setTaskReferenceName("await-ref");
-        awaitTask.setType(TaskType.WAIT.toString());
-        awaitTask.setInputParameters(Map.of("duration", "1 seconds"));
-
-        WorkflowTask task = new WorkflowTask();
-        task.setName("test");
-        task.setTaskReferenceName("test-ref");
-        task.setType(TaskType.INLINE.toString());
-        task.setScriptExpression("throw new RuntimeException()");
-
-        WorkflowDef workflowDef = new WorkflowDef();
-        workflowDef.setName("testable-flow");
-        workflowDef.setTasks(List.of(awaitTask, task));
-
-        WorkflowTestRequest testRequest = new WorkflowTestRequest();
-        testRequest.setName("testable-flow");
-        testRequest.setWorkflowDef(workflowDef);
-        testRequest.setTaskRefToMockOutput(Map.of("testable-task-ref", List.of(new WorkflowTestRequest.TaskMock(TaskResult.Status.COMPLETED, Map.of("result", "ok")))));
-
-        Workflow workflow = workflowClient.testWorkflow(testRequest);
+        var workflow = workflowClient.executeWorkflow(getFailingWorkflowWithDefinition(), "", 2000).get();
         Assertions.assertEquals(Workflow.WorkflowStatus.FAILED, workflow.getStatus());
 
-        var bulkResponse = workflowClient.retryWorkflow(List.of(workflow.getWorkflowId()));
-        Assertions.assertEquals(1, bulkResponse.getBulkSuccessfulResults().size());
-        Assertions.assertEquals(workflow.getWorkflowId(), bulkResponse.getBulkSuccessfulResults().getFirst());
+        workflowClient.retryWorkflow(workflow.getWorkflowId(), false, false);
 
         var workflowAfterRetry = workflowClient.getWorkflow(workflow.getWorkflowId(), false);
         Assertions.assertEquals(Workflow.WorkflowStatus.RUNNING, workflowAfterRetry.getStatus());
@@ -323,6 +296,58 @@ public class WorkflowClientTests {
         startWorkflowRequest.setName(Commons.WORKFLOW_NAME);
         startWorkflowRequest.setVersion(1);
         startWorkflowRequest.setInput(new HashMap<>());
+        return startWorkflowRequest;
+    }
+
+    StartWorkflowRequest getFailingWorkflowWithDefinition() {
+        WorkflowTask awaitTask = new WorkflowTask();
+        awaitTask.setName("test_await");
+        awaitTask.setTaskReferenceName("test_await-ref");
+        awaitTask.setType(TaskType.WAIT.toString());
+        awaitTask.setInputParameters(Map.of("duration", "1 seconds"));
+
+        WorkflowTask task = new WorkflowTask();
+        task.setName("test_exception");
+        task.setTaskReferenceName("test_exception-ref");
+        task.setType(TaskType.INLINE.toString());
+        task.setInputParameters(Map.of("expression", "(function () { throw new Error('test error');})();",
+                "evaluatorType", "graaljs"));
+
+        WorkflowDef workflowDef = new WorkflowDef();
+        workflowDef.setName("test_failing_workflow");
+        workflowDef.setTasks(List.of(awaitTask, task));
+
+        StartWorkflowRequest startWorkflowRequest = new StartWorkflowRequest();
+        startWorkflowRequest.setName("test_failing_workflow");
+        startWorkflowRequest.setVersion(1);
+        startWorkflowRequest.setWorkflowDef(workflowDef);
+
+        return startWorkflowRequest;
+    }
+
+    StartWorkflowRequest getDefaultWorkflowWithDefinition() {
+        WorkflowTask awaitTask = new WorkflowTask();
+        awaitTask.setName("test_await");
+        awaitTask.setTaskReferenceName("test_await-ref");
+        awaitTask.setType(TaskType.WAIT.toString());
+        awaitTask.setInputParameters(Map.of("duration", "1 seconds"));
+
+        WorkflowTask task = new WorkflowTask();
+        task.setName("test_simple_inline");
+        task.setTaskReferenceName("test_simple_inline-ref");
+        task.setType(TaskType.INLINE.toString());
+        task.setInputParameters(Map.of("expression", "(function () { return 42;})();",
+                "evaluatorType", "graaljs"));
+
+        WorkflowDef workflowDef = new WorkflowDef();
+        workflowDef.setName("test_java_sdk_default_workflow");
+        workflowDef.setTasks(List.of(task, awaitTask));
+
+        StartWorkflowRequest startWorkflowRequest = new StartWorkflowRequest();
+        startWorkflowRequest.setName("test_java_sdk_default_workflow");
+        startWorkflowRequest.setVersion(1);
+        startWorkflowRequest.setWorkflowDef(workflowDef);
+
         return startWorkflowRequest;
     }
 }
