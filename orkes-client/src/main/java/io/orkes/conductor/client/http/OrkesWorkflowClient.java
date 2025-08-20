@@ -31,7 +31,6 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.WorkflowClient;
 import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.metadata.workflow.IdempotencyStrategy;
 import com.netflix.conductor.common.metadata.workflow.RerunWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.SkipTaskRequest;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;

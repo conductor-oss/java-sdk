@@ -21,7 +21,6 @@ import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.metadata.workflow.IdempotencyStrategy;
 import com.netflix.conductor.common.metadata.workflow.RerunWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.SkipTaskRequest;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
