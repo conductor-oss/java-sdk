@@ -232,18 +232,21 @@ public class WorkflowClientTests {
         var workflowRun = future.get();
         Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, workflowRun.getStatus());
 
-        var rerunRequest = RerunWorkflowRequest.builder().reRunFromTaskId(workflowRun.getTasks().getFirst().getTaskId()).build();
+        var workflow = workflowClient.getWorkflow(workflowRun.getWorkflowId(), true);
+        var rerunRequest = RerunWorkflowRequest.builder().reRunFromTaskId(workflow.getTasks().getFirst().getTaskId()).build();
         workflowClient.rerun(workflowRun.getWorkflowId(), rerunRequest);
         var rerunedWorkflow = workflowClient.getWorkflow(workflowRun.getWorkflowId(), false);
         Assertions.assertEquals(Workflow.WorkflowStatus.RUNNING, rerunedWorkflow.getStatus());
     }
 
     @Test
+    @SneakyThrows
     void getExecutionStatusTaskListTest() {
         var workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
 
+        Thread.sleep(50); // make sure the workflow is really started.
+
         var taskList = workflowClient.getExecutionStatusTaskList(workflowId, 0, 10, List.of(Task.Status.COMPLETED, Task.Status.IN_PROGRESS, Task.Status.SCHEDULED));
-        System.out.println(taskList.getResults().getFirst().getTaskDefName());
         Assertions.assertEquals(2, taskList.getResults().size());
     }
 
@@ -269,10 +272,12 @@ public class WorkflowClientTests {
     @SneakyThrows
     void resetWorkflowCallbacksTest() {
         var workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
+        Thread.sleep(50); // make sure the workflow is really started.
         var tasks = workflowClient.getExecutionStatusTaskList(workflowId, 0, 10, List.of(Task.Status.COMPLETED, Task.Status.IN_PROGRESS, Task.Status.SCHEDULED));
         var callbacks = tasks.getResults().getLast().getCallbackAfterSeconds();
         Assertions.assertNotEquals(0, callbacks);
         workflowClient.resetWorkflow(workflowId);
+        Thread.sleep(50); // make sure the workflow is really reset.
         var tasksAfterReset = workflowClient.getExecutionStatusTaskList(workflowId, 0, 10, List.of(Task.Status.COMPLETED, Task.Status.IN_PROGRESS, Task.Status.SCHEDULED));
         var callbacksAfterReset = tasksAfterReset.getResults().getLast().getCallbackAfterSeconds();
         Assertions.assertEquals(1, callbacksAfterReset); // TODO: why it is 1, shouldn't it be reset to 0. TODO: Take a look at conductor source code.
