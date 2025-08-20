@@ -332,7 +332,7 @@ public class OrkesWorkflowClient implements AutoCloseable {
     public SearchResult<Task> getExecutionStatusTaskList(String workflowId,
                                                          Integer start,
                                                          Integer count,
-                                                         List<String> status) {
+                                                         List<Task.Status> status) {
         return workflowResource.getExecutionStatusTaskList(workflowId, start, count, status);
     }
 
@@ -352,10 +352,6 @@ public class OrkesWorkflowClient implements AutoCloseable {
 
     public Workflow getExecutionStatus(String workflowId, Boolean includeTasks, Boolean summarize) {
         return workflowResource.getExecutionStatus(workflowId, includeTasks, summarize);
-    }
-
-    public void jumpToTask(String workflowId, String taskReferenceName, Map<String, Object> input) {
-        workflowResource.jumpToTask(workflowId, taskReferenceName, input);
     }
 
     public Map<String, Object> executeWorkflowAsAPI(String name,
@@ -378,20 +374,13 @@ public class OrkesWorkflowClient implements AutoCloseable {
         return workflowResource.search(start, size, sort, freeText, query, skipCache);
     }
 
-    public String startWorkflow(String name,
-                                Integer version,
-                                String correlationId,
-                                Integer priority,
-                                String idempotencyKey,
-                                IdempotencyStrategy onConflict,
-                                Map<String, Object> input) {
-        return workflowResource.startWorkflow(name, version, correlationId, priority, idempotencyKey, onConflict, input);
-    }
-
     public String rerun(String workflowId, RerunWorkflowRequest rerunRequest) {
         return workflowResource.rerun(workflowId, rerunRequest);
     }
-
+    /**
+     * Resets callback times of all non-terminal SIMPLE tasks to 0
+     * @param workflowId the workflow id to reset callbacks for
+     */
     public void resetWorkflow(String workflowId) {
         workflowResource.resetWorkflow(workflowId);
     }

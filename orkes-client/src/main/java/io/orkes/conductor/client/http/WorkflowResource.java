@@ -14,6 +14,7 @@ package io.orkes.conductor.client.http;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
@@ -145,14 +146,14 @@ class WorkflowResource {
     SearchResult<Task> getExecutionStatusTaskList(String workflowId,
                                                   Integer start,
                                                   Integer count,
-                                                  List<String> status) {
+                                                  List<Task.Status> status) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
                 .path("/workflow/{workflowId}/tasks")
                 .addPathParam("workflowId", workflowId)
                 .addQueryParam("start", start)
                 .addQueryParam("count", count)
-                .addQueryParams("status", status)
+                .addQueryParams("status", status.stream().map(Objects::toString).toList())
                 .build();
 
         ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, new TypeReference<>() {
@@ -299,18 +300,6 @@ class WorkflowResource {
         return resp.getData();
     }
 
-    void jumpToTask(String workflowId, String taskReferenceName, Map<String, Object> input) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/workflow/{workflowId}/jump/{taskReferenceName}")
-                .addPathParam("workflowId", workflowId)
-                .addPathParam("taskReferenceName", taskReferenceName)
-                .body(input)
-                .build();
-
-        client.execute(request);
-    }
-
     SignalResponse executeWorkflowWithReturnStrategy(StartWorkflowRequest req,
                                                      String name,
                                                      Integer version,
@@ -441,31 +430,6 @@ class WorkflowResource {
                 .build();
 
         ConductorClientResponse<Workflow> resp = client.execute(request, new TypeReference<>() {
-        });
-
-        return resp.getData();
-    }
-
-    String startWorkflow(String name,
-                         Integer version,
-                         String correlationId,
-                         Integer priority,
-                         String idempotencyKey,
-                         IdempotencyStrategy onConflict,
-                         Map<String, Object> input) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/workflow/{name}")
-                .addPathParam("name", name)
-                .addQueryParam("version", version)
-                .addQueryParam("correlationId", correlationId)
-                .addQueryParam("priority", priority)
-                .addHeaderParam("X-Idempotency-key", idempotencyKey)
-                .addHeaderParam("X-on-conflict", onConflict != null ? onConflict.toString() : null)
-                .body(input)
-                .build();
-
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
         });
 
         return resp.getData();
