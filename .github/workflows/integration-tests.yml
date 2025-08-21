@@ -31,9 +31,9 @@ jobs:
         run: |          
           ./gradlew test -PIntegrationTests
         env:
-          CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
-          CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
-          CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
+          CONDUCTOR_SERVER_URL: ${{ vars.SERVER_URL }}
+          CONDUCTOR_AUTH_KEY: ${{ secrets.AUTH_KEY }}
+          CONDUCTOR_AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v5
         if: always()

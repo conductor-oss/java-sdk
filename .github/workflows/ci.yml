@@ -28,9 +28,9 @@ jobs:
         id: build
         run: ./gradlew clean build -x test
         env:
-          CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
-          CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
-          CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
+          CONDUCTOR_SERVER_URL: ${{ vars.SERVER_URL }}
+          CONDUCTOR_AUTH_KEY: ${{ secrets.AUTH_KEY }}
+          CONDUCTOR_AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           
       - name: Run Tests
         id: tests
@@ -38,9 +38,9 @@ jobs:
         continue-on-error: true
         run: ./gradlew test jacocoTestReport
         env:
-          CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
-          CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
-          CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
+          CONDUCTOR_SERVER_URL: ${{ vars.SERVER_URL }}
+          CONDUCTOR_AUTH_KEY: ${{ secrets.AUTH_KEY }}
+          CONDUCTOR_AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           
       - name: Publish Test Report
         if: always()
