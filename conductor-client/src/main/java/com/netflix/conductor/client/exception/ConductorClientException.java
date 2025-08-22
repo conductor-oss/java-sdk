@@ -24,6 +24,16 @@ import lombok.Setter;
 
 @Data
 public class ConductorClientException extends RuntimeException {
+    static boolean initPreferSuperMessage() {
+        try {
+            final String PREFER_SUPER_MESSAGE_PROP = "conductor.client.exception.preferSuperMessage";
+            return Boolean.getBoolean(PREFER_SUPER_MESSAGE_PROP);
+        } catch (SecurityException e) {
+            return false;
+        }
+    }
+
+    private final static boolean PREFER_SUPER_MESSAGE = initPreferSuperMessage();
 
     private int status;
     private String instance;
@@ -94,6 +104,9 @@ public class ConductorClientException extends RuntimeException {
 
     @Override
     public String getMessage() {
+        if (PREFER_SUPER_MESSAGE) {
+            return StringUtils.isNotBlank(super.getMessage()) ? super.getMessage() : responseBody;
+        }
         return StringUtils.isNotBlank(responseBody) ? responseBody : super.getMessage();
     }
 
