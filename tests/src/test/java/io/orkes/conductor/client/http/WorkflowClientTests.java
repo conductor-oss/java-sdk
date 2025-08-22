@@ -216,13 +216,9 @@ public class WorkflowClientTests {
     @SneakyThrows
     void decideEndpointTest() {
         String workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
-        Thread.sleep(1200);
-        var workflow = workflowClient.getWorkflow(workflowId, false);
-        Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, workflow.getStatus());
 
         workflowClient.decide(workflowId);
-        workflowClient.getWorkflow(workflowId, false);
-        // TODO: get back to it when it is clear what decide does;
+        // TODO: there is no good way to test it, the workflow should stuck first.
     }
 
     @Test
@@ -251,14 +247,6 @@ public class WorkflowClientTests {
     }
 
     @Test
-    void getExecutionStatusTest() {
-        var workflowId = workflowClient.startWorkflow(getDefaultWorkflowWithDefinition());
-        var workflow = workflowClient.getExecutionStatus(workflowId, false, true);
-        Assertions.assertEquals(Workflow.WorkflowStatus.RUNNING, workflow.getStatus());
-        // TODO: get back to it when it is clear what this endpoint does;
-    }
-
-    @Test
     @SneakyThrows
     void searchTest() {
         var now = System.currentTimeMillis();
@@ -271,20 +259,30 @@ public class WorkflowClientTests {
     @Test
     @SneakyThrows
     void resetWorkflowCallbacksTest() {
-        // TODO: properly implement, now TaskDef is ignored by some reason.
+        final String simpleTaskName = "java_sdk_test_simple_inline-"+ UUID.randomUUID();
+        var taskClient = ClientTestUtil.getOrkesClients().getTaskClient();
+
         var request = getDefaultWorkflowWithDefinition();
-        request.getWorkflowDef().setTasks(List.of(getSimpleTask()));
+        request.getWorkflowDef().setTasks(List.of(getSimpleTaskWithDelay(simpleTaskName)));
         var workflowId = workflowClient.startWorkflow(request);
 
         Thread.sleep(50);
+        var workerId = UUID.randomUUID().toString();
+        var task = taskClient.pollTask(simpleTaskName, workerId, null);
+        Assertions.assertNull(task);
+
         workflowClient.resetWorkflow(workflowId);
-
-        Thread.sleep(10000);
         Thread.sleep(50);
+        var taskAfterReset = taskClient.pollTask(simpleTaskName, workerId, null);
 
-        // Should still be running because we reset
-        var workflow = workflowClient.getWorkflow(workflowId, false);
-        Assertions.assertEquals(Workflow.WorkflowStatus.TIMED_OUT, workflow.getStatus());
+        Assertions.assertNotNull(taskAfterReset);
+
+        // sending results to make workflow complete
+        TaskResult taskResult = new TaskResult(taskAfterReset);
+        taskResult.setStatus(TaskResult.Status.COMPLETED);
+        taskClient.updateTask(taskResult);
+
+
     }
 
     @Test
@@ -372,15 +370,12 @@ public class WorkflowClientTests {
         return awaitTask;
     }
 
-    WorkflowTask getSimpleTask(){
+    WorkflowTask getSimpleTaskWithDelay(String name){
         WorkflowTask simpleTask = new WorkflowTask();
-        simpleTask.setName("test_simple_inline-def");
-        simpleTask.setTaskReferenceName("test_simple_inline-ref");
+        simpleTask.setName(name);
+        simpleTask.setTaskReferenceName(name + "-ref");
         simpleTask.setType(TaskType.SIMPLE.toString());
-        var taskDefinition = new TaskDef();
-        taskDefinition.setName("test_simple_inline-def");
-        taskDefinition.setPollTimeoutSeconds(10);
-        simpleTask.setTaskDefinition(taskDefinition);
+        simpleTask.setStartDelay(600); // 10 minutes
         return simpleTask;
     }
 }

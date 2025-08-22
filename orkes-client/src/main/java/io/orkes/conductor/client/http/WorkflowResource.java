@@ -284,21 +284,6 @@ class WorkflowResource {
         client.execute(request);
     }
 
-    Workflow getExecutionStatus(String workflowId, Boolean includeTasks, Boolean summarize) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.GET)
-                .path("/workflow/{workflowId}")
-                .addPathParam("workflowId", workflowId)
-                .addQueryParam("includeTasks", includeTasks)
-                .addQueryParam("summarize", summarize)
-                .build();
-
-        ConductorClientResponse<Workflow> resp = client.execute(request, new TypeReference<>() {
-        });
-
-        return resp.getData();
-    }
-
     SignalResponse executeWorkflowWithReturnStrategy(StartWorkflowRequest req,
                                                      String name,
                                                      Integer version,

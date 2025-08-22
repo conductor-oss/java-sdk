@@ -349,10 +349,6 @@ public class OrkesWorkflowClient implements AutoCloseable {
         return workflowResource.getWorkflows(name, correlationId, includeClosed, includeTasks);
     }
 
-    public Workflow getExecutionStatus(String workflowId, Boolean includeTasks, Boolean summarize) {
-        return workflowResource.getExecutionStatus(workflowId, includeTasks, summarize);
-    }
-
     public SearchResult<WorkflowSummary> search(Integer start,
                                                 Integer size,
                                                 String sort,
