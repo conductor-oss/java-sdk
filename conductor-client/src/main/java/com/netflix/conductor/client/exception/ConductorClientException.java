@@ -24,6 +24,16 @@ import lombok.Setter;
 
 @Data
 public class ConductorClientException extends RuntimeException {
+    static boolean initPreferErrOverResponse() {
+        try {
+            final String propName = "conductor.client.exception.preferErrOverResponse";
+            return Boolean.getBoolean(propName);
+        } catch (SecurityException e) {
+            return false;
+        }
+    }
+
+    private final static boolean PREFER_ERR_OVER_RESPONSE = initPreferErrOverResponse();
 
     private int status;
     private String instance;
@@ -81,8 +91,6 @@ public class ConductorClientException extends RuntimeException {
         this.responseBody = responseBody;
     }
 
-
-
     public boolean isClientError() {
         return getStatus() > 399 && getStatus() < 499;
     }
@@ -96,7 +104,10 @@ public class ConductorClientException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return (StringUtils.isNotBlank(super.getMessage()) ? super.getMessage() : responseBody);
+        if (PREFER_ERR_OVER_RESPONSE) {
+            return StringUtils.isNotBlank(super.getMessage()) ? super.getMessage() : responseBody;
+        }
+        return StringUtils.isNotBlank(responseBody) ? responseBody : super.getMessage();
     }
 
     @Override
