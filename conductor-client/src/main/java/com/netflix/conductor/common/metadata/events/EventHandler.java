@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 /**
@@ -33,6 +34,9 @@ public class EventHandler {
      * the name MUST be unique within a conductor instance
      */
     private String name;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String description;
 
     private String event;
 

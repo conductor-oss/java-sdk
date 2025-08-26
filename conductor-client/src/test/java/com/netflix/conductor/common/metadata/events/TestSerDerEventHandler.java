@@ -97,5 +97,10 @@ class TestSerDerEventHandler {
 
         // 4. Compare the JSONs - nothing should be lost
         assertEquals(objectMapper.readTree(SERVER_JSON), objectMapper.readTree(serializedJson));
+
+        eventHandler.setDescription("TEST_DESCRIPTION");
+        String serializedWithDescription = objectMapper.writeValueAsString(eventHandler);
+
+        assertEquals("TEST_DESCRIPTION", objectMapper.readTree(serializedWithDescription).get("description").asText());
     }
 }
