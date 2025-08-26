@@ -13,6 +13,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Java Client Build
+    env:
+      CONDUCTOR_SERVER_URL: ${{ vars.SERVER_URL }}
+      CONDUCTOR_AUTH_KEY: ${{ secrets.AUTH_KEY }}
+      CONDUCTOR_AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      
     steps:
 
       - name: Checkout
@@ -27,21 +32,13 @@ jobs:
       - name: Build
         id: build
         run: ./gradlew clean build -x test
-        env:
-          CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
-          CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
-          CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
-          
+        
       - name: Run Tests
         id: tests
         if: success()
         continue-on-error: true
         run: ./gradlew test jacocoTestReport
-        env:
-          CONDUCTOR_SERVER_URL: ${{ secrets.CONDUCTOR_SERVER_URL }}
-          CONDUCTOR_AUTH_KEY: ${{ secrets.CONDUCTOR_AUTH_KEY }}
-          CONDUCTOR_AUTH_SECRET: ${{ secrets.CONDUCTOR_AUTH_SECRET }}
-          
+        
       - name: Publish Test Report
         if: always()
         uses: mikepenz/action-junit-report@v5
