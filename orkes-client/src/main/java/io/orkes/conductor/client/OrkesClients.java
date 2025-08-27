@@ -61,6 +61,14 @@ public class OrkesClients {
         return new OrkesTokenClient(client);
     }
 
+    public OrkesSharedResourceClient  getSharedResourceClient() {
+        return new OrkesSharedResourceClient(client);
+    }
+
+    public OrkesWebhookClient getWebhookClient() {
+        return new OrkesWebhookClient(client);
+    }
+
     public IntegrationClient getIntegrationClient() {
         return new OrkesIntegrationClient(client);
     }
