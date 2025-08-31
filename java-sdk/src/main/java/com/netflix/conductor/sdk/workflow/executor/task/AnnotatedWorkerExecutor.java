@@ -210,7 +210,16 @@ public class AnnotatedWorkerExecutor {
 
         AnnotatedWorker executor = new AnnotatedWorker(name, method, bean);
         executor.setPollingInterval(workerToPollingInterval.get(name));
-        for (int i = 0; i < annotation.pollerCount(); i++) {
+
+        int pollerCount = workerConfiguration.getPollerCount(name);
+        if (pollerCount == 0) {
+            pollerCount = annotation.pollerCount();
+        }
+        if(pollerCount < 1) {
+            pollerCount = 1;
+        }
+
+        for (int i = 0; i < pollerCount; i++) {
             workers.add(executor);
         }
 

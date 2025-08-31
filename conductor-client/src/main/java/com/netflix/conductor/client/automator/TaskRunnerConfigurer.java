@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -50,9 +50,10 @@ public class TaskRunnerConfigurer {
     private final Integer defaultPollTimeout;
     private final int threadCount;
     private final List<TaskRunner> taskRunners;
-    private ScheduledExecutorService scheduledExecutorService;
+    private ExecutorService scheduledExecutorService;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
+    private final boolean useVirtualThreads;
 
     /**
      * @see TaskRunnerConfigurer.Builder
@@ -73,6 +74,7 @@ public class TaskRunnerConfigurer {
         this.threadCount = builder.threadCount;
         this.pollFilters = builder.pollFilters;
         this.eventDispatcher = builder.eventDispatcher;
+        this.useVirtualThreads = builder.useVirtualThreads;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
     }
@@ -127,13 +129,20 @@ public class TaskRunnerConfigurer {
     }
 
     /**
+     *
+     * @return true if virtual threads are being used to start worker threads
+     */
+    public boolean isUseVirtualThreads() {
+        return useVirtualThreads;
+    }
+
+    /**
      * Starts the polling. Must be called after {@link TaskRunnerConfigurer.Builder#build()} method.
      */
     public synchronized void init() {
         this.scheduledExecutorService = Executors.newScheduledThreadPool(workers.size(),
-                new BasicThreadFactory.Builder()
-                        .namingPattern("TaskRunner %d")
-                        .build());
+            new BasicThreadFactory.Builder().namingPattern("TaskRunner %d")
+            .build());
         workers.forEach(worker -> scheduledExecutorService.submit(() -> this.startWorker(worker)));
     }
 
@@ -163,7 +172,8 @@ public class TaskRunnerConfigurer {
                 threadCountForTask,
                 taskPollTimeout,
                 pollFilters,
-                eventDispatcher);
+                eventDispatcher,
+                useVirtualThreads);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
         // including potential null values being inserted or corrupted state.
@@ -195,6 +205,7 @@ public class TaskRunnerConfigurer {
         private Map<String /* taskType */, Integer /* timeoutInMillisecond */> taskPollCount = new HashMap<>();
         private final List<PollFilter> pollFilters = new LinkedList<>();
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
+        private boolean useVirtualThreads;
 
         public Builder(TaskClient taskClient, Iterable<Worker> workers) {
             Preconditions.checkNotNull(taskClient, "TaskClient cannot be null");
@@ -334,6 +345,11 @@ public class TaskRunnerConfigurer {
 
         public Builder withMetricsCollector(MetricsCollector metricsCollector) {
             ListenerRegister.register(metricsCollector, eventDispatcher);
+            return this;
+        }
+
+        public Builder withUseVirtualThreads(boolean useVirtualThreads) {
+            this.useVirtualThreads = useVirtualThreads;
             return this;
         }
     }

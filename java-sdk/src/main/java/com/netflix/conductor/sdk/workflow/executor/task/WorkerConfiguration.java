@@ -37,4 +37,8 @@ public class WorkerConfiguration {
     public int getPollTimeout(String taskName) {
         return 0;
     }
+
+    public int getPollerCount(String taskName) {
+        return 0;
+    }
 }
