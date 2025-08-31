@@ -60,6 +60,7 @@ import okhttp3.ConnectionPool;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -109,6 +110,8 @@ public class ConductorClient {
         if (builder.proxy != null) {
             okHttpBuilder.proxy(builder.proxy);
         }
+
+        okHttpBuilder.protocols(List.of(Protocol.HTTP_1_1, Protocol.HTTP_2));
 
         ConnectionPoolConfig connectionPoolConfig = builder.connectionPoolConfig;
         if (connectionPoolConfig != null) {

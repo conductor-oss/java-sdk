@@ -97,7 +97,7 @@ class TaskRunner {
         this.eventDispatcher = eventDispatcher;
         this.tasksTobeExecuted = new LinkedBlockingQueue<>();
         this.enableUpdateV2 = Boolean.valueOf(System.getProperty("taskUpdateV2", "false"));
-        LOGGER.info("taskUpdateV2 is set to {}", this.enableUpdateV2);
+        LOGGER.info("taskUpdateV2 is set to {} for {}", this.enableUpdateV2, worker.getTaskDefName());
         //1. Is there a worker level override?
         this.domain = PropertyFactory.getString(taskType, Worker.PROP_DOMAIN, null);
         if (this.domain == null) {
