@@ -34,6 +34,7 @@ public interface Worker {
     String PROP_ALL_WORKERS = "all";
     String PROP_LOG_INTERVAL = "log_interval";
     String PROP_POLL_INTERVAL = "poll_interval";
+    String PROP_POLL_TIMEOUT = "poll_timeout";
     String PROP_LEASE_EXTEND_ENABLED = "leaseExtendEnabled";
     String PROP_PAUSED = "paused";
 

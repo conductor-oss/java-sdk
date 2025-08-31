@@ -44,6 +44,8 @@ public class AnnotatedWorkerExecutor {
 
     protected Map<String, Integer> workerToPollingInterval = new HashMap<>();
 
+    protected Map<String, Integer> workerToPollTimeout = new HashMap<>();
+
     protected Map<String, String> workerDomains = new HashMap<>();
 
     private MetricsCollector metricsCollector;
@@ -192,6 +194,12 @@ public class AnnotatedWorkerExecutor {
         }
         workerToPollingInterval.put(name, pollingInterval);
 
+        int pollTimeout = workerConfiguration.getPollTimeout(name);
+        if (pollTimeout == 0) {
+            pollTimeout = annotation.pollTimeout();
+        }
+        workerToPollTimeout.put(name, pollTimeout);
+
         String domain = workerConfiguration.getDomain(name);
         if (Strings.isNullOrEmpty(domain)) {
             domain = annotation.domain();
@@ -222,6 +230,7 @@ public class AnnotatedWorkerExecutor {
 
         var builder = new TaskRunnerConfigurer.Builder(taskClient, workers)
                 .withTaskThreadCount(workerToThreadCount)
+                .withTaskPollTimeout(workerToPollingInterval)
                 .withTaskToDomain(workerDomains);
         if (metricsCollector != null) {
             builder.withMetricsCollector(metricsCollector);

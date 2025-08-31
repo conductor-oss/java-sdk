@@ -29,4 +29,7 @@ public @interface WorkerTask {
     int pollingInterval() default 100;
 
     String domain() default "";
+
+    //In millis
+    int pollTimeout() default 100;
 }
