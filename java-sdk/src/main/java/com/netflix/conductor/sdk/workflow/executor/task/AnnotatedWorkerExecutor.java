@@ -210,7 +210,9 @@ public class AnnotatedWorkerExecutor {
 
         AnnotatedWorker executor = new AnnotatedWorker(name, method, bean);
         executor.setPollingInterval(workerToPollingInterval.get(name));
-        workers.add(executor);
+        for (int i = 0; i < annotation.pollerCount(); i++) {
+            workers.add(executor);
+        }
 
         LOGGER.info(
                 "Adding worker for task {}, method {} with threadCount {} and polling interval set to {} ms",
@@ -225,12 +227,13 @@ public class AnnotatedWorkerExecutor {
             return;
         }
 
-        LOGGER.info("Starting {} workers with threadCount {}", workers.size(), workerToThreadCount);
+        LOGGER.info("Starting {} with threadCount {}", workers.stream().map(Worker::getTaskDefName).toList(), workerToThreadCount);
         LOGGER.info("Worker domains {}", workerDomains);
+        LOGGER.info("Worker workerToPollTimeout {}", workerToPollTimeout);
 
         var builder = new TaskRunnerConfigurer.Builder(taskClient, workers)
                 .withTaskThreadCount(workerToThreadCount)
-                .withTaskPollTimeout(workerToPollingInterval)
+                .withTaskPollTimeout(workerToPollTimeout)
                 .withTaskToDomain(workerDomains);
         if (metricsCollector != null) {
             builder.withMetricsCollector(metricsCollector);

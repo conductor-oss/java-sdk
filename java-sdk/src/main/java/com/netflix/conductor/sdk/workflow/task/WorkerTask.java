@@ -32,4 +32,9 @@ public @interface WorkerTask {
 
     //In millis
     int pollTimeout() default 100;
+
+    // number of task pollers
+    // default is 1 which is good enough for most use cases
+    // a number higher than 1 will have concurrent pollers doing poll and execute
+    int pollerCount() default 1;
 }

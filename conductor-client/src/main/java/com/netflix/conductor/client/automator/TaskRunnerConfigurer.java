@@ -170,7 +170,7 @@ public class TaskRunnerConfigurer {
         synchronized (taskRunners) {
             taskRunners.add(taskRunner);
         }
-
+        LOGGER.info("Starting worker {}", worker.getTaskDefName());
         taskRunner.pollAndExecute();
     }
 
