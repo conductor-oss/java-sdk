@@ -33,7 +33,9 @@ import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AnnotatedWorker implements Worker {
 
     private final String name;
@@ -251,14 +253,12 @@ public class AnnotatedWorker implements Worker {
     }
 
     public void setPollingInterval(int pollingInterval) {
-        System.out.println(
-                "Setting the polling interval for " + getTaskDefName() + ", to " + pollingInterval);
         this.pollingInterval = pollingInterval;
     }
 
     @Override
     public int getPollingInterval() {
-        System.out.println("Sending the polling interval to " + pollingInterval);
         return pollingInterval;
     }
+
 }

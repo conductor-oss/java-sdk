@@ -33,4 +33,12 @@ public class WorkerConfiguration {
     public String getDomain(String taskName) {
         return null;
     }
+
+    public int getPollTimeout(String taskName) {
+        return 0;
+    }
+
+    public int getPollerCount(String taskName) {
+        return 0;
+    }
 }

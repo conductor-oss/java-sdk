@@ -35,6 +35,24 @@ class SpringWorkerConfiguration extends WorkerConfiguration {
     }
 
     @Override
+    public int getPollTimeout(String taskName) {
+        Integer pollingInterval = getProperty(taskName, "pollTimeout", Integer.class, 0);
+        if (pollingInterval == 0) {
+            pollingInterval = getProperty(taskName, Worker.PROP_POLL_TIMEOUT, Integer.class, 0);
+        }
+        return pollingInterval;
+    }
+
+    @Override
+    public int getPollerCount(String taskName) {
+        Integer pollingInterval = getProperty(taskName, "pollerCount", Integer.class, 0);
+        if (pollingInterval == 0) {
+            pollingInterval = getProperty(taskName, Worker.PROP_POLLER_COUNT, Integer.class, 0);
+        }
+        return pollingInterval;
+    }
+
+    @Override
     public int getThreadCount(String taskName) {
         return getProperty(taskName, "threadCount", Integer.class, 0);
     }

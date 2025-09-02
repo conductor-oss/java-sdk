@@ -28,6 +28,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -85,7 +86,8 @@ class TaskRunner {
                int threadCount,
                int taskPollTimeout,
                List<PollFilter> pollFilters,
-               EventDispatcher<TaskRunnerEvent> eventDispatcher) {
+               EventDispatcher<TaskRunnerEvent> eventDispatcher,
+               boolean useVirtualThreads) {
         this.worker = worker;
         this.taskClient = taskClient;
         this.updateRetryCount = updateRetryCount;
@@ -96,8 +98,9 @@ class TaskRunner {
         this.pollFilters = pollFilters;
         this.eventDispatcher = eventDispatcher;
         this.tasksTobeExecuted = new LinkedBlockingQueue<>();
-        this.enableUpdateV2 = Boolean.valueOf(System.getProperty("taskUpdateV2", "false"));
-        LOGGER.info("taskUpdateV2 is set to {}", this.enableUpdateV2);
+        this.enableUpdateV2 = Boolean.parseBoolean(System.getProperty("taskUpdateV2", "false")) || Boolean.parseBoolean(System.getenv("taskUpdateV2"));
+
+        LOGGER.info("taskUpdateV2 is set to {} for {}", this.enableUpdateV2, worker.getTaskDefName());
         //1. Is there a worker level override?
         this.domain = PropertyFactory.getString(taskType, Worker.PROP_DOMAIN, null);
         if (this.domain == null) {
@@ -119,11 +122,16 @@ class TaskRunner {
         }
         this.errorAt = errorInterval;
         LOGGER.info("Polling errors will be sampled at every {} error (after the first 100 errors) for taskType {}", this.errorAt, taskType);
-        this.executorService = Executors.newFixedThreadPool(threadCount,
-                new BasicThreadFactory.Builder()
-                        .namingPattern(workerNamePrefix)
-                        .uncaughtExceptionHandler(uncaughtExceptionHandler)
-                        .build());
+        ThreadFactory threadFactory = null;
+        if(useVirtualThreads) {
+            threadFactory = Thread.ofVirtual().name(workerNamePrefix).uncaughtExceptionHandler(uncaughtExceptionHandler).factory();
+        } else {
+            threadFactory = new BasicThreadFactory.Builder()
+                .namingPattern(workerNamePrefix)
+                .uncaughtExceptionHandler(uncaughtExceptionHandler)
+                .build();
+        }
+        this.executorService = Executors.newFixedThreadPool(threadCount, threadFactory);
         LOGGER.info("Starting Worker for taskType '{}' with {} threads, {} ms polling interval and domain {}",
                 taskType,
                 threadCount,

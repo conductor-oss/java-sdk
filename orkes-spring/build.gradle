@@ -15,10 +15,6 @@ ext {
 
 apply plugin: 'publish-config'
 
-compileJava {
-    sourceCompatibility = 17
-    targetCompatibility = 17
-}
 
 repositories {
     mavenCentral()
