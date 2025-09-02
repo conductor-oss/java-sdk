@@ -84,8 +84,10 @@ public class WorkflowTask {
 
     private List<List<WorkflowTask>> forkTasks = new LinkedList<>();
 
-    private int // No. of seconds (at-least) to wait before starting a task.
-    startDelay;
+    /**
+     * No. of seconds (at-least) to wait before starting a task.
+     */
+    private int startDelay;
 
     private SubWorkflowParams subWorkflowParam;
 
