@@ -32,6 +32,45 @@ dependencies {
 java {
     withSourcesJar()
     withJavadocJar()
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+sourceSets {
+    java21 {
+        java {
+            srcDirs = ['src/java21/java']
+            compileClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.main.output
+        }
+    }
+}
+
+configurations {
+    java21Implementation.extendsFrom implementation
+    java21CompileOnly.extendsFrom compileOnly
+    java21RuntimeOnly.extendsFrom runtimeOnly
+}
+
+tasks.register('compileJava21', JavaCompile) {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    source = sourceSets.java21.java
+    classpath = sourceSets.main.output + configurations.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir("classes/java21")
+    options.release = 21
+}
+
+tasks.jar {
+    manifest {
+        attributes('Multi-Release': 'true')
+    }
+    from(tasks.named('compileJava21')) {
+        into('META-INF/versions/21')
+    }
 }
 
 test {
@@ -46,4 +85,26 @@ shadowJar {
 
 tasks.build {
     dependsOn shadowJar
+}
+def jarTask = tasks.named('jar', Jar)
+
+[17, 21].each { ver ->
+    tasks.register("testJarOn$ver", Test) {
+        dependsOn(jarTask)
+        javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(ver)
+        })
+        useJUnitPlatform()
+
+        testClassesDirs = sourceSets.test.output.classesDirs
+
+        doFirst {
+            def jarFile = jarTask.get().archiveFile.get().asFile
+
+            def rt = sourceSets.test.runtimeClasspath
+            rt = rt - sourceSets.main.output
+
+            classpath = files(jarFile) + rt
+        }
+    }
 }

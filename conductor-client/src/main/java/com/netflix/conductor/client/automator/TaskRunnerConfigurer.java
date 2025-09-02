@@ -16,11 +16,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public class TaskRunnerConfigurer {
     private final Integer defaultPollTimeout;
     private final int threadCount;
     private final List<TaskRunner> taskRunners;
-    private ScheduledExecutorService scheduledExecutorService;
+    private ExecutorService scheduledExecutorService;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
 
@@ -130,10 +130,15 @@ public class TaskRunnerConfigurer {
      * Starts the polling. Must be called after {@link TaskRunnerConfigurer.Builder#build()} method.
      */
     public synchronized void init() {
-        this.scheduledExecutorService = Executors.newScheduledThreadPool(workers.size(),
-                new BasicThreadFactory.Builder()
-                        .namingPattern("TaskRunner %d")
-                        .build());
+        this.init(ThreadFactoryType.VIRTUAL);
+    }
+
+    public synchronized void init(ThreadFactoryType factoryType) {
+        this.init(ThreadFactoryProvider.createThreadFactory(factoryType));
+    }
+
+    public synchronized void init(ThreadFactory threadFactory) {
+        this.scheduledExecutorService = Executors.newScheduledThreadPool(workers.size(), threadFactory);
         workers.forEach(worker -> scheduledExecutorService.submit(() -> this.startWorker(worker)));
     }
 

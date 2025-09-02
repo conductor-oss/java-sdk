@@ -47,6 +47,11 @@ subprojects {
             excludes = ['**/generated/**']
         }
         finalizedBy jacocoTestReport
+        javaLauncher.set(
+                javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(21)
+                }
+        )
     }
 
     compileJava {
