@@ -238,7 +238,7 @@ public class AnnotatedWorkerExecutor {
 
         LOGGER.info("Starting {} with threadCount {}", workers.stream().map(Worker::getTaskDefName).toList(), workerToThreadCount);
         LOGGER.info("Worker domains {}", workerDomains);
-        LOGGER.info("Worker workerToPollTimeout {}", workerToPollTimeout);
+        LOGGER.info("Worker workerToPollTimeout (in millis) {}", workerToPollTimeout);
 
         var builder = new TaskRunnerConfigurer.Builder(taskClient, workers)
                 .withTaskThreadCount(workerToThreadCount)
