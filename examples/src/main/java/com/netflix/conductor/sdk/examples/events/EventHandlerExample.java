@@ -29,10 +29,6 @@ import io.orkes.conductor.sdk.examples.util.ClientUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Shows how you can create a worker that polls and executes a SIMPLE task
- * and register listeners to expose metrics with micrometer.
- */
 @Slf4j
 public class EventHandlerExample {
     private static final String WORKFLOW_NAME = "test_event_handler";
