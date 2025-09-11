@@ -22,6 +22,9 @@ import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.common.metadata.events.EventHandler;
 
+import io.orkes.conductor.client.model.OrkesEventHandler;
+import io.orkes.conductor.client.model.Tag;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 
 class EventResource {
@@ -32,6 +35,10 @@ class EventResource {
         this.client = client;
     }
 
+    /**
+     * @deprecated since 4.0.19, forRemoval in 4.1.0. Use {@link #getOrkesEventHandlers()} instead.
+     */
+    @Deprecated(since = "4.0.19", forRemoval = true)
     List<EventHandler> getEventHandlers() {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -39,6 +46,32 @@ class EventResource {
                 .build();
 
         ConductorClientResponse<List<EventHandler>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    List<OrkesEventHandler> getOrkesEventHandlers() {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/event")
+                .build();
+
+        ConductorClientResponse<List<OrkesEventHandler>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    List<OrkesEventHandler> getOrkesEventHandlers(String event, boolean activeOnly) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/event/{name}")
+                .addPathParam("name", event)
+                .addQueryParam("activeOnly", activeOnly)
+                .build();
+
+        ConductorClientResponse<List<OrkesEventHandler>> resp = client.execute(request, new TypeReference<>() {
         });
 
         return resp.getData();
@@ -96,5 +129,26 @@ class EventResource {
                 .build();
 
         client.execute(request);
+    }
+
+    void putTagsForEventHandler(String name, List<Tag> tags) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/event/{name}/tags")
+                .addPathParam("name", name)
+                .body(tags)
+                .build();
+        client.execute(request);
+    }
+
+    List<Tag> getTagsForEventHandler(String name) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/event/{name}/tags")
+                .addPathParam("name", name)
+                .build();
+        ConductorClientResponse<List<Tag>> resp = client.execute(request, new TypeReference<>() {
+        });
+        return resp.getData();
     }
 }

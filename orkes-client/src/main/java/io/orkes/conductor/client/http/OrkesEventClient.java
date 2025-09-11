@@ -20,6 +20,8 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.EventClient;
 import com.netflix.conductor.common.metadata.events.EventHandler;
 
+import io.orkes.conductor.client.model.OrkesEventHandler;
+import io.orkes.conductor.client.model.Tag;
 import io.orkes.conductor.client.model.event.QueueConfiguration;
 
 public class OrkesEventClient {
@@ -33,8 +35,16 @@ public class OrkesEventClient {
         this.eventClient = new EventClient(client);
     }
 
+    /**
+     * @deprecated since 4.0.19, forRemoval in 4.1.0. Use {@link #getOrkesEventHandlers()} instead.
+     */
+    @Deprecated(since = "4.0.19", forRemoval = true)
     public List<EventHandler> getEventHandlers() {
         return eventResource.getEventHandlers();
+    }
+
+    public List<OrkesEventHandler> getOrkesEventHandlers() {
+        return eventResource.getOrkesEventHandlers();
     }
 
     public void handleIncomingEvent(Map<String, Object> payload) {
@@ -60,12 +70,26 @@ public class OrkesEventClient {
     public void updateEventHandler(EventHandler eventHandler) {
         eventClient.updateEventHandler(eventHandler);
     }
-
+    /**
+     * @deprecated since 4.0.19, forRemoval in 4.1.0. Use {@link #getOrkesEventHandlers(String, boolean)} instead.
+     */
+    @Deprecated(since = "4.0.19", forRemoval = true)
     public List<EventHandler> getEventHandlers(String event, boolean activeOnly) {
         return eventClient.getEventHandlers(event, activeOnly);
     }
 
+    public List<OrkesEventHandler> getOrkesEventHandlers(String event, boolean activeOnly) {
+        return eventResource.getOrkesEventHandlers(event, activeOnly);
+    }
+
     public void unregisterEventHandler(String name) {
         eventClient.unregisterEventHandler(name);
+    }
+
+    public void putTagsForEventHandler(String name, List<Tag> tags) {
+        eventResource.putTagsForEventHandler(name, tags);
+    }
+    public List<Tag> getTagsForEventHandler(String name){
+        return eventResource.getTagsForEventHandler(name);
     }
 }

@@ -23,6 +23,8 @@ import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 
 import io.orkes.conductor.client.http.OrkesEventClient;
+import io.orkes.conductor.client.model.OrkesEventHandler;
+import io.orkes.conductor.client.model.Tag;
 import io.orkes.conductor.sdk.examples.util.ClientUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,24 +50,34 @@ public class EventHandlerExample {
             metadataClient.registerWorkflowDef(getWorkflowDef());
         }
 
-
-        var eventHandlers = eventClient.getEventHandlers();
+        var eventHandlers = eventClient.getOrkesEventHandlers();
         if (!eventHandlers.stream().anyMatch(handler -> handler.getName().equals(EVENT_HANDLER_NAME))) {
             eventClient.registerEventHandler(getEventHandler());
         }
-        // If something sends a message to sqs queue now, then our workflow will be executed.
+
+        eventClient.putTagsForEventHandler(EVENT_HANDLER_NAME, List.of(Tag.builder().key("test").value("test").build(), Tag.builder().key("test2").value("test2").build()));
+
+        var oldHandlers = eventClient.getEventHandlers();
+        var newHandlers = eventClient.getOrkesEventHandlers();
+        log.info("Event handlers: {}", oldHandlers);
+        log.info("Orkes event handlers: {}", newHandlers);
+
+        var handler = eventClient.getOrkesEventHandlers(EVENT_HANDLER_NAME, false);
+        log.info("Handlers by name: {}", handler);
     }
 
-    private static EventHandler getEventHandler() {
+    private static OrkesEventHandler getEventHandler() {
         EventHandler.Action action = new EventHandler.Action();
         action.setAction(EventHandler.Action.Type.start_workflow);
         var startWorkflow = new EventHandler.StartWorkflow();
         startWorkflow.setName(WORKFLOW_NAME);
         action.setStart_workflow(startWorkflow);
-        return EventHandler.builder().name(EVENT_HANDLER_NAME)
+        return OrkesEventHandler.orkesBuilder().name(EVENT_HANDLER_NAME)
                 .event("sqs:IKsqs2:test-sqs-queue") // IKsqs2 integration should already exist
                 .active(true)
                 .actions(List.of(action))
+                // TODO: this tags are ignored by the server
+                .tags(List.of(Tag.builder().key("test").value("test").build(), Tag.builder().key("test2").value("test2").build()))
                 .build();
     }
 
@@ -83,6 +95,7 @@ public class EventHandlerExample {
         workflowDef.setVersion(1);
         workflowDef.setSchemaVersion(2);
         workflowDef.setTasks(List.of(task));
+
         return workflowDef;
     }
 }
