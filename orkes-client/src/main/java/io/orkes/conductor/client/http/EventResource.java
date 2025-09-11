@@ -35,10 +35,6 @@ class EventResource {
         this.client = client;
     }
 
-    /**
-     * @deprecated since 4.0.19, forRemoval in 4.1.0. Use {@link #getOrkesEventHandlers()} instead.
-     */
-    @Deprecated(since = "4.0.19", forRemoval = true)
     List<EventHandler> getEventHandlers() {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)

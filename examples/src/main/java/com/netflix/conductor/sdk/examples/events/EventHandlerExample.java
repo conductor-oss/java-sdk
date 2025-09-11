@@ -47,7 +47,7 @@ public class EventHandlerExample {
         }
 
         var eventHandlers = eventClient.getOrkesEventHandlers();
-        if (!eventHandlers.stream().anyMatch(handler -> handler.getName().equals(EVENT_HANDLER_NAME))) {
+        if (eventHandlers.stream().noneMatch(handler -> handler.getName().equals(EVENT_HANDLER_NAME))) {
             eventClient.registerEventHandler(getEventHandler());
         }
 
