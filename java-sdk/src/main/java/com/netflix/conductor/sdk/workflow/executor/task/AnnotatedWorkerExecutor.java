@@ -44,6 +44,8 @@ public class AnnotatedWorkerExecutor {
 
     protected Map<String, Integer> workerToPollingInterval = new HashMap<>();
 
+    protected Map<String, Integer> workerToPollTimeout = new HashMap<>();
+
     protected Map<String, String> workerDomains = new HashMap<>();
 
     private MetricsCollector metricsCollector;
@@ -192,6 +194,12 @@ public class AnnotatedWorkerExecutor {
         }
         workerToPollingInterval.put(name, pollingInterval);
 
+        int pollTimeout = workerConfiguration.getPollTimeout(name);
+        if (pollTimeout == 0) {
+            pollTimeout = annotation.pollTimeout();
+        }
+        workerToPollTimeout.put(name, pollTimeout);
+
         String domain = workerConfiguration.getDomain(name);
         if (Strings.isNullOrEmpty(domain)) {
             domain = annotation.domain();
@@ -202,7 +210,18 @@ public class AnnotatedWorkerExecutor {
 
         AnnotatedWorker executor = new AnnotatedWorker(name, method, bean);
         executor.setPollingInterval(workerToPollingInterval.get(name));
-        workers.add(executor);
+
+        int pollerCount = workerConfiguration.getPollerCount(name);
+        if (pollerCount == 0) {
+            pollerCount = annotation.pollerCount();
+        }
+        if(pollerCount < 1) {
+            pollerCount = 1;
+        }
+
+        for (int i = 0; i < pollerCount; i++) {
+            workers.add(executor);
+        }
 
         LOGGER.info(
                 "Adding worker for task {}, method {} with threadCount {} and polling interval set to {} ms",
@@ -217,11 +236,13 @@ public class AnnotatedWorkerExecutor {
             return;
         }
 
-        LOGGER.info("Starting {} workers with threadCount {}", workers.size(), workerToThreadCount);
+        LOGGER.info("Starting {} with threadCount {}", workers.stream().map(Worker::getTaskDefName).toList(), workerToThreadCount);
         LOGGER.info("Worker domains {}", workerDomains);
+        LOGGER.info("Worker workerToPollTimeout (in millis) {}", workerToPollTimeout);
 
         var builder = new TaskRunnerConfigurer.Builder(taskClient, workers)
                 .withTaskThreadCount(workerToThreadCount)
+                .withTaskPollTimeout(workerToPollTimeout)
                 .withTaskToDomain(workerDomains);
         if (metricsCollector != null) {
             builder.withMetricsCollector(metricsCollector);
