@@ -25,6 +25,8 @@ import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.integration.Integration;
 import io.orkes.conductor.client.model.integration.IntegrationApi;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
+import io.orkes.conductor.client.model.integration.IntegrationDef;
+import io.orkes.conductor.client.model.integration.IntegrationEventStats;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
 import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
 
@@ -222,5 +224,111 @@ class IntegrationResource {
                 .build();
 
         client.execute(request);
+    }
+
+    List<Integration> getAllIntegrations(String type, boolean activeOnly) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/integrations")
+                .addQueryParam("type", type)
+                .addQueryParam("activeOnly", activeOnly)
+                .build();
+        ConductorClientResponse<List<Integration>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+    void saveAllIntegrations(List<Integration> integrations) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/integrations")
+                .body(integrations)
+                .build();
+        client.execute(request);
+    }
+
+    List<String> getIntegrationProviderNames(String type, boolean activeOnly) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/integrations/all")
+                .addQueryParam("type", type)
+                .addQueryParam("activeOnly", activeOnly)
+                .build();
+        ConductorClientResponse<List<String>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    List<IntegrationDef> getProvidersDefinitions(String type, boolean activeOnly) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/integrations/providers/definitions")
+                .addQueryParam("type", type)
+                .addQueryParam("activeOnly", activeOnly)
+                .build();
+        ConductorClientResponse<List<IntegrationDef>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    List<IntegrationEventStats> getEventStats(String type) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/integrations/eventStats/{type}")
+                .addPathParam("type", type)
+                .build();
+        ConductorClientResponse<List<IntegrationEventStats>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    void deleteIntegrationTags(String providerName, String integrationName, List<TagObject> tags) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.DELETE)
+                .path("/integrations/provider/{name}/integration/{integration_name}/tags")
+                .addPathParam("name", providerName)
+                .addPathParam("integration_name", integrationName)
+                .body(tags)
+                .build();
+        client.execute(request);
+    }
+
+    List<TagObject> getIntegrationTags(String providerName, String integrationName) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/integrations/provider/{name}/integration/{integration_name}/tags")
+                .addPathParam("name", providerName)
+                .addPathParam("integration_name", integrationName)
+                .build();
+        ConductorClientResponse<List<TagObject>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    void putIntegrationTags(String providerName, String integrationName, List<TagObject> tags) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/integrations/provider/{name}/integration/{integration_name}/tags")
+                .addPathParam("name", providerName)
+                .addPathParam("integration_name", integrationName)
+                .body(tags)
+                .build();
+        client.execute(request);
+    }
+
+    List<String> getAllIntegrations(String providerName) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/integrations/provider/{name}/integration/all")
+                .addPathParam("name", providerName)
+                .build();
+        ConductorClientResponse<List<String>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
     }
 }

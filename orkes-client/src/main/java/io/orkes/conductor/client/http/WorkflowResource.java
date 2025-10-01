@@ -252,4 +252,16 @@ class WorkflowResource {
 
         return resp.getData();
     }
+    public String startWorkflow(StartWorkflowRequest startWorkflowRequest) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/workflow")
+                .body(startWorkflowRequest)
+                .build();
+
+        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
 }

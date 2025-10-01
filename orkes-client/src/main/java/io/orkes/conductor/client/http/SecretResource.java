@@ -19,6 +19,7 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 
+import io.orkes.conductor.client.model.SecretWithTags;
 import io.orkes.conductor.client.model.TagObject;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -138,5 +139,35 @@ public class SecretResource {
         });
 
         return resp.getData();
+    }
+
+    public List<SecretWithTags> listAllSecretNamesV2() {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(ConductorClientRequest.Method.GET)
+                .path("/secrets-v2")
+                .build();
+
+        ConductorClientResponse<List<SecretWithTags>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    public void clearLocalCache() {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(ConductorClientRequest.Method.GET)
+                .path("/secrets/clearLocalCache")
+                .build();
+
+        client.execute(request);
+    }
+
+    public void clearRedisCache() {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(ConductorClientRequest.Method.GET)
+                .path("/secrets/clearRedisCache")
+                .build();
+
+        client.execute(request);
     }
 }

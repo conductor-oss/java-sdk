@@ -22,6 +22,9 @@ import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.common.metadata.events.EventHandler;
 
+import io.orkes.conductor.client.model.TagObject;
+import io.orkes.conductor.client.model.event.EventTestConnectivityRequest;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 
 class EventResource {
@@ -39,6 +42,20 @@ class EventResource {
                 .build();
 
         ConductorClientResponse<List<EventHandler>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    // TODO: swagger is broken, it is just an assumption
+    EventHandler getEventHandler(String eventName) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/event/{event}")
+                .addPathParam("event", eventName)
+                .build();
+
+        ConductorClientResponse<EventHandler> resp = client.execute(request, new TypeReference<>() {
         });
 
         return resp.getData();
@@ -66,7 +83,7 @@ class EventResource {
     Map<String, Object> getQueueConfig(String queueType, String queueName) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path( "/event/queue/config/{queueType}/{queueName}")
+                .path("/event/queue/config/{queueType}/{queueName}")
                 .addPathParam("queueType", queueType)
                 .addPathParam("queueName", queueName)
                 .build();
@@ -79,7 +96,7 @@ class EventResource {
     void deleteQueueConfig(String queueType, String queueName) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.DELETE)
-                .path( "/event/queue/config/{queueType}/{queueName}")
+                .path("/event/queue/config/{queueType}/{queueName}")
                 .addPathParam("queueType", queueType)
                 .addPathParam("queueName", queueName)
                 .build();
@@ -90,11 +107,75 @@ class EventResource {
     void putQueueConfig(String queueType, String queueName) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.PUT)
-                .path( "/event/queue/config/{queueType}/{queueName}")
+                .path("/event/queue/config/{queueType}/{queueName}")
                 .addPathParam("queueType", queueType)
                 .addPathParam("queueName", queueName)
                 .build();
 
+        client.execute(request);
+    }
+
+    // TODO: swagger is broken, it is copied from conductor-client without testing
+    void addEventHandler(EventHandler eventHandler) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/event")
+                .body(eventHandler)
+                .build();
+
+        client.execute(request);
+    }
+
+    // TODO: swagger is broken, it is just an assumption
+    void updateEventHandler(EventHandler eventHandler) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/event")
+                .body(eventHandler)
+                .build();
+
+        client.execute(request);
+    }
+
+    void deleteEventHandlerTag(String eventName, List<TagObject> tags) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.DELETE)
+                .path("/event/{name}/tags")
+                .addPathParam("name", eventName)
+                .body(tags)
+                .build();
+        client.execute(request);
+    }
+
+    List<TagObject> getEventHandlerTags(String eventName) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/event/{name}/tags")
+                .addPathParam("name", eventName)
+                .build();
+
+        ConductorClientResponse<List<TagObject>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    void putEventHandlerTags(String eventName, List<TagObject> tags) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/event/{name}/tags")
+                .addPathParam("name", eventName)
+                .body(tags)
+                .build();
+        client.execute(request);
+    }
+
+    void testQueueConnectivity(EventTestConnectivityRequest body) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/event/queue/connectivity")
+                .body(body)
+                .build();
         client.execute(request);
     }
 }

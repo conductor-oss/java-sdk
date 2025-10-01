@@ -46,6 +46,19 @@ public class MetadataResource {
         client.execute(request);
     }
 
+    public void registerWorkflowDef(WorkflowDef workflowDef, Boolean overwrite, Boolean newVersion) {
+        Objects.requireNonNull(workflowDef, "WorkflowDef cannot be null");
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/metadata/workflow")
+                .addQueryParam("overwrite", overwrite)
+                .addQueryParam("newVersion", newVersion)
+                .body(workflowDef)
+                .build();
+
+        client.execute(request);
+    }
+
     public WorkflowDef getWorkflow(String name, Integer version, Boolean metadata) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -70,6 +83,25 @@ public class MetadataResource {
                 .addQueryParam("metadata", metadata)
                 .addQueryParam("tagKey", tagKey)
                 .addQueryParam("tagValue", tagValue)
+                .build();
+
+        ConductorClientResponse<List<WorkflowDef>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    public List<WorkflowDef> getAllWorkflows(
+            String access, Boolean metadata, String tagKey, String tagValue, String name, Boolean short_) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/metadata/workflow")
+                .addQueryParam("access", access)
+                .addQueryParam("metadata", metadata)
+                .addQueryParam("tagKey", tagKey)
+                .addQueryParam("tagValue", tagValue)
+                .addQueryParam("name", name)
+                .addQueryParam("short", short_)
                 .build();
 
         ConductorClientResponse<List<WorkflowDef>> resp = client.execute(request, new TypeReference<>() {
@@ -156,11 +188,32 @@ public class MetadataResource {
         client.execute(request);
     }
 
+    public void updateWorkflows(List<WorkflowDef> workflowDefs, Boolean overwrite, Boolean newVersion) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/metadata/workflow")
+                .addQueryParam("overwrite", overwrite)
+                .addQueryParam("newVersion", newVersion)
+                .body(workflowDefs)
+                .build();
+
+        client.execute(request);
+    }
+
     public void updateTaskDef(TaskDef taskDef) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.PUT)
                 .path("/metadata/taskdefs")
                 .body(taskDef)
+                .build();
+
+        client.execute(request);
+    }
+
+    public void uploadWorkflowTaskDefs() {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/metadata/workflow-task-defs/upload")
                 .build();
 
         client.execute(request);

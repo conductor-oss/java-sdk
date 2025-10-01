@@ -25,7 +25,6 @@ import io.orkes.conductor.client.model.UpsertUserRequest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-
 class UserResource {
     private final ConductorClient client;
 
@@ -69,7 +68,6 @@ class UserResource {
         return resp.getData();
     }
 
-
     public List<ConductorUser> listUsers(Boolean apps) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -102,6 +100,21 @@ class UserResource {
                 .build();
 
         ConductorClientResponse<ConductorUser> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
+
+    public GrantedAccessResponse checkUserPermissions(String userId, String type, String id) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/api/users/{userId}/checkPermissions")
+                .addPathParam("userId", userId)
+                .addQueryParam("type", type)
+                .addQueryParam("id", id)
+                .build();
+
+        ConductorClientResponse<GrantedAccessResponse> resp = client.execute(request, new TypeReference<>() {
         });
 
         return resp.getData();

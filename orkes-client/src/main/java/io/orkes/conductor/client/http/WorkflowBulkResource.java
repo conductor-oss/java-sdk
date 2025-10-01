@@ -98,4 +98,17 @@ class WorkflowBulkResource {
 
         return resp.getData();
     }
+
+    public BulkResponse<String> deleteWorkflows(List<String> workflowIds) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/workflow/bulk/delete")
+                .body(workflowIds)
+                .build();
+
+        ConductorClientResponse<BulkResponse<String>> resp = client.execute(request, new TypeReference<>() {
+        });
+
+        return resp.getData();
+    }
 }
