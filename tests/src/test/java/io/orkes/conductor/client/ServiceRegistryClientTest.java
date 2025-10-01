@@ -20,6 +20,7 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ServiceRegistryClient;
 import com.netflix.conductor.common.model.OrkesCircuitBreakerConfig;
 import com.netflix.conductor.common.model.ServiceMethod;
@@ -44,8 +45,18 @@ public class ServiceRegistryClientTest {
 
     @BeforeEach
     void setUp() {
-        client.removeService(HTTP_SERVICE_NAME);
-        client.removeService(GRPC_SERVICE_NAME);
+        safeRemove(HTTP_SERVICE_NAME);
+        safeRemove(GRPC_SERVICE_NAME);
+    }
+
+    private void safeRemove(String serviceName) {
+        try {
+            client.removeService(serviceName);
+        } catch (ConductorClientException e) {
+            if (e.getStatus() != 404) { // only ignore NOT FOUND
+                throw e;
+            }
+        }
     }
 
     @Test
@@ -126,7 +137,7 @@ public class ServiceRegistryClientTest {
         client.addOrUpdateServiceMethod(GRPC_SERVICE_NAME, method);
         actualService = client.getService(GRPC_SERVICE_NAME);
         assertEquals(size + 1, actualService.getMethods().size());
-        
+
         byte[] binaryData;
         try (InputStream inputStream = getClass().getResourceAsStream("/compiled.bin")) {
             binaryData = inputStream.readAllBytes();
