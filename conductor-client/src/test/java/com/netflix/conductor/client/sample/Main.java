@@ -14,17 +14,12 @@ package com.netflix.conductor.client.sample;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.netflix.conductor.client.exception.ConductorClientException;
-import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.MetadataClient;
-import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
-import com.netflix.conductor.common.validation.ValidationError;
+import com.netflix.conductor.clientv2.ApiException;
+import com.netflix.conductor.clientv2.http.MetadataResourceApi;
+import com.netflix.conductor.clientv2.http.model.WorkflowDef;
+import com.netflix.conductor.clientv2.http.model.WorkflowTask;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class Main {
@@ -37,23 +32,25 @@ public class Main {
 
     public static void testUpdateWorkflowDef() {
         try {
-            ConductorClient client = new ConductorClient();
-            MetadataClient metadataClient = new MetadataClient(client);
+            MetadataResourceApi metadataResourceApi = new MetadataResourceApi();
             WorkflowDef workflowDef = new WorkflowDef();
+            workflowDef.setName("test");
+            workflowDef.setOwnerEmail("test@test.com");
+            workflowDef.setTasks(new ArrayList<>());
+            WorkflowTask workflowTask = new WorkflowTask();
+            workflowTask.setTaskReferenceName("test");
+            workflowTask.setName("test");
+            workflowTask.setType("test");
+            workflowDef.getTasks().add(workflowTask);
             List<WorkflowDef> workflowDefList = new ArrayList<>();
             workflowDefList.add(workflowDef);
-            metadataClient.updateWorkflowDefs(workflowDefList);
-        } catch (ConductorClientException e) {
-            assertEquals(400, e.getStatus());
-            assertEquals("Validation failed, check below errors for detail.", e.getMessage());
-            assertFalse(e.isRetryable());
-            List<ValidationError> errors = e.getValidationErrors();
-            List<String> errorMessages =
-                errors.stream().map(ValidationError::getMessage).collect(Collectors.toList());
-            assertEquals(3, errors.size());
-            assertTrue(errorMessages.contains("WorkflowTask list cannot be empty"));
-            assertTrue(errorMessages.contains("WorkflowDef name cannot be null or empty"));
-            assertTrue(errorMessages.contains("ownerEmail cannot be empty"));
+            metadataResourceApi.update(workflowDefList);
+        } catch (ApiException e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getCode());
+            System.out.println(e.getResponseHeaders());
+            System.out.println(e.getResponseBody());
+            System.exit(1);
         }
     }
 }
