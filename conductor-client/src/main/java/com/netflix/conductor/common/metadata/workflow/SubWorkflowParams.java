@@ -67,21 +67,11 @@ public class SubWorkflowParams {
         return version;
     }
 
-    /** 
+    /**
      * @return the workflowDefinition as an Object
      */
     public Object getWorkflowDefinition() {
         return workflowDefinition;
-    }
-
-    @Deprecated
-    public void setWorkflowDef(WorkflowDef workflowDef) {
-        this.setWorkflowDefinition(workflowDef);
-    }
-
-    @Deprecated
-    public WorkflowDef getWorkflowDef() {
-        return (WorkflowDef) workflowDefinition;
     }
 
     /** 
