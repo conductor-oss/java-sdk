@@ -212,6 +212,8 @@
         "inputSchema" : "${SchemaDef}",
         "description" : "sample_description",
         "version" : 123,
+        "cacheConfig": null,
+        "maskedFields": [],
         "inputParameters" : [ "sample_inputParameters" ],
         "inputTemplate" : {
           "sample_key" : "sample_value"
