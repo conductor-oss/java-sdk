@@ -44,8 +44,17 @@ public class ServiceRegistryClientTest {
 
     @BeforeEach
     void setUp() {
-        client.removeService(HTTP_SERVICE_NAME);
-        client.removeService(GRPC_SERVICE_NAME);
+        try {
+            client.removeService(HTTP_SERVICE_NAME);
+        } catch (Exception e) {
+            // Service doesn't exist, ignore
+        }
+        
+        try {
+            client.removeService(GRPC_SERVICE_NAME);
+        } catch (Exception e) {
+            // Service doesn't exist, ignore
+        }
     }
 
     @Test
