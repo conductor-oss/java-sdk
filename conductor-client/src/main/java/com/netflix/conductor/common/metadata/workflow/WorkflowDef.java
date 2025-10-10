@@ -78,6 +78,10 @@ public class WorkflowDef extends Auditable {
 
     private Map<String, Object> metadata = new HashMap<>();
 
+    private WorkflowTask.CacheConfig cacheConfig;
+
+    private List<String> maskedFields = new ArrayList<>();
+
     public String key() {
         return getKey(name, version);
     }
