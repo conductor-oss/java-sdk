@@ -24,6 +24,7 @@ public class TargetRef {
 
     private String id = null;
 
+    @Getter
     public enum TypeEnum {
         WORKFLOW_DEF("WORKFLOW_DEF"),
         TASK_DEF("TASK_DEF"),
@@ -31,16 +32,24 @@ public class TargetRef {
         USER("USER"),
         SECRET("SECRET_NAME"),
         TAG("TAG"),
-        DOMAIN("DOMAIN");
+        DOMAIN("DOMAIN"),
+        WORKFLOW_SCHEDULE("WORKFLOW_SCHEDULE"),
+        EVENT_HANDLER("EVENT_HANDLER"),
+        ENV_VARIABLE("ENV_VARIABLE"),
+        INTEGRATION_PROVIDER("INTEGRATION_PROVIDER"),
+        INTEGRATION("INTEGRATION"),
+        PROMPT("PROMPT"),
+        USER_FORM_TEMPLATE("USER_FORM_TEMPLATE"),
+        SCHEMA("SCHEMA"),
+        WEBHOOK("WEBHOOK"),
+        API_GATEWAY_SERVICE("API_GATEWAY_SERVICE"),
+        API_GATEWAY_SERVICE_ROUTE("API_GATEWAY_SERVICE_ROUTE");
+
 
         private final String value;
 
         TypeEnum(String value) {
             this.value = value;
-        }
-
-        public String getValue() {
-            return value;
         }
 
         @Override
