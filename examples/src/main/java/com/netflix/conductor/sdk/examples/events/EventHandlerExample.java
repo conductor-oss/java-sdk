@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EventHandlerExample {
     private static final String WORKFLOW_NAME = "test_event_handler";
     private static final String EVENT_HANDLER_NAME = "test_event_handler";
+    private static final String EVENT_NAME = "sqs:IKsqs2:test-sqs-queue";
 
     public static void main(String[] args) throws IOException {
         var client = ClientUtil.getClient();
@@ -58,7 +59,7 @@ public class EventHandlerExample {
         log.info("Event handlers: {}", oldHandlers);
         log.info("Orkes event handlers: {}", newHandlers);
 
-        var handler = eventClient.getOrkesEventHandlers(EVENT_HANDLER_NAME, false);
+        var handler = eventClient.getOrkesEventHandlers(EVENT_NAME, false);
         log.info("Handlers by name: {}", handler);
     }
 
@@ -69,10 +70,9 @@ public class EventHandlerExample {
         startWorkflow.setName(WORKFLOW_NAME);
         action.setStart_workflow(startWorkflow);
         return OrkesEventHandler.orkesBuilder().name(EVENT_HANDLER_NAME)
-                .event("sqs:IKsqs2:test-sqs-queue") // IKsqs2 integration should already exist
+                .event(EVENT_NAME) // IKsqs2 integration should already exist
                 .active(true)
                 .actions(List.of(action))
-                // TODO: this tags are ignored by the server
                 .tags(List.of(Tag.builder().key("test").value("test").build(), Tag.builder().key("test2").value("test2").build()))
                 .build();
     }
