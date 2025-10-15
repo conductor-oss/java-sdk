@@ -38,7 +38,7 @@ public class EventHandlerExample {
     public static void main(String[] args) throws IOException {
         var client = ClientUtil.getClient();
         var eventClient = new OrkesEventClient(client);
-        // var workflowClient = new OrkesWorkflowClient(client);
+
         var metadataClient = new MetadataClient(client);
 
         try {
@@ -70,7 +70,7 @@ public class EventHandlerExample {
         startWorkflow.setName(WORKFLOW_NAME);
         action.setStart_workflow(startWorkflow);
         return OrkesEventHandler.orkesBuilder().name(EVENT_HANDLER_NAME)
-                .event(EVENT_NAME) // IKsqs2 integration should already exist
+                .event(EVENT_NAME) // AWS SQS integration with name "IKsqs2" must be already configured on the cluster
                 .active(true)
                 .actions(List.of(action))
                 .tags(List.of(Tag.builder().key("test").value("test").build(), Tag.builder().key("test2").value("test2").build()))
