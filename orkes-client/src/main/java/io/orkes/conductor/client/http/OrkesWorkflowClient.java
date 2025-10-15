@@ -214,6 +214,10 @@ public class OrkesWorkflowClient implements AutoCloseable {
         return workflowClient.search(start, size, sort, freeText, query);
     }
 
+    public SearchResult<Workflow> searchV2(Integer start, Integer size, String sort, String freeText, String query) {
+        return workflowClient.searchV2(start, size, sort, freeText, query);
+    }
+
     @Override
     public void close() {
         if (executorService != null) {
