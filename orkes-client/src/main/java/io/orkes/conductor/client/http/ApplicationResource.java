@@ -173,7 +173,7 @@ class ApplicationResource {
         }
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.PUT)
-                .path("/applications/{id}/tags")
+                .path("/applications/{applicationId}/tags")
                 .addPathParam("applicationId", applicationId)
                 .body(body)
                 .build();
@@ -184,7 +184,7 @@ class ApplicationResource {
     List<TagObject> getTags(String applicationId) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/applications/{id}/tags")
+                .path("/applications/{applicationId}/tags")
                 .addPathParam("applicationId", applicationId)
                 .build();
 
@@ -200,7 +200,7 @@ class ApplicationResource {
         }
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.DELETE)
-                .path("/applications/{id}/tags")
+                .path("/applications/{applicationId}/tags")
                 .addPathParam("applicationId", applicationId)
                 .body(body)
                 .build();
