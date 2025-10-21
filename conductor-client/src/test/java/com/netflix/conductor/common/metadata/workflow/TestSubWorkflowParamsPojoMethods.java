@@ -80,17 +80,6 @@ class TestSubWorkflowParamsPojoMethods {
     }
 
     @Test
-    void testDeprecatedWorkflowDefGetterSetter() {
-        SubWorkflowParams params = new SubWorkflowParams();
-        WorkflowDef workflowDef = new WorkflowDef();
-        workflowDef.setName("test-workflow");
-        workflowDef.setVersion(1);
-
-        params.setWorkflowDef(workflowDef);
-        assertEquals(workflowDef, params.getWorkflowDef());
-    }
-
-    @Test
     void testGetNameFromWorkflowDef() {
         SubWorkflowParams params = new SubWorkflowParams();
         WorkflowDef workflowDef = new WorkflowDef();
