@@ -199,4 +199,9 @@ public class OrkesAuthorizationClient implements AuthorizationClient {
     public void deleteApplicationTags(List<TagObject> tags, String applicationId) {
         applicationResource.deleteTags(tags, applicationId);
     }
+
+    @Override
+    public ConductorApplication getApplicationByAccessKeyId(String accessKeyId) {
+        return applicationResource.getApplicationByAccessKeyId(accessKeyId);
+    }
 }

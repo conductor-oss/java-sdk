@@ -96,4 +96,6 @@ public interface AuthorizationClient {
     List<TagObject> getApplicationTags(String applicationId);
 
     void deleteApplicationTags(List<TagObject> body, String applicationId);
+
+    ConductorApplication getApplicationByAccessKeyId(String accessKeyId);
 }
