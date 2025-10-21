@@ -168,7 +168,9 @@ class ApplicationResource {
     }
 
     void putTags(List<TagObject> body, String applicationId) {
-        Objects.requireNonNull(body, "List<TagObject> cannot be null");
+        if (body == null) {
+            throw new IllegalArgumentException("tags must not be null");
+        }
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.PUT)
                 .path("/applications/{id}/tags")
@@ -193,7 +195,9 @@ class ApplicationResource {
     }
 
     void deleteTags(List<TagObject> body, String applicationId) {
-        Objects.requireNonNull(body, "List<TagObject> cannot be null");
+        if (body == null) {
+            throw new IllegalArgumentException("tags must not be null");
+        }
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.DELETE)
                 .path("/applications/{id}/tags")
