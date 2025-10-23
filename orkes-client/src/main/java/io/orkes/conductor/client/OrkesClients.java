@@ -68,4 +68,8 @@ public class OrkesClients {
     public PromptClient getPromptClient() {
         return new OrkesPromptClient(client);
     }
+
+    public EnvironmentClient getEnvironmentClient() {
+        return new OrkesEnvironmentClient(client);
+    }
 }

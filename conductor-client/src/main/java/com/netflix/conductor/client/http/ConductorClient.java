@@ -261,19 +261,23 @@ public class ConductorClient {
         if (contentType.equals("application/octet-stream") && body instanceof byte[]) {
             return RequestBody.create((byte[]) body, MediaType.parse(contentType));
         }
-        //FIXME review this, what if we want to send something other than a JSON in the request
-        if (!isJsonMime(contentType)) {
-            throw new ConductorClientException("Content type \"" + contentType + "\" is not supported");
+        // Accept JSON-like media types as before
+        if (isJsonMime(contentType)) {
+            String content;
+            if (body instanceof String) {
+                content = (String) body; // preserve raw string when caller intentionally passes one
+            } else {
+                content = objectMapper.writeValueAsString(body);
+            }
+            return RequestBody.create(content, MediaType.parse(contentType));
         }
-
-        String content;
-        if (body instanceof String) {
-            content = (String) body;
-        } else {
-            content = objectMapper.writeValueAsString(body);
+        // New: allow plain text (and any text/*) bodies without forcing JSON serialization
+        if (contentType.startsWith("text/")) {
+            String content = (body instanceof String) ? (String) body : String.valueOf(body);
+            return RequestBody.create(content, MediaType.parse(contentType));
         }
-
-        return RequestBody.create(content, MediaType.parse(contentType));
+        // Existing behavior for unsupported non-JSON, non-text types
+        throw new ConductorClientException("Content type \"" + contentType + "\" is not supported");
     }
 
     protected <T> T handleResponse(Response response, Type returnType) {
