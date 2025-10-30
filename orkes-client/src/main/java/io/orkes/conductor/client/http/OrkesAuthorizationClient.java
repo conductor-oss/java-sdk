@@ -30,6 +30,7 @@ import io.orkes.conductor.client.model.Subject;
 import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.UpsertGroupRequest;
 import io.orkes.conductor.client.model.UpsertUserRequest;
+import io.orkes.conductor.client.util.RoleValidation;
 
 public class OrkesAuthorizationClient implements AuthorizationClient {
 
@@ -97,6 +98,23 @@ public class OrkesAuthorizationClient implements AuthorizationClient {
 
     @Override
     public Group upsertGroup(UpsertGroupRequest upsertGroupRequest, String id) {
+        // Early validation: USER_READ_ONLY cannot be combined with other roles or with default permissions
+        if (upsertGroupRequest != null && upsertGroupRequest.getRoles() != null) {
+            boolean hasReadOnly = upsertGroupRequest.getRoles().stream()
+                    .anyMatch(r -> r == UpsertGroupRequest.RolesEnum.USER_READ_ONLY);
+            if (hasReadOnly) {
+                if (upsertGroupRequest.getRoles().size() > 1) {
+                    throw new IllegalArgumentException("Group with role 'USER_READ_ONLY' cannot be assigned any other roles");
+                }
+                if (upsertGroupRequest.getDefaultAccess() != null && !upsertGroupRequest.getDefaultAccess().isEmpty()) {
+                    throw new IllegalArgumentException("Group with role 'USER_READ_ONLY' cannot have default permissions configured");
+                }
+            }
+        }
+        // Validate defaultAccess types match server expectations
+        if (upsertGroupRequest != null) {
+            RoleValidation.validateGroupDefaultAccessKeys(upsertGroupRequest.getDefaultAccess());
+        }
         return groupResource.upsertGroup(upsertGroupRequest, id);
     }
 
@@ -127,12 +145,32 @@ public class OrkesAuthorizationClient implements AuthorizationClient {
 
     @Override
     public ConductorUser upsertUser(UpsertUserRequest upsertUserRequest, String id) {
+        // Early validation: userId cannot start with app:
+        if (id != null && id.startsWith("app:")) {
+            throw new IllegalArgumentException("Prefix 'app:' is reserved for applications. Cannot create or edit user with id starting with 'app:'");
+        }
+        // USER_READ_ONLY cannot be combined with other roles nor with groups
+        if (upsertUserRequest != null && upsertUserRequest.getRoles() != null) {
+            boolean hasReadOnly = upsertUserRequest.getRoles().stream()
+                    .anyMatch(r -> r == UpsertUserRequest.RolesEnum.USER_READ_ONLY);
+            if (hasReadOnly && upsertUserRequest.getRoles().size() > 1) {
+                throw new IllegalArgumentException("User with role 'USER_READ_ONLY' cannot be assigned any other roles");
+            }
+            if (hasReadOnly && upsertUserRequest.getGroups() != null && !upsertUserRequest.getGroups().isEmpty()) {
+                throw new IllegalArgumentException("User with role 'USER_READ_ONLY' cannot be added to groups");
+            }
+        }
         return userResource.upsertUser(upsertUserRequest, id);
     }
 
     @Override
     public void addRoleToApplicationUser(String applicationId, String role) {
-        applicationResource.addRoleToApplicationUser(applicationId, role);
+        if (role == null || role.isBlank()) {
+            throw new IllegalArgumentException("role cannot be null or blank");
+        }
+        String normalized = role.toUpperCase();
+        // Delegate full authorization to server; only normalize
+        applicationResource.addRoleToApplicationUser(applicationId, normalized);
     }
 
     @Override
@@ -172,7 +210,12 @@ public class OrkesAuthorizationClient implements AuthorizationClient {
 
     @Override
     public void removeRoleFromApplicationUser(String applicationId, String role) {
-        applicationResource.removeRoleFromApplicationUser(applicationId, role);
+        if (role == null || role.isBlank()) {
+            throw new IllegalArgumentException("role cannot be null or blank");
+        }
+        String normalized = role.toUpperCase();
+        // Delegate full authorization to server; only normalize
+        applicationResource.removeRoleFromApplicationUser(applicationId, normalized);
     }
 
     @Override

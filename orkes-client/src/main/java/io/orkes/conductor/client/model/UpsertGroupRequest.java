@@ -28,7 +28,7 @@ import lombok.*;
 public class UpsertGroupRequest {
     /**
      * a default Map&lt;TargetType, Set&lt;Access&gt; to share permissions, allowed target types:
-     * WORKFLOW_DEF, TASK_DEF
+     * WORKFLOW_DEF, TASK_DEF, WORKFLOW_SCHEDULE
      */
     public enum InnerEnum {
         CREATE("CREATE"),
@@ -71,9 +71,15 @@ public class UpsertGroupRequest {
     public enum RolesEnum {
         ADMIN("ADMIN"),
         USER("USER"),
+        USER_READ_ONLY("USER_READ_ONLY"),
         WORKER("WORKER"),
+        UNRESTRICTED_WORKER("UNRESTRICTED_WORKER"),
         METADATA_MANAGER("METADATA_MANAGER"),
-        WORKFLOW_MANAGER("WORKFLOW_MANAGER");
+        WORKFLOW_MANAGER("WORKFLOW_MANAGER"),
+        APPLICATION_MANAGER("APPLICATION_MANAGER"),
+        APPLICATION_CREATOR("APPLICATION_CREATOR"),
+        METADATA_API("METADATA_API"),
+        PROMPT_MANAGER("PROMPT_MANAGER");
 
         private final String value;
 
