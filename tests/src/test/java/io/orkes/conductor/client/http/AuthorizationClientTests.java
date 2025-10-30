@@ -176,6 +176,18 @@ public class AuthorizationClientTests {
     }
 
     @Test
+    void testGetApplicationByAccessKeyId() {
+        CreateAccessKeyResponse accessKey = authorizationClient.createAccessKey(applicationId);
+        try {
+            ConductorApplication app = authorizationClient.getApplicationByAccessKeyId(accessKey.getId());
+            Assertions.assertNotNull(app);
+            Assertions.assertEquals(applicationId, app.getId());
+        } finally {
+            authorizationClient.deleteAccessKey(applicationId, accessKey.getId());
+        }
+    }
+
+    @Test
     void testGrantPermissionsToGroup() {
         AuthorizationRequest request = new AuthorizationRequest();
         request.access(Arrays.asList(AuthorizationRequest.AccessEnum.READ));

@@ -120,6 +120,18 @@ class ApplicationResource {
         return response.getData();
     }
 
+    ConductorApplication getApplicationByAccessKeyId(String accessKeyId) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/applications/key/{accessKeyId}")
+                .addPathParam("accessKeyId", accessKeyId)
+                .build();
+        ConductorClientResponse<ConductorApplication> response = client.execute(request, new TypeReference<>() {
+        });
+
+        return response.getData();
+    }
+
     List<ConductorApplication> listApplications() {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -156,10 +168,12 @@ class ApplicationResource {
     }
 
     void putTags(List<TagObject> body, String applicationId) {
-        Objects.requireNonNull(body, "List<TagObject> cannot be null");
+        if (body == null) {
+            throw new IllegalArgumentException("tags must not be null");
+        }
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.PUT)
-                .path("/applications/{id}/tags")
+                .path("/applications/{applicationId}/tags")
                 .addPathParam("applicationId", applicationId)
                 .body(body)
                 .build();
@@ -170,7 +184,7 @@ class ApplicationResource {
     List<TagObject> getTags(String applicationId) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/applications/{id}/tags")
+                .path("/applications/{applicationId}/tags")
                 .addPathParam("applicationId", applicationId)
                 .build();
 
@@ -181,10 +195,12 @@ class ApplicationResource {
     }
 
     void deleteTags(List<TagObject> body, String applicationId) {
-        Objects.requireNonNull(body, "List<TagObject> cannot be null");
+        if (body == null) {
+            throw new IllegalArgumentException("tags must not be null");
+        }
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.DELETE)
-                .path("/applications/{id}/tags")
+                .path("/applications/{applicationId}/tags")
                 .addPathParam("applicationId", applicationId)
                 .body(body)
                 .build();
