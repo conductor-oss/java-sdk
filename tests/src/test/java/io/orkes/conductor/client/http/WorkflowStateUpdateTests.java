@@ -23,8 +23,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
+import com.netflix.conductor.common.metadata.tasks.TaskType;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
+import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.common.metadata.workflow.IdempotencyStrategy;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.run.Workflow;
@@ -42,10 +45,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class WorkflowStateUpdateTests {
 
     private static OrkesWorkflowClient workflowClient;
+    private static OrkesMetadataClient metadataClient;
 
     @BeforeAll
     public static void init() {
         workflowClient = ClientTestUtil.getOrkesClients().getWorkflowClient();
+        metadataClient = ClientTestUtil.getOrkesClients().getMetadataClient();
+
+        // Ensure required workflow exists on fresh clusters
+        try {
+            metadataClient.getWorkflowDef("sync_task_variable_updates", 1);
+        } catch (ConductorClientException e) {
+            if (e.getStatus() == 404) {
+                WorkflowDef def = new WorkflowDef();
+                def.setName("sync_task_variable_updates");
+                def.setVersion(1);
+                def.setOwnerEmail("example@orkes.io");
+
+                WorkflowTask wait1 = new WorkflowTask();
+                wait1.setName(TaskType.WAIT.name());
+                wait1.setTaskReferenceName("wait_task_ref");
+                wait1.setType(TaskType.WAIT.name());
+
+                WorkflowTask wait2 = new WorkflowTask();
+                wait2.setName(TaskType.WAIT.name());
+                wait2.setTaskReferenceName("wait_task_ref_2");
+                wait2.setType(TaskType.WAIT.name());
+
+                def.setTasks(List.of(wait1, wait2));
+                metadataClient.registerWorkflowDef(def);
+            } else {
+                throw e;
+            }
+        }
     }
 
     @SneakyThrows
