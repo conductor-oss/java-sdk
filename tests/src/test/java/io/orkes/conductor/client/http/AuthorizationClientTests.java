@@ -63,6 +63,34 @@ public class AuthorizationClientTests {
         request.setName("test-" + UUID.randomUUID());
         ConductorApplication app = authorizationClient.createApplication(request);
         applicationId = app.getId();
+
+        // 1) Ensure the external test group exists
+        UpsertGroupRequest ensureGroup = new UpsertGroupRequest()
+                .defaultAccess(
+                        Map.of(
+                                TypeEnum.WORKFLOW_DEF.getValue(), List.of("CREATE", "READ", "UPDATE", "EXECUTE", "DELETE"),
+                                TypeEnum.TASK_DEF.getValue(), List.of("CREATE", "READ", "UPDATE", "EXECUTE", "DELETE")))
+                .description("Group used for SDK testing")
+                .roles(List.of(RolesEnum.ADMIN));
+        authorizationClient.upsertGroup(ensureGroup, "worker-test-group31dfe7a4-bd85-4ccc-9571-7c0e018ebc32");
+
+        // 2) Ensure the external test user exists
+        UpsertUserRequest ensureUser = new UpsertUserRequest();
+        ensureUser.setName("SDK Test User");
+        ensureUser.setRoles(List.of(UpsertUserRequest.RolesEnum.USER));
+        authorizationClient.upsertUser(ensureUser, "conductoruser1@gmail.com");
+
+        // 3) Ensure the task definition used across tests exists
+        try {
+            metadataClient.getTaskDef(Commons.TASK_NAME);
+        } catch (ConductorClientException e) {
+            // Register when missing; ignore if already present
+            if (e.getStatus() == 404) {
+                metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
+            } else {
+                throw e;
+            }
+        }
     }
 
     @AfterAll
@@ -218,7 +246,6 @@ public class AuthorizationClientTests {
     }
 
     @Test
-    @DisplayName("tag a workflows and task")
     public void tagWorkflowsAndTasks() {
         registerWorkflow();
         TagObject tagObject = new TagObject();
