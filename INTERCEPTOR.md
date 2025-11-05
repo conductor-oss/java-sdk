@@ -304,14 +304,6 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Source Code References**:
-- Poll started: `TaskRunner.java:227`
-- Poll completed: `TaskRunner.java:266`
-- Poll failure: `TaskRunner.java:286`
-- Task execution started: `TaskRunner.java:316`
-- Task execution completed: `TaskRunner.java:371`
-- Task execution failure: `TaskRunner.java:381`
-
 ### Workflow Client Event Flow
 
 ```
@@ -338,11 +330,6 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 │        new WorkflowStartedEvent(name, version, false, error))  │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
-**Source Code References**:
-- Payload size: `WorkflowClient.java:135-136`
-- Payload used: `WorkflowClient.java:145-148`, `WorkflowClient.java:570-573`
-- Workflow started: `WorkflowClient.java:126`, `WorkflowClient.java:162-163`
 
 ## Usage Guide
 
