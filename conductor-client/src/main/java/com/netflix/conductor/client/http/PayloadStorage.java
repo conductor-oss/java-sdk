@@ -93,6 +93,7 @@ class PayloadStorage implements ExternalPayloadStorage {
             connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
             connection.setRequestMethod("PUT");
+            connection.setRequestProperty("Content-Type", "application/json");
 
             try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(connection.getOutputStream())) {
                 byte[] buffer = new byte[BUFFER_SIZE];
