@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.netflix.conductor.sdk.workflow.def.tasks.DynamicForkInput;
 import com.netflix.conductor.sdk.workflow.def.tasks.SubWorkflow;
@@ -53,7 +53,7 @@ public class ShipmentWorkers {
 
     @WorkerTask(value = "get_order_details", threadCount = 5)
     public List<Order> getOrderDetails(@InputParam("orderNo") String orderNo) {
-        int lineItemCount = new Random().nextInt(10);
+        int lineItemCount = ThreadLocalRandom.current().nextInt(10);
         List<Order> orderDetails = new ArrayList<>();
         for (int i = 0; i < lineItemCount; i++) {
             Order orderDetail = new Order(orderNo, "sku_" + i, 2, BigDecimal.valueOf(20.5));

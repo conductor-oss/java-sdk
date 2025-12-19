@@ -30,10 +30,9 @@ public class SummaryUtil {
 
     private static boolean isSummaryInputOutputJsonSerializationEnabled;
 
-    private boolean isJsonSerializationEnabled;
-
+    @Deprecated(forRemoval = true)
     public void init() {
-        isSummaryInputOutputJsonSerializationEnabled = isJsonSerializationEnabled;
+        // noop
     }
 
     /**

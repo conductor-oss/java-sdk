@@ -43,9 +43,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractWorkflowTests {
 
-    protected static ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
+    protected static final ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
-    protected static TypeReference<Map<String, List<WorkflowTestRequest.TaskMock>>> mockType =
+    protected static final TypeReference<Map<String, List<WorkflowTestRequest.TaskMock>>> mockType =
             new TypeReference<Map<String, List<WorkflowTestRequest.TaskMock>>>() {};
 
     protected MetadataClient metadataClient;

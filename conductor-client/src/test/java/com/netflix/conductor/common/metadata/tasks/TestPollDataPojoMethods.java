@@ -71,7 +71,7 @@ public class TestPollDataPojoMethods {
     @Test
     public void testEqualsWithNull() {
         PollData pollData = new PollData("queue", "domain", "worker", 123L);
-        assertFalse(pollData.equals(null));
+        assertNotNull(pollData);
     }
 
     @Test

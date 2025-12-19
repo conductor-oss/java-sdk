@@ -1,5 +1,7 @@
 plugins {
     id 'com.diffplug.spotless' version '6.+'
+    id 'pmd'
+    id 'com.github.spotbugs' version '6.2.2'
 }
 
 group = 'io.orkes.conductor'
@@ -10,6 +12,8 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'com.diffplug.spotless'
     apply plugin: 'jacoco'
+    apply plugin: 'pmd'
+    apply plugin: 'com.github.spotbugs'
     group = 'org.conductoross'
 
     spotless {
@@ -49,6 +53,46 @@ subprojects {
         finalizedBy jacocoTestReport
     }
 
+    pmd {
+        consoleOutput = true
+        ruleSetFiles = files("$rootDir/config/pmd/custom-ruleset.xml")
+        rulesMinimumPriority = 1
+    }
+
+    pmdMain {
+        reports {
+            html.required = true
+            xml.required = true
+        }
+    }
+
+    pmdTest {
+        reports {
+            html.required = true
+            xml.required = true
+        }
+    }
+    
+    spotbugs {
+        effort = com.github.spotbugs.snom.Effort.MAX
+        reportLevel = com.github.spotbugs.snom.Confidence.valueOf("HIGH")
+        excludeFilter = file("$rootDir/config/spotbugs/exclude.xml")
+    }
+
+    spotbugsMain {
+        reports {
+            html.required = true
+            xml.required = true
+        }
+    }
+    
+    spotbugsTest {
+        reports {
+            html.required = true
+            xml.required = true
+        }
+    }
+
     compileJava {
         sourceCompatibility = 21
         targetCompatibility = 21
@@ -71,6 +115,8 @@ subprojects {
         implementation "org.apache.commons:commons-lang3:${versions.commonsLang}"
         annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
         compileOnly "org.projectlombok:lombok:${versions.lombok}"
+        
+        spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0")
     }
 
     repositories {
