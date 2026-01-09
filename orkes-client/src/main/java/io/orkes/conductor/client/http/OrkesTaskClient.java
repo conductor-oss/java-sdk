@@ -154,17 +154,40 @@ public class OrkesTaskClient {
      * @return SignalResponse with data based on the return strategy
      */
     public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output, ReturnStrategy returnStrategy) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
+        return signal(workflowId, status, output, returnStrategy, null);
+    }
+
+    /**
+     * Signals a task in a workflow synchronously and returns data based on the specified return strategy.
+     *
+     * @param workflowId     Workflow Id of the workflow to be signaled
+     * @param status         Signal status to be set for the workflow
+     * @param output         Output for the task
+     * @param returnStrategy Strategy for what data to return
+     * @param timeoutMillis  Timeout in milliseconds
+     * @return SignalResponse with data based on the return strategy
+     */
+    public SignalResponse signal(String workflowId,
+                                 Task.Status status,
+                                 Map<String, Object> output,
+                                 ReturnStrategy returnStrategy,
+                                 Long timeoutMillis) {
+        var builder = ConductorClientRequest.builder()
                 .method(ConductorClientRequest.Method.POST)
                 .path("/tasks/{workflowId}/{status}/signal/sync")
                 .addPathParam("workflowId", workflowId)
                 .addPathParam("status", status.name())
                 .addQueryParam("returnStrategy", returnStrategy.name())
-                .body(output)
-                .build();
+                .body(output);
 
-        ConductorClientResponse<SignalResponse> resp = client.execute(request, new TypeReference<SignalResponse>() {
+        if (timeoutMillis != null) {
+            builder.addQueryParam("timeoutMillis", timeoutMillis.toString());
+        }
+
+        var request = builder.build();
+        var resp = client.execute(request, new TypeReference<SignalResponse>() {
         });
+
         return resp.getData();
     }
 
