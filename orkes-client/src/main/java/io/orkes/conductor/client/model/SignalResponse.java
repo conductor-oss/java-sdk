@@ -39,6 +39,7 @@ public class SignalResponse {
     private Map<String, Object> output;
     private Integer priority;
     private Map<String, Object> variables;
+    private boolean signalTimeout;
 
     // Fields specific to TARGET_WORKFLOW & BLOCKING_WORKFLOW
     private List<Task> tasks;
