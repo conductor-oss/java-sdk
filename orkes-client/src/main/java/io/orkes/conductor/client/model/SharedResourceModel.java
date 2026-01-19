@@ -12,14 +12,19 @@
  */
 package io.orkes.conductor.client.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@Builder
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
-public class Tag {
+@ToString(callSuper = true)
+public class SharedResourceModel {
 
-    public String key;
-    public String value;
+    String resourceType;
+    String resourceName;
+    String sharedBy;
+    String sharedWith;
 }

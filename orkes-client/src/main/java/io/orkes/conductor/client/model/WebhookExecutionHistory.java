@@ -12,14 +12,24 @@
  */
 package io.orkes.conductor.client.model;
 
-import lombok.*;
+import java.util.Set;
 
-@Data
-@NoArgsConstructor
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
 @Builder
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
-public class Tag {
+@Data
+@AllArgsConstructor
+@RequiredArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class WebhookExecutionHistory {
 
-    public String key;
-    public String value;
+    private String eventId;
+    private boolean matched;
+    private Set<String> workflowIds;
+    private String payload;
+    private long timeStamp;
 }
