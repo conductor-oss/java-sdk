@@ -30,6 +30,9 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.common.metadata.workflow.RerunWorkflowRequest;
+import com.netflix.conductor.common.metadata.workflow.SkipTaskRequest;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.UpgradeWorkflowRequest;
 import com.netflix.conductor.common.model.BulkResponse;
@@ -327,5 +330,66 @@ public class OrkesWorkflowClient implements AutoCloseable {
         });
 
         return future;
+    }
+
+    public SearchResult<Task> getExecutionStatusTaskList(String workflowId,
+                                                         Integer start,
+                                                         Integer count,
+                                                         List<Task.Status> status) {
+        return workflowResource.getExecutionStatusTaskList(workflowId, start, count, status);
+    }
+
+    public Map<String, List<Workflow>> getWorkflows(String name,
+                                                    List<String> correlationIds,
+                                                    Boolean includeClosed,
+                                                    Boolean includeTasks) {
+        return workflowResource.getWorkflows(name, correlationIds, includeClosed, includeTasks);
+    }
+
+    public List<Workflow> getWorkflows(String name,
+                                       String correlationId,
+                                       Boolean includeClosed,
+                                       Boolean includeTasks) {
+        return workflowResource.getWorkflows(name, correlationId, includeClosed, includeTasks);
+    }
+
+    public SearchResult<WorkflowSummary> search(Integer start,
+                                                Integer size,
+                                                String sort,
+                                                String freeText,
+                                                String query,
+                                                Boolean skipCache) {
+        return workflowResource.search(start, size, sort, freeText, query, skipCache);
+    }
+
+    public String rerun(String workflowId, RerunWorkflowRequest rerunRequest) {
+        return workflowResource.rerun(workflowId, rerunRequest);
+    }
+    /**
+     * Resets callback times of all non-terminal SIMPLE tasks to 0
+     * @param workflowId the workflow id to reset callbacks for
+     */
+    public void resetWorkflow(String workflowId) {
+        workflowResource.resetWorkflow(workflowId);
+    }
+
+    public void retryWorkflow(String workflowId, Boolean resumeSubworkflowTasks, Boolean retryIfRetriedByParent) {
+        workflowResource.retryWorkflow(workflowId, resumeSubworkflowTasks, retryIfRetriedByParent);
+    }
+
+    public void restartWorkflow(String workflowId, Boolean useLatestDefinitions) {
+        workflowResource.restartWorkflow(workflowId, useLatestDefinitions);
+    }
+
+    public void skipTaskFromWorkflow(String workflowId, String taskReferenceName, SkipTaskRequest request) {
+        workflowResource.skipTaskFromWorkflow(workflowId, taskReferenceName, request);
+    }
+
+    public List<String> getRunningWorkflow(String name, Integer version, Long startTime, Long endTime) {
+        return workflowResource.getRunningWorkflow(name, version, startTime, endTime);
+    }
+
+    public void decide(String workflowId) {
+        workflowResource.decide(workflowId);
     }
 }
