@@ -22,7 +22,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
-
+    testImplementation 'org.mockito:mockito-core:5.4.0'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     testImplementation 'org.codehaus.groovy:groovy:3.0.25'
     testImplementation 'ch.qos.logback:logback-classic:1.5.6'
