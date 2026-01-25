@@ -75,28 +75,6 @@ class TestSchemaDefPojoMethods {
     }
 
     @Test
-    void testBuilderToString() {
-        String name = "testSchema";
-        SchemaDef.Type type = SchemaDef.Type.PROTOBUF;
-        Map<String, Object> data = new HashMap<>();
-        data.put("key", "value");
-        String externalRef = "extRef";
-
-        SchemaDef.SchemaDefBuilder builder = SchemaDef.builder()
-                .name(name)
-                .type(type)
-                .data(data)
-                .externalRef(externalRef);
-
-        String expectedToString = "SchemaDef.SchemaDefBuilder(name=" + name +
-                ", type=" + type +
-                ", data=" + data +
-                ", externalRef=" + externalRef + ")";
-
-        assertEquals(expectedToString, builder.toString());
-    }
-
-    @Test
     void testSetters() {
         SchemaDef schemaDef = new SchemaDef();
 

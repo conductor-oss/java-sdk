@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.conductoross.conductor.common.model.Consistency;
+import org.conductoross.conductor.common.model.ReturnStrategy;
+import org.conductoross.conductor.common.model.SignalResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,9 +44,6 @@ import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 
-import io.orkes.conductor.client.enums.Consistency;
-import io.orkes.conductor.client.enums.ReturnStrategy;
-import io.orkes.conductor.client.model.SignalResponse;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.TestUtil;
 

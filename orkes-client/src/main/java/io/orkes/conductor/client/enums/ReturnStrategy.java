@@ -12,9 +12,29 @@
  */
 package io.orkes.conductor.client.enums;
 
+/**
+ * @deprecated Use {@link org.conductoross.conductor.common.model.ReturnStrategy}
+ *             instead.
+ *             This class is kept for backwards compatibility.
+ */
+@Deprecated
 public enum ReturnStrategy {
-    TARGET_WORKFLOW,  // Default
+    TARGET_WORKFLOW, // Default
     BLOCKING_WORKFLOW,
     BLOCKING_TASK,
-    BLOCKING_TASK_INPUT
+    BLOCKING_TASK_INPUT;
+
+    /**
+     * Convert to the new ReturnStrategy type in conductor-client
+     */
+    public org.conductoross.conductor.common.model.ReturnStrategy toClientReturnStrategy() {
+        return org.conductoross.conductor.common.model.ReturnStrategy.valueOf(this.name());
+    }
+
+    /**
+     * Convert from the new ReturnStrategy type in conductor-client
+     */
+    public static ReturnStrategy fromClientReturnStrategy(org.conductoross.conductor.common.model.ReturnStrategy strategy) {
+        return ReturnStrategy.valueOf(strategy.name());
+    }
 }

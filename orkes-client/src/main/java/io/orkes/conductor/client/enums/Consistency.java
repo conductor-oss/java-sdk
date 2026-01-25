@@ -12,8 +12,28 @@
  */
 package io.orkes.conductor.client.enums;
 
+/**
+ * @deprecated Use {@link org.conductoross.conductor.common.model.Consistency}
+ *             instead.
+ *             This class is kept for backwards compatibility.
+ */
+@Deprecated
 public enum Consistency {
     SYNCHRONOUS,
-    DURABLE,  // Default
-    REGION_DURABLE
+    DURABLE, // Default
+    REGION_DURABLE;
+
+    /**
+     * Convert to the new Consistency type in conductor-client
+     */
+    public org.conductoross.conductor.common.model.Consistency toClientConsistency() {
+        return org.conductoross.conductor.common.model.Consistency.valueOf(this.name());
+    }
+
+    /**
+     * Convert from the new Consistency type in conductor-client
+     */
+    public static Consistency fromClientConsistency(org.conductoross.conductor.common.model.Consistency consistency) {
+        return Consistency.valueOf(consistency.name());
+    }
 }

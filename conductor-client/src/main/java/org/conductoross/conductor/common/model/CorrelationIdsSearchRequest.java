@@ -10,15 +10,22 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.orkes.conductor.client.model;
+package org.conductoross.conductor.common.model;
 
-/**
- * @deprecated Use
- *             {@link org.conductoross.conductor.common.model.CorrelationIdsSearchRequest}
- *             instead.
- *             This class is kept for backwards compatibility.
- */
-@Deprecated
-public class CorrelationIdsSearchRequest extends org.conductoross.conductor.common.model.CorrelationIdsSearchRequest {
-    // Extends the conductor-client version for backwards compatibility
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
+public class CorrelationIdsSearchRequest {
+
+    private List<String> correlationIds;
+
+    private List<String> workflowNames;
 }

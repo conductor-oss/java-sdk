@@ -23,7 +23,7 @@ import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 
-public final class MetadataClient {
+public class MetadataClient {
 
     private ConductorClient client;
 

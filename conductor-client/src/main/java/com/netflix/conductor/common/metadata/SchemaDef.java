@@ -24,13 +24,15 @@ import lombok.*;
 public class SchemaDef extends Auditable {
 
     public enum Type {
-
-        JSON, AVRO, PROTOBUF
+        JSON,
+        AVRO,
+        PROTOBUF
     }
 
     private String name;
 
-    private final int version = 1;
+    @Builder.Default
+    private int version = 1;
 
     private Type type;
 
@@ -41,4 +43,11 @@ public class SchemaDef extends Auditable {
     // If using Orkes Schema registry, this points to the name of the schema in the registry
     private String externalRef;
 
+    public SchemaDef(String name, Type type, Map<String, Object> data, String externalRef) {
+        this.name = name;
+        this.type = type;
+        this.data = data;
+        this.externalRef = externalRef;
+        this.version = 1;
+    }
 }

@@ -18,7 +18,7 @@ ext {
 apply plugin: 'publish-config'
 
 dependencies {
-    implementation project(':conductor-client')
+    api project(':conductor-client')
     implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
 
     // test dependencies

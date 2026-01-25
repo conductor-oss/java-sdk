@@ -23,17 +23,15 @@ import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.TagString;
 
 
-public class OrkesMetadataClient {
+public class OrkesMetadataClient extends MetadataClient  {
 
     private final MetadataResource metadataResource;
     private final TagsResource tagsResource;
 
-    private final MetadataClient metadataClient;
-
     public OrkesMetadataClient(ConductorClient client) {
+        super(client);
         this.metadataResource = new MetadataResource(client);
         this.tagsResource = new TagsResource(client);
-        this.metadataClient = new MetadataClient(client);
     }
 
     public void registerWorkflowDef(WorkflowDef workflowDef) {
@@ -60,28 +58,12 @@ public class OrkesMetadataClient {
         return metadataResource.getWorkflow(name, version, true);
     }
 
-    public void unregisterWorkflowDef(String name, Integer version) {
-        metadataClient.unregisterWorkflowDef(name, version);
-    }
-
-    public List<TaskDef> getAllTaskDefs() {
-        return metadataClient.getAllTaskDefs();
-    }
-
     public void registerTaskDefs(List<TaskDef> taskDefs) {
         metadataResource.registerTaskDef(taskDefs);
     }
 
-    public void updateTaskDef(TaskDef taskDef) {
-        metadataClient.updateTaskDef(taskDef);
-    }
-
     public TaskDef getTaskDef(String taskType) {
         return metadataResource.getTaskDef(taskType, true);
-    }
-
-    public void unregisterTaskDef(String taskType) {
-        metadataClient.unregisterTaskDef(taskType);
     }
 
     public void addTaskTag(TagObject tagObject, String taskName) {

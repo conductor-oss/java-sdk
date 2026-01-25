@@ -12,18 +12,13 @@
  */
 package io.orkes.conductor.client.model;
 
-import java.util.Map;
-
-import com.netflix.conductor.common.metadata.tasks.TaskResult;
-
-import lombok.*;
-
-@Data
-@NoArgsConstructor
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class WorkflowStateUpdate {
-    private String taskReferenceName;
-    private Map<String, Object> variables;
-    private TaskResult taskResult;
+/**
+ * @deprecated Use
+ *             {@link org.conductoross.conductor.common.model.WorkflowStateUpdate}
+ *             instead.
+ *             This class is kept for backwards compatibility.
+ */
+@Deprecated
+public class WorkflowStateUpdate extends org.conductoross.conductor.common.model.WorkflowStateUpdate {
+    // Extends the conductor-client version for backwards compatibility
 }

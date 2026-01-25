@@ -12,41 +12,12 @@
  */
 package io.orkes.conductor.client.model;
 
-import java.util.List;
-import java.util.Map;
-
-import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.run.Workflow;
-
-import lombok.*;
-
-@Data
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@NoArgsConstructor
-public class WorkflowRun {
-
-    private String workflowId;
-
-    private Workflow.WorkflowStatus status;
-
-    private String correlationId;
-
-    private String requestId;
-
-    private int priority;
-
-    private Map<String, Object> input;
-
-    private Map<String, Object> output;
-
-    private Map<String, Object> variables;
-
-    private List<Task> tasks;
-
-    private String createdBy;
-
-    private long createTime;
-
-    private long updateTime;
+/**
+ * @deprecated Use {@link org.conductoross.conductor.common.model.WorkflowRun}
+ *             instead.
+ *             This class is kept for backwards compatibility.
+ */
+@Deprecated
+public class WorkflowRun extends org.conductoross.conductor.common.model.WorkflowRun {
+    // Extends the conductor-client version for backwards compatibility
 }
