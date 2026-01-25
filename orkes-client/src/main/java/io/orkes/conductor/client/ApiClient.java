@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package client;
+package io.orkes.conductor.client;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -26,10 +26,10 @@ import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.Param;
 
-import client.http.ApiCallback;
-import client.http.ApiResponse;
-import client.http.OrkesAuthentication;
-import client.http.Pair;
+import io.orkes.conductor.client.http.ApiCallback;
+import io.orkes.conductor.client.http.ApiResponse;
+import io.orkes.conductor.client.http.OrkesAuthentication;
+import io.orkes.conductor.client.http.Pair;
 
 import okhttp3.Call;
 import okhttp3.Callback;
