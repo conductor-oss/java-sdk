@@ -62,7 +62,7 @@ public class ApiClientTest {
         httpTask.setTaskReferenceName(taskName);
         httpTask.setName(taskName);
         httpTask.setInputParameters(Map.of(
-                "uri", "http://httpBin:8081/api/hello?name=apiClientTest",
+                "uri", "https://orkes-api-tester.orkesconductor.com/api",
                 "method", "GET"
         ));
 

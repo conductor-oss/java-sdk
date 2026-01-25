@@ -33,7 +33,7 @@ public class ServiceRegistry {
     private boolean circuitBreakerEnabled = false;
 
     public enum Type {
-        HTTP, gRPC
+        HTTP, gRPC, MCP_REMOTE
     }
 
     @Data
