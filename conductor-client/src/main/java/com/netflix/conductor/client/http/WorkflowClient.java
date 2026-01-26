@@ -71,6 +71,31 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WorkflowClient implements AutoCloseable {
 
+    // Static TypeReference instances for performance optimization - avoid creating
+    // new instances per request
+    private static final TypeReference<String> STRING_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Workflow> WORKFLOW_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<Workflow>> WORKFLOW_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<BulkResponse> BULK_RESPONSE_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SearchResult<Workflow>> SEARCH_RESULT_WORKFLOW_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SearchResult<WorkflowSummary>> SEARCH_RESULT_WORKFLOW_SUMMARY_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<WorkflowStatus> WORKFLOW_STATUS_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Map<String, List<Workflow>>> CORRELATION_WORKFLOWS_MAP_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<WorkflowRun> WORKFLOW_RUN_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SignalResponse> SIGNAL_RESPONSE_TYPE = new TypeReference<>() {
+    };
+
     private final ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
     private final ConductorClientConfiguration conductorClientConfiguration;
@@ -168,8 +193,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(startWorkflowRequest)
                 .build();
 
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
 
         eventDispatcher
                 .publish(new WorkflowStartedEvent(startWorkflowRequest.getName(), startWorkflowRequest.getVersion()));
@@ -242,8 +266,7 @@ public class WorkflowClient implements AutoCloseable {
                 .addQueryParam("includeTasks", includeTasks)
                 .build();
 
-        ConductorClientResponse<Workflow> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Workflow> resp = client.execute(request, WORKFLOW_TYPE);
 
         Workflow workflow = resp.getData();
         populateWorkflowOutput(workflow);
@@ -273,8 +296,7 @@ public class WorkflowClient implements AutoCloseable {
                 .addQueryParam("includeTasks", includeTasks)
                 .build();
 
-        ConductorClientResponse<List<Workflow>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<Workflow>> resp = client.execute(request, WORKFLOW_LIST_TYPE);
 
         List<Workflow> workflows = resp.getData();
         workflows.forEach(this::populateWorkflowOutput);
@@ -318,8 +340,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(workflowIds)
                 .build();
 
-        ConductorClientResponse<BulkResponse> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<BulkResponse> resp = client.execute(request, BULK_RESPONSE_TYPE);
 
         return resp.getData();
     }
@@ -442,8 +463,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(rerunWorkflowRequest)
                 .build();
 
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
 
         return resp.getData();
     }
@@ -566,8 +586,7 @@ public class WorkflowClient implements AutoCloseable {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<Workflow>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<Workflow>> resp = client.execute(request, SEARCH_RESULT_WORKFLOW_TYPE);
 
         return resp.getData();
     }
@@ -595,8 +614,8 @@ public class WorkflowClient implements AutoCloseable {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<WorkflowSummary>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<WorkflowSummary>> resp = client.execute(request,
+                SEARCH_RESULT_WORKFLOW_SUMMARY_TYPE);
 
         return resp.getData();
     }
@@ -623,8 +642,7 @@ public class WorkflowClient implements AutoCloseable {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<Workflow>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<Workflow>> resp = client.execute(request, SEARCH_RESULT_WORKFLOW_TYPE);
 
         return resp.getData();
     }
@@ -636,8 +654,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(testRequest)
                 .build();
 
-        ConductorClientResponse<Workflow> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Workflow> resp = client.execute(request, WORKFLOW_TYPE);
 
         return resp.getData();
     }
@@ -674,8 +691,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(workflowIds)
                 .build();
 
-        ConductorClientResponse<BulkResponse> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<BulkResponse> resp = client.execute(request, BULK_RESPONSE_TYPE);
 
         return resp.getData();
     }
@@ -706,8 +722,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(workflowIds)
                 .build();
 
-        ConductorClientResponse<BulkResponse> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<BulkResponse> resp = client.execute(request, BULK_RESPONSE_TYPE);
 
         return resp.getData();
     }
@@ -735,8 +750,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(workflowIds)
                 .build();
 
-        ConductorClientResponse<BulkResponse> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<BulkResponse> resp = client.execute(request, BULK_RESPONSE_TYPE);
 
         return resp.getData();
     }
@@ -764,8 +778,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(workflowIds)
                 .build();
 
-        ConductorClientResponse<BulkResponse> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<BulkResponse> resp = client.execute(request, BULK_RESPONSE_TYPE);
 
         return resp.getData();
     }
@@ -788,8 +801,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(workflowIds)
                 .build();
 
-        ConductorClientResponse<BulkResponse> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<BulkResponse> resp = client.execute(request, BULK_RESPONSE_TYPE);
 
         return resp.getData();
     }
@@ -813,8 +825,7 @@ public class WorkflowClient implements AutoCloseable {
                 .addQueryParam("includeVariables", includeVariables)
                 .build();
 
-        ConductorClientResponse<WorkflowStatus> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<WorkflowStatus> resp = client.execute(request, WORKFLOW_STATUS_TYPE);
 
         return resp.getData();
     }
@@ -839,8 +850,8 @@ public class WorkflowClient implements AutoCloseable {
                 .body(searchRequest)
                 .build();
 
-        ConductorClientResponse<Map<String, List<Workflow>>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Map<String, List<Workflow>>> resp = client.execute(request,
+                CORRELATION_WORKFLOWS_MAP_TYPE);
 
         return resp.getData();
     }
@@ -872,8 +883,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(variables)
                 .build();
 
-        ConductorClientResponse<Workflow> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Workflow> resp = client.execute(request, WORKFLOW_TYPE);
 
         return resp.getData();
     }
@@ -921,8 +931,7 @@ public class WorkflowClient implements AutoCloseable {
                 .body(updateRequest)
                 .build();
 
-        ConductorClientResponse<WorkflowRun> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<WorkflowRun> resp = client.execute(request, WORKFLOW_RUN_TYPE);
 
         return resp.getData();
     }
@@ -1046,8 +1055,7 @@ public class WorkflowClient implements AutoCloseable {
                         .build();
 
                 ConductorClientResponse<SignalResponse> resp = client.execute(httpRequest,
-                        new TypeReference<SignalResponse>() {
-                        });
+                        SIGNAL_RESPONSE_TYPE);
 
                 future.complete(resp.getData());
             } catch (Throwable t) {
@@ -1085,8 +1093,7 @@ public class WorkflowClient implements AutoCloseable {
                 .addQueryParam("endTime", endTime)
                 .build();
 
-        ConductorClientResponse<List<String>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<String>> resp = client.execute(request, STRING_LIST_TYPE);
 
         return resp.getData();
     }
@@ -1108,8 +1115,7 @@ public class WorkflowClient implements AutoCloseable {
                         .body(startWorkflowRequest)
                         .build();
 
-                ConductorClientResponse<WorkflowRun> resp = client.execute(request, new TypeReference<>() {
-                });
+                ConductorClientResponse<WorkflowRun> resp = client.execute(request, WORKFLOW_RUN_TYPE);
 
                 future.complete(resp.getData());
             } catch (Throwable t) {

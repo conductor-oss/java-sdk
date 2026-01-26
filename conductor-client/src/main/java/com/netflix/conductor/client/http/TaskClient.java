@@ -60,6 +60,33 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TaskClient {
 
+    // Static TypeReference instances for performance optimization - avoid creating
+    // new instances per request
+    private static final TypeReference<Task> TASK_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<Task>> TASK_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<String> STRING_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SearchResult<TaskSummary>> SEARCH_RESULT_TASK_SUMMARY_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SearchResult<Task>> SEARCH_RESULT_TASK_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<TaskExecLog>> TASK_EXEC_LOG_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<PollData>> POLL_DATA_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Map<String, Integer>> STRING_INT_MAP_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SignalResponse> SIGNAL_RESPONSE_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Workflow> WORKFLOW_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Map<String, Object>> STRING_OBJECT_MAP_TYPE = new TypeReference<>() {
+    };
+
     private final ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
     private final ConductorClientConfiguration conductorClientConfiguration;
@@ -124,8 +151,7 @@ public class TaskClient {
                 .addQueryParam("domain", domain)
                 .build();
 
-        ConductorClientResponse<Task> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Task> resp = client.execute(request, TASK_TYPE);
 
         Task task = resp.getData();
         populateTaskPayloads(task);
@@ -212,8 +238,7 @@ public class TaskClient {
                 .body(taskResult)
                 .build();
 
-        ConductorClientResponse<Task> response = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Task> response = client.execute(request, TASK_TYPE);
         return response.getData();
     }
 
@@ -266,8 +291,7 @@ public class TaskClient {
                 .addQueryParam("workerid", workerId)
                 .build();
 
-        ConductorClientResponse<Boolean> response = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Boolean> response = client.execute(request, BOOLEAN_TYPE);
 
         return response.getData();
     }
@@ -303,8 +327,7 @@ public class TaskClient {
                 .addPathParam("taskId", taskId)
                 .build();
 
-        ConductorClientResponse<List<TaskExecLog>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<TaskExecLog>> resp = client.execute(request, TASK_EXEC_LOG_LIST_TYPE);
 
         return resp.getData();
     }
@@ -323,8 +346,7 @@ public class TaskClient {
                 .addPathParam("taskId", taskId)
                 .build();
 
-        ConductorClientResponse<Task> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Task> resp = client.execute(request, TASK_TYPE);
 
         return resp.getData();
     }
@@ -355,8 +377,7 @@ public class TaskClient {
                 .path("/tasks/queue/sizes")
                 .addQueryParams("taskType", List.of(taskType))
                 .build();
-        ConductorClientResponse<Map<String, Integer>> response = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Map<String, Integer>> response = client.execute(request, STRING_INT_MAP_TYPE);
 
         Integer queueSize = response.getData().get(taskType);
         return queueSize != null ? queueSize : 0;
@@ -381,8 +402,7 @@ public class TaskClient {
                 .path("/tasks/queue/polldata")
                 .addQueryParam("taskType", taskType)
                 .build();
-        ConductorClientResponse<List<PollData>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<PollData>> resp = client.execute(request, POLL_DATA_LIST_TYPE);
 
         return resp.getData();
     }
@@ -395,27 +415,9 @@ public class TaskClient {
     public List<PollData> getAllPollData() {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/tasks/queue/polldata")
+                .path("/tasks/queue/polldata/all")
                 .build();
-        ConductorClientResponse<List<PollData>> resp = client.execute(request, new TypeReference<>() {
-        });
-
-        return resp.getData();
-    }
-
-    /**
-     * Requeue pending tasks for all running workflows
-     *
-     * @return returns the number of tasks that have been requeued
-     */
-    public String requeueAllPendingTasks() {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/tasks/queue/requeue")
-                .build();
-
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<PollData>> resp = client.execute(request, POLL_DATA_LIST_TYPE);
 
         return resp.getData();
     }
@@ -433,8 +435,7 @@ public class TaskClient {
                 .addPathParam("taskType", taskType)
                 .build();
 
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
 
         return resp.getData();
     }
@@ -454,8 +455,8 @@ public class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request,
+                SEARCH_RESULT_TASK_SUMMARY_TYPE);
 
         return resp.getData();
     }
@@ -474,8 +475,7 @@ public class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, SEARCH_RESULT_TASK_TYPE);
 
         return resp.getData();
     }
@@ -502,8 +502,8 @@ public class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request,
+                SEARCH_RESULT_TASK_SUMMARY_TYPE);
 
         return resp.getData();
     }
@@ -530,8 +530,7 @@ public class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, SEARCH_RESULT_TASK_TYPE);
 
         return resp.getData();
     }
@@ -575,8 +574,7 @@ public class TaskClient {
                 .addQueryParam("timeout", timeout)
                 .build();
 
-        ConductorClientResponse<List<Task>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<Task>> resp = client.execute(request, TASK_LIST_TYPE);
 
         return resp.getData();
     }
@@ -692,8 +690,7 @@ public class TaskClient {
         }
 
         var request = builder.build();
-        var resp = client.execute(request, new TypeReference<SignalResponse>() {
-        });
+        var resp = client.execute(request, SIGNAL_RESPONSE_TYPE);
 
         return resp.getData();
     }
@@ -719,8 +716,7 @@ public class TaskClient {
 
     private Map<String, Object> getOutputMap(Object output) {
         try {
-            return objectMapper.convertValue(output, new TypeReference<>() {
-            });
+            return objectMapper.convertValue(output, STRING_OBJECT_MAP_TYPE);
         } catch (Exception e) {
             Map<String, Object> outputMap = new HashMap<>();
             outputMap.put("result", output);
@@ -751,8 +747,7 @@ public class TaskClient {
                 .body(output)
                 .build();
 
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
 
         return resp.getData();
     }
@@ -772,8 +767,7 @@ public class TaskClient {
                 .body(output)
                 .build();
 
-        ConductorClientResponse<Workflow> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Workflow> resp = client.execute(request, WORKFLOW_TYPE);
 
         return resp.getData();
     }

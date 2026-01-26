@@ -119,18 +119,21 @@ public class TaskClientTests {
         int maxLoop = 10;
         int count = 0;
         while (!workflow.getStatus().isTerminal() && count < maxLoop) {
-            workflow.getTasks().stream().filter(t -> !t.getStatus().isTerminal() && t.getWorkflowTask().getType().equals("SIMPLE")).forEach(running -> {
-                String referenceName = running.getReferenceTaskName();
-                System.out.println("Updating " + referenceName + ", and its status is " + running.getStatus());
-                try {
-                    taskClient.updateTaskSync(workflowId, referenceName, TaskResult.Status.COMPLETED, Map.of("k", "value"));
-                } catch (ConductorClientException cce) {
-                    if(cce.getStatusCode() != 404) {
-                        throw cce;
-                    }
-                }
+            workflow.getTasks().stream()
+                    .filter(t -> !t.getStatus().isTerminal() && t.getWorkflowTask().getType().equals("SIMPLE"))
+                    .forEach(running -> {
+                        String referenceName = running.getReferenceTaskName();
+                        System.out.println("Updating " + referenceName + ", and its status is " + running.getStatus());
+                        try {
+                            taskClient.updateTaskSync(workflowId, referenceName, TaskResult.Status.COMPLETED,
+                                    Map.of("k", "value"));
+                        } catch (ConductorClientException cce) {
+                            if (cce.getStatusCode() != 404) {
+                                throw cce;
+                            }
+                        }
 
-            });
+                    });
             count++;
             Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
             workflow = workflowClient.getWorkflow(workflowId, true);
@@ -165,14 +168,16 @@ public class TaskClientTests {
                 count++;
                 continue;
             }
-            // Converting TaskOutput class to Map to resolve Jackson's afterburner module and class loading issues
+            // Converting TaskOutput class to Map to resolve Jackson's afterburner module
+            // and class loading issues
             Map<String, Object> output = new HashMap<>();
             output.put("name", "hello");
             output.put("value", BigDecimal.TEN);
             for (String referenceName : runningTasks) {
                 System.out.println("Updating " + referenceName);
                 try {
-                    workflow = taskClient.updateTaskSync(workflowId, referenceName, TaskResult.Status.COMPLETED, output);
+                    workflow = taskClient.updateTaskSync(workflowId, referenceName, TaskResult.Status.COMPLETED,
+                            output);
                     System.out.println("Workflow: " + workflow);
                 } catch (ConductorClientException ConductorClientException) {
                     // 404 == task was updated already and there are no pending tasks
@@ -479,7 +484,8 @@ public class TaskClientTests {
         request.setName(WAIT_SIGNAL_TEST);
         request.setVersion(1);
 
-        var run = workflowClient.executeWorkflowWithReturnStrategy(request, List.of(), 10, Consistency.SYNCHRONOUS, ReturnStrategy.TARGET_WORKFLOW);
+        var run = workflowClient.executeWorkflowWithReturnStrategy(request, List.of(), 10, Consistency.SYNCHRONOUS,
+                ReturnStrategy.TARGET_WORKFLOW);
         var workflow = run.get(10, TimeUnit.SECONDS);
 
         assertNotNull(workflow);
@@ -503,7 +509,8 @@ public class TaskClientTests {
         request.setName(WAIT_SIGNAL_TEST);
         request.setVersion(1);
 
-        var run = workflowClient.executeWorkflowWithReturnStrategy(request, List.of(), 10, Consistency.DURABLE, ReturnStrategy.TARGET_WORKFLOW);
+        var run = workflowClient.executeWorkflowWithReturnStrategy(request, List.of(), 10, Consistency.DURABLE,
+                ReturnStrategy.TARGET_WORKFLOW);
         var workflow = run.get(10, TimeUnit.SECONDS);
 
         assertNotNull(workflow);
@@ -519,5 +526,274 @@ public class TaskClientTests {
         var finalWorkflow = TestUtil.waitForWorkflowStatus(workflowClient, workflowId,
                 Workflow.WorkflowStatus.COMPLETED, 50000, 100);
         assertEquals(Workflow.WorkflowStatus.COMPLETED, finalWorkflow.getStatus());
+    }
+
+    // ==================== Poll Tests ====================
+
+    @Test
+    void testPollTask() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+            Task task = taskClient.pollTask("simple_task", "test-worker", null);
+            // Task may or may not be available depending on timing
+            if (task != null) {
+                assertNotNull(task.getTaskId());
+            }
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    @Test
+    void testBatchPollTasksByTaskType() {
+        List<String> workflowIds = new java.util.ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            StartWorkflowRequest request = new StartWorkflowRequest();
+            request.setName(workflowName);
+            request.setVersion(1);
+            request.setInput(new HashMap<>());
+            workflowIds.add(workflowClient.startWorkflow(request));
+        }
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(2, TimeUnit.SECONDS);
+
+            List<Task> tasks = taskClient.batchPollTasksByTaskType("simple_task", "test-worker", 5, 1000);
+            assertNotNull(tasks);
+        } finally {
+            for (String id : workflowIds) {
+                try {
+                    workflowClient.terminateWorkflow(id, "cleanup");
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    @Test
+    void testBatchPollTasksInDomain() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+            List<Task> tasks = taskClient.batchPollTasksInDomain(
+                    "simple_task", "testDomain", "test-worker", 5, 1000);
+            assertNotNull(tasks);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    // ==================== Update Task Tests ====================
+
+    @Test
+    void testUpdateTaskWithTaskResult() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+            Workflow wf = workflowClient.getWorkflow(workflowId, true);
+            if (!wf.getTasks().isEmpty()) {
+                Task task = wf.getTasks().get(0);
+
+                TaskResult result = new TaskResult();
+                result.setTaskId(task.getTaskId());
+                result.setWorkflowInstanceId(workflowId);
+                result.setStatus(TaskResult.Status.COMPLETED);
+                result.setOutputData(Map.of("result", "success"));
+
+                taskClient.updateTask(result);
+            }
+        } finally {
+            try {
+                workflowClient.terminateWorkflow(workflowId, "cleanup");
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    // ==================== Task Details Tests ====================
+
+    @Test
+    void testGetTaskDetails() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+            Workflow wf = workflowClient.getWorkflow(workflowId, true);
+            if (!wf.getTasks().isEmpty()) {
+                String taskId = wf.getTasks().get(0).getTaskId();
+
+                Task task = taskClient.getTaskDetails(taskId);
+                assertNotNull(task);
+                assertEquals(taskId, task.getTaskId());
+            }
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    // ==================== Queue Operations Tests ====================
+
+    @Test
+    void testGetQueueSizeForTask() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+            int size = taskClient.getQueueSizeForTask("simple_task");
+            assertTrue(size >= 0);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    @Test
+    void testGetQueueSizeForTaskWithParams() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+            int size = taskClient.getQueueSizeForTask("simple_task", null, null, null);
+            assertTrue(size >= 0);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    // ==================== Poll Data Tests ====================
+
+    @Test
+    void testGetPollData() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+            var pollData = taskClient.getPollData("simple_task");
+            assertNotNull(pollData);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    // ==================== Requeue Tests ====================
+
+    @Test
+    void testRequeuePendingTasksByTaskType() {
+        String result = taskClient.requeuePendingTasksByTaskType("simple_task");
+        assertNotNull(result);
+    }
+
+    // ==================== Search Tests ====================
+
+    @Test
+    void testSearchTasks() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
+
+            var result = taskClient.search("workflowId='" + workflowId + "'");
+            assertNotNull(result);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    @Test
+    void testSearchV2Tasks() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
+
+            var result = taskClient.searchV2("workflowId='" + workflowId + "'");
+            assertNotNull(result);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    @Test
+    void testPaginatedSearchTasks() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
+
+            var result = taskClient.search(
+                    0, 10, "startTime:DESC", "*", "workflowId='" + workflowId + "'");
+            assertNotNull(result);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
+    }
+
+    @Test
+    void testPaginatedSearchV2Tasks() {
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(workflowName);
+        request.setVersion(1);
+        request.setInput(new HashMap<>());
+        String workflowId = workflowClient.startWorkflow(request);
+
+        try {
+            Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
+
+            var result = taskClient.searchV2(
+                    0, 10, "startTime:DESC", "*", "workflowId='" + workflowId + "'");
+            assertNotNull(result);
+        } finally {
+            workflowClient.terminateWorkflow(workflowId, "cleanup");
+        }
     }
 }

@@ -110,6 +110,10 @@ public class ConductorClientException extends RuntimeException {
         return StringUtils.isNotBlank(responseBody) ? responseBody : super.getMessage();
     }
 
+    public void setError(String error) {
+        this.responseBody = error;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

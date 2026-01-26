@@ -22,8 +22,18 @@ import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-
 public class MetadataClient {
+
+    // Static TypeReference instances for performance optimization - avoid creating
+    // new instances per request
+    private static final TypeReference<WorkflowDef> WORKFLOW_DEF_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<WorkflowDef>> WORKFLOW_DEF_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<TaskDef> TASK_DEF_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<TaskDef>> TASK_DEF_LIST_TYPE = new TypeReference<>() {
+    };
 
     private ConductorClient client;
 
@@ -83,7 +93,7 @@ public class MetadataClient {
     /**
      * Retrieve the workflow definition
      *
-     * @param name the name of the workflow
+     * @param name    the name of the workflow
      * @param version the version of the workflow def
      * @return Workflow definition for the given workflow and version
      */
@@ -95,8 +105,7 @@ public class MetadataClient {
                 .addQueryParam("version", version)
                 .build();
 
-        ConductorClientResponse<WorkflowDef> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<WorkflowDef> resp = client.execute(request, WORKFLOW_DEF_TYPE);
 
         return resp.getData();
     }
@@ -107,17 +116,17 @@ public class MetadataClient {
                 .path("/metadata/workflow/latest-versions")
                 .build();
 
-        ConductorClientResponse<List<WorkflowDef>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<WorkflowDef>> resp = client.execute(request, WORKFLOW_DEF_LIST_TYPE);
 
         return resp.getData();
     }
 
     /**
-     * Removes the workflow definition of a workflow from the conductor server. It does not remove
+     * Removes the workflow definition of a workflow from the conductor server. It
+     * does not remove
      * associated workflows. Use with caution.
      *
-     * @param name Name of the workflow to be unregistered.
+     * @param name    Name of the workflow to be unregistered.
      * @param version Version of the workflow definition to be unregistered.
      */
     public void unregisterWorkflowDef(String name, Integer version) {
@@ -179,14 +188,14 @@ public class MetadataClient {
                 .addPathParam("taskType", taskType)
                 .build();
 
-        ConductorClientResponse<TaskDef> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<TaskDef> resp = client.execute(request, TASK_DEF_TYPE);
 
         return resp.getData();
     }
 
     /**
-     * Removes the task definition of a task type from the conductor server. Use with caution.
+     * Removes the task definition of a task type from the conductor server. Use
+     * with caution.
      *
      * @param taskType Task type to be unregistered.
      */
@@ -210,8 +219,7 @@ public class MetadataClient {
                 .path("/metadata/taskdefs")
                 .build();
 
-        ConductorClientResponse<List<TaskDef>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<TaskDef>> resp = client.execute(request, TASK_DEF_LIST_TYPE);
 
         return resp.getData();
     }
