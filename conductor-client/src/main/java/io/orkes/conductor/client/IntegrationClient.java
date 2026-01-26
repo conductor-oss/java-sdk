@@ -22,56 +22,164 @@ import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
 import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
 
+/**
+ * Client for managing integrations with external systems including AI/LLM
+ * providers, databases, and message queues.
+ * <p>
+ * This interface provides methods to:
+ * <ul>
+ * <li>Manage integration providers (e.g., OpenAI, AWS Bedrock, PostgreSQL)</li>
+ * <li>Configure integration APIs (e.g., specific models for LLM providers,
+ * tables for databases)</li>
+ * <li>Associate prompt templates with AI integrations</li>
+ * <li>Track token usage for LLM integrations</li>
+ * <li>Manage tags for integrations</li>
+ * </ul>
+ */
 public interface IntegrationClient {
+
+    // Integration Management
+
     /**
-     * Client for managing integrations with external systems. Some examples of integrations are:
-     * 1. AI/LLM providers (e.g. OpenAI, HuggingFace)
-     * 2. Vector DBs (Pinecone, Weaviate etc.)
-     * 3. Kafka
-     * 4. Relational databases
+     * Retrieves details of a specific integration provider by name.
      *
-     * Integrations are configured as integration -> api with 1->N cardinality.
-     * APIs are the underlying resources for an integration and depending on the type of integration they represent underlying resources.
-     * Examples:
-     *     LLM integrations
-     *     The integration specifies the name of the integration unique to your environment, api keys and endpoint used.
-     *     APIs are the models (e.g. text-davinci-003, or text-embedding-ada-002)
-     *
-     *     Vector DB integrations,
-     *     The integration represents the cluster, specifies the name of the integration unique to your environment, api keys and endpoint used.
-     *     APIs are the indexes (e.g. pinecone) or class (e.g. for weaviate)
-     *
-     *     Kafka
-     *     The integration represents the cluster, specifies the name of the integration unique to your environment, api keys and endpoint used.
-     *     APIs are the topics that are configured for use within this kafka cluster
+     * @param integrationName the name of the integration provider to retrieve
+     * @return the integration provider details
      */
+    Integration getIntegration(String integrationName);
 
-    void associatePromptWithIntegration(String aiIntegration, String modelName, String promptName);
+    /**
+     * Retrieves all integration providers, optionally filtered by category and
+     * active status.
+     *
+     * @param category   the category to filter by (e.g., "AI_MODEL", "VECTOR_DB",
+     *                   "RELATIONAL_DB"), or null for all categories
+     * @param activeOnly if true, only returns active integrations; if false,
+     *                   returns all integrations
+     * @return list of integration providers matching the filters
+     */
+    List<Integration> getIntegrations(String category, Boolean activeOnly);
 
-    void deleteIntegrationApi(String apiName, String integrationName);
+    /**
+     * Deletes an integration provider and all its associated APIs.
+     *
+     * @param integrationName the name of the integration provider to delete
+     */
+    void deleteIntegration(String integrationName);
 
-    void deleteIntegrationProvider(String integrationName);
-
-    IntegrationApi getIntegrationApi(String apiName, String integrationName);
-
-    List<IntegrationApi> getIntegrationApis(String integrationName);
-
-    Integration getIntegrationProvider(String integrationName);
-
-    List<Integration> getIntegrationProviders(String category, Boolean activeOnly);
-
-    List<PromptTemplate> getPromptsWithIntegration(String aiIntegration, String modelName);
-
-    int getTokenUsageForIntegration(String name, String integrationName);
-
-    Map<String, Integer> getTokenUsageForIntegrationProvider(String name);
-
-    void saveIntegrationApi(String integrationName, String apiName, IntegrationApiUpdate apiDetails);
-
+    /**
+     * Creates or updates an integration provider with the specified configuration.
+     *
+     * @param integrationName    the name of the integration provider
+     * @param integrationDetails the configuration details for the integration
+     */
     void saveIntegration(String integrationName, IntegrationUpdate integrationDetails);
 
+    // Integration APIs (models for LLMs, database schemas/tables for DB etc)
+
+    /**
+     * Deletes a specific integration API (e.g., a specific LLM model or database
+     * table).
+     *
+     * @param apiName         the name of the integration API to delete
+     * @param integrationName the name of the parent integration provider
+     */
+    void deleteIntegrationApi(String apiName, String integrationName);
+
+    /**
+     * Retrieves details of a specific integration API.
+     *
+     * @param apiName         the name of the integration API
+     * @param integrationName the name of the parent integration provider
+     * @return the integration API details
+     */
+    IntegrationApi getIntegrationApi(String apiName, String integrationName);
+
+    /**
+     * Retrieves all integration APIs for a specific integration provider.
+     *
+     * @param integrationName the name of the integration provider
+     * @return list of all integration APIs for the provider
+     */
+    List<IntegrationApi> getIntegrationApis(String integrationName);
+
+    /**
+     * Creates or updates an integration API with the specified configuration.
+     *
+     * @param integrationName the name of the parent integration provider
+     * @param apiName         the name of the integration API
+     * @param apiDetails      the configuration details for the integration API
+     */
+    void saveIntegrationApi(String integrationName, String apiName, IntegrationApiUpdate apiDetails);
+
+    // Prompt Management
+
+    /**
+     * Associates a prompt template with a specific AI model integration.
+     * <p>
+     * This allows the prompt template to be used with the specified AI model when
+     * executing LLM tasks.
+     *
+     * @param aiIntegration the name of the AI integration provider (e.g., "openai")
+     * @param modelName     the name of the specific model (e.g., "gpt-4")
+     * @param promptName    the name of the prompt template to associate
+     */
+    void associatePromptWithIntegration(String aiIntegration, String modelName, String promptName);
+
+    /**
+     * Retrieves all prompt templates associated with a specific AI model
+     * integration.
+     *
+     * @param aiIntegration the name of the AI integration provider
+     * @param modelName     the name of the specific model
+     * @return list of prompt templates associated with the model
+     */
+    List<PromptTemplate> getPromptsWithIntegration(String aiIntegration, String modelName);
+
+    // LLM metrics
+
+    /**
+     * Retrieves the token usage count for a specific integration API (e.g., a
+     * specific LLM model).
+     *
+     * @param name            the name of the integration API
+     * @param integrationName the name of the parent integration provider
+     * @return the total number of tokens used
+     */
+    int getTokenUsageForIntegration(String name, String integrationName);
+
+    /**
+     * Retrieves token usage counts grouped by integration API for a specific
+     * integration provider.
+     *
+     * @param name the name of the integration provider
+     * @return map of integration API names to their token usage counts
+     */
+    Map<String, Integer> getTokenUsageForIntegrationProvider(String name);
+
     // Tags
-    void deleteTagForIntegrationProvider(List<TagObject> tags, String name);
-    void saveTagForIntegrationProvider(List<TagObject> tags, String name);
-    List<TagObject> getTagsForIntegrationProvider(String name);
+
+    /**
+     * Deletes specific tags from an integration.
+     *
+     * @param tags the list of tags to delete
+     * @param name the name of the integration
+     */
+    void deleteTagForIntegration(List<TagObject> tags, String name);
+
+    /**
+     * Adds or updates tags for an integration.
+     *
+     * @param tags the list of tags to add or update
+     * @param name the name of the integration
+     */
+    void saveTagForIntegration(List<TagObject> tags, String name);
+
+    /**
+     * Retrieves all tags associated with an integration.
+     *
+     * @param name the name of the integration
+     * @return list of tags for the integration
+     */
+    List<TagObject> getTagsForIntegration(String name);
 }

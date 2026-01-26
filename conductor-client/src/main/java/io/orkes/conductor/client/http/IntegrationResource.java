@@ -39,57 +39,57 @@ class IntegrationResource {
         this.client = client;
     }
 
-    void associatePromptWithIntegration(String integrationProvider, String integrationName, String promptName) {
+    void associatePromptWithIntegration(String integrationName, String modelName, String promptName) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
-                .path("/integrations/provider/{integrationProvider}/integration/{integrationName}/prompt/{promptName}")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/integration/{modelName}/prompt/{promptName}")
                 .addPathParam("integrationName", integrationName)
+                .addPathParam("modelName", modelName)
                 .addPathParam("promptName", promptName)
                 .build();
 
         client.execute(request);
     }
 
-    void deleteIntegrationApi(String integrationProvider, String integrationName) {
+    void deleteIntegrationApi(String integrationName, String api) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.DELETE)
-                .path("/integrations/provider/{integrationProvider}/integration/{integrationName}")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/integration/{api}")
+                .addPathParam("integrationName", integrationName)
+                .addPathParam("api", api)
+                .build();
+
+        client.execute(request);
+    }
+
+    void deleteIntegrationProvider(String integrationName) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.DELETE)
+                .path("/integrations/provider/{integrationName}")
                 .addPathParam("integrationName", integrationName)
                 .build();
 
         client.execute(request);
     }
 
-    void deleteIntegrationProvider(String integrationProvider) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.DELETE)
-                .path("/integrations/provider/{integrationProvider}")
-                .addPathParam("integrationProvider", integrationProvider)
-                .build();
-
-        client.execute(request);
-    }
-
-    void deleteTagForIntegrationProvider(List<TagObject> body, String integrationProvider) {
+    void deleteTagForIntegrationProvider(List<TagObject> body, String integrationName) {
         Objects.requireNonNull(body, "List<TagObject> cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.DELETE)
-                .path("/integrations/provider/{integrationProvider}/tags")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/tags")
+                .addPathParam("integrationName", integrationName)
                 .body(body)
                 .build();
 
         client.execute(request);
     }
 
-    IntegrationApi getIntegrationApi(String integrationProvider, String integrationName) {
+    IntegrationApi getIntegrationApi(String integrationName, String api) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/integrations/provider/{integrationProvider}/integration/{integrationName}")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/integration/{api}")
                 .addPathParam("integrationName", integrationName)
+                .addPathParam("api", api)
                 .build();
 
         ConductorClientResponse<IntegrationApi> resp = client.execute(request, new TypeReference<>() {
@@ -111,11 +111,11 @@ class IntegrationResource {
         return resp.getData();
     }
 
-    Integration getIntegrationProvider(String integrationProvider) {
+    Integration getIntegrationProvider(String integrationName) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/integrations/provider/{integrationProvider}")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}")
+                .addPathParam("integrationName", integrationName)
                 .build();
 
         ConductorClientResponse<Integration> resp = client.execute(request, new TypeReference<>() {
@@ -137,12 +137,12 @@ class IntegrationResource {
         return resp.getData();
     }
 
-    List<PromptTemplate> getPromptsWithIntegration(String integrationProvider, String integrationName) {
+    List<PromptTemplate> getPromptsWithIntegration(String integrationName, String model) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/integrations/provider/{integrationProvider}/integration/{integrationName}/prompt")
-                .addQueryParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/integration/{model}/prompt")
                 .addQueryParam("integrationName", integrationName)
+                .addQueryParam("model", model)
                 .build();
 
         ConductorClientResponse<List<PromptTemplate>> resp = client.execute(request, new TypeReference<>() {
@@ -151,11 +151,11 @@ class IntegrationResource {
         return resp.getData();
     }
 
-    List<TagObject> getTagsForIntegrationProvider(String integrationProvider) {
+    List<TagObject> getTagsForIntegrationProvider(String integrationName) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/integrations/provider/{integrationProvider}/tags")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/tags")
+                .addPathParam("integrationName", integrationName)
                 .build();
 
         ConductorClientResponse<List<TagObject>> resp = client.execute(request, new TypeReference<>() {
@@ -164,12 +164,12 @@ class IntegrationResource {
         return resp.getData();
     }
 
-    Integer getTokenUsageForIntegration(String integrationProvider, String integrationName) {
+    Integer getTokenUsageForIntegration(String integrationName, String model) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/integrations/provider/{integrationProvider}/integration/{integrationName}/metrics")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/integration/{model}/metrics")
                 .addPathParam("integrationName", integrationName)
+                .addPathParam("model", model)
                 .build();
         ConductorClientResponse<Integer> resp = client.execute(request, new TypeReference<>() {
         });
@@ -177,11 +177,11 @@ class IntegrationResource {
         return resp.getData();
     }
 
-    Map<String, Integer> getTokenUsageForIntegrationProvider(String integrationProvider) {
+    Map<String, Integer> getTokenUsageForIntegrationProvider(String integrationName) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/integrations/provider/{integrationProvider}/metrics")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/metrics")
+                .addPathParam("integrationName", integrationName)
                 .build();
         ConductorClientResponse<Map<String, Integer>> resp = client.execute(request, new TypeReference<>() {
         });
@@ -189,23 +189,11 @@ class IntegrationResource {
         return resp.getData();
     }
 
-    void putTagForIntegrationProvider(List<TagObject> body, String integrationProvider) {
+    void putTagForIntegrationProvider(List<TagObject> body, String integrationName) {
         Objects.requireNonNull(body, "List<TagObject> cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.PUT)
-                .path("/integrations/provider/{integrationProvider}/tags")
-                .addPathParam("integrationProvider", integrationProvider)
-                .body(body)
-                .build();
-
-        client.execute(request);
-    }
-
-    void saveIntegrationApi(IntegrationApiUpdate body, String integrationProvider, String integrationName) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/integrations/provider/{integrationProvider}/integration/{integrationName}")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/tags")
                 .addPathParam("integrationName", integrationName)
                 .body(body)
                 .build();
@@ -213,11 +201,23 @@ class IntegrationResource {
         client.execute(request);
     }
 
-    void saveIntegrationProvider(IntegrationUpdate body, String integrationProvider) {
+    void saveIntegrationApi(IntegrationApiUpdate body, String integrationName, String api) {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
-                .path("/integrations/provider/{integrationProvider}")
-                .addPathParam("integrationProvider", integrationProvider)
+                .path("/integrations/provider/{integrationName}/integration/{api}")
+                .addPathParam("integrationName", integrationName)
+                .addPathParam("api", api)
+                .body(body)
+                .build();
+
+        client.execute(request);
+    }
+
+    void saveIntegrationProvider(IntegrationUpdate body, String integrationName) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/integrations/provider/{integrationName}")
+                .addPathParam("integrationName", integrationName)
                 .body(body)
                 .build();
 

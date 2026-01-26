@@ -97,10 +97,17 @@ public class TaskClient {
 
     protected ConductorClient client;
 
+    protected String localhost = "localhost";
+
     /** Creates a default task client */
     public TaskClient() {
         // client will be set once root uri is set
         this(null, new DefaultConductorClientConfiguration());
+        try {
+            localhost = InetAddress.getLocalHost().getHostAddress();
+        } catch (Throwable t) {
+            log.error("unable to get the local host name {}", t.getMessage(), t);
+        }
     }
 
     public TaskClient(ConductorClient client) {
@@ -141,7 +148,9 @@ public class TaskClient {
      */
     public Task pollTask(String taskType, String workerId, String domain) {
         Validate.notBlank(taskType, "Task type cannot be blank");
-        Validate.notBlank(workerId, "Worker id cannot be blank");
+        if(StringUtils.isBlank(workerId)) {
+            workerId = this.localhost;
+        }
 
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -172,8 +181,10 @@ public class TaskClient {
      */
     public List<Task> batchPollTasksByTaskType(String taskType, String workerId, int count, int timeoutInMillisecond) {
         Validate.notBlank(taskType, "Task type cannot be blank");
-        Validate.notBlank(workerId, "Worker id cannot be blank");
         Validate.isTrue(count > 0, "Count must be greater than 0");
+        if(StringUtils.isBlank(workerId)) {
+            workerId = this.localhost;
+        }
 
         List<Task> tasks = batchPoll(taskType, workerId, null, count, timeoutInMillisecond);
         tasks.forEach(this::populateTaskPayloads);
@@ -195,8 +206,10 @@ public class TaskClient {
     public List<Task> batchPollTasksInDomain(String taskType, String domain, String workerId, int count,
             int timeoutInMillisecond) {
         Validate.notBlank(taskType, "Task type cannot be blank");
-        Validate.notBlank(workerId, "Worker id cannot be blank");
         Validate.isTrue(count > 0, "Count must be greater than 0");
+        if(StringUtils.isBlank(workerId)) {
+            workerId = this.localhost;
+        }
 
         List<Task> tasks = batchPoll(taskType, workerId, domain, count, timeoutInMillisecond);
         tasks.forEach(this::populateTaskPayloads);

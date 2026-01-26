@@ -37,10 +37,13 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * This class exists to maintain backward compatibility and facilitate the migration for
+ * This class exists to maintain backward compatibility and facilitate the
+ * migration for
  * users of orkes-conductor-client v2.
  */
 public final class ApiClient extends ConductorClient {
+
+    private final OrkesAuthentication authentication;
 
     public ApiClient(String rootUri, String keyId, String secret) {
         this(ApiClient.builder()
@@ -50,6 +53,7 @@ public final class ApiClient extends ConductorClient {
 
     public ApiClient(String rootUri) {
         super(rootUri);
+        this.authentication = null;
     }
 
     public ApiClient() {
@@ -64,6 +68,20 @@ public final class ApiClient extends ConductorClient {
 
     private ApiClient(ApiClientBuilder builder) {
         super(builder);
+        this.authentication = builder.authentication;
+    }
+
+    /**
+     * Returns the current authentication token if key/secret credentials are
+     * configured.
+     * 
+     * @return the authentication token, or null if no credentials are configured
+     */
+    public String getToken() {
+        if (authentication == null) {
+            return null;
+        }
+        return authentication.getToken();
     }
 
     public Call buildCall(
@@ -135,13 +153,16 @@ public final class ApiClient extends ConductorClient {
     }
 
     /**
-     * Execute HTTP call and deserialize the HTTP response body into the given return type.
+     * Execute HTTP call and deserialize the HTTP response body into the given
+     * return type.
      *
      * @param returnType The return type used to deserialize HTTP response body
      * @param <T>        The return type corresponding to (same with) returnType
      * @param call       Call
-     * @return ApiResponse object containing response status, headers and data, which is a Java
-     * object deserialized from response body and would be null when returnType is null.
+     * @return ApiResponse object containing response status, headers and data,
+     *         which is a Java
+     *         object deserialized from response body and would be null when
+     *         returnType is null.
      * @throws ConductorClientException If fail to execute the call
      */
     public <T> ApiResponse<T> execute(Call call, Type returnType) {
@@ -160,12 +181,15 @@ public final class ApiClient extends ConductorClient {
 
     public static class ApiClientBuilder extends Builder<ApiClientBuilder> {
 
+        OrkesAuthentication authentication;
+
         public ApiClientBuilder credentials(String key, String secret) {
             if (StringUtils.isBlank(key) || StringUtils.isBlank(secret)) {
                 throw new IllegalArgumentException("Key and secret must not be blank (null or empty)");
             }
 
-            this.addHeaderSupplier(new OrkesAuthentication(key, secret));
+            this.authentication = new OrkesAuthentication(key, secret);
+            this.addHeaderSupplier(this.authentication);
             return this;
         }
 
@@ -185,7 +209,7 @@ public final class ApiClient extends ConductorClient {
             if (conductorAuthKey == null) {
                 conductorAuthKey = System.getenv("CONDUCTOR_SERVER_AUTH_KEY");
             }
-            if(conductorAuthKey != null) {
+            if (conductorAuthKey != null) {
                 conductorAuthKey = conductorAuthKey.trim();
             }
 
@@ -193,7 +217,7 @@ public final class ApiClient extends ConductorClient {
             if (conductorAuthSecret == null) {
                 conductorAuthSecret = System.getenv("CONDUCTOR_SERVER_AUTH_SECRET");
             }
-            if(conductorAuthSecret != null) {
+            if (conductorAuthSecret != null) {
                 conductorAuthSecret = conductorAuthSecret.trim();
             }
 

@@ -12,7 +12,6 @@
  */
 package io.orkes.conductor.client.http;
 
-
 import java.util.List;
 import java.util.Map;
 
@@ -24,15 +23,13 @@ import io.orkes.conductor.client.model.OrkesEventHandler;
 import io.orkes.conductor.client.model.Tag;
 import io.orkes.conductor.client.model.event.QueueConfiguration;
 
-public class OrkesEventClient {
+public class OrkesEventClient extends EventClient {
 
     private final EventResource eventResource;
 
-    private final EventClient eventClient;
-
     public OrkesEventClient(ConductorClient client) {
+        super(client);
         this.eventResource = new EventResource(client);
-        this.eventClient = new EventClient(client);
     }
 
     /**
@@ -47,10 +44,6 @@ public class OrkesEventClient {
         return eventResource.getOrkesEventHandlers();
     }
 
-    public void handleIncomingEvent(Map<String, Object> payload) {
-        eventResource.handleIncomingEvent(payload);
-    }
-
     public Map<String, Object> getQueueConfig(QueueConfiguration queueConfiguration) {
         return eventResource.getQueueConfig(queueConfiguration.getQueueType(), queueConfiguration.getQueueName());
     }
@@ -63,33 +56,15 @@ public class OrkesEventClient {
         eventResource.putQueueConfig(queueConfiguration.getQueueType(), queueConfiguration.getQueueName());
     }
 
-    public void registerEventHandler(EventHandler eventHandler) {
-        eventClient.registerEventHandler(eventHandler);
-    }
-
-    public void updateEventHandler(EventHandler eventHandler) {
-        eventClient.updateEventHandler(eventHandler);
-    }
-    /**
-     * @deprecated since 4.0.19, forRemoval in 4.1.0. Use {@link #getOrkesEventHandlers(String, boolean)} instead.
-     */
-    @Deprecated(since = "4.0.19", forRemoval = true)
-    public List<EventHandler> getEventHandlers(String event, boolean activeOnly) {
-        return eventClient.getEventHandlers(event, activeOnly);
-    }
-
     public List<OrkesEventHandler> getOrkesEventHandlers(String event, boolean activeOnly) {
         return eventResource.getOrkesEventHandlers(event, activeOnly);
-    }
-
-    public void unregisterEventHandler(String name) {
-        eventClient.unregisterEventHandler(name);
     }
 
     public void putTagsForEventHandler(String name, List<Tag> tags) {
         eventResource.putTagsForEventHandler(name, tags);
     }
-    public List<Tag> getTagsForEventHandler(String name){
+
+    public List<Tag> getTagsForEventHandler(String name) {
         return eventResource.getTagsForEventHandler(name);
     }
 }

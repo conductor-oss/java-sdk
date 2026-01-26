@@ -496,11 +496,22 @@ public class WorkflowClient implements AutoCloseable {
      * @param workflowId the workflow id of the workflow with the failed task
      */
     public void retryLastFailedTask(String workflowId) {
+        retryLastFailedTask(workflowId, true);
+    }
+
+    /**
+     * Retries the last failed task in a workflow
+     *
+     * @param workflowId the workflow id of the workflow with the failed task
+     * @param resumeSubworkflowTasks if set to true, then resumes the tasks inside the sub-workflow instead of retrying the sub-workflow task itself
+     */
+    public void retryLastFailedTask(String workflowId, boolean resumeSubworkflowTasks) {
         Validate.notBlank(workflowId, "workflow id cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/workflow/{workflowId}/retry")
                 .addPathParam("workflowId", workflowId)
+                .addQueryParam("resumeSubworkflowTasks", resumeSubworkflowTasks)
                 .build();
 
         client.execute(request);

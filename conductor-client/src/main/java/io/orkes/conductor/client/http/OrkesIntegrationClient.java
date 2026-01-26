@@ -41,7 +41,7 @@ public class OrkesIntegrationClient implements IntegrationClient {
         integrationResource.deleteIntegrationApi(integrationProvider, integrationName);
     }
 
-    public void deleteIntegrationProvider(String integrationName) {
+    public void deleteIntegration(String integrationName) {
         integrationResource.deleteIntegrationProvider(integrationName);
     }
 
@@ -62,7 +62,7 @@ public class OrkesIntegrationClient implements IntegrationClient {
         return integrationResource.getIntegrationApis(integrationName, true);
     }
 
-    public Integration getIntegrationProvider(String integrationProvider) {
+    public Integration getIntegration(String integrationProvider) {
         try {
             return integrationResource.getIntegrationProvider(integrationProvider);
         } catch (ConductorClientException e) {
@@ -73,7 +73,7 @@ public class OrkesIntegrationClient implements IntegrationClient {
         }
     }
 
-    public List<Integration> getIntegrationProviders(String category, Boolean activeOnly) {
+    public List<Integration> getIntegrations(String category, Boolean activeOnly) {
         return integrationResource.getIntegrationProviders(category, activeOnly);
     }
 
@@ -99,15 +99,15 @@ public class OrkesIntegrationClient implements IntegrationClient {
 
     // Tags - Implementations are assumed to be placeholders
 
-    public void deleteTagForIntegrationProvider(List<TagObject> tags, String name) {
+    public void deleteTagForIntegration(List<TagObject> tags, String name) {
         integrationResource.deleteTagForIntegrationProvider(tags, name);
     }
 
-    public void saveTagForIntegrationProvider(List<TagObject> tags, String name) {
+    public void saveTagForIntegration(List<TagObject> tags, String name) {
         integrationResource.putTagForIntegrationProvider(tags, name);
     }
 
-    public List<TagObject> getTagsForIntegrationProvider(String name) {
+    public List<TagObject> getTagsForIntegration(String name) {
         return integrationResource.getTagsForIntegrationProvider(name);
     }
 }

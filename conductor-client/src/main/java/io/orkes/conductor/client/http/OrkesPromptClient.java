@@ -27,8 +27,16 @@ import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-
 public class OrkesPromptClient implements PromptClient {
+
+    private static final TypeReference<PromptTemplate> PROMPT_TEMPLATE_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<PromptTemplate>> PROMPT_TEMPLATE_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<TagObject>> TAG_OBJECT_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<String> STRING_TYPE = new TypeReference<>() {
+    };
 
     private final ConductorClient client;
 
@@ -38,26 +46,96 @@ public class OrkesPromptClient implements PromptClient {
 
     @Override
     public void savePrompt(String promptName, String description, String promptTemplate) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
+        savePrompt(promptName, description, promptTemplate, null, null, false);
+    }
+
+    @Override
+    public void savePrompt(String promptName, String description, String promptTemplate, List<String> models,
+            Integer version, boolean autoIncrement) {
+        ConductorClientRequest.Builder builder = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/prompts/{name}")
                 .addPathParam("name", promptName)
                 .addQueryParam("description", description)
+                .body(promptTemplate);
+
+        if (models != null && !models.isEmpty()) {
+            // Add each model as a separate query parameter
+            models.forEach(model -> builder.addQueryParam("models", model));
+        }
+
+        if (version != null) {
+            builder.addQueryParam("version", version);
+        }
+
+        if (autoIncrement) {
+            builder.addQueryParam("autoIncrement", true);
+        }
+
+        client.execute(builder.build());
+    }
+
+    @Override
+    public void updatePrompt(String promptName, Integer version, String description, String promptTemplate,
+            List<String> models) {
+        ConductorClientRequest.Builder builder = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/prompts/{name}")
+                .addPathParam("name", promptName)
+                .addQueryParam("description", description)
+                .body(promptTemplate);
+
+        if (version != null) {
+            builder.addQueryParam("version", version);
+        }
+
+        if (models != null && !models.isEmpty()) {
+            models.forEach(model -> builder.addQueryParam("models", model));
+        }
+
+        client.execute(builder.build());
+    }
+
+    @Override
+    public void savePrompts(List<PromptTemplate> prompts, boolean newVersion) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/prompts/")
+                .body(prompts)
                 .build();
+
         client.execute(request);
     }
 
     @Override
     public PromptTemplate getPrompt(String promptName) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
+        return getPrompt(promptName, null);
+    }
+
+    @Override
+    public PromptTemplate getPrompt(String promptName, Integer version) {
+        ConductorClientRequest.Builder builder = ConductorClientRequest.builder()
                 .method(Method.GET)
                 .path("/prompts/{name}")
+                .addPathParam("name", promptName);
+
+        if (version != null) {
+            builder.addQueryParam("version", version);
+        }
+
+        ConductorClientResponse<PromptTemplate> resp = client.execute(builder.build(), PROMPT_TEMPLATE_TYPE);
+        return resp.getData();
+    }
+
+    @Override
+    public List<PromptTemplate> getAllPromptVersions(String promptName) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.GET)
+                .path("/prompts/{name}/versions")
                 .addPathParam("name", promptName)
                 .build();
 
-        ConductorClientResponse<PromptTemplate> resp = client.execute(request, new TypeReference<>() {
-        });
-
+        ConductorClientResponse<List<PromptTemplate>> resp = client.execute(request, PROMPT_TEMPLATE_LIST_TYPE);
         return resp.getData();
     }
 
@@ -68,21 +146,30 @@ public class OrkesPromptClient implements PromptClient {
                 .path("/prompts")
                 .build();
 
-        ConductorClientResponse<List<PromptTemplate>> resp = client.execute(request, new TypeReference<>() {
-        });
-
+        ConductorClientResponse<List<PromptTemplate>> resp = client.execute(request, PROMPT_TEMPLATE_LIST_TYPE);
         return resp.getData();
     }
 
     @Override
     public void deletePrompt(String promptName) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.DELETE)
-                .path("/prompts/{name}")
-                .addPathParam("name", promptName)
-                .build();
+        deletePrompt(promptName, null);
+    }
 
-        client.execute(request);
+    @Override
+    public void deletePrompt(String promptName, Integer version) {
+        ConductorClientRequest.Builder builder = ConductorClientRequest.builder()
+                .method(Method.DELETE);
+
+        if (version != null) {
+            builder.path("/prompts/{name}/versions/{version}")
+                    .addPathParam("name", promptName)
+                    .addPathParam("version", version.toString());
+        } else {
+            builder.path("/prompts/{name}")
+                    .addPathParam("name", promptName);
+        }
+
+        client.execute(builder.build());
     }
 
     @Override
@@ -93,9 +180,7 @@ public class OrkesPromptClient implements PromptClient {
                 .addPathParam("name", promptName)
                 .build();
 
-        ConductorClientResponse<List<TagObject>> resp = client.execute(request, new TypeReference<>() {
-        });
-
+        ConductorClientResponse<List<TagObject>> resp = client.execute(request, TAG_OBJECT_LIST_TYPE);
         return resp.getData();
     }
 
@@ -124,8 +209,9 @@ public class OrkesPromptClient implements PromptClient {
     }
 
     @Override
-    public String testPrompt(String promptText, Map<String, Object> variables, String aiIntegration, String textCompleteModel, float temperature, float topP,
-                             List<String> stopWords) {
+    public String testPrompt(String promptText, Map<String, Object> variables, String aiIntegration,
+            String textCompleteModel, float temperature, float topP,
+            List<String> stopWords) {
         PromptTemplateTestRequest body = new PromptTemplateTestRequest();
         body.setPrompt(promptText);
         body.setLlmProvider(aiIntegration);
@@ -141,9 +227,7 @@ public class OrkesPromptClient implements PromptClient {
                 .body(body)
                 .build();
 
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
-
+        ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
         return resp.getData();
     }
 }

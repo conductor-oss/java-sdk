@@ -29,6 +29,7 @@ public class PromptTemplate {
     private String description;
     private List<String> integrations;
     private String name;
+    private int version = 1;
     private List<TagObject> tags;
     private String template;
     private String updatedBy;
