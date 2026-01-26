@@ -86,12 +86,12 @@ public class LocalServerRunner {
         }
 
         try {
-            String downloadURL =
-                    "https://repo1.maven.org/maven2/com/netflix/conductor/conductor-server/"
-                            + conductorVersion
-                            + "/conductor-server-"
-                            + conductorVersion
-                            + "-boot.jar";
+            // https://github.com/conductor-oss/conductor/releases/download/v3.21.23/conductor-server-lite-standalone.jar
+            String version = conductorVersion;
+            if(!version.startsWith("v")) {
+                version = "v" + version;
+            }
+            String downloadURL = "https://github.com/conductor-oss/conductor/releases/download/%s/conductor-server-lite-standalone.jar".formatted(version);
 
             String repositoryURL =
                     Optional.ofNullable(System.getProperty("repositoryURL")).orElse(downloadURL);

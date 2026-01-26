@@ -13,11 +13,14 @@
 package com.netflix.conductor.sdk.testing;
 
 
+import java.util.List;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 
+import lombok.Getter;
 
 public class WorkflowTestRunner {
 
@@ -25,6 +28,7 @@ public class WorkflowTestRunner {
 
     private final AnnotatedWorkerExecutor annotatedWorkerExecutor;
 
+    @Getter
     private final WorkflowExecutor workflowExecutor;
 
     public WorkflowTestRunner(String serverApiUrl) {
@@ -46,15 +50,23 @@ public class WorkflowTestRunner {
         this.workflowExecutor = new WorkflowExecutor(serverAPIUrl);
     }
 
-    public WorkflowExecutor getWorkflowExecutor() {
-        return workflowExecutor;
-    }
-
     public void init(String basePackages) {
         if (localServerRunner != null) {
             localServerRunner.startLocalServer();
         }
         annotatedWorkerExecutor.initWorkers(basePackages);
+    }
+
+    public void init(List<Object> workerBeans) {
+        if (localServerRunner != null) {
+            localServerRunner.startLocalServer();
+        }
+        if(workerBeans == null) {
+            return;
+        }
+        for (Object workerBean : workerBeans) {
+            annotatedWorkerExecutor.addBean(workerBean);
+        }
     }
 
     public void shutdown() {

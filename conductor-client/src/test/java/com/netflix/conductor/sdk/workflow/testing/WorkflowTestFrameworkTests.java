@@ -46,12 +46,12 @@ public class WorkflowTestFrameworkTests {
 
     @BeforeAll
     public static void init() throws IOException {
-        testRunner = new WorkflowTestRunner(8080, "3.7.3");
+        testRunner = new WorkflowTestRunner(8080, "3.21.23");
         testRunner.init("com.netflix.conductor.sdk.workflow.testing");
 
         executor = testRunner.getWorkflowExecutor();
         try {
-            executor.loadTaskDefs("/tasks.json");
+            executor.loadTaskDefs("/tasks2.json");
             executor.loadWorkflowDefs("/simple_workflow.json");
         } catch (ConductorClientException cce) {
 
