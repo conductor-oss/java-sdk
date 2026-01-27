@@ -12,11 +12,15 @@
  */
 package com.netflix.conductor.common.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProtoRegistryEntry {
-    private final String serviceName;
-    private final String filename;
-    private final byte[] data;
+    private String serviceName;
+    private String filename;
+    private byte[] data;
 }
