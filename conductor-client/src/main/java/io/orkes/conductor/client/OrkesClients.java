@@ -13,7 +13,6 @@
 package io.orkes.conductor.client;
 
 import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.ServiceRegistryClient;
 
 import io.orkes.conductor.client.http.*;
 
@@ -46,7 +45,7 @@ public class OrkesClients {
     }
 
     public ServiceRegistryClient getServiceRegistryClient() {
-        return new ServiceRegistryClient(client);
+        return new OrkesServiceRegistryClient(client);
     }
 
     public OrkesSecretClient getSecretClient() {

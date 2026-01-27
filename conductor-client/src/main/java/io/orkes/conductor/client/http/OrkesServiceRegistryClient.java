@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.netflix.conductor.client.http;
+package io.orkes.conductor.client.http;
 
 import java.util.List;
 
@@ -18,11 +18,16 @@ import org.apache.commons.lang3.Validate;
 
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
+import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
+import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.common.model.CircuitBreakerTransitionResponse;
 import com.netflix.conductor.common.model.ProtoRegistryEntry;
 import com.netflix.conductor.common.model.ServiceMethod;
 import com.netflix.conductor.common.model.ServiceRegistry;
+
+import io.orkes.conductor.client.ServiceRegistryClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * Client for the Service Registry API
  */
 @Slf4j
-public final class ServiceRegistryClient {
+public final class OrkesServiceRegistryClient implements ServiceRegistryClient {
 
         // Static TypeReference instances for performance optimization - avoid creating
         // new instances per request
@@ -56,31 +61,18 @@ public final class ServiceRegistryClient {
         /**
          * Creates a default service registry client
          */
-        public ServiceRegistryClient() {
+        public OrkesServiceRegistryClient() {
                 // client will be set once root uri is set
                 this(null, new DefaultConductorClientConfiguration());
         }
 
-        public ServiceRegistryClient(ConductorClient client) {
+        public OrkesServiceRegistryClient(ConductorClient client) {
                 this(client, new DefaultConductorClientConfiguration());
         }
 
-        public ServiceRegistryClient(ConductorClient client, ConductorClientConfiguration config) {
+        public OrkesServiceRegistryClient(ConductorClient client, ConductorClientConfiguration config) {
                 this.client = client;
                 this.conductorClientConfiguration = config;
-        }
-
-        /**
-         * Kept only for backwards compatibility
-         *
-         * @param rootUri basePath for the ApiClient
-         */
-        @Deprecated
-        public void setRootURI(String rootUri) {
-                if (client != null) {
-                        client.shutdown();
-                }
-                client = new ConductorClient(rootUri);
         }
 
         /**
@@ -88,6 +80,7 @@ public final class ServiceRegistryClient {
          *
          * @return List of registered services
          */
+        @Override
         public List<ServiceRegistry> getRegisteredServices() {
                 ConductorClientRequest request = ConductorClientRequest.builder()
                                 .method(Method.GET)
@@ -105,6 +98,7 @@ public final class ServiceRegistryClient {
          * @param name The name of the service to retrieve
          * @return ServiceRegistry object for the specified service
          */
+        @Override
         public ServiceRegistry getService(String name) {
                 Validate.notBlank(name, "Service name cannot be blank");
 
@@ -124,6 +118,7 @@ public final class ServiceRegistryClient {
          *
          * @param serviceRegistry The service registry to add or update
          */
+        @Override
         public void addOrUpdateService(ServiceRegistry serviceRegistry) {
                 Validate.notNull(serviceRegistry, "Service registry cannot be null");
 
@@ -141,6 +136,7 @@ public final class ServiceRegistryClient {
          *
          * @param name The name of the service to remove
          */
+        @Override
         public void removeService(String name) {
                 Validate.notBlank(name, "Service name cannot be blank");
 
@@ -159,6 +155,7 @@ public final class ServiceRegistryClient {
          * @param name The name of the service
          * @return Circuit breaker transition response
          */
+        @Override
         public CircuitBreakerTransitionResponse openCircuitBreaker(String name) {
                 Validate.notBlank(name, "Service name cannot be blank");
 
@@ -179,6 +176,7 @@ public final class ServiceRegistryClient {
          * @param name The name of the service
          * @return Circuit breaker transition response
          */
+        @Override
         public CircuitBreakerTransitionResponse closeCircuitBreaker(String name) {
                 Validate.notBlank(name, "Service name cannot be blank");
 
@@ -199,6 +197,7 @@ public final class ServiceRegistryClient {
          * @param name The name of the service
          * @return Circuit breaker transition response with status
          */
+        @Override
         public CircuitBreakerTransitionResponse getCircuitBreakerStatus(String name) {
                 Validate.notBlank(name, "Service name cannot be blank");
 
@@ -219,6 +218,7 @@ public final class ServiceRegistryClient {
          * @param registryName The name of the registry
          * @param method       The service method to add or update
          */
+        @Override
         public void addOrUpdateServiceMethod(String registryName, ServiceMethod method) {
                 Validate.notBlank(registryName, "Registry name cannot be blank");
                 Validate.notNull(method, "Service method cannot be null");
@@ -241,6 +241,7 @@ public final class ServiceRegistryClient {
          * @param method       The method name
          * @param methodType   The method type
          */
+        @Override
         public void removeMethod(String registryName, String serviceName, String method, String methodType) {
                 Validate.notBlank(registryName, "Registry name cannot be blank");
                 Validate.notBlank(serviceName, "Service name cannot be blank");
@@ -266,6 +267,7 @@ public final class ServiceRegistryClient {
          * @param filename     The proto filename
          * @return The proto data as byte array
          */
+        @Override
         public byte[] getProtoData(String registryName, String filename) {
                 Validate.notBlank(registryName, "Registry name cannot be blank");
                 Validate.notBlank(filename, "Filename cannot be blank");
@@ -289,6 +291,7 @@ public final class ServiceRegistryClient {
          * @param filename     The proto filename
          * @param data         The proto data as byte array
          */
+        @Override
         public void setProtoData(String registryName, String filename, byte[] data) {
                 Validate.notBlank(registryName, "Registry name cannot be blank");
                 Validate.notBlank(filename, "Filename cannot be blank");
@@ -312,6 +315,7 @@ public final class ServiceRegistryClient {
          * @param registryName The name of the registry
          * @param filename     The proto filename to delete
          */
+        @Override
         public void deleteProto(String registryName, String filename) {
                 Validate.notBlank(registryName, "Registry name cannot be blank");
                 Validate.notBlank(filename, "Filename cannot be blank");
@@ -332,6 +336,7 @@ public final class ServiceRegistryClient {
          * @param registryName The name of the registry
          * @return List of proto registry entries
          */
+        @Override
         public List<ProtoRegistryEntry> getAllProtos(String registryName) {
                 Validate.notBlank(registryName, "Registry name cannot be blank");
 
@@ -353,6 +358,7 @@ public final class ServiceRegistryClient {
          * @param create Whether to create discovered methods
          * @return List of discovered service methods
          */
+        @Override
         public List<ServiceMethod> discover(String name, boolean create) {
                 Validate.notBlank(name, "Service name cannot be blank");
 

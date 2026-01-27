@@ -25,7 +25,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
-import com.netflix.conductor.client.http.ServiceRegistryClient;
 import com.netflix.conductor.client.http.WorkflowClient;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
@@ -34,6 +33,9 @@ import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.run.WorkflowTestRequest;
+
+import io.orkes.conductor.client.ServiceRegistryClient;
+import io.orkes.conductor.client.http.OrkesServiceRegistryClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,7 +62,7 @@ public abstract class AbstractWorkflowTests {
         ConductorClient apiClient = new ConductorClient(baseURL);
         metadataClient = new MetadataClient(apiClient);
         workflowClient = new WorkflowClient(apiClient);
-        serviceRegistryClient = new ServiceRegistryClient(apiClient);
+        serviceRegistryClient = new OrkesServiceRegistryClient(apiClient);
     }
 
     protected WorkflowTestRequest getWorkflowTestRequest(WorkflowDef def) throws IOException {
