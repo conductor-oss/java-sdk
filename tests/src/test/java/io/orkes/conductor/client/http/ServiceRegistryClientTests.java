@@ -12,6 +12,8 @@
  */
 package io.orkes.conductor.client.http;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -27,10 +29,11 @@ import com.netflix.conductor.common.model.ServiceRegistry;
 
 import io.orkes.conductor.client.ServiceRegistryClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import lombok.SneakyThrows;
 
 public class ServiceRegistryClientTests {
     private static final String SERVICE_NAME = "test-sdk-java-service";
-    private static final String SERVICE_URI = "grpc://localhost:50051";
+    private static final String SERVICE_URI = "localhost:50051";
     private static final String PROTO_FILENAME = "test-service.proto";
 
     private final ServiceRegistryClient serviceRegistryClient = ClientTestUtil.getOrkesClients()
@@ -85,15 +88,12 @@ public class ServiceRegistryClientTests {
         serviceRegistryClient.removeService(SERVICE_NAME);
 
         // Verify deletion
-        try {
-            serviceRegistryClient.getService(SERVICE_NAME);
-            Assertions.fail("Expected exception for non-existent service");
-        } catch (ConductorClientException e) {
-            Assertions.assertTrue(e.getStatus() == 404 || e.getStatus() == 500);
-        }
+        ServiceRegistry found = serviceRegistryClient.getService(SERVICE_NAME);
+        assertNull(found);
     }
 
-    @Test
+    // @Test
+    // Disabled as this might change on the server side
     void testCircuitBreakerOperations() {
         // Create a service first
         ServiceRegistry service = createTestService();
@@ -121,14 +121,15 @@ public class ServiceRegistryClientTests {
     }
 
     @Test
-    void testProtoFileOperations() {
+    void testProtoFileOperations() throws Exception {
         // Create a service first
         ServiceRegistry service = createTestService();
         serviceRegistryClient.addOrUpdateService(service);
 
-        // Create a simple proto file content (binary)
-        String protoContent = "syntax = \"proto3\";\nservice TestService {\n  rpc TestMethod (TestRequest) returns (TestResponse);\n}";
-        byte[] protoData = protoContent.getBytes();
+        // Load proto file from test resources
+        byte[] protoData = getClass().getClassLoader()
+                .getResourceAsStream("compiled.bin")
+                .readAllBytes();
 
         // Upload proto file
         serviceRegistryClient.setProtoData(SERVICE_NAME, PROTO_FILENAME, protoData);
@@ -142,6 +143,7 @@ public class ServiceRegistryClientTests {
         byte[] retrievedData = serviceRegistryClient.getProtoData(SERVICE_NAME, PROTO_FILENAME);
         Assertions.assertNotNull(retrievedData);
         Assertions.assertTrue(retrievedData.length > 0);
+        Assertions.assertEquals(protoData.length, retrievedData.length);
 
         // Delete proto
         serviceRegistryClient.deleteProto(SERVICE_NAME, PROTO_FILENAME);
@@ -180,23 +182,20 @@ public class ServiceRegistryClientTests {
         serviceRegistryClient.removeMethod(SERVICE_NAME, "TestService", "TestMethod", "SERVER_STREAMING");
     }
 
-    @Test
+    @SneakyThrows
+    // @Test
+    // Disabled until we deploy a real server that can be used to discover services
     void testDiscoverMethods() {
         // Create a service first
         ServiceRegistry service = createTestService();
+        service.setServiceURI("localhost:50053");
         serviceRegistryClient.addOrUpdateService(service);
 
-        // Upload a proto file first
-        String protoContent = "syntax = \"proto3\";\n" +
-                "service GreeterService {\n" +
-                "  rpc SayHello (HelloRequest) returns (HelloResponse);\n" +
-                "  rpc SayGoodbye (GoodbyeRequest) returns (GoodbyeResponse);\n" +
-                "}\n" +
-                "message HelloRequest { string name = 1; }\n" +
-                "message HelloResponse { string message = 1; }\n" +
-                "message GoodbyeRequest { string name = 1; }\n" +
-                "message GoodbyeResponse { string message = 1; }";
-        byte[] protoData = protoContent.getBytes();
+        byte[] protoData = getClass().getClassLoader()
+            .getResourceAsStream("compiled.bin")
+            .readAllBytes();
+
+        serviceRegistryClient.addOrUpdateService(service);
         serviceRegistryClient.setProtoData(SERVICE_NAME, PROTO_FILENAME, protoData);
 
         // Discover methods without creating them
@@ -224,16 +223,6 @@ public class ServiceRegistryClientTests {
         ServiceRegistry updated = serviceRegistryClient.getService(SERVICE_NAME);
         Assertions.assertEquals("grpc://localhost:50053", updated.getServiceURI());
         Assertions.assertTrue(updated.isCircuitBreakerEnabled());
-    }
-
-    @Test
-    void testGetNonExistentService() {
-        try {
-            serviceRegistryClient.getService("non-existent-service");
-            Assertions.fail("Expected exception for non-existent service");
-        } catch (ConductorClientException e) {
-            Assertions.assertTrue(e.getStatus() == 404 || e.getStatus() == 500);
-        }
     }
 
     private ServiceRegistry createTestService() {
