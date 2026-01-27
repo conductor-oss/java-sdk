@@ -1,0 +1,20 @@
+{
+  "taskType": "FORK_JOIN",
+  "status": "COMPLETED",
+  "taskId": "fork-task-001",
+  "referenceTaskName": "parallel_tasks",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {},
+  "outputData": {},
+  "workflowTask": {
+    "name": "parallel_tasks",
+    "taskReferenceName": "parallel_tasks",
+    "type": "FORK_JOIN",
+    "joinOn": ["task_a", "task_b", "task_c"],
+    "forkTasks": [
+      [{"name": "task_a", "taskReferenceName": "task_a", "type": "SIMPLE"}],
+      [{"name": "task_b", "taskReferenceName": "task_b", "type": "SIMPLE"}],
+      [{"name": "task_c", "taskReferenceName": "task_c", "type": "SIMPLE"}]
+    ]
+  }
+}

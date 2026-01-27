@@ -1,0 +1,19 @@
+{
+  "taskType": "EVENT",
+  "status": "COMPLETED",
+  "taskId": "event-task-001",
+  "referenceTaskName": "publish_notification",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "sink": "kafka:notifications-topic",
+    "userId": "user-123",
+    "message": "Order completed",
+    "priority": "high"
+  },
+  "outputData": {
+    "event_produced": {
+      "id": "event-abc",
+      "timestamp": 1704067200000
+    }
+  }
+}

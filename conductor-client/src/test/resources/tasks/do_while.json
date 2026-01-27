@@ -1,0 +1,14 @@
+{
+  "taskType": "DO_WHILE",
+  "status": "IN_PROGRESS",
+  "taskId": "do-while-task-001",
+  "referenceTaskName": "retry_loop",
+  "workflowInstanceId": "workflow-001",
+  "iteration": 3,
+  "inputData": {
+    "loopCondition": "if ($.iteration < 5 && $.result != 'success') { true; } else { false; }"
+  },
+  "outputData": {
+    "iteration": 3
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "taskType": "HUMAN",
+  "status": "COMPLETED",
+  "taskId": "human-task-001",
+  "referenceTaskName": "manager_approval",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "assignee": "manager@example.com",
+    "displayName": "Approve Purchase Order",
+    "formTemplate": "approval_form_v1"
+  },
+  "outputData": {
+    "formData": {
+      "approved": true,
+      "comments": "Approved for Q1 budget"
+    },
+    "completedBy": "john.manager@example.com"
+  }
+}

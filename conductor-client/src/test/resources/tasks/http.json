@@ -1,0 +1,38 @@
+{
+  "taskType": "HTTP",
+  "status": "COMPLETED",
+  "taskId": "http-task-001",
+  "referenceTaskName": "call_api",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "asyncComplete": false,
+    "_createdBy": "john.doe@example.com",
+    "http_request": {
+      "uri": "https://api.example.com/users",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer token123"
+      },
+      "body": {
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "connectionTimeOut": 5000,
+      "readTimeOut": 10000
+    }
+  },
+  "outputData": {
+    "response": {
+      "statusCode": 201,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "id": "user-123",
+        "name": "John Doe"
+      },
+      "reasonPhrase": "Created"
+    }
+  }
+}

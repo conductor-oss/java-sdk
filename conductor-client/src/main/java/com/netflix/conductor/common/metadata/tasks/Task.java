@@ -20,6 +20,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
+import com.netflix.conductor.common.run.tasks.TypedTask;
 
 import lombok.*;
 
@@ -333,5 +334,36 @@ public class Task {
 
     public int hashCode() {
         return Objects.hash(getTaskType(), getStatus(), getInputData(), getReferenceTaskName(), getWorkflowPriority(), getRetryCount(), getSeq(), getCorrelationId(), getPollCount(), getTaskDefName(), getScheduledTime(), getStartTime(), getEndTime(), getUpdateTime(), getStartDelayInSeconds(), getRetriedTaskId(), isRetried(), isExecuted(), isCallbackFromWorker(), getResponseTimeoutSeconds(), getWorkflowInstanceId(), getWorkflowType(), getTaskId(), getReasonForIncompletion(), getCallbackAfterSeconds(), getWorkerId(), getOutputData(), getWorkflowTask(), getDomain(), getRateLimitPerFrequency(), getRateLimitFrequencyInSeconds(), getExternalInputPayloadStoragePath(), getExternalOutputPayloadStoragePath(), getIsolationGroupId(), getExecutionNameSpace(), getParentTaskId(), getFirstStartTime());
+    }
+
+    /**
+     * Converts this task to a typed task wrapper.
+     *
+     * <p>Example usage:
+     * <pre>{@code
+     * WaitTask wait = task.as(WaitTask.class);
+     * if (wait.isDurationBased()) {
+     *     Duration d = wait.getDuration().orElseThrow();
+     * }
+     * }</pre>
+     *
+     * @param type the typed task class to convert to
+     * @param <T> the typed task type
+     * @return a new instance of the typed task wrapping this task
+     * @throws IllegalArgumentException if this task's type doesn't match the expected type
+     * @throws RuntimeException if the typed task class cannot be instantiated
+     */
+    public <T extends TypedTask> T as(Class<T> type) {
+        try {
+            return type.getConstructor(Task.class).newInstance(this);
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof IllegalArgumentException) {
+                throw (IllegalArgumentException) cause;
+            }
+            throw new RuntimeException("Failed to create typed task: " + type.getName(), cause);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create typed task: " + type.getName(), e);
+        }
     }
 }

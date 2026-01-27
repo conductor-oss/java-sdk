@@ -1,0 +1,11 @@
+{
+  "taskType": "FORK_JOIN_DYNAMIC",
+  "status": "COMPLETED",
+  "taskId": "dynamic-fork-task-001",
+  "referenceTaskName": "dynamic_parallel",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "joinOn": ["dynamic_task_1", "dynamic_task_2"]
+  },
+  "outputData": {}
+}
