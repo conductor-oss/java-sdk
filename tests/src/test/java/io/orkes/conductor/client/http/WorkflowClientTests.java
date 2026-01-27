@@ -142,6 +142,7 @@ public class WorkflowClientTests {
     @Test
     public void testWorkflowTerminate() {
         String workflowId = workflowClient.startWorkflow(getStartWorkflowRequest());
+        Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(100));
         workflowClient.terminateWorkflowWithFailure(
                 workflowId, "testing out some stuff", true);
         var workflow = workflowClient.getWorkflow(workflowId, false);
@@ -483,7 +484,8 @@ public class WorkflowClientTests {
         }
     }
 
-    @Test
+    // @Test
+    // Disabled until the search v2 is rolled out
     void testSearchV2Workflows() {
         String correlationId = "test-searchv2-" + UUID.randomUUID();
         StartWorkflowRequest request = new StartWorkflowRequest();
@@ -525,7 +527,8 @@ public class WorkflowClientTests {
         }
     }
 
-    @Test
+    // @Test
+    // Disabled until the search-v2 is rolledout
     void testPaginatedSearchV2() {
         String correlationId = "test-paginatedv2-" + UUID.randomUUID();
         StartWorkflowRequest request = new StartWorkflowRequest();

@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -261,7 +262,7 @@ public class TaskClientTests {
         String workflowId = workflow.getTargetWorkflowId();
 
         // Wait for initial execution
-        Thread.sleep(20);
+        Thread.sleep(200);
         return workflowId;
     }
 
@@ -319,6 +320,7 @@ public class TaskClientTests {
     private void completeWorkflow(String workflowId) throws Exception {
         // Signal twice to complete
         taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "signal1"));
+        Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(200));
         taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "signal2"));
 
         // Wait for completion
@@ -741,7 +743,8 @@ public class TaskClientTests {
         }
     }
 
-    @Test
+    //@Test
+    // Disabled until the new release with search v2 is out
     void testSearchV2Tasks() {
         StartWorkflowRequest request = new StartWorkflowRequest();
         request.setName(workflowName);
@@ -778,7 +781,8 @@ public class TaskClientTests {
         }
     }
 
-    @Test
+    //@Test
+    // Disabled until the new release with search v2 is out
     void testPaginatedSearchV2Tasks() {
         StartWorkflowRequest request = new StartWorkflowRequest();
         request.setName(workflowName);

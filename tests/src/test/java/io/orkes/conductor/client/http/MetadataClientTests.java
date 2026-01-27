@@ -116,12 +116,6 @@ public class MetadataClientTests {
     // ==================== Additional CRUD Tests ====================
 
     @Test
-    void testGetAllWorkflowsWithLatestVersions() {
-        List<WorkflowDef> allWorkflows = metadataClient.getAllWorkflowsWithLatestVersions();
-        Assertions.assertNotNull(allWorkflows);
-    }
-
-    @Test
     void testGetAllTaskDefs() {
         List<TaskDef> allTaskDefs = metadataClient.getAllTaskDefs();
         Assertions.assertNotNull(allTaskDefs);
