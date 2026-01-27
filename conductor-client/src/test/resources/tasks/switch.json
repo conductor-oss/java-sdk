@@ -9,6 +9,9 @@
     "expression": "$.type == 'premium' ? 'premium' : 'standard'"
   },
   "outputData": {
-    "caseOutput": "premium"
+    "evaluationResult": [
+      "premium"
+    ],
+    "selectedCase": "premium"
   }
 }

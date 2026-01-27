@@ -31,7 +31,7 @@ public class SwitchTask extends TypedTask {
 
     public static final String EVALUATOR_TYPE_INPUT = "evaluatorType";
     public static final String EXPRESSION_INPUT = "expression";
-    public static final String CASE_VALUE_OUTPUT = "caseOutput";
+    public static final String SELECTED_CASE = "selectedCase";
 
     public static final String EVALUATOR_TYPE_VALUE_PARAM = "value-param";
     public static final String EVALUATOR_TYPE_JAVASCRIPT = "javascript";
@@ -85,14 +85,9 @@ public class SwitchTask extends TypedTask {
     }
 
     /**
-     * Returns the evaluated case value that was selected, or null if not available.
+     * Returns the case that was selected, or null if not available.
      */
-    public String getEvaluatedCase() {
-        // The evaluated case is typically in the output
-        String caseOutput = getOutputString(CASE_VALUE_OUTPUT);
-        if (caseOutput != null) {
-            return caseOutput;
-        }
-        return getOutputString("selectedCase");
+    public String getSelectedCase() {
+        return getOutputString(SELECTED_CASE);
     }
 }

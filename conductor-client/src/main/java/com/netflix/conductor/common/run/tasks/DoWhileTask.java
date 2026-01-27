@@ -79,10 +79,4 @@ public class DoWhileTask extends TypedTask {
         return getCurrentIteration() <= 1;
     }
 
-    /**
-     * Returns true if the loop task is part of a loop iteration (iteration > 0).
-     */
-    public boolean isLoopOverTask() {
-        return task.isLoopOverTask();
-    }
 }

@@ -99,10 +99,4 @@ public class SubWorkflowTask extends TypedTask {
         return task.getSubWorkflowId();
     }
 
-    /**
-     * Returns true if the sub-workflow has been started (has an ID).
-     */
-    public boolean isSubWorkflowStarted() {
-        return getSubWorkflowId() != null;
-    }
 }

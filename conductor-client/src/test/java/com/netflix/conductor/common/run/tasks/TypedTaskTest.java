@@ -275,7 +275,7 @@ class TypedTaskTest {
             assertFalse(switchTask.isValueParamEvaluator());
 
             assertEquals("$.type == 'premium' ? 'premium' : 'standard'", switchTask.getExpression());
-            assertEquals("premium", switchTask.getEvaluatedCase());
+            assertEquals("premium", switchTask.getSelectedCase());
         }
 
         @Test
@@ -284,7 +284,7 @@ class TypedTaskTest {
 
             SwitchTask switchTask = task.as(SwitchTask.class);
 
-            assertEquals("premium", switchTask.getEvaluatedCase());
+            assertEquals("premium", switchTask.getSelectedCase());
         }
 
         @Test
@@ -309,7 +309,6 @@ class TypedTaskTest {
             assertEquals("order_processing_workflow", subWf.getSubWorkflowName());
             assertEquals(2, subWf.getSubWorkflowVersion());
             assertEquals("sub-workflow-123", subWf.getSubWorkflowId());
-            assertTrue(subWf.isSubWorkflowStarted());
         }
 
         @Test
