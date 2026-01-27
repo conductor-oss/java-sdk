@@ -12,20 +12,17 @@
  */
 package io.orkes.conductor.client.http;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import com.netflix.conductor.client.exception.ConductorClientException;
-
 import io.orkes.conductor.client.EnvironmentClient;
 import io.orkes.conductor.client.model.Tag;
 import io.orkes.conductor.client.model.environment.EnvironmentVariable;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class EnvironmentClientTests {
 
@@ -41,12 +38,6 @@ public class EnvironmentClientTests {
         // Use a unique name per test run to avoid collisions across CI runs
         String varName = "test-sdk-java-env-var-" + UUID.randomUUID();
         String value = "value-" + UUID.randomUUID();
-
-        try {
-            envClient.deleteEnvironmentVariable(varName);
-        } catch (ConductorClientException ignore) {
-            // ignore if not found
-        }
 
         // create/update
         envClient.createOrUpdateEnvironmentVariable(varName, value);
