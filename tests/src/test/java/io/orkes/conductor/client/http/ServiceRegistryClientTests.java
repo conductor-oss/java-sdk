@@ -30,8 +30,7 @@ import io.orkes.conductor.client.util.ClientTestUtil;
 
 public class ServiceRegistryClientTests {
     private static final String SERVICE_NAME = "test-sdk-java-service";
-    private static final String SERVICE_HOST = "localhost";
-    private static final int SERVICE_PORT = 50051;
+    private static final String SERVICE_URI = "grpc://localhost:50051";
     private static final String PROTO_FILENAME = "test-service.proto";
 
     private final ServiceRegistryClient serviceRegistryClient = ClientTestUtil.getOrkesClients()
@@ -59,9 +58,8 @@ public class ServiceRegistryClientTests {
         // Create a service registry
         ServiceRegistry service = new ServiceRegistry();
         service.setName(SERVICE_NAME);
-        service.setHost(SERVICE_HOST);
-        service.setPort(SERVICE_PORT);
-        service.setDescription("Test gRPC service");
+        service.setType(ServiceRegistry.Type.gRPC);
+        service.setServiceURI(SERVICE_URI);
 
         serviceRegistryClient.addOrUpdateService(service);
 
@@ -69,19 +67,19 @@ public class ServiceRegistryClientTests {
         ServiceRegistry retrieved = serviceRegistryClient.getService(SERVICE_NAME);
         Assertions.assertNotNull(retrieved);
         Assertions.assertEquals(SERVICE_NAME, retrieved.getName());
-        Assertions.assertEquals(SERVICE_HOST, retrieved.getHost());
-        Assertions.assertEquals(SERVICE_PORT, retrieved.getPort());
+        Assertions.assertEquals(SERVICE_URI, retrieved.getServiceURI());
+        Assertions.assertEquals(ServiceRegistry.Type.gRPC, retrieved.getType());
 
         // Verify it appears in list
         List<ServiceRegistry> services = serviceRegistryClient.getRegisteredServices();
         Assertions.assertTrue(services.stream().anyMatch(s -> s.getName().equals(SERVICE_NAME)));
 
-        // Update the service
-        service.setPort(50052);
+        // Update the service URI
+        service.setServiceURI("grpc://localhost:50052");
         serviceRegistryClient.addOrUpdateService(service);
 
         ServiceRegistry updated = serviceRegistryClient.getService(SERVICE_NAME);
-        Assertions.assertEquals(50052, updated.getPort());
+        Assertions.assertEquals("grpc://localhost:50052", updated.getServiceURI());
 
         // Delete the service
         serviceRegistryClient.removeService(SERVICE_NAME);
@@ -101,7 +99,7 @@ public class ServiceRegistryClientTests {
         ServiceRegistry service = createTestService();
         serviceRegistryClient.addOrUpdateService(service);
 
-        // Get initial status - should be closed by default
+        // Get initial status
         CircuitBreakerTransitionResponse status = serviceRegistryClient.getCircuitBreakerStatus(SERVICE_NAME);
         Assertions.assertNotNull(status);
 
@@ -161,7 +159,7 @@ public class ServiceRegistryClientTests {
 
         // Create a service method
         ServiceMethod method = new ServiceMethod();
-        method.setServiceName("TestService");
+        method.setOperationName("TestService.TestMethod");
         method.setMethodName("TestMethod");
         method.setMethodType("UNARY");
         method.setInputType("TestRequest");
@@ -178,7 +176,7 @@ public class ServiceRegistryClientTests {
         method.setMethodType("SERVER_STREAMING");
         serviceRegistryClient.addOrUpdateServiceMethod(SERVICE_NAME, method);
 
-        // Remove the method
+        // Remove the method - serviceName parameter is part of the operation
         serviceRegistryClient.removeMethod(SERVICE_NAME, "TestService", "TestMethod", "SERVER_STREAMING");
     }
 
@@ -218,14 +216,14 @@ public class ServiceRegistryClientTests {
         serviceRegistryClient.addOrUpdateService(service);
 
         // Update with different configuration
-        service.setPort(50053);
-        service.setDescription("Updated test service");
+        service.setServiceURI("grpc://localhost:50053");
+        service.setCircuitBreakerEnabled(true);
         serviceRegistryClient.addOrUpdateService(service);
 
         // Verify update
         ServiceRegistry updated = serviceRegistryClient.getService(SERVICE_NAME);
-        Assertions.assertEquals(50053, updated.getPort());
-        Assertions.assertEquals("Updated test service", updated.getDescription());
+        Assertions.assertEquals("grpc://localhost:50053", updated.getServiceURI());
+        Assertions.assertTrue(updated.isCircuitBreakerEnabled());
     }
 
     @Test
@@ -241,9 +239,8 @@ public class ServiceRegistryClientTests {
     private ServiceRegistry createTestService() {
         ServiceRegistry service = new ServiceRegistry();
         service.setName(SERVICE_NAME);
-        service.setHost(SERVICE_HOST);
-        service.setPort(SERVICE_PORT);
-        service.setDescription("Test gRPC service for SDK testing");
+        service.setType(ServiceRegistry.Type.gRPC);
+        service.setServiceURI(SERVICE_URI);
         return service;
     }
 }
