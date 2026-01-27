@@ -60,7 +60,7 @@ public class WorkflowRetryTest {
         startWorkflowRequest.setVersion(1);
         startWorkflowRequest.setInput(new HashMap<>());
         String workflowId = workflowClient.startWorkflow(startWorkflowRequest);
-        Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(100));
+        Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(1000));
         Workflow workflow = workflowClient.getWorkflow(workflowId, true);
 
         String taskId = workflow.getTasks().get(0).getTaskId();
