@@ -277,12 +277,23 @@ public class ConductorClient {
             return null;
         }
 
+        String contentType = response.header("Content-Type");
+
+        // Handle binary content type (application/octet-stream) before converting to string
+        if (returnType.equals(byte[].class)) {
+            byte[] bytes = bodyAsBytes(response);
+            if (bytes == null || bytes.length == 0) {
+                return null;
+            }
+            // noinspection unchecked
+            return (T) bytes;
+        }
+
         String body = bodyAsString(response);
         if (body == null || "".equals(body)) {
             return null;
         }
 
-        String contentType = response.header("Content-Type");
         if (contentType == null || isJsonMime(contentType)) {
             // This is hacky. It's required because Conductor's API is returning raw strings
             // as JSON
@@ -313,6 +324,22 @@ public class ConductorClient {
 
         try {
             return response.body().string();
+        } catch (IOException e) {
+            throw new ConductorClientException(response.message(),
+                    e,
+                    response.code(),
+                    response.headers().toMultimap());
+        }
+    }
+
+    @Nullable
+    private byte[] bodyAsBytes(Response response) {
+        if (response.body() == null) {
+            return null;
+        }
+
+        try {
+            return response.body().bytes();
         } catch (IOException e) {
             throw new ConductorClientException(response.message(),
                     e,
