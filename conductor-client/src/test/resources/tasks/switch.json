@@ -1,0 +1,14 @@
+{
+  "taskType": "SWITCH",
+  "status": "COMPLETED",
+  "taskId": "switch-task-001",
+  "referenceTaskName": "route_by_type",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "evaluatorType": "javascript",
+    "expression": "$.type == 'premium' ? 'premium' : 'standard'"
+  },
+  "outputData": {
+    "caseOutput": "premium"
+  }
+}

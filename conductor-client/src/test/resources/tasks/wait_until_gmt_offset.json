@@ -1,0 +1,11 @@
+{
+  "taskType": "WAIT",
+  "status": "IN_PROGRESS",
+  "taskId": "wait-task-004",
+  "referenceTaskName": "wait_until_gmt_offset",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "until": "2026-01-31 00:00 GMT-03:00"
+  },
+  "outputData": {}
+}
