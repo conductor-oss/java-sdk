@@ -12,18 +12,17 @@
  */
 package io.orkes.conductor.client.http;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import io.orkes.conductor.client.EnvironmentClient;
 import io.orkes.conductor.client.model.Tag;
 import io.orkes.conductor.client.model.environment.EnvironmentVariable;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class EnvironmentClientTests {
 

@@ -1,0 +1,16 @@
+{
+  "taskType": "TERMINATE",
+  "status": "COMPLETED",
+  "taskId": "terminate-task-001",
+  "referenceTaskName": "terminate_on_error",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "terminationStatus": "FAILED",
+    "terminationReason": "Validation failed: missing required field",
+    "workflowOutput": {
+      "error": "validation_error",
+      "message": "Missing required field: email"
+    }
+  },
+  "outputData": {}
+}

@@ -1,0 +1,17 @@
+{
+  "taskType": "SUB_WORKFLOW",
+  "status": "COMPLETED",
+  "taskId": "sub-workflow-task-001",
+  "referenceTaskName": "process_order",
+  "workflowInstanceId": "workflow-001",
+  "subWorkflowId": "sub-workflow-123",
+  "inputData": {
+    "subWorkflowParam": {
+      "name": "order_processing_workflow",
+      "version": 2
+    }
+  },
+  "outputData": {
+    "subWorkflowId": "sub-workflow-123"
+  }
+}

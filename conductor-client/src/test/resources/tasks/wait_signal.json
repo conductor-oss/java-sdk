@@ -1,0 +1,9 @@
+{
+  "taskType": "WAIT",
+  "status": "IN_PROGRESS",
+  "taskId": "wait-task-003",
+  "referenceTaskName": "wait_for_signal",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {},
+  "outputData": {}
+}

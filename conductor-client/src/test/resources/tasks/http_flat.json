@@ -1,0 +1,28 @@
+{
+  "taskType": "HTTP",
+  "status": "COMPLETED",
+  "taskId": "http-task-002",
+  "referenceTaskName": "call_api_flat",
+  "workflowInstanceId": "workflow-001",
+  "inputData": {
+    "encode": true,
+    "method": "GET",
+    "asyncComplete": false,
+    "_createdBy": "miguel.prieto@orkes.io",
+    "uri": "https://orkes-api-tester.orkesconductor.com/api",
+    "contentType": "application/json",
+    "accept": "application/json"
+  },
+  "outputData": {
+    "response": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "status": "ok"
+      },
+      "reasonPhrase": "OK"
+    }
+  }
+}

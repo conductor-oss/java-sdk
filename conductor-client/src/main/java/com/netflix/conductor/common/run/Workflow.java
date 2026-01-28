@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.netflix.conductor.common.metadata.Auditable;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
+import com.netflix.conductor.common.run.tasks.TypedTask;
 
 import lombok.*;
 
@@ -215,6 +216,31 @@ public class Workflow extends Auditable {
             return null;
         }
         return found.getLast();
+    }
+
+    /**
+     * Returns a typed task by its reference name.
+     *
+     * <p>Example usage:
+     * <pre>{@code
+     * WaitTask wait = workflow.getTaskByRefName("myWait", WaitTask.class);
+     * if (wait.isDurationBased()) {
+     *     Duration d = wait.getDuration().orElseThrow();
+     * }
+     * }</pre>
+     *
+     * @param refName the reference task name
+     * @param type the typed task class to convert to
+     * @param <T> the typed task type
+     * @return the typed task, or null if no task with the given reference name exists
+     * @throws IllegalArgumentException if the task's type doesn't match the expected type
+     */
+    public <T extends TypedTask> T getTaskByRefName(String refName, Class<T> type) {
+        Task task = getTaskByRefName(refName);
+        if (task == null) {
+            return null;
+        }
+        return task.as(type);
     }
 
     /**
