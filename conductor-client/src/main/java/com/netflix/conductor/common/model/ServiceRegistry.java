@@ -31,6 +31,8 @@ public class ServiceRegistry {
     private List<RequestParam> requestParams = new ArrayList<>();
     private Config config = new Config();
     private boolean circuitBreakerEnabled = false;
+    private AuthMetadata authMetadata;
+    private List<ServerUrlConfig> servers = new ArrayList<>();
 
     public enum Type {
         HTTP, gRPC, MCP_REMOTE
@@ -41,5 +43,18 @@ public class ServiceRegistry {
     @NoArgsConstructor
     public static class Config {
         private OrkesCircuitBreakerConfig circuitBreakerConfig = new OrkesCircuitBreakerConfig();
+    }
+
+    public enum ServerSource {
+        OPENAPI_SPEC,
+        USER_DEFINED
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ServerUrlConfig {
+        private String url;
+        private ServerSource type;
     }
 }

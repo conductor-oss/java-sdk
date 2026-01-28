@@ -65,6 +65,17 @@ public class ServiceRegistryClientTests {
         service.setType(ServiceRegistry.Type.gRPC);
         service.setServiceURI(SERVICE_URI);
 
+        // Set AuthMetadata and Servers
+        com.netflix.conductor.common.model.AuthMetadata authMetadata = new com.netflix.conductor.common.model.AuthMetadata();
+        authMetadata.setKey("Authorization");
+        authMetadata.setValue("Bearer token");
+        service.setAuthMetadata(authMetadata);
+
+        ServiceRegistry.ServerUrlConfig serverUrlConfig = new ServiceRegistry.ServerUrlConfig();
+        serverUrlConfig.setUrl("http://localhost:8080");
+        serverUrlConfig.setType(ServiceRegistry.ServerSource.USER_DEFINED);
+        service.setServers(List.of(serverUrlConfig));
+
         serviceRegistryClient.addOrUpdateService(service);
 
         // Get the service
@@ -73,6 +84,17 @@ public class ServiceRegistryClientTests {
         Assertions.assertEquals(SERVICE_NAME, retrieved.getName());
         Assertions.assertEquals(SERVICE_URI, retrieved.getServiceURI());
         Assertions.assertEquals(ServiceRegistry.Type.gRPC, retrieved.getType());
+
+        // Verify AuthMetadata
+        Assertions.assertNotNull(retrieved.getAuthMetadata());
+        Assertions.assertEquals("Authorization", retrieved.getAuthMetadata().getKey());
+        Assertions.assertEquals("Bearer token", retrieved.getAuthMetadata().getValue());
+
+        // Verify Servers
+        Assertions.assertNotNull(retrieved.getServers());
+        Assertions.assertEquals(1, retrieved.getServers().size());
+        Assertions.assertEquals("http://localhost:8080", retrieved.getServers().get(0).getUrl());
+        Assertions.assertEquals(ServiceRegistry.ServerSource.USER_DEFINED, retrieved.getServers().get(0).getType());
 
         // Verify it appears in list
         List<ServiceRegistry> services = serviceRegistryClient.getRegisteredServices();
@@ -167,6 +189,7 @@ public class ServiceRegistryClientTests {
         method.setMethodType("UNARY");
         method.setInputType("TestRequest");
         method.setOutputType("TestResponse");
+        method.setDescription("Test method description");
 
         // Add method
         serviceRegistryClient.addOrUpdateServiceMethod(SERVICE_NAME, method);
@@ -193,8 +216,8 @@ public class ServiceRegistryClientTests {
         serviceRegistryClient.addOrUpdateService(service);
 
         byte[] protoData = getClass().getClassLoader()
-            .getResourceAsStream("compiled.bin")
-            .readAllBytes();
+                .getResourceAsStream("compiled.bin")
+                .readAllBytes();
 
         serviceRegistryClient.addOrUpdateService(service);
         serviceRegistryClient.setProtoData(SERVICE_NAME, PROTO_FILENAME, protoData);

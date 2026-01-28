@@ -23,9 +23,13 @@ public class ServiceMethod {
     private Long id;
     private String operationName;
     private String methodName;
-    private String methodType;  //GET, PUT, POST, UNARY, SERVER_STREAMING etc.
+    private String methodType; // GET, PUT, POST, UNARY, SERVER_STREAMING etc.
     private String inputType;
     private String outputType;
+    private Boolean deprecated;
+    private String requestContentType;
+    private String responseContentType;
+    private String description;
 
     // Add request parameters
     private List<RequestParam> requestParams = new ArrayList<>();
