@@ -68,7 +68,7 @@ import okhttp3.internal.http.HttpMethod;
 
 public class ConductorClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConductorClient.class);
-    protected final OkHttpClient okHttpClient;
+    protected OkHttpClient okHttpClient;
     protected final String basePath;
     protected final ObjectMapper objectMapper;
     private final boolean verifyingSsl;
@@ -118,8 +118,7 @@ public class ConductorClient {
             okHttpBuilder.connectionPool(new ConnectionPool(
                     connectionPoolConfig.getMaxIdleConnections(),
                     connectionPoolConfig.getKeepAliveDuration(),
-                    connectionPoolConfig.getTimeUnit()
-            ));
+                    connectionPoolConfig.getTimeUnit()));
         }
 
         if (!verifyingSsl) {
@@ -156,14 +155,79 @@ public class ConductorClient {
         }
     }
 
+    /**
+     * Sets the read timeout for HTTP connections.
+     *
+     * @param timeout the timeout value
+     * @param unit    the time unit of the timeout
+     */
+    public void setReadTimeout(long timeout, TimeUnit unit) {
+        this.okHttpClient = okHttpClient.newBuilder()
+                .readTimeout(timeout, unit)
+                .build();
+    }
+
+    /**
+     * Sets the read timeout for HTTP connections in milliseconds.
+     *
+     * @param timeoutMillis the timeout value in milliseconds
+     */
+    public void setReadTimeout(long timeoutMillis) {
+        setReadTimeout(timeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Sets the write timeout for HTTP connections.
+     *
+     * @param timeout the timeout value
+     * @param unit    the time unit of the timeout
+     */
+    public void setWriteTimeout(long timeout, TimeUnit unit) {
+        this.okHttpClient = okHttpClient.newBuilder()
+                .writeTimeout(timeout, unit)
+                .build();
+    }
+
+    /**
+     * Sets the write timeout for HTTP connections in milliseconds.
+     *
+     * @param timeoutMillis the timeout value in milliseconds
+     */
+    public void setWriteTimeout(long timeoutMillis) {
+        setWriteTimeout(timeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Sets the connect timeout for HTTP connections.
+     *
+     * @param timeout the timeout value
+     * @param unit    the time unit of the timeout
+     */
+    public void setConnectTimeout(long timeout, TimeUnit unit) {
+        this.okHttpClient = okHttpClient.newBuilder()
+                .connectTimeout(timeout, unit)
+                .build();
+    }
+
+    /**
+     * Sets the connect timeout for HTTP connections in milliseconds.
+     *
+     * @param timeoutMillis the timeout value in milliseconds
+     */
+    public void setConnectTimeout(long timeoutMillis) {
+        setConnectTimeout(timeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
     public ConductorClientResponse<Void> execute(ConductorClientRequest req) {
         return execute(req, null);
     }
 
     public <T> ConductorClientResponse<T> execute(ConductorClientRequest req, TypeReference<T> typeReference) {
-        Map<String, String> headerParams = req.getHeaderParams() == null ? new HashMap<>() : new HashMap<>(req.getHeaderParams());
+        Map<String, String> headerParams = req.getHeaderParams() == null ? new HashMap<>()
+                : new HashMap<>(req.getHeaderParams());
         List<Param> pathParams = req.getPathParams() == null ? new ArrayList<>() : new ArrayList<>(req.getPathParams());
-        List<Param> queryParams = req.getQueryParams() == null ? new ArrayList<>() : new ArrayList<>(req.getQueryParams());
+        List<Param> queryParams = req.getQueryParams() == null ? new ArrayList<>()
+                : new ArrayList<>(req.getQueryParams());
 
         Request request = buildRequest(req.getMethod().toString(),
                 req.getPath(),
@@ -213,23 +277,35 @@ public class ConductorClient {
             return null;
         }
 
+        String contentType = response.header("Content-Type");
+
+        // Handle binary content type (application/octet-stream) before converting to string
+        if (returnType.equals(byte[].class)) {
+            byte[] bytes = bodyAsBytes(response);
+            if (bytes == null || bytes.length == 0) {
+                return null;
+            }
+            // noinspection unchecked
+            return (T) bytes;
+        }
+
         String body = bodyAsString(response);
         if (body == null || "".equals(body)) {
             return null;
         }
 
-        String contentType = response.header("Content-Type");
         if (contentType == null || isJsonMime(contentType)) {
-            // This is hacky. It's required because Conductor's API is returning raw strings as JSON
+            // This is hacky. It's required because Conductor's API is returning raw strings
+            // as JSON
             if (returnType.equals(String.class)) {
-                //noinspection unchecked
+                // noinspection unchecked
                 return (T) body;
             }
 
             JavaType javaType = objectMapper.getTypeFactory().constructType(returnType);
             return objectMapper.readValue(body, javaType);
         } else if (returnType.equals(String.class)) {
-            //noinspection unchecked
+            // noinspection unchecked
             return (T) body;
         }
 
@@ -256,6 +332,22 @@ public class ConductorClient {
         }
     }
 
+    @Nullable
+    private byte[] bodyAsBytes(Response response) {
+        if (response.body() == null) {
+            return null;
+        }
+
+        try {
+            return response.body().bytes();
+        } catch (IOException e) {
+            throw new ConductorClientException(response.message(),
+                    e,
+                    response.code(),
+                    response.headers().toMultimap());
+        }
+    }
+
     @SneakyThrows
     private RequestBody serialize(String contentType, @NotNull Object body) {
         if (contentType.equals("application/octet-stream") && body instanceof byte[]) {
@@ -271,7 +363,8 @@ public class ConductorClient {
             }
             return RequestBody.create(content, MediaType.parse(contentType));
         }
-        // New: allow plain text (and any text/*) bodies without forcing JSON serialization
+        // New: allow plain text (and any text/*) bodies without forcing JSON
+        // serialization
         if (contentType.startsWith("text/")) {
             String content = (body instanceof String) ? (String) body : String.valueOf(body);
             return RequestBody.create(content, MediaType.parse(contentType));
@@ -288,7 +381,7 @@ public class ConductorClient {
                 exception.setStatus(response.code());
                 throw exception;
             } catch (JsonProcessingException jpe) {
-                //Ignore
+                // Ignore
             }
             throw new ConductorClientException(response.message(),
                     response.code(),
@@ -309,13 +402,12 @@ public class ConductorClient {
         }
     }
 
-
     protected Request buildRequest(String method,
-                                 String path,
-                                 List<Param> pathParams,
-                                 List<Param> queryParams,
-                                 Map<String, String> headers,
-                                 Object body) {
+            String path,
+            List<Param> pathParams,
+            List<Param> queryParams,
+            Map<String, String> headers,
+            Object body) {
         final HttpUrl url = buildUrl(replacePathParams(path, pathParams), queryParams);
         final Request.Builder requestBuilder = new Request.Builder().url(url);
         processHeaderParams(requestBuilder, addHeadersFromProviders(method, path, headers));
@@ -388,9 +480,10 @@ public class ConductorClient {
 
     @SneakyThrows
     private static void unsafeClient(OkHttpClient.Builder okhttpClientBuilder) {
-        LOGGER.warn("Unsafe client - Disabling SSL certificate validation is dangerous and should only be used in development environments");
+        LOGGER.warn(
+                "Unsafe client - Disabling SSL certificate validation is dangerous and should only be used in development environments");
         // Create a trust manager that does not validate certificate chains
-        final TrustManager[] trustAllCerts = new TrustManager[]{
+        final TrustManager[] trustAllCerts = new TrustManager[] {
                 new X509TrustManager() {
                     @Override
                     public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -402,7 +495,7 @@ public class ConductorClient {
 
                     @Override
                     public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[]{};
+                        return new X509Certificate[] {};
                     }
                 }
         };
@@ -414,7 +507,7 @@ public class ConductorClient {
         okhttpClientBuilder.hostnameVerifier((hostname, session) -> true);
     }
 
-    //TODO review this - not sure if it's working 2024-08-07
+    // TODO review this - not sure if it's working 2024-08-07
     private void trustCertificates(OkHttpClient.Builder okhttpClientBuilder) throws GeneralSecurityException {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
         Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(sslCaCert);
@@ -428,7 +521,8 @@ public class ConductorClient {
             caKeyStore.setCertificateEntry(certificateAlias, certificate);
         }
 
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory
+                .getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(caKeyStore);
         TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
         SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -456,7 +550,7 @@ public class ConductorClient {
         }
     }
 
-    public static class Builder<T extends Builder<T>>  {
+    public static class Builder<T extends Builder<T>> {
         private final OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder();
         private String basePath = "http://localhost:8080/api";
         private boolean verifyingSsl = true;
@@ -474,7 +568,7 @@ public class ConductorClient {
         private boolean useEnvVariables = false;
 
         protected T self() {
-            //noinspection unchecked
+            // noinspection unchecked
             return (T) this;
         }
 
@@ -529,7 +623,8 @@ public class ConductorClient {
         }
 
         /**
-         * Use it to apply additional custom configurations to the OkHttp3 client. E.g.: add an interceptor.
+         * Use it to apply additional custom configurations to the OkHttp3 client. E.g.:
+         * add an interceptor.
          *
          * @param configurer
          * @return

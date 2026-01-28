@@ -12,6 +12,7 @@
  */
 package io.orkes.conductor.client;
 
+import java.time.Duration;
 import java.util.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -31,6 +32,7 @@ import io.orkes.conductor.client.http.OrkesWorkflowClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -58,6 +60,7 @@ public class WorkflowRetryTest {
         startWorkflowRequest.setVersion(1);
         startWorkflowRequest.setInput(new HashMap<>());
         String workflowId = workflowClient.startWorkflow(startWorkflowRequest);
+        Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(1000));
         Workflow workflow = workflowClient.getWorkflow(workflowId, true);
 
         String taskId = workflow.getTasks().get(0).getTaskId();

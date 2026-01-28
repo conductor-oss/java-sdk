@@ -16,12 +16,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.conductoross.conductor.common.model.ReturnStrategy;
+import org.conductoross.conductor.common.model.SignalResponse;
 
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
 import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
@@ -41,15 +46,46 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.common.run.ExternalStorageLocation;
 import com.netflix.conductor.common.run.SearchResult;
 import com.netflix.conductor.common.run.TaskSummary;
+import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
-/** Client for conductor task management including polling for task, updating task status etc. */
+/**
+ * Client for conductor task management including polling for task, updating
+ * task status etc.
+ */
 @Slf4j
-public final class TaskClient {
+public class TaskClient {
+
+    // Static TypeReference instances for performance optimization - avoid creating
+    // new instances per request
+    private static final TypeReference<Task> TASK_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<Task>> TASK_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<String> STRING_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SearchResult<TaskSummary>> SEARCH_RESULT_TASK_SUMMARY_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SearchResult<Task>> SEARCH_RESULT_TASK_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<TaskExecLog>> TASK_EXEC_LOG_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<List<PollData>> POLL_DATA_LIST_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Map<String, Integer>> STRING_INT_MAP_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<SignalResponse> SIGNAL_RESPONSE_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Workflow> WORKFLOW_TYPE = new TypeReference<>() {
+    };
+    private static final TypeReference<Map<String, Object>> STRING_OBJECT_MAP_TYPE = new TypeReference<>() {
+    };
 
     private final ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
@@ -59,12 +95,19 @@ public final class TaskClient {
 
     private PayloadStorage payloadStorage;
 
-    private ConductorClient client;
+    protected ConductorClient client;
+
+    protected String localhost = "localhost";
 
     /** Creates a default task client */
     public TaskClient() {
         // client will be set once root uri is set
         this(null, new DefaultConductorClientConfiguration());
+        try {
+            localhost = InetAddress.getLocalHost().getHostAddress();
+        } catch (Throwable t) {
+            log.error("unable to get the local host name {}", t.getMessage(), t);
+        }
     }
 
     public TaskClient(ConductorClient client) {
@@ -99,13 +142,15 @@ public final class TaskClient {
      * Perform a poll for a task of a specific task type.
      *
      * @param taskType The taskType to poll for
-     * @param domain The domain of the task type
+     * @param domain   The domain of the task type
      * @param workerId Name of the client worker. Used for logging.
      * @return Task waiting to be executed.
      */
-    public Task pollTask(String taskType, String workerId, String domain){
+    public Task pollTask(String taskType, String workerId, String domain) {
         Validate.notBlank(taskType, "Task type cannot be blank");
-        Validate.notBlank(workerId, "Worker id cannot be blank");
+        if(StringUtils.isBlank(workerId)) {
+            workerId = this.localhost;
+        }
 
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -115,8 +160,7 @@ public final class TaskClient {
                 .addQueryParam("domain", domain)
                 .build();
 
-        ConductorClientResponse<Task> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Task> resp = client.execute(request, TASK_TYPE);
 
         Task task = resp.getData();
         populateTaskPayloads(task);
@@ -124,19 +168,23 @@ public final class TaskClient {
     }
 
     /**
-     * Perform a batch poll for tasks by task type. Batch size is configurable by count.
+     * Perform a batch poll for tasks by task type. Batch size is configurable by
+     * count.
      *
-     * @param taskType Type of task to poll for
-     * @param workerId Name of the client worker. Used for logging.
-     * @param count Maximum number of tasks to be returned. Actual number of tasks returned can be
-     *     less than this number.
+     * @param taskType             Type of task to poll for
+     * @param workerId             Name of the client worker. Used for logging.
+     * @param count                Maximum number of tasks to be returned. Actual
+     *                             number of tasks returned can be
+     *                             less than this number.
      * @param timeoutInMillisecond Long poll wait timeout.
      * @return List of tasks awaiting to be executed.
      */
     public List<Task> batchPollTasksByTaskType(String taskType, String workerId, int count, int timeoutInMillisecond) {
         Validate.notBlank(taskType, "Task type cannot be blank");
-        Validate.notBlank(workerId, "Worker id cannot be blank");
         Validate.isTrue(count > 0, "Count must be greater than 0");
+        if(StringUtils.isBlank(workerId)) {
+            workerId = this.localhost;
+        }
 
         List<Task> tasks = batchPoll(taskType, workerId, null, count, timeoutInMillisecond);
         tasks.forEach(this::populateTaskPayloads);
@@ -146,18 +194,22 @@ public final class TaskClient {
     /**
      * Batch poll for tasks in a domain. Batch size is configurable by count.
      *
-     * @param taskType Type of task to poll for
-     * @param domain The domain of the task type
-     * @param workerId Name of the client worker. Used for logging.
-     * @param count Maximum number of tasks to be returned. Actual number of tasks returned can be
-     *     less than this number.
+     * @param taskType             Type of task to poll for
+     * @param domain               The domain of the task type
+     * @param workerId             Name of the client worker. Used for logging.
+     * @param count                Maximum number of tasks to be returned. Actual
+     *                             number of tasks returned can be
+     *                             less than this number.
      * @param timeoutInMillisecond Long poll wait timeout.
      * @return List of tasks awaiting to be executed.
      */
-    public List<Task> batchPollTasksInDomain(String taskType, String domain, String workerId, int count, int timeoutInMillisecond){
+    public List<Task> batchPollTasksInDomain(String taskType, String domain, String workerId, int count,
+            int timeoutInMillisecond) {
         Validate.notBlank(taskType, "Task type cannot be blank");
-        Validate.notBlank(workerId, "Worker id cannot be blank");
         Validate.isTrue(count > 0, "Count must be greater than 0");
+        if(StringUtils.isBlank(workerId)) {
+            workerId = this.localhost;
+        }
 
         List<Task> tasks = batchPoll(taskType, workerId, domain, count, timeoutInMillisecond);
         tasks.forEach(this::populateTaskPayloads);
@@ -165,7 +217,8 @@ public final class TaskClient {
     }
 
     /**
-     * Updates the result of a task execution. If the size of the task output payload is bigger than
+     * Updates the result of a task execution. If the size of the task output
+     * payload is bigger than
      * {@link ExternalPayloadStorage}, if enabled, else the task is marked as
      * FAILED_WITH_TERMINAL_ERROR.
      *
@@ -183,7 +236,8 @@ public final class TaskClient {
     }
 
     /**
-     * Updates the result of a task execution. If the size of the task output payload is bigger than
+     * Updates the result of a task execution. If the size of the task output
+     * payload is bigger than
      * {@link ExternalPayloadStorage}, if enabled, else the task is marked as
      * FAILED_WITH_TERMINAL_ERROR.
      *
@@ -192,13 +246,12 @@ public final class TaskClient {
     public Task updateTaskV2(TaskResult taskResult) {
         Validate.notNull(taskResult, "Task result cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
-            .method(Method.POST)
-            .path("/tasks/update-v2")
-            .body(taskResult)
-            .build();
+                .method(Method.POST)
+                .path("/tasks/update-v2")
+                .body(taskResult)
+                .build();
 
-        ConductorClientResponse<Task> response = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Task> response = client.execute(request, TASK_TYPE);
         return response.getData();
     }
 
@@ -214,8 +267,8 @@ public final class TaskClient {
             eventDispatcher.publish(new TaskResultPayloadSizeEvent(taskType, taskResultSize));
             long payloadSizeThreshold = conductorClientConfiguration.getTaskOutputPayloadThresholdKB() * 1024L;
             if (taskResultSize > payloadSizeThreshold) {
-                if (!conductorClientConfiguration.isExternalPayloadStorageEnabled()  || taskResultSize
-                        > conductorClientConfiguration.getTaskOutputMaxPayloadThresholdKB() * 1024L) {
+                if (!conductorClientConfiguration.isExternalPayloadStorageEnabled()
+                        || taskResultSize > conductorClientConfiguration.getTaskOutputMaxPayloadThresholdKB() * 1024L) {
                     throw new IllegalArgumentException(
                             String.format("The TaskResult payload size: %d is greater than the permissible %d bytes",
                                     taskResultSize, payloadSizeThreshold));
@@ -232,13 +285,15 @@ public final class TaskClient {
             throw new ConductorClientException(e);
         }
     }
+
     /**
      * Ack for the task poll.
      *
-     * @param taskId Id of the task to be polled
+     * @param taskId   Id of the task to be polled
      * @param workerId user identified worker.
-     * @return true if the task was found with the given ID and acknowledged. False otherwise. If
-     *     the server returns false, the client should NOT attempt to ack again.
+     * @return true if the task was found with the given ID and acknowledged. False
+     *         otherwise. If
+     *         the server returns false, the client should NOT attempt to ack again.
      */
     public Boolean ack(String taskId, String workerId) {
         Validate.notBlank(taskId, "Task id cannot be blank");
@@ -249,8 +304,7 @@ public final class TaskClient {
                 .addQueryParam("workerid", workerId)
                 .build();
 
-        ConductorClientResponse<Boolean> response = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Boolean> response = client.execute(request, BOOLEAN_TYPE);
 
         return response.getData();
     }
@@ -258,7 +312,7 @@ public final class TaskClient {
     /**
      * Log execution messages for a task.
      *
-     * @param taskId id of the task
+     * @param taskId     id of the task
      * @param logMessage the message to be logged
      */
     public void logMessageForTask(String taskId, String logMessage) {
@@ -278,7 +332,7 @@ public final class TaskClient {
      *
      * @param taskId id of the task.
      */
-    public List<TaskExecLog> getTaskLogs(String taskId){
+    public List<TaskExecLog> getTaskLogs(String taskId) {
         Validate.notBlank(taskId, "Task id cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
@@ -286,8 +340,7 @@ public final class TaskClient {
                 .addPathParam("taskId", taskId)
                 .build();
 
-        ConductorClientResponse<List<TaskExecLog>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<TaskExecLog>> resp = client.execute(request, TASK_EXEC_LOG_LIST_TYPE);
 
         return resp.getData();
     }
@@ -306,8 +359,7 @@ public final class TaskClient {
                 .addPathParam("taskId", taskId)
                 .build();
 
-        ConductorClientResponse<Task> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Task> resp = client.execute(request, TASK_TYPE);
 
         return resp.getData();
     }
@@ -316,7 +368,7 @@ public final class TaskClient {
      * Removes a task from a taskType queue
      *
      * @param taskType the taskType to identify the queue
-     * @param taskId the id of the task to be removed
+     * @param taskId   the id of the task to be removed
      */
     public void removeTaskFromQueue(String taskType, String taskId) {
         Validate.notBlank(taskType, "Task type cannot be blank");
@@ -332,24 +384,22 @@ public final class TaskClient {
     }
 
     public int getQueueSizeForTask(String taskType) {
-        return getQueueSizeForTask(taskType, null, null, null);
-    }
-
-    public int getQueueSizeForTask(String taskType, String domain, String isolationGroupId, String executionNamespace) {
         Validate.notBlank(taskType, "Task type cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/tasks/queue/size")  //FIXME Not supported by Orkes Conductor. Orkes Conductor only has "/tasks/queue/sizes"
-                .addQueryParam("taskType", taskType)
-                .addQueryParam("domain", domain)
-                .addQueryParam("isolationGroupId", isolationGroupId)
-                .addQueryParam("executionNamespace", executionNamespace)
+                .path("/tasks/queue/sizes")
+                .addQueryParams("taskType", List.of(taskType))
                 .build();
-        ConductorClientResponse<Integer> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<Map<String, Integer>> response = client.execute(request, STRING_INT_MAP_TYPE);
 
-        Integer queueSize = resp.getData();
+        Integer queueSize = response.getData().get(taskType);
         return queueSize != null ? queueSize : 0;
+    }
+
+    public int getQueueSizeForTask(String taskType, String domain, String isolationGroupId, String executionNamespace) {
+        // Domain, isolationGroupId, and executionNamespace are not supported by this
+        // endpoint
+        return getQueueSizeForTask(taskType);
     }
 
     /**
@@ -365,8 +415,7 @@ public final class TaskClient {
                 .path("/tasks/queue/polldata")
                 .addQueryParam("taskType", taskType)
                 .build();
-        ConductorClientResponse<List<PollData>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<PollData>> resp = client.execute(request, POLL_DATA_LIST_TYPE);
 
         return resp.getData();
     }
@@ -379,27 +428,9 @@ public final class TaskClient {
     public List<PollData> getAllPollData() {
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
-                .path("/tasks/queue/polldata")
+                .path("/tasks/queue/polldata/all")
                 .build();
-        ConductorClientResponse<List<PollData>> resp = client.execute(request, new TypeReference<>() {
-        });
-
-        return resp.getData();
-    }
-
-    /**
-     * Requeue pending tasks for all running workflows
-     *
-     * @return returns the number of tasks that have been requeued
-     */
-    public String requeueAllPendingTasks() {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/tasks/queue/requeue")
-                .build();
-
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<PollData>> resp = client.execute(request, POLL_DATA_LIST_TYPE);
 
         return resp.getData();
     }
@@ -417,17 +448,18 @@ public final class TaskClient {
                 .addPathParam("taskType", taskType)
                 .build();
 
-        ConductorClientResponse<String> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
 
         return resp.getData();
     }
+
     /**
      * Search for tasks based on payload
      *
      * @param query the search string
-     * @return returns the {@link SearchResult} containing the {@link TaskSummary} matching the
-     *     query
+     * @return returns the {@link SearchResult} containing the {@link TaskSummary}
+     *         matching the
+     *         query
      */
     public SearchResult<TaskSummary> search(String query) {
         ConductorClientRequest request = ConductorClientRequest.builder()
@@ -436,8 +468,8 @@ public final class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request,
+                SEARCH_RESULT_TASK_SUMMARY_TYPE);
 
         return resp.getData();
     }
@@ -446,7 +478,8 @@ public final class TaskClient {
      * Search for tasks based on payload
      *
      * @param query the search string
-     * @return returns the {@link SearchResult} containing the {@link Task} matching the query
+     * @return returns the {@link SearchResult} containing the {@link Task} matching
+     *         the query
      */
     public SearchResult<Task> searchV2(String query) {
         ConductorClientRequest request = ConductorClientRequest.builder()
@@ -455,8 +488,7 @@ public final class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, SEARCH_RESULT_TASK_TYPE);
 
         return resp.getData();
     }
@@ -464,12 +496,13 @@ public final class TaskClient {
     /**
      * Paginated search for tasks based on payload
      *
-     * @param start start value of page
-     * @param size number of tasks to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of tasks to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
-     * @return the {@link SearchResult} containing the {@link TaskSummary} that match the query
+     * @param query    the search query
+     * @return the {@link SearchResult} containing the {@link TaskSummary} that
+     *         match the query
      */
     public SearchResult<TaskSummary> search(Integer start, Integer size, String sort, String freeText, String query) {
         ConductorClientRequest request = ConductorClientRequest.builder()
@@ -482,8 +515,8 @@ public final class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<TaskSummary>> resp = client.execute(request,
+                SEARCH_RESULT_TASK_SUMMARY_TYPE);
 
         return resp.getData();
     }
@@ -491,12 +524,13 @@ public final class TaskClient {
     /**
      * Paginated search for tasks based on payload
      *
-     * @param start start value of page
-     * @param size number of tasks to be returned
-     * @param sort sort order
+     * @param start    start value of page
+     * @param size     number of tasks to be returned
+     * @param sort     sort order
      * @param freeText additional free text query
-     * @param query the search query
-     * @return the {@link SearchResult} containing the {@link Task} that match the query
+     * @param query    the search query
+     * @return the {@link SearchResult} containing the {@link Task} that match the
+     *         query
      */
     public SearchResult<Task> searchV2(Integer start, Integer size, String sort, String freeText, String query) {
         ConductorClientRequest request = ConductorClientRequest.builder()
@@ -509,8 +543,7 @@ public final class TaskClient {
                 .addQueryParam("query", query)
                 .build();
 
-        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<SearchResult<Task>> resp = client.execute(request, SEARCH_RESULT_TASK_TYPE);
 
         return resp.getData();
     }
@@ -554,15 +587,14 @@ public final class TaskClient {
                 .addQueryParam("timeout", timeout)
                 .build();
 
-        ConductorClientResponse<List<Task>> resp = client.execute(request, new TypeReference<>() {
-        });
+        ConductorClientResponse<List<Task>> resp = client.execute(request, TASK_LIST_TYPE);
 
         return resp.getData();
     }
 
     private String uploadToExternalPayloadStorage(byte[] payloadBytes, long payloadSize) {
-        ExternalStorageLocation externalStorageLocation =
-                payloadStorage.getLocation(ExternalPayloadStorage.Operation.WRITE, ExternalPayloadStorage.PayloadType.TASK_OUTPUT, "");
+        ExternalStorageLocation externalStorageLocation = payloadStorage.getLocation(
+                ExternalPayloadStorage.Operation.WRITE, ExternalPayloadStorage.PayloadType.TASK_OUTPUT, "");
         payloadStorage.upload(
                 externalStorageLocation.getUri(),
                 new ByteArrayInputStream(payloadBytes),
@@ -571,9 +603,11 @@ public final class TaskClient {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> downloadFromExternalStorage(ExternalPayloadStorage.PayloadType payloadType, String path) {
+    private Map<String, Object> downloadFromExternalStorage(ExternalPayloadStorage.PayloadType payloadType,
+            String path) {
         Validate.notBlank(path, "uri cannot be blank");
-        ExternalStorageLocation externalStorageLocation = payloadStorage.getLocation(ExternalPayloadStorage.Operation.READ,
+        ExternalStorageLocation externalStorageLocation = payloadStorage.getLocation(
+                ExternalPayloadStorage.Operation.READ,
                 payloadType, path);
         try (InputStream inputStream = payloadStorage.download(externalStorageLocation.getUri())) {
             return objectMapper.readValue(inputStream, Map.class);
@@ -582,5 +616,172 @@ public final class TaskClient {
             log.error(errorMsg, e);
             throw new ConductorClientException(e);
         }
+    }
+
+    /**
+     * Update the task status and output based given workflow id and task reference
+     * name
+     *
+     * @param workflowId        Workflow Id
+     * @param taskReferenceName Reference name of the task to be updated
+     * @param status            Status of the task
+     * @param output            Output for the task
+     */
+    public void updateTask(String workflowId, String taskReferenceName, TaskResult.Status status, Object output) {
+        updateTaskByRefName(getOutputMap(output), workflowId, taskReferenceName, status.toString(), getWorkerId());
+    }
+
+    /**
+     * Update the task status and output based given workflow id and task reference
+     * name and return back the updated workflow status
+     *
+     * @param workflowId        Workflow Id
+     * @param taskReferenceName Reference name of the task to be updated
+     * @param status            Status of the task
+     * @param output            Output for the task
+     * @return Status of the workflow after updating the task
+     */
+    public Workflow updateTaskSync(String workflowId, String taskReferenceName, TaskResult.Status status,
+            Object output) {
+        return updateTaskSyncInternal(getOutputMap(output), workflowId, taskReferenceName, status.toString(),
+                getWorkerId());
+    }
+
+    /**
+     * Signals a task with default return strategy (TARGET_WORKFLOW)
+     *
+     * @param workflowId Workflow Id of the workflow to be signaled
+     * @param status     Signal status to be set for the workflow
+     * @param output     Output for the task
+     * @return SignalResponse with data based on the return strategy
+     */
+    public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output) {
+        return signal(workflowId, status, output, ReturnStrategy.TARGET_WORKFLOW);
+    }
+
+    /**
+     * Signals a task in a workflow synchronously and returns data based on the
+     * specified return strategy.
+     *
+     * @param workflowId     Workflow Id of the workflow to be signaled
+     * @param status         Signal status to be set for the workflow
+     * @param output         Output for the task
+     * @param returnStrategy Strategy for what data to return
+     * @return SignalResponse with data based on the return strategy
+     */
+    public SignalResponse signal(String workflowId, Task.Status status, Map<String, Object> output,
+            ReturnStrategy returnStrategy) {
+        return signal(workflowId, status, output, returnStrategy, null);
+    }
+
+    /**
+     * Signals a task in a workflow synchronously and returns data based on the
+     * specified return strategy.
+     *
+     * @param workflowId     Workflow Id of the workflow to be signaled
+     * @param status         Signal status to be set for the workflow
+     * @param output         Output for the task
+     * @param returnStrategy Strategy for what data to return
+     * @param timeoutMillis  Timeout in milliseconds
+     * @return SignalResponse with data based on the return strategy
+     */
+    public SignalResponse signal(String workflowId,
+            Task.Status status,
+            Map<String, Object> output,
+            ReturnStrategy returnStrategy,
+            Long timeoutMillis) {
+        var builder = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/tasks/{workflowId}/{status}/signal/sync")
+                .addPathParam("workflowId", workflowId)
+                .addPathParam("status", status.name())
+                .addQueryParam("returnStrategy", returnStrategy.name())
+                .body(output);
+
+        if (timeoutMillis != null) {
+            builder.addQueryParam("timeoutMillis", timeoutMillis.toString());
+        }
+
+        var request = builder.build();
+        var resp = client.execute(request, SIGNAL_RESPONSE_TYPE);
+
+        return resp.getData();
+    }
+
+    /**
+     * Signals a task in a workflow asynchronously.
+     *
+     * @param workflowId Workflow Id of the workflow to be signaled
+     * @param status     Signal status to be set for the workflow
+     * @param output     Output for the task
+     */
+    public void signalAsync(String workflowId, Task.Status status, Map<String, Object> output) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/tasks/{workflowId}/{status}/signal")
+                .addPathParam("workflowId", workflowId)
+                .addPathParam("status", status.name())
+                .body(output)
+                .build();
+
+        client.execute(request);
+    }
+
+    private Map<String, Object> getOutputMap(Object output) {
+        try {
+            return objectMapper.convertValue(output, STRING_OBJECT_MAP_TYPE);
+        } catch (Exception e) {
+            Map<String, Object> outputMap = new HashMap<>();
+            outputMap.put("result", output);
+            return outputMap;
+        }
+    }
+
+    private String getWorkerId() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return System.getenv("HOSTNAME");
+        }
+    }
+
+    private String updateTaskByRefName(Map<String, Object> output,
+            String workflowId,
+            String taskRefName,
+            String status,
+            String workerId) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/tasks/{workflowId}/{taskRefName}/{status}")
+                .addPathParam("workflowId", workflowId)
+                .addPathParam("taskRefName", taskRefName)
+                .addPathParam("status", status)
+                .addQueryParam("workerid", workerId)
+                .body(output)
+                .build();
+
+        ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
+
+        return resp.getData();
+    }
+
+    private Workflow updateTaskSyncInternal(Map<String, Object> output,
+            String workflowId,
+            String taskRefName,
+            String status,
+            String workerId) {
+        ConductorClientRequest request = ConductorClientRequest.builder()
+                .method(Method.POST)
+                .path("/tasks/{workflowId}/{taskRefName}/{status}/sync")
+                .addPathParam("workflowId", workflowId)
+                .addPathParam("taskRefName", taskRefName)
+                .addPathParam("status", status)
+                .addQueryParam("workerid", workerId)
+                .body(output)
+                .build();
+
+        ConductorClientResponse<Workflow> resp = client.execute(request, WORKFLOW_TYPE);
+
+        return resp.getData();
     }
 }

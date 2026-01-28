@@ -1,0 +1,376 @@
+/*
+ * Copyright 2025 Conductor Authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package io.orkes.conductor.client.http;
+
+import java.util.List;
+
+import org.apache.commons.lang3.Validate;
+
+import com.netflix.conductor.client.config.ConductorClientConfiguration;
+import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
+import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.ConductorClientRequest;
+import com.netflix.conductor.client.http.ConductorClientRequest.Method;
+import com.netflix.conductor.client.http.ConductorClientResponse;
+import com.netflix.conductor.common.model.CircuitBreakerTransitionResponse;
+import com.netflix.conductor.common.model.ProtoRegistryEntry;
+import com.netflix.conductor.common.model.ServiceMethod;
+import com.netflix.conductor.common.model.ServiceRegistry;
+
+import io.orkes.conductor.client.ServiceRegistryClient;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Client for the Service Registry API
+ */
+@Slf4j
+public final class OrkesServiceRegistryClient implements ServiceRegistryClient {
+
+        // Static TypeReference instances for performance optimization - avoid creating
+        // new instances per request
+        private static final TypeReference<List<ServiceRegistry>> SERVICE_REGISTRY_LIST_TYPE = new TypeReference<>() {
+        };
+        private static final TypeReference<ServiceRegistry> SERVICE_REGISTRY_TYPE = new TypeReference<>() {
+        };
+        private static final TypeReference<Void> VOID_TYPE = new TypeReference<>() {
+        };
+        private static final TypeReference<CircuitBreakerTransitionResponse> CIRCUIT_BREAKER_RESPONSE_TYPE = new TypeReference<>() {
+        };
+        private static final TypeReference<byte[]> BYTE_ARRAY_TYPE = new TypeReference<>() {
+        };
+        private static final TypeReference<List<ProtoRegistryEntry>> PROTO_REGISTRY_LIST_TYPE = new TypeReference<>() {
+        };
+        private static final TypeReference<List<ServiceMethod>> SERVICE_METHOD_LIST_TYPE = new TypeReference<>() {
+        };
+
+        private final ConductorClientConfiguration conductorClientConfiguration;
+        private ConductorClient client;
+
+        /**
+         * Creates a default service registry client
+         */
+        public OrkesServiceRegistryClient() {
+                // client will be set once root uri is set
+                this(null, new DefaultConductorClientConfiguration());
+        }
+
+        public OrkesServiceRegistryClient(ConductorClient client) {
+                this(client, new DefaultConductorClientConfiguration());
+        }
+
+        public OrkesServiceRegistryClient(ConductorClient client, ConductorClientConfiguration config) {
+                this.client = client;
+                this.conductorClientConfiguration = config;
+        }
+
+        /**
+         * Get all registered services
+         *
+         * @return List of registered services
+         */
+        @Override
+        public List<ServiceRegistry> getRegisteredServices() {
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.GET)
+                                .path("/registry/service")
+                                .build();
+
+                ConductorClientResponse<List<ServiceRegistry>> resp = client.execute(request,
+                                SERVICE_REGISTRY_LIST_TYPE);
+                return resp.getData();
+        }
+
+        /**
+         * Get a specific service by name
+         *
+         * @param name The name of the service to retrieve
+         * @return ServiceRegistry object for the specified service
+         */
+        @Override
+        public ServiceRegistry getService(String name) {
+                Validate.notBlank(name, "Service name cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.GET)
+                                .path("/registry/service/{name}")
+                                .addPathParam("name", name)
+                                .build();
+
+                ConductorClientResponse<ServiceRegistry> resp = client.execute(request,
+                                SERVICE_REGISTRY_TYPE);
+                return resp.getData();
+        }
+
+        /**
+         * Add or update a service registry entry
+         *
+         * @param serviceRegistry The service registry to add or update
+         */
+        @Override
+        public void addOrUpdateService(ServiceRegistry serviceRegistry) {
+                Validate.notNull(serviceRegistry, "Service registry cannot be null");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.POST)
+                                .path("/registry/service")
+                                .body(serviceRegistry)
+                                .build();
+
+                client.execute(request, VOID_TYPE);
+        }
+
+        /**
+         * Remove a service from the registry
+         *
+         * @param name The name of the service to remove
+         */
+        @Override
+        public void removeService(String name) {
+                Validate.notBlank(name, "Service name cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.DELETE)
+                                .path("/registry/service/{name}")
+                                .addPathParam("name", name)
+                                .build();
+
+                client.execute(request, VOID_TYPE);
+        }
+
+        /**
+         * Open the circuit breaker for a service
+         *
+         * @param name The name of the service
+         * @return Circuit breaker transition response
+         */
+        @Override
+        public CircuitBreakerTransitionResponse openCircuitBreaker(String name) {
+                Validate.notBlank(name, "Service name cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.POST)
+                                .path("/registry/service/{name}/circuit-breaker/open")
+                                .addPathParam("name", name)
+                                .build();
+
+                ConductorClientResponse<CircuitBreakerTransitionResponse> resp = client.execute(request,
+                                CIRCUIT_BREAKER_RESPONSE_TYPE);
+                return resp.getData();
+        }
+
+        /**
+         * Close the circuit breaker for a service
+         *
+         * @param name The name of the service
+         * @return Circuit breaker transition response
+         */
+        @Override
+        public CircuitBreakerTransitionResponse closeCircuitBreaker(String name) {
+                Validate.notBlank(name, "Service name cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.POST)
+                                .path("/registry/service/{name}/circuit-breaker/close")
+                                .addPathParam("name", name)
+                                .build();
+
+                ConductorClientResponse<CircuitBreakerTransitionResponse> resp = client.execute(request,
+                                CIRCUIT_BREAKER_RESPONSE_TYPE);
+                return resp.getData();
+        }
+
+        /**
+         * Get the circuit breaker status for a service
+         *
+         * @param name The name of the service
+         * @return Circuit breaker transition response with status
+         */
+        @Override
+        public CircuitBreakerTransitionResponse getCircuitBreakerStatus(String name) {
+                Validate.notBlank(name, "Service name cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.GET)
+                                .path("/registry/service/{name}/circuit-breaker/status")
+                                .addPathParam("name", name)
+                                .build();
+
+                ConductorClientResponse<CircuitBreakerTransitionResponse> resp = client.execute(request,
+                                CIRCUIT_BREAKER_RESPONSE_TYPE);
+                return resp.getData();
+        }
+
+        /**
+         * Add or update a service method
+         *
+         * @param registryName The name of the registry
+         * @param method       The service method to add or update
+         */
+        @Override
+        public void addOrUpdateServiceMethod(String registryName, ServiceMethod method) {
+                Validate.notBlank(registryName, "Registry name cannot be blank");
+                Validate.notNull(method, "Service method cannot be null");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.POST)
+                                .path("/registry/service/{registryName}/methods")
+                                .addPathParam("registryName", registryName)
+                                .body(method)
+                                .build();
+
+                client.execute(request, VOID_TYPE);
+        }
+
+        /**
+         * Remove a method from a service
+         *
+         * @param registryName The name of the registry
+         * @param serviceName  The name of the service
+         * @param method       The method name
+         * @param methodType   The method type
+         */
+        @Override
+        public void removeMethod(String registryName, String serviceName, String method, String methodType) {
+                Validate.notBlank(registryName, "Registry name cannot be blank");
+                Validate.notBlank(serviceName, "Service name cannot be blank");
+                Validate.notBlank(method, "Method name cannot be blank");
+                Validate.notBlank(methodType, "Method type cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.DELETE)
+                                .path("/registry/service/{registryName}/methods")
+                                .addPathParam("registryName", registryName)
+                                .addQueryParam("serviceName", serviceName)
+                                .addQueryParam("method", method)
+                                .addQueryParam("methodType", methodType)
+                                .build();
+
+                client.execute(request, VOID_TYPE);
+        }
+
+        /**
+         * Get proto data for a service
+         *
+         * @param registryName The name of the registry
+         * @param filename     The proto filename
+         * @return The proto data as byte array
+         */
+        @Override
+        public byte[] getProtoData(String registryName, String filename) {
+                Validate.notBlank(registryName, "Registry name cannot be blank");
+                Validate.notBlank(filename, "Filename cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.GET)
+                                .path("/registry/service/protos/{registryName}/{filename}")
+                                .addPathParam("registryName", registryName)
+                                .addPathParam("filename", filename)
+                                .build();
+
+                ConductorClientResponse<byte[]> resp = client.execute(request,
+                                BYTE_ARRAY_TYPE);
+                return resp.getData();
+        }
+
+        /**
+         * Set proto data for a service
+         *
+         * @param registryName The name of the registry
+         * @param filename     The proto filename
+         * @param data         The proto data as byte array
+         */
+        @Override
+        public void setProtoData(String registryName, String filename, byte[] data) {
+                Validate.notBlank(registryName, "Registry name cannot be blank");
+                Validate.notBlank(filename, "Filename cannot be blank");
+                Validate.notNull(data, "Proto data cannot be null");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.POST)
+                                .path("/registry/service/protos/{registryName}/{filename}")
+                                .addPathParam("registryName", registryName)
+                                .addPathParam("filename", filename)
+                                .addHeaderParam("Content-Type", "application/octet-stream")
+                                .body(data)
+                                .build();
+
+                client.execute(request, VOID_TYPE);
+        }
+
+        /**
+         * Delete a proto file
+         *
+         * @param registryName The name of the registry
+         * @param filename     The proto filename to delete
+         */
+        @Override
+        public void deleteProto(String registryName, String filename) {
+                Validate.notBlank(registryName, "Registry name cannot be blank");
+                Validate.notBlank(filename, "Filename cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.DELETE)
+                                .path("/registry/service/protos/{registryName}/{filename}")
+                                .addPathParam("registryName", registryName)
+                                .addPathParam("filename", filename)
+                                .build();
+
+                client.execute(request, VOID_TYPE);
+        }
+
+        /**
+         * Get all protos for a registry
+         *
+         * @param registryName The name of the registry
+         * @return List of proto registry entries
+         */
+        @Override
+        public List<ProtoRegistryEntry> getAllProtos(String registryName) {
+                Validate.notBlank(registryName, "Registry name cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.GET)
+                                .path("/registry/service/protos/{registryName}")
+                                .addPathParam("registryName", registryName)
+                                .build();
+
+                ConductorClientResponse<List<ProtoRegistryEntry>> resp = client.execute(request,
+                                PROTO_REGISTRY_LIST_TYPE);
+                return resp.getData();
+        }
+
+        /**
+         * Discover methods for a service
+         *
+         * @param name   The name of the service
+         * @param create Whether to create discovered methods
+         * @return List of discovered service methods
+         */
+        @Override
+        public List<ServiceMethod> discover(String name, boolean create) {
+                Validate.notBlank(name, "Service name cannot be blank");
+
+                ConductorClientRequest request = ConductorClientRequest.builder()
+                                .method(Method.GET)
+                                .path("/registry/service/{name}/discover")
+                                .addPathParam("name", name)
+                                .addQueryParam("create", String.valueOf(create))
+                                .build();
+
+                ConductorClientResponse<List<ServiceMethod>> resp = client.execute(request,
+                                SERVICE_METHOD_LIST_TYPE);
+                return resp.getData();
+        }
+}
