@@ -12,8 +12,6 @@
  */
 package io.orkes.conductor.client.http;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +27,10 @@ import com.netflix.conductor.common.model.ServiceRegistry;
 
 import io.orkes.conductor.client.ServiceRegistryClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
+
 import lombok.SneakyThrows;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ServiceRegistryClientTests {
     private static final String SERVICE_NAME = "test-sdk-java-service";

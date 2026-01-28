@@ -12,7 +12,6 @@
  */
 package io.orkes.conductor.client.http;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,9 +19,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.netflix.conductor.client.exception.ConductorClientException;
 
 import io.orkes.conductor.client.EnvironmentClient;
 import io.orkes.conductor.client.model.Tag;
