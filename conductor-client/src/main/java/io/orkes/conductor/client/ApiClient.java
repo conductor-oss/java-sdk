@@ -31,6 +31,7 @@ import io.orkes.conductor.client.http.ApiResponse;
 import io.orkes.conductor.client.http.OrkesAuthentication;
 import io.orkes.conductor.client.http.Pair;
 
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
@@ -41,6 +42,7 @@ import okhttp3.Response;
  * migration for
  * users of orkes-conductor-client v2.
  */
+@Slf4j
 public final class ApiClient extends ConductorClient {
 
     private final OrkesAuthentication authentication;
@@ -185,7 +187,8 @@ public final class ApiClient extends ConductorClient {
 
         public ApiClientBuilder credentials(String key, String secret) {
             if (StringUtils.isBlank(key) || StringUtils.isBlank(secret)) {
-                throw new IllegalArgumentException("Key and secret must not be blank (null or empty)");
+                log.warn("key or secret supplied is blank - ignoring.  Client will not use authentication");
+                return this;
             }
 
             this.authentication = new OrkesAuthentication(key, secret);
