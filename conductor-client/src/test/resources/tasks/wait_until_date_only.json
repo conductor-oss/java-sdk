@@ -1,0 +1,11 @@
+{
+  "taskType": "WAIT",
+  "status": "IN_PROGRESS",
+  "taskId": "wait-task-005",
+  "referenceTaskName": "wait_until_date_only",
+  "workflowInstanceId": "workflow-005",
+  "inputData": {
+    "until": "2025-12-31"
+  },
+  "outputData": {}
+}

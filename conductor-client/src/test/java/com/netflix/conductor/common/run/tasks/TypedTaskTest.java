@@ -153,6 +153,68 @@ class TypedTaskTest {
             assertFalse(WaitTask.isWaitTask(httpTask));
             assertFalse(WaitTask.isWaitTask(null));
         }
+
+        @Test
+        void testWaitDurationComplex() throws IOException {
+            Task task = loadTask("wait_duration_complex.json");
+
+            WaitTask wait = new WaitTask(task);
+
+            assertTrue(wait.isDurationBased());
+            assertEquals("1d 2h 3m 4s", wait.getDurationString());
+
+            Duration expected = Duration.ofDays(1).plusHours(2).plusMinutes(3).plusSeconds(4);
+            assertEquals(expected, wait.getDuration());
+        }
+
+        @Test
+        void testWaitDurationWithWords() throws IOException {
+            Task task = loadTask("wait_duration_words.json");
+
+            WaitTask wait = new WaitTask(task);
+
+            assertTrue(wait.isDurationBased());
+            assertEquals("2 days 5 hours 30 minutes", wait.getDurationString());
+
+            Duration expected = Duration.ofDays(2).plusHours(5).plusMinutes(30);
+            assertEquals(expected, wait.getDuration());
+        }
+
+        @Test
+        void testWaitUntilNoTimezone() throws IOException {
+            Task task = loadTask("wait_until_no_timezone.json");
+
+            WaitTask wait = new WaitTask(task);
+
+            assertTrue(wait.isUntilBased());
+            assertEquals("2025-12-31 23:59", wait.getUntilString());
+
+            ZonedDateTime until = wait.getUntil();
+            assertNotNull(until);
+            assertEquals(2025, until.getYear());
+            assertEquals(12, until.getMonthValue());
+            assertEquals(31, until.getDayOfMonth());
+            assertEquals(23, until.getHour());
+            assertEquals(59, until.getMinute());
+        }
+
+        @Test
+        void testWaitUntilDateOnly() throws IOException {
+            Task task = loadTask("wait_until_date_only.json");
+
+            WaitTask wait = new WaitTask(task);
+
+            assertTrue(wait.isUntilBased());
+            assertEquals("2025-12-31", wait.getUntilString());
+
+            ZonedDateTime until = wait.getUntil();
+            assertNotNull(until);
+            assertEquals(2025, until.getYear());
+            assertEquals(12, until.getMonthValue());
+            assertEquals(31, until.getDayOfMonth());
+            assertEquals(0, until.getHour());
+            assertEquals(0, until.getMinute());
+        }
     }
 
     @Nested

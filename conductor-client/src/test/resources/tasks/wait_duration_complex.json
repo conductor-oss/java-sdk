@@ -1,0 +1,11 @@
+{
+  "taskType": "WAIT",
+  "status": "IN_PROGRESS",
+  "taskId": "wait-task-002",
+  "referenceTaskName": "wait_for_complex_duration",
+  "workflowInstanceId": "workflow-002",
+  "inputData": {
+    "duration": "1d 2h 3m 4s"
+  },
+  "outputData": {}
+}

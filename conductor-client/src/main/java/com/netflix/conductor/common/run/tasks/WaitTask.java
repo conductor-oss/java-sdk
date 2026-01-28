@@ -13,9 +13,14 @@
 package com.netflix.conductor.common.run.tasks;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskType;
@@ -53,8 +58,19 @@ public class WaitTask extends TypedTask {
     public static final String DURATION_INPUT = "duration";
     public static final String UNTIL_INPUT = "until";
 
-    public static final DateTimeFormatter DATE_TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z");
+    private static final Pattern DURATION_PATTERN = Pattern.compile(
+            "\\s*(?:(\\d+)\\s*(?:days?|d))?"
+                    + "\\s*(?:(\\d+)\\s*(?:hours?|hrs?|h))?"
+                    + "\\s*(?:(\\d+)\\s*(?:minutes?|mins?|m))?"
+                    + "\\s*(?:(\\d+)\\s*(?:seconds?|secs?|s))?"
+                    + "\\s*",
+            Pattern.CASE_INSENSITIVE);
+
+    private static final DateTimeFormatter[] DATE_TIME_FORMATTERS = {
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    };
 
     /**
      * Represents the type of wait condition.
@@ -153,56 +169,61 @@ public class WaitTask extends TypedTask {
         if (durationStr == null || durationStr.isEmpty()) {
             return null;
         }
-        durationStr = durationStr.trim().toLowerCase();
 
-        if (durationStr.length() < 2) {
-            // Assume seconds if just a number
-            try {
-                return Duration.ofSeconds(Long.parseLong(durationStr));
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-
-        char unit = durationStr.charAt(durationStr.length() - 1);
-        String valueStr = durationStr.substring(0, durationStr.length() - 1);
-
-        try {
-            long value = Long.parseLong(valueStr);
-            switch (unit) {
-                case 's':
-                    return Duration.ofSeconds(value);
-                case 'm':
-                    return Duration.ofMinutes(value);
-                case 'h':
-                    return Duration.ofHours(value);
-                case 'd':
-                    return Duration.ofDays(value);
-                default:
-                    // If the last char is a digit, assume the whole string is seconds
-                    if (Character.isDigit(unit)) {
-                        return Duration.ofSeconds(Long.parseLong(durationStr));
-                    }
-                    return null;
-            }
-        } catch (NumberFormatException e) {
+        Matcher m = DURATION_PATTERN.matcher(durationStr);
+        if (!m.matches()) {
             return null;
         }
+
+        int days = (m.start(1) == -1 ? 0 : Integer.parseInt(m.group(1)));
+        int hours = (m.start(2) == -1 ? 0 : Integer.parseInt(m.group(2)));
+        int mins = (m.start(3) == -1 ? 0 : Integer.parseInt(m.group(3)));
+        int secs = (m.start(4) == -1 ? 0 : Integer.parseInt(m.group(4)));
+
+        // If all components are zero and string is not blank, it's invalid
+        if (days == 0 && hours == 0 && mins == 0 && secs == 0 && !durationStr.trim().isEmpty()) {
+            return null;
+        }
+
+        return Duration.ofSeconds((days * 86400L) + (hours * 60L + mins) * 60L + secs);
     }
 
     private ZonedDateTime parseDateTime(String dateTimeStr) {
         if (dateTimeStr == null || dateTimeStr.isEmpty()) {
             return null;
         }
+
+        // Try each pattern in order (matching backend DateTimeUtils behavior)
+        // Pattern 0: "yyyy-MM-dd HH:mm" - no timezone, use system default
+        // Pattern 1: "yyyy-MM-dd HH:mm z" - with timezone
+        // Pattern 2: "yyyy-MM-dd" - date only, use system default timezone
+
+        // Try pattern with timezone first
         try {
-            return ZonedDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER);
-        } catch (DateTimeParseException e) {
-            // Try ISO format as fallback
-            try {
-                return ZonedDateTime.parse(dateTimeStr);
-            } catch (DateTimeParseException e2) {
-                return null;
-            }
+            return ZonedDateTime.parse(dateTimeStr, DATE_TIME_FORMATTERS[1]);
+        } catch (DateTimeParseException ignored) {
         }
+
+        // Try datetime without timezone
+        try {
+            LocalDateTime localDateTime = LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTERS[0]);
+            return localDateTime.atZone(ZoneId.systemDefault());
+        } catch (DateTimeParseException ignored) {
+        }
+
+        // Try date only
+        try {
+            LocalDate localDate = LocalDate.parse(dateTimeStr, DATE_TIME_FORMATTERS[2]);
+            return localDate.atStartOfDay(ZoneId.systemDefault());
+        } catch (DateTimeParseException ignored) {
+        }
+
+        // Try ISO format as fallback
+        try {
+            return ZonedDateTime.parse(dateTimeStr);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        return null;
     }
 }

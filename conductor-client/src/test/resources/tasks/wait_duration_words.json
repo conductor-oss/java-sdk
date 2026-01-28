@@ -1,0 +1,11 @@
+{
+  "taskType": "WAIT",
+  "status": "IN_PROGRESS",
+  "taskId": "wait-task-003",
+  "referenceTaskName": "wait_for_duration_words",
+  "workflowInstanceId": "workflow-003",
+  "inputData": {
+    "duration": "2 days 5 hours 30 minutes"
+  },
+  "outputData": {}
+}
