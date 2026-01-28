@@ -1,0 +1,11 @@
+{
+  "taskType": "WAIT",
+  "status": "IN_PROGRESS",
+  "taskId": "wait-task-004",
+  "referenceTaskName": "wait_until_no_tz",
+  "workflowInstanceId": "workflow-004",
+  "inputData": {
+    "until": "2025-12-31 23:59"
+  },
+  "outputData": {}
+}
