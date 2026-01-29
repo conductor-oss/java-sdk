@@ -112,4 +112,59 @@ public class MetadataClientTests {
         List<TagObject> tags = metadataClient.getWorkflowTags(Commons.WORKFLOW_NAME);
         Assertions.assertIterableEquals(List.of(tagObject), tags);
     }
+
+    // ==================== Additional CRUD Tests ====================
+
+    @Test
+    void testGetAllTaskDefs() {
+        List<TaskDef> allTaskDefs = metadataClient.getAllTaskDefs();
+        Assertions.assertNotNull(allTaskDefs);
+    }
+
+    @Test
+    void testUnregisterTaskDef() {
+        String uniqueName = "test_task_unregister_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        TaskDef taskDef = new TaskDef(uniqueName);
+        taskDef.setOwnerEmail("test@test.com");
+
+        metadataClient.registerTaskDefs(List.of(taskDef));
+
+        // Verify it exists
+        TaskDef retrieved = metadataClient.getTaskDef(uniqueName);
+        Assertions.assertNotNull(retrieved);
+
+        // Unregister
+        metadataClient.unregisterTaskDef(uniqueName);
+
+        // Verify it's gone
+        Assertions.assertThrows(Exception.class, () -> metadataClient.getTaskDef(uniqueName));
+    }
+
+    @Test
+    void testUnregisterWorkflowDef() {
+        String uniqueName = "test_wf_unregister_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+
+        com.netflix.conductor.common.metadata.workflow.WorkflowTask task = new com.netflix.conductor.common.metadata.workflow.WorkflowTask();
+        task.setName("simple_task");
+        task.setTaskReferenceName("simple_task_ref");
+        task.setType("SIMPLE");
+
+        WorkflowDef workflowDef = new WorkflowDef();
+        workflowDef.setName(uniqueName);
+        workflowDef.setVersion(1);
+        workflowDef.setOwnerEmail("test@test.com");
+        workflowDef.setTasks(List.of(task));
+
+        metadataClient.registerWorkflowDef(workflowDef);
+
+        // Verify it exists
+        WorkflowDef retrieved = metadataClient.getWorkflowDef(uniqueName, 1);
+        Assertions.assertNotNull(retrieved);
+
+        // Unregister
+        metadataClient.unregisterWorkflowDef(uniqueName, 1);
+
+        // Verify it's gone
+        Assertions.assertThrows(Exception.class, () -> metadataClient.getWorkflowDef(uniqueName, 1));
+    }
 }

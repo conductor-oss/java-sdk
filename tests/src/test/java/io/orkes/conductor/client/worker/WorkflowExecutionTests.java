@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.common.model.WorkflowStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +32,6 @@ import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 
 import io.orkes.conductor.client.OrkesClients;
 import io.orkes.conductor.client.http.OrkesWorkflowClient;
-import io.orkes.conductor.client.model.WorkflowStatus;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
 import io.orkes.conductor.client.util.SimpleWorker;

@@ -21,12 +21,7 @@ repositories {
 }
 
 dependencies {
-    api project(":conductor-client")
-    api project(":orkes-client")
-    api project(":java-sdk")
     api project(":conductor-client-spring")
-
-    implementation 'org.springframework.boot:spring-boot-starter:3.3.0'
 }
 
 java {

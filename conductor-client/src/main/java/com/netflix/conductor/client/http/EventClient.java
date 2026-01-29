@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 
 // Client class for all Event Handler operations
-public final class EventClient {
+public class EventClient {
 
     private ConductorClient client;
 

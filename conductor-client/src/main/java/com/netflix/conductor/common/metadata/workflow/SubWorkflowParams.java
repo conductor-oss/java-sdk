@@ -95,6 +95,10 @@ public class SubWorkflowParams {
         }
     }
 
+    public void setWorkflowDef(WorkflowDef workflowDef) {
+        this.setWorkflowDefinition(workflowDef);
+    }
+
     public boolean equals(Object o) {
         if (this == o) {
             return true;
