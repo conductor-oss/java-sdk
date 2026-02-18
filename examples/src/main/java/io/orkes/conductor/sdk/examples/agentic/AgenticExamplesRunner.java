@@ -1063,7 +1063,7 @@ public class AgenticExamplesRunner {
         
         String prompt = (String) task.getInputData().get("prompt");
         // Always use the appropriate model for the configured provider
-        String model = USE_ANTHROPIC ? "claude-3-haiku-20240307" : "gpt-4o-mini";
+        String model = USE_ANTHROPIC ? "claude-haiku-4-5" : "gpt-4o-mini";
         String systemPrompt = (String) task.getInputData().getOrDefault("systemPrompt", "You are a helpful assistant.");
         
         try {
@@ -1126,7 +1126,7 @@ public class AgenticExamplesRunner {
                 "The user asked: %s\n\nI called the '%s' function and got this result: %s\n\nPlease provide a natural, helpful response to the user based on this information.",
                 query, functionCalled, functionResult
             );
-            String model = USE_ANTHROPIC ? "claude-3-haiku-20240307" : "gpt-4o-mini";
+            String model = USE_ANTHROPIC ? "claude-haiku-4-5" : "gpt-4o-mini";
             String response = USE_ANTHROPIC ? callClaudeChat(prompt, model, "You are a helpful assistant that formats function results into natural responses.") 
                                             : callOpenAiChat(prompt, model, "You are a helpful assistant that formats function results into natural responses.");
             result.setStatus(TaskResult.Status.COMPLETED);
@@ -1311,7 +1311,7 @@ public class AgenticExamplesRunner {
         );
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "claude-3-haiku-20240307");
+        requestBody.put("model", "claude-haiku-4-5");
         requestBody.put("max_tokens", 500);
         requestBody.put("system", "You are a helpful assistant. Use the available tools to answer the user's question.");
         requestBody.put("messages", List.of(Map.of("role", "user", "content", query)));

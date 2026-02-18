@@ -93,7 +93,7 @@ public class LlmChatComplete extends Task<LlmChatComplete> {
     /**
      * Sets the model to use for chat completion.
      *
-     * @param model the model identifier (e.g., "gpt-4", "gpt-3.5-turbo", "claude-3-opus")
+     * @param model the model identifier (e.g., "gpt-4", "gpt-4-mini", "claude-3-opus")
      * @return this task for method chaining
      */
     public LlmChatComplete model(String model) {
