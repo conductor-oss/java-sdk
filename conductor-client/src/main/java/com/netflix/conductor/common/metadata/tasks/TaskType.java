@@ -39,7 +39,18 @@ public enum TaskType {
     KAFKA_PUBLISH,
     JSON_JQ_TRANSFORM,
     SET_VARIABLE,
-    NOOP;
+    NOOP,
+
+    // AI / LLM system task types (Orkes Conductor)
+    LLM_TEXT_COMPLETE,
+    LLM_CHAT_COMPLETE,
+    LLM_INDEX_DOCUMENT,
+    LLM_SEARCH_INDEX,
+    LLM_GENERATE_EMBEDDINGS,
+
+    // MCP (Model Context Protocol) system task types (Orkes Conductor)
+    MCP_LIST_TOOLS,
+    MCP_CALL_TOOL;
 
     /**
      * TaskType constants representing each of the possible enumeration values. Motivation: to not

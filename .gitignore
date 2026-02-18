@@ -5,3 +5,7 @@ build/
 .vscode/
 **/out/
 bin/
+.classpath
+.project
+.settings/
+.factorypath

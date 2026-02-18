@@ -37,6 +37,7 @@ import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
+import com.netflix.conductor.sdk.workflow.def.tasks.CallMcpTool;
 import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
 import com.netflix.conductor.sdk.workflow.def.tasks.Dynamic;
 import com.netflix.conductor.sdk.workflow.def.tasks.DynamicFork;
@@ -46,6 +47,12 @@ import com.netflix.conductor.sdk.workflow.def.tasks.Http;
 import com.netflix.conductor.sdk.workflow.def.tasks.JQ;
 import com.netflix.conductor.sdk.workflow.def.tasks.Javascript;
 import com.netflix.conductor.sdk.workflow.def.tasks.Join;
+import com.netflix.conductor.sdk.workflow.def.tasks.ListMcpTools;
+import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
+import com.netflix.conductor.sdk.workflow.def.tasks.LlmGenerateEmbeddings;
+import com.netflix.conductor.sdk.workflow.def.tasks.LlmIndexDocument;
+import com.netflix.conductor.sdk.workflow.def.tasks.LlmSearchIndex;
+import com.netflix.conductor.sdk.workflow.def.tasks.LlmTextComplete;
 import com.netflix.conductor.sdk.workflow.def.tasks.SetVariable;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.def.tasks.SubWorkflow;
@@ -107,6 +114,15 @@ public class WorkflowExecutor {
         TaskRegistry.register(TaskType.TERMINATE.name(), Terminate.class);
         TaskRegistry.register(TaskType.WAIT.name(), Wait.class);
         TaskRegistry.register(TaskType.EVENT.name(), Event.class);
+        // AI / LLM system task types
+        TaskRegistry.register(TaskType.LLM_CHAT_COMPLETE.name(), LlmChatComplete.class);
+        TaskRegistry.register(TaskType.LLM_TEXT_COMPLETE.name(), LlmTextComplete.class);
+        TaskRegistry.register(TaskType.LLM_INDEX_DOCUMENT.name(), LlmIndexDocument.class);
+        TaskRegistry.register(TaskType.LLM_SEARCH_INDEX.name(), LlmSearchIndex.class);
+        TaskRegistry.register(TaskType.LLM_GENERATE_EMBEDDINGS.name(), LlmGenerateEmbeddings.class);
+        // MCP system task types
+        TaskRegistry.register(TaskType.MCP_LIST_TOOLS.name(), ListMcpTools.class);
+        TaskRegistry.register(TaskType.MCP_CALL_TOOL.name(), CallMcpTool.class);
     }
 
     public WorkflowExecutor(String url) {

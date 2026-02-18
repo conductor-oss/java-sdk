@@ -54,6 +54,116 @@ Each operator has its own class that can be added to the workflow builder.
 * [SubWorkflow](https://github.com/conductor-oss/conductor/blob/main/java-sdk/src/main/java/com/netflix/conductor/sdk/workflow/def/tasks/SubWorkflow.java)
 * [SetVariable](https://github.com/conductor-oss/conductor/blob/main/java-sdk/src/main/java/com/netflix/conductor/sdk/workflow/def/tasks/SetVariable.java)
 
+### Working with AI/LLM Tasks
+
+The SDK provides fluent builders for AI and LLM operations:
+
+#### LLM Text Completion
+Generate text using large language models:
+
+```java
+LlmTextComplete textTask = new LlmTextComplete("generate_text", "text_ref")
+    .llmProvider("openai")
+    .model("gpt-4")
+    .promptName("my-prompt-template")
+    .promptVariables(Map.of("topic", "${workflow.input.topic}"))
+    .temperature(0.7)
+    .maxTokens(500);
+
+workflow.add(textTask);
+```
+
+#### LLM Chat Completion
+Multi-turn conversations with chat models:
+
+```java
+LlmChatComplete chatTask = new LlmChatComplete("chat", "chat_ref")
+    .llmProvider("openai")
+    .model("gpt-4")
+    .messages("${workflow.input.conversation_history}")
+    .temperature(0.7)
+    .maxTokens(1000);
+
+// With function calling (tools)
+chatTask.tools(toolDefinitions)
+    .toolChoice("auto");
+
+workflow.add(chatTask);
+```
+
+#### Document Indexing (for RAG)
+Index documents into a vector database:
+
+```java
+LlmIndexDocument indexTask = new LlmIndexDocument("index_doc", "index_ref")
+    .vectorDb("pinecone")
+    .namespace("my-documents")
+    .index("knowledge-base")
+    .embeddingModelProvider("openai")
+    .embeddingModel("text-embedding-ada-002")
+    .text("${workflow.input.document_text}")
+    .docId("${workflow.input.doc_id}")
+    .metadata(Map.of("source", "user-upload"))
+    .chunkSize(500)
+    .chunkOverlap(50);
+
+workflow.add(indexTask);
+```
+
+#### Semantic Search
+Search vector database for relevant documents:
+
+```java
+LlmSearchIndex searchTask = new LlmSearchIndex("search_docs", "search_ref")
+    .vectorDb("pinecone")
+    .namespace("my-documents")
+    .index("knowledge-base")
+    .embeddingModelProvider("openai")
+    .embeddingModel("text-embedding-ada-002")
+    .query("${workflow.input.user_question}")
+    .topK(5);
+
+workflow.add(searchTask);
+```
+
+#### Generate Embeddings
+Convert text to vector embeddings:
+
+```java
+LlmGenerateEmbeddings embedTask = new LlmGenerateEmbeddings("generate_embeddings", "embed_ref")
+    .llmProvider("openai")
+    .model("text-embedding-ada-002")
+    .text("${workflow.input.text}");
+
+workflow.add(embedTask);
+```
+
+#### Complete RAG Pipeline Example
+
+```java
+// 1. Search for relevant documents
+LlmSearchIndex searchTask = new LlmSearchIndex("search", "search_ref")
+    .vectorDb("pinecone")
+    .index("knowledge-base")
+    .query("${workflow.input.question}")
+    .topK(5);
+
+// 2. Generate answer using retrieved context
+LlmChatComplete answerTask = new LlmChatComplete("answer", "answer_ref")
+    .llmProvider("openai")
+    .model("gpt-4")
+    .promptName("rag-answer-prompt")
+    .promptVariables(Map.of(
+        "question", "${workflow.input.question}",
+        "context", "${search_ref.output.results}"
+    ))
+    .temperature(0.3);
+
+workflow.add(searchTask);
+workflow.add(answerTask);
+```
+
+See [AI & LLM Examples](../examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/) for complete working examples.
 
 #### Register Workflow with Conductor Server
 ```java
