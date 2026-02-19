@@ -65,8 +65,10 @@ The SDK requires Java 17+. Add the following dependency to your project:
 
 ```gradle
 dependencies {
-    implementation 'org.conductoross:conductor-client:4.0.1'
-    implementation 'org.conductoross:java-sdk:4.0.1'
+    implementation 'org.conductoross:conductor-client:5.0.0'
+
+    // Optionally, you can also add spring module for auto configuration
+    // implementation 'org.conductoross:conductor-client-spring:5.0.0'
 }
 ```
 
@@ -76,14 +78,18 @@ dependencies {
 <dependency>
     <groupId>org.conductoross</groupId>
     <artifactId>conductor-client</artifactId>
-    <version>4.0.1</version>
-</dependency>
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>java-sdk</artifactId>
-    <version>4.0.1</version>
+    <version>5.0.0</version>
 </dependency>
 ```
+*Optionally, you can also add spring module for auto configuration*
+```xml
+<dependency>
+    <groupId>org.conductoross</groupId>
+    <artifactId>conductor-client-spring</artifactId>
+    <version>5.0.0</version>
+</dependency>
+```
+
 
 ## 60-Second Quickstart
 
