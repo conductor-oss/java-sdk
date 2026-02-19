@@ -2046,6 +2046,164 @@
         "sampleValue": "DAILY"
       },
       "dependencies": []
+    },
+    "LLMWorkerInputV2": {
+      "content": {
+        "integrationNames": {"AI_MODEL": "sample_llmProvider"},
+        "llmProvider": "sample_llmProvider",
+        "integrationName": "sample_integrationName",
+        "model": "sample_model",
+        "prompt": "sample_prompt",
+        "promptVersion": 2,
+        "promptVariables": {"var1": "value1"},
+        "temperature": 123.456,
+        "frequencyPenalty": 0.5,
+        "topP": 123.456,
+        "topK": 10,
+        "presencePenalty": 0.3,
+        "stopWords": ["sample_stopWords"],
+        "maxTokens": 123,
+        "maxResults": 123,
+        "allowRawPrompts": true
+      },
+      "dependencies": []
+    },
+    "ToolCallV2": {
+      "content": {
+        "taskReferenceName": "sample_taskRef",
+        "name": "sample_tool",
+        "integrationNames": {"AI_MODEL": "sample_provider"},
+        "type": "SIMPLE",
+        "inputParameters": {"param1": "value1"},
+        "output": {"result": "sample_output"}
+      },
+      "dependencies": []
+    },
+    "ChatMessageV2": {
+      "content": {
+        "role": "user",
+        "message": "sample_message",
+        "media": ["https://example.com/image.png"],
+        "mimeType": "text/plain",
+        "toolCalls": ["${ToolCallV2}"]
+      },
+      "dependencies": ["ToolCallV2"]
+    },
+    "ToolSpecV2": {
+      "content": {
+        "name": "sample_tool",
+        "type": "SIMPLE",
+        "configParams": {"key": "value"},
+        "integrationNames": {"AI_MODEL": "sample_provider"},
+        "description": "A sample tool",
+        "inputSchema": {"type": "object"},
+        "outputSchema": {"type": "string"}
+      },
+      "dependencies": []
+    },
+    "ChatCompletionV2": {
+      "content": {
+        "instructions": "sample_instructions",
+        "messages": ["${ChatMessageV2}"],
+        "jsonOutput": true,
+        "googleSearchRetrieval": false,
+        "userInput": "sample_userInput",
+        "tools": ["${ToolSpecV2}"],
+        "participants": {"agent1": "assistant"},
+        "outputMimeType": "application/json",
+        "thinkingTokenLimit": 1000,
+        "reasoningEffort": "medium",
+        "outputLocation": "sample_location",
+        "voice": "alloy"
+      },
+      "dependencies": ["ChatMessageV2", "ToolSpecV2"],
+      "inherits": ["LLMWorkerInputV2"]
+    },
+    "MediaV2": {
+      "content": {
+        "location": "https://example.com/media.mp3",
+        "mimeType": "audio/mpeg"
+      },
+      "dependencies": []
+    },
+    "LLMResponseV2": {
+      "content": {
+        "result": "sample_result",
+        "media": ["${MediaV2}"],
+        "finishReason": "sample_finishReason",
+        "tokenUsed": 123,
+        "promptTokens": 50,
+        "completionTokens": 73,
+        "toolCalls": ["${ToolCallV2}"],
+        "jobId": "sample_jobId"
+      },
+      "dependencies": ["MediaV2", "ToolCallV2"]
+    },
+    "TextCompletionV2": {
+      "content": {
+        "jsonOutput": true,
+        "promptName": "sample_promptName"
+      },
+      "dependencies": [],
+      "inherits": ["LLMWorkerInputV2"]
+    },
+    "VectorDBInputV2": {
+      "content": {
+        "vectorDB": "sample_vectorDB",
+        "index": "sample_index",
+        "namespace": "sample_namespace",
+        "embeddings": [3.14],
+        "query": "sample_query",
+        "metadata": {"sample_key": "sample_value"},
+        "dimensions": 123,
+        "embeddingModel": "sample_embeddingModel",
+        "embeddingModelProvider": "sample_embeddingModelProvider"
+      },
+      "dependencies": [],
+      "inherits": ["LLMWorkerInputV2"]
+    },
+    "StoreEmbeddingsInputV2": {
+      "content": {
+        "vectorDB": "sample_vectorDB",
+        "index": "sample_index",
+        "namespace": "sample_namespace",
+        "embeddings": [3.14],
+        "id": "sample_id",
+        "metadata": {"sample_key": "sample_value"},
+        "embeddingModel": "sample_embeddingModel",
+        "embeddingModelProvider": "sample_embeddingModelProvider"
+      },
+      "dependencies": [],
+      "inherits": ["LLMWorkerInputV2"]
+    },
+    "EmbeddingGenRequest": {
+      "content": {
+        "text": "sample_text",
+        "dimensions": 123,
+        "model": "sample_model"
+      },
+      "dependencies": [],
+      "inherits": ["LLMWorkerInputV2"]
+    },
+    "IndexDocInputV2": {
+      "content": {
+        "embeddingModelProvider": "sample_embeddingModelProvider",
+        "embeddingModel": "sample_embeddingModel",
+        "vectorDB": "sample_vectorDB",
+        "text": "sample_text",
+        "docId": "sample_docId",
+        "url": "sample_url",
+        "mediaType": "sample_mediaType",
+        "namespace": "sample_namespace",
+        "index": "sample_index",
+        "chunkSize": 123,
+        "chunkOverlap": 123,
+        "metadata": {"sample_key": "sample_value"},
+        "dimensions": 123,
+        "integrationName": "sample_integrationName"
+      },
+      "dependencies": [],
+      "inherits": ["LLMWorkerInputV2"]
     }
   }
 }

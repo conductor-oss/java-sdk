@@ -23,6 +23,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.CallMcpTool;
+import org.conductoross.conductor.sdk.ai.ListMcpTools;
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+import org.conductoross.conductor.sdk.ai.LlmGenerateEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmGetEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmIndexText;
+import org.conductoross.conductor.sdk.ai.LlmSearchIndex;
+import org.conductoross.conductor.sdk.ai.LlmStoreEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmTextComplete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +46,6 @@ import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
-import com.netflix.conductor.sdk.workflow.def.tasks.CallMcpTool;
 import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
 import com.netflix.conductor.sdk.workflow.def.tasks.Dynamic;
 import com.netflix.conductor.sdk.workflow.def.tasks.DynamicFork;
@@ -47,12 +55,6 @@ import com.netflix.conductor.sdk.workflow.def.tasks.Http;
 import com.netflix.conductor.sdk.workflow.def.tasks.JQ;
 import com.netflix.conductor.sdk.workflow.def.tasks.Javascript;
 import com.netflix.conductor.sdk.workflow.def.tasks.Join;
-import com.netflix.conductor.sdk.workflow.def.tasks.ListMcpTools;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmGenerateEmbeddings;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmIndexDocument;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmSearchIndex;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmTextComplete;
 import com.netflix.conductor.sdk.workflow.def.tasks.SetVariable;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.def.tasks.SubWorkflow;
@@ -117,12 +119,14 @@ public class WorkflowExecutor {
         // AI / LLM system task types
         TaskRegistry.register(TaskType.LLM_CHAT_COMPLETE.name(), LlmChatComplete.class);
         TaskRegistry.register(TaskType.LLM_TEXT_COMPLETE.name(), LlmTextComplete.class);
-        TaskRegistry.register(TaskType.LLM_INDEX_DOCUMENT.name(), LlmIndexDocument.class);
+        TaskRegistry.register(TaskType.LLM_INDEX_TEXT.name(), LlmIndexText.class);
         TaskRegistry.register(TaskType.LLM_SEARCH_INDEX.name(), LlmSearchIndex.class);
         TaskRegistry.register(TaskType.LLM_GENERATE_EMBEDDINGS.name(), LlmGenerateEmbeddings.class);
+        TaskRegistry.register(TaskType.LLM_STORE_EMBEDDINGS.name(), LlmStoreEmbeddings.class);
+        TaskRegistry.register(TaskType.LLM_GET_EMBEDDINGS.name(), LlmGetEmbeddings.class);
         // MCP system task types
-        TaskRegistry.register(TaskType.MCP_LIST_TOOLS.name(), ListMcpTools.class);
-        TaskRegistry.register(TaskType.MCP_CALL_TOOL.name(), CallMcpTool.class);
+        TaskRegistry.register(TaskType.LIST_MCP_TOOLS.name(), ListMcpTools.class);
+        TaskRegistry.register(TaskType.CALL_MCP_TOOL.name(), CallMcpTool.class);
     }
 
     public WorkflowExecutor(String url) {

@@ -15,12 +15,13 @@ package io.orkes.conductor.client;
 import java.util.List;
 import java.util.Map;
 
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
+
 import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.integration.Integration;
 import io.orkes.conductor.client.model.integration.IntegrationApi;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
-import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
 
 /**
  * Client for managing integrations with external systems including AI/LLM

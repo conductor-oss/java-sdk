@@ -29,7 +29,7 @@ import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.integration.Category;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
-import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
 import io.orkes.conductor.client.util.ClientTestUtil;
 
 public class PromptClientTests {

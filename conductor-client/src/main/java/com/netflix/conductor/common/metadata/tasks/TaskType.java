@@ -44,13 +44,15 @@ public enum TaskType {
     // AI / LLM system task types (Orkes Conductor)
     LLM_TEXT_COMPLETE,
     LLM_CHAT_COMPLETE,
-    LLM_INDEX_DOCUMENT,
+    LLM_INDEX_TEXT,
     LLM_SEARCH_INDEX,
     LLM_GENERATE_EMBEDDINGS,
+    LLM_STORE_EMBEDDINGS,
+    LLM_GET_EMBEDDINGS,
 
     // MCP (Model Context Protocol) system task types (Orkes Conductor)
-    MCP_LIST_TOOLS,
-    MCP_CALL_TOOL;
+    LIST_MCP_TOOLS,
+    CALL_MCP_TOOL;
 
     /**
      * TaskType constants representing each of the possible enumeration values. Motivation: to not

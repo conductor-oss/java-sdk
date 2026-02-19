@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
@@ -26,7 +28,6 @@ import io.orkes.conductor.client.model.integration.Integration;
 import io.orkes.conductor.client.model.integration.IntegrationApi;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
-import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 

@@ -64,7 +64,7 @@ public abstract class Task<T> {
         this.taskOutput = new InputOutputGetter(taskReferenceName, InputOutputGetter.Field.output);
     }
 
-    Task(WorkflowTask workflowTask) {
+    protected Task(WorkflowTask workflowTask) {
         this(workflowTask.getTaskReferenceName(), TaskType.valueOf(workflowTask.getType()));
         this.input = workflowTask.getInputParameters();
         this.description = workflowTask.getDescription();
