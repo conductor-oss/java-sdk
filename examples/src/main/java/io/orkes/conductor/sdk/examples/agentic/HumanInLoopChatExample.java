@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
@@ -25,7 +27,6 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
 import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
 import com.netflix.conductor.sdk.workflow.def.tasks.SetVariable;
 import com.netflix.conductor.sdk.workflow.def.tasks.Wait;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
@@ -61,7 +62,7 @@ public class HumanInLoopChatExample {
 
     private static final String WORKFLOW_NAME = "human_in_loop_chat";
     private static final String LLM_PROVIDER = "openai";
-    private static final String MODEL = "gpt-4";
+    private static final String MODEL = "gpt-4o-mini";
     private static final int MAX_TURNS = 10;
 
     public static void main(String[] args) {

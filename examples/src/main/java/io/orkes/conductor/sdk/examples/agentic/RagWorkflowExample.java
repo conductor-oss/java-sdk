@@ -17,12 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+import org.conductoross.conductor.sdk.ai.LlmIndexText;
+import org.conductoross.conductor.sdk.ai.LlmSearchIndex;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmIndexDocument;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmSearchIndex;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 
 import io.orkes.conductor.client.http.OrkesPromptClient;
@@ -59,7 +60,7 @@ public class RagWorkflowExample {
     private static final String QUERY_WORKFLOW = "rag_query";
     private static final String LLM_PROVIDER = "openai";
     private static final String EMBEDDING_MODEL = "text-embedding-ada-002";
-    private static final String CHAT_MODEL = "gpt-4";
+    private static final String CHAT_MODEL = "gpt-4o-mini";
     private static final String VECTOR_DB = "pinecone";
     private static final String INDEX_NAME = "knowledge-base";
     private static final String NAMESPACE = "rag-demo";
@@ -142,7 +143,7 @@ public class RagWorkflowExample {
         workflow.setDescription("Index documents into vector database for RAG");
 
         // Index document task
-        LlmIndexDocument indexTask = new LlmIndexDocument("index_document", "index_ref")
+        LlmIndexText indexTask = new LlmIndexText("index_document", "index_ref")
             .vectorDb("${workflow.input.vectorDb}")
             .namespace("${workflow.input.namespace}")
             .index("${workflow.input.index}")
@@ -184,7 +185,7 @@ public class RagWorkflowExample {
             .embeddingModelProvider("${workflow.input.llmProvider}")
             .embeddingModel("${workflow.input.embeddingModel}")
             .query("${workflow.input.question}")
-            .topK(5);
+            .maxResults(5);
 
         workflow.add(searchTask);
 
@@ -192,7 +193,7 @@ public class RagWorkflowExample {
         LlmChatComplete generateAnswer = new LlmChatComplete("generate_answer", "answer_ref")
             .llmProvider("${workflow.input.llmProvider}")
             .model("${workflow.input.chatModel}")
-            .promptName("rag-answer-prompt")
+            .instructions("rag-answer-prompt")
             .promptVariables(Map.of(
                 "question", "${workflow.input.question}",
                 "context", "${search_ref.output.results}"

@@ -17,12 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.LlmGenerateEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmIndexText;
+import org.conductoross.conductor.sdk.ai.LlmSearchIndex;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmGenerateEmbeddings;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmIndexDocument;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmSearchIndex;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 
 import io.orkes.conductor.sdk.examples.util.ClientUtil;
@@ -239,7 +240,7 @@ public class VectorDbExample {
         workflow.setOwnerEmail("examples@conductor-oss.org");
         workflow.setDescription("Index text into vector database");
 
-        LlmIndexDocument indexTask = new LlmIndexDocument("index_text", "index_ref")
+        LlmIndexText indexTask = new LlmIndexText("index_text", "index_ref")
             .vectorDb("${workflow.input.vectorDb}")
             .namespace("${workflow.input.namespace}")
             .index("${workflow.input.index}")
@@ -276,7 +277,7 @@ public class VectorDbExample {
             .embeddingModelProvider("${workflow.input.llmProvider}")
             .embeddingModel("${workflow.input.embeddingModel}")
             .query("${workflow.input.query}")
-            .topK(5);
+            .maxResults(5);
 
         workflow.add(searchTask);
 

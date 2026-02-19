@@ -25,6 +25,12 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+import org.conductoross.conductor.sdk.ai.LlmGenerateEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmIndexText;
+import org.conductoross.conductor.sdk.ai.LlmSearchIndex;
+import org.conductoross.conductor.sdk.ai.LlmTextComplete;
+
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
@@ -40,11 +46,6 @@ import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
 import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
 import com.netflix.conductor.sdk.workflow.def.tasks.ForkJoin;
 import com.netflix.conductor.sdk.workflow.def.tasks.Http;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmGenerateEmbeddings;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmIndexDocument;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmSearchIndex;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmTextComplete;
 import com.netflix.conductor.sdk.workflow.def.tasks.SetVariable;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.def.tasks.Switch;
@@ -384,7 +385,7 @@ public class AgenticExamplesRunner {
         // LlmTextComplete
         LlmTextComplete textTask = new LlmTextComplete("test_text", "text_ref")
             .llmProvider("openai")
-            .model("gpt-4")
+            .model("gpt-4o-mini")
             .promptName("test-prompt")
             .temperature(0.7);
         pass("LlmTextComplete instantiated");
@@ -392,19 +393,19 @@ public class AgenticExamplesRunner {
         // LlmChatComplete
         LlmChatComplete chatTask = new LlmChatComplete("test_chat", "chat_ref")
             .llmProvider("openai")
-            .model("gpt-4")
+            .model("gpt-4o-mini")
             .messages(List.of(Map.of("role", "user", "content", "test")))
             .temperature(0.7);
         pass("LlmChatComplete instantiated");
 
-        // LlmIndexDocument
-        LlmIndexDocument indexTask = new LlmIndexDocument("test_index", "index_ref")
+        // LlmIndexText
+        LlmIndexText indexTask = new LlmIndexText("test_index", "index_ref")
             .vectorDb("pinecone")
             .namespace("test")
             .index("test-index")
             .embeddingModel("text-embedding-ada-002")
             .text("test document");
-        pass("LlmIndexDocument instantiated");
+        pass("LlmIndexText instantiated");
 
         // LlmSearchIndex
         LlmSearchIndex searchTask = new LlmSearchIndex("test_search", "search_ref")
@@ -412,7 +413,7 @@ public class AgenticExamplesRunner {
             .namespace("test")
             .index("test-index")
             .query("test query")
-            .topK(5);
+            .maxResults(5);
         pass("LlmSearchIndex instantiated");
 
         // LlmGenerateEmbeddings

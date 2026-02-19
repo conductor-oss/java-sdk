@@ -18,10 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+import org.conductoross.conductor.sdk.ai.ToolSpec;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.def.tasks.Switch;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
@@ -58,7 +60,7 @@ public class FunctionCallingExample {
 
     private static final String WORKFLOW_NAME = "llm_function_calling";
     private static final String LLM_PROVIDER = "openai";
-    private static final String MODEL = "gpt-4";
+    private static final String MODEL = "gpt-4o-mini";
 
     public static void main(String[] args) {
         String query = args.length > 0 ? String.join(" ", args) : "What's the weather like in San Francisco?";
@@ -112,29 +114,35 @@ public class FunctionCallingExample {
         workflow.setOwnerEmail("examples@conductor-oss.org");
         workflow.setDescription("LLM function calling with dynamic tool selection");
 
-        // Define available tools/functions
-        List<Object> tools = new ArrayList<>();
-        tools.add(createToolDefinition("get_weather", 
-            "Get the current weather for a location",
-            Map.of(
+        // Define available tools/functions using ToolSpec
+        List<ToolSpec> tools = new ArrayList<>();
+        tools.add(new ToolSpec()
+            .name("get_weather")
+            .type("SIMPLE")
+            .description("Get the current weather for a location")
+            .inputSchema(Map.of(
                 "type", "object",
                 "properties", Map.of(
                     "location", Map.of("type", "string", "description", "City and state/country")
                 ),
                 "required", List.of("location")
             )));
-        tools.add(createToolDefinition("search_web",
-            "Search the web for information",
-            Map.of(
+        tools.add(new ToolSpec()
+            .name("search_web")
+            .type("SIMPLE")
+            .description("Search the web for information")
+            .inputSchema(Map.of(
                 "type", "object",
                 "properties", Map.of(
                     "query", Map.of("type", "string", "description", "Search query")
                 ),
                 "required", List.of("query")
             )));
-        tools.add(createToolDefinition("calculate",
-            "Perform mathematical calculations",
-            Map.of(
+        tools.add(new ToolSpec()
+            .name("calculate")
+            .type("SIMPLE")
+            .description("Perform mathematical calculations")
+            .inputSchema(Map.of(
                 "type", "object",
                 "properties", Map.of(
                     "expression", Map.of("type", "string", "description", "Math expression to evaluate")
@@ -153,7 +161,6 @@ public class FunctionCallingExample {
                 Map.of("role", "user", "content", "${workflow.input.query}")
             ))
             .tools(tools)
-            .toolChoice("auto")
             .temperature(0.0);
 
         workflow.add(functionSelector);
@@ -211,18 +218,4 @@ public class FunctionCallingExample {
         return workflow;
     }
 
-    /**
-     * Creates a tool definition in OpenAI function calling format.
-     */
-    private static Map<String, Object> createToolDefinition(String name, String description, 
-            Map<String, Object> parameters) {
-        return Map.of(
-            "type", "function",
-            "function", Map.of(
-                "name", name,
-                "description", description,
-                "parameters", parameters
-            )
-        );
-    }
 }

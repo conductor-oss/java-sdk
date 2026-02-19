@@ -17,6 +17,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+import org.conductoross.conductor.sdk.ai.LlmGenerateEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmIndexText;
+import org.conductoross.conductor.sdk.ai.LlmSearchIndex;
+import org.conductoross.conductor.sdk.ai.LlmTextComplete;
+
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
@@ -31,11 +37,6 @@ import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
 import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
 import com.netflix.conductor.sdk.workflow.def.tasks.ForkJoin;
 import com.netflix.conductor.sdk.workflow.def.tasks.Http;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmGenerateEmbeddings;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmIndexDocument;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmSearchIndex;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmTextComplete;
 import com.netflix.conductor.sdk.workflow.def.tasks.SetVariable;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.def.tasks.Switch;
@@ -114,20 +115,20 @@ public class SdkValidationTest {
                     .temperature(0.7);
                 pass("LlmChatComplete instantiated");
 
-                LlmIndexDocument indexTask = new LlmIndexDocument("test_index", "index_ref")
+                LlmIndexText indexTask = new LlmIndexText("test_index", "index_ref")
                     .vectorDb("pinecone")
                     .namespace("test")
                     .index("test-index")
                     .embeddingModel("text-embedding-ada-002")
                     .text("test document");
-                pass("LlmIndexDocument instantiated");
+                pass("LlmIndexText instantiated");
 
                 LlmSearchIndex searchTask = new LlmSearchIndex("test_search", "search_ref")
                     .vectorDb("pinecone")
                     .namespace("test")
                     .index("test-index")
                     .query("test query")
-                    .topK(5);
+                    .maxResults(5);
                 pass("LlmSearchIndex instantiated");
 
                 LlmGenerateEmbeddings embedTask = new LlmGenerateEmbeddings("test_embed", "embed_ref")

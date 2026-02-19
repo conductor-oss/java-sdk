@@ -18,11 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
 import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
-import com.netflix.conductor.sdk.workflow.def.tasks.LlmChatComplete;
 import com.netflix.conductor.sdk.workflow.def.tasks.SetVariable;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 
@@ -66,7 +67,7 @@ public class LlmChatExample {
 
     private static final String WORKFLOW_NAME = "llm_multi_turn_chat";
     private static final String LLM_PROVIDER = "openai";
-    private static final String MODEL = "gpt-4";
+    private static final String MODEL = "gpt-4o-mini";
     private static final int MAX_TURNS = 3;
 
     public static void main(String[] args) {
@@ -151,7 +152,7 @@ public class LlmChatExample {
         LlmChatComplete askerTask = new LlmChatComplete("asker_llm", "asker_ref")
             .llmProvider("${workflow.input.llmProvider}")
             .model("${workflow.input.model}")
-            .promptName("asker-prompt")
+            .instructions("asker-prompt")
             .promptVariables(Map.of(
                 "topic", "${workflow.variables.topic}",
                 "conversationHistory", "${workflow.variables.conversationHistory}"
@@ -167,7 +168,7 @@ public class LlmChatExample {
         LlmChatComplete answererTask = new LlmChatComplete("answerer_llm", "answerer_ref")
             .llmProvider("${workflow.input.llmProvider}")
             .model("${workflow.input.model}")
-            .promptName("answerer-prompt")
+            .instructions("answerer-prompt")
             .promptVariables(Map.of(
                 "question", "${workflow.variables.lastQuestion}",
                 "conversationHistory", "${workflow.variables.conversationHistory}"
