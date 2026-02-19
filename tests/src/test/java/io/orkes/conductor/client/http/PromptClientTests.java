@@ -29,7 +29,7 @@ import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.integration.Category;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
-import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
 import io.orkes.conductor.client.util.ClientTestUtil;
 
 public class PromptClientTests {
@@ -140,9 +140,9 @@ public class PromptClientTests {
         IntegrationApiUpdate details = new IntegrationApiUpdate();
         details.setDescription("gpt-4 model");
         integrationClient.saveIntegrationApi("openai", "gpt-4", details);
-        integrationClient.saveIntegrationApi("openai", "gpt-3.5-turbo", details);
+        integrationClient.saveIntegrationApi("openai", "gpt-4-mini", details);
 
-        List<String> models = List.of("openai:gpt-4", "openai:gpt-3.5-turbo");
+        List<String> models = List.of("openai:gpt-4", "openai:gpt-4-mini");
 
         promptClient.savePrompt(PROMPT_NAME, PROMPT_DESCRIPTION, PROMPT_TEMPLATE_V1, models, null, false);
 
@@ -217,7 +217,7 @@ public class PromptClientTests {
                     promptText,
                     variables,
                     "openai", // Requires OpenAI integration to be configured
-                    "gpt-3.5-turbo",
+                    "gpt-4-mini",
                     0.7f,
                     0.9f,
                     List.of("END"));

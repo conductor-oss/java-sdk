@@ -15,6 +15,9 @@ package io.orkes.conductor.client.http;
 import java.util.List;
 import java.util.Map;
 
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
+import org.conductoross.conductor.client.model.ai.PromptTemplateTestRequest;
+
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
@@ -22,8 +25,6 @@ import com.netflix.conductor.client.http.ConductorClientResponse;
 
 import io.orkes.conductor.client.PromptClient;
 import io.orkes.conductor.client.model.TagObject;
-import io.orkes.conductor.client.model.integration.PromptTemplateTestRequest;
-import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 

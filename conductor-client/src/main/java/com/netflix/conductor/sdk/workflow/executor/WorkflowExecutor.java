@@ -23,6 +23,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.conductoross.conductor.sdk.ai.CallMcpTool;
+import org.conductoross.conductor.sdk.ai.ListMcpTools;
+import org.conductoross.conductor.sdk.ai.LlmChatComplete;
+import org.conductoross.conductor.sdk.ai.LlmGenerateEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmGetEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmIndexText;
+import org.conductoross.conductor.sdk.ai.LlmSearchIndex;
+import org.conductoross.conductor.sdk.ai.LlmStoreEmbeddings;
+import org.conductoross.conductor.sdk.ai.LlmTextComplete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +116,17 @@ public class WorkflowExecutor {
         TaskRegistry.register(TaskType.TERMINATE.name(), Terminate.class);
         TaskRegistry.register(TaskType.WAIT.name(), Wait.class);
         TaskRegistry.register(TaskType.EVENT.name(), Event.class);
+        // AI / LLM system task types
+        TaskRegistry.register(TaskType.LLM_CHAT_COMPLETE.name(), LlmChatComplete.class);
+        TaskRegistry.register(TaskType.LLM_TEXT_COMPLETE.name(), LlmTextComplete.class);
+        TaskRegistry.register(TaskType.LLM_INDEX_TEXT.name(), LlmIndexText.class);
+        TaskRegistry.register(TaskType.LLM_SEARCH_INDEX.name(), LlmSearchIndex.class);
+        TaskRegistry.register(TaskType.LLM_GENERATE_EMBEDDINGS.name(), LlmGenerateEmbeddings.class);
+        TaskRegistry.register(TaskType.LLM_STORE_EMBEDDINGS.name(), LlmStoreEmbeddings.class);
+        TaskRegistry.register(TaskType.LLM_GET_EMBEDDINGS.name(), LlmGetEmbeddings.class);
+        // MCP system task types
+        TaskRegistry.register(TaskType.LIST_MCP_TOOLS.name(), ListMcpTools.class);
+        TaskRegistry.register(TaskType.CALL_MCP_TOOL.name(), CallMcpTool.class);
     }
 
     public WorkflowExecutor(String url) {

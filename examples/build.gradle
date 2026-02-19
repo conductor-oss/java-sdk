@@ -1,5 +1,12 @@
 plugins {
     id 'java'
+    id 'application'
+}
+
+// Allow running specific main class with: ./gradlew :examples:run -PmainClass=<fully.qualified.ClassName>
+// Default: AgenticExamplesRunner - unified runner for all AI/LLM examples
+application {
+    mainClass = project.hasProperty('mainClass') ? project.property('mainClass') : 'io.orkes.conductor.sdk.examples.agentic.AgenticExamplesRunner'
 }
 
 repositories {

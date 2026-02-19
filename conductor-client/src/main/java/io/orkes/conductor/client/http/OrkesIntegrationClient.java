@@ -15,6 +15,8 @@ package io.orkes.conductor.client.http;
 import java.util.List;
 import java.util.Map;
 
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
+
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
 
@@ -24,7 +26,6 @@ import io.orkes.conductor.client.model.integration.Integration;
 import io.orkes.conductor.client.model.integration.IntegrationApi;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
-import io.orkes.conductor.client.model.integration.ai.PromptTemplate;
 
 public class OrkesIntegrationClient implements IntegrationClient {
     private final IntegrationResource integrationResource;
