@@ -71,4 +71,8 @@ public class OrkesClients {
     public EnvironmentClient getEnvironmentClient() {
         return new OrkesEnvironmentClient(client);
     }
+
+    public OrkesSchemaClient getSchemaClient() {
+        return new OrkesSchemaClient(client);
+    }
 }
