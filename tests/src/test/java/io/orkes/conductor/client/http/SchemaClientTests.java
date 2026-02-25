@@ -62,7 +62,7 @@ public class SchemaClientTests {
         Assertions.assertEquals(1, fetchedByVersion.getVersion());
 
         // 5. Get all schemas and assert name is present
-        List<SchemaDef> all = schemaClient.getAllSchemas(false);
+        List<SchemaDef> all = schemaClient.getAllSchemas(true);
         Assertions.assertNotNull(all);
         Assertions.assertTrue(all.stream().anyMatch(s -> SCHEMA_NAME.equals(s.getName())));
 
