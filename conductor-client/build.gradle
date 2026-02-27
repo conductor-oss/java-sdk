@@ -21,12 +21,12 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
 
-    testImplementation 'org.mockito:mockito-inline:5.2.0'
-    testImplementation 'org.mockito:mockito-core:5.4.0'
+    testImplementation 'org.mockito:mockito-inline:5.12.0'
+    testImplementation 'org.mockito:mockito-core:5.12.0'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     testImplementation 'org.codehaus.groovy:groovy:3.0.25'
-    testImplementation 'ch.qos.logback:logback-classic:1.5.6'
-    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.2'
+    testImplementation 'ch.qos.logback:logback-classic:1.5.20'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.17.1'
 }
 
 java {
