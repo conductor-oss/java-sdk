@@ -1,0 +1,8 @@
+[
+  {"name": "backup_validate_config", "retryCount": 0, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "backup_take_snapshot", "retryCount": 2, "timeoutSeconds": 300, "responseTimeoutSeconds": 120, "ownerEmail": "examples@orkes.io"},
+  {"name": "backup_verify_integrity", "retryCount": 1, "timeoutSeconds": 120, "responseTimeoutSeconds": 60, "ownerEmail": "examples@orkes.io"},
+  {"name": "backup_upload_to_storage", "retryCount": 3, "timeoutSeconds": 300, "responseTimeoutSeconds": 120, "ownerEmail": "examples@orkes.io"},
+  {"name": "backup_cleanup_old", "retryCount": 2, "timeoutSeconds": 120, "responseTimeoutSeconds": 60, "ownerEmail": "examples@orkes.io"},
+  {"name": "backup_send_notification", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"}
+]

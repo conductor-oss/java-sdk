@@ -1,0 +1,31 @@
+{
+  "name": "compensation_workflow",
+  "description": "Compensation workflow that undoes completed steps in reverse order: Undo B -> Undo A.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["failedWorkflowId", "stepAResult", "stepBResult"],
+  "tasks": [
+    {
+      "name": "comp_undo_b",
+      "taskReferenceName": "undo_b_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "original": "${workflow.input.stepBResult}"
+      }
+    },
+    {
+      "name": "comp_undo_a",
+      "taskReferenceName": "undo_a_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "original": "${workflow.input.stepAResult}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "undoneB": "${undo_b_ref.output.undone}",
+    "undoneA": "${undo_a_ref.output.undone}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

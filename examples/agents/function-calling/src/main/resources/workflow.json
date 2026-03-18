@@ -1,0 +1,54 @@
+{
+  "name": "function_calling",
+  "description": "Function Calling — LLM plans a function call, extracts it, executes the function, then synthesizes a natural-language answer.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userQuery", "functionDefinitions"],
+  "tasks": [
+    {
+      "name": "fc_llm_plan",
+      "taskReferenceName": "fc_llm_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userQuery": "${workflow.input.userQuery}",
+        "functionDefinitions": "${workflow.input.functionDefinitions}"
+      }
+    },
+    {
+      "name": "fc_extract_function_call",
+      "taskReferenceName": "fc_extract_function_call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "llmOutput": "${fc_llm_plan_ref.output.llmResponse}",
+        "functionDefinitions": "${workflow.input.functionDefinitions}"
+      }
+    },
+    {
+      "name": "fc_execute_function",
+      "taskReferenceName": "fc_execute_function_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "functionName": "${fc_extract_function_call_ref.output.functionName}",
+        "arguments": "${fc_extract_function_call_ref.output.arguments}"
+      }
+    },
+    {
+      "name": "fc_llm_synthesize",
+      "taskReferenceName": "fc_llm_synthesize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userQuery": "${workflow.input.userQuery}",
+        "functionName": "${fc_extract_function_call_ref.output.functionName}",
+        "functionResult": "${fc_execute_function_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${fc_llm_synthesize_ref.output.answer}",
+    "confidence": "${fc_llm_synthesize_ref.output.confidence}",
+    "sourceFunctionUsed": "${fc_llm_synthesize_ref.output.sourceFunctionUsed}",
+    "executionStatus": "${fc_execute_function_ref.output.executionStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

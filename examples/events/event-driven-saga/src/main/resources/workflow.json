@@ -1,0 +1,82 @@
+{
+  "name": "event_driven_saga",
+  "description": "Event-driven saga: order creation, payment processing with SWITCH-based routing to shipping on success or compensation on failure.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "orderId",
+    "amount",
+    "shippingAddress"
+  ],
+  "tasks": [
+    {
+      "name": "ds_create_order",
+      "taskReferenceName": "order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "ds_process_payment",
+      "taskReferenceName": "payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "amount": "${order_ref.output.amount}"
+      }
+    },
+    {
+      "name": "payment_decision",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${payment_ref.output.paymentStatus}"
+      },
+      "decisionCases": {
+        "success": [
+          {
+            "name": "ds_ship_order",
+            "taskReferenceName": "ship_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "orderId": "${order_ref.output.orderId}",
+              "address": "${workflow.input.shippingAddress}"
+            }
+          }
+        ],
+        "failed": [
+          {
+            "name": "ds_compensate_payment",
+            "taskReferenceName": "comp_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "orderId": "${order_ref.output.orderId}",
+              "transactionId": "${payment_ref.output.transactionId}"
+            }
+          },
+          {
+            "name": "ds_cancel_order",
+            "taskReferenceName": "cancel_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "orderId": "${order_ref.output.orderId}",
+              "reason": "Payment failed"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${order_ref.output.orderId}",
+    "paymentStatus": "${payment_ref.output.paymentStatus}",
+    "sagaOutcome": "${payment_ref.output.paymentStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

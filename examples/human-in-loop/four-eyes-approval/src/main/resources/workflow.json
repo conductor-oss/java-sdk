@@ -1,0 +1,61 @@
+{
+  "name": "four_eyes_approval_demo",
+  "description": "Four-Eyes Approval -- two independent approvals required via parallel WAIT tasks in a FORK/JOIN.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId"],
+  "tasks": [
+    {
+      "name": "fep_submit",
+      "taskReferenceName": "fep_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}"
+      }
+    },
+    {
+      "name": "fork_approvers",
+      "taskReferenceName": "fork_approvers_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "approver_1",
+            "taskReferenceName": "approver_1_ref",
+            "type": "WAIT",
+            "inputParameters": {}
+          }
+        ],
+        [
+          {
+            "name": "approver_2",
+            "taskReferenceName": "approver_2_ref",
+            "type": "WAIT",
+            "inputParameters": {}
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_approvers",
+      "taskReferenceName": "join_approvers_ref",
+      "type": "JOIN",
+      "joinOn": ["approver_1_ref", "approver_2_ref"]
+    },
+    {
+      "name": "fep_finalize",
+      "taskReferenceName": "fep_finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "approval1": "${approver_1_ref.output.approval}",
+        "approval2": "${approver_2_ref.output.approval}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "submitted": "${fep_submit_ref.output.submitted}",
+    "finalized": "${fep_finalize_ref.output.finalized}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,61 @@
+{
+  "name": "github_integration_434",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "repo",
+    "branch",
+    "baseBranch",
+    "commitMessage"
+  ],
+  "tasks": [
+    {
+      "name": "gh_receive_webhook",
+      "taskReferenceName": "webhook_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repo": "${workflow.input.repo}",
+        "branch": "${workflow.input.branch}",
+        "commitMessage": "${workflow.input.commitMessage}"
+      }
+    },
+    {
+      "name": "gh_create_pr",
+      "taskReferenceName": "pr_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repo": "${workflow.input.repo}",
+        "head": "${workflow.input.branch}",
+        "base": "${workflow.input.baseBranch}",
+        "title": "${webhook_ref.output.prTitle}"
+      }
+    },
+    {
+      "name": "gh_run_checks",
+      "taskReferenceName": "checks_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repo": "${workflow.input.repo}",
+        "prNumber": "${pr_ref.output.prNumber}",
+        "sha": "${pr_ref.output.headSha}"
+      }
+    },
+    {
+      "name": "gh_merge_pr",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repo": "${workflow.input.repo}",
+        "prNumber": "${pr_ref.output.prNumber}",
+        "checksPass": "${checks_ref.output.allPassed}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "prNumber": "${pr_ref.output.prNumber}",
+    "checksPassed": "${checks_ref.output.allPassed}",
+    "merged": "${merge_ref.output.merged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

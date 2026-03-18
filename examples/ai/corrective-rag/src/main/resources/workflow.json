@@ -1,0 +1,79 @@
+{
+  "name": "corrective_rag",
+  "description": "Corrective RAG — Detect and fix bad retrievals by falling back to web search",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "question"
+  ],
+  "tasks": [
+    {
+      "name": "cr_retrieve_docs",
+      "taskReferenceName": "retrieve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "cr_grade_relevance",
+      "taskReferenceName": "grade_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "documents": "${retrieve_ref.output.documents}"
+      }
+    },
+    {
+      "name": "route_by_quality",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${grade_ref.output.verdict}"
+      },
+      "decisionCases": {
+        "relevant": [
+          {
+            "name": "cr_generate_answer",
+            "taskReferenceName": "gen_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "context": "${retrieve_ref.output.documents}",
+              "source": "vectorStore"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "cr_web_search",
+          "taskReferenceName": "web_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${workflow.input.question}"
+          }
+        },
+        {
+          "name": "cr_generate_from_web",
+          "taskReferenceName": "gen_web_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${workflow.input.question}",
+            "context": "${web_ref.output.webResults}",
+            "source": "webSearch"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "question": "${workflow.input.question}",
+    "verdict": "${grade_ref.output.verdict}",
+    "avgRelevance": "${grade_ref.output.avgScore}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,69 @@
+{
+  "name": "claims_processing_workflow",
+  "description": "Insurance claims workflow: submit claim, verify details, assess damage, settle amount, and close claim.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["claimId", "policyId", "claimType", "description", "amount"],
+  "tasks": [
+    {
+      "name": "clp_submit_claim",
+      "taskReferenceName": "clp_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "policyId": "${workflow.input.policyId}",
+        "claimType": "${workflow.input.claimType}",
+        "description": "${workflow.input.description}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "clp_verify_details",
+      "taskReferenceName": "clp_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "policyId": "${workflow.input.policyId}",
+        "policyStatus": "${clp_submit_ref.output.policyStatus}"
+      }
+    },
+    {
+      "name": "clp_assess_damage",
+      "taskReferenceName": "clp_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "claimType": "${workflow.input.claimType}",
+        "requestedAmount": "${workflow.input.amount}",
+        "verified": "${clp_verify_ref.output.verified}"
+      }
+    },
+    {
+      "name": "clp_settle_amount",
+      "taskReferenceName": "clp_settle_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "assessedAmount": "${clp_assess_ref.output.assessedAmount}",
+        "damageCategory": "${clp_assess_ref.output.damageCategory}"
+      }
+    },
+    {
+      "name": "clp_close_claim",
+      "taskReferenceName": "clp_close_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "settledAmount": "${clp_settle_ref.output.settledAmount}",
+        "paymentMethod": "${clp_settle_ref.output.paymentMethod}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "claimId": "${workflow.input.claimId}",
+    "settledAmount": "${clp_settle_ref.output.settledAmount}",
+    "claimStatus": "${clp_close_ref.output.claimStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

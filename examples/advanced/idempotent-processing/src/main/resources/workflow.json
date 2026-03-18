@@ -1,0 +1,78 @@
+{
+  "name": "idp_idempotent_processing",
+  "description": "Idempotent processing workflow that checks if a message has already been processed, routes via SWITCH to process or skip, then records the state.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["messageId", "payload"],
+  "tasks": [
+    {
+      "name": "idp_check_processed",
+      "taskReferenceName": "idp_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}"
+      }
+    },
+    {
+      "name": "idempotent_switch",
+      "taskReferenceName": "idp_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${idp_check_ref.output.processingState}"
+      },
+      "decisionCases": {
+        "unprocessed": [
+          {
+            "name": "idp_process",
+            "taskReferenceName": "idp_process_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "messageId": "${workflow.input.messageId}",
+              "payload": "${workflow.input.payload}"
+            }
+          }
+        ],
+        "processed": [
+          {
+            "name": "idp_skip",
+            "taskReferenceName": "idp_skip_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "messageId": "${workflow.input.messageId}",
+              "previousResult": "${idp_check_ref.output.previousResult}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "idp_process",
+          "taskReferenceName": "idp_default_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "messageId": "${workflow.input.messageId}",
+            "payload": "${workflow.input.payload}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "idp_record",
+      "taskReferenceName": "idp_record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "resultHash": "${idp_process_ref.output.resultHash}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${workflow.input.messageId}",
+    "processingState": "${idp_check_ref.output.processingState}",
+    "recorded": "${idp_record_ref.output.recorded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

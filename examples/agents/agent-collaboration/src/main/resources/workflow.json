@@ -1,0 +1,56 @@
+{
+  "name": "agent_collaboration_demo",
+  "description": "Agent Collaboration — analyst, strategist, executor, and compiler collaborate sequentially to produce a business plan.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["businessContext"],
+  "tasks": [
+    {
+      "name": "ac_analyst",
+      "taskReferenceName": "ac_analyst_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "businessContext": "${workflow.input.businessContext}"
+      }
+    },
+    {
+      "name": "ac_strategist",
+      "taskReferenceName": "ac_strategist_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "businessContext": "${workflow.input.businessContext}",
+        "insights": "${ac_analyst_ref.output.insights}",
+        "metrics": "${ac_analyst_ref.output.metrics}"
+      }
+    },
+    {
+      "name": "ac_executor",
+      "taskReferenceName": "ac_executor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "strategy": "${ac_strategist_ref.output.strategy}",
+        "priorities": "${ac_strategist_ref.output.priorities}",
+        "insights": "${ac_analyst_ref.output.insights}"
+      }
+    },
+    {
+      "name": "ac_compile_plan",
+      "taskReferenceName": "ac_compile_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "insights": "${ac_analyst_ref.output.insights}",
+        "strategy": "${ac_strategist_ref.output.strategy}",
+        "actionItems": "${ac_executor_ref.output.actionItems}",
+        "timeline": "${ac_executor_ref.output.timeline}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "plan": "${ac_compile_plan_ref.output.plan}",
+    "insightCount": "${ac_analyst_ref.output.insightCount}",
+    "strategyName": "${ac_strategist_ref.output.strategyName}",
+    "actionItemCount": "${ac_executor_ref.output.actionItemCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

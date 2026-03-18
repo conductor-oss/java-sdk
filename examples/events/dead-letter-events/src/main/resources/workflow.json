@@ -1,0 +1,90 @@
+{
+  "name": "dead_letter_events_wf",
+  "description": "Dead letter events workflow that receives events, attempts processing, and routes failures to a dead letter queue with alerting.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "eventType",
+    "payload",
+    "retryCount"
+  ],
+  "tasks": [
+    {
+      "name": "dl_receive_event",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "payload": "${workflow.input.payload}",
+        "retryCount": "${workflow.input.retryCount}"
+      }
+    },
+    {
+      "name": "dl_attempt_process",
+      "taskReferenceName": "attempt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${receive_ref.output.eventId}",
+        "eventType": "${receive_ref.output.eventType}",
+        "payload": "${receive_ref.output.payload}",
+        "retryCount": "${receive_ref.output.retryCount}"
+      }
+    },
+    {
+      "name": "route_by_result",
+      "taskReferenceName": "result_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${attempt_ref.output.processingResult}"
+      },
+      "decisionCases": {
+        "success": [
+          {
+            "name": "dl_finalize_success",
+            "taskReferenceName": "finalize_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${receive_ref.output.eventId}",
+              "result": "${attempt_ref.output.resultData}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "dl_route_to_dlq",
+          "taskReferenceName": "dlq_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "eventId": "${receive_ref.output.eventId}",
+            "eventType": "${receive_ref.output.eventType}",
+            "payload": "${receive_ref.output.payload}",
+            "errorReason": "${attempt_ref.output.errorReason}",
+            "retryCount": "${receive_ref.output.retryCount}"
+          }
+        },
+        {
+          "name": "dl_send_alert",
+          "taskReferenceName": "alert_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "eventId": "${receive_ref.output.eventId}",
+            "dlqId": "${dlq_ref.output.dlqId}",
+            "errorReason": "${attempt_ref.output.errorReason}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${receive_ref.output.eventId}",
+    "processingResult": "${attempt_ref.output.processingResult}",
+    "errorReason": "${attempt_ref.output.errorReason}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,50 @@
+{
+  "name": "llm_cost_tracking_workflow",
+  "description": "LLM cost tracking workflow: call GPT-4 -> call Claude -> call Gemini -> aggregate costs",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt"],
+  "tasks": [
+    {
+      "name": "ct_call_gpt4",
+      "taskReferenceName": "ct_call_gpt4_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}"
+      }
+    },
+    {
+      "name": "ct_call_claude",
+      "taskReferenceName": "ct_call_claude_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}"
+      }
+    },
+    {
+      "name": "ct_call_gemini",
+      "taskReferenceName": "ct_call_gemini_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}"
+      }
+    },
+    {
+      "name": "ct_aggregate_costs",
+      "taskReferenceName": "ct_aggregate_costs_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "gpt4Usage": "${ct_call_gpt4_ref.output.usage}",
+        "claudeUsage": "${ct_call_claude_ref.output.usage}",
+        "geminiUsage": "${ct_call_gemini_ref.output.usage}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "breakdown": "${ct_aggregate_costs_ref.output.breakdown}",
+    "totalCost": "${ct_aggregate_costs_ref.output.totalCost}",
+    "totalTokens": "${ct_aggregate_costs_ref.output.totalTokens}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

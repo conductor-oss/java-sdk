@@ -1,0 +1,49 @@
+{
+  "name": "runbook_automation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "runbookName",
+    "trigger"
+  ],
+  "tasks": [
+    {
+      "name": "ra_load_runbook",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "runbookName": "${workflow.input.runbookName}"
+      }
+    },
+    {
+      "name": "ra_execute_step",
+      "taskReferenceName": "exec_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "runbookId": "${load_ref.output.runbookId}"
+      }
+    },
+    {
+      "name": "ra_verify_step",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stepResult": "${exec_ref.output}"
+      }
+    },
+    {
+      "name": "ra_log_outcome",
+      "taskReferenceName": "log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verified": "${verify_ref.output.verified}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "runbookId": "${load_ref.output.runbookId}",
+    "outcome": "${log_ref.output.outcome}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

@@ -1,0 +1,51 @@
+{
+  "name": "canary_deployment_workflow",
+  "description": "Gradually shifts traffic to a new version with automated analysis at each increment.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "newVersion", "canaryPercentage"],
+  "tasks": [
+    {
+      "name": "cd_deploy_canary",
+      "taskReferenceName": "deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "newVersion": "${workflow.input.newVersion}"
+      }
+    },
+    {
+      "name": "cd_shift_traffic",
+      "taskReferenceName": "shift_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "percentage": "${workflow.input.canaryPercentage}"
+      }
+    },
+    {
+      "name": "cd_analyze_metrics",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "duration": "5m"
+      }
+    },
+    {
+      "name": "cd_promote_or_rollback",
+      "taskReferenceName": "decision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "errorRate": "${analyze_ref.output.errorRate}",
+        "threshold": 1.0
+      }
+    }
+  ],
+  "outputParameters": {
+    "decision": "${decision_ref.output.action}",
+    "errorRate": "${analyze_ref.output.errorRate}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

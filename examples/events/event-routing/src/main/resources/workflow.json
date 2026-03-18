@@ -1,0 +1,84 @@
+{
+  "name": "event_routing_wf",
+  "description": "Event Routing — receive an event, extract its domain/subType, then route to the appropriate processor (user, order, or system) via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["eventId", "eventDomain", "eventData"],
+  "tasks": [
+    {
+      "name": "eo_receive_event",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventDomain": "${workflow.input.eventDomain}",
+        "eventData": "${workflow.input.eventData}"
+      }
+    },
+    {
+      "name": "eo_extract_type",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventDomain": "${receive_ref.output.eventDomain}",
+        "eventData": "${receive_ref.output.eventData}"
+      }
+    },
+    {
+      "name": "route_event",
+      "taskReferenceName": "route_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${extract_ref.output.domain}"
+      },
+      "decisionCases": {
+        "user": [
+          {
+            "name": "eo_user_processor",
+            "taskReferenceName": "user_proc_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "eventData": "${workflow.input.eventData}",
+              "subType": "${extract_ref.output.subType}"
+            }
+          }
+        ],
+        "order": [
+          {
+            "name": "eo_order_processor",
+            "taskReferenceName": "order_proc_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "eventData": "${workflow.input.eventData}",
+              "subType": "${extract_ref.output.subType}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "eo_system_processor",
+          "taskReferenceName": "system_proc_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "eventId": "${workflow.input.eventId}",
+            "eventData": "${workflow.input.eventData}",
+            "domain": "${extract_ref.output.domain}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "domain": "${extract_ref.output.domain}",
+    "subType": "${extract_ref.output.subType}",
+    "routed": "true"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

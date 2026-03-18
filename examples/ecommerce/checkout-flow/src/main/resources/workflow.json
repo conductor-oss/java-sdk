@@ -1,0 +1,56 @@
+{
+  "name": "checkout_flow",
+  "description": "E-commerce checkout workflow: validate cart, calculate tax, process payment, confirm order",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["cartId", "userId", "shippingAddress", "paymentMethod"],
+  "tasks": [
+    {
+      "name": "chk_validate_cart",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cartId": "${workflow.input.cartId}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "chk_calculate_tax",
+      "taskReferenceName": "tax_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subtotal": "${validate_ref.output.subtotal}",
+        "shippingAddress": "${workflow.input.shippingAddress}"
+      }
+    },
+    {
+      "name": "chk_process_payment",
+      "taskReferenceName": "payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "amount": "${tax_ref.output.grandTotal}",
+        "paymentMethod": "${workflow.input.paymentMethod}"
+      }
+    },
+    {
+      "name": "chk_confirm_order",
+      "taskReferenceName": "confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cartId": "${workflow.input.cartId}",
+        "userId": "${workflow.input.userId}",
+        "paymentId": "${payment_ref.output.paymentId}",
+        "grandTotal": "${tax_ref.output.grandTotal}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${confirm_ref.output.orderId}",
+    "grandTotal": "${tax_ref.output.grandTotal}",
+    "paymentId": "${payment_ref.output.paymentId}",
+    "confirmed": "${confirm_ref.output.confirmed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

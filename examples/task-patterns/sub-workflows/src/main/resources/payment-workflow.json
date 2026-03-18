@@ -1,0 +1,35 @@
+{
+  "name": "sub_payment_process",
+  "description": "Child workflow — validates and charges payment. Called as a SUB_WORKFLOW from the parent order workflow.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "amount", "paymentMethod"],
+  "tasks": [
+    {
+      "name": "sub_validate_payment",
+      "taskReferenceName": "sub_validate_payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "paymentMethod": "${workflow.input.paymentMethod}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "sub_charge_payment",
+      "taskReferenceName": "sub_charge_payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}",
+        "paymentMethod": "${workflow.input.paymentMethod}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "transactionId": "${sub_charge_payment_ref.output.transactionId}",
+    "charged": "${sub_charge_payment_ref.output.charged}",
+    "valid": "${sub_validate_payment_ref.output.valid}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

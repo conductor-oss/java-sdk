@@ -1,0 +1,53 @@
+{
+  "name": "api_gateway_292",
+  "description": "API gateway: authenticate, route, transform, respond",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["apiKey", "endpoint", "method", "payload"],
+  "tasks": [
+    {
+      "name": "ag_authenticate",
+      "taskReferenceName": "ag_auth_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apiKey": "${workflow.input.apiKey}"
+      }
+    },
+    {
+      "name": "ag_route_request",
+      "taskReferenceName": "ag_route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${workflow.input.endpoint}",
+        "method": "${workflow.input.method}",
+        "payload": "${workflow.input.payload}",
+        "clientId": "${ag_auth_ref.output.clientId}"
+      }
+    },
+    {
+      "name": "ag_transform_response",
+      "taskReferenceName": "ag_transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawResponse": "${ag_route_ref.output.rawResponse}",
+        "clientId": "${ag_auth_ref.output.clientId}"
+      }
+    },
+    {
+      "name": "ag_send_response",
+      "taskReferenceName": "ag_respond_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedResponse": "${ag_transform_ref.output.transformed}",
+        "statusCode": "${ag_route_ref.output.statusCode}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "statusCode": "${ag_respond_ref.output.statusCode}",
+    "body": "${ag_respond_ref.output.body}",
+    "headers": "${ag_respond_ref.output.headers}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

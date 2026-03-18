@@ -1,0 +1,204 @@
+{
+  "name": "uptime_monitor",
+  "version": 1,
+  "description": "Checks multiple endpoints in parallel, aggregates results, and sends alerts via Slack/email when failures are detected. Escalates to SMS/PagerDuty for consecutive failures.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "endpoints",
+    "notificationChannels",
+    "escalationThreshold"
+  ],
+  "tasks": [
+    {
+      "name": "uptime_prepare_checks",
+      "taskReferenceName": "uptime_prepare_checks_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoints": "${workflow.input.endpoints}"
+      }
+    },
+    {
+      "name": "check_all_endpoints",
+      "taskReferenceName": "check_all_endpoints_ref",
+      "type": "FORK_JOIN_DYNAMIC",
+      "inputParameters": {
+        "dynamicTasks": "${uptime_prepare_checks_ref.output.dynamicTasks}",
+        "dynamicTasksInput": "${uptime_prepare_checks_ref.output.dynamicTasksInput}"
+      },
+      "dynamicForkTasksParam": "dynamicTasks",
+      "dynamicForkTasksInputParamName": "dynamicTasksInput"
+    },
+    {
+      "name": "join_endpoint_checks",
+      "taskReferenceName": "join_endpoint_checks_ref",
+      "type": "JOIN"
+    },
+    {
+      "name": "uptime_aggregate_results",
+      "taskReferenceName": "uptime_aggregate_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "joinOutput": "${join_endpoint_checks_ref.output}"
+      }
+    },
+    {
+      "name": "failure_routing",
+      "taskReferenceName": "failure_routing_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "hasFailures",
+      "inputParameters": {
+        "hasFailures": "${uptime_aggregate_results_ref.output.hasFailures}"
+      },
+      "decisionCases": {
+        "true": [
+          {
+            "name": "notify_failure",
+            "taskReferenceName": "notify_failure_ref",
+            "type": "FORK_JOIN",
+            "forkTasks": [
+              [
+                {
+                  "name": "uptime_send_slack_alert",
+                  "taskReferenceName": "uptime_send_slack_alert_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "failures": "${uptime_aggregate_results_ref.output.failures}",
+                    "summary": "${uptime_aggregate_results_ref.output.summary}",
+                    "slackConfig": "${workflow.input.notificationChannels.slack}"
+                  }
+                }
+              ],
+              [
+                {
+                  "name": "uptime_send_email_alert",
+                  "taskReferenceName": "uptime_send_email_alert_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "failures": "${uptime_aggregate_results_ref.output.failures}",
+                    "summary": "${uptime_aggregate_results_ref.output.summary}",
+                    "emailConfig": "${workflow.input.notificationChannels.email}"
+                  }
+                }
+              ],
+              [
+                {
+                  "name": "uptime_update_status_page",
+                  "taskReferenceName": "uptime_update_status_page_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "failures": "${uptime_aggregate_results_ref.output.failures}",
+                    "summary": "${uptime_aggregate_results_ref.output.summary}",
+                    "overallStatus": "${uptime_aggregate_results_ref.output.overallStatus}"
+                  }
+                }
+              ]
+            ]
+          },
+          {
+            "name": "join_notifications",
+            "taskReferenceName": "join_notifications_ref",
+            "type": "JOIN",
+            "joinOn": [
+              "uptime_send_slack_alert_ref",
+              "uptime_send_email_alert_ref",
+              "uptime_update_status_page_ref"
+            ]
+          },
+          {
+            "name": "uptime_check_escalation",
+            "taskReferenceName": "uptime_check_escalation_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "failures": "${uptime_aggregate_results_ref.output.failures}",
+              "threshold": "${workflow.input.escalationThreshold}"
+            }
+          },
+          {
+            "name": "escalation_routing",
+            "taskReferenceName": "escalation_routing_ref",
+            "type": "SWITCH",
+            "evaluatorType": "value-param",
+            "expression": "shouldEscalate",
+            "inputParameters": {
+              "shouldEscalate": "${uptime_check_escalation_ref.output.shouldEscalate}"
+            },
+            "decisionCases": {
+              "true": [
+                {
+                  "name": "escalate_alerts",
+                  "taskReferenceName": "escalate_alerts_ref",
+                  "type": "FORK_JOIN",
+                  "forkTasks": [
+                    [
+                      {
+                        "name": "uptime_send_sms_alert",
+                        "taskReferenceName": "uptime_send_sms_alert_ref",
+                        "type": "SIMPLE",
+                        "inputParameters": {
+                          "failures": "${uptime_aggregate_results_ref.output.failures}",
+                          "smsConfig": "${workflow.input.notificationChannels.sms}"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "name": "uptime_page_oncall",
+                        "taskReferenceName": "uptime_page_oncall_ref",
+                        "type": "SIMPLE",
+                        "inputParameters": {
+                          "failures": "${uptime_aggregate_results_ref.output.failures}",
+                          "pagerdutyConfig": "${workflow.input.notificationChannels.pagerduty}",
+                          "overallStatus": "${uptime_aggregate_results_ref.output.overallStatus}"
+                        }
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "name": "join_escalation",
+                  "taskReferenceName": "join_escalation_ref",
+                  "type": "JOIN",
+                  "joinOn": [
+                    "uptime_send_sms_alert_ref",
+                    "uptime_page_oncall_ref"
+                  ]
+                }
+              ]
+            },
+            "defaultCase": []
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "uptime_record_healthy",
+          "taskReferenceName": "uptime_record_healthy_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "summary": "${uptime_aggregate_results_ref.output.summary}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "uptime_store_metrics",
+      "taskReferenceName": "uptime_store_metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "summary": "${uptime_aggregate_results_ref.output.summary}",
+        "overallStatus": "${uptime_aggregate_results_ref.output.overallStatus}",
+        "failures": "${uptime_aggregate_results_ref.output.failures}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "overallStatus": "${uptime_aggregate_results_ref.output.overallStatus}",
+    "summary": "${uptime_aggregate_results_ref.output.summary}",
+    "hasFailures": "${uptime_aggregate_results_ref.output.hasFailures}",
+    "failures": "${uptime_aggregate_results_ref.output.failures}",
+    "metricsStored": "${uptime_store_metrics_ref.output.metricsStored}"
+  }
+}

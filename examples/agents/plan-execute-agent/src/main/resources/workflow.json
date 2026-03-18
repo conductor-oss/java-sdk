@@ -1,0 +1,64 @@
+{
+  "name": "plan_execute_agent",
+  "description": "Plan-Execute Agent — creates a multi-step plan from an objective, executes each step sequentially, and compiles the results into a final report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["objective"],
+  "tasks": [
+    {
+      "name": "pe_create_plan",
+      "taskReferenceName": "create_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "objective": "${workflow.input.objective}"
+      }
+    },
+    {
+      "name": "pe_execute_step_1",
+      "taskReferenceName": "step_1_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "${create_plan_ref.output.steps[0]}",
+        "stepIndex": 0
+      }
+    },
+    {
+      "name": "pe_execute_step_2",
+      "taskReferenceName": "step_2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "${create_plan_ref.output.steps[1]}",
+        "stepIndex": 1,
+        "previousResult": "${step_1_ref.output.result}"
+      }
+    },
+    {
+      "name": "pe_execute_step_3",
+      "taskReferenceName": "step_3_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "${create_plan_ref.output.steps[2]}",
+        "stepIndex": 2,
+        "previousResult": "${step_2_ref.output.result}"
+      }
+    },
+    {
+      "name": "pe_compile_results",
+      "taskReferenceName": "compile_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "objective": "${workflow.input.objective}",
+        "result1": "${step_1_ref.output.result}",
+        "result2": "${step_2_ref.output.result}",
+        "result3": "${step_3_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "objective": "${workflow.input.objective}",
+    "plan": "${create_plan_ref.output.steps}",
+    "finalReport": "${compile_ref.output.report}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

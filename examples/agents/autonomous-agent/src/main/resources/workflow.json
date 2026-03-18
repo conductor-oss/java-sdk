@@ -1,0 +1,72 @@
+{
+  "name": "autonomous_agent",
+  "description": "Autonomous Agent — sets a goal, creates a plan, executes steps in a loop with progress evaluation, then produces a final report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["mission"],
+  "tasks": [
+    {
+      "name": "aa_set_goal",
+      "taskReferenceName": "set_goal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mission": "${workflow.input.mission}"
+      }
+    },
+    {
+      "name": "aa_create_plan",
+      "taskReferenceName": "create_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "goal": "${set_goal_ref.output.goal}",
+        "constraints": "${set_goal_ref.output.constraints}"
+      }
+    },
+    {
+      "name": "loop",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < 3) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "aa_execute_step",
+          "taskReferenceName": "execute_step_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "plan": "${create_plan_ref.output.plan}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "aa_evaluate_progress",
+          "taskReferenceName": "evaluate_progress_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "stepResult": "${execute_step_ref.output.result}",
+            "iteration": "${loop_ref.output.iteration}",
+            "goal": "${set_goal_ref.output.goal}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aa_final_report",
+      "taskReferenceName": "final_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mission": "${workflow.input.mission}",
+        "goal": "${set_goal_ref.output.goal}",
+        "totalSteps": 3
+      }
+    }
+  ],
+  "outputParameters": {
+    "mission": "${workflow.input.mission}",
+    "goal": "${set_goal_ref.output.goal}",
+    "stepsExecuted": 3,
+    "report": "${final_report_ref.output.report}",
+    "success": "${final_report_ref.output.success}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

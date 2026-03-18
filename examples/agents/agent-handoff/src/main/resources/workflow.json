@@ -1,0 +1,77 @@
+{
+  "name": "agent_handoff",
+  "description": "Agent Handoff — triage classifies a customer message, then hands off to the appropriate specialist (billing, technical, or general).",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "message"],
+  "tasks": [
+    {
+      "name": "ah_triage",
+      "taskReferenceName": "ah_triage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "message": "${workflow.input.message}"
+      }
+    },
+    {
+      "name": "route_to_specialist",
+      "taskReferenceName": "route_to_specialist_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${ah_triage_ref.output.category}"
+      },
+      "decisionCases": {
+        "billing": [
+          {
+            "name": "ah_billing",
+            "taskReferenceName": "ah_billing_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "customerId": "${workflow.input.customerId}",
+              "message": "${workflow.input.message}",
+              "triageNotes": "${ah_triage_ref.output.notes}",
+              "urgency": "${ah_triage_ref.output.urgency}"
+            }
+          }
+        ],
+        "technical": [
+          {
+            "name": "ah_tech",
+            "taskReferenceName": "ah_tech_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "customerId": "${workflow.input.customerId}",
+              "message": "${workflow.input.message}",
+              "triageNotes": "${ah_triage_ref.output.notes}",
+              "urgency": "${ah_triage_ref.output.urgency}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "ah_general",
+          "taskReferenceName": "ah_general_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "customerId": "${workflow.input.customerId}",
+            "message": "${workflow.input.message}",
+            "triageNotes": "${ah_triage_ref.output.notes}",
+            "urgency": "${ah_triage_ref.output.urgency}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "category": "${ah_triage_ref.output.category}",
+    "confidence": "${ah_triage_ref.output.confidence}",
+    "resolution": "${route_to_specialist_ref.output.resolution}",
+    "ticketId": "${route_to_specialist_ref.output.ticketId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

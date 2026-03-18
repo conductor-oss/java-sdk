@@ -1,0 +1,83 @@
+{
+  "name": "llm_fallback_chain_workflow",
+  "description": "LLM fallback chain: GPT-4 -> Claude -> Gemini with SWITCH-based routing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt"],
+  "tasks": [
+    {
+      "name": "fb_call_gpt4",
+      "taskReferenceName": "gpt4_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}"
+      }
+    },
+    {
+      "name": "check_gpt4_status",
+      "taskReferenceName": "check_gpt4_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${gpt4_ref.output.status}"
+      },
+      "decisionCases": {
+        "failed": [
+          {
+            "name": "fb_call_claude",
+            "taskReferenceName": "claude_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "prompt": "${workflow.input.prompt}"
+            }
+          },
+          {
+            "name": "check_claude_status",
+            "taskReferenceName": "check_claude_ref",
+            "type": "SWITCH",
+            "evaluatorType": "value-param",
+            "expression": "switchCaseValue",
+            "inputParameters": {
+              "switchCaseValue": "${claude_ref.output.status}"
+            },
+            "decisionCases": {
+              "failed": [
+                {
+                  "name": "fb_call_gemini",
+                  "taskReferenceName": "gemini_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "prompt": "${workflow.input.prompt}"
+                  }
+                }
+              ]
+            },
+            "defaultCase": []
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "fb_format_result",
+      "taskReferenceName": "format_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "gpt4Status": "${gpt4_ref.output.status}",
+        "gpt4Response": "${gpt4_ref.output.response}",
+        "claudeStatus": "${claude_ref.output.status}",
+        "claudeResponse": "${claude_ref.output.response}",
+        "geminiStatus": "${gemini_ref.output.status}",
+        "geminiResponse": "${gemini_ref.output.response}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "response": "${format_ref.output.response}",
+    "modelUsed": "${format_ref.output.modelUsed}",
+    "fallbacksTriggered": "${format_ref.output.fallbacksTriggered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

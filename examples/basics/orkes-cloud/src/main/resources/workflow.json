@@ -1,0 +1,23 @@
+{
+  "name": "orkes_cloud_test",
+  "description": "Orkes Cloud connection test workflow — single greet task",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["name"],
+  "tasks": [
+    {
+      "name": "cloud_greet",
+      "taskReferenceName": "cloud_greet_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "name": "${workflow.input.name}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "greeting": "${cloud_greet_ref.output.greeting}",
+    "mode": "${cloud_greet_ref.output.mode}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

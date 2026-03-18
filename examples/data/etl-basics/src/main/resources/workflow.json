@@ -1,0 +1,63 @@
+{
+  "name": "etl_basics_wf",
+  "description": "Sequential ETL pipeline: extract data from source, transform records, validate output, load into destination, and confirm load completion.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "source",
+    "destination",
+    "rules"
+  ],
+  "tasks": [
+    {
+      "name": "el_extract_data",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "source": "${workflow.input.source}"
+      }
+    },
+    {
+      "name": "el_transform_data",
+      "taskReferenceName": "transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawRecords": "${extract_ref.output.records}",
+        "rules": "${workflow.input.rules}"
+      }
+    },
+    {
+      "name": "el_validate_output",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedRecords": "${transform_ref.output.records}"
+      }
+    },
+    {
+      "name": "el_load_data",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${validate_ref.output.validRecords}",
+        "destination": "${workflow.input.destination}"
+      }
+    },
+    {
+      "name": "el_confirm_load",
+      "taskReferenceName": "confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "loadedCount": "${load_ref.output.loadedCount}",
+        "destination": "${load_ref.output.destination}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "status": "${confirm_ref.output.status}",
+    "loadedCount": "${confirm_ref.output.loadedCount}",
+    "destination": "${confirm_ref.output.destination}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

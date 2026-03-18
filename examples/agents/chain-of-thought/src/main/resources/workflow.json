@@ -1,0 +1,64 @@
+{
+  "name": "chain_of_thought",
+  "description": "Chain of Thought — break down a problem through understanding, reasoning, calculation, verification, and final answer via a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["problem"],
+  "tasks": [
+    {
+      "name": "ct_understand_problem",
+      "taskReferenceName": "understand_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "problem": "${workflow.input.problem}"
+      }
+    },
+    {
+      "name": "ct_step_1_reason",
+      "taskReferenceName": "reason_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "problem": "${workflow.input.problem}",
+        "understanding": "${understand_ref.output.understanding}"
+      }
+    },
+    {
+      "name": "ct_step_2_calculate",
+      "taskReferenceName": "calculate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reasoning": "${reason_ref.output.reasoning}",
+        "variables": "${reason_ref.output.variables}"
+      }
+    },
+    {
+      "name": "ct_step_3_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "calculation": "${calculate_ref.output.calculation}",
+        "result": "${calculate_ref.output.result}"
+      }
+    },
+    {
+      "name": "ct_final_answer",
+      "taskReferenceName": "final_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "problem": "${workflow.input.problem}",
+        "verifiedResult": "${verify_ref.output.verifiedResult}",
+        "confidence": "${verify_ref.output.confidence}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "problem": "${workflow.input.problem}",
+    "understanding": "${understand_ref.output.understanding}",
+    "reasoning": "${reason_ref.output.reasoning}",
+    "calculation": "${calculate_ref.output.calculation}",
+    "verified": "${verify_ref.output.verified}",
+    "answer": "${final_ref.output.answer}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

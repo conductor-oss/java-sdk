@@ -1,0 +1,9 @@
+{"name":"deadline_management_410","version":1,"schemaVersion":2,"inputParameters":["projectId","taskId","dueDate"],
+"tasks":[
+ {"name":"ded_check_deadlines","taskReferenceName":"ded_check_ref","type":"SIMPLE","inputParameters":{"projectId":"${workflow.input.projectId}","taskId":"${workflow.input.taskId}","dueDate":"${workflow.input.dueDate}"}},
+ {"name":"ded_urgency_switch","taskReferenceName":"ded_switch_ref","type":"SWITCH","evaluatorType":"value-param","expression":"switchCaseValue",
+  "inputParameters":{"switchCaseValue":"${ded_check_ref.output.urgency}"},
+  "decisionCases":{"urgent":[{"name":"ded_handle_urgent","taskReferenceName":"ded_urgent_ref","type":"SIMPLE","inputParameters":{"taskId":"${workflow.input.taskId}","hoursRemaining":"${ded_check_ref.output.hoursRemaining}"}}],
+   "overdue":[{"name":"ded_handle_overdue","taskReferenceName":"ded_overdue_ref","type":"SIMPLE","inputParameters":{"taskId":"${workflow.input.taskId}","hoursOverdue":"${ded_check_ref.output.hoursOverdue}"}}]},
+  "defaultCase":[{"name":"ded_handle_normal","taskReferenceName":"ded_normal_ref","type":"SIMPLE","inputParameters":{"taskId":"${workflow.input.taskId}","hoursRemaining":"${ded_check_ref.output.hoursRemaining}"}}]}
+],"outputParameters":{"urgency":"${ded_check_ref.output.urgency}","hoursRemaining":"${ded_check_ref.output.hoursRemaining}","action":"${ded_check_ref.output.urgency}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

@@ -1,0 +1,47 @@
+{
+  "name": "incident_response_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["alertName", "service", "severity"],
+  "tasks": [
+    {
+      "name": "ir_create_incident",
+      "taskReferenceName": "create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alertName": "${workflow.input.alertName}",
+        "severity": "${workflow.input.severity}"
+      }
+    },
+    {
+      "name": "ir_notify_oncall",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${create_ref.output.incidentId}"
+      }
+    },
+    {
+      "name": "ir_gather_diagnostics",
+      "taskReferenceName": "diag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}"
+      }
+    },
+    {
+      "name": "ir_auto_remediate",
+      "taskReferenceName": "fix_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "diagnostics": "${diag_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "incidentId": "${create_ref.output.incidentId}",
+    "remediated": "${fix_ref.output.remediated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

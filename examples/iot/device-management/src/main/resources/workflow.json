@@ -1,0 +1,67 @@
+{
+  "name": "device_management_workflow",
+  "description": "IoT device lifecycle management: register, provision, configure, monitor health, push updates",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "deviceId",
+    "deviceType",
+    "fleetId",
+    "firmwareVersion"
+  ],
+  "tasks": [
+    {
+      "name": "dev_register_device",
+      "taskReferenceName": "register_device_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "deviceType": "${workflow.input.deviceType}",
+        "fleetId": "${workflow.input.fleetId}"
+      }
+    },
+    {
+      "name": "dev_provision",
+      "taskReferenceName": "provision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}"
+      }
+    },
+    {
+      "name": "dev_configure",
+      "taskReferenceName": "configure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceType": "${workflow.input.deviceType}",
+        "certificateId": "${provision_ref.output.certificateId}"
+      }
+    },
+    {
+      "name": "dev_monitor_health",
+      "taskReferenceName": "monitor_health_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}"
+      }
+    },
+    {
+      "name": "dev_push_update",
+      "taskReferenceName": "push_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "currentFirmware": "${workflow.input.firmwareVersion}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "registrationId": "${register_device_ref.output.registrationId}",
+    "certificateId": "${provision_ref.output.certificateId}",
+    "configured": "${configure_ref.output.configured}",
+    "healthStatus": "${monitor_health_ref.output.healthStatus}",
+    "updateStatus": "${push_update_ref.output.updateStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

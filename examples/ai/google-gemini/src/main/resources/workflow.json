@@ -1,0 +1,48 @@
+{
+  "name": "google_gemini_workflow",
+  "description": "Orchestrates Google Gemini API calls through Conductor",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt", "context", "model"],
+  "tasks": [
+    {
+      "name": "gemini_prepare_content",
+      "taskReferenceName": "prep_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}",
+        "context": "${workflow.input.context}",
+        "model": "${workflow.input.model}",
+        "temperature": 0.4,
+        "topK": 40,
+        "topP": 0.95,
+        "maxOutputTokens": 1024
+      }
+    },
+    {
+      "name": "gemini_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestBody": "${prep_ref.output.requestBody}",
+        "model": "${prep_ref.output.model}"
+      }
+    },
+    {
+      "name": "gemini_format_output",
+      "taskReferenceName": "fmt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "candidates": "${gen_ref.output.apiResponse.candidates}",
+        "usageMetadata": "${gen_ref.output.apiResponse.usageMetadata}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${fmt_ref.output.formattedResult}",
+    "model": "${gen_ref.output.model}",
+    "tokens": "${gen_ref.output.apiResponse.usageMetadata}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

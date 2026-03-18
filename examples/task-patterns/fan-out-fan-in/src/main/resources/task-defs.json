@@ -1,0 +1,23 @@
+[
+  {
+    "name": "fo_prepare",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "fo_process_image",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "fo_aggregate",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

@@ -1,0 +1,98 @@
+{
+  "name": "multi_agent_research",
+  "description": "Multi-Agent Research — define research scope, search web/papers/databases in parallel, synthesize findings, and write a report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["topic", "depth"],
+  "tasks": [
+    {
+      "name": "ra_define_research",
+      "taskReferenceName": "ra_define_research_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "depth": "${workflow.input.depth}"
+      }
+    },
+    {
+      "name": "fork_searches",
+      "taskReferenceName": "fork_searches_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "ra_search_web",
+            "taskReferenceName": "ra_search_web_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queries": "${ra_define_research_ref.output.searchQueries}",
+              "maxResults": 10
+            }
+          }
+        ],
+        [
+          {
+            "name": "ra_search_papers",
+            "taskReferenceName": "ra_search_papers_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queries": "${ra_define_research_ref.output.searchQueries}",
+              "academicDomains": "${ra_define_research_ref.output.domains}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ra_search_databases",
+            "taskReferenceName": "ra_search_databases_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queries": "${ra_define_research_ref.output.searchQueries}",
+              "databases": "${ra_define_research_ref.output.databases}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_searches",
+      "taskReferenceName": "join_searches_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "ra_search_web_ref",
+        "ra_search_papers_ref",
+        "ra_search_databases_ref"
+      ]
+    },
+    {
+      "name": "ra_synthesize",
+      "taskReferenceName": "ra_synthesize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "webFindings": "${ra_search_web_ref.output.findings}",
+        "paperFindings": "${ra_search_papers_ref.output.findings}",
+        "dbFindings": "${ra_search_databases_ref.output.findings}"
+      }
+    },
+    {
+      "name": "ra_write_report",
+      "taskReferenceName": "ra_write_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "synthesis": "${ra_synthesize_ref.output.synthesis}",
+        "keyInsights": "${ra_synthesize_ref.output.keyInsights}",
+        "sourceCount": "${ra_synthesize_ref.output.totalSources}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "title": "${ra_write_report_ref.output.title}",
+    "executiveSummary": "${ra_write_report_ref.output.executiveSummary}",
+    "sections": "${ra_write_report_ref.output.sections}",
+    "wordCount": "${ra_write_report_ref.output.wordCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

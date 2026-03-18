@@ -1,0 +1,13 @@
+{
+  "name": "clf_contract_lifecycle", "description": "Contract lifecycle: draft, review, approve, execute, and renewal.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["vendor", "contractType", "value", "termMonths"],
+  "tasks": [
+    {"name":"clf_draft","taskReferenceName":"clf_draft_ref","type":"SIMPLE","inputParameters":{"vendor":"${workflow.input.vendor}","contractType":"${workflow.input.contractType}","value":"${workflow.input.value}","termMonths":"${workflow.input.termMonths}"}},
+    {"name":"clf_review","taskReferenceName":"clf_review_ref","type":"SIMPLE","inputParameters":{"contractId":"${clf_draft_ref.output.contractId}"}},
+    {"name":"clf_approve","taskReferenceName":"clf_approve_ref","type":"SIMPLE","inputParameters":{"contractId":"${clf_draft_ref.output.contractId}","reviewNotes":"${clf_review_ref.output.notes}"}},
+    {"name":"clf_execute","taskReferenceName":"clf_execute_ref","type":"SIMPLE","inputParameters":{"contractId":"${clf_draft_ref.output.contractId}","approved":"${clf_approve_ref.output.approved}"}},
+    {"name":"clf_renew","taskReferenceName":"clf_renew_ref","type":"SIMPLE","inputParameters":{"contractId":"${clf_draft_ref.output.contractId}","termMonths":"${workflow.input.termMonths}"}}
+  ],
+  "outputParameters": {"contractId":"${clf_draft_ref.output.contractId}","approved":"${clf_approve_ref.output.approved}","executed":"${clf_execute_ref.output.executed}","renewalDate":"${clf_renew_ref.output.renewalDate}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

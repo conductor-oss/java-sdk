@@ -1,0 +1,55 @@
+{
+  "name": "pdf_processing",
+  "description": "Sequential PDF processing workflow: extract text, parse sections, analyze content, and generate summary.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "pdfUrl",
+    "options"
+  ],
+  "tasks": [
+    {
+      "name": "pd_extract_text",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pdfUrl": "${workflow.input.pdfUrl}",
+        "options": "${workflow.input.options}"
+      }
+    },
+    {
+      "name": "pd_parse_sections",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawText": "${extract_ref.output.text}",
+        "pageCount": "${extract_ref.output.pageCount}"
+      }
+    },
+    {
+      "name": "pd_analyze_content",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sections": "${parse_ref.output.sections}"
+      }
+    },
+    {
+      "name": "pd_generate_summary",
+      "taskReferenceName": "summary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sections": "${parse_ref.output.sections}",
+        "analysis": "${analyze_ref.output.analysis}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "pageCount": "${extract_ref.output.pageCount}",
+    "sectionCount": "${parse_ref.output.sectionCount}",
+    "wordCount": "${analyze_ref.output.wordCount}",
+    "summary": "${summary_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

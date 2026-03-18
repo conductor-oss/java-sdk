@@ -1,0 +1,83 @@
+{
+  "name": "tool_use_parallel",
+  "description": "Tool Use Parallel — plan tools, call weather/news/stocks APIs in parallel via FORK_JOIN, then combine results into a morning briefing.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userRequest", "location"],
+  "tasks": [
+    {
+      "name": "tp_plan_tools",
+      "taskReferenceName": "tp_plan_tools_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userRequest": "${workflow.input.userRequest}",
+        "location": "${workflow.input.location}"
+      }
+    },
+    {
+      "name": "fork_tool_calls",
+      "taskReferenceName": "fork_tool_calls_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "tp_call_weather",
+            "taskReferenceName": "tp_call_weather_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "location": "${workflow.input.location}",
+              "toolConfig": "${tp_plan_tools_ref.output.toolConfigs.weather}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "tp_call_news",
+            "taskReferenceName": "tp_call_news_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "topics": "${tp_plan_tools_ref.output.toolConfigs.newsTopics}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "tp_call_stocks",
+            "taskReferenceName": "tp_call_stocks_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "tickers": "${tp_plan_tools_ref.output.toolConfigs.tickers}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_tool_calls",
+      "taskReferenceName": "join_tool_calls_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "tp_call_weather_ref",
+        "tp_call_news_ref",
+        "tp_call_stocks_ref"
+      ]
+    },
+    {
+      "name": "tp_combine_results",
+      "taskReferenceName": "tp_combine_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "weather": "${tp_call_weather_ref.output.weatherData}",
+        "news": "${tp_call_news_ref.output.headlines}",
+        "stocks": "${tp_call_stocks_ref.output.quotes}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "briefing": "${tp_combine_results_ref.output.briefing}",
+    "toolsUsed": "${tp_combine_results_ref.output.toolsUsed}",
+    "generatedAt": "${tp_combine_results_ref.output.generatedAt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

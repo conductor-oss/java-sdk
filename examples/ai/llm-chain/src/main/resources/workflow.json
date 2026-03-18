@@ -1,0 +1,53 @@
+{
+  "name": "llm_chain_workflow",
+  "description": "LLM chain workflow: prompt -> generate -> parse -> validate",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerEmail", "productCatalog"],
+  "tasks": [
+    {
+      "name": "chain_prompt",
+      "taskReferenceName": "chain_prompt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerEmail": "${workflow.input.customerEmail}",
+        "productCatalog": "${workflow.input.productCatalog}"
+      }
+    },
+    {
+      "name": "chain_generate",
+      "taskReferenceName": "chain_generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "formattedPrompt": "${chain_prompt_ref.output.formattedPrompt}",
+        "model": "${chain_prompt_ref.output.model}",
+        "expectedFormat": "${chain_prompt_ref.output.expectedFormat}"
+      }
+    },
+    {
+      "name": "chain_parse",
+      "taskReferenceName": "chain_parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawText": "${chain_generate_ref.output.rawText}",
+        "expectedFormat": "${chain_generate_ref.output.expectedFormat}"
+      }
+    },
+    {
+      "name": "chain_validate",
+      "taskReferenceName": "chain_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "parsedData": "${chain_parse_ref.output.parsedData}",
+        "productCatalog": "${workflow.input.productCatalog}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "validatedResult": "${chain_validate_ref.output.validatedResult}",
+    "checks": "${chain_validate_ref.output.checks}",
+    "allChecksPassed": "${chain_validate_ref.output.allChecksPassed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

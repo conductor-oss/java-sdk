@@ -1,0 +1,30 @@
+[
+  {
+    "name": "sub_calc_total",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "sub_validate_payment",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "sub_charge_payment",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "sub_confirm_order",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "name": "fan_out_fan_in_demo",
+  "description": "Fan-Out/Fan-In — scatter-gather pattern using FORK_JOIN_DYNAMIC. Splits an image list into parallel processing tasks, processes each independently, then aggregates results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["images"],
+  "tasks": [
+    {
+      "name": "fo_prepare",
+      "taskReferenceName": "fo_prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "images": "${workflow.input.images}"
+      }
+    },
+    {
+      "name": "dynamic_fork",
+      "taskReferenceName": "dynamic_fork_ref",
+      "type": "FORK_JOIN_DYNAMIC",
+      "inputParameters": {
+        "dynamicForkTasksParam": "dynamicTasks",
+        "dynamicForkTasksInputParamName": "dynamicTasksInput"
+      },
+      "dynamicForkTasksParam": "dynamicTasks",
+      "dynamicForkTasksInputParamName": "dynamicTasksInput"
+    },
+    {
+      "name": "dynamic_join",
+      "taskReferenceName": "dynamic_join_ref",
+      "type": "JOIN"
+    },
+    {
+      "name": "fo_aggregate",
+      "taskReferenceName": "fo_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "joinOutput": "${dynamic_join_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "processedCount": "${fo_aggregate_ref.output.processedCount}",
+    "totalSize": "${fo_aggregate_ref.output.totalProcessed}",
+    "results": "${fo_aggregate_ref.output.results}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

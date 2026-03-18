@@ -1,0 +1,16 @@
+[
+  {
+    "name": "dw_process_item",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "dw_summarize",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

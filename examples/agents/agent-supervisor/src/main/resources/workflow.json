@@ -1,0 +1,92 @@
+{
+  "name": "agent_supervisor",
+  "description": "Agent supervisor that plans work, delegates to coder/tester/documenter agents in parallel, then reviews results",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "tasks": [
+    {
+      "name": "sup_plan",
+      "taskReferenceName": "plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "feature": "${workflow.input.feature}",
+        "priority": "${workflow.input.priority}",
+        "systemPrompt": "${workflow.input.systemPrompt}"
+      }
+    },
+    {
+      "name": "fork_agents",
+      "taskReferenceName": "fork_agents",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "sup_coder_agent",
+            "taskReferenceName": "coder_agent_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "task": "${plan_ref.output.codingTask}",
+              "feature": "${plan_ref.output.plan.feature}",
+              "systemPrompt": "${workflow.input.systemPrompt}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sup_tester_agent",
+            "taskReferenceName": "tester_agent_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "task": "${plan_ref.output.testingTask}",
+              "feature": "${plan_ref.output.plan.feature}",
+              "systemPrompt": "${workflow.input.systemPrompt}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sup_documenter_agent",
+            "taskReferenceName": "documenter_agent_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "task": "${plan_ref.output.documentationTask}",
+              "feature": "${plan_ref.output.plan.feature}",
+              "systemPrompt": "${workflow.input.systemPrompt}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_agents",
+      "taskReferenceName": "join_agents",
+      "type": "JOIN",
+      "joinOn": [
+        "coder_agent_ref",
+        "tester_agent_ref",
+        "documenter_agent_ref"
+      ]
+    },
+    {
+      "name": "sup_review",
+      "taskReferenceName": "review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "plan": "${plan_ref.output.plan}",
+        "codeResult": "${coder_agent_ref.output.result}",
+        "testResult": "${tester_agent_ref.output.result}",
+        "docResult": "${documenter_agent_ref.output.result}",
+        "systemPrompt": "${workflow.input.systemPrompt}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "feature": "${review_ref.output.report.feature}",
+    "overallStatus": "${review_ref.output.report.overallStatus}",
+    "actionItems": "${review_ref.output.report.actionItems}",
+    "metrics": "${review_ref.output.report.metrics}",
+    "agentsUsed": "${review_ref.output.report.agentsUsed}"
+  }
+}

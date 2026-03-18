@@ -1,0 +1,23 @@
+[
+  {
+    "name": "simple_transform",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "fetch_data",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "safe_process",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

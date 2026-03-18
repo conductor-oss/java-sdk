@@ -1,0 +1,14 @@
+[
+  {
+    "name": "exp_validate_policy",
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "exp_process",
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

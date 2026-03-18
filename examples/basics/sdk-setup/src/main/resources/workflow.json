@@ -1,0 +1,22 @@
+{
+  "name": "sdk_setup_test",
+  "description": "Smoke test workflow for SDK setup verification",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["check"],
+  "tasks": [
+    {
+      "name": "sdk_test_task",
+      "taskReferenceName": "sdk_test_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "check": "${workflow.input.check}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${sdk_test_task_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

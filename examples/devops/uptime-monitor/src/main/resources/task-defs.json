@@ -1,0 +1,13 @@
+[
+  {"name": "uptime_prepare_checks", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_check_endpoint", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_aggregate_results", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_send_slack_alert", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_send_email_alert", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_update_status_page", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_check_escalation", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_send_sms_alert", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_page_oncall", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_record_healthy", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "uptime_store_metrics", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"}
+]

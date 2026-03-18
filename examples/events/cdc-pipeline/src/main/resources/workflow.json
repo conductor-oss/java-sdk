@@ -1,0 +1,54 @@
+{
+  "name": "cdc_pipeline_wf",
+  "description": "CDC Pipeline — detect changes from a source table, transform them into events, publish downstream, and confirm delivery.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sourceTable", "sinceTimestamp", "targetTopic"],
+  "tasks": [
+    {
+      "name": "cd_detect_changes",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceTable": "${workflow.input.sourceTable}",
+        "sinceTimestamp": "${workflow.input.sinceTimestamp}"
+      }
+    },
+    {
+      "name": "cd_transform_changes",
+      "taskReferenceName": "transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changes": "${detect_ref.output.changes}",
+        "changeCount": "${detect_ref.output.changeCount}",
+        "sourceTable": "${workflow.input.sourceTable}"
+      }
+    },
+    {
+      "name": "cd_publish_downstream",
+      "taskReferenceName": "publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedChanges": "${transform_ref.output.transformedChanges}",
+        "targetTopic": "${workflow.input.targetTopic}"
+      }
+    },
+    {
+      "name": "cd_confirm_delivery",
+      "taskReferenceName": "confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "publishResult": "${publish_ref.output.publishResult}",
+        "messageIds": "${publish_ref.output.messageIds}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sourceTable": "${workflow.input.sourceTable}",
+    "changesDetected": "${detect_ref.output.changeCount}",
+    "changesPublished": "${publish_ref.output.messagesPublished}",
+    "allDelivered": "${confirm_ref.output.allDelivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

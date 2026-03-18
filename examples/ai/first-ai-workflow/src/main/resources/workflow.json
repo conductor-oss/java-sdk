@@ -1,0 +1,46 @@
+{
+  "name": "first_ai_workflow",
+  "description": "Chain of AI workers: prepare prompt, call LLM, parse response",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "model"],
+  "tasks": [
+    {
+      "name": "ai_prepare_prompt",
+      "taskReferenceName": "ai_prepare_prompt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "ai_call_llm",
+      "taskReferenceName": "ai_call_llm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${ai_prepare_prompt_ref.output.formattedPrompt}",
+        "model": "${workflow.input.model}",
+        "maxTokens": 1024,
+        "temperature": 0.7
+      }
+    },
+    {
+      "name": "ai_parse_response",
+      "taskReferenceName": "ai_parse_response_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawResponse": "${ai_call_llm_ref.output.rawResponse}",
+        "tokenUsage": "${ai_call_llm_ref.output.tokenUsage}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "question": "${workflow.input.question}",
+    "answer": "${ai_parse_response_ref.output.answer}",
+    "model": "${workflow.input.model}",
+    "tokens": "${ai_call_llm_ref.output.tokenUsage}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

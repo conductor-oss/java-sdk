@@ -1,0 +1,6 @@
+[
+  {"name": "pit_register", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "pit_verify_insurance", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "pit_triage", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "pit_assign", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"}
+]

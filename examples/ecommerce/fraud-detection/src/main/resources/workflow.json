@@ -1,0 +1,84 @@
+{
+  "name": "fraud_detection_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["transactionId", "amount", "merchantId", "customerId"],
+  "tasks": [
+    {
+      "name": "frd_analyze_transaction",
+      "taskReferenceName": "frd_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transactionId": "${workflow.input.transactionId}",
+        "amount": "${workflow.input.amount}",
+        "merchantId": "${workflow.input.merchantId}",
+        "customerId": "${workflow.input.customerId}"
+      }
+    },
+    {
+      "name": "frd_parallel_checks",
+      "taskReferenceName": "frd_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "frd_rule_check",
+            "taskReferenceName": "frd_rule_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "transactionId": "${workflow.input.transactionId}",
+              "amount": "${workflow.input.amount}",
+              "profile": "${frd_analyze_ref.output.profile}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "frd_ml_score",
+            "taskReferenceName": "frd_ml_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "transactionId": "${workflow.input.transactionId}",
+              "features": "${frd_analyze_ref.output.features}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "frd_velocity_check",
+            "taskReferenceName": "frd_velocity_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "customerId": "${workflow.input.customerId}",
+              "transactionId": "${workflow.input.transactionId}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "frd_join_checks",
+      "taskReferenceName": "frd_join_ref",
+      "type": "JOIN",
+      "joinOn": ["frd_rule_ref", "frd_ml_ref", "frd_velocity_ref"]
+    },
+    {
+      "name": "frd_decide",
+      "taskReferenceName": "frd_decide_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transactionId": "${workflow.input.transactionId}",
+        "ruleResult": "${frd_rule_ref.output.ruleResult}",
+        "mlScore": "${frd_ml_ref.output.fraudScore}",
+        "velocityResult": "${frd_velocity_ref.output.velocityResult}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "transactionId": "${workflow.input.transactionId}",
+    "decision": "${frd_decide_ref.output.decision}",
+    "riskScore": "${frd_decide_ref.output.riskScore}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

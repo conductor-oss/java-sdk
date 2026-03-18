@@ -1,0 +1,56 @@
+{
+  "name": "elasticsearch_integration_446",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "indexName",
+    "document",
+    "searchQuery"
+  ],
+  "tasks": [
+    {
+      "name": "els_index_doc",
+      "taskReferenceName": "index_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "indexName": "${workflow.input.indexName}",
+        "document": "${workflow.input.document}"
+      }
+    },
+    {
+      "name": "els_search",
+      "taskReferenceName": "search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "indexName": "${workflow.input.indexName}",
+        "query": "${workflow.input.searchQuery}"
+      }
+    },
+    {
+      "name": "els_aggregate",
+      "taskReferenceName": "agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "indexName": "${workflow.input.indexName}",
+        "hits": "${search_ref.output.hits}"
+      }
+    },
+    {
+      "name": "els_analyze",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregations": "${agg_ref.output.aggregations}",
+        "totalHits": "${search_ref.output.totalHits}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "documentId": "${index_ref.output.documentId}",
+    "totalHits": "${search_ref.output.totalHits}",
+    "topCategory": "${agg_ref.output.topCategory}",
+    "insights": "${analyze_ref.output.insights}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

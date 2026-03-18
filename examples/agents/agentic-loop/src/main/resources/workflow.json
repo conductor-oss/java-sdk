@@ -1,0 +1,68 @@
+{
+  "name": "agentic_loop",
+  "description": "Agentic Loop — Think, Act, Observe until goal is met. Pattern: set_goal -> DO_WHILE(think -> act -> observe, 3 iters) -> summarize",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["goal"],
+  "tasks": [
+    {
+      "name": "al_set_goal",
+      "taskReferenceName": "set_goal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "goal": "${workflow.input.goal}"
+      }
+    },
+    {
+      "name": "loop",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < 3) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "al_think",
+          "taskReferenceName": "think_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "goal": "${set_goal_ref.output.goal}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "al_act",
+          "taskReferenceName": "act_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "plan": "${think_ref.output.plan}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "al_observe",
+          "taskReferenceName": "observe_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "actionResult": "${act_ref.output.result}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "al_summarize",
+      "taskReferenceName": "summarize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "goal": "${set_goal_ref.output.goal}",
+        "totalIterations": 3
+      }
+    }
+  ],
+  "outputParameters": {
+    "goal": "${set_goal_ref.output.goal}",
+    "iterations": 3,
+    "summary": "${summarize_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

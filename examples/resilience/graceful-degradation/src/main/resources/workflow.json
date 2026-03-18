@@ -1,0 +1,67 @@
+{
+  "name": "graceful_degradation_demo",
+  "description": "Graceful degradation demo -- core process runs always, optional enrichment and analytics run in parallel via FORK/JOIN, finalize checks results and sets degraded flag.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["data", "enrichAvailable", "analyticsAvailable"],
+  "tasks": [
+    {
+      "name": "gd_core_process",
+      "taskReferenceName": "core_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${workflow.input.data}"
+      }
+    },
+    {
+      "name": "fork_optional_services",
+      "taskReferenceName": "fork_optional_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "gd_enrich",
+            "taskReferenceName": "enrich_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "available": "${workflow.input.enrichAvailable}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "gd_analytics",
+            "taskReferenceName": "analytics_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "available": "${workflow.input.analyticsAvailable}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_optional_services",
+      "taskReferenceName": "join_optional_ref",
+      "type": "JOIN",
+      "joinOn": ["enrich_ref", "analytics_ref"]
+    },
+    {
+      "name": "gd_finalize",
+      "taskReferenceName": "finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enriched": "${enrich_ref.output.enriched}",
+        "analytics": "${analytics_ref.output.tracked}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "coreResult": "${core_process_ref.output.result}",
+    "enriched": "${finalize_ref.output.enriched}",
+    "analytics": "${finalize_ref.output.analytics}",
+    "degraded": "${finalize_ref.output.degraded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

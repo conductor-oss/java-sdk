@@ -1,0 +1,63 @@
+{
+  "name": "prw_procurement",
+  "description": "Procurement workflow: requisition, approve, purchase, receive goods, and process payment.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["item", "quantity", "budget", "requester"],
+  "tasks": [
+    {
+      "name": "prw_requisition",
+      "taskReferenceName": "prw_req_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "item": "${workflow.input.item}",
+        "quantity": "${workflow.input.quantity}",
+        "requester": "${workflow.input.requester}"
+      }
+    },
+    {
+      "name": "prw_approve",
+      "taskReferenceName": "prw_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requisitionId": "${prw_req_ref.output.requisitionId}",
+        "estimatedCost": "${prw_req_ref.output.estimatedCost}",
+        "budget": "${workflow.input.budget}"
+      }
+    },
+    {
+      "name": "prw_purchase",
+      "taskReferenceName": "prw_purchase_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requisitionId": "${prw_req_ref.output.requisitionId}",
+        "approved": "${prw_approve_ref.output.approved}"
+      }
+    },
+    {
+      "name": "prw_receive",
+      "taskReferenceName": "prw_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "poNumber": "${prw_purchase_ref.output.poNumber}"
+      }
+    },
+    {
+      "name": "prw_pay",
+      "taskReferenceName": "prw_pay_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "poNumber": "${prw_purchase_ref.output.poNumber}",
+        "amount": "${prw_purchase_ref.output.totalCost}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requisitionId": "${prw_req_ref.output.requisitionId}",
+    "approved": "${prw_approve_ref.output.approved}",
+    "poNumber": "${prw_purchase_ref.output.poNumber}",
+    "paymentId": "${prw_pay_ref.output.paymentId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

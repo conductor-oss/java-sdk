@@ -1,0 +1,22 @@
+{
+  "name": "rate_limit_demo",
+  "description": "Rate limiting demo — demonstrates task-level rate limiting with concurrency and frequency constraints.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batchId"],
+  "tasks": [
+    {
+      "name": "rl_api_call",
+      "taskReferenceName": "rl_api_call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${rl_api_call_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

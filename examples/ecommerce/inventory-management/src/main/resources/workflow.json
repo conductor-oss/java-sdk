@@ -1,0 +1,57 @@
+{
+  "name": "inventory_management",
+  "description": "Inventory management workflow: check stock, reserve, update, reorder if low",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sku", "requestedQty", "warehouseId", "reorderThreshold"],
+  "tasks": [
+    {
+      "name": "inv_check_stock",
+      "taskReferenceName": "check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sku": "${workflow.input.sku}",
+        "warehouseId": "${workflow.input.warehouseId}"
+      }
+    },
+    {
+      "name": "inv_reserve",
+      "taskReferenceName": "reserve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sku": "${workflow.input.sku}",
+        "requestedQty": "${workflow.input.requestedQty}",
+        "availableQty": "${check_ref.output.availableQty}"
+      }
+    },
+    {
+      "name": "inv_update",
+      "taskReferenceName": "update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sku": "${workflow.input.sku}",
+        "warehouseId": "${workflow.input.warehouseId}",
+        "reservedQty": "${reserve_ref.output.reservedQty}",
+        "previousQty": "${check_ref.output.availableQty}"
+      }
+    },
+    {
+      "name": "inv_reorder",
+      "taskReferenceName": "reorder_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sku": "${workflow.input.sku}",
+        "remainingQty": "${update_ref.output.remainingQty}",
+        "reorderThreshold": "${workflow.input.reorderThreshold}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "availableQty": "${check_ref.output.availableQty}",
+    "reserved": "${reserve_ref.output.reserved}",
+    "remainingQty": "${update_ref.output.remainingQty}",
+    "reorderPlaced": "${reorder_ref.output.reorderPlaced}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

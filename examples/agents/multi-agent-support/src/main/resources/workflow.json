@@ -1,0 +1,93 @@
+{
+  "name": "multi_agent_customer_support",
+  "description": "Multi-Agent Customer Support — classifies tickets and routes to specialized agents (bug fix, feature evaluation, or general response), then validates quality.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["ticketId", "subject", "description", "customerTier"],
+  "tasks": [
+    {
+      "name": "cs_classify_ticket",
+      "taskReferenceName": "classify_ticket_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subject": "${workflow.input.subject}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "route_by_category",
+      "taskReferenceName": "route_by_category_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${classify_ticket_ref.output.category}"
+      },
+      "decisionCases": {
+        "bug": [
+          {
+            "name": "cs_knowledge_search",
+            "taskReferenceName": "knowledge_search_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subject": "${workflow.input.subject}",
+              "description": "${workflow.input.description}",
+              "keywords": "${classify_ticket_ref.output.keywords}"
+            }
+          },
+          {
+            "name": "cs_solution_propose",
+            "taskReferenceName": "solution_propose_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "kbArticles": "${knowledge_search_ref.output.kbArticles}",
+              "description": "${workflow.input.description}",
+              "severity": "${classify_ticket_ref.output.severity}"
+            }
+          }
+        ],
+        "feature": [
+          {
+            "name": "cs_feature_evaluate",
+            "taskReferenceName": "feature_evaluate_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subject": "${workflow.input.subject}",
+              "description": "${workflow.input.description}",
+              "customerTier": "${workflow.input.customerTier}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "cs_general_respond",
+          "taskReferenceName": "general_respond_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "subject": "${workflow.input.subject}",
+            "description": "${workflow.input.description}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cs_qa_validate",
+      "taskReferenceName": "qa_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${workflow.input.ticketId}",
+        "category": "${classify_ticket_ref.output.category}",
+        "customerTier": "${workflow.input.customerTier}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ticketId": "${workflow.input.ticketId}",
+    "category": "${classify_ticket_ref.output.category}",
+    "approved": "${qa_validate_ref.output.approved}",
+    "finalResponse": "${qa_validate_ref.output.finalResponse}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,22 @@
+{
+  "name": "registration_demo",
+  "description": "Workflow registration demo — echoes a message through a single task",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["message"],
+  "tasks": [
+    {
+      "name": "echo_task",
+      "taskReferenceName": "echo_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "message": "${workflow.input.message}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${echo_task_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

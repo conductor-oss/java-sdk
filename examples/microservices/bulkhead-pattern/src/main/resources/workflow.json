@@ -1,0 +1,54 @@
+{
+  "name": "bulkhead_pattern_workflow",
+  "description": "Bulkhead pattern workflow that isolates microservice resources using task pools and rate limiting so a failure in one service does not consume resources for others.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "serviceName",
+    "priority",
+    "request"
+  ],
+  "tasks": [
+    {
+      "name": "bh_classify_request",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "priority": "${workflow.input.priority}"
+      }
+    },
+    {
+      "name": "bh_allocate_pool",
+      "taskReferenceName": "pool_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pool": "${classify_ref.output.pool}",
+        "maxConcurrency": "${classify_ref.output.maxConcurrency}"
+      }
+    },
+    {
+      "name": "bh_execute_request",
+      "taskReferenceName": "exec_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "request": "${workflow.input.request}",
+        "poolId": "${pool_ref.output.poolId}"
+      }
+    },
+    {
+      "name": "bh_release_pool",
+      "taskReferenceName": "release_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "poolId": "${pool_ref.output.poolId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "pool": "${classify_ref.output.pool}",
+    "response": "${exec_ref.output.response}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

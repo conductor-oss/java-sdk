@@ -1,0 +1,23 @@
+{
+  "name": "workflow_recovery_demo",
+  "description": "Workflow Recovery demo -- demonstrates Conductor persistence across server restarts.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batch"],
+  "tasks": [
+    {
+      "name": "wr_durable_task",
+      "taskReferenceName": "wr_durable_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batch": "${workflow.input.batch}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "processed": "${wr_durable_task_ref.output.processed}",
+    "batch": "${wr_durable_task_ref.output.batch}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

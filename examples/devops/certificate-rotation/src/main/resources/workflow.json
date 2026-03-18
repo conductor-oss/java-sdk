@@ -1,0 +1,50 @@
+{
+  "name": "certificate_rotation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "domain",
+    "certType"
+  ],
+  "tasks": [
+    {
+      "name": "cr_discover",
+      "taskReferenceName": "discover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "domain": "${workflow.input.domain}",
+        "certType": "${workflow.input.certType}"
+      }
+    },
+    {
+      "name": "cr_generate",
+      "taskReferenceName": "generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "generateData": "${discover_ref.output}"
+      }
+    },
+    {
+      "name": "cr_deploy",
+      "taskReferenceName": "deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deployData": "${generate_ref.output}"
+      }
+    },
+    {
+      "name": "cr_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verifyData": "${deploy_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "discoverResult": "${discover_ref.output}",
+    "verifyResult": "${verify_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

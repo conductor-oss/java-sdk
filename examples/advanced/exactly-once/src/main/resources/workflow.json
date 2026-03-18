@@ -1,0 +1,67 @@
+{
+  "name": "exo_exactly_once",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "messageId",
+    "payload",
+    "resourceKey"
+  ],
+  "tasks": [
+    {
+      "name": "exo_lock",
+      "taskReferenceName": "exo_lock_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceKey": "${workflow.input.resourceKey}",
+        "ttlSeconds": 30
+      }
+    },
+    {
+      "name": "exo_check_state",
+      "taskReferenceName": "exo_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "lockToken": "${exo_lock_ref.output.lockToken}"
+      }
+    },
+    {
+      "name": "exo_process",
+      "taskReferenceName": "exo_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "payload": "${workflow.input.payload}",
+        "currentState": "${exo_check_ref.output.currentState}"
+      }
+    },
+    {
+      "name": "exo_commit",
+      "taskReferenceName": "exo_commit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "result": "${exo_process_ref.output.result}",
+        "lockToken": "${exo_lock_ref.output.lockToken}"
+      }
+    },
+    {
+      "name": "exo_unlock",
+      "taskReferenceName": "exo_unlock_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceKey": "${workflow.input.resourceKey}",
+        "lockToken": "${exo_lock_ref.output.lockToken}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${workflow.input.messageId}",
+    "processed": "${exo_process_ref.output.processed}",
+    "committed": "${exo_commit_ref.output.committed}",
+    "unlocked": "${exo_unlock_ref.output.unlocked}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

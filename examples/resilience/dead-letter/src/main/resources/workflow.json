@@ -1,0 +1,24 @@
+{
+  "name": "dead_letter_demo",
+  "description": "Dead letter queue demo -- dl_process task that can fail based on mode input. Failed tasks are captured for dead letter handling.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["mode", "data"],
+  "tasks": [
+    {
+      "name": "dl_process",
+      "taskReferenceName": "dl_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mode": "${workflow.input.mode}",
+        "data": "${workflow.input.data}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${dl_process_ref.output.result}",
+    "mode": "${dl_process_ref.output.mode}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

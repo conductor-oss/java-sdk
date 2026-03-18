@@ -1,0 +1,69 @@
+{
+  "name": "customer_onboarding_kyc",
+  "description": "Customer Onboarding KYC -- auto-approves low-risk customers, routes high-risk to manual review via WAIT task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "customerName", "riskLevel"],
+  "tasks": [
+    {
+      "name": "kyc_check",
+      "taskReferenceName": "kyc_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "customerName": "${workflow.input.customerName}",
+        "riskLevel": "${workflow.input.riskLevel}"
+      }
+    },
+    {
+      "name": "kyc_review_decision",
+      "taskReferenceName": "kyc_review_decision_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "needsReview",
+      "inputParameters": {
+        "needsReview": "${kyc_check_ref.output.needsReview}"
+      },
+      "decisionCases": {
+        "true": [
+          {
+            "name": "manual_kyc_review",
+            "taskReferenceName": "manual_kyc_review_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "customerId": "${workflow.input.customerId}",
+              "customerName": "${workflow.input.customerName}",
+              "flags": "${kyc_check_ref.output.flags}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "kyc_auto_approved",
+          "taskReferenceName": "kyc_auto_approved_ref",
+          "type": "SET_VARIABLE",
+          "inputParameters": {
+            "reviewSkipped": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "kyc_activate",
+      "taskReferenceName": "kyc_activate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "customerName": "${workflow.input.customerName}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "activated": "${kyc_activate_ref.output.activated}",
+    "customerId": "${workflow.input.customerId}",
+    "needsReview": "${kyc_check_ref.output.needsReview}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 3600
+}

@@ -1,0 +1,8 @@
+{"name":"anomaly_detection_414","version":1,"schemaVersion":2,"inputParameters":["metricName","lookbackHours","sensitivity"],
+"tasks":[
+ {"name":"anom_collect_data","taskReferenceName":"anom_collect_ref","type":"SIMPLE","inputParameters":{"metricName":"${workflow.input.metricName}","lookbackHours":"${workflow.input.lookbackHours}"}},
+ {"name":"anom_compute_baseline","taskReferenceName":"anom_baseline_ref","type":"SIMPLE","inputParameters":{"dataPoints":"${anom_collect_ref.output.dataPoints}","metricName":"${workflow.input.metricName}"}},
+ {"name":"anom_detect","taskReferenceName":"anom_detect_ref","type":"SIMPLE","inputParameters":{"mean":"${anom_baseline_ref.output.mean}","stdDev":"${anom_baseline_ref.output.stdDev}","latestValue":"${anom_collect_ref.output.latestValue}","sensitivity":"${workflow.input.sensitivity}"}},
+ {"name":"anom_classify","taskReferenceName":"anom_classify_ref","type":"SIMPLE","inputParameters":{"isAnomaly":"${anom_detect_ref.output.isAnomaly}","zScore":"${anom_detect_ref.output.zScore}","metricName":"${workflow.input.metricName}"}},
+ {"name":"anom_alert","taskReferenceName":"anom_alert_ref","type":"SIMPLE","inputParameters":{"classification":"${anom_classify_ref.output.classification}","metricName":"${workflow.input.metricName}","severity":"${anom_classify_ref.output.severity}"}}
+],"outputParameters":{"isAnomaly":"${anom_detect_ref.output.isAnomaly}","classification":"${anom_classify_ref.output.classification}","severity":"${anom_classify_ref.output.severity}","alerted":"${anom_alert_ref.output.alerted}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

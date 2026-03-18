@@ -1,0 +1,38 @@
+{
+  "name": "escalation_chain_demo",
+  "description": "Multi-level escalation chain -- submit, WAIT for approval (Analyst -> Manager -> VP), then finalize.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId"],
+  "tasks": [
+    {
+      "name": "esc_submit",
+      "taskReferenceName": "submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}"
+      }
+    },
+    {
+      "name": "esc_approval",
+      "taskReferenceName": "wait_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "esc_finalize",
+      "taskReferenceName": "final_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "decision": "${wait_ref.output.decision}",
+        "level": "${wait_ref.output.respondedAt}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "decision": "${wait_ref.output.decision}",
+    "respondedAt": "${wait_ref.output.respondedAt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

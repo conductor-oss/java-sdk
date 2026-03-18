@@ -1,0 +1,48 @@
+{
+  "name": "expense_approval",
+  "description": "Expense approval with policy validation and conditional human approval",
+  "version": 1,
+  "schemaVersion": 2,
+  "tasks": [
+    {
+      "name": "exp_validate_policy",
+      "taskReferenceName": "validate_policy",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "amount": "${workflow.input.amount}",
+        "category": "${workflow.input.category}"
+      }
+    },
+    {
+      "name": "approval_switch",
+      "taskReferenceName": "approval_switch",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "approvalRequired",
+      "inputParameters": {
+        "approvalRequired": "${validate_policy.output.approvalRequired}"
+      },
+      "decisionCases": {
+        "true": [
+          {
+            "name": "wait_for_approval",
+            "taskReferenceName": "wait_for_approval",
+            "type": "WAIT",
+            "inputParameters": {}
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "exp_process",
+      "taskReferenceName": "process",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    }
+  ],
+  "outputParameters": {
+    "approvalRequired": "${validate_policy.output.approvalRequired}",
+    "processed": "${process.output.processed}"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "name": "secrets_management_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "secretName",
+    "secretType",
+    "consumers"
+  ],
+  "tasks": [
+    {
+      "name": "sm_create_secret",
+      "taskReferenceName": "create_secret_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "secretName": "${workflow.input.secretName}",
+        "secretType": "${workflow.input.secretType}",
+        "consumers": "${workflow.input.consumers}"
+      }
+    },
+    {
+      "name": "sm_distribute",
+      "taskReferenceName": "distribute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "distributeData": "${create_secret_ref.output}"
+      }
+    },
+    {
+      "name": "sm_verify_access",
+      "taskReferenceName": "verify_access_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_accessData": "${distribute_ref.output}"
+      }
+    },
+    {
+      "name": "sm_schedule_rotation",
+      "taskReferenceName": "schedule_rotation_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "schedule_rotationData": "${verify_access_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "create_secretResult": "${create_secret_ref.output}",
+    "schedule_rotationResult": "${schedule_rotation_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

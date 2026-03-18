@@ -1,0 +1,87 @@
+{
+  "name": "sgr_scatter_gather",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "query",
+    "sources"
+  ],
+  "tasks": [
+    {
+      "name": "sgr_broadcast",
+      "taskReferenceName": "sgr_broadcast_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}",
+        "sources": "${workflow.input.sources}"
+      }
+    },
+    {
+      "name": "gather_fork",
+      "taskReferenceName": "sgr_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "sgr_gather_1",
+            "taskReferenceName": "sgr_gather1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${workflow.input.query}",
+              "source": "price_service_a"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sgr_gather_2",
+            "taskReferenceName": "sgr_gather2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${workflow.input.query}",
+              "source": "price_service_b"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sgr_gather_3",
+            "taskReferenceName": "sgr_gather3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${workflow.input.query}",
+              "source": "price_service_c"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "gather_join",
+      "taskReferenceName": "sgr_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "sgr_gather1_ref",
+        "sgr_gather2_ref",
+        "sgr_gather3_ref"
+      ]
+    },
+    {
+      "name": "sgr_aggregate",
+      "taskReferenceName": "sgr_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "response1": "${sgr_gather1_ref.output.response}",
+        "response2": "${sgr_gather2_ref.output.response}",
+        "response3": "${sgr_gather3_ref.output.response}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "query": "${workflow.input.query}",
+    "bestPrice": "${sgr_aggregate_ref.output.bestPrice}",
+    "aggregated": "${sgr_aggregate_ref.output.aggregated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

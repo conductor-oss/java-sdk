@@ -1,0 +1,59 @@
+{
+  "name": "jira_integration",
+  "description": "Jira integration: create issue, track status, transition, notify",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "project",
+    "summary",
+    "description",
+    "assignee"
+  ],
+  "tasks": [
+    {
+      "name": "jra_create_issue",
+      "taskReferenceName": "create_issue_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "project": "${workflow.input.project}",
+        "summary": "${workflow.input.summary}",
+        "description": "${workflow.input.description}",
+        "assignee": "${workflow.input.assignee}"
+      }
+    },
+    {
+      "name": "jra_track_status",
+      "taskReferenceName": "track_status_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "issueKey": "${create_issue_ref.output.issueKey}"
+      }
+    },
+    {
+      "name": "jra_transition",
+      "taskReferenceName": "transition_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "issueKey": "${create_issue_ref.output.issueKey}",
+        "currentStatus": "${track_status_ref.output.status}"
+      }
+    },
+    {
+      "name": "jra_notify",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "issueKey": "${create_issue_ref.output.issueKey}",
+        "assignee": "${workflow.input.assignee}",
+        "newStatus": "${transition_ref.output.newStatus}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "issueKey": "${create_issue_ref.output.issueKey}",
+    "status": "${transition_ref.output.newStatus}",
+    "notified": "${notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

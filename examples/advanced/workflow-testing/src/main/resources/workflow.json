@@ -1,0 +1,62 @@
+{
+  "name": "wft_workflow_testing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["testSuite", "workflowUnderTest", "expectedOutput"],
+  "tasks": [
+    {
+      "name": "wft_setup",
+      "taskReferenceName": "wft_setup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testSuite": "${workflow.input.testSuite}",
+        "workflowUnderTest": "${workflow.input.workflowUnderTest}"
+      }
+    },
+    {
+      "name": "wft_execute",
+      "taskReferenceName": "wft_execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fixtures": "${wft_setup_ref.output.fixtures}",
+        "workflowUnderTest": "${workflow.input.workflowUnderTest}"
+      }
+    },
+    {
+      "name": "wft_assert",
+      "taskReferenceName": "wft_assert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "actualOutput": "${wft_execute_ref.output.actualOutput}",
+        "expectedOutput": "${workflow.input.expectedOutput}"
+      }
+    },
+    {
+      "name": "wft_teardown",
+      "taskReferenceName": "wft_teardown_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fixtures": "${wft_setup_ref.output.fixtures}"
+      }
+    },
+    {
+      "name": "wft_report",
+      "taskReferenceName": "wft_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testSuite": "${workflow.input.testSuite}",
+        "assertions": "${wft_assert_ref.output.assertions}",
+        "allPassed": "${wft_assert_ref.output.allPassed}",
+        "teardownClean": "${wft_teardown_ref.output.cleanedUp}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "testSuite": "${workflow.input.testSuite}",
+    "allPassed": "${wft_assert_ref.output.allPassed}",
+    "assertions": "${wft_assert_ref.output.assertions}",
+    "report": "${wft_report_ref.output.report}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}
