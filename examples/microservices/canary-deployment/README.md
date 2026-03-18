@@ -1,10 +1,10 @@
 # Canary Deployment in Java with Conductor
 
-You merge the PR, CI goes green, and you deploy to prod. Two minutes later, 100% of your users are hitting the new code -- and the new code has a subtle bug that doubles response latency on the `/checkout` endpoint. By the time your on-call notices the Datadog alert and rolls back, 40,000 users have experienced broken checkouts. The postmortem is always the same: "we should have tested with a small percentage of traffic first." But doing that manually -- deploying a canary, shifting 5% of traffic, watching error rates, deciding whether to promote or rollback -- is tedious and error-prone, so teams skip it. This workflow automates the entire canary lifecycle: deploy, shift traffic gradually, analyze metrics, and promote or roll back automatically. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You merge the PR, CI goes green, and you deploy to prod. Two minutes later, 100% of your users are hitting the new code, and the new code has a subtle bug that doubles response latency on the `/checkout` endpoint. By the time your on-call notices the Datadog alert and rolls back, 40,000 users have experienced broken checkouts. The postmortem is always the same: "we should have tested with a small percentage of traffic first." But doing that manually: deploying a canary, shifting 5% of traffic, watching error rates, deciding whether to promote or rollback, is tedious and error-prone, so teams skip it. This workflow automates the entire canary lifecycle: deploy, shift traffic gradually, analyze metrics, and promote or roll back automatically. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-Rolling out a new service version to 100% of traffic at once is risky -- a bug can affect all users instantly. Canary deployment mitigates this by deploying the new version alongside the old one, gradually shifting a percentage of traffic to the canary, analyzing error rates and latency, and then promoting or rolling back based on the results.
+Rolling out a new service version to 100% of traffic at once is risky, a bug can affect all users instantly. Canary deployment mitigates this by deploying the new version alongside the old one, gradually shifting a percentage of traffic to the canary, analyzing error rates and latency, and then promoting or rolling back based on the results.
 
 Without orchestration, the deploy-shift-analyze-decide pipeline is typically a set of loosely coupled CI/CD steps with no unified state. If the analysis step fails, the traffic shift may not be reverted, and there is no single place to see the full canary lifecycle.
 
@@ -12,7 +12,7 @@ Without orchestration, the deploy-shift-analyze-decide pipeline is typically a s
 
 **You just write the deploy, traffic-shift, metrics-analysis, and promote-or-rollback workers. Conductor handles staged execution, durable state between deploy and promote, and a full audit of every canary decision.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing -- your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. Your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ Four workers drive the canary lifecycle: DeployCanaryWorker provisions the new v
 | **PromoteOrRollbackWorker** | `cd_promote_or_rollback` | Compares the canary error rate against a threshold and decides whether to promote to full rollout or roll back. | Simulated |
 | **ShiftTrafficWorker** | `cd_shift_traffic` | Shifts a specified percentage of live traffic to the canary instances. | Simulated |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients -- the workflow coordination stays the same.
+Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,11 +161,11 @@ conductor workflow search -w canary_deployment_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real Kubernetes or ECS deployment API, load balancer weights, and Prometheus/Datadog metrics -- the canary deploy-shift-analyze-decide workflow stays exactly the same.
+Point each worker at your real Kubernetes or ECS deployment API, load balancer weights, and Prometheus/Datadog metrics, the canary deploy-shift-analyze-decide workflow stays exactly the same.
 
-- **AnalyzeMetricsWorker** (`cd_analyze_metrics`) -- query Prometheus, Datadog, or CloudWatch for real canary vs baseline metrics
-- **DeployCanaryWorker** (`cd_deploy_canary`) -- call your container orchestrator (Kubernetes, ECS) to create canary pods/tasks with the new image
-- **PromoteOrRollbackWorker** (`cd_promote_or_rollback`) -- integrate with your deployment API to execute a real full promotion (scale canary to 100%) or rollback (scale canary to 0%)
+- **AnalyzeMetricsWorker** (`cd_analyze_metrics`): query Prometheus, Datadog, or CloudWatch for real canary vs baseline metrics
+- **DeployCanaryWorker** (`cd_deploy_canary`): call your container orchestrator (Kubernetes, ECS) to create canary pods/tasks with the new image
+- **PromoteOrRollbackWorker** (`cd_promote_or_rollback`): integrate with your deployment API to execute a real full promotion (scale canary to 100%) or rollback (scale canary to 0%)
 
 Pointing AnalyzeMetricsWorker at a different observability backend requires no changes to the canary workflow definition.
 

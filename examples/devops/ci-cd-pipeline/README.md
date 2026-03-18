@@ -1,12 +1,12 @@
-# CI/CD Pipeline in Java with Conductor -- Build, Parallel Tests, Deploy Staging, Deploy Production
+# CI/CD Pipeline in Java with Conductor: Build, Parallel Tests, Deploy Staging, Deploy Production
 
-Someone pushed to main. Seven CI jobs kicked off in three different systems. The unit tests passed, but the integration test job silently timed out and reported "success" because the exit code wasn't checked. The security scan found a critical vulnerability in a transitive dependency, but it posted to a Slack channel nobody monitors. Meanwhile, the deploy job grabbed a stale artifact from the previous run because two builds wrote to the same S3 path. Production is now running code that failed integration tests, with a known CVE, and the deploy log says "all green." This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full CI/CD pipeline -- build, parallel tests, staging deploy, production promotion -- as a single traceable execution where every failure halts the line.
+Someone pushed to main. Seven CI jobs kicked off in three different systems. The unit tests passed, but the integration test job silently timed out and reported "success" because the exit code wasn't checked. The security scan found a critical vulnerability in a transitive dependency, but it posted to a Slack channel nobody monitors. Meanwhile, the deploy job grabbed a stale artifact from the previous run because two builds wrote to the same S3 path. Production is now running code that failed integration tests, with a known CVE, and the deploy log says "all green." This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full CI/CD pipeline: build, parallel tests, staging deploy, production promotion, as a single traceable execution where every failure halts the line.
 
 ## From Git Commit to Production in One Pipeline
 
 A developer pushes a commit to the main branch. The CI/CD pipeline must build the project from that commit SHA, run unit tests and integration tests in parallel (cutting test time in half), deploy to staging if tests pass, run smoke tests against staging, and deploy to production if staging is healthy. Each step depends on the previous one's success, and any failure should halt the pipeline with clear reporting.
 
-The pipeline must be idempotent: re-running it with the same commit SHA should produce the same build. Tests should run in parallel to minimize pipeline time. The staging deployment must be verified before production deployment begins. And every pipeline run needs a complete audit trail -- what was built, what tests ran, what was deployed, and when.
+The pipeline must be idempotent: re-running it with the same commit SHA should produce the same build. Tests should run in parallel to minimize pipeline time. The staging deployment must be verified before production deployment begins. And every pipeline run needs a complete audit trail. What was built, what tests ran, what was deployed, and when.
 
 ## The Solution
 
@@ -16,7 +16,7 @@ The pipeline must be idempotent: re-running it with the same commit SHA should p
 
 ### What You Write: Workers
 
-Four workers run the CI/CD pipeline -- building from a commit, running tests in parallel, deploying to staging, and promoting to production.
+Four workers run the CI/CD pipeline. Building from a commit, running tests in parallel, deploying to staging, and promoting to production.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ Four workers run the CI/CD pipeline -- building from a commit, running tests in 
 | **DeployStaging** | `cicd_deploy_staging` | Deploys the build to staging environment. | Simulated |
 | **SecurityScan** | `cicd_security_scan` | Runs security scan for the build. | Simulated |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls -- the workflow and rollback logic stay the same.
+Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -89,9 +89,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -167,12 +167,12 @@ conductor workflow search -w cicd_pipeline_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one pipeline stage -- replace the simulated build and deploy calls with Jenkins, GitHub Actions, or ArgoCD, and the CI/CD pipeline runs unchanged.
+Each worker owns one pipeline stage. Replace the simulated build and deploy calls with Jenkins, GitHub Actions, or ArgoCD, and the CI/CD pipeline runs unchanged.
 
-- **Build** (`cicd_build`) -- integrate with Maven/Gradle for Java builds, Docker for container image building, and push artifacts to ECR/Docker Hub/Artifactory
-- **SecurityScan** (`cicd_security_scan`) -- run Snyk, Trivy, or OWASP Dependency-Check for vulnerability scanning, with configurable severity thresholds to gate deployment
-- **DeployStaging** (`cicd_deploy_staging`) -- deploy to a staging environment via Helm upgrade, Kubernetes apply, or AWS ECS service update for pre-production validation
-- **DeployProd** (`cicd_deploy_prod`) -- deploy via ArgoCD GitOps sync, AWS CodeDeploy, or Kubernetes rolling update with canary analysis before full rollout
+- **Build** (`cicd_build`): integrate with Maven/Gradle for Java builds, Docker for container image building, and push artifacts to ECR/Docker Hub/Artifactory
+- **SecurityScan** (`cicd_security_scan`): run Snyk, Trivy, or OWASP Dependency-Check for vulnerability scanning, with configurable severity thresholds to gate deployment
+- **DeployStaging** (`cicd_deploy_staging`): deploy to a staging environment via Helm upgrade, Kubernetes apply, or AWS ECS service update for pre-production validation
+- **DeployProd** (`cicd_deploy_prod`): deploy via ArgoCD GitOps sync, AWS CodeDeploy, or Kubernetes rolling update with canary analysis before full rollout
 
 Wire in your real build system and deployment targets; the CI/CD pipeline preserves the same stage-gate contract.
 

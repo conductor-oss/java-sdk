@@ -1,10 +1,10 @@
-# OpenAI GPT-4 in Java Using Conductor -- Chat Completion Pipeline with Request Building and Result Extraction
+# OpenAI GPT-4 in Java Using Conductor: Chat Completion Pipeline with Request Building and Result Extraction
 
-You want to call GPT-4 from a workflow, but the API times out sometimes, the response format varies between models, retries are manual, and there is no record of which calls consumed how many tokens. Prompt construction, HTTP calls, and response parsing get tangled into one brittle method where changing the system message means touching retry logic. This example builds a clean three-step GPT-4 pipeline using [Conductor](https://github.com/conductor-oss/conductor) -- build the request, call the API, extract the result -- so each concern is independently testable, retryable, and observable without writing a single line of retry or logging code.
+You want to call GPT-4 from a workflow, but the API times out sometimes, the response format varies between models, retries are manual, and there is no record of which calls consumed how many tokens. Prompt construction, HTTP calls, and response parsing get tangled into one brittle method where changing the system message means touching retry logic. This example builds a clean three-step GPT-4 pipeline using [Conductor](https://github.com/conductor-oss/conductor). Build the request, call the API, extract the result, so each concern is independently testable, retryable, and observable without writing a single line of retry or logging code.
 
 ## Structured GPT-4 Integration
 
-OpenAI's chat completion API requires a specific request format -- messages with roles, model selection, temperature, max_tokens, and optional function calling. The response returns a choices array with finish reasons and a usage object tracking prompt and completion tokens. Building the request, making the API call, and parsing the response are three distinct concerns.
+OpenAI's chat completion API requires a specific request format. Messages with roles, model selection, temperature, max_tokens, and optional function calling. The response returns a choices array with finish reasons and a usage object tracking prompt and completion tokens. Building the request, making the API call, and parsing the response are three distinct concerns.
 
 When they're combined in a single method, changing the prompt format (adding a system message, switching from GPT-4 to GPT-4 Turbo) means touching API call code. A 429 rate-limit error loses the built request. And there's no centralized record of token usage across calls for cost tracking.
 
@@ -12,11 +12,11 @@ When they're combined in a single method, changing the prompt format (adding a s
 
 **You write the request construction, API call, and result extraction logic. Conductor handles the pipeline, durability, and observability.**
 
-Each concern is an independent worker -- request building (constructing the messages array with system and user messages, setting model parameters), API invocation (the actual HTTP call to OpenAI), and result extraction (pulling the response text and token usage from the choices array). Conductor chains them, records every call's prompt, response, and token usage, and lets you raise retries later if you want automatic replay behavior in production. In this example, task defs intentionally use `retryCount=0` so live API failures surface immediately while you validate the integration.
+Each concern is an independent worker. Request building (constructing the messages array with system and user messages, setting model parameters), API invocation (the actual HTTP call to OpenAI), and result extraction (pulling the response text and token usage from the choices array). Conductor chains them, records every call's prompt, response, and token usage, and lets you raise retries later if you want automatic replay behavior in production. In this example, task defs intentionally use `retryCount=0` so live API failures surface immediately while you validate the integration.
 
 ### What You Write: Workers
 
-Three workers handle the OpenAI integration -- building the chat completion request with messages and parameters, calling the GPT-4 API, and extracting the response text with usage statistics.
+Three workers handle the OpenAI integration. Building the chat completion request with messages and parameters, calling the GPT-4 API, and extracting the response text with usage statistics.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -32,7 +32,7 @@ Without `CONDUCTOR_OPENAI_API_KEY`, the `Gpt4CallApiWorker` runs in simulated mo
 |---|---|
 | **Configurable retry policy** | These example task definitions intentionally use `retryCount=0` so provider failures fail fast during development. Increase retries per task when you want automatic replay behavior. |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -81,9 +81,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -163,13 +163,13 @@ conductor workflow search -w openai_gpt4_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one phase of the GPT-4 integration -- swap in real OpenAI Chat Completions API calls with function calling or JSON mode, and the build-call-extract pipeline runs unchanged.
+Each worker handles one phase of the GPT-4 integration. Swap in real OpenAI Chat Completions API calls with function calling or JSON mode, and the build-call-extract pipeline runs unchanged.
 
-- **Gpt4BuildRequestWorker** (`gpt4_build_request`) -- add function calling definitions, response_format for JSON mode, or multi-turn conversation history to the request body
-- **Gpt4CallApiWorker** (`gpt4_call_api`) -- already uses the official OpenAI Java SDK in live mode. Extend it with structured output, tool calls, or custom rate-limit handling while keeping the request/response contract stable
-- **Gpt4ExtractResultWorker** (`gpt4_extract_result`) -- parse function call responses, handle multiple choices for best-of-N sampling, or extract structured data using JSON mode output
+- **Gpt4BuildRequestWorker** (`gpt4_build_request`): add function calling definitions, response_format for JSON mode, or multi-turn conversation history to the request body
+- **Gpt4CallApiWorker** (`gpt4_call_api`): already uses the official OpenAI Java SDK in live mode. Extend it with structured output, tool calls, or custom rate-limit handling while keeping the request/response contract stable
+- **Gpt4ExtractResultWorker** (`gpt4_extract_result`): parse function call responses, handle multiple choices for best-of-N sampling, or extract structured data using JSON mode output
 
-The request-in, result-out contract is stable -- switch between GPT-4, GPT-4o, or o1 models, or add function calling, without modifying the workflow.
+The request-in, result-out contract is stable. Switch between GPT-4, GPT-4o, or o1 models, or add function calling, without modifying the workflow.
 
 ## SDK
 

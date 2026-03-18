@@ -1,6 +1,6 @@
-# Creating Workers in Java with Conductor -- Three Common Worker Patterns
+# Creating Workers in Java with Conductor: Three Common Worker Patterns
 
-You've defined a workflow in JSON, registered it with Conductor, and hit "start" -- but nothing happens. The workflow sits in RUNNING state forever because Conductor workflows don't execute code; workers do. And right now you have zero workers polling for tasks. This example builds three workers from scratch -- a synchronous transform, a simulated API fetch, and an error-handling processor -- so you can see the `Worker` interface in action and understand how Conductor delegates real work to your Java code.
+You've defined a workflow in JSON, registered it with Conductor, and hit "start"; but nothing happens. The workflow sits in RUNNING state forever because Conductor workflows don't execute code; workers do. And right now you have zero workers polling for tasks. This example builds three workers from scratch, a synchronous transform, a simulated API fetch, and an error-handling processor, so you can see the `Worker` interface in action and understand how Conductor delegates real work to your Java code.
 
 ## Learning to Write Conductor Workers
 
@@ -12,7 +12,7 @@ This example chains all three patterns in a single workflow so you can see how e
 
 **You just write the transform, fetch, and processing logic in each worker class. Conductor handles sequencing, retries, and error recovery.**
 
-Three workers demonstrate three patterns -- a transform worker that processes text synchronously, a fetch worker that simulates an external data call, and a process worker that shows proper error handling. Conductor chains them, demonstrating how outputs from one worker become inputs to the next.
+Three workers demonstrate three patterns, a transform worker that processes text synchronously, a fetch worker that simulates an external data call, and a process worker that shows proper error handling. Conductor chains them, demonstrating how outputs from one worker become inputs to the next.
 
 ### What You Write: Workers
 
@@ -22,15 +22,15 @@ This example demonstrates three common patterns for writing Conductor workers: s
 |---|---|---|---|
 | **SimpleTransformWorker** | `simple_transform` | Takes a text string and returns four fields: `upper` (uppercased), `lower` (lowercased), `length` (character count), and `original` (unchanged input). Pure logic, no side effects. | Real (string operations) |
 | **FetchDataWorker** | `fetch_data` | Takes a `source` name and returns 3 deterministic records prefixed with the source name (e.g., `"my-api-record-1"`). Includes a 100ms sleep to simulate API latency. | Simulated (fake records) |
-| **SafeProcessWorker** | `safe_process` | Takes a list of records and scores each one using a deterministic hash-based algorithm (PASS if score >= 50, FAIL otherwise). Wraps all logic in try/catch -- on exception, returns `FAILED` status so Conductor can retry. | Real (scoring + error handling) |
+| **SafeProcessWorker** | `safe_process` | Takes a list of records and scores each one using a deterministic hash-based algorithm (PASS if score >= 50, FAIL otherwise). Wraps all logic in try/catch. On exception, returns `FAILED` status so Conductor can retry. | Real (scoring + error handling) |
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -49,9 +49,9 @@ safe_process
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -157,9 +157,9 @@ conductor workflow search -w worker_demo_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-- **SimpleTransformWorker** (`simple_transform`) -- add NLP processing, content sanitization, or format conversion (e.g., Markdown to HTML).
-- **FetchDataWorker** (`fetch_data`) -- replace simulated records with a real REST API call, database query, or message queue read.
-- **SafeProcessWorker** (`safe_process`) -- implement real scoring/validation logic (e.g., data quality checks, ML inference, business rule evaluation).
+- **SimpleTransformWorker** (`simple_transform`): add NLP processing, content sanitization, or format conversion (e.g., Markdown to HTML).
+- **FetchDataWorker** (`fetch_data`): replace simulated records with a real REST API call, database query, or message queue read.
+- **SafeProcessWorker** (`safe_process`): implement real scoring/validation logic (e.g., data quality checks, ML inference, business rule evaluation).
 
 ## SDK
 

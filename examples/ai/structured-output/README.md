@@ -1,10 +1,10 @@
-# Structured Output in Java Using Conductor -- Generate JSON, Validate Schema, Transform
+# Structured Output in Java Using Conductor: Generate JSON, Validate Schema, Transform
 
-The LLM returns beautiful prose when you need a JSON object. You parse it, it breaks -- missing closing brace. You add "return JSON only" to the prompt, and it works 80% of the time; the other 20% it wraps the JSON in a markdown code fence, or omits a required field, or returns `"employees": "five hundred"` instead of a number. This example builds a generate-validate-transform pipeline using [Conductor](https://github.com/conductor-oss/conductor) that catches every class of structural failure -- malformed JSON, missing required fields, wrong types -- and separates each concern into an independently retryable step.
+The LLM returns beautiful prose when you need a JSON object. You parse it, it breaks, missing closing brace. You add "return JSON only" to the prompt, and it works 80% of the time; the other 20% it wraps the JSON in a markdown code fence, or omits a required field, or returns `"employees": "five hundred"` instead of a number. This example builds a generate-validate-transform pipeline using [Conductor](https://github.com/conductor-oss/conductor) that catches every class of structural failure, malformed JSON, missing required fields, wrong types, and separates each concern into an independently retryable step.
 
 ## Getting Reliable JSON from LLMs
 
-LLMs generate text, but applications need structured data -- JSON with specific fields, types, and constraints. Even with careful prompting, LLMs sometimes produce invalid JSON (missing closing braces), missing required fields, or fields with wrong types (string instead of number). A three-step pipeline catches these errors: generate the JSON, validate it against a schema, and transform it into the application's expected format.
+LLMs generate text, but applications need structured data. JSON with specific fields, types, and constraints. Even with careful prompting, LLMs sometimes produce invalid JSON (missing closing braces), missing required fields, or fields with wrong types (string instead of number). A three-step pipeline catches these errors: generate the JSON, validate it against a schema, and transform it into the application's expected format.
 
 If the LLM generates invalid JSON, the validation step catches it. If a required field is missing, schema validation fails. Separating generation from validation means you can retry the LLM call (which is non-deterministic) without re-running validation, or adjust the schema without changing the generation prompt.
 
@@ -12,11 +12,11 @@ If the LLM generates invalid JSON, the validation step catches it. If a required
 
 **You write the JSON generation, schema validation, and transformation logic. Conductor handles the pipeline, retries, and observability.**
 
-Each stage is an independent worker -- JSON generation (LLM call with structured output instructions), schema validation (checking required fields, types, and constraints), and transformation (reshaping into the target format). Conductor sequences them, retries the LLM call if it produces invalid JSON, and tracks every execution with the raw output, validation results, and transformed data.
+Each stage is an independent worker. JSON generation (LLM call with structured output instructions), schema validation (checking required fields, types, and constraints), and transformation (reshaping into the target format). Conductor sequences them, retries the LLM call if it produces invalid JSON, and tracks every execution with the raw output, validation results, and transformed data.
 
 ### What You Write: Workers
 
-Three workers form the structured output pipeline -- JSON generation from entity descriptions, schema validation against required fields and types, and transformation into the application's expected format.
+Three workers form the structured output pipeline. JSON generation from entity descriptions, schema validation against required fields and types, and transformation into the application's expected format.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -30,9 +30,9 @@ Three workers form the structured output pipeline -- JSON generation from entity
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -51,9 +51,9 @@ so_transform
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -158,14 +158,14 @@ conductor workflow search -w structured_output_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one stage of the structured output pipeline -- swap in GPT-4 JSON mode or Claude tool use for generation, add a full JSON Schema validator, customize the transformation for your data model, and the validation workflow runs unchanged.
+Each worker owns one stage of the structured output pipeline. Swap in GPT-4 JSON mode or Claude tool use for generation, add a full JSON Schema validator, customize the transformation for your data model, and the validation workflow runs unchanged.
 
-- **GenerateJsonWorker** (`so_generate_json`) -- call Claude or GPT-4 with JSON-mode enabled (OpenAI `response_format: { type: "json_object" }` or Anthropic tool use with a JSON schema). Pass the entity description and field specifications in the prompt, and parse the structured JSON from the response
-- **ValidateSchemaWorker** (`so_validate_schema`) -- the validation logic is already deterministic and production-ready. Enhance it with a full JSON Schema validator (everit-org/json-schema or networknt/json-schema-validator) for richer constraints (enums, min/max, regex patterns, nested objects)
-- **TransformWorker** (`so_transform`) -- customize the transformation to match your application's expected format: map field names, convert types, flatten nested objects, or enrich with data from external APIs (Clearbit for company enrichment, FullContact for contact data)
-- **Add a retry-on-invalid loop** -- if the schema validation fails, use a Conductor DO_WHILE task to re-generate with the validation errors included in the prompt, giving the LLM a chance to self-correct
+- **GenerateJsonWorker** (`so_generate_json`): call Claude or GPT-4 with JSON-mode enabled (OpenAI `response_format: { type: "json_object" }` or Anthropic tool use with a JSON schema). Pass the entity description and field specifications in the prompt, and parse the structured JSON from the response
+- **ValidateSchemaWorker** (`so_validate_schema`): the validation logic is already deterministic and production-ready. Enhance it with a full JSON Schema validator (everit-org/json-schema or networknt/json-schema-validator) for richer constraints (enums, min/max, regex patterns, nested objects)
+- **TransformWorker** (`so_transform`): customize the transformation to match your application's expected format: map field names, convert types, flatten nested objects, or enrich with data from external APIs (Clearbit for company enrichment, FullContact for contact data)
+- **Add a retry-on-invalid loop**: if the schema validation fails, use a Conductor DO_WHILE task to re-generate with the validation errors included in the prompt, giving the LLM a chance to self-correct
 
-The output contract is fixed at each stage -- switch from simulated generation to GPT-4 JSON mode, or swap in a full JSON Schema validator, without touching the workflow definition.
+The output contract is fixed at each stage. Switch from simulated generation to GPT-4 JSON mode, or swap in a full JSON Schema validator, without touching the workflow definition.
 
 ## SDK
 
@@ -197,7 +197,7 @@ structured-output/
 │       ├── TransformWorker.java         # Enrich validated data with metadata
 │       └── ValidateSchemaWorker.java    # Schema validation (required fields, types)
 └── src/test/java/structuredoutput/workers/
-    ├── GenerateJsonWorkerTest.java      # Tests -- JSON structure, schema shape
-    ├── TransformWorkerTest.java         # Tests -- enrichment fields, data pass-through
-    └── ValidateSchemaWorkerTest.java    # 4 tests -- valid data, missing fields, type mismatch
+    ├── GenerateJsonWorkerTest.java      # Tests. JSON structure, schema shape
+    ├── TransformWorkerTest.java         # Tests. Enrichment fields, data pass-through
+    └── ValidateSchemaWorkerTest.java    # 4 tests. Valid data, missing fields, type mismatch
 ```

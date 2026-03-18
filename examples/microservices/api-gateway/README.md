@@ -1,10 +1,10 @@
 # API Gateway in Java with Conductor
 
-A mobile client hits your API. The request needs to be authenticated, routed to the right backend, and the response transformed before it goes back. You built this as a single Spring controller -- authenticate inline, make the backend call, transform the response, return. Then the auth service starts taking 2 seconds instead of 200ms. Your entire gateway blocks. You add a retry loop for the backend call, but now a transient auth failure retries the backend too. A customer reports getting someone else's response -- the response-transform step was reading from a shared variable that another thread overwrote. Every fix makes the controller harder to reason about, and when something fails, you have no idea which of the four steps caused it. This workflow breaks the gateway into independent, observable steps -- authenticate, route, transform, respond -- each with its own retries and timeouts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A mobile client hits your API. The request needs to be authenticated, routed to the right backend, and the response transformed before it goes back. You built this as a single Spring controller: authenticate inline, make the backend call, transform the response, return. Then the auth service starts taking 2 seconds instead of 200ms. Your entire gateway blocks. You add a retry loop for the backend call, but now a transient auth failure retries the backend too. A customer reports getting someone else's response, the response-transform step was reading from a shared variable that another thread overwrote. Every fix makes the controller harder to reason about, and when something fails, you have no idea which of the four steps caused it. This workflow breaks the gateway into independent, observable steps, authenticate, route, transform, respond, each with its own retries and timeouts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-An API gateway sits between external clients and your backend services. Every request must be authenticated, routed to the correct service, have its response transformed into a client-friendly format, and be sent back with appropriate headers. These steps are inherently sequential -- routing depends on the authenticated client identity, and the response transform depends on the routing result.
+An API gateway sits between external clients and your backend services. Every request must be authenticated, routed to the correct service, have its response transformed into a client-friendly format, and be sent back with appropriate headers. These steps are inherently sequential, routing depends on the authenticated client identity, and the response transform depends on the routing result.
 
 Without orchestration, you wire authenticate-route-transform-respond into a single class with nested try/catch blocks, bespoke retry loops for each outbound call, and no visibility into where a request failed. Adding a new step (rate limiting, logging, caching) means rewriting the entire pipeline.
 
@@ -12,11 +12,11 @@ Without orchestration, you wire authenticate-route-transform-respond into a sing
 
 **You just write the authentication, routing, and response-transform workers. Conductor handles sequential execution, per-step retries, and full request tracing across the gateway pipeline.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing -- your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. Your workers just make the service calls.
 
 ### What You Write: Workers
 
-The gateway pipeline breaks into four focused workers -- authenticating API keys, routing to backends, transforming responses, and sending the final reply -- each handling one hop in the request lifecycle.
+The gateway pipeline breaks into four focused workers: authenticating API keys, routing to backends, transforming responses, and sending the final reply, each handling one hop in the request lifecycle.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ The gateway pipeline breaks into four focused workers -- authenticating API keys
 | **SendResponseWorker** | `ag_send_response` | Sends the final API response to the client. | Simulated |
 | **TransformResponseWorker** | `ag_transform_response` | Transforms the raw backend response into a client-friendly format. | Simulated |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients -- the workflow coordination stays the same.
+Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,11 +161,11 @@ conductor workflow search -w api_gateway_292 -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace each simulated worker with a call to your identity provider, service mesh, or response-formatting layer -- the authenticate-route-transform-respond workflow stays exactly the same.
+Replace each simulated worker with a call to your identity provider, service mesh, or response-formatting layer, the authenticate-route-transform-respond workflow stays exactly the same.
 
-- **AgAuthenticateWorker** (`ag_authenticate`) -- validate API keys or JWTs against your identity provider or API-key store
-- **RouteRequestWorker** (`ag_route_request`) -- make a real HTTP call to the target backend service via service discovery or a load balancer
-- **SendResponseWorker** (`ag_send_response`) -- write the response to the actual HTTP connection (e.g., via Spring WebFlux or Netty)
+- **AgAuthenticateWorker** (`ag_authenticate`): validate API keys or JWTs against your identity provider or API-key store
+- **RouteRequestWorker** (`ag_route_request`): make a real HTTP call to the target backend service via service discovery or a load balancer
+- **SendResponseWorker** (`ag_send_response`): write the response to the actual HTTP connection (e.g., via Spring WebFlux or Netty)
 
 As long as each worker accepts the same inputs and returns the same fields, the gateway workflow needs zero changes.
 

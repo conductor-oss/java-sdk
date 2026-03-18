@@ -1,22 +1,22 @@
 # Runbook Automation in Java with Conductor
 
-Your runbooks live in a Confluence wiki that was last updated eight months ago. When the database failover alert fires at 3 AM, the on-call engineer opens the page, squints at step 4 ("promote the replica -- see Jira ticket DB-247 for details"), guesses at the parameters, runs the commands in the wrong order, and spends 20 minutes cleaning up the mess before starting over. The next engineer who gets this alert will have the same experience, because nobody updated the wiki after the schema changed in January. Every incident is a fresh adventure, and MTTR is a function of who happens to be on call. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to turn runbook steps into executable, versioned automation -- load the procedure, execute remediation, verify the fix, and log the outcome -- so incident response is identical regardless of who's holding the pager.
+Your runbooks live in a Confluence wiki that was last updated eight months ago. When the database failover alert fires at 3 AM, the on-call engineer opens the page, squints at step 4 ("promote the replica: see Jira ticket DB-247 for details"), guesses at the parameters, runs the commands in the wrong order, and spends 20 minutes cleaning up the mess before starting over. The next engineer who gets this alert will have the same experience, because nobody updated the wiki after the schema changed in January. Every incident is a fresh adventure, and MTTR is a function of who happens to be on call. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to turn runbook steps into executable, versioned automation, load the procedure, execute remediation, verify the fix, and log the outcome, so incident response is identical regardless of who's holding the pager.
 
 ## The 3 AM Runbook Problem
 
 A database failover alert fires. The on-call engineer opens the wiki, finds the "database-failover" runbook, and manually executes each step: promote the replica, verify the new primary accepts connections, update connection strings. Each step depends on the previous one, and skipping or re-ordering them risks data loss. Automating this sequence means incidents get resolved in seconds instead of the 20 minutes it takes a sleep-deprived human to follow a checklist.
 
-Without orchestration, you'd wire all of this together in a single monolithic class -- managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. Managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the remediation steps. Conductor handles runbook sequencing, verification gates, and execution logging.**
 
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging -- your workers call the infrastructure APIs.
+Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. Your workers call the infrastructure APIs.
 
 ### What You Write: Workers
 
-Each worker handles one runbook stage -- loading the procedure, executing remediation, verifying the fix, and logging the outcome with timing data.
+Each worker handles one runbook stage. Loading the procedure, executing remediation, verifying the fix, and logging the outcome with timing data.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ Each worker handles one runbook stage -- loading the procedure, executing remedi
 | `VerifyStepWorker` | `ra_verify_step` | Validates that the remediation succeeded (e.g., confirms the new primary is accepting connections) | Simulated |
 | `LogOutcomeWorker` | `ra_log_outcome` | Records the final execution outcome and duration (45s) for audit and post-mortem review | Simulated |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls -- the workflow and rollback logic stay the same.
+Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -82,9 +82,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -167,15 +167,15 @@ conductor workflow search -w runbook_automation_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one runbook step -- replace the simulated calls with Ansible playbooks, AWS RDS failover APIs, or Confluence lookups, and the automation workflow runs unchanged.
+Each worker handles one runbook step. Replace the simulated calls with Ansible playbooks, AWS RDS failover APIs, or Confluence lookups, and the automation workflow runs unchanged.
 
-- **`LoadRunbookWorker`** -- Fetch runbook definitions from Confluence API, a Git repository, or an internal runbook registry instead of returning a hardcoded runbook ID.
+- **`LoadRunbookWorker`**: Fetch runbook definitions from Confluence API, a Git repository, or an internal runbook registry instead of returning a hardcoded runbook ID.
 
-- **`ExecuteStepWorker`** -- Call the AWS RDS failover API, Kubernetes rollout commands, or Ansible playbook triggers to perform real remediation actions.
+- **`ExecuteStepWorker`**: Call the AWS RDS failover API, Kubernetes rollout commands, or Ansible playbook triggers to perform real remediation actions.
 
-- **`VerifyStepWorker`** -- Run real health checks against the remediated service -- database connection tests, HTTP readiness probes, or query latency measurements.
+- **`VerifyStepWorker`**: Run real health checks against the remediated service. Database connection tests, HTTP readiness probes, or query latency measurements.
 
-- **`LogOutcomeWorker`** -- Write execution results to Elasticsearch, Splunk, or a Jira ticket for post-mortem tracking with real timing data.
+- **`LogOutcomeWorker`**: Write execution results to Elasticsearch, Splunk, or a Jira ticket for post-mortem tracking with real timing data.
 
 Point the workers at your actual runbook store and infrastructure APIs; the execution pipeline remains unchanged.
 

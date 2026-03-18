@@ -1,10 +1,10 @@
 # Fork Join in Java with Conductor
 
-FORK_JOIN demo -- fetch product details, inventory status, and customer reviews in parallel, then merge into a unified product page. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+FORK_JOIN demo: fetch product details, inventory status, and customer reviews in parallel, then merge into a unified product page. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to assemble a product detail page by fetching data from three independent microservices simultaneously -- product catalog (name, description, price), inventory service (stock level, warehouse location), and reviews service (ratings, review text). Calling them sequentially triples the page load time. All three queries use the same productId and are completely independent of each other, but the merge step cannot run until all three have responded.
+You need to assemble a product detail page by fetching data from three independent microservices simultaneously. Product catalog (name, description, price), inventory service (stock level, warehouse location), and reviews service (ratings, review text). Calling them sequentially triples the page load time. All three queries use the same productId and are completely independent of each other, but the merge step cannot run until all three have responded.
 
 Without orchestration, you'd fire three async HTTP calls, manage CompletableFutures or callbacks for each, write barrier logic to wait for all three, and handle the case where the reviews service is slow while the other two have already returned. If the inventory service times out, you need to decide whether to retry it independently or fail the entire page assembly. There is no record of what each service returned or how long each took.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd fire three async HTTP calls, manage CompletableFutu
 
 **You just write the product, inventory, reviews, and merge workers. Conductor handles running all three fetches in parallel via FORK_JOIN and waiting for completion.**
 
-This example demonstrates Conductor's FORK_JOIN task for parallel data aggregation. Three workers run simultaneously -- GetProductWorker fetches catalog data (name, description, price), GetInventoryWorker queries stock levels and warehouse locations, and GetReviewsWorker retrieves ratings and review text. All three receive the same productId and execute concurrently. A JOIN task waits until all three branches complete, then MergeResultsWorker combines the product, inventory, and reviews data into a single product page object. If the reviews service is slow, Conductor waits for it while keeping the product and inventory results safe. If the inventory call fails, Conductor retries just that branch -- the other two results are preserved.
+This example demonstrates Conductor's FORK_JOIN task for parallel data aggregation. Three workers run simultaneously. GetProductWorker fetches catalog data (name, description, price), GetInventoryWorker queries stock levels and warehouse locations, and GetReviewsWorker retrieves ratings and review text. All three receive the same productId and execute concurrently. A JOIN task waits until all three branches complete, then MergeResultsWorker combines the product, inventory, and reviews data into a single product page object. If the reviews service is slow, Conductor waits for it while keeping the product and inventory results safe. If the inventory call fails, Conductor retries just that branch, the other two results are preserved.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ Four workers demonstrate parallel data aggregation: GetProductWorker, GetInvento
 | **GetReviewsWorker** | `fj_get_reviews` | Returns review data (productId, averageRating, totalReviews, topReview text) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. | Simulated |
 | **MergeResultsWorker** | `fj_merge_results` | Combines product, inventory, and review data into a single product page with name, price, availability, stock count, rating, and review count. Handles null inputs gracefully with safe defaults. | Simulated |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic -- the task pattern and Conductor orchestration remain unchanged.
+Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -54,9 +54,9 @@ fj_merge_results
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -166,10 +166,10 @@ Result: PASSED
 
 Connect the data-fetching workers to your product catalog, inventory system (SAP, NetSuite), and reviews service (Bazaarvoice, Yotpo), and the parallel assembly works unchanged.
 
-- **GetProductWorker** (`fj_get_product`) -- query your product catalog service or database (PostgreSQL, MongoDB, Elasticsearch) for the product name, description, price, images, and category
-- **GetInventoryWorker** (`fj_get_inventory`) -- call your inventory management system (SAP, NetSuite, or a custom microservice) for real-time stock levels, warehouse locations, and reorder status
-- **GetReviewsWorker** (`fj_get_reviews`) -- fetch customer reviews from your reviews service, Bazaarvoice, or Yotpo, returning average rating, review count, and recent review text
-- **MergeResultsWorker** (`fj_merge_results`) -- add SEO metadata, compute pricing tiers (wholesale vs. retail), inject personalized recommendations, and cache the assembled page in Redis
+- **GetProductWorker** (`fj_get_product`): query your product catalog service or database (PostgreSQL, MongoDB, Elasticsearch) for the product name, description, price, images, and category
+- **GetInventoryWorker** (`fj_get_inventory`): call your inventory management system (SAP, NetSuite, or a custom microservice) for real-time stock levels, warehouse locations, and reorder status
+- **GetReviewsWorker** (`fj_get_reviews`): fetch customer reviews from your reviews service, Bazaarvoice, or Yotpo, returning average rating, review count, and recent review text
+- **MergeResultsWorker** (`fj_merge_results`): add SEO metadata, compute pricing tiers (wholesale vs: retail), inject personalized recommendations, and cache the assembled page in Redis
 
 Connecting each worker to a real microservice API does not change the parallel fetch-then-merge workflow, provided each returns the expected product, inventory, or review data structure.
 

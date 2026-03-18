@@ -1,10 +1,10 @@
-# Data Enrichment in Java Using Conductor -- Geographic, Company, and Credit Lookups with Record Merging
+# Data Enrichment in Java Using Conductor: Geographic, Company, and Credit Lookups with Record Merging
 
-Marketing hands you a spreadsheet of 10,000 leads. Each row has a name, an email, and a zip code. Sales asks: "Which of these are at enterprise companies? What industry? What's their credit risk?" You can't answer any of that from the raw data. So you write a script that calls a geocoding API for each zip, a company-lookup API for each email domain, and a credit bureau API for each record. The geocoding API rate-limits you at row 500. Your script crashes. You restart it and re-enrich all 500 rows you already processed because there's no checkpoint. Then the company-lookup API returns a 503 on row 2,400, and you start over again. Each enrichment source is a different API with different failure modes, and your monolithic script treats them all the same. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Marketing hands you a spreadsheet of 10,000 leads. Each row has a name, an email, and a zip code. Sales asks: "Which of these are at enterprise companies? What industry? What's their credit risk?" You can't answer any of that from the raw data. So you write a script that calls a geocoding API for each zip, a company-lookup API for each email domain, and a credit bureau API for each record. The geocoding API rate-limits you at row 500. Your script crashes. You restart it and re-enrich all 500 rows you already processed because there's no checkpoint. Then the company-lookup API returns a 503 on row 2,400, and you start over again. Each enrichment source is a different API with different failure modes, and your monolithic script treats them all the same. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You have a dataset of customer or lead records with basic fields -- name, email, zip code -- but your sales, marketing, and risk teams need richer data to do their jobs. They need geographic context (which city and timezone is this person in?), company intelligence (how big is their employer? what industry?), and credit signals (what's the credit tier for underwriting?). Each enrichment layer comes from a different source and must be applied in sequence because later lookups may depend on earlier results.
+You have a dataset of customer or lead records with basic fields. Name, email, zip code; but your sales, marketing, and risk teams need richer data to do their jobs. They need geographic context (which city and timezone is this person in?), company intelligence (how big is their employer? what industry?), and credit signals (what's the credit tier for underwriting?). Each enrichment layer comes from a different source and must be applied in sequence because later lookups may depend on earlier results.
 
 Without orchestration, you'd write a single enrichment method that calls a geocoding API, then a company lookup API, then a credit bureau API, all inline. If the company API rate-limits you, the entire pipeline stalls. If the process crashes after geo enrichment but before credit lookup, you'd re-enrich everything from scratch. Adding a new enrichment source (social media profiles, technographic data) means rewriting tightly coupled code with no visibility into which lookup is slow or failing.
 
@@ -26,15 +26,15 @@ Five workers handle multi-source enrichment: loading customer records, resolving
 | **LookupGeoWorker** | `dr_lookup_geo` | Enriches records with geographic data based on zip code lookup. | Simulated |
 | **MergeEnrichedWorker** | `dr_merge_enriched` | Merges all enriched data and produces a summary. | Simulated |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks -- the pipeline structure and error handling stay the same.
+Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -166,7 +166,7 @@ conductor workflow search -w data_enrichment -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect the geo worker to Google Maps, the company worker to Clearbit or ZoomInfo, and the credit worker to Experian -- the multi-source enrichment workflow runs unchanged.
+Connect the geo worker to Google Maps, the company worker to Clearbit or ZoomInfo, and the credit worker to Experian, the multi-source enrichment workflow runs unchanged.
 
 - **LoadRecordsWorker** → read records from a CRM (Salesforce, HubSpot), a database, or a CSV upload
 - **LookupGeoWorker** → call a real geocoding API (Google Maps, Mapbox, or a zip code database) to resolve geographic details from addresses or zip codes
@@ -176,7 +176,7 @@ Connect the geo worker to Google Maps, the company worker to Clearbit or ZoomInf
 
 Pointing any lookup worker at a different data provider requires no pipeline changes, as long as enrichment fields like city, industry, or credit tier are returned in the expected format.
 
-**Add new enrichment layers** by inserting tasks in `workflow.json` -- for example, social media profile lookups, technographic enrichment (what tech stack does the company use), intent data from Bombora, or phone number validation via Twilio Lookup.
+**Add new enrichment layers** by inserting tasks in `workflow.json`, for example, social media profile lookups, technographic enrichment (what tech stack does the company use), intent data from Bombora, or phone number validation via Twilio Lookup.
 
 ## SDK
 

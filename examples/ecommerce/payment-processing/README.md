@@ -1,18 +1,18 @@
-# Payment Processing in Java Using Conductor -- Validate, Authorize, Capture, Receipt, Reconcile
+# Payment Processing in Java Using Conductor: Validate, Authorize, Capture, Receipt, Reconcile
 
-A customer pays $259.97 for their order. The payment gateway charges the card successfully, but the confirmation response times out on the network hop back. Your system assumes the charge failed and retries. Now the customer is double-charged, their bank shows two pending holds, and they file a chargeback before your support team even sees the ticket. The second charge eventually settles, the chargeback reverses the first, and your reconciliation report is off by $259.97 for a month until someone manually traces the duplicate. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full payment lifecycle as independent workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer pays $259.97 for their order. The payment gateway charges the card successfully, but the confirmation response times out on the network hop back. Your system assumes the charge failed and retries. Now the customer is double-charged, their bank shows two pending holds, and they file a chargeback before your support team even sees the ticket. The second charge eventually settles, the chargeback reverses the first, and your reconciliation report is off by $259.97 for a month until someone manually traces the duplicate. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full payment lifecycle as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Payments Have a Two-Phase Lifecycle: Authorize Then Capture
 
-A $150 payment is not a single operation -- it's a lifecycle. First, validate the payment method (card not expired, billing address matches, card not blacklisted). Then authorize (put a hold on the customer's funds without actually charging). Then capture (convert the hold into a real charge -- typically done when the order ships). Then generate a receipt for the customer. Finally, reconcile the transaction with the merchant's bank account to ensure the funds actually arrive.
+A $150 payment is not a single operation: it's a lifecycle. First, validate the payment method (card not expired, billing address matches, card not blacklisted). Then authorize (put a hold on the customer's funds without actually charging). Then capture (convert the hold into a real charge, typically done when the order ships). Then generate a receipt for the customer. Finally, reconcile the transaction with the merchant's bank account to ensure the funds actually arrive.
 
-Authorize-then-capture is standard because you don't want to charge until you're sure you can fulfill. If fulfillment fails, you release the authorization instead of processing a refund. If capture fails after authorization, you need to retry capture -- not re-authorize (which would create a second hold). The reconciliation step catches discrepancies between expected and actual settlement amounts.
+Authorize-then-capture is standard because you don't want to charge until you're sure you can fulfill. If fulfillment fails, you release the authorization instead of processing a refund. If capture fails after authorization, you need to retry capture. . Not re-authorize (which would create a second hold). The reconciliation step catches discrepancies between expected and actual settlement amounts.
 
 ## The Solution
 
 **You just write the payment validation, authorization, capture, receipt, and reconciliation logic. Conductor handles authorization retries, settlement sequencing, and transaction audit trails for every payment.**
 
-`ValidateWorker` checks the payment method -- card expiration, billing address verification (AVS), CVV match, and fraud screening. `AuthorizeWorker` places a hold on the customer's funds for the order amount without charging. `CaptureWorker` converts the authorization into a charge, transferring the funds. `ReceiptWorker` generates an itemized receipt with transaction ID, payment method details, and tax breakdown. `ReconcileWorker` matches the captured amount against the merchant settlement to detect discrepancies. Conductor sequences these five stages, ensures idempotent retries for capture, and records the complete payment lifecycle for financial audit.
+`ValidateWorker` checks the payment method. Card expiration, billing address verification (AVS), CVV match, and fraud screening. `AuthorizeWorker` places a hold on the customer's funds for the order amount without charging. `CaptureWorker` converts the authorization into a charge, transferring the funds. `ReceiptWorker` generates an itemized receipt with transaction ID, payment method details, and tax breakdown. `ReconcileWorker` matches the captured amount against the merchant settlement to detect discrepancies. Conductor sequences these five stages, ensures idempotent retries for capture, and records the complete payment lifecycle for financial audit.
 
 ### What You Write: Workers
 
@@ -26,15 +26,15 @@ Payment workers isolate authorization, capture, settlement, and notification int
 | **ReconcileWorker** | `pay_reconcile` | Performs the reconcile operation | Simulated |
 | **ValidatePaymentWorker** | `pay_validate` | Performs the validate payment operation | Simulated |
 
-Workers simulate e-commerce operations -- payment processing, inventory checks, shipping -- with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -166,11 +166,11 @@ conductor workflow search -w payment_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace each worker with your real payment stack -- Stripe Payment Intents for auth and capture, your receipt service for invoicing, your ledger for reconciliation -- and the workflow runs identically in production.
+Replace each worker with your real payment stack. Stripe Payment Intents for auth and capture, your receipt service for invoicing, your ledger for reconciliation, and the workflow runs identically in production.
 
-- **AuthorizeWorker/CaptureWorker** (`pay_authorize/capture`) -- integrate with Stripe Payment Intents (separate authorize and capture), Braintree, or Adyen for real two-phase payment processing with 3D Secure support
-- **ReconcileWorker** (`pay_reconcile`) -- match captured transactions against Stripe payouts, bank settlement files (BAI2 format), or accounting system entries in QuickBooks/Xero
-- **ReceiptWorker** (`pay_receipt`) -- generate PDF receipts using Apache PDFBox, send via SendGrid with dynamic templates, and store in S3 for customer access and compliance retention
+- **AuthorizeWorker/CaptureWorker** (`pay_authorize/capture`): integrate with Stripe Payment Intents (separate authorize and capture), Braintree, or Adyen for real two-phase payment processing with 3D Secure support
+- **ReconcileWorker** (`pay_reconcile`): match captured transactions against Stripe payouts, bank settlement files (BAI2 format), or accounting system entries in QuickBooks/Xero
+- **ReceiptWorker** (`pay_receipt`): generate PDF receipts using Apache PDFBox, send via SendGrid with dynamic templates, and store in S3 for customer access and compliance retention
 
 Swap payment gateways or add new settlement logic and the processing pipeline remains stable.
 

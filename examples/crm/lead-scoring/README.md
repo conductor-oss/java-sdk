@@ -1,18 +1,18 @@
-# Lead Scoring in Java with Conductor -- Collect Signals, Score, Classify, and Route Leads to Sales
+# Lead Scoring in Java with Conductor: Collect Signals, Score, Classify, and Route Leads to Sales
 
-Your top rep just spent three weeks nurturing a lead who was never going to buy -- meanwhile, a VP of Engineering who visited your pricing page four times and downloaded your security whitepaper sat untouched in the queue until a competitor closed them. This happens constantly when every lead looks the same in the CRM: salespeople guess who to call based on gut feel, hot leads cool off waiting for attention, and cold leads waste hours of expensive human outreach. This workflow scores leads automatically -- collecting behavioral signals, computing a numeric score, classifying urgency, and routing to the right rep -- so your team works the leads that are actually ready to buy. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step scoring pipeline.
+Your top rep just spent three weeks nurturing a lead who was never going to buy: meanwhile, a VP of Engineering who visited your pricing page four times and downloaded your security whitepaper sat untouched in the queue until a competitor closed them. This happens constantly when every lead looks the same in the CRM: salespeople guess who to call based on gut feel, hot leads cool off waiting for attention, and cold leads waste hours of expensive human outreach. This workflow scores leads automatically, collecting behavioral signals, computing a numeric score, classifying urgency, and routing to the right rep, so your team works the leads that are actually ready to buy. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step scoring pipeline.
 
 ## Focusing Sales on the Leads Most Likely to Convert
 
 Sales teams cannot pursue every lead equally. A lead who visited the pricing page three times and downloaded a whitepaper is more likely to convert than one who opened a single marketing email. Lead scoring quantifies buying intent by aggregating behavioral signals into a numeric score, classifying the lead by urgency, and routing hot leads to senior reps while cold leads go to automated nurturing.
 
-This workflow processes one lead through the scoring pipeline. The signal collector gathers behavioral data -- page visits, email opens, content downloads, demo requests. The scorer weighs those signals and computes a numeric score. The classifier maps the score to a category: hot (high score, ready to buy), warm (moderate engagement, needs nurturing), or cold (low engagement, not ready). The router assigns the lead to the right sales rep or automation track based on the classification.
+This workflow processes one lead through the scoring pipeline. The signal collector gathers behavioral data. Page visits, email opens, content downloads, demo requests. The scorer weighs those signals and computes a numeric score. The classifier maps the score to a category: hot (high score, ready to buy), warm (moderate engagement, needs nurturing), or cold (low engagement, not ready). The router assigns the lead to the right sales rep or automation track based on the classification.
 
 ## The Solution
 
 **You just write the signal-collection, scoring, classification, and routing workers. Conductor handles the scoring pipeline and lead data flow.**
 
-Four workers form the scoring pipeline -- signal collection, scoring, classification, and routing. The signal collector gathers engagement data across channels. The scorer computes a weighted score from those signals. The classifier labels the lead as hot, warm, or cold. The router assigns the lead to a sales rep or nurture track. Conductor sequences the four steps and passes signals, scores, and classifications between them via JSONPath.
+Four workers form the scoring pipeline. Signal collection, scoring, classification, and routing. The signal collector gathers engagement data across channels. The scorer computes a weighted score from those signals. The classifier labels the lead as hot, warm, or cold. The router assigns the lead to a sales rep or nurture track. Conductor sequences the four steps and passes signals, scores, and classifications between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ CollectSignalsWorker gathers page visits and email engagement, ScoreWorker compu
 | **RouteWorker** | `ls_route` | Routes a lead to the appropriate sales rep based on classification. | Simulated |
 | **ScoreWorker** | `ls_score` | Calculates lead score from collected signals. | Simulated |
 
-Workers simulate CRM operations -- lead scoring, contact enrichment, deal updates -- with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers simulate CRM operations: lead scoring, contact enrichment, deal updates, with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,11 +161,11 @@ conductor workflow search -w ls_lead_scoring -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one scoring step -- connect your CRM (Salesforce, HubSpot) for behavioral signals and your sales engagement platform (Outreach, Salesloft) for rep routing, and the lead-scoring workflow stays the same.
+Each worker handles one scoring step. Connect your CRM (Salesforce, HubSpot) for behavioral signals and your sales engagement platform (Outreach, Salesloft) for rep routing, and the lead-scoring workflow stays the same.
 
-- **ClassifyWorker** (`ls_classify`) -- use an ML model trained on historical conversion data for more accurate hot/warm/cold thresholds
-- **CollectSignalsWorker** (`ls_collect_signals`) -- integrate with analytics tools (Mixpanel, Amplitude, Google Analytics) for real behavioral data
-- **RouteWorker** (`ls_route`) -- connect to your CRM (Salesforce, HubSpot) to assign leads and trigger sales workflows
+- **ClassifyWorker** (`ls_classify`): use an ML model trained on historical conversion data for more accurate hot/warm/cold thresholds
+- **CollectSignalsWorker** (`ls_collect_signals`): integrate with analytics tools (Mixpanel, Amplitude, Google Analytics) for real behavioral data
+- **RouteWorker** (`ls_route`): connect to your CRM (Salesforce, HubSpot) to assign leads and trigger sales workflows
 
 Wire up your CRM's behavioral data and the signal-score-classify-route pipeline continues to prioritize leads without modification.
 

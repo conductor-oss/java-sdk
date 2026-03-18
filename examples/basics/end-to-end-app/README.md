@@ -1,6 +1,6 @@
-# End-to-End App in Java with Conductor -- Support Ticket Pipeline -- Classify, Assign, Notify
+# End-to-End App in Java with Conductor: Support Ticket Pipeline. Classify, Assign, Notify
 
-A complete Java Conductor application that processes support tickets end-to-end -- classifying the ticket by category (billing, technical, account), assigning it to the right team based on classification, and notifying the customer with a confirmation email. This is a realistic mini-application that shows how all the Conductor pieces fit together: workflow definition, multiple workers, data flow between tasks, and a main entry point. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the ticket pipeline -- you write the classification, assignment, and notification logic, Conductor handles sequencing, retries, durability, and observability for free.
+A complete Java Conductor application that processes support tickets end-to-end: classifying the ticket by category (billing, technical, account), assigning it to the right team based on classification, and notifying the customer with a confirmation email. This is a realistic mini-application that shows how all the Conductor pieces fit together: workflow definition, multiple workers, data flow between tasks, and a main entry point. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the ticket pipeline, you write the classification, assignment, and notification logic, Conductor handles sequencing, retries, durability, and observability for free.
 
 ## From Hello World to a Real Application
 
@@ -10,11 +10,11 @@ After learning the basics (workers, workflows, data flow), you need to see how a
 
 **You just write the ticket classification, team assignment, and customer notification logic. Conductor handles sequencing, retries, durability, and observability.**
 
-Three workers handle the ticket lifecycle -- classification (determining category from subject and description), assignment (routing to the right team), and notification (confirming receipt to the customer). Conductor sequences them, passing the ticket ID, classification result, and assignment through the pipeline.
+Three workers handle the ticket lifecycle. Classification (determining category from subject and description), assignment (routing to the right team), and notification (confirming receipt to the customer). Conductor sequences them, passing the ticket ID, classification result, and assignment through the pipeline.
 
 ### What You Write: Workers
 
-The support ticket pipeline uses three workers -- classify, assign, and notify -- to show how a complete Conductor application fits together from registration to execution.
+The support ticket pipeline uses three workers: classify, assign, and notify, to show how a complete Conductor application fits together from registration to execution.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,9 +26,9 @@ The support ticket pipeline uses three workers -- classify, assign, and notify -
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -47,9 +47,9 @@ notify_customer
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -107,9 +107,9 @@ Step 3: Starting workers...
 
 Step 4: Submitting 3 support tickets...
 
-  Submitted TKT-001 -- Workflow ID: <workflow-id>
-  Submitted TKT-002 -- Workflow ID: <workflow-id>
-  Submitted TKT-003 -- Workflow ID: <workflow-id>
+  Submitted TKT-001. Workflow ID: <workflow-id>
+  Submitted TKT-002. Workflow ID: <workflow-id>
+  Submitted TKT-003. Workflow ID: <workflow-id>
 
 Step 5: Waiting for all tickets to be processed...
 
@@ -121,7 +121,7 @@ Step 5: Waiting for all tickets to be processed...
   TKT-002    | LOW        | Finance Support        | 4 hours
   TKT-003    | MEDIUM     | Account Management     | 8 hours
 
-Result: PASSED -- All 3 tickets processed successfully.
+Result: PASSED. All 3 tickets processed successfully.
 ```
 
 ## Configuration
@@ -158,9 +158,9 @@ conductor workflow search -w support_ticket_pipeline -s COMPLETED -c 5
 
 ## How to Extend
 
-- **ClassifyTicketWorker** (`classify_ticket`) -- replace keyword matching with an ML classifier or call an NLP API to determine ticket priority from natural language.
-- **AssignTicketWorker** (`assign_ticket`) -- query a team roster database for on-call engineers, or integrate with PagerDuty / Jira to create and assign issues.
-- **NotifyCustomerWorker** (`notify_customer`) -- send a real email via SendGrid / SES, or post a message to the customer's Slack channel.
+- **ClassifyTicketWorker** (`classify_ticket`): replace keyword matching with an ML classifier or call an NLP API to determine ticket priority from natural language.
+- **AssignTicketWorker** (`assign_ticket`): query a team roster database for on-call engineers, or integrate with PagerDuty / Jira to create and assign issues.
+- **NotifyCustomerWorker** (`notify_customer`): send a real email via SendGrid / SES, or post a message to the customer's Slack channel.
 
 ## SDK
 

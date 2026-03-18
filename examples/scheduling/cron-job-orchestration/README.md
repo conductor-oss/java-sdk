@@ -1,10 +1,10 @@
-# Cron Job Orchestration in Java Using Conductor -- Schedule, Execute, Log, and Clean Up
+# Cron Job Orchestration in Java Using Conductor: Schedule, Execute, Log, and Clean Up
 
-The nightly data export runs at 2 AM. It creates 4 GB of temp files in `/tmp`, writes results to S3, and is supposed to clean up after itself. Last Thursday, the S3 upload timed out. The cron job exited with code 1. Nobody noticed -- cron sent an email to root, which nobody reads. The temp files stayed. Friday night, same thing. By Monday, `/tmp` was full, and every other service on the box started failing with "No space left on device." You SSH in, find 16 GB of orphaned export files, and realize there's no log of which runs succeeded, which failed, or what they left behind.
+The nightly data export runs at 2 AM. It creates 4 GB of temp files in `/tmp`, writes results to S3, and is supposed to clean up after itself. Last Thursday, the S3 upload timed out. The cron job exited with code 1. Nobody noticed. Cron sent an email to root, which nobody reads. The temp files stayed. Friday night, same thing. By Monday, `/tmp` was full, and every other service on the box started failing with "No space left on device." You SSH in, find 16 GB of orphaned export files, and realize there's no log of which runs succeeded, which failed, or what they left behind.
 
 ## The Problem
 
-You have cron jobs that need more than just `crontab -e` -- you need to track execution results, clean up temp files after the job runs, and know when a scheduled job fails silently. Traditional cron fires and forgets: if the job fails, the only evidence is buried in syslog. If temp files accumulate, disk fills up. If the job takes longer than expected, the next invocation starts before the first finishes.
+You have cron jobs that need more than just `crontab -e`. You need to track execution results, clean up temp files after the job runs, and know when a scheduled job fails silently. Traditional cron fires and forgets: if the job fails, the only evidence is buried in syslog. If temp files accumulate, disk fills up. If the job takes longer than expected, the next invocation starts before the first finishes.
 
 Without orchestration, cron job management means parsing syslog for failures, writing cleanup scripts that may or may not run, and building custom locking to prevent overlapping executions. Each job has its own ad-hoc monitoring, and there's no unified view of job health.
 
@@ -12,7 +12,7 @@ Without orchestration, cron job management means parsing syslog for failures, wr
 
 **You just write the job execution and cleanup commands. Conductor handles sequential execution with guaranteed cleanup, retries on job failures, and a unified view of every cron job's execution history, exit codes, and cleanup status.**
 
-Each cron job concern is an independent worker -- scheduling, execution, result logging, and cleanup. Conductor orchestrates them in sequence: schedule the job, execute it, log the results, then clean up. Every job run is tracked with execution time, output, exit code, and cleanup status. You get all of that for free, without writing a single line of orchestration code.
+Each cron job concern is an independent worker. Scheduling, execution, result logging, and cleanup. Conductor orchestrates them in sequence: schedule the job, execute it, log the results, then clean up. Every job run is tracked with execution time, output, exit code, and cleanup status. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ Four workers manage each cron job run: ScheduleJobWorker registers the schedule,
 | **LogResultWorker** | `cj_log_result` | Logs the result of a cron job execution. | Simulated |
 | **ScheduleJobWorker** | `cj_schedule_job` | Schedules a cron job with the given name and expression. | Simulated |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic -- the schedule triggers, retry behavior, and monitoring stay the same.
+Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -71,7 +71,7 @@ Step 4: Starting workflow...
   [cleanup] Removing temp files for \"" + jobName + "\"...
   [execute] Running job \"" + jobName + "\" at
   [log] Logging result for \"" + jobName
-                + "\" -- exit code:
+                + "\". Exit code:
   [schedule] Scheduling cron job \"" + jobName
                 + "\" with expression \"" + cronExpression + "\"...
 
@@ -85,9 +85,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -163,11 +163,11 @@ conductor workflow search -w cron_job_orchestration_401 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one job lifecycle step -- connect the executor to run real shell commands or Kubernetes Jobs, the cleanup worker to purge temp files, and the schedule-execute-log-cleanup workflow stays the same.
+Each worker handles one job lifecycle step. Connect the executor to run real shell commands or Kubernetes Jobs, the cleanup worker to purge temp files, and the schedule-execute-log-cleanup workflow stays the same.
 
-- **CleanupWorker** (`cj_cleanup`) -- remove temp files, release temporary cloud resources, clean up staging tables created during execution
-- **ExecuteJobWorker** (`cj_execute_job`) -- run real commands via ProcessBuilder, SSH to remote hosts, or invoke Lambda/Cloud Functions
-- **LogResultWorker** (`cj_log_result`) -- persist job results to Elasticsearch, CloudWatch Logs, or your job management database
+- **CleanupWorker** (`cj_cleanup`): remove temp files, release temporary cloud resources, clean up staging tables created during execution
+- **ExecuteJobWorker** (`cj_execute_job`): run real commands via ProcessBuilder, SSH to remote hosts, or invoke Lambda/Cloud Functions
+- **LogResultWorker** (`cj_log_result`): persist job results to Elasticsearch, CloudWatch Logs, or your job management database
 
 Replace simulated execution with real shell commands, and the schedule-execute-cleanup orchestration works unchanged.
 

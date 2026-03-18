@@ -1,39 +1,39 @@
-# Uptime Monitoring in Java with Conductor -- Endpoint Health Checks, Alerting, and Escalation
+# Uptime Monitoring in Java with Conductor: Endpoint Health Checks, Alerting, and Escalation
 
-A Java Conductor workflow example for uptime monitoring, endpoint health checks, Slack/email alerting, and on-call escalation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles parallelism, retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for uptime monitoring, endpoint health checks, Slack/email alerting, and on-call escalation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles parallelism, retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to monitor the health of multiple endpoints across your infrastructure. Each check involves different concerns -- DNS resolution, HTTP availability, TLS certificate validity. When something goes wrong, the right people need to be notified through the right channels (Slack, email, status page), and if failures persist, escalation kicks in (SMS, PagerDuty).
+You need to monitor the health of multiple endpoints across your infrastructure. Each check involves different concerns. DNS resolution, HTTP availability, TLS certificate validity. When something goes wrong, the right people need to be notified through the right channels (Slack, email, status page), and if failures persist, escalation kicks in (SMS, PagerDuty).
 
-Without orchestration, you'd wire all of this together in a single monolithic script -- managing threads for parallelism, writing if/else chains for routing, building retry loops with backoff, adding try/catch everywhere for failure handling, and bolting on logging to understand what happened. That code becomes brittle, hard to change, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic script. Managing threads for parallelism, writing if/else chains for routing, building retry loops with backoff, adding try/catch everywhere for failure handling, and bolting on logging to understand what happened. That code becomes brittle, hard to change, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the endpoint checks and notification logic. Conductor handles parallel health checking, severity-based routing, escalation policies, and full execution history.**
 
-Each concern is a simple, independent worker -- a plain Java class that does one thing. Conductor takes care of running them in parallel, routing based on results, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running them in parallel, routing based on results, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
-Eight workers cover the monitoring lifecycle -- from parallel endpoint checks through result aggregation, multi-channel alerting, and escalation to on-call.
+Eight workers cover the monitoring lifecycle, from parallel endpoint checks through result aggregation, multi-channel alerting, and escalation to on-call.
 
 | Worker | What It Does | Real / Simulated |
 |---|---|---|
-| **CheckEndpoint** | Performs real HTTP, DNS, and TLS health checks against a single endpoint | Real -- live network calls |
-| **AggregateResults** | Combines results from all checks, determines overall system status | Real -- pure logic |
+| **CheckEndpoint** | Performs real HTTP, DNS, and TLS health checks against a single endpoint | Real. Live network calls |
+| **AggregateResults** | Combines results from all checks, determines overall system status | Real. Pure logic |
 | **SendSlackAlert** | Sends Slack notification via webhook | Real if webhook configured via workflow input or `SLACK_WEBHOOK_URL` env var, otherwise simulated |
-| **SendEmailAlert** | Sends email alerts to the ops team | Simulated -- swap in SES/SendGrid/SMTP for production |
-| **UpdateStatusPage** | Updates the public status page with component statuses | Simulated -- swap in Statuspage.io/Cachet API for production |
-| **CheckEscalation** | Escalates when failing endpoints meet or exceed threshold | Real -- deterministic based on current failure count; swap in Redis/DynamoDB for cross-run history |
-| **SendSmsAlert** | Sends SMS alerts for critical escalations | Simulated -- swap in Twilio API for production |
-| **PageOncall** | Pages the on-call engineer | Simulated -- swap in PagerDuty/OpsGenie API for production |
-| **RecordHealthy** | Logs healthy status when all endpoints pass | Simulated -- swap in your metrics store for production |
-| **StoreMetrics** | Writes monitoring data points | Simulated -- swap in InfluxDB/Prometheus/Datadog for production |
+| **SendEmailAlert** | Sends email alerts to the ops team | Simulated. Swap in SES/SendGrid/SMTP for production |
+| **UpdateStatusPage** | Updates the public status page with component statuses | Simulated. Swap in Statuspage.io/Cachet API for production |
+| **CheckEscalation** | Escalates when failing endpoints meet or exceed threshold | Real. Deterministic based on current failure count; swap in Redis/DynamoDB for cross-run history |
+| **SendSmsAlert** | Sends SMS alerts for critical escalations | Simulated. Swap in Twilio API for production |
+| **PageOncall** | Pages the on-call engineer | Simulated. Swap in PagerDuty/OpsGenie API for production |
+| **RecordHealthy** | Logs healthy status when all endpoints pass | Simulated. Swap in your metrics store for production |
+| **StoreMetrics** | Writes monitoring data points | Simulated. Swap in InfluxDB/Prometheus/Datadog for production |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls -- the workflow and rollback logic stay the same.
+Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
-Example -- the entire CheckEndpoint worker is just a class that makes HTTP/DNS/TLS calls and returns the result:
+Example, the entire CheckEndpoint worker is just a class that makes HTTP/DNS/TLS calls and returns the result:
 
 ```java
 public class CheckEndpoint implements Worker {
@@ -60,17 +60,17 @@ No retry logic. No error routing. No thread management. Just the business logic.
 | Capability | How It Works |
 |---|---|
 | **Parallel execution** | `FORK_JOIN_DYNAMIC` checks all endpoints simultaneously; `FORK_JOIN` sends all notifications at once |
-| **Dynamic fanout** | Number of endpoints isn't hardcoded -- Conductor spawns one check per endpoint at runtime |
+| **Dynamic fanout** | Number of endpoints isn't hardcoded. Conductor spawns one check per endpoint at runtime |
 | **Conditional routing** | `SWITCH` tasks route to failure notifications or healthy path based on results |
-| **Retries with backoff** | If a worker fails (network blip, timeout), Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails (network blip, timeout), Conductor retries automatically. Configurable per task |
 | **Failure handling** | A failed notification doesn't crash the pipeline; Conductor isolates failures and continues |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
-The workflow definition (`workflow.json`) is a simple JSON file that describes how the workers connect. No imperative code -- just declare the flow:
+The workflow definition (`workflow.json`) is a simple JSON file that describes how the workers connect. No imperative code. Just declare the flow:
 
 ```
 PrepareChecks
@@ -104,9 +104,9 @@ StoreMetrics
 
 ### Prerequisites
 
-- **Java 21+** -- required by the conductor-oss SDK v5. Verify with `java -version`.
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: required by the conductor-oss SDK v5. Verify with `java -version`.
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -176,12 +176,12 @@ The example checks these real public endpoints:
 | https://www.google.com | 200 | Reliable external endpoint |
 | https://github.com | 200 | Developer service |
 | https://www.cloudflare.com | 200 | CDN/infrastructure provider |
-| https://down.example.invalid | 200 | **Always fails** -- `.invalid` TLD guarantees DNS failure, no internet dependency |
+| https://down.example.invalid | 200 | **Always fails**. `.invalid` TLD guarantees DNS failure, no internet dependency |
 
 Each endpoint gets three real network checks:
-- **DNS** -- hostname resolution via `InetAddress.getAllByName()`
-- **HTTP** -- GET request with response time measurement via `HttpURLConnection`
-- **TLS** -- certificate validation and expiry check via `SSLSocket`
+- **DNS**: hostname resolution via `InetAddress.getAllByName()`
+- **HTTP**: GET request with response time measurement via `HttpURLConnection`
+- **TLS**: certificate validation and expiry check via `SSLSocket`
 
 ## Example Output
 
@@ -195,7 +195,7 @@ Each endpoint gets three real network checks:
   Status: HEALTHY
 
 [uptime_check_endpoint] Checking: Intentional Failure (https://down.example.invalid)
-  DNS: FAILED -- down.example.invalid
+  DNS: FAILED. Down.example.invalid
   Status: DOWN
 
 [uptime_aggregate_results] Aggregating endpoint check results...
@@ -203,7 +203,7 @@ Each endpoint gets three real network checks:
   Overall: CRITICAL
 
 [uptime_send_slack_alert] Sending Slack alert...
-  [simulated] No webhook configured -- logging alert to console
+  [simulated] No webhook configured. Logging alert to console
 [uptime_send_email_alert] Sending email alert...
 [uptime_update_status_page] Updating status page...
 
@@ -221,12 +221,12 @@ Each endpoint gets three real network checks:
   Avg response   : 210ms
   Metrics stored : 6 data points
 
-Result: UNHEALTHY -- failures detected (workflow completed successfully)
+Result: UNHEALTHY. Failures detected (workflow completed successfully)
 ```
 
 ## Using the Conductor CLI
 
-You can use the [Conductor CLI](https://github.com/conductor-oss/conductor-cli) to register definitions, start workflows, and inspect executions. The CLI handles the Conductor server side -- but **workers must still be running** to poll and execute tasks.
+You can use the [Conductor CLI](https://github.com/conductor-oss/conductor-cli) to register definitions, start workflows, and inspect executions. The CLI handles the Conductor server side; but **workers must still be running** to poll and execute tasks.
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:
 
@@ -335,16 +335,16 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
 
 ## How to Extend
 
-Each worker is a standalone class -- swap the simulated implementation for a real one and the workflow, retries, and alerting logic stay the same.
+Each worker is a standalone class. Swap the simulated implementation for a real one and the workflow, retries, and alerting logic stay the same.
 
-- **SendEmailAlert** (`uptime_send_email_alert`) -- replace the simulated log with AWS SES, SendGrid, or any SMTP client:
+- **SendEmailAlert** (`uptime_send_email_alert`): replace the simulated log with AWS SES, SendGrid, or any SMTP client:
 
 ```java
 // Before (simulated):
 result.getOutputData().put("sent", true);
 result.getOutputData().put("message", "Simulated email sent");
 
-// After (real -- AWS SES):
+// After (real. AWS SES):
 SesClient ses = SesClient.create();
 ses.sendEmail(SendEmailRequest.builder()
         .destination(d -> d.toAddresses(recipients))
@@ -356,10 +356,10 @@ result.getOutputData().put("sent", true);
 result.getOutputData().put("messageId", response.messageId());
 ```
 
-- **SendSlackAlert** (`uptime_send_slack_alert`) -- set the `slack.webhook` input to a real Slack Incoming Webhook URL. The worker already makes a real HTTP POST when a webhook is configured.
-- **StoreMetrics** (`uptime_store_metrics`) -- push data points to Prometheus Pushgateway, Datadog, or InfluxDB instead of logging to console.
-- **CheckEndpoint** (`uptime_check_endpoint`) -- already performs real DNS/HTTP/TLS checks. Add custom checks (e.g., response body validation, specific header checks) by extending the `execute()` method.
-- **Add new endpoints** -- pass additional entries in the `endpoints` workflow input array. No code changes needed.
+- **SendSlackAlert** (`uptime_send_slack_alert`): set the `slack.webhook` input to a real Slack Incoming Webhook URL. The worker already makes a real HTTP POST when a webhook is configured.
+- **StoreMetrics** (`uptime_store_metrics`): push data points to Prometheus Pushgateway, Datadog, or InfluxDB instead of logging to console.
+- **CheckEndpoint** (`uptime_check_endpoint`): already performs real DNS/HTTP/TLS checks. Add custom checks (e.g., response body validation, specific header checks) by extending the `execute()` method.
+- **Add new endpoints**: pass additional entries in the `endpoints` workflow input array. No code changes needed.
 
 ## Project Structure
 
@@ -370,7 +370,7 @@ uptime-monitor/
 ├── docker-compose.yml               # Conductor + workers
 ├── run.sh                           # Smart launcher
 ├── src/main/resources/
-│   ├── workflow.json                # Workflow definition (just JSON -- no code)
+│   ├── workflow.json                # Workflow definition (just JSON.; no code)
 │   └── task-defs.json               # Task definitions for CLI registration
 ├── src/main/java/uptimemonitor/
 │   ├── ConductorClientHelper.java   # SDK v5 client setup

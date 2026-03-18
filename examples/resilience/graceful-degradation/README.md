@@ -1,28 +1,28 @@
-# Implementing Graceful Degradation in Java with Conductor -- Core Processing with Optional Enrichment and Analytics
+# Implementing Graceful Degradation in Java with Conductor: Core Processing with Optional Enrichment and Analytics
 
-The recommendation engine goes down at 9 AM on Black Friday. Your product page has a "You might also like" section that calls the recommendation API synchronously. Now every product page takes 30 seconds to load, then shows a blank section where the recommendations should be. Customers leave. Revenue drops. The fix was obvious in retrospect: the product page should have shown bestsellers as a fallback and loaded in 200ms. But your code doesn't distinguish between "must succeed" and "nice to have," so one optional service took down the whole experience. This example builds a graceful degradation pipeline with Conductor: the core order process always completes, while optional enrichment and analytics run in parallel via `FORK_JOIN` -- if either fails, the result is flagged as "degraded" but the customer still gets their confirmation.
+The recommendation engine goes down at 9 AM on Black Friday. Your product page has a "You might also like" section that calls the recommendation API synchronously. Now every product page takes 30 seconds to load, then shows a blank section where the recommendations should be. Customers leave. Revenue drops. The fix was obvious in retrospect: the product page should have shown bestsellers as a fallback and loaded in 200ms. But your code doesn't distinguish between "must succeed" and "nice to have," so one optional service took down the whole experience. This example builds a graceful degradation pipeline with Conductor: the core order process always completes, while optional enrichment and analytics run in parallel via `FORK_JOIN`. If either fails, the result is flagged as "degraded" but the customer still gets their confirmation.
 
 ## The Problem
 
-Your order processing pipeline has a core function (create the order -- this must succeed) plus optional enhancements -- data enrichment from a third-party API (add customer demographics, credit score) and analytics tracking (send event to Segment/Mixpanel). When the enrichment API is down or the analytics service is slow, you do not want the core pipeline to fail or stall. The order should still be created, but with a "degraded" flag indicating which optional services were unavailable.
+Your order processing pipeline has a core function (create the order: this must succeed) plus optional enhancements, data enrichment from a third-party API (add customer demographics, credit score) and analytics tracking (send event to Segment/Mixpanel). When the enrichment API is down or the analytics service is slow, you do not want the core pipeline to fail or stall. The order should still be created, but with a "degraded" flag indicating which optional services were unavailable.
 
 ### What Goes Wrong Without Graceful Degradation
 
 Consider an e-commerce order pipeline without graceful degradation:
 
-1. Core: Create order ORD-123 -- **success**
-2. Enrichment: Look up customer credit score -- **TIMEOUT** (third-party API is slow)
-3. Analytics: Track purchase event -- **waiting...**
+1. Core: Create order ORD-123. **success**
+2. Enrichment: Look up customer credit score. **TIMEOUT** (third-party API is slow)
+3. Analytics: Track purchase event. **waiting...**
 
 Without graceful degradation, the enrichment timeout blocks the entire pipeline. The customer sees a spinning wheel for 30 seconds, then gets an error page. The order was created but never confirmed to the customer. The analytics event is never sent. Support gets a ticket.
 
-With graceful degradation, the core order is created immediately. Enrichment and analytics run in parallel -- if either fails, the result is flagged as `degraded: true` but the order still completes. The customer gets their confirmation page in 200ms instead of a 30-second timeout.
+With graceful degradation, the core order is created immediately. Enrichment and analytics run in parallel. If either fails, the result is flagged as `degraded: true` but the order still completes. The customer gets their confirmation page in 200ms instead of a 30-second timeout.
 
 ## The Solution
 
 **You just write the core processing and optional enrichment logic. Conductor handles FORK/JOIN parallel execution of optional services, continuing the pipeline when optional tasks fail, and clear tracking of which services were available versus degraded for every execution.**
 
-The core process worker runs first and always succeeds. Then Conductor's FORK/JOIN runs the enrichment and analytics workers in parallel -- both are optional, so their failure does not fail the workflow. The finalize worker checks which optional services succeeded, sets a degraded flag if any failed, and produces the final result. Every execution shows which services were available and which were degraded. You get all of that for free, without writing a single line of orchestration code.
+The core process worker runs first and always succeeds. Then Conductor's FORK/JOIN runs the enrichment and analytics workers in parallel. Both are optional, so their failure does not fail the workflow. The finalize worker checks which optional services succeeded, sets a degraded flag if any failed, and produces the final result. Every execution shows which services were available and which were degraded. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -41,9 +41,9 @@ Workers simulate success and failure scenarios so you can observe the resilience
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -54,8 +54,8 @@ gd_core_process  (always runs, always succeeds)
     |
     v
 FORK_JOIN
-    |-- branch 1: gd_enrich     (optional -- can fail without failing the workflow)
-    |-- branch 2: gd_analytics  (optional -- can fail without failing the workflow)
+    |-- branch 1: gd_enrich     (optional. Can fail without failing the workflow)
+    |-- branch 2: gd_analytics  (optional. Can fail without failing the workflow)
     |
     v
 JOIN (wait for both branches)
@@ -68,9 +68,9 @@ gd_finalize  (checks which services responded, sets degraded flag)
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -170,19 +170,19 @@ java -jar target/graceful-degradation-1.0.0.jar --workers
 Then in a separate terminal:
 
 ```bash
-# All services available -- no degradation
+# All services available.; no degradation
 conductor workflow start \
   --workflow graceful_degradation_demo \
   --version 1 \
   --input '{"data": "order-789", "enrichAvailable": true, "analyticsAvailable": true}'
 
-# Enrichment down -- degraded mode (core still processes)
+# Enrichment down: degraded mode (core still processes)
 conductor workflow start \
   --workflow graceful_degradation_demo \
   --version 1 \
   --input '{"data": "order-707", "enrichAvailable": false, "analyticsAvailable": true}'
 
-# Both optional services down -- fully degraded (core still processes)
+# Both optional services down: fully degraded (core still processes)
 conductor workflow start \
   --workflow graceful_degradation_demo \
   --version 1 \
@@ -199,12 +199,12 @@ conductor workflow search -w graceful_degradation_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one concern -- connect the core worker to your order service, the enrichment worker to a third-party data API, the analytics worker to Segment or Mixpanel, and the core-plus-optional-enrichment workflow stays the same.
+Each worker handles one concern. Connect the core worker to your order service, the enrichment worker to a third-party data API, the analytics worker to Segment or Mixpanel, and the core-plus-optional-enrichment workflow stays the same.
 
-- **CoreProcessWorker** (`gd_core_process`) -- replace with your core business logic that must always succeed (order creation, data transformation, message routing)
-- **EnrichWorker** (`gd_enrich`) -- call a third-party API for data enrichment (geolocation, sentiment analysis, credit scoring) -- failure returns empty enrichment
-- **AnalyticsWorker** (`gd_analytics`) -- publish events to your analytics pipeline (Segment, Mixpanel, internal data warehouse) -- failure is silently tolerated
-- **Add more optional branches** -- add recommendation, fraud scoring, or personalization as additional FORK branches. Each can fail independently without affecting the core result.
+- **CoreProcessWorker** (`gd_core_process`): replace with your core business logic that must always succeed (order creation, data transformation, message routing)
+- **EnrichWorker** (`gd_enrich`): call a third-party API for data enrichment (geolocation, sentiment analysis, credit scoring). Failure returns empty enrichment
+- **AnalyticsWorker** (`gd_analytics`): publish events to your analytics pipeline (Segment, Mixpanel, internal data warehouse). Failure is silently tolerated
+- **Add more optional branches**: add recommendation, fraud scoring, or personalization as additional FORK branches. Each can fail independently without affecting the core result.
 
 Connect the core worker to your order service and the optional workers to your enrichment and analytics APIs, and the graceful degradation behavior adapts to production seamlessly.
 

@@ -1,22 +1,22 @@
-# Google Gemini in Java Using Conductor -- Structured Gemini API Calls with Content Preparation and Output Formatting
+# Google Gemini in Java Using Conductor: Structured Gemini API Calls with Content Preparation and Output Formatting
 
-Your team picks Gemini for multimodal tasks, but the API latency varies wildly -- sometimes 2 seconds, sometimes 30 -- and your users stare at a spinner while you have no idea if it's a quota issue, a cold start, or a malformed request. A rate-limit 429 loses the parts-based content you just assembled, and there's zero visibility into token consumption across calls. This example builds a structured Gemini pipeline using [Conductor](https://github.com/conductor-oss/conductor) -- content preparation, API invocation, and response formatting -- so every call is retryable, observable, and decoupled from the request-building logic.
+Your team picks Gemini for multimodal tasks, but the API latency varies wildly: sometimes 2 seconds, sometimes 30, and your users stare at a spinner while you have no idea if it's a quota issue, a cold start, or a malformed request. A rate-limit 429 loses the parts-based content you just assembled, and there's zero visibility into token consumption across calls. This example builds a structured Gemini pipeline using [Conductor](https://github.com/conductor-oss/conductor), content preparation, API invocation, and response formatting, so every call is retryable, observable, and decoupled from the request-building logic.
 
 ## Calling Gemini in Production
 
-Google Gemini's API has a specific request format -- content must be structured as parts, generation config specifies temperature/topK/topP/maxOutputTokens, and safety settings control content filtering. The response comes back as candidates with safety ratings and usage metadata that need to be extracted and formatted for downstream consumers.
+Google Gemini's API has a specific request format. Content must be structured as parts, generation config specifies temperature/topK/topP/maxOutputTokens, and safety settings control content filtering. The response comes back as candidates with safety ratings and usage metadata that need to be extracted and formatted for downstream consumers.
 
-When you embed all of this in a single method -- building the request body, making the HTTP call, parsing the nested candidate structure -- you end up with tightly coupled code where changing the prompt format means touching API call logic, a rate-limit error loses the prepared request, and there's no record of token consumption across calls. Retrying a failed API call means re-building the entire request from scratch.
+When you embed all of this in a single method: building the request body, making the HTTP call, parsing the nested candidate structure, you end up with tightly coupled code where changing the prompt format means touching API call logic, a rate-limit error loses the prepared request, and there's no record of token consumption across calls. Retrying a failed API call means re-building the entire request from scratch.
 
 ## The Solution
 
 **You write the Gemini content preparation and output formatting logic. Conductor handles the API invocation pipeline, durability, and observability.**
 
-Each concern is an independent worker -- content preparation (building Gemini's parts-based request with generation config), API invocation (the actual generateContent call), and output formatting (extracting text from the candidate structure with usage metadata). Conductor chains them so the prepared request body feeds into the API call, and the raw candidate response feeds into the formatter. In this example the task defs are configured to fail fast on provider errors, which makes quota and model-access problems obvious during local validation. Every call records the prompt, model, token usage, and formatted output.
+Each concern is an independent worker. Content preparation (building Gemini's parts-based request with generation config), API invocation (the actual generateContent call), and output formatting (extracting text from the candidate structure with usage metadata). Conductor chains them so the prepared request body feeds into the API call, and the raw candidate response feeds into the formatter. In this example the task defs are configured to fail fast on provider errors, which makes quota and model-access problems obvious during local validation. Every call records the prompt, model, token usage, and formatted output.
 
 ### What You Write: Workers
 
-Three workers handle the Gemini integration -- preparing parts-based content with safety settings, calling the Gemini API, and formatting the candidate response with token counts and finish reason.
+Three workers handle the Gemini integration. Preparing parts-based content with safety settings, calling the Gemini API, and formatting the candidate response with token counts and finish reason.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -32,7 +32,7 @@ When `GOOGLE_API_KEY` is set and has active billing/quota for the Gemini API, `G
 |---|---|
 | **Configurable retry policy** | These example task definitions intentionally use `retryCount=0` so quota and provider errors fail fast during development. Increase retries per task when you want automatic replay behavior. |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -82,9 +82,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -174,13 +174,13 @@ conductor workflow search -w google_gemini_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one phase of the Gemini integration -- the preparation-invocation-formatting pipeline runs unchanged as you customize individual workers.
+Each worker handles one phase of the Gemini integration, the preparation-invocation-formatting pipeline runs unchanged as you customize individual workers.
 
-- **GeminiGenerateWorker** (`gemini_generate`) -- already calls the real Gemini API via `java.net.http.HttpClient`. Change the model with `GEMINI_MODEL` or the workflow input `model`, or switch to a different endpoint.
-- **GeminiPrepareContentWorker** (`gemini_prepare_content`) -- customize prompt templates, add multi-turn conversation support, or include image parts for multimodal requests
-- **GeminiFormatOutputWorker** (`gemini_format_output`) -- add structured output parsing, safety rating filtering, or multi-candidate selection logic
+- **GeminiGenerateWorker** (`gemini_generate`): already calls the real Gemini API via `java.net.http.HttpClient`. Change the model with `GEMINI_MODEL` or the workflow input `model`, or switch to a different endpoint.
+- **GeminiPrepareContentWorker** (`gemini_prepare_content`): customize prompt templates, add multi-turn conversation support, or include image parts for multimodal requests
+- **GeminiFormatOutputWorker** (`gemini_format_output`): add structured output parsing, safety rating filtering, or multi-candidate selection logic
 
-The content-in, formatted-response-out contract is fixed -- switch Gemini models, adjust safety settings, or add multi-modal parts without modifying the workflow.
+The content-in, formatted-response-out contract is fixed. Switch Gemini models, adjust safety settings, or add multi-modal parts without modifying the workflow.
 
 ## SDK
 

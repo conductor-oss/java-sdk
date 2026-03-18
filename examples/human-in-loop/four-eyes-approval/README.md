@@ -1,6 +1,6 @@
-# Four-Eyes Approval in Java Using Conductor -- Dual Independent Approvals via Parallel WAIT Tasks in FORK/JOIN
+# Four-Eyes Approval in Java Using Conductor: Dual Independent Approvals via Parallel WAIT Tasks in FORK/JOIN
 
-A Java Conductor workflow example implementing the four-eyes principle -- submitting a request, then running two independent WAIT tasks in parallel via FORK/JOIN so two different approvers must both approve before finalization proceeds. Neither approver can see the other's decision until both have acted, ensuring independence. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example implementing the four-eyes principle: submitting a request, then running two independent WAIT tasks in parallel via FORK/JOIN so two different approvers must both approve before finalization proceeds. Neither approver can see the other's decision until both have acted, ensuring independence. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Some Decisions Require Two Independent Approvals (Four-Eyes Principle)
 
@@ -10,29 +10,29 @@ Regulated industries require the four-eyes principle: no single person can appro
 
 **You just write the request submission and finalization workers. Conductor handles the parallel dual-approval gates and the join.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging -- your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. Your code handles the decision logic.
 
 ### What You Write: Workers
 
-SubmitWorker prepares the request for dual review, and FinalizeWorker records both approvers' decisions -- each runs independently within the FORK/JOIN approval structure.
+SubmitWorker prepares the request for dual review, and FinalizeWorker records both approvers' decisions, each runs independently within the FORK/JOIN approval structure.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **SubmitWorker** | `fep_submit` | Submits the request for dual approval -- validates the request ID and marks it as ready for the parallel FORK/JOIN approval gates | Simulated -- swap in your request management system for production |
-| *FORK/JOIN* | `fork_approvers` | Launches two parallel WAIT tasks -- one for each independent approver -- and waits until both have responded | Built-in Conductor FORK/JOIN -- no worker needed |
-| *WAIT task* | `approver_1` | Pauses for the first approver's independent decision via `POST /tasks/{taskId}` with `{ "approval": true/false }` | Built-in Conductor WAIT -- no worker needed |
-| *WAIT task* | `approver_2` | Pauses for the second approver's independent decision, running in parallel with approver 1 | Built-in Conductor WAIT -- no worker needed |
-| **FinalizeWorker** | `fep_finalize` | Receives both approvers' decisions and finalizes -- proceeds only if both approved, otherwise rejects and records which approver dissented | Simulated -- swap in your compliance system and notification service for production |
+| **SubmitWorker** | `fep_submit` | Submits the request for dual approval. validates the request ID and marks it as ready for the parallel FORK/JOIN approval gates | Simulated, swap in your request management system for production |
+| *FORK/JOIN* | `fork_approvers` | Launches two parallel WAIT tasks. One for each independent approver, and waits until both have responded | Built-in Conductor FORK/JOIN.; no worker needed |
+| *WAIT task* | `approver_1` | Pauses for the first approver's independent decision via `POST /tasks/{taskId}` with `{ "approval": true/false }` | Built-in Conductor WAIT.; no worker needed |
+| *WAIT task* | `approver_2` | Pauses for the second approver's independent decision, running in parallel with approver 1 | Built-in Conductor WAIT.; no worker needed |
+| **FinalizeWorker** | `fep_finalize` | Receives both approvers' decisions and finalizes: proceeds only if both approved, otherwise rejects and records which approver dissented | Simulated, swap in your compliance system and notification service for production |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments -- the workflow structure stays the same.
+Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -55,9 +55,9 @@ fep_finalize
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -165,7 +165,7 @@ When the workflow reaches the FORK/JOIN, two parallel WAIT tasks (`approver_1` a
 **Step 1: Find the WAIT task IDs**
 
 ```bash
-# Get the execution details -- look for tasks named "approver_1" and "approver_2"
+# Get the execution details: look for tasks named "approver_1" and "approver_2"
 conductor workflow get-execution <workflow_id> -c
 ```
 
@@ -226,12 +226,12 @@ After both WAIT tasks are completed, the JOIN gate opens and the `fep_finalize` 
 
 ## How to Extend
 
-Each worker handles one step of the four-eyes flow -- connect the submit worker to your request management system and the finalize worker to your GRC or compliance platform, and the dual-approval workflow stays the same.
+Each worker handles one step of the four-eyes flow. Connect the submit worker to your request management system and the finalize worker to your GRC or compliance platform, and the dual-approval workflow stays the same.
 
-- **SubmitWorker** (`fep_submit`) -- pull request details from your business system and assign approvers based on org chart rules, ensuring the two approvers are from different teams or roles (e.g., one from Risk and one from Compliance). Integrate with your HRIS (Workday, BambooHR) to enforce separation-of-duties rules
-- **FinalizeWorker** (`fep_finalize`) -- push the dual-approved decision to downstream systems with a compliance audit trail, recording both approvers' identities and timestamps. Post the finalized record to your GRC (Governance, Risk, Compliance) system and notify the requester via email or Slack
-- **WAIT tasks** -- trigger from your internal approval UI (e.g., a React dashboard that calls `POST /tasks/{taskId}` when the approver clicks Approve), or from a Slack bot with Approve/Reject buttons that forward the decision to Conductor
-- **Add a pre-check step** -- insert a worker before the FORK/JOIN that validates the request against automated policy rules, rejecting obviously non-compliant requests before consuming approver time
+- **SubmitWorker** (`fep_submit`): pull request details from your business system and assign approvers based on org chart rules, ensuring the two approvers are from different teams or roles (e.g., one from Risk and one from Compliance). Integrate with your HRIS (Workday, BambooHR) to enforce separation-of-duties rules
+- **FinalizeWorker** (`fep_finalize`): push the dual-approved decision to downstream systems with a compliance audit trail, recording both approvers' identities and timestamps. Post the finalized record to your GRC (Governance, Risk, Compliance) system and notify the requester via email or Slack
+- **WAIT tasks**: trigger from your internal approval UI (e.g., a React dashboard that calls `POST /tasks/{taskId}` when the approver clicks Approve), or from a Slack bot with Approve/Reject buttons that forward the decision to Conductor
+- **Add a pre-check step**: insert a worker before the FORK/JOIN that validates the request against automated policy rules, rejecting obviously non-compliant requests before consuming approver time
 
 Connect your compliance system for real dual-approval enforcement and the four-eyes workflow operates unchanged.
 
@@ -264,6 +264,6 @@ four-eyes-approval/
 │       ├── FinalizeWorker.java      # Records dual-approval outcome
 │       └── SubmitWorker.java        # Submits request for dual approval
 └── src/test/java/foureyesapproval/workers/
-    ├── FinalizeWorkerTest.java      # 5 tests -- completion, output shape, determinism
-    └── SubmitWorkerTest.java        # 5 tests -- completion, output shape, determinism
+    ├── FinalizeWorkerTest.java      # 5 tests. Completion, output shape, determinism
+    └── SubmitWorkerTest.java        # 5 tests. Completion, output shape, determinism
 ```

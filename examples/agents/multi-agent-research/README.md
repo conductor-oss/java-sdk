@@ -1,12 +1,12 @@
-# Multi-Agent Research in Java Using Conductor -- Define, Parallel Search Across Web/Papers/Databases, Synthesize, Report
+# Multi-Agent Research in Java Using Conductor: Define, Parallel Search Across Web/Papers/Databases, Synthesize, Report
 
-Your research intern searches Google, finds three blog posts, and writes the report. No academic papers. No internal data. The conclusions sound confident but rest on a single source type. Another intern starts from Semantic Scholar, finds contradicting peer-reviewed evidence, but never cross-references the web findings. When research agents work sequentially on one source at a time, a five-minute task takes an hour -- and you still get a biased report. This example fans out three specialized search agents (web, academic papers, internal databases) in parallel using Conductor's `FORK_JOIN`, then synthesizes and cross-references their findings into a single report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Your research intern searches Google, finds three blog posts, and writes the report. No academic papers. No internal data. The conclusions sound confident but rest on a single source type. Another intern starts from Semantic Scholar, finds contradicting peer-reviewed evidence, but never cross-references the web findings. When research agents work sequentially on one source at a time, a five-minute task takes an hour, and you still get a biased report. This example fans out three specialized search agents (web, academic papers, internal databases) in parallel using Conductor's `FORK_JOIN`, then synthesizes and cross-references their findings into a single report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Comprehensive Research Requires Multiple Sources
 
 Researching a topic from a single source produces biased, incomplete findings. Web search gives you current news and opinions. Academic papers provide peer-reviewed evidence. Databases contain structured data and statistics. A comprehensive research report draws from all three, cross-referencing web findings with academic evidence and database statistics.
 
-The three search types are independent -- web search doesn't depend on paper search -- so they should run simultaneously. After all three complete, the synthesizer must merge findings, resolve contradictions between sources, and identify where multiple sources agree (high confidence) or disagree (needs further investigation). The report writer then structures everything into a coherent document with citations.
+The three search types are independent. Web search doesn't depend on paper search, so they should run simultaneously. After all three complete, the synthesizer must merge findings, resolve contradictions between sources, and identify where multiple sources agree (high confidence) or disagree (needs further investigation). The report writer then structures everything into a coherent document with citations.
 
 ## The Solution
 
@@ -16,26 +16,26 @@ The three search types are independent -- web search doesn't depend on paper sea
 
 ### What You Write: Workers
 
-Six workers conduct the research -- defining scope, searching web, papers, and databases in parallel, synthesizing findings, and writing the report.
+Six workers conduct the research. Defining scope, searching web, papers, and databases in parallel, synthesizing findings, and writing the report.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **DefineResearchWorker** | `ra_define_research` | Defines the research scope -- takes a topic and depth, produces search queries, target domains, and database names to ... | Simulated |
-| **SearchDatabasesWorker** | `ra_search_databases` | Searches internal databases for proprietary findings -- takes queries and database names, returns findings with source... | Simulated |
-| **SearchPapersWorker** | `ra_search_papers` | Searches academic papers for scholarly findings -- takes queries and academic domains, returns findings with citations... | Simulated |
-| **SearchWebWorker** | `ra_search_web` | Searches the web for relevant findings -- takes queries and maxResults, returns a list of findings with source, title,... | Simulated |
-| **SynthesizeWorker** | `ra_synthesize` | Synthesizes findings from all three search agents -- computes total sources, average credibility, produces a synthesis... | Simulated |
-| **WriteReportWorker** | `ra_write_report` | Writes the final research report -- takes topic, synthesis, key insights, and source count, and produces a title, exec... | Simulated |
+| **DefineResearchWorker** | `ra_define_research` | Defines the research scope. Takes a topic and depth, produces search queries, target domains, and database names to .. | Simulated |
+| **SearchDatabasesWorker** | `ra_search_databases` | Searches internal databases for proprietary findings. Takes queries and database names, returns findings with source.. | Simulated |
+| **SearchPapersWorker** | `ra_search_papers` | Searches academic papers for scholarly findings. Takes queries and academic domains, returns findings with citations.. | Simulated |
+| **SearchWebWorker** | `ra_search_web` | Searches the web for relevant findings. Takes queries and maxResults, returns a list of findings with source, title,.. | Simulated |
+| **SynthesizeWorker** | `ra_synthesize` | Synthesizes findings from all three search agents. Computes total sources, average credibility, produces a synthesis.. | Simulated |
+| **WriteReportWorker** | `ra_write_report` | Writes the final research report. Takes topic, synthesis, key insights, and source count, and produces a title, exec.. | Simulated |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode -- the agent workflow stays the same.
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -95,9 +95,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -173,11 +173,11 @@ conductor workflow search -w multi_agent_research -s COMPLETED -c 5
 
 ## How to Extend
 
-Each search agent targets one source type -- integrate Tavily for web results, Semantic Scholar for academic papers, and JDBC for internal databases, and the define-search-synthesize-report workflow runs unchanged.
+Each search agent targets one source type. Integrate Tavily for web results, Semantic Scholar for academic papers, and JDBC for internal databases, and the define-search-synthesize-report workflow runs unchanged.
 
-- **SearchWebWorker** (`ra_search_web`) -- integrate with Tavily, SerpAPI, or Bing Search API for real web results with snippet extraction and source credibility scoring
-- **SearchPapersWorker** (`ra_search_papers`) -- query Semantic Scholar, arXiv, PubMed, or Google Scholar APIs for peer-reviewed papers with citation counts and relevance ranking
-- **SynthesizeWorker** (`ra_synthesize`) -- use an LLM to perform cross-source analysis: identify agreements, contradictions, and gaps across web, academic, and database sources
+- **SearchWebWorker** (`ra_search_web`): integrate with Tavily, SerpAPI, or Bing Search API for real web results with snippet extraction and source credibility scoring
+- **SearchPapersWorker** (`ra_search_papers`): query Semantic Scholar, arXiv, PubMed, or Google Scholar APIs for peer-reviewed papers with citation counts and relevance ranking
+- **SynthesizeWorker** (`ra_synthesize`): use an LLM to perform cross-source analysis: identify agreements, contradictions, and gaps across web, academic, and database sources
 
 Plug in real search APIs and academic databases; the research pipeline preserves the same search-synthesize-report interface.
 

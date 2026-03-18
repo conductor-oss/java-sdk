@@ -1,10 +1,10 @@
 # Sub-Workflows in Java with Conductor
 
-SUB_WORKFLOW demo -- an order processing workflow that delegates payment handling to a reusable child workflow. The parent calculates the order total, invokes a payment sub-workflow (validate + charge), then confirms the order with the returned transaction ID. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+SUB_WORKFLOW demo: an order processing workflow that delegates payment handling to a reusable child workflow. The parent calculates the order total, invokes a payment sub-workflow (validate + charge), then confirms the order with the returned transaction ID. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to process an order through three phases: calculate the order total from line items (summing price * quantity for each item), process the payment (validate payment details, then charge the card), and confirm the order. Payment processing is a reusable multi-step process -- validate the payment method and amount, then charge it -- that should be a self-contained unit you can invoke from any order workflow, refund workflow, or subscription workflow. Embedding payment logic directly in the order workflow makes it impossible to reuse, test, or version independently.
+You need to process an order through three phases: calculate the order total from line items (summing price * quantity for each item), process the payment (validate payment details, then charge the card), and confirm the order. Payment processing is a reusable multi-step process: validate the payment method and amount, then charge it, that should be a self-contained unit you can invoke from any order workflow, refund workflow, or subscription workflow. Embedding payment logic directly in the order workflow makes it impossible to reuse, test, or version independently.
 
 Without orchestration, you'd call payment functions directly from the order code, tightly coupling order processing to payment logic. Changing the payment flow (adding fraud checks, supporting new payment methods) requires modifying the order workflow. Testing payment logic means running the full order flow. If the charge fails after validation succeeds, there is no clean boundary for retrying just the payment portion.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd call payment functions directly from the order code
 
 **You just write the order calculation, payment validation, charge, and confirmation workers. Conductor handles the parent-child workflow composition via SUB_WORKFLOW.**
 
-This example demonstrates Conductor's SUB_WORKFLOW task for composable workflow design. The parent `sub_order_workflow` calculates the order total via CalcTotalWorker (summing price * qty for each line item), then delegates payment processing to a `sub_payment_process` child workflow via SUB_WORKFLOW task, passing the orderId, computed total, and payment method. The child workflow runs ValidatePaymentWorker (checks method is present and amount is positive) then ChargePaymentWorker (processes the charge and returns a deterministic transactionId of "TXN-" + orderId). After the sub-workflow completes, the parent runs ConfirmOrderWorker with the transactionId from the payment result, returning the final order confirmation. The payment sub-workflow can be versioned, tested, and invoked independently -- from refund flows, subscription renewals, or any other workflow that needs payment processing.
+This example demonstrates Conductor's SUB_WORKFLOW task for composable workflow design. The parent `sub_order_workflow` calculates the order total via CalcTotalWorker (summing price * qty for each line item), then delegates payment processing to a `sub_payment_process` child workflow via SUB_WORKFLOW task, passing the orderId, computed total, and payment method. The child workflow runs ValidatePaymentWorker (checks method is present and amount is positive) then ChargePaymentWorker (processes the charge and returns a deterministic transactionId of "TXN-" + orderId). After the sub-workflow completes, the parent runs ConfirmOrderWorker with the transactionId from the payment result, returning the final order confirmation. The payment sub-workflow can be versioned, tested, and invoked independently, from refund flows, subscription renewals, or any other workflow that needs payment processing.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ Four workers span the parent and child workflows: CalcTotalWorker computes the o
 | **ChargePaymentWorker** | `sub_charge_payment` | Charges payment and returns a deterministic transactionId: "TXN-" + orderId. Returns charged=true and the amount. Defaults orderId to "UNKNOWN" if missing/blank. | Simulated |
 | **ConfirmOrderWorker** | `sub_confirm_order` | Confirms the order after payment: returns the orderId, transactionId, and confirmed=true. Defaults orderId to "UNKNOWN" and transactionId to "NONE" if missing/blank. | Simulated |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic -- the task pattern and Conductor orchestration remain unchanged.
+Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Workflow composition** | SUB_WORKFLOW nests workflows inside workflows for modular, reusable design |
 
@@ -55,9 +55,9 @@ Parent: sub_order_workflow
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -165,11 +165,11 @@ Result: PASSED
 
 Connect the order and payment workers to your product catalog, payment gateway (Stripe, Braintree), and OMS, and the SUB_WORKFLOW composition works unchanged.
 
-- **CalcTotalWorker** (`sub_calc_total`) -- compute the real order total from line items in your product catalog, applying discounts, taxes, and shipping costs
-- **ValidatePaymentWorker** (`sub_validate_payment`) -- validate the payment method against your payment gateway (Stripe, Braintree), check for expired cards, and verify the billing address
-- **ChargePaymentWorker** (`sub_charge_payment`) -- process the actual charge via your payment gateway, capture the authorization, and return the transaction ID and receipt
-- **ConfirmOrderWorker** (`sub_confirm_order`) -- create the order record in your OMS, send a confirmation email, and trigger fulfillment
-- **Reuse the payment sub-workflow** -- invoke `sub_payment_process` from a subscription renewal workflow or refund flow; version it independently to add fraud checks without touching the order workflow
+- **CalcTotalWorker** (`sub_calc_total`): compute the real order total from line items in your product catalog, applying discounts, taxes, and shipping costs
+- **ValidatePaymentWorker** (`sub_validate_payment`): validate the payment method against your payment gateway (Stripe, Braintree), check for expired cards, and verify the billing address
+- **ChargePaymentWorker** (`sub_charge_payment`): process the actual charge via your payment gateway, capture the authorization, and return the transaction ID and receipt
+- **ConfirmOrderWorker** (`sub_confirm_order`): create the order record in your OMS, send a confirmation email, and trigger fulfillment
+- **Reuse the payment sub-workflow**: invoke `sub_payment_process` from a subscription renewal workflow or refund flow; version it independently to add fraud checks without touching the order workflow
 
 Connecting the payment workers to Stripe or Braintree and reusing the payment sub-workflow from other flows (refunds, subscriptions) requires no changes to the parent-child composition, since each worker just returns its expected result fields.
 

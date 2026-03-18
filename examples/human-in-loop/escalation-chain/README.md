@@ -1,38 +1,38 @@
-# Multi-Level Escalation Chain in Java Using Conductor -- Request Submission, WAIT for Analyst/Manager/VP Approval, and Finalization
+# Multi-Level Escalation Chain in Java Using Conductor: Request Submission, WAIT for Analyst/Manager/VP Approval, and Finalization
 
-A Java Conductor workflow example for multi-level escalation -- submitting a request, pausing at a WAIT task where the request starts with an analyst who can approve, reject, or escalate to a manager, who can in turn escalate to a VP. The decision and the level at which it was made flow into the finalization step. Demonstrates hierarchical escalation where any level can resolve the request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for multi-level escalation: submitting a request, pausing at a WAIT task where the request starts with an analyst who can approve, reject, or escalate to a manager, who can in turn escalate to a VP. The decision and the level at which it was made flow into the finalization step. Demonstrates hierarchical escalation where any level can resolve the request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need an approval process where requests escalate through a chain of authority -- analyst, then manager, then VP. The request starts with the analyst. If the analyst has the authority and context to decide, they approve or reject directly. If the request exceeds their authority or expertise, they escalate to their manager. The manager can likewise approve, reject, or escalate to the VP. The system must track at which level the decision was made and who made it. Without escalation tracking, there is no visibility into whether requests are being resolved at the appropriate level or whether analysts are escalating too frequently.
+You need an approval process where requests escalate through a chain of authority. Analyst, then manager, then VP. The request starts with the analyst. If the analyst has the authority and context to decide, they approve or reject directly. If the request exceeds their authority or expertise, they escalate to their manager. The manager can likewise approve, reject, or escalate to the VP. The system must track at which level the decision was made and who made it. Without escalation tracking, there is no visibility into whether requests are being resolved at the appropriate level or whether analysts are escalating too frequently.
 
-Without orchestration, you'd build a custom escalation system -- the analyst receives a notification, clicks "escalate" in your UI, your backend reassigns the request, sends a new notification to the manager, and repeats. If the system crashes during escalation, the request is unassigned. There is no single view showing how many requests are pending at each level, the average time at each level, or the escalation rate.
+Without orchestration, you'd build a custom escalation system, the analyst receives a notification, clicks "escalate" in your UI, your backend reassigns the request, sends a new notification to the manager, and repeats. If the system crashes during escalation, the request is unassigned. There is no single view showing how many requests are pending at each level, the average time at each level, or the escalation rate.
 
 ## The Solution
 
 **You just write the request submission and escalation finalization workers. Conductor handles the durable hold through the analyst-manager-VP chain.**
 
-The WAIT task is the key pattern here. After submitting the request, the workflow pauses at a single WAIT task. The external escalation logic (analyst -> manager -> VP) occurs outside the workflow -- each person in the chain either completes the WAIT task with their decision or hands it to the next level. When someone finally decides, they complete the WAIT task with the decision and the level (respondedAt) at which it was made. The finalize worker then processes the outcome. Conductor takes care of holding the request durably through the entire escalation chain, accepting the final decision with the responder's level, tracking the complete timeline from submission through resolution, and retrying finalization if downstream systems are temporarily unavailable. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After submitting the request, the workflow pauses at a single WAIT task. The external escalation logic (analyst -> manager -> VP) occurs outside the workflow, each person in the chain either completes the WAIT task with their decision or hands it to the next level. When someone finally decides, they complete the WAIT task with the decision and the level (respondedAt) at which it was made. The finalize worker then processes the outcome. Conductor takes care of holding the request durably through the entire escalation chain, accepting the final decision with the responder's level, tracking the complete timeline from submission through resolution, and retrying finalization if downstream systems are temporarily unavailable. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
-EscSubmitWorker prepares the request for the analyst-manager-VP chain, and EscFinalizeWorker records which level made the final decision -- the escalation logic between them lives outside the workers.
+EscSubmitWorker prepares the request for the analyst-manager-VP chain, and EscFinalizeWorker records which level made the final decision, the escalation logic between them lives outside the workers.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **EscSubmitWorker** | `esc_submit` | Submits the request for escalation-chain approval -- validates the request ID, enriches with context, and marks it as ready for the first level (analyst) | Simulated -- swap in your ticketing or request management system for production |
-| *WAIT task* | `esc_approval` | Pauses the workflow until someone in the escalation chain (analyst, manager, or VP) makes a final decision, completing it via `POST /tasks/{taskId}` with the decision and the level at which it was made | Built-in Conductor WAIT -- no worker needed |
-| **EscFinalizeWorker** | `esc_finalize` | Finalizes the escalation -- records the decision, who made it, and at which level (analyst/manager/VP), then triggers downstream actions | Simulated -- swap in your ticketing system status update and notification service for production |
+| **EscSubmitWorker** | `esc_submit` | Submits the request for escalation-chain approval: validates the request ID, enriches with context, and marks it as ready for the first level (analyst) | Simulated, swap in your ticketing or request management system for production |
+| *WAIT task* | `esc_approval` | Pauses the workflow until someone in the escalation chain (analyst, manager, or VP) makes a final decision, completing it via `POST /tasks/{taskId}` with the decision and the level at which it was made | Built-in Conductor WAIT.; no worker needed |
+| **EscFinalizeWorker** | `esc_finalize` | Finalizes the escalation: records the decision, who made it, and at which level (analyst/manager/VP), then triggers downstream actions | Simulated, swap in your ticketing system status update and notification service for production |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments -- the workflow structure stays the same.
+Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -51,9 +51,9 @@ esc_finalize
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -109,7 +109,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 Step 1: Registering task definitions...
   Registered: esc_submit, esc_finalize
-  (WAIT is a system task -- no task definition needed)
+  (WAIT is a system task.; no task definition needed)
 
 Step 2: Registering workflow 'escalation_chain_demo'...
   Workflow registered.
@@ -129,15 +129,15 @@ Step 6: Simulating escalation chain...
 
   Level: Analyst (analyst@co.com)
   Waiting 1500ms for response...
-  No response -- escalating to next level
+  No response. Escalating to next level
 
   Level: Manager (manager@co.com)
   Waiting 1500ms for response...
-  No response -- escalating to next level
+  No response. Escalating to next level
 
   Level: VP (vp@co.com)
   Waiting 1500ms for response...
-  VP responds -- approved!
+  VP responds. Approved!
 
 Step 7: Waiting for workflow completion...
   [esc_finalize] approved at VP
@@ -177,12 +177,12 @@ conductor workflow search -w escalation_chain_demo -s COMPLETED -c 5
 
 ### Completing the WAIT task (escalation chain approval)
 
-When the workflow hits the `esc_approval` WAIT task, it pauses until someone in the escalation chain makes a decision. The escalation logic (analyst -> manager -> VP) happens outside the workflow -- your notification system routes the request through each level with timeouts. When someone decides, they complete the WAIT task with their decision and the level at which it was made.
+When the workflow hits the `esc_approval` WAIT task, it pauses until someone in the escalation chain makes a decision. The escalation logic (analyst -> manager -> VP) happens outside the workflow. Your notification system routes the request through each level with timeouts. When someone decides, they complete the WAIT task with their decision and the level at which it was made.
 
 **Step 1: Find the WAIT task ID**
 
 ```bash
-# Get the execution details -- look for the task named "esc_approval"
+# Get the execution details: look for the task named "esc_approval"
 conductor workflow get-execution <workflow_id> -c
 ```
 
@@ -247,12 +247,12 @@ After the WAIT task is completed, the `esc_finalize` worker records the decision
 
 ## How to Extend
 
-Each worker covers one end of the escalation flow -- plug in your ticketing system (Jira, ServiceNow) for submission and your notification service (Slack, PagerDuty) for escalation alerts, and the multi-level workflow doesn't change.
+Each worker covers one end of the escalation flow. Plug in your ticketing system (Jira, ServiceNow) for submission and your notification service (Slack, PagerDuty) for escalation alerts, and the multi-level workflow doesn't change.
 
-- **EscSubmitWorker** (`esc_submit`) -- pull request details from a ticketing system like Jira or ServiceNow, enrich with priority and SLA data, and trigger the first-level notification (email, Slack, PagerDuty) to the assigned analyst
-- **EscFinalizeWorker** (`esc_finalize`) -- push the final decision to downstream systems: update the ticket status, notify the requester via email/Slack with the decision and who made it, and log the complete escalation chain (levels tried, response times) for audit and SLA reporting
-- **WAIT task** -- integrate with your escalation notification service: the analyst's dashboard, Slack approval buttons, or PagerDuty alerts each call `POST /tasks/{taskId}` with the decision. Build a timeout service that escalates to the next level if no response within the SLA window
-- **Add SLA tracking** -- insert a worker after `esc_submit` that records the SLA deadline for each level, and use Conductor's timeout features to auto-escalate if the WAIT task isn't completed within the level's SLA
+- **EscSubmitWorker** (`esc_submit`): pull request details from a ticketing system like Jira or ServiceNow, enrich with priority and SLA data, and trigger the first-level notification (email, Slack, PagerDuty) to the assigned analyst
+- **EscFinalizeWorker** (`esc_finalize`): push the final decision to downstream systems: update the ticket status, notify the requester via email/Slack with the decision and who made it, and log the complete escalation chain (levels tried, response times) for audit and SLA reporting
+- **WAIT task**: integrate with your escalation notification service: the analyst's dashboard, Slack approval buttons, or PagerDuty alerts each call `POST /tasks/{taskId}` with the decision. Build a timeout service that escalates to the next level if no response within the SLA window
+- **Add SLA tracking**: insert a worker after `esc_submit` that records the SLA deadline for each level, and use Conductor's timeout features to auto-escalate if the WAIT task isn't completed within the level's SLA
 
 Integrate a real ticketing system and the analyst-manager-VP escalation chain keeps working without modification.
 
@@ -285,6 +285,6 @@ escalation-chain/
 │       ├── EscFinalizeWorker.java   # Records decision and escalation level
 │       └── EscSubmitWorker.java     # Submits request for escalation chain
 └── src/test/java/escalationchain/workers/
-    ├── EscFinalizeWorkerTest.java   # 5 tests -- analyst/manager/VP levels, null inputs
-    └── EscSubmitWorkerTest.java     # 4 tests -- completion, null requestId, output shape
+    ├── EscFinalizeWorkerTest.java   # 5 tests. Analyst/manager/VP levels, null inputs
+    └── EscSubmitWorkerTest.java     # 4 tests. Completion, null requestId, output shape
 ```

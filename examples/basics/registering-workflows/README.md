@@ -1,10 +1,10 @@
-# Workflow Registration in Java with Conductor -- How to Register Definitions via the SDK
+# Workflow Registration in Java with Conductor: How to Register Definitions via the SDK
 
-A Java example that demonstrates how to register workflow and task definitions with Conductor using the Java SDK -- the essential first step before running any workflow. The example registers a simple echo workflow, runs it, and shows the output. This teaches the registration API: how workflow JSON gets loaded, how task definitions get created, and how the SDK submits them to the Conductor server. Uses [Conductor](https://github.com/conductor-oss/conductor) to accept and manage the registered definitions.
+A Java example that demonstrates how to register workflow and task definitions with Conductor using the Java SDK, the essential first step before running any workflow. The example registers a simple echo workflow, runs it, and shows the output. This teaches the registration API: how workflow JSON gets loaded, how task definitions get created, and how the SDK submits them to the Conductor server. Uses [Conductor](https://github.com/conductor-oss/conductor) to accept and manage the registered definitions.
 
 ## Understanding Workflow Registration
 
-Before a workflow can run, its definition must be registered with the Conductor server. This is a one-time operation (per version) that tells Conductor the workflow's structure -- which tasks it contains, how they connect, and what inputs they expect. Task definitions must also be registered so Conductor knows about retry policies, timeouts, and rate limits.
+Before a workflow can run, its definition must be registered with the Conductor server. This is a one-time operation (per version) that tells Conductor the workflow's structure, which tasks it contains, how they connect, and what inputs they expect. Task definitions must also be registered so Conductor knows about retry policies, timeouts, and rate limits.
 
 This example walks through the registration process end-to-end: load a workflow definition from JSON, register it via the SDK, start an execution, and verify the result. The echo task simply passes a message through, so you can focus on the registration mechanics.
 
@@ -12,7 +12,7 @@ This example walks through the registration process end-to-end: load a workflow 
 
 **Register once, run many times.**
 
-The example shows the complete registration lifecycle -- creating task definitions, registering the workflow, starting an execution, and reading the result. Once you understand this pattern, you can register any workflow definition.
+The example shows the complete registration lifecycle. Creating task definitions, registering the workflow, starting an execution, and reading the result. Once you understand this pattern, you can register any workflow definition.
 
 ### What You Write: Workers
 
@@ -22,15 +22,15 @@ Workers here illustrate how task definitions and workflow registrations connect 
 |---|---|---|---|
 | **EchoWorker** | `echo_task` | Simple worker that echoes an input message back as output. | Simulated |
 
-Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls -- the worker contract stays the same.
+Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -68,9 +68,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -146,9 +146,9 @@ conductor workflow search -w registration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Use this same registration pattern for your production workflows -- load the workflow JSON, register task definitions with retry and timeout policies, and submit via the SDK.
+Use this same registration pattern for your production workflows. Load the workflow JSON, register task definitions with retry and timeout policies, and submit via the SDK.
 
-- **EchoWorker** (`echo_task`) -- integrate with your production Conductor deployment with proper authentication and monitoring
+- **EchoWorker** (`echo_task`): integrate with your production Conductor deployment with proper authentication and monitoring
 
 Workflow definitions and task registrations use the same SDK calls regardless of how complex your workers become.
 

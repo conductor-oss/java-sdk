@@ -1,16 +1,16 @@
 # Jira Integration in Java Using Conductor
 
-Your sprint board shows 47 tickets "In Progress." The standup takes 25 minutes because nobody can tell which ones are actually being worked on. Three of those bugs were fixed last week -- the engineers pushed the code, closed the PRs, and forgot to update Jira. Eight more are blocked but still show "In Progress" because the blocked status requires a manual transition that nobody remembers to do. The PM pulls a velocity report for the stakeholder meeting and it says the team completed 4 story points this sprint, when they actually shipped 22. The data is useless because ticket status and actual work diverged weeks ago. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the Jira issue lifecycle -- creation, transitions, tracking, and notifications -- as a durable pipeline.
+Your sprint board shows 47 tickets "In Progress." The standup takes 25 minutes because nobody can tell which ones are actually being worked on. Three of those bugs were fixed last week: the engineers pushed the code, closed the PRs, and forgot to update Jira. Eight more are blocked but still show "In Progress" because the blocked status requires a manual transition that nobody remembers to do. The PM pulls a velocity report for the stakeholder meeting and it says the team completed 4 story points this sprint, when they actually shipped 22. The data is useless because ticket status and actual work diverged weeks ago. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the Jira issue lifecycle, creation, transitions, tracking, and notifications, as a durable pipeline.
 
 ## Automating Jira Issue Lifecycle
 
-When an event triggers issue creation (e.g., a deployment, a bug report, a feature request), the issue needs to be created in Jira, transitioned through workflow statuses, tracked for updates, and the assignee notified of each change. Each step depends on the previous one -- you cannot transition an issue before creating it, and you cannot notify about a status change before the transition happens.
+When an event triggers issue creation (e.g., a deployment, a bug report, a feature request), the issue needs to be created in Jira, transitioned through workflow statuses, tracked for updates, and the assignee notified of each change. Each step depends on the previous one. You cannot transition an issue before creating it, and you cannot notify about a status change before the transition happens.
 
 Without orchestration, you would chain Jira REST API calls manually, manage issue keys between steps, and build custom notification logic. Conductor sequences the pipeline and routes issue keys, statuses, and assignee information between workers automatically.
 
 ## The Solution
 
-**You just write the Jira workers -- issue creation, status transitions, tracking, and assignee notification. Conductor handles create-to-notify sequencing, Jira API retries, and issue key routing between transition and tracking stages.**
+**You just write the Jira workers. Issue creation, status transitions, tracking, and assignee notification. Conductor handles create-to-notify sequencing, Jira API retries, and issue key routing between transition and tracking stages.**
 
 Each worker integrates with one external system. Conductor manages the integration sequence, retry logic, timeout handling, and data transformation between systems.
 
@@ -20,20 +20,20 @@ Four workers manage the issue lifecycle: CreateIssueWorker opens tickets, Transi
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue -- sets the project, summary, description, and assignee, and returns the issue key (e.g., PROJ-123) | Simulated -- swap in Jira REST API (POST /rest/api/3/issue) for production |
-| **TransitionWorker** | `jra_transition` | Transitions the issue -- moves the issue through workflow statuses (To Do -> In Progress -> Done) and returns the new status | Simulated -- swap in Jira REST API (POST /rest/api/3/issue/{key}/transitions) for production |
-| **TrackStatusWorker** | `jra_track_status` | Tracks the issue status -- queries the current status, assignee, and last update timestamp for the issue | Simulated -- swap in Jira REST API (GET /rest/api/3/issue/{key}) for production |
-| **NotifyWorker** | `jra_notify` | Notifies the assignee -- sends a notification about the status change with the issue key and new status | Simulated -- swap in Jira notification API, Slack integration, or email notification for production |
+| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue: sets the project, summary, description, and assignee, and returns the issue key (e.g., PROJ-123) | Simulated, swap in Jira REST API (POST /rest/api/3/issue) for production |
+| **TransitionWorker** | `jra_transition` | Transitions the issue. moves the issue through workflow statuses (To Do -> In Progress -> Done) and returns the new status | Simulated, swap in Jira REST API (POST /rest/api/3/issue/{key}/transitions) for production |
+| **TrackStatusWorker** | `jra_track_status` | Tracks the issue status: queries the current status, assignee, and last update timestamp for the issue | Simulated, swap in Jira REST API (GET /rest/api/3/issue/{key}) for production |
+| **NotifyWorker** | `jra_notify` | Notifies the assignee. sends a notification about the status change with the issue key and new status | Simulated, swap in Jira notification API, Slack integration, or email notification for production |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients -- the workflow orchestration and error handling stay the same.
+Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -75,9 +75,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -156,11 +156,11 @@ conductor workflow search -w jira_integration -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap in Jira REST API calls -- POST /rest/api/3/issue for creation, POST /transitions for status changes, and your notification channel (Slack, email) for alerts. The workflow definition stays exactly the same.
+Swap in Jira REST API calls. POST /rest/api/3/issue for creation, POST /transitions for status changes, and your notification channel (Slack, email) for alerts. The workflow definition stays exactly the same.
 
-- **CreateIssueWorker** (`jra_create_issue`) -- use the Jira REST API to create real issues with project, summary, and assignee fields
-- **TransitionWorker** (`jra_transition`) -- use the Jira REST API transitions endpoint to move issues between workflow statuses
-- **NotifyWorker** (`jra_notify`) -- integrate with Slack, email, or Jira's own notification system for real assignee alerts
+- **CreateIssueWorker** (`jra_create_issue`): use the Jira REST API to create real issues with project, summary, and assignee fields
+- **TransitionWorker** (`jra_transition`): use the Jira REST API transitions endpoint to move issues between workflow statuses
+- **NotifyWorker** (`jra_notify`): integrate with Slack, email, or Jira's own notification system for real assignee alerts
 
 Swap each simulation for real Jira REST API calls while preserving output fields, and the issue lifecycle pipeline stays unchanged.
 

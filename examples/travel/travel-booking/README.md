@@ -1,12 +1,12 @@
 # Travel Booking Workflow in Java with Conductor
 
-A traveler books a flight from SFO to JFK, a hotel in Manhattan, and then the car rental fails -- the rental company's API returns a 503 at 2 AM. Now they have a confirmed flight landing at JFK, a hotel room waiting in Midtown, and no way to get from the airport. The flight is non-refundable. The hotel has a 24-hour cancellation policy that expires in 6 hours. Nobody is awake to notice the partial failure, and the traveler finds out when they land and check their itinerary. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a multi-step booking pipeline -- you write the booking logic, Conductor handles retries, failure routing, durability, and observability for free.
+A traveler books a flight from SFO to JFK, a hotel in Manhattan, and then the car rental fails. the rental company's API returns a 503 at 2 AM. Now they have a confirmed flight landing at JFK, a hotel room waiting in Midtown, and no way to get from the airport. The flight is non-refundable. The hotel has a 24-hour cancellation policy that expires in 6 hours. Nobody is awake to notice the partial failure, and the traveler finds out when they land and check their itinerary. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a multi-step booking pipeline, you write the booking logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Multi-Step Booking Problem
 
-A user wants to fly from SFO to JFK on April 15th. The system needs to search three airlines for available flights, compare them on price and duration, reserve the cheapest option, confirm the booking and issue an e-ticket, and email the complete itinerary -- all in the right order. If the booking succeeds but confirmation fails, you have a reserved seat with no e-ticket. If the search returns stale results and the selected flight sells out before booking, you need to restart from comparison without losing the traveler's preferences.
+A user wants to fly from SFO to JFK on April 15th. The system needs to search three airlines for available flights, compare them on price and duration, reserve the cheapest option, confirm the booking and issue an e-ticket, and email the complete itinerary, all in the right order. If the booking succeeds but confirmation fails, you have a reserved seat with no e-ticket. If the search returns stale results and the selected flight sells out before booking, you need to restart from comparison without losing the traveler's preferences.
 
-Without orchestration, you'd build a monolithic booking script that mixes GDS queries, fare comparison logic, reservation API calls, and email sending -- making it impossible to swap airlines, test fare comparison independently, or audit which search results led to which booking.
+Without orchestration, you'd build a monolithic booking script that mixes GDS queries, fare comparison logic, reservation API calls, and email sending, making it impossible to swap airlines, test fare comparison independently, or audit which search results led to which booking.
 
 ## The Solution
 
@@ -16,7 +16,7 @@ Each worker handles one travel operation. Conductor manages the booking pipeline
 
 ### What You Write: Workers
 
-Five workers divide the booking flow -- search, compare, book, confirm, and itinerary delivery -- so flight search logic stays separate from payment and ticketing.
+Five workers divide the booking flow. Search, compare, book, confirm, and itinerary delivery, so flight search logic stays separate from payment and ticketing.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,15 +26,15 @@ Five workers divide the booking flow -- search, compare, book, confirm, and itin
 | `ConfirmWorker` | `tvb_confirm` | Finalizes the reservation, issuing e-ticket `ET-travel-booking-2024` | Simulated |
 | `ItineraryWorker` | `tvb_itinerary` | Assembles and sends the complete itinerary (flight, booking ref, e-ticket) to the traveler | Simulated |
 
-Workers simulate travel operations -- booking, approval, itinerary generation -- with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers simulate travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -73,7 +73,7 @@ Step 4: Starting workflow...
   Workflow ID: aabf227b-f21d-129c-62aa-668f83babbcf
 
   [book] Booked flight for
-  [compare] Compared flights -- Delta best value
+  [compare] Compared flights. Delta best value
   [confirm] Booking BOOKING-001 confirmed
   [itinerary] Itinerary sent to
   [search] Searching flights
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -138,7 +138,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 === Example 545: Travel Booking ===
 
   [search] Searching flights SFO -> JFK
-  [compare] Compared flights -- Delta best value
+  [compare] Compared flights. Delta best value
   [book] Booked flight for TRV-100
   [confirm] Booking BK-travel-booking confirmed
   [itinerary] Itinerary sent to TRV-100
@@ -183,17 +183,17 @@ conductor workflow search -w tvb_travel_booking -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for real travel APIs -- Amadeus or Sabre for flight search, your GDS for booking, SendGrid for itinerary emails -- and the workflow runs identically in production.
+Swap each worker for real travel APIs. Amadeus or Sabre for flight search, your GDS for booking, SendGrid for itinerary emails, and the workflow runs identically in production.
 
-- **`SearchWorker`** -- Query a GDS (Amadeus, Sabre, Travelport) or airline NDC APIs for available flights matching the origin, destination, and travel dates.
+- **`SearchWorker`**: Query a GDS (Amadeus, Sabre, Travelport) or airline NDC APIs for available flights matching the origin, destination, and travel dates.
 
-- **`CompareWorker`** -- Rank results by total cost, layover time, airline preference, and loyalty program benefits to find the best value option.
+- **`CompareWorker`**: Rank results by total cost, layover time, airline preference, and loyalty program benefits to find the best value option.
 
-- **`BookWorker`** -- Create the PNR (Passenger Name Record) in the GDS or airline's reservation system and return the booking reference.
+- **`BookWorker`**: Create the PNR (Passenger Name Record) in the GDS or airline's reservation system and return the booking reference.
 
-- **`ConfirmWorker`** -- Issue the e-ticket via the airline's ticketing API, charge the traveler's payment method, and return the ticket number.
+- **`ConfirmWorker`**: Issue the e-ticket via the airline's ticketing API, charge the traveler's payment method, and return the ticket number.
 
-- **`ItineraryWorker`** -- Assemble the complete itinerary (flight details, booking ref, e-ticket, gate info) and deliver it via email or your corporate travel portal.
+- **`ItineraryWorker`**: Assemble the complete itinerary (flight details, booking ref, e-ticket, gate info) and deliver it via email or your corporate travel portal.
 
 Connect real GDS and airline APIs and the booking pipeline runs without structural changes.
 

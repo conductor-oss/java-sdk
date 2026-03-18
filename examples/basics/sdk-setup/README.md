@@ -1,6 +1,6 @@
-# SDK Setup Verification in Java with Conductor -- Smoke Test for Your Maven/Java Configuration
+# SDK Setup Verification in Java with Conductor: Smoke Test for Your Maven/Java Configuration
 
-A minimal Java Conductor workflow that verifies your SDK setup is correct -- the Maven dependency is properly declared, the `conductor-client` JAR resolves, the `ConductorClient` can connect to the server, and a worker can poll and execute tasks. If this runs, your Java development environment is ready for Conductor development. Uses [Conductor](https://github.com/conductor-oss/conductor) to validate the end-to-end SDK setup.
+A minimal Java Conductor workflow that verifies your SDK setup is correct, the Maven dependency is properly declared, the `conductor-client` JAR resolves, the `ConductorClient` can connect to the server, and a worker can poll and execute tasks. If this runs, your Java development environment is ready for Conductor development. Uses [Conductor](https://github.com/conductor-oss/conductor) to validate the end-to-end SDK setup.
 
 ## Verifying Your Java SDK Configuration
 
@@ -12,7 +12,7 @@ A successful run confirms: Maven resolves the dependency, the client connects to
 
 **Run this smoke test first.**
 
-One worker, one task -- just enough to verify your entire SDK setup. If it passes, start building. If it fails, the error tells you exactly which part of your setup needs fixing.
+One worker, one task. Just enough to verify your entire SDK setup. If it passes, start building. If it fails, the error tells you exactly which part of your setup needs fixing.
 
 ### What You Write: Workers
 
@@ -22,15 +22,15 @@ A minimal worker runs a round-trip through the SDK to confirm that your Maven de
 |---|---|---|---|
 | `SdkTestWorker` | `sdk_test_task` | Accepts a `check` string input (defaults to "default" if blank), returns a confirmation message that conductor-client 5.0.1 is working | Simulated |
 
-Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls -- the worker contract stays the same.
+Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -68,9 +68,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -146,11 +146,11 @@ conductor workflow search -w sdk_setup_test -s COMPLETED -c 5
 
 ## How to Extend
 
-Once this smoke test passes, your Maven dependency, client configuration, and worker polling are verified -- start building real workers with the same SDK setup.
+Once this smoke test passes, your Maven dependency, client configuration, and worker polling are verified. Start building real workers with the same SDK setup.
 
 
 
-The smoke test confirms your setup works -- build your real workers on the same foundation.
+The smoke test confirms your setup works. Build your real workers on the same foundation.
 
 ## SDK
 

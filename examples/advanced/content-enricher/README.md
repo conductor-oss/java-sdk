@@ -1,10 +1,10 @@
-# Content Enricher in Java Using Conductor -- Augment Messages with External Customer Data
+# Content Enricher in Java Using Conductor: Augment Messages with External Customer Data
 
-A webhook fires: `{"customerId": "CUST-42", "orderId": "ORD-999", "amount": 1250.00}`. That's it. Your fulfillment service needs the customer's region, account tier, and credit limit to route the order. Your analytics pipeline needs the company name and lifetime value. But the event is just an ID and a dollar amount -- a skeleton with no context. So your handler starts making inline API calls to the CRM, the customer database, and the geo-IP service, tangling enrichment logic with transport logic until adding one new data source means rewriting the whole consumer. This example builds a content enrichment pipeline with Conductor: extract the customer ID, look up account data from external sources, merge it into the original payload, and forward the enriched message downstream. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A webhook fires: `{"customerId": "CUST-42", "orderId": "ORD-999", "amount": 1250.00}`. That's it. Your fulfillment service needs the customer's region, account tier, and credit limit to route the order. Your analytics pipeline needs the company name and lifetime value. But the event is just an ID and a dollar amount, a skeleton with no context. So your handler starts making inline API calls to the CRM, the customer database, and the geo-IP service, tangling enrichment logic with transport logic until adding one new data source means rewriting the whole consumer. This example builds a content enrichment pipeline with Conductor: extract the customer ID, look up account data from external sources, merge it into the original payload, and forward the enriched message downstream. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Incomplete Messages Need Context
 
-An incoming order event contains a customer ID and a list of items, but the downstream analytics service needs the customer's region, account tier, and lifetime value. A signup notification has an email address, but the marketing system needs the company name, industry, and employee count. Messages arrive lean -- with just an identifier -- and need to be enriched with context from CRMs, geo-IP databases, or third-party APIs before they're useful downstream.
+An incoming order event contains a customer ID and a list of items, but the downstream analytics service needs the customer's region, account tier, and lifetime value. A signup notification has an email address, but the marketing system needs the company name, industry, and employee count. Messages arrive lean, with just an identifier, and need to be enriched with context from CRMs, geo-IP databases, or third-party APIs before they're useful downstream.
 
 Building enrichment inline means coupling your message consumer to every data source it needs, retrying each lookup independently, and deciding what to do when one source is down but the others succeed. The enrichment logic gets tangled with the transport logic, and adding a new data source means modifying the consumer.
 
@@ -12,11 +12,11 @@ Building enrichment inline means coupling your message consumer to every data so
 
 **You write the enrichment logic. Conductor handles the pipeline, retries, and state.**
 
-`ReceiveMessageWorker` ingests the incoming message and extracts the customer ID. `LookupDataWorker` queries the configured enrichment sources for that customer -- pulling profile data, geo information, or account details. `EnrichWorker` merges the lookup results into the original message, producing an enriched payload with all the context the downstream system needs. `ForwardWorker` delivers the enriched message to the next queue or service. Conductor ensures the lookup happens after the customer ID is extracted, retries if a data source is temporarily unavailable, and records the full before-and-after so you can see exactly what was added to each message.
+`ReceiveMessageWorker` ingests the incoming message and extracts the customer ID. `LookupDataWorker` queries the configured enrichment sources for that customer. Pulling profile data, geo information, or account details. `EnrichWorker` merges the lookup results into the original message, producing an enriched payload with all the context the downstream system needs. `ForwardWorker` delivers the enriched message to the next queue or service. Conductor ensures the lookup happens after the customer ID is extracted, retries if a data source is temporarily unavailable, and records the full before-and-after so you can see exactly what was added to each message.
 
 ### What You Write: Workers
 
-Four workers form the enrichment pipeline -- message reception, external data lookup, payload merging, and downstream forwarding -- each decoupled from the data sources it queries.
+Four workers form the enrichment pipeline: message reception, external data lookup, payload merging, and downstream forwarding, each decoupled from the data sources it queries.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ Four workers form the enrichment pipeline -- message reception, external data lo
 | **EnrichWorker** | `enr_enrich` | Merges lookup fields into the original message, producing a single enriched payload with full customer context | Simulated |
 | **ForwardWorker** | `enr_forward` | Delivers the enriched message to the downstream queue (e.g., `order_processing_queue`) for fulfillment or analytics | Simulated |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations -- the pattern and Conductor orchestration stay the same.
+Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -68,7 +68,7 @@ Step 3: Starting workers...
 Step 4: Starting workflow...
   Workflow ID: 8e94a2b7-e998-9e44-03d0-0a2e6b632631
 
-  [receive] Message received -- customer: CUSTOMERID-001
+  [receive] Message received. Customer: CUSTOMERID-001
   [lookup] Looking up enrichment data for customer \"CUSTOMERID-001\"
   [enrich] Message enriched with 3 additional fields
   [forward] Forwarding enriched message for customer \"CUSTOMERID-001\" (tier: tier-value)
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -168,13 +168,13 @@ conductor workflow search -w enr_content_enricher -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one enrichment concern -- replace the simulated CRM and customer lookups with real Salesforce or database queries and the enrichment pipeline runs unchanged.
+Each worker handles one enrichment concern. Replace the simulated CRM and customer lookups with real Salesforce or database queries and the enrichment pipeline runs unchanged.
 
-- **LookupDataWorker** (`enr_lookup_data`) -- query real data sources: Salesforce CRM for account details, Clearbit API for company enrichment, MaxMind GeoIP for location data, or your own customer database
-- **ForwardWorker** (`enr_forward`) -- publish the enriched message to a Kafka topic, post it to a webhook, or write it to a Snowflake/BigQuery table for downstream analytics
-- **ReceiveMessageWorker** (`enr_receive_message`) -- consume from a real SQS queue, Kafka topic, or webhook endpoint instead of accepting the message as workflow input
+- **LookupDataWorker** (`enr_lookup_data`): query real data sources: Salesforce CRM for account details, Clearbit API for company enrichment, MaxMind GeoIP for location data, or your own customer database
+- **ForwardWorker** (`enr_forward`): publish the enriched message to a Kafka topic, post it to a webhook, or write it to a Snowflake/BigQuery table for downstream analytics
+- **ReceiveMessageWorker** (`enr_receive_message`): consume from a real SQS queue, Kafka topic, or webhook endpoint instead of accepting the message as workflow input
 
-The enriched-message output shape stays fixed -- adding a new data source means adding one lookup worker, not modifying the enrichment or forwarding stages.
+The enriched-message output shape stays fixed. Adding a new data source means adding one lookup worker, not modifying the enrichment or forwarding stages.
 
 ## SDK
 

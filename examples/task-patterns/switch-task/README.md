@@ -1,10 +1,10 @@
 # Switch Task in Java with Conductor
 
-SWITCH task demo -- routes support tickets to different handlers based on priority level (LOW/MEDIUM/HIGH) with a default catch-all for unrecognized values. Uses Conductor's `value-param` evaluator for declarative conditional branching without JavaScript expressions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+SWITCH task demo. routes support tickets to different handlers based on priority level (LOW/MEDIUM/HIGH) with a default catch-all for unrecognized values. Uses Conductor's `value-param` evaluator for declarative conditional branching without JavaScript expressions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to route support tickets to different handlers based on priority. LOW priority tickets should be auto-resolved with a canned response. MEDIUM priority tickets should be assigned to the support team for review. HIGH priority tickets should be immediately escalated to a manager. Unknown or missing priorities should be flagged for triage. After the ticket is handled -- regardless of which priority path was taken -- the action must be logged for audit and SLA tracking.
+You need to route support tickets to different handlers based on priority. LOW priority tickets should be auto-resolved with a canned response. MEDIUM priority tickets should be assigned to the support team for review. HIGH priority tickets should be immediately escalated to a manager. Unknown or missing priorities should be flagged for triage. After the ticket is handled: regardless of which priority path was taken, the action must be logged for audit and SLA tracking.
 
 Without orchestration, you'd write a switch statement or if/else chain, calling different handler functions based on the priority string. When a new priority level is added (e.g., CRITICAL), you modify the routing code and hope the else clause still catches edge cases. If the escalation handler fails for a HIGH ticket, there is no automatic retry, and the ticket sits unhandled. There is no record of which handler processed a given ticket without searching through application logs.
 
@@ -24,19 +24,19 @@ Five workers cover the priority-based ticket routing: AutoHandleWorker auto-reso
 | **TeamReviewWorker** | `sw_team_review` | Handles MEDIUM priority tickets: returns handler="team" and assignedTo="support-team-1", indicating the ticket was routed to a support team for manual review. | Simulated |
 | **EscalateWorker** | `sw_escalate` | Handles HIGH priority tickets: returns handler="manager" and escalatedTo="manager@example.com", indicating immediate manager escalation. | Simulated |
 | **UnknownPriorityWorker** | `sw_unknown_priority` | Handles unrecognized priority values (default case): returns handler="default" and needsClassification=true, flagging the ticket for triage. | Simulated |
-| **LogActionWorker** | `sw_log_action` | Runs after every SWITCH branch -- logs the ticketId and priority, returns logged=true to confirm the audit trail entry was recorded. | Simulated |
+| **LogActionWorker** | `sw_log_action` | Runs after every SWITCH branch. Logs the ticketId and priority, returns logged=true to confirm the audit trail entry was recorded. | Simulated |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic -- the task pattern and Conductor orchestration remain unchanged.
+Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on input values -- no custom routing code needed |
+| **Conditional routing** | SWITCH tasks route execution to different paths based on input values.; no custom routing code needed |
 
 ### The Workflow
 
@@ -55,9 +55,9 @@ sw_log_action
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -176,7 +176,7 @@ Step 3: Starting workers...
   Output: {ticketId=TKT-003, priority=HIGH, logged=true}
   As expected: HIGH priority ticket escalated and logged.
 
---- Scenario 4: CRITICAL priority (unknown -- hits default) ---
+--- Scenario 4: CRITICAL priority (unknown. Hits default) ---
   Workflow ID: d4e5f6a7-...
   [unknown_priority] Ticket TKT-004 (priority: CRITICAL) -> needs classification
   [log_action] Logged action for ticket TKT-004 (priority: CRITICAL)
@@ -185,7 +185,7 @@ Step 3: Starting workers...
   As expected: unknown priority ticket flagged for classification and logged.
 
 Key insight: SWITCH with value-param routes based on the exact value
-of the switchCaseValue input -- no JavaScript evaluation needed.
+of the switchCaseValue input.; no JavaScript evaluation needed.
 
 Result: PASSED
 ```
@@ -194,11 +194,11 @@ Result: PASSED
 
 Connect the ticket handlers to Zendesk, PagerDuty, and your audit logging system, and the SWITCH-based priority routing works unchanged.
 
-- **AutoHandleWorker** (`sw_auto_handle`) -- auto-resolve LOW tickets using your knowledge base or chatbot API, send a canned response via Zendesk/Freshdesk, and close the ticket
-- **TeamReviewWorker** (`sw_team_review`) -- assign MEDIUM tickets to the appropriate support team in your ticketing system based on category, send a Slack notification to the on-call agent
-- **EscalateWorker** (`sw_escalate`) -- page a manager via PagerDuty or Opsgenie, set the ticket SLA to urgent, and notify the customer that their issue has been escalated
-- **LogActionWorker** (`sw_log_action`) -- write the ticket action to your audit log, update SLA tracking metrics, and publish the event to your analytics pipeline
-- **Add a new branch** -- add a `CRITICAL` case to the SWITCH in workflow.json and create a CriticalHandleWorker; no existing code changes required
+- **AutoHandleWorker** (`sw_auto_handle`): auto-resolve LOW tickets using your knowledge base or chatbot API, send a canned response via Zendesk/Freshdesk, and close the ticket
+- **TeamReviewWorker** (`sw_team_review`): assign MEDIUM tickets to the appropriate support team in your ticketing system based on category, send a Slack notification to the on-call agent
+- **EscalateWorker** (`sw_escalate`): page a manager via PagerDuty or Opsgenie, set the ticket SLA to urgent, and notify the customer that their issue has been escalated
+- **LogActionWorker** (`sw_log_action`): write the ticket action to your audit log, update SLA tracking metrics, and publish the event to your analytics pipeline
+- **Add a new branch**: add a `CRITICAL` case to the SWITCH in workflow.json and create a CriticalHandleWorker; no existing code changes required
 
 Connecting the handlers to real ticketing systems or adding new priority branches does not affect the SWITCH routing structure, since each worker just returns the handler result and the log entry.
 

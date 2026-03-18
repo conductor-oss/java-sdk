@@ -1,6 +1,6 @@
-# Data Quality Checks in Java Using Conductor -- Parallel Completeness, Accuracy, and Consistency Scoring
+# Data Quality Checks in Java Using Conductor: Parallel Completeness, Accuracy, and Consistency Scoring
 
-The executive dashboard shows 15% revenue growth this quarter. The CEO quotes it in the board meeting. Then a data engineer discovers that the pipeline has been double-counting records from one integration source for six weeks -- duplicate IDs that slipped in when a vendor changed their API response format. The real growth is 7%. On top of that, 300 customer records have null email fields breaking the marketing segmentation, and half the timestamps from the EU data center are in UTC while the other half are in CET, inflating "active users" every evening. Nobody caught it because there were no automated quality checks. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel data quality checks -- completeness, accuracy, and consistency -- with FORK_JOIN, automatic retries, and a graded quality report.
+The executive dashboard shows 15% revenue growth this quarter. The CEO quotes it in the board meeting. Then a data engineer discovers that the pipeline has been double-counting records from one integration source for six weeks. duplicate IDs that slipped in when a vendor changed their API response format. The real growth is 7%. On top of that, 300 customer records have null email fields breaking the marketing segmentation, and half the timestamps from the EU data center are in UTC while the other half are in CET, inflating "active users" every evening. Nobody caught it because there were no automated quality checks. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel data quality checks, completeness, accuracy, and consistency, with FORK_JOIN, automatic retries, and a graded quality report.
 
 ## The Problem
 
@@ -26,15 +26,15 @@ Five workers run the quality assessment: loading records, then checking complete
 | `CheckConsistencyWorker` | `qc_check_consistency` | Detects duplicate IDs by comparing unique ID count to total ID count | Simulated |
 | `GenerateReportWorker` | `qc_generate_report` | Averages the three check scores and assigns a letter grade (A/B/C/D) | Simulated |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks -- the pipeline structure and error handling stay the same.
+Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -58,9 +58,9 @@ qc_generate_report
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -167,21 +167,21 @@ conductor workflow search -w data_quality_checks -s COMPLETED -c 5
 
 ## How to Extend
 
-Add domain-specific validation rules, integrate reference data lookups for accuracy checks, and connect the report to a quality dashboard -- the parallel quality assessment workflow runs unchanged.
+Add domain-specific validation rules, integrate reference data lookups for accuracy checks, and connect the report to a quality dashboard, the parallel quality assessment workflow runs unchanged.
 
-- **`LoadDataWorker`** -- Read records from a real data source (database, data lake, API response) to check quality before downstream processing.
+- **`LoadDataWorker`**: Read records from a real data source (database, data lake, API response) to check quality before downstream processing.
 
-- **`CheckCompletenessWorker`** -- Configure required fields per dataset type; compute null rates, empty string percentages, and missing value distributions.
+- **`CheckCompletenessWorker`**: Configure required fields per dataset type; compute null rates, empty string percentages, and missing value distributions.
 
-- **`CheckAccuracyWorker`** -- Validate against reference data (zip code databases, currency code lists), use regex for format validation, or call verification APIs (email verification, address validation).
+- **`CheckAccuracyWorker`**: Validate against reference data (zip code databases, currency code lists), use regex for format validation, or call verification APIs (email verification, address validation).
 
-- **`CheckConsistencyWorker`** -- Check cross-field rules (if status is "shipped", shipDate must be set), referential integrity, and temporal consistency (startDate before endDate).
+- **`CheckConsistencyWorker`**: Check cross-field rules (if status is "shipped", shipDate must be set), referential integrity, and temporal consistency (startDate before endDate).
 
-- **`GenerateReportWorker`** -- Produce quality dashboards, trigger alerts when scores drop below thresholds, or block downstream pipeline execution on failing grades.
+- **`GenerateReportWorker`**: Produce quality dashboards, trigger alerts when scores drop below thresholds, or block downstream pipeline execution on failing grades.
 
 Adding reference data lookups or stricter validation rules inside any check worker does not affect the parallel quality assessment workflow, provided each returns its score in the expected format.
 
-**Add new quality dimensions** by adding branches to the `FORK_JOIN` in `workflow.json` -- for example, a timeliness check (is data arriving on schedule?), a uniqueness check, or a freshness check (how old is the newest record?).
+**Add new quality dimensions** by adding branches to the `FORK_JOIN` in `workflow.json`, for example, a timeliness check (is data arriving on schedule?), a uniqueness check, or a freshness check (how old is the newest record?).
 
 ## SDK
 

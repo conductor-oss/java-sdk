@@ -1,18 +1,18 @@
-# Implementing Compensation Workflows in Java with Conductor -- Forward Steps with Automatic Undo on Failure
+# Implementing Compensation Workflows in Java with Conductor: Forward Steps with Automatic Undo on Failure
 
-A Java Conductor workflow example demonstrating the compensation pattern -- executing a sequence of steps (create resource, insert record, send notification) where a failure at any step triggers a separate compensation workflow that undoes completed steps in reverse order to restore consistency.
+A Java Conductor workflow example demonstrating the compensation pattern. Executing a sequence of steps (create resource, insert record, send notification) where a failure at any step triggers a separate compensation workflow that undoes completed steps in reverse order to restore consistency.
 
 ## The Problem
 
-You have a multi-step provisioning process where each step makes a side effect that needs to be reversed if a later step fails. Step A creates a cloud resource, Step B inserts a database record, Step C sends a notification. If Step C fails (external service unavailable), the database record from Step B must be deleted and the cloud resource from Step A must be cleaned up -- in reverse order. Without this rollback, you end up with orphaned resources, dangling database records, and a system in an inconsistent state.
+You have a multi-step provisioning process where each step makes a side effect that needs to be reversed if a later step fails. Step A creates a cloud resource, Step B inserts a database record, Step C sends a notification. If Step C fails (external service unavailable), the database record from Step B must be deleted and the cloud resource from Step A must be cleaned up. In reverse order. Without this rollback, you end up with orphaned resources, dangling database records, and a system in an inconsistent state.
 
 ### What Goes Wrong Without Compensation
 
 Consider this provisioning flow without compensation:
 
-1. Step A creates an EC2 instance -- **success** (resource exists)
-2. Step B inserts a billing record -- **success** (row exists in database)
-3. Step C sends a confirmation email -- **FAILS** (SMTP server down)
+1. Step A creates an EC2 instance. **success** (resource exists)
+2. Step B inserts a billing record. **success** (row exists in database)
+3. Step C sends a confirmation email. **FAILS** (SMTP server down)
 
 The workflow fails, but the EC2 instance is still running (costing money) and the billing record still exists (customer gets charged). Nobody knows these orphans exist until the monthly bill arrives or a customer complains.
 
@@ -26,7 +26,7 @@ Each forward step and its corresponding undo are simple, independent workers. St
 
 ### What You Write: Workers
 
-Three forward workers -- CompStepAWorker, CompStepBWorker, and CompStepCWorker -- execute provisioning actions, while CompUndoBWorker and CompUndoAWorker reverse completed steps in reverse order when any forward step fails.
+Three forward workers. CompStepAWorker, CompStepBWorker, and CompStepCWorker. Execute provisioning actions, while CompUndoBWorker and CompUndoAWorker reverse completed steps in reverse order when any forward step fails.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -42,9 +42,9 @@ Workers simulate success and failure scenarios so you can observe the resilience
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflows
@@ -55,19 +55,19 @@ comp_step_a  -->  comp_step_b  -->  comp_step_c
                                      (can fail)
 ```
 
-**Compensation workflow** (`compensation_workflow`) -- runs when main fails:
+**Compensation workflow** (`compensation_workflow`): runs when main fails:
 ```
 comp_undo_b  -->  comp_undo_a
-(reverse order: undo B first, then A -- skip C since it never completed)
+(reverse order: undo B first, then A. Skip C since it never completed)
 ```
 
 ## Running It
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -126,17 +126,17 @@ Step 3: Starting workers...
 
 --- Scenario 1: All steps succeed ---
   Workflow ID: a1b2c3d4-...
-  [Step A] Executing -- resource created
-  [Step B] Executing -- record inserted
-  [Step C] Executing -- notification sent
+  [Step A] Executing. Resource created
+  [Step B] Executing. Record inserted
+  [Step C] Executing. Notification sent
   Status: COMPLETED
   Output: {stepA=resource-A-created, stepB=record-B-inserted, stepC=notification-C-sent}
 
 --- Scenario 2: Step C fails -> run compensation ---
   Workflow ID: e5f6a7b8-...
-  [Step A] Executing -- resource created
-  [Step B] Executing -- record inserted
-  [Step C] FAILED -- external service error
+  [Step A] Executing. Resource created
+  [Step B] Executing. Record inserted
+  [Step C] FAILED. External service error
   Main workflow: FAILED
 
   Starting compensation workflow...
@@ -199,14 +199,14 @@ conductor workflow search -w compensatable_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker performs one provisioning action -- connect the resource creator to AWS EC2 or Terraform, the record inserter to your database, and the forward-plus-compensation workflow stays the same.
+Each worker performs one provisioning action. Connect the resource creator to AWS EC2 or Terraform, the record inserter to your database, and the forward-plus-compensation workflow stays the same.
 
-- **CompStepAWorker** (`comp_step_a`) -- create a real cloud resource (EC2 instance, Kubernetes pod, S3 bucket) and return its ID for undo tracking
-- **CompUndoAWorker** (`comp_undo_a`) -- delete the cloud resource using the ID from Step A's output
-- **CompStepBWorker** (`comp_step_b`) -- insert a real database record (Postgres, DynamoDB) and return the row/item key
-- **CompUndoBWorker** (`comp_undo_b`) -- delete the database record using the key from Step B's output
-- **CompStepCWorker** (`comp_step_c`) -- send a real notification (Slack, email, SMS) and handle failures that trigger the compensation chain
-- **Auto-trigger compensation** -- use Conductor's failure workflow feature to automatically start the compensation workflow when the main workflow fails, instead of triggering it manually
+- **CompStepAWorker** (`comp_step_a`): create a real cloud resource (EC2 instance, Kubernetes pod, S3 bucket) and return its ID for undo tracking
+- **CompUndoAWorker** (`comp_undo_a`): delete the cloud resource using the ID from Step A's output
+- **CompStepBWorker** (`comp_step_b`): insert a real database record (Postgres, DynamoDB) and return the row/item key
+- **CompUndoBWorker** (`comp_undo_b`): delete the database record using the key from Step B's output
+- **CompStepCWorker** (`comp_step_c`): send a real notification (Slack, email, SMS) and handle failures that trigger the compensation chain
+- **Auto-trigger compensation**: use Conductor's failure workflow feature to automatically start the compensation workflow when the main workflow fails, instead of triggering it manually
 
 Connect each forward worker to your real cloud and database APIs, and the automatic compensation on failure operates in production without modification.
 

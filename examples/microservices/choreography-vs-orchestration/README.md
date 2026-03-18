@@ -1,10 +1,10 @@
 # Choreography Vs Orchestration in Java with Conductor
 
-Service A publishes an `order.created` event. Service B picks it up and reserves inventory. Service C is supposed to process the payment -- but someone on the payments team renamed the topic from `order.created` to `orders.new` three sprints ago, and nobody updated the documentation. So Service C never fires. The order sits in "reserved" limbo. There's no central view of the flow, no shared transaction ID, and debugging means correlating logs across four services to discover that the event your payment service is listening for simply doesn't exist anymore. This example replaces invisible choreography with explicit Conductor orchestration: place order, reserve inventory, process payment, ship -- each step visible, traceable, and retriable from a single execution view. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Service A publishes an `order.created` event. Service B picks it up and reserves inventory. Service C is supposed to process the payment; but someone on the payments team renamed the topic from `order.created` to `orders.new` three sprints ago, and nobody updated the documentation. So Service C never fires. The order sits in "reserved" limbo. There's no central view of the flow, no shared transaction ID, and debugging means correlating logs across four services to discover that the event your payment service is listening for simply doesn't exist anymore. This example replaces invisible choreography with explicit Conductor orchestration: place order, reserve inventory, process payment, ship: each step visible, traceable, and retriable from a single execution view. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-An e-commerce order involves placing the order, reserving inventory, processing payment, and shipping -- four services that must coordinate. In a choreography approach, each service emits events and the next service reacts, but the overall flow is invisible and failures are hard to trace. Orchestration makes the flow explicit: Conductor drives each step, passes data between services, and provides a single execution view.
+An e-commerce order involves placing the order, reserving inventory, processing payment, and shipping. Four services that must coordinate. In a choreography approach, each service emits events and the next service reacts, but the overall flow is invisible and failures are hard to trace. Orchestration makes the flow explicit: Conductor drives each step, passes data between services, and provides a single execution view.
 
 Without orchestration (pure choreography), you lose visibility into the end-to-end order flow. If the payment service silently drops an event, the order is stuck with no alert. Debugging requires correlating logs across four services with no shared transaction ID.
 
@@ -12,7 +12,7 @@ Without orchestration (pure choreography), you lose visibility into the end-to-e
 
 **You just write the order, inventory, payment, and shipping workers. Conductor handles cross-service sequencing, compensating retries, and end-to-end order traceability.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing -- your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. Your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ The order flow chains four domain workers: PlaceOrderWorker creates the order, R
 | **ReserveInventoryWorker** | `cvo_reserve_inventory` | Reserves the ordered items in the warehouse and returns the warehouse ID for shipping. | Simulated |
 | **ShipOrderWorker** | `cvo_ship_order` | Creates a shipment from the assigned warehouse and returns a tracking ID. | Simulated |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients -- the workflow coordination stays the same.
+Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,11 +161,11 @@ conductor workflow search -w orchestrated_order_flow -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real order database, Stripe or Braintree payment gateway, warehouse API, and shipping provider -- the orchestrated order flow stays exactly the same.
+Connect each worker to your real order database, Stripe or Braintree payment gateway, warehouse API, and shipping provider, the orchestrated order flow stays exactly the same.
 
-- **PlaceOrderWorker** (`cvo_place_order`) -- write to your order database (Postgres, DynamoDB) and compute real pricing with tax
-- **ProcessPaymentWorker** (`cvo_process_payment`) -- integrate with a payment gateway (Stripe, Braintree, Adyen) to charge the customer
-- **ReserveInventoryWorker** (`cvo_reserve_inventory`) -- query your inventory management system (ERP, warehouse API) for real stock reservation
+- **PlaceOrderWorker** (`cvo_place_order`): write to your order database (Postgres, DynamoDB) and compute real pricing with tax
+- **ProcessPaymentWorker** (`cvo_process_payment`): integrate with a payment gateway (Stripe, Braintree, Adyen) to charge the customer
+- **ReserveInventoryWorker** (`cvo_reserve_inventory`): query your inventory management system (ERP, warehouse API) for real stock reservation
 
 Swapping from a simulated payment gateway to Stripe or Braintree leaves the orchestrated order flow unchanged.
 

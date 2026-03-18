@@ -1,22 +1,22 @@
-# Scatter-Gather in Java Using Conductor -- Broadcast Query, Gather from Sources in Parallel, Aggregate
+# Scatter-Gather in Java Using Conductor: Broadcast Query, Gather from Sources in Parallel, Aggregate
 
-You need a price quote from five vendors. Vendor A responds in 200ms. Vendor B in 400ms. Vendor C is having a bad day and takes 30 seconds. If you query them sequentially, every customer waits 31 seconds for a price comparison page. If you query them in parallel, you're managing thread pools, countdown latches, partial failure handling (vendor C timed out but A and B are fine), and response merging -- all hand-rolled. And when vendor D starts returning prices in euros instead of dollars, your aggregation logic silently produces garbage. This example broadcasts a query to multiple sources in parallel using Conductor's `FORK_JOIN`, gathers responses from each, and aggregates them into a single ranked result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You need a price quote from five vendors. Vendor A responds in 200ms. Vendor B in 400ms. Vendor C is having a bad day and takes 30 seconds. If you query them sequentially, every customer waits 31 seconds for a price comparison page. If you query them in parallel, you're managing thread pools, countdown latches, partial failure handling (vendor C timed out but A and B are fine), and response merging, all hand-rolled. And when vendor D starts returning prices in euros instead of dollars, your aggregation logic silently produces garbage. This example broadcasts a query to multiple sources in parallel using Conductor's `FORK_JOIN`, gathers responses from each, and aggregates them into a single ranked result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Best Prices Require Querying Multiple Sources Simultaneously
 
-A travel search needs to query multiple airline APIs -- Delta, United, American -- for flight prices on the same route. Querying them sequentially takes 3x as long. Querying them in parallel means managing concurrent HTTP calls, handling partial failures (United is down but Delta and American responded), setting per-source timeouts, and merging heterogeneous response formats into a single ranked list sorted by price.
+A travel search needs to query multiple airline APIs. Delta, United, American, for flight prices on the same route. Querying them sequentially takes 3x as long. Querying them in parallel means managing concurrent HTTP calls, handling partial failures (United is down but Delta and American responded), setting per-source timeouts, and merging heterogeneous response formats into a single ranked list sorted by price.
 
-The scatter-gather pattern broadcasts the same query to all sources simultaneously, gathers responses from each (tolerating failures), and aggregates them into a unified result. Building this by hand means thread pools, countdown latches, exception aggregation, and response merging -- all of which Conductor provides declaratively.
+The scatter-gather pattern broadcasts the same query to all sources simultaneously, gathers responses from each (tolerating failures), and aggregates them into a unified result. Building this by hand means thread pools, countdown latches, exception aggregation, and response merging, all of which Conductor provides declaratively.
 
 ## The Solution
 
 **You write the per-source query logic. Conductor handles parallel scatter, per-source retries, and result aggregation.**
 
-`SgrBroadcastWorker` prepares the query for distribution to all configured sources. A `FORK_JOIN` scatters the query to three gatherers in parallel -- `SgrGather1Worker`, `SgrGather2Worker`, and `SgrGather3Worker` each query their respective data source and return results. The `JOIN` waits for all three to respond. `SgrAggregateWorker` merges the per-source results into a single ranked output (e.g., sorted by price, relevance, or latency). Conductor handles the parallel scatter, retries any slow or failed gatherer, and records per-source response times and result counts.
+`SgrBroadcastWorker` prepares the query for distribution to all configured sources. A `FORK_JOIN` scatters the query to three gatherers in parallel. `SgrGather1Worker`, `SgrGather2Worker`, and `SgrGather3Worker` each query their respective data source and return results. The `JOIN` waits for all three to respond. `SgrAggregateWorker` merges the per-source results into a single ranked output (e.g., sorted by price, relevance, or latency). Conductor handles the parallel scatter, retries any slow or failed gatherer, and records per-source response times and result counts.
 
 ### What You Write: Workers
 
-Five workers implement the scatter-gather -- query broadcasting, three parallel source gatherers (one per pricing API), and best-price aggregation -- each source queried independently and in parallel.
+Five workers implement the scatter-gather: query broadcasting, three parallel source gatherers (one per pricing API), and best-price aggregation, each source queried independently and in parallel.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,15 +26,15 @@ Five workers implement the scatter-gather -- query broadcasting, three parallel 
 | **SgrGather2Worker** | `sgr_gather_2` | Queries price service B and returns its price quote with currency | Simulated |
 | **SgrGather3Worker** | `sgr_gather_3` | Queries price service C and returns its price quote with currency | Simulated |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations -- the pattern and Conductor orchestration stay the same.
+Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -109,9 +109,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -187,13 +187,13 @@ conductor workflow search -w sgr_scatter_gather -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker queries one data source -- replace the simulated API responses with real airline, pricing, or search provider calls and the parallel broadcast-and-aggregate pipeline runs unchanged.
+Each worker queries one data source. Replace the simulated API responses with real airline, pricing, or search provider calls and the parallel broadcast-and-aggregate pipeline runs unchanged.
 
-- **SgrBroadcastWorker** (`sgr_broadcast`) -- fan out real queries to multiple APIs: airline GDS systems (Amadeus, Sabre), price comparison APIs, or multi-vendor product catalogs
-- **SgrGather*Workers** (`sgr_gather_1/2/3`) -- query real data sources: REST APIs with per-source auth, database replicas in different regions, or Elasticsearch clusters with different indices
-- **SgrAggregateWorker** (`sgr_aggregate`) -- implement real aggregation: merge and deduplicate results, rank by price/relevance/freshness, and apply business rules (preferred vendors, margin thresholds)
+- **SgrBroadcastWorker** (`sgr_broadcast`): fan out real queries to multiple APIs: airline GDS systems (Amadeus, Sabre), price comparison APIs, or multi-vendor product catalogs
+- **SgrGather*Workers** (`sgr_gather_1/2/3`). Query real data sources: REST APIs with per-source auth, database replicas in different regions, or Elasticsearch clusters with different indices
+- **SgrAggregateWorker** (`sgr_aggregate`): implement real aggregation: merge and deduplicate results, rank by price/relevance/freshness, and apply business rules (preferred vendors, margin thresholds)
 
-Each gatherer's output contract stays fixed -- swap the simulated price APIs for real airline or hotel booking APIs and the broadcast-aggregate pipeline runs unchanged.
+Each gatherer's output contract stays fixed. Swap the simulated price APIs for real airline or hotel booking APIs and the broadcast-aggregate pipeline runs unchanged.
 
 ## SDK
 

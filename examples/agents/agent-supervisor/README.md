@@ -1,10 +1,10 @@
-# Agent Supervisor in Java Using Conductor -- Plan, Fan Out to Coder/Tester/Documenter, Review
+# Agent Supervisor in Java Using Conductor: Plan, Fan Out to Coder/Tester/Documenter, Review
 
-Assign code review to three unsupervised AI agents and watch what happens: one rewrites your architecture unprompted, another nitpicks formatting while ignoring logic bugs, and the third hallucinates a critical security vulnerability that doesn't exist. Without a supervisor to define the plan upfront and gate the output afterward, parallel agents produce inconsistent, uncoordinated work that nobody catches until it ships. This example uses [Conductor](https://github.com/conductor-oss/conductor) to implement the supervisor pattern -- a planning worker defines the scope, `FORK_JOIN` fans out to coder, tester, and documenter agents in parallel, and a review worker inspects all outputs against the original plan before anything is delivered.
+Assign code review to three unsupervised AI agents and watch what happens: one rewrites your architecture unprompted, another nitpicks formatting while ignoring logic bugs, and the third hallucinates a critical security vulnerability that doesn't exist. Without a supervisor to define the plan upfront and gate the output afterward, parallel agents produce inconsistent, uncoordinated work that nobody catches until it ships. This example uses [Conductor](https://github.com/conductor-oss/conductor) to implement the supervisor pattern, a planning worker defines the scope, `FORK_JOIN` fans out to coder, tester, and documenter agents in parallel, and a review worker inspects all outputs against the original plan before anything is delivered.
 
 ## Coordinating Specialist Agents Needs a Supervisor
 
-Building a feature requires coding, testing, and documentation -- three tasks that can run in parallel but all depend on the same plan and all need quality review afterward. The coder implements the feature (AuthController, AuthService, AuthRepository -- 245 lines of Java with JWT handling). The tester writes and runs test cases (unit tests, integration tests, edge cases -- 18 tests, 82% coverage). The documenter creates API docs, architecture diagrams, and a changelog.
+Building a feature requires coding, testing, and documentation. three tasks that can run in parallel but all depend on the same plan and all need quality review afterward. The coder implements the feature (AuthController, AuthService, AuthRepository, 245 lines of Java with JWT handling). The tester writes and runs test cases (unit tests, integration tests, edge cases, 18 tests, 82% coverage). The documenter creates API docs, architecture diagrams, and a changelog.
 
 Without a supervisor, these agents work independently with no shared plan and no quality gate. The coder might implement something the tester doesn't cover. The documenter might describe an API that doesn't match the implementation. The supervisor pattern adds two coordination steps: planning before execution (so all agents work from the same specification) and review after execution (so inconsistencies are caught before delivery).
 
@@ -20,22 +20,22 @@ A supervisor plans the work, three specialist agents (coder, tester, documenter)
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **PlanWorker** | `sup_plan` | Creates a development plan for the requested feature. Returns a plan object with feature name, priority, 5 development phases (design, implementation, testing, documentation, review), a deadline, and task descriptions for each specialist agent. | Simulated -- swap in a project management API or LLM planner |
-| **CoderAgentWorker** | `sup_coder_agent` | Implements the feature. Returns implementation results: 3 files created (AuthController, AuthService, AuthRepository), 245 lines of Java, and implementation notes describing JWT token handling and role-based access control. | Simulated -- swap in GitHub API + Codex/Copilot for real code generation |
-| **TesterAgentWorker** | `sup_tester_agent` | Creates and runs test suites. Returns test execution results: 3 test suites, 18 total tests, 17 passed, 1 failed (testTokenExpirationEdgeCase), 82% coverage. Status is "needs_fix" due to the failing test. | Simulated -- swap in Maven Surefire + JaCoCo for real test execution |
-| **DocumenterAgentWorker** | `sup_documenter_agent` | Generates documentation. Returns 3 documents created (API_REFERENCE.md, SETUP_GUIDE.md, EXAMPLES.md), 5 sections (Overview, Authentication Flow, API Endpoints, Configuration, Troubleshooting), and 1200 words total. | Simulated -- swap in LLM + docs-as-code toolchain |
-| **ReviewWorker** | `sup_review` | Reviews all agent outputs against the plan. Determines overall status: APPROVED if all agents pass, NEEDS_REVISION if any agent has issues. Returns action items (fix failing test, increase coverage, add error handling docs) and metrics (lines of code, test count, documentation word count). | Simulated -- swap in an LLM cross-referencing code vs tests vs docs |
+| **PlanWorker** | `sup_plan` | Creates a development plan for the requested feature. Returns a plan object with feature name, priority, 5 development phases (design, implementation, testing, documentation, review), a deadline, and task descriptions for each specialist agent. | Simulated. Swap in a project management API or LLM planner |
+| **CoderAgentWorker** | `sup_coder_agent` | Implements the feature. Returns implementation results: 3 files created (AuthController, AuthService, AuthRepository), 245 lines of Java, and implementation notes describing JWT token handling and role-based access control. | Simulated. Swap in GitHub API + Codex/Copilot for real code generation |
+| **TesterAgentWorker** | `sup_tester_agent` | Creates and runs test suites. Returns test execution results: 3 test suites, 18 total tests, 17 passed, 1 failed (testTokenExpirationEdgeCase), 82% coverage. Status is "needs_fix" due to the failing test. | Simulated. Swap in Maven Surefire + JaCoCo for real test execution |
+| **DocumenterAgentWorker** | `sup_documenter_agent` | Generates documentation. Returns 3 documents created (API_REFERENCE.md, SETUP_GUIDE.md, EXAMPLES.md), 5 sections (Overview, Authentication Flow, API Endpoints, Configuration, Troubleshooting), and 1200 words total. | Simulated. Swap in LLM + docs-as-code toolchain |
+| **ReviewWorker** | `sup_review` | Reviews all agent outputs against the plan. Determines overall status: APPROVED if all agents pass, NEEDS_REVISION if any agent has issues. Returns action items (fix failing test, increase coverage, add error handling docs) and metrics (lines of code, test count, documentation word count). | Simulated. Swap in an LLM cross-referencing code vs tests vs docs |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call -- the worker interface stays the same, and no workflow changes are needed.
+The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
 | **Parallel execution** | `FORK_JOIN` runs coder, tester, and documenter simultaneously and waits for all to complete |
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -60,9 +60,9 @@ sup_review
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -190,14 +190,14 @@ conductor workflow search -w agent_supervisor -s COMPLETED -c 5
 
 ## How to Extend
 
-Each specialist agent is self-contained -- connect the coder to GitHub/Codex, the tester to Maven Surefire/JaCoCo, and the documenter to an LLM docs pipeline, and the plan-fork-review supervisory workflow runs unchanged.
+Each specialist agent is self-contained. Connect the coder to GitHub/Codex, the tester to Maven Surefire/JaCoCo, and the documenter to an LLM docs pipeline, and the plan-fork-review supervisory workflow runs unchanged.
 
-- **PlanWorker** (`sup_plan`) -- use GPT-4 or Claude to generate context-aware development plans from feature specifications, or integrate with Jira/Linear APIs to create real tasks with story points and sprint assignments
-- **CoderAgentWorker** (`sup_coder_agent`) -- integrate with GitHub's API to create branches and commit code, or use OpenAI Codex / Anthropic tool use to generate real implementations from the supervisor's task specification
-- **TesterAgentWorker** (`sup_tester_agent`) -- execute real test suites via Maven Surefire or JUnit Platform Launcher, parse JaCoCo coverage reports, and return actual pass/fail metrics with failing test details
-- **DocumenterAgentWorker** (`sup_documenter_agent`) -- use an LLM to generate API documentation from the coder's output, or integrate with Swagger/OpenAPI to auto-generate reference docs from code annotations
-- **ReviewWorker** (`sup_review`) -- use an LLM to cross-reference the coder's implementation against the tester's coverage and the documenter's API descriptions, flagging gaps automatically
-- **Add a new agent** -- create a new worker class, add a branch to the `FORK_JOIN` in `workflow.json`, and update the `JOIN` and `ReviewWorker` inputs. No existing code changes needed.
+- **PlanWorker** (`sup_plan`): use GPT-4 or Claude to generate context-aware development plans from feature specifications, or integrate with Jira/Linear APIs to create real tasks with story points and sprint assignments
+- **CoderAgentWorker** (`sup_coder_agent`): integrate with GitHub's API to create branches and commit code, or use OpenAI Codex / Anthropic tool use to generate real implementations from the supervisor's task specification
+- **TesterAgentWorker** (`sup_tester_agent`): execute real test suites via Maven Surefire or JUnit Platform Launcher, parse JaCoCo coverage reports, and return actual pass/fail metrics with failing test details
+- **DocumenterAgentWorker** (`sup_documenter_agent`): use an LLM to generate API documentation from the coder's output, or integrate with Swagger/OpenAPI to auto-generate reference docs from code annotations
+- **ReviewWorker** (`sup_review`): use an LLM to cross-reference the coder's implementation against the tester's coverage and the documenter's API descriptions, flagging gaps automatically
+- **Add a new agent**: create a new worker class, add a branch to the `FORK_JOIN` in `workflow.json`, and update the `JOIN` and `ReviewWorker` inputs. No existing code changes needed.
 
 Replace with real code generation and test frameworks; the supervisor pipeline maintains the same plan-execute-review contract.
 

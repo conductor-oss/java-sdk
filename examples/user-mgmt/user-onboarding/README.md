@@ -1,18 +1,18 @@
-# User Onboarding in Java Using Conductor -- Account Creation, Email Verification, Preferences, and Welcome
+# User Onboarding in Java Using Conductor: Account Creation, Email Verification, Preferences, and Welcome
 
-A Java Conductor workflow example that onboards a new user end-to-end: creates an account with a deterministic user ID, verifies the email address, initializes plan-appropriate default preferences (theme, language, timezone, notifications), and sends a personalized welcome email. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example that onboards a new user end-to-end: creates an account with a deterministic user ID, verifies the email address, initializes plan-appropriate default preferences (theme, language, timezone, notifications), and sends a personalized welcome email. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-A user signs up with their name, email, and chosen plan. You need to create their account record, verify the email address before they can use the product, set up sensible defaults for their plan tier, and send a welcome email to get them started. Each step depends on the previous one -- preferences and the welcome email both need the user ID generated during account creation, and you don't want to send a welcome email to an unverified address.
+A user signs up with their name, email, and chosen plan. You need to create their account record, verify the email address before they can use the product, set up sensible defaults for their plan tier, and send a welcome email to get them started. Each step depends on the previous one. Preferences and the welcome email both need the user ID generated during account creation, and you don't want to send a welcome email to an unverified address.
 
-Without orchestration, you'd build a single signup service that calls the user database, fires off a verification email, writes preference rows, and sends the welcome message -- all in one method. If the email service is down, the account is created but the user never gets verified. If preferences fail to save, the welcome email goes out anyway pointing to settings that don't exist. Debugging which step failed for a specific user means grepping logs across multiple services.
+Without orchestration, you'd build a single signup service that calls the user database, fires off a verification email, writes preference rows, and sends the welcome message, all in one method. If the email service is down, the account is created but the user never gets verified. If preferences fail to save, the welcome email goes out anyway pointing to settings that don't exist. Debugging which step failed for a specific user means grepping logs across multiple services.
 
 ## The Solution
 
 **You just write the account-creation, email-verification, preferences, and welcome-email workers. Conductor handles the onboarding sequence and user ID threading.**
 
-Each onboarding step -- account creation, email verification, preference setup, welcome delivery -- is a simple, independent worker. Conductor executes them in the correct sequence, threads the generated user ID from account creation into every downstream step, retries if the email service times out or the database hiccups, and tracks the full onboarding journey for every user. You get all of that for free, without writing a single line of orchestration code.
+Each onboarding step: account creation, email verification, preference setup, welcome delivery, is a simple, independent worker. Conductor executes them in the correct sequence, threads the generated user ID from account creation into every downstream step, retries if the email service times out or the database hiccups, and tracks the full onboarding journey for every user. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -20,20 +20,20 @@ CreateAccountWorker generates a user ID, VerifyEmailWorker confirms ownership, S
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **CreateAccountWorker** | `uo_create_account` | Generates a deterministic user ID (USR-{hex} derived from email), persists the account record with email, name, and plan | Simulated -- swap in your user database (PostgreSQL, DynamoDB) or identity provider (Auth0, Cognito) |
-| **VerifyEmailWorker** | `uo_verify_email` | Sends an email verification link to the new user's address and confirms delivery | Simulated -- swap in SendGrid, SES, or your SMTP service for production |
-| **SetPreferencesWorker** | `uo_set_preferences` | Initializes default user preferences: theme (light), language (en), notifications (on), timezone (UTC) | Simulated -- swap in your preferences API or user profile store (PostgreSQL, DynamoDB) |
-| **WelcomeWorker** | `uo_welcome` | Sends a personalized welcome email to the verified user with getting-started content | Simulated -- swap in your transactional email service (SendGrid, SES) for production |
+| **CreateAccountWorker** | `uo_create_account` | Generates a deterministic user ID (USR-{hex} derived from email), persists the account record with email, name, and plan | Simulated. Swap in your user database (PostgreSQL, DynamoDB) or identity provider (Auth0, Cognito) |
+| **VerifyEmailWorker** | `uo_verify_email` | Sends an email verification link to the new user's address and confirms delivery | Simulated. Swap in SendGrid, SES, or your SMTP service for production |
+| **SetPreferencesWorker** | `uo_set_preferences` | Initializes default user preferences: theme (light), language (en), notifications (on), timezone (UTC) | Simulated. Swap in your preferences API or user profile store (PostgreSQL, DynamoDB) |
+| **WelcomeWorker** | `uo_welcome` | Sends a personalized welcome email to the verified user with getting-started content | Simulated. Swap in your transactional email service (SendGrid, SES) for production |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end with reproducible results. To go to production, replace the simulation with the real API call -- the worker interface stays the same, and no workflow changes are needed.
+The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end with reproducible results. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -55,9 +55,9 @@ uo_welcome
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,9 +161,9 @@ conductor workflow search -w uo_user_onboarding -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one onboarding step -- connect your identity provider (Auth0, Cognito, Firebase Auth) for account creation and your email service (SendGrid, SES) for verification and welcome delivery, and the onboarding workflow stays the same.
+Each worker handles one onboarding step. Connect your identity provider (Auth0, Cognito, Firebase Auth) for account creation and your email service (SendGrid, SES) for verification and welcome delivery, and the onboarding workflow stays the same.
 
-**Example -- make `CreateAccountWorker` real with PostgreSQL:**
+**Example. Make `CreateAccountWorker` real with PostgreSQL:**
 
 ```java
 // Before (simulated):
@@ -185,13 +185,13 @@ try (var conn = dataSource.getConnection();
 }
 ```
 
-Replace the simulated database with PostgreSQL and the onboarding sequence -- account creation through welcome email -- operates unchanged.
+Replace the simulated database with PostgreSQL and the onboarding sequence: account creation through welcome email, operates unchanged.
 
 **Other production swaps:**
-- **CreateAccountWorker** -- identity provider: Auth0 Management API (`com.auth0:auth0`) or AWS Cognito (`software.amazon.awssdk:cognitoidentityprovider`); publish a `user.created` event to Kafka
-- **VerifyEmailWorker** -- email provider: SendGrid (`com.sendgrid:sendgrid-java`), AWS SES (`software.amazon.awssdk:ses`), or direct SMTP; send a signed token link and wait for click-through confirmation
-- **SetPreferencesWorker** -- user profile store: PostgreSQL row per user, DynamoDB item, or a preferences microservice; derive defaults from plan tier (e.g., pro users get dark theme, extended notification options)
-- **WelcomeWorker** -- transactional email: SendGrid dynamic templates, SES with HTML templates; trigger an in-app onboarding tour or enroll the user in a drip campaign
+- **CreateAccountWorker**: identity provider: Auth0 Management API (`com.auth0:auth0`) or AWS Cognito (`software.amazon.awssdk:cognitoidentityprovider`); publish a `user.created` event to Kafka
+- **VerifyEmailWorker**: email provider: SendGrid (`com.sendgrid:sendgrid-java`), AWS SES (`software.amazon.awssdk:ses`), or direct SMTP; send a signed token link and wait for click-through confirmation
+- **SetPreferencesWorker**: user profile store: PostgreSQL row per user, DynamoDB item, or a preferences microservice; derive defaults from plan tier (e.g., pro users get dark theme, extended notification options)
+- **WelcomeWorker**: transactional email: SendGrid dynamic templates, SES with HTML templates; trigger an in-app onboarding tour or enroll the user in a drip campaign
 
 ## SDK
 

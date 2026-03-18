@@ -1,10 +1,10 @@
-# Customer Onboarding KYC in Java Using Conductor -- Risk Assessment, SWITCH for Auto-Approve vs. Manual Review, and Account Activation
+# Customer Onboarding KYC in Java Using Conductor: Risk Assessment, SWITCH for Auto-Approve vs. Manual Review, and Account Activation
 
-A Java Conductor workflow example for Know Your Customer (KYC) onboarding -- performing an automated risk assessment on the customer, using SWITCH to route low-risk customers to instant auto-approval or high-risk customers to a WAIT task for manual compliance review, and then activating the account. Demonstrates the pattern where automation handles the common case and humans only intervene when risk flags are raised. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for Know Your Customer (KYC) onboarding. performing an automated risk assessment on the customer, using SWITCH to route low-risk customers to instant auto-approval or high-risk customers to a WAIT task for manual compliance review, and then activating the account. Demonstrates the pattern where automation handles the common case and humans only intervene when risk flags are raised. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to onboard customers with KYC compliance checks. Each customer is assessed for risk based on their identity, country of residence, source of funds, and PEP (Politically Exposed Person) status. Low-risk customers -- those with clean identity checks, domestic addresses, and no PEP flags -- should be auto-approved and activated instantly for a frictionless experience. High-risk customers -- those with sanctions hits, high-risk jurisdictions, or PEP connections -- must be routed to a compliance analyst for manual review before the account can be activated. The analyst reviews the flags, may request additional documentation, and makes a final approve/reject decision. Without this conditional routing, you either manually review every customer (slow and expensive) or auto-approve everyone (regulatory violation).
+You need to onboard customers with KYC compliance checks. Each customer is assessed for risk based on their identity, country of residence, source of funds, and PEP (Politically Exposed Person) status. Low-risk customers: those with clean identity checks, domestic addresses, and no PEP flags, should be auto-approved and activated instantly for a frictionless experience. High-risk customers, those with sanctions hits, high-risk jurisdictions, or PEP connections, must be routed to a compliance analyst for manual review before the account can be activated. The analyst reviews the flags, may request additional documentation, and makes a final approve/reject decision. Without this conditional routing, you either manually review every customer (slow and expensive) or auto-approve everyone (regulatory violation).
 
 Without orchestration, you'd build a monolithic KYC system that runs risk checks, branches with if/else into auto-approve or manual-review queues, polls a database for analyst decisions, and activates accounts. If the identity verification API is down, you'd need retry logic. If the system crashes after the analyst approves but before activation, the customer is approved but never gets access. BSA/AML regulators require a complete audit trail of every KYC decision, including who reviewed high-risk cases and when.
 
@@ -16,24 +16,24 @@ The SWITCH + WAIT pattern is the key here. After the KYC check determines the ri
 
 ### What You Write: Workers
 
-KycCheckWorker assesses identity and watchlist risk, while KycActivateWorker enables account access -- neither manages the routing between auto-approval and manual compliance review.
+KycCheckWorker assesses identity and watchlist risk, while KycActivateWorker enables account access. Neither manages the routing between auto-approval and manual compliance review.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **KycCheckWorker** | `kyc_check` | Performs automated KYC risk assessment -- checks identity, watchlists, PEP status, and jurisdiction risk, returning a risk level and needsReview flag with any compliance flags | Simulated -- swap in your KYC/AML provider (Jumio, Onfido, LexisNexis, Trulioo) for production |
-| *SWITCH task* | `kyc_review_decision` | Routes based on needsReview -- "true" sends to a manual WAIT task for compliance analyst review, default auto-approves and proceeds to activation | Built-in Conductor SWITCH -- no worker needed |
-| *WAIT task* | `manual_kyc_review` | Pauses for a compliance analyst to review the flags and make an approve/reject decision via `POST /tasks/{taskId}` | Built-in Conductor WAIT -- no worker needed |
-| **KycActivateWorker** | `kyc_activate` | Activates the customer account after KYC approval (automatic or manual), enabling login and product access | Simulated -- swap in your core banking or account management system for production |
+| **KycCheckWorker** | `kyc_check` | Performs automated KYC risk assessment: checks identity, watchlists, PEP status, and jurisdiction risk, returning a risk level and needsReview flag with any compliance flags | Simulated, swap in your KYC/AML provider (Jumio, Onfido, LexisNexis, Trulioo) for production |
+| *SWITCH task* | `kyc_review_decision` | Routes based on needsReview. "true" sends to a manual WAIT task for compliance analyst review, default auto-approves and proceeds to activation | Built-in Conductor SWITCH.; no worker needed |
+| *WAIT task* | `manual_kyc_review` | Pauses for a compliance analyst to review the flags and make an approve/reject decision via `POST /tasks/{taskId}` | Built-in Conductor WAIT.; no worker needed |
+| **KycActivateWorker** | `kyc_activate` | Activates the customer account after KYC approval (automatic or manual), enabling login and product access | Simulated. Swap in your core banking or account management system for production |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments -- the workflow structure stays the same.
+Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
@@ -55,9 +55,9 @@ kyc_activate
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -122,7 +122,7 @@ Step 3: Starting workers...
 
 Step 4: Starting workflow (low-risk customer, auto-approved)...
   [kyc_check] Checking customer: Alice Smith (id=C-1001, risk=low)
-  [kyc_check] Low risk -- auto-approved.
+  [kyc_check] Low risk. Auto-approved.
 
   Workflow ID: b3f1a2c4-...
 
@@ -180,7 +180,7 @@ When the workflow hits the `manual_kyc_review` WAIT task (high-risk customers on
 **Step 1: Find the WAIT task ID**
 
 ```bash
-# Get the execution details -- look for the task named "manual_kyc_review"
+# Get the execution details: look for the task named "manual_kyc_review"
 conductor workflow get-execution <workflow_id> -c
 ```
 
@@ -213,7 +213,7 @@ curl -X POST http://localhost:8080/api/tasks \
     "workflowInstanceId": "<workflow_id>",
     "taskId": "<task_id>",
     "status": "FAILED",
-    "reasonForIncompletion": "KYC review failed -- sanctions match confirmed",
+    "reasonForIncompletion": "KYC review failed. Sanctions match confirmed",
     "outputData": {
       "approved": false,
       "reviewedBy": "compliance-analyst@example.com",
@@ -226,7 +226,7 @@ After approval, the workflow automatically resumes and the `kyc_activate` worker
 
 ## How to Extend
 
-Each worker encapsulates a single KYC step -- swap in your identity verification provider (Jumio, Onfido, Trulioo) and core banking activation API, and the onboarding workflow remains unchanged.
+Each worker encapsulates a single KYC step. Swap in your identity verification provider (Jumio, Onfido, Trulioo) and core banking activation API, and the onboarding workflow remains unchanged.
 
 - **KycCheckWorker** → integrate with real KYC providers (Jumio for document verification, Onfido for biometric checks, ComplyAdvantage or Refinitiv for sanctions/PEP screening, LexisNexis for identity verification)
 - **WAIT task** → complete it from your compliance review UI with `{ "approved": true, "notes": "..." }` or `{ "approved": false, "reason": "failed enhanced due diligence" }`
@@ -266,6 +266,6 @@ customer-onboarding-kyc/
 │       ├── KycActivateWorker.java   # Activates account after KYC approval
 │       └── KycCheckWorker.java      # Risk assessment with needsReview flag
 └── src/test/java/customeronboardingkyc/workers/
-    ├── KycActivateWorkerTest.java   # 5 tests -- activation, defaults, types
-    └── KycCheckWorkerTest.java      # 8 tests -- high/low risk, case sensitivity, defaults
+    ├── KycActivateWorkerTest.java   # 5 tests. Activation, defaults, types
+    └── KycCheckWorkerTest.java      # 8 tests. High/low risk, case sensitivity, defaults
 ```

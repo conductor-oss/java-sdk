@@ -1,12 +1,12 @@
-# Tool Use Basics in Java Using Conductor -- Analyze Request, Select Tool, Execute, Format Result
+# Tool Use Basics in Java Using Conductor: Analyze Request, Select Tool, Execute, Format Result
 
-Your AI chatbot can eloquently explain how to check the weather in Tokyo. It just can't actually check the weather in Tokyo. It can describe the steps to calculate 15% of 230, but it can't call a calculator. It reasons beautifully about what should happen, then hands back a paragraph of text instead of a result. The gap between "knowing what to do" and "doing it" is the tool-use problem. This example wires an LLM to real tools through a four-step Conductor pipeline: analyze the request, select the right tool, execute it, and format the result into a natural language answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Your AI chatbot can eloquently explain how to check the weather in Tokyo. It just can't actually check the weather in Tokyo. It can describe the steps to calculate 15% of 230, but it can't call a calculator. It reasons beautifully about what should happen, then hands back a paragraph of text instead of a result. The gap between "knowing what to do" and "doing it" is the tool-use problem. This example wires an LLM to real tools through a four-step Conductor pipeline: analyze the request, select the right tool, execute it, and format the result into a natural language answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Foundation of Tool-Using Agents
 
 An AI agent with access to tools (calculator, web search, calendar, database) needs a systematic way to determine which tool to use for a given request. "What's 15% of 230?" needs the calculator. "What's the weather in Tokyo?" needs the weather API. "Who won the Super Bowl?" needs web search.
 
-The tool-use pattern has four steps: understand what the user wants (intent extraction), pick the right tool (tool selection from the available set), call the tool with the right parameters (execution), and present the result in natural language (formatting). Each step is independent -- you can swap the tool selection logic without changing execution, or add new tools without modifying the request analyzer.
+The tool-use pattern has four steps: understand what the user wants (intent extraction), pick the right tool (tool selection from the available set), call the tool with the right parameters (execution), and present the result in natural language (formatting). Each step is independent. You can swap the tool selection logic without changing execution, or add new tools without modifying the request analyzer.
 
 ## The Solution
 
@@ -16,7 +16,7 @@ The tool-use pattern has four steps: understand what the user wants (intent extr
 
 ### What You Write: Workers
 
-Four workers implement the tool-use pattern -- analyzing the request, selecting the right tool, executing it, and formatting the result into natural language.
+Four workers implement the tool-use pattern. Analyzing the request, selecting the right tool, executing it, and formatting the result into natural language.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ Four workers implement the tool-use pattern -- analyzing the request, selecting 
 | **FormatResultWorker** | `tu_format_result` | Formats tool execution results into a natural language answer. Builds a human-readable string based on the tool output. | Simulated |
 | **SelectToolWorker** | `tu_select_tool` | Selects the appropriate tool based on the analyzed intent. Maps intent to tool name, produces a description, and buil... | Simulated |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode -- the agent workflow stays the same.
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,11 +161,11 @@ conductor workflow search -w tool_use_basics -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker wraps one tool-use step -- plug in real APIs (weather services, calculators, search engines), LLM-based tool selection, and natural language formatting, and the analyze-select-execute-format workflow runs unchanged.
+Each worker wraps one tool-use step. Plug in real APIs (weather services, calculators, search engines), LLM-based tool selection, and natural language formatting, and the analyze-select-execute-format workflow runs unchanged.
 
-- **SelectToolWorker** (`tu_select_tool`) -- use GPT-4's function calling or Claude's tool use feature for schema-aware tool selection, or implement embedding-based tool matching for large tool registries
-- **ExecuteToolWorker** (`tu_execute_tool`) -- build a real tool registry with input validation, sandboxed execution, rate limiting per tool, and structured output schemas
-- **AnalyzeRequestWorker** (`tu_analyze_request`) -- use an LLM with the tool catalog as context for intent classification and parameter extraction, with fallback to clarifying questions when intent is ambiguous
+- **SelectToolWorker** (`tu_select_tool`): use GPT-4's function calling or Claude's tool use feature for schema-aware tool selection, or implement embedding-based tool matching for large tool registries
+- **ExecuteToolWorker** (`tu_execute_tool`): build a real tool registry with input validation, sandboxed execution, rate limiting per tool, and structured output schemas
+- **AnalyzeRequestWorker** (`tu_analyze_request`): use an LLM with the tool catalog as context for intent classification and parameter extraction, with fallback to clarifying questions when intent is ambiguous
 
 Replace with real tool implementations; the analyze-select-execute-format pipeline keeps the same interface for any tool.
 

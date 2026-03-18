@@ -1,18 +1,18 @@
-# Video Processing Pipeline in Java Using Conductor -- Upload, Adaptive Transcode, Thumbnail Generation, Metadata Indexing, and Publishing
+# Video Processing Pipeline in Java Using Conductor: Upload, Adaptive Transcode, Thumbnail Generation, Metadata Indexing, and Publishing
 
-A creator uploads a 742MB 4K video. Your monolithic transcoder starts the 1080p rendition, runs out of memory halfway through the 720p, and dies. The thumbnail generator -- which somebody wired to run concurrently -- extracts a frame from the half-transcoded file and gets a green-and-black glitch image. The metadata indexer never ran at all, so the video doesn't appear in search. The publish step has no idea any of this happened and pushes a broken HLS manifest to the CDN. Now there's a live watch URL serving a video that plays for 40 seconds and then freezes. This example orchestrates the full video pipeline with Conductor: upload with codec detection, adaptive bitrate transcoding (1080p/720p/480p), thumbnail extraction at a computed keyframe, metadata indexing, and publishing -- each step sequenced with proper dependency handling and per-step retries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A creator uploads a 742MB 4K video. Your monolithic transcoder starts the 1080p rendition, runs out of memory halfway through the 720p, and dies. The thumbnail generator, which somebody wired to run concurrently. extracts a frame from the half-transcoded file and gets a green-and-black glitch image. The metadata indexer never ran at all, so the video doesn't appear in search. The publish step has no idea any of this happened and pushes a broken HLS manifest to the CDN. Now there's a live watch URL serving a video that plays for 40 seconds and then freezes. This example orchestrates the full video pipeline with Conductor: upload with codec detection, adaptive bitrate transcoding (1080p/720p/480p), thumbnail extraction at a computed keyframe, metadata indexing, and publishing, each step sequenced with proper dependency handling and per-step retries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Why Video Processing Needs Orchestration
 
-Processing video for delivery involves a pipeline where each stage produces assets that downstream stages depend on. You ingest the source file -- detecting the codec (h264, h265, VP9), measuring duration, and storing the raw file to object storage with its original quality preserved. You transcode to adaptive bitrate HLS, generating resolution renditions at 1080p (5000k), 720p (2500k), and 480p (1000k) so the player can switch quality based on network conditions. You generate a thumbnail by extracting a frame at a computed position (one-third of the duration, avoiding black intro frames). You index metadata -- title, duration, available resolutions, content type -- so the video appears in search results and recommendation feeds. Finally, you publish the video with its HLS manifest, thumbnail, and metadata to a live watch URL.
+Processing video for delivery involves a pipeline where each stage produces assets that downstream stages depend on. You ingest the source file: detecting the codec (h264, h265, VP9), measuring duration, and storing the raw file to object storage with its original quality preserved. You transcode to adaptive bitrate HLS, generating resolution renditions at 1080p (5000k), 720p (2500k), and 480p (1000k) so the player can switch quality based on network conditions. You generate a thumbnail by extracting a frame at a computed position (one-third of the duration, avoiding black intro frames). You index metadata, title, duration, available resolutions, content type, so the video appears in search results and recommendation feeds. Finally, you publish the video with its HLS manifest, thumbnail, and metadata to a live watch URL.
 
-Each stage depends on specific outputs from earlier stages -- transcoding needs the storage path from upload, thumbnail generation needs the duration, metadata indexing needs the resolution list from transcoding, and publishing needs the HLS URL, thumbnail URL, and metadata. If transcoding fails partway through (the 720p rendition succeeds but 480p times out), you need to retry just the failed rendition -- not re-upload the 742 MB source file. Without orchestration, you'd build a monolithic video processor that mixes FFmpeg calls, S3 uploads, thumbnail extraction, and database writes -- making it impossible to swap your transcoding backend (FFmpeg to MediaConvert), add new rendition profiles, or trace why a specific video's thumbnail shows a black frame.
+Each stage depends on specific outputs from earlier stages: transcoding needs the storage path from upload, thumbnail generation needs the duration, metadata indexing needs the resolution list from transcoding, and publishing needs the HLS URL, thumbnail URL, and metadata. If transcoding fails partway through (the 720p rendition succeeds but 480p times out), you need to retry just the failed rendition, not re-upload the 742 MB source file. Without orchestration, you'd build a monolithic video processor that mixes FFmpeg calls, S3 uploads, thumbnail extraction, and database writes, making it impossible to swap your transcoding backend (FFmpeg to MediaConvert), add new rendition profiles, or trace why a specific video's thumbnail shows a black frame.
 
 ## How This Workflow Solves It
 
-**You just write the video processing workers -- upload ingestion, adaptive transcode, thumbnail generation, metadata indexing, and publishing. Conductor handles transcoding sequencing, FFmpeg timeout retries, and end-to-end tracking from upload through live publication.**
+**You just write the video processing workers. Upload ingestion, adaptive transcode, thumbnail generation, metadata indexing, and publishing. Conductor handles transcoding sequencing, FFmpeg timeout retries, and end-to-end tracking from upload through live publication.**
 
-Each video processing stage is an independent worker -- upload, transcode, thumbnail, metadata, publish. Conductor sequences them, passes the storage path from upload into transcode and thumbnail, feeds the resolution list and HLS URL from transcode into metadata and publish, retries if an FFmpeg process times out, and tracks every video from upload through live publication.
+Each video processing stage is an independent worker. Upload, transcode, thumbnail, metadata, publish. Conductor sequences them, passes the storage path from upload into transcode and thumbnail, feeds the resolution list and HLS URL from transcode into metadata and publish, retries if an FFmpeg process times out, and tracks every video from upload through live publication.
 
 ### What You Write: Workers
 
@@ -20,21 +20,21 @@ Five workers process each video: UploadWorker ingests the source with codec dete
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **UploadWorker** | `vid_upload` | Ingests source video from a URL, stores it to object storage, and detects codec (`h264`), duration (`185s`), and file size (`742 MB`). Returns `storagePath`, `duration`, `fileSizeMb`, `codec`. | Simulated -- returns fixed media properties for the given `videoId` |
-| **TranscodeWorker** | `vid_transcode` | Transcodes the raw video to adaptive bitrate HLS with three resolution renditions: 1080p (5000k), 720p (2500k), 480p (1000k). Returns `resolutions` list, `hlsUrl`, `format`. | Simulated -- returns deterministic rendition profiles and an HLS manifest URL |
-| **ThumbnailWorker** | `vid_thumbnail` | Generates a thumbnail by extracting a frame at one-third of the video duration (avoiding black intro frames). Returns `thumbnailUrl`, `capturedAtSecond`, `width`, `height`. | Simulated -- computes capture position from input `duration`, returns a CDN thumbnail URL |
-| **MetadataWorker** | `vid_metadata` | Assembles a metadata index from upstream outputs -- title, duration, resolution list, content type -- for search and discovery. Returns a `metadata` map. | Simulated -- builds a deterministic metadata map from task inputs |
-| **PublishWorker** | `vid_publish` | Publishes the video with its HLS manifest, thumbnail, and metadata to a live watch URL. Returns `publishUrl`, `publishedAt`, `status`. | Simulated -- returns a deterministic watch URL and `published` status |
+| **UploadWorker** | `vid_upload` | Ingests source video from a URL, stores it to object storage, and detects codec (`h264`), duration (`185s`), and file size (`742 MB`). Returns `storagePath`, `duration`, `fileSizeMb`, `codec`. | Simulated. Returns fixed media properties for the given `videoId` |
+| **TranscodeWorker** | `vid_transcode` | Transcodes the raw video to adaptive bitrate HLS with three resolution renditions: 1080p (5000k), 720p (2500k), 480p (1000k). Returns `resolutions` list, `hlsUrl`, `format`. | Simulated. Returns deterministic rendition profiles and an HLS manifest URL |
+| **ThumbnailWorker** | `vid_thumbnail` | Generates a thumbnail by extracting a frame at one-third of the video duration (avoiding black intro frames). Returns `thumbnailUrl`, `capturedAtSecond`, `width`, `height`. | Simulated. Computes capture position from input `duration`, returns a CDN thumbnail URL |
+| **MetadataWorker** | `vid_metadata` | Assembles a metadata index from upstream outputs: title, duration, resolution list, content type, for search and discovery. Returns a `metadata` map. | Simulated, builds a deterministic metadata map from task inputs |
+| **PublishWorker** | `vid_publish` | Publishes the video with its HLS manifest, thumbnail, and metadata to a live watch URL. Returns `publishUrl`, `publishedAt`, `status`. | Simulated. Returns a deterministic watch URL and `published` status |
 
-Workers simulate media processing stages -- transcoding, thumbnail generation, metadata extraction -- with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
+Workers simulate media processing stages: transcoding, thumbnail generation, metadata extraction, with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -117,9 +117,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -197,11 +197,11 @@ conductor workflow search -w video_processing_workflow -s COMPLETED -c 5
 
 Connect TranscodeWorker to your encoding backend (FFmpeg, AWS MediaConvert), ThumbnailWorker to your frame extraction service, and PublishWorker to your video CDN. The workflow definition stays exactly the same.
 
-- **UploadWorker** (`vid_upload`) -- ingest source video via multipart upload or URL fetch, store to S3/GCS, and probe with FFprobe to extract codec, duration, file size, and container format
-- **TranscodeWorker** (`vid_transcode`) -- transcode using FFmpeg, AWS MediaConvert, or Google Transcoder API to produce adaptive bitrate HLS with configurable rendition profiles (resolution, bitrate, codec)
-- **ThumbnailWorker** (`vid_thumbnail`) -- extract a frame at a computed keyframe position using FFmpeg, generate multiple thumbnail sizes for different UI contexts (player poster, grid card, social share), and upload to your CDN
-- **MetadataWorker** (`vid_metadata`) -- index video metadata (title, duration, resolutions, content type) in Elasticsearch or your catalog database for search, filtering, and recommendation feeds
-- **PublishWorker** (`vid_publish`) -- register the video in your CMS, set the watch page URL, configure CDN distribution rules, and update the video status to live so it appears in user-facing listings
+- **UploadWorker** (`vid_upload`): ingest source video via multipart upload or URL fetch, store to S3/GCS, and probe with FFprobe to extract codec, duration, file size, and container format
+- **TranscodeWorker** (`vid_transcode`): transcode using FFmpeg, AWS MediaConvert, or Google Transcoder API to produce adaptive bitrate HLS with configurable rendition profiles (resolution, bitrate, codec)
+- **ThumbnailWorker** (`vid_thumbnail`): extract a frame at a computed keyframe position using FFmpeg, generate multiple thumbnail sizes for different UI contexts (player poster, grid card, social share), and upload to your CDN
+- **MetadataWorker** (`vid_metadata`): index video metadata (title, duration, resolutions, content type) in Elasticsearch or your catalog database for search, filtering, and recommendation feeds
+- **PublishWorker** (`vid_publish`): register the video in your CMS, set the watch page URL, configure CDN distribution rules, and update the video status to live so it appears in user-facing listings
 
 Swap any worker for a real transcoding backend or CDN while preserving its return fields, and the video pipeline runs without changes.
 
@@ -231,11 +231,11 @@ video-processing/
 │   ├── ConductorClientHelper.java   # SDK v5 client setup
 │   ├── VideoProcessingExample.java  # Main entry point (supports --workers mode)
 │   └── workers/
-│       ├── UploadWorker.java        # vid_upload -- ingest and store source video
-│       ├── TranscodeWorker.java     # vid_transcode -- adaptive bitrate HLS
-│       ├── ThumbnailWorker.java     # vid_thumbnail -- keyframe extraction
-│       ├── MetadataWorker.java      # vid_metadata -- metadata index assembly
-│       └── PublishWorker.java       # vid_publish -- publish to watch URL
+│       ├── UploadWorker.java        # vid_upload. Ingest and store source video
+│       ├── TranscodeWorker.java     # vid_transcode. Adaptive bitrate HLS
+│       ├── ThumbnailWorker.java     # vid_thumbnail. Keyframe extraction
+│       ├── MetadataWorker.java      # vid_metadata. Metadata index assembly
+│       └── PublishWorker.java       # vid_publish. Publish to watch URL
 └── src/test/java/videoprocessing/workers/
     ├── UploadWorkerTest.java        # Tests upload outputs and task def name
     ├── TranscodeWorkerTest.java     # Tests resolutions, HLS URL, determinism

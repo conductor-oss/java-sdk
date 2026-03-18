@@ -1,6 +1,6 @@
-# Workflow Input/Output in Java with Conductor -- Data Flow via JSONPath in a Price Calculator
+# Workflow Input/Output in Java with Conductor: Data Flow via JSONPath in a Price Calculator
 
-Your workflow runs, all tasks complete, but the output is empty -- or worse, silently wrong. You passed `{"orderId": "123"}` but the task expected `${workflow.input.order_id}` with an underscore, not camelCase. Data flow in Conductor has rules: JSONPath expressions like `${taskRef.output.field}` wire each task's output to the next task's input, and a single typo means a null that propagates silently through the entire pipeline. This example makes those rules visible with a four-step price calculator (lookup, discount, tax, invoice) where you can trace every value from workflow input through each JSONPath expression to the final formatted output.
+Your workflow runs, all tasks complete, but the output is empty, or worse, silently wrong. You passed `{"orderId": "123"}` but the task expected `${workflow.input.order_id}` with an underscore, not camelCase. Data flow in Conductor has rules: JSONPath expressions like `${taskRef.output.field}` wire each task's output to the next task's input, and a single typo means a null that propagates silently through the entire pipeline. This example makes those rules visible with a four-step price calculator (lookup, discount, tax, invoice) where you can trace every value from workflow input through each JSONPath expression to the final formatted output.
 
 ## Understanding Data Flow Between Tasks
 
@@ -12,7 +12,7 @@ Starting with `productId`, `quantity`, and `couponCode` as workflow input: the p
 
 **You just write the price lookup, discount application, tax calculation, and invoice formatting logic. Conductor handles the data flow between them via JSONPath.**
 
-Four workers form the price calculation pipeline -- price lookup, discount application, tax calculation, and invoice formatting. The workflow JSON declares how each task reads from previous tasks' outputs using JSONPath, making the data flow explicit and inspectable in the Conductor UI.
+Four workers form the price calculation pipeline. Price lookup, discount application, tax calculation, and invoice formatting. The workflow JSON declares how each task reads from previous tasks' outputs using JSONPath, making the data flow explicit and inspectable in the Conductor UI.
 
 ### What You Write: Workers
 
@@ -29,9 +29,9 @@ The price calculator workers show how JSONPath expressions route specific fields
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -53,9 +53,9 @@ format_invoice
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -176,10 +176,10 @@ conductor workflow search -w price_calculator -s COMPLETED -c 5
 
 ## How to Extend
 
-- **LookupPriceWorker** (`lookup_price`) -- replace the in-memory catalog with a database query or product API call (e.g., Stripe Products, Shopify).
-- **ApplyDiscountWorker** (`apply_discount`) -- validate coupons against a promotions database with usage limits and expiry dates.
-- **CalculateTaxWorker** (`calculate_tax`) -- integrate a tax service like Avalara or TaxJar to calculate location-based tax rates.
-- **FormatInvoiceWorker** (`format_invoice`) -- generate a PDF invoice or post it to an accounting system like QuickBooks.
+- **LookupPriceWorker** (`lookup_price`): replace the in-memory catalog with a database query or product API call (e.g., Stripe Products, Shopify).
+- **ApplyDiscountWorker** (`apply_discount`): validate coupons against a promotions database with usage limits and expiry dates.
+- **CalculateTaxWorker** (`calculate_tax`): integrate a tax service like Avalara or TaxJar to calculate location-based tax rates.
+- **FormatInvoiceWorker** (`format_invoice`): generate a PDF invoice or post it to an accounting system like QuickBooks.
 
 ## SDK
 

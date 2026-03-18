@@ -1,10 +1,10 @@
-# Hello World in Java with Conductor -- The Simplest Possible Workflow
+# Hello World in Java with Conductor: The Simplest Possible Workflow
 
-The absolute minimum Conductor example -- one workflow, one task, one worker. Takes a `name` as input, produces a greeting as output. This is your starting point for understanding how Conductor works: you define a workflow in JSON, write a worker in Java, and Conductor connects them. Uses [Conductor](https://github.com/conductor-oss/conductor) to run a single task.
+The absolute minimum Conductor example. One workflow, one task, one worker. Takes a `name` as input, produces a greeting as output. This is your starting point for understanding how Conductor works: you define a workflow in JSON, write a worker in Java, and Conductor connects them. Uses [Conductor](https://github.com/conductor-oss/conductor) to run a single task.
 
 ## Your First Conductor Workflow
 
-Before building complex pipelines, you need to understand the core loop: a workflow definition (JSON) declares tasks, a worker (Java class implementing `Worker`) polls for and executes tasks, and Conductor connects them. This example strips away everything except that core loop -- one task that takes a name and returns a greeting.
+Before building complex pipelines, you need to understand the core loop: a workflow definition (JSON) declares tasks, a worker (Java class implementing `Worker`) polls for and executes tasks, and Conductor connects them. This example strips away everything except that core loop. One task that takes a name and returns a greeting.
 
 After running this, you'll understand: how to define a workflow in `workflow.json`, how to implement a worker with `getTaskDefName()` and `execute()`, how input flows from the workflow to the worker via `task.getInputData()`, and how output flows back via `result.getOutputData()`.
 
@@ -12,7 +12,7 @@ After running this, you'll understand: how to define a workflow in `workflow.jso
 
 **One worker, one task, one workflow. The simplest possible Conductor application.**
 
-A single `greet` worker receives a name, produces a greeting, and returns it. Conductor handles the workflow lifecycle, task polling, and execution tracking -- even for this trivially simple case.
+A single `greet` worker receives a name, produces a greeting, and returns it. Conductor handles the workflow lifecycle, task polling, and execution tracking. Even for this trivially simple case.
 
 ### What You Write: Workers
 
@@ -20,15 +20,15 @@ A single GreetWorker demonstrates the minimum Conductor contract: receive input 
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **GreetWorker** | `greet` | Takes a `name` from input, returns `"Hello, {name}! Welcome to Conductor."` -- defaults to `"World"` if name is blank or missing. | Real (pure logic) |
+| **GreetWorker** | `greet` | Takes a `name` from input, returns `"Hello, {name}! Welcome to Conductor."`. Defaults to `"World"` if name is blank or missing. | Real (pure logic) |
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -41,9 +41,9 @@ greet
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -145,10 +145,10 @@ conductor workflow search -w hello_world_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-- **Replace the greeting with a personalized welcome email** -- swap `GreetWorker`'s in-memory string with a SendGrid or AWS SES API call. Read the recipient's name and email from `task.getInputData()`, build an HTML template, and send via the email SDK. The worker returns `{emailId, sentAt}` instead of a plain greeting string.
-- **Add a second worker to log the greeting to an audit database** -- create an `AuditLogWorker` (`audit_log`) that receives the greeting output from `GreetWorker` and writes it to PostgreSQL or DynamoDB with a timestamp and request ID. Add it as a second task in `workflow.json` after `greet`.
-- **Chain greet with a notification worker** -- add a `NotifyWorker` (`notify`) that takes the greeting and posts it to a Slack channel via webhook or sends it as an SMS via Twilio. Wire it in `workflow.json` so it runs after `greet`, reading `${greet_ref.output.greeting}` as input.
-- **Use workflow input to customize the greeting language** -- add a `language` field to the workflow input (e.g., `"language": "es"`). In `GreetWorker.execute()`, read `task.getInputData().get("language")` and select from a map of localized templates (`"es"` -> `"Hola, {name}! Bienvenido a Conductor."`, `"fr"` -> `"Bonjour, {name}! Bienvenue sur Conductor."`). Defaults to English when the field is missing.
+- **Replace the greeting with a personalized welcome email**: swap `GreetWorker`'s in-memory string with a SendGrid or AWS SES API call. Read the recipient's name and email from `task.getInputData()`, build an HTML template, and send via the email SDK. The worker returns `{emailId, sentAt}` instead of a plain greeting string.
+- **Add a second worker to log the greeting to an audit database**: create an `AuditLogWorker` (`audit_log`) that receives the greeting output from `GreetWorker` and writes it to PostgreSQL or DynamoDB with a timestamp and request ID. Add it as a second task in `workflow.json` after `greet`.
+- **Chain greet with a notification worker**: add a `NotifyWorker` (`notify`) that takes the greeting and posts it to a Slack channel via webhook or sends it as an SMS via Twilio. Wire it in `workflow.json` so it runs after `greet`, reading `${greet_ref.output.greeting}` as input.
+- **Use workflow input to customize the greeting language**: add a `language` field to the workflow input (e.g., `"language": "es"`). In `GreetWorker.execute()`, read `task.getInputData().get("language")` and select from a map of localized templates (`"es"` -> `"Hola, {name}! Bienvenido a Conductor."`, `"fr"` -> `"Bonjour, {name}! Bienvenue sur Conductor."`). Defaults to English when the field is missing.
 
 ## SDK
 

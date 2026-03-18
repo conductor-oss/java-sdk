@@ -1,12 +1,12 @@
-# Agentic Loop in Java Using Conductor -- Think-Act-Observe Iteration Until Goal Completion
+# Agentic Loop in Java Using Conductor: Think-Act-Observe Iteration Until Goal Completion
 
-You tell the agent "research distributed consensus algorithms." It searches, finds three papers, and searches again. And again. And again. Forty minutes and $50 in API calls later, it's still searching because nobody told it when to stop. The agent has no concept of "done" -- no iteration cap, no goal-completion check, no kill switch. This example builds a think-act-observe loop with Conductor's `DO_WHILE` that gives the agent autonomy within guardrails: it reasons about what to do next, executes the plan, evaluates the result, and terminates when the goal is met or the iteration limit is hit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You tell the agent "research distributed consensus algorithms." It searches, finds three papers, and searches again. And again. And again. Forty minutes and $50 in API calls later, it's still searching because nobody told it when to stop. The agent has no concept of "done".; no iteration cap, no goal-completion check, no kill switch. This example builds a think-act-observe loop with Conductor's `DO_WHILE` that gives the agent autonomy within guardrails: it reasons about what to do next, executes the plan, evaluates the result, and terminates when the goal is met or the iteration limit is hit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Complex Goals Require Iterative Reasoning
 
-Some tasks can't be solved in a single step. "Research distributed consensus algorithms and produce recommendations" requires gathering information, analyzing patterns, and synthesizing findings -- and the agent might need multiple cycles to converge. In the first iteration, it gathers sources. In the second, it identifies patterns (consistency, partition tolerance, replication strategies, consensus protocols, failure recovery). In the third, it synthesizes recommendations.
+Some tasks can't be solved in a single step. "Research distributed consensus algorithms and produce recommendations" requires gathering information, analyzing patterns, and synthesizing findings, and the agent might need multiple cycles to converge. In the first iteration, it gathers sources. In the second, it identifies patterns (consistency, partition tolerance, replication strategies, consensus protocols, failure recovery). In the third, it synthesizes recommendations.
 
-The think-act-observe loop gives the agent autonomy within guardrails: it decides what to do next (think), executes that plan (act), evaluates the result (observe), and decides whether the goal is met or another iteration is needed. The loop must terminate -- either the agent achieves the goal or hits a maximum iteration count. Without orchestration, implementing this loop with proper state management between iterations, retry logic for failed actions, and observability into each iteration's reasoning is error-prone.
+The think-act-observe loop gives the agent autonomy within guardrails: it decides what to do next (think), executes that plan (act), evaluates the result (observe), and decides whether the goal is met or another iteration is needed. The loop must terminate. Either the agent achieves the goal or hits a maximum iteration count. Without orchestration, implementing this loop with proper state management between iterations, retry logic for failed actions, and observability into each iteration's reasoning is error-prone.
 
 ## The Solution
 
@@ -16,7 +16,7 @@ The think-act-observe loop gives the agent autonomy within guardrails: it decide
 
 ### What You Write: Workers
 
-Five workers drive the iterative loop -- setting the goal, then cycling through think-act-observe until completion, and summarizing the findings.
+Five workers drive the iterative loop. Setting the goal, then cycling through think-act-observe until completion, and summarizing the findings.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,15 +26,15 @@ Five workers drive the iterative loop -- setting the goal, then cycling through 
 | **SummarizeWorker** | `al_summarize` | Summarizes the agentic loop execution after all iterations are complete. | Simulated |
 | **ThinkWorker** | `al_think` | Plans the next action based on the goal and current iteration. Cycles through 3 fixed plan strings based on iteration... | Simulated |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode -- the agent workflow stays the same.
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
 
@@ -86,9 +86,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -164,11 +164,11 @@ conductor workflow search -w agentic_loop -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one phase of the think-act-observe cycle -- plug in a real LLM for planning, connect to web search or database APIs for actions, and use an LLM evaluator for observations, and the iterative loop workflow runs unchanged.
+Each worker handles one phase of the think-act-observe cycle. Plug in a real LLM for planning, connect to web search or database APIs for actions, and use an LLM evaluator for observations, and the iterative loop workflow runs unchanged.
 
-- **ThinkWorker** (`al_think`) -- use GPT-4 or Claude to generate action plans based on the current state, prior observations, and remaining goals -- enabling genuine autonomous reasoning instead of scripted plans
-- **ActWorker** (`al_act`) -- connect to real tools: web search APIs for research, code execution sandboxes for computation, database queries for data gathering, or HTTP calls to external services
-- **ObserveWorker** (`al_observe`) -- use an LLM to evaluate action results against the original goal, with structured output indicating completion percentage, remaining gaps, and whether to continue iterating
+- **ThinkWorker** (`al_think`): use GPT-4 or Claude to generate action plans based on the current state, prior observations, and remaining goals. Enabling genuine autonomous reasoning instead of scripted plans
+- **ActWorker** (`al_act`): connect to real tools: web search APIs for research, code execution sandboxes for computation, database queries for data gathering, or HTTP calls to external services
+- **ObserveWorker** (`al_observe`): use an LLM to evaluate action results against the original goal, with structured output indicating completion percentage, remaining gaps, and whether to continue iterating
 
 Plug in real LLM reasoning and tool execution; the think-act-observe loop uses the same iteration interface.
 

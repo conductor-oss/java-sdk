@@ -1,32 +1,32 @@
-# Adaptive RAG in Java Using Conductor -- Classify Query Complexity, Route to Optimal Retrieval Strategy
+# Adaptive RAG in Java Using Conductor: Classify Query Complexity, Route to Optimal Retrieval Strategy
 
-"What's the capital of France?" gets routed through the full RAG pipeline -- embed, search, rerank, generate -- burning tokens and adding 3 seconds of latency for an answer the LLM already knows. Meanwhile, "How did the 2008 financial crisis reshape European monetary policy over the following decade?" gets the same single-pass retrieval and produces a shallow, incomplete answer. One-size-fits-all RAG over-engineers simple questions and under-serves complex ones. This example builds an adaptive RAG pipeline using [Conductor](https://github.com/conductor-oss/conductor) that classifies each query by complexity and routes it to the optimal strategy -- fast single-pass for factual lookups, multi-hop retrieval with chain-of-thought reasoning for analytical questions, and direct generation for creative queries.
+"What's the capital of France?" gets routed through the full RAG pipeline: embed, search, rerank, generate, burning tokens and adding 3 seconds of latency for an answer the LLM already knows. Meanwhile, "How did the 2008 financial crisis reshape European monetary policy over the following decade?" gets the same single-pass retrieval and produces a shallow, incomplete answer. One-size-fits-all RAG over-engineers simple questions and under-serves complex ones. This example builds an adaptive RAG pipeline using [Conductor](https://github.com/conductor-oss/conductor) that classifies each query by complexity and routes it to the optimal strategy, fast single-pass for factual lookups, multi-hop retrieval with chain-of-thought reasoning for analytical questions, and direct generation for creative queries.
 
 ## One RAG Strategy Does Not Fit All Questions
 
 "What is the capital of France?" needs a single vector lookup and a short generation. "How did the 2008 financial crisis affect European monetary policy in the following decade?" needs multi-hop retrieval across multiple documents with a reasoning step to synthesize findings. Sending both through the same RAG pipeline either over-engineers simple questions (wasting tokens and latency) or under-serves complex ones (producing shallow, incomplete answers).
 
-Adaptive RAG classifies each query to determine its complexity -- factual, multi-hop, or analytical -- and routes to the retrieval strategy that fits. Simple queries get fast, single-pass retrieval. Multi-hop queries get iterative retrieval with intermediate reasoning. Analytical queries get specialized generation that synthesizes across sources. The classification happens once, and the routing is automatic.
+Adaptive RAG classifies each query to determine its complexity. Factual, multi-hop, or analytical, and routes to the retrieval strategy that fits. Simple queries get fast, single-pass retrieval. Multi-hop queries get iterative retrieval with intermediate reasoning. Analytical queries get specialized generation that synthesizes across sources. The classification happens once, and the routing is automatic.
 
 ## The Solution
 
 **You write the query classifier and the per-complexity retrieval strategies. Conductor handles the routing, retries, and observability.**
 
-`ClassifyWorker` examines the question and determines its complexity class -- simple, multi-hop, or analytical. A `SWITCH` task routes based on the classification: simple questions go to `SimpleRetrieveWorker` then `SimpleGenerateWorker` for direct retrieval and answer generation. Multi-hop questions go to `MultiHopRetrieveWorker` then `ReasonWorker` for iterative retrieval with intermediate reasoning steps. Analytical questions go to `AnalyticalGenerateWorker` for synthesis-heavy generation. Conductor makes this routing declarative and records which strategy was selected for each query.
+`ClassifyWorker` examines the question and determines its complexity class. Simple, multi-hop, or analytical. A `SWITCH` task routes based on the classification: simple questions go to `SimpleRetrieveWorker` then `SimpleGenerateWorker` for direct retrieval and answer generation. Multi-hop questions go to `MultiHopRetrieveWorker` then `ReasonWorker` for iterative retrieval with intermediate reasoning steps. Analytical questions go to `AnalyticalGenerateWorker` for synthesis-heavy generation. Conductor makes this routing declarative and records which strategy was selected for each query.
 
 ### What You Write: Workers
 
-Seven workers span three retrieval strategies -- simple lookup, multi-hop reasoning, and creative generation -- with a classifier that routes each query to the right path via a SWITCH task.
+Seven workers span three retrieval strategies: simple lookup, multi-hop reasoning, and creative generation, with a classifier that routes each query to the right path via a SWITCH task.
 
 | Worker | Task | What It Does | Real / Notes |
 |---|---|---|---|
-| **ClassifyWorker** | `ar_classify` | Examines the question and determines its complexity class (`factual`, `analytical`, or `creative`) with a confidence score, routing it to the optimal retrieval strategy | Requires API key -- or swap in a real LLM classifier (Claude, GPT-4) or a fine-tuned BERT model |
-| **SimpleRetrieveWorker** | `ar_simple_ret` | Single-pass retrieval for factual queries -- returns basic document chunks from the vector store | Requires API key -- or swap in Pinecone, Weaviate, Qdrant, or pgvector |
-| **SimpleGenerateWorker** | `ar_simple_gen` | Produces a direct, concise answer from the retrieved documents (factual path) | Requires API key -- or swap in Claude Messages API or OpenAI Chat Completions |
-| **MultiHopRetrieveWorker** | `ar_mhop_ret` | Iterative multi-hop retrieval for analytical queries -- gathers documents across multiple hops to build a comprehensive evidence base | Requires API key -- or swap in iterative vector store queries with query reformulation |
-| **ReasoningWorker** | `ar_reason` | Builds a chain-of-thought reasoning trace from the multi-hop retrieved documents, connecting evidence across sources | Requires API key -- or swap in Claude or GPT-4 with chain-of-thought prompting |
-| **AnalyticalGenerateWorker** | `ar_anal_gen` | Synthesizes a comprehensive analytical answer from the reasoning chain and retrieved documents (analytical path) | Requires API key -- or swap in Claude or GPT-4 with synthesis prompting |
-| **CreativeGenerateWorker** | `ar_creative_gen` | Produces a free-form creative answer without retrieval (default/creative path) | Requires API key -- or swap in any LLM with creative generation settings |
+| **ClassifyWorker** | `ar_classify` | Examines the question and determines its complexity class (`factual`, `analytical`, or `creative`) with a confidence score, routing it to the optimal retrieval strategy | Requires API key, or swap in a real LLM classifier (Claude, GPT-4) or a fine-tuned BERT model |
+| **SimpleRetrieveWorker** | `ar_simple_ret` | Single-pass retrieval for factual queries. Returns basic document chunks from the vector store | Requires API key, or swap in Pinecone, Weaviate, Qdrant, or pgvector |
+| **SimpleGenerateWorker** | `ar_simple_gen` | Produces a direct, concise answer from the retrieved documents (factual path) | Requires API key, or swap in Claude Messages API or OpenAI Chat Completions |
+| **MultiHopRetrieveWorker** | `ar_mhop_ret` | Iterative multi-hop retrieval for analytical queries. Gathers documents across multiple hops to build a comprehensive evidence base | Requires API key, or swap in iterative vector store queries with query reformulation |
+| **ReasoningWorker** | `ar_reason` | Builds a chain-of-thought reasoning trace from the multi-hop retrieved documents, connecting evidence across sources | Requires API key, or swap in Claude or GPT-4 with chain-of-thought prompting |
+| **AnalyticalGenerateWorker** | `ar_anal_gen` | Synthesizes a comprehensive analytical answer from the reasoning chain and retrieved documents (analytical path) | Requires API key, or swap in Claude or GPT-4 with synthesis prompting |
+| **CreativeGenerateWorker** | `ar_creative_gen` | Produces a free-form creative answer without retrieval (default/creative path) | Requires API key, or swap in any LLM with creative generation settings |
 
 Workers require CONDUCTOR_OPENAI_API_KEY. Retrieval workers use Jaccard similarity over bundled documents.
 
@@ -34,9 +34,9 @@ Workers require CONDUCTOR_OPENAI_API_KEY. Retrieval workers use Jaccard similari
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
@@ -56,9 +56,9 @@ SWITCH (sw_ref)
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -111,7 +111,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 ### API Key Requirement
 
 All LLM workers (classify, generate, reasoning) require CONDUCTOR_OPENAI_API_KEY.
-Retrieval workers (SimpleRetrieveWorker, MultiHopRetrieveWorker) use Jaccard similarity over bundled documents -- no vector database needed.
+Retrieval workers (SimpleRetrieveWorker, MultiHopRetrieveWorker) use Jaccard similarity over bundled documents.; no vector database needed.
 
 
 ## Example Output
@@ -197,26 +197,26 @@ conductor workflow search -w adaptive_rag -s COMPLETED -c 5
 
 Not all questions need the same retrieval strategy. Adaptive RAG classifies each query and routes to the optimal pipeline:
 
-1. **Classify** (`ar_classify`) -- An LLM-based classifier examines the question and determines its complexity: `factual` (single-hop lookup), `analytical` (multi-source synthesis), or `creative` (free-form generation). The classification includes a confidence score.
+1. **Classify** (`ar_classify`): An LLM-based classifier examines the question and determines its complexity: `factual` (single-hop lookup), `analytical` (multi-source synthesis), or `creative` (free-form generation). The classification includes a confidence score.
 
-2. **Route** (SWITCH) -- Conductor's SWITCH task routes based on the classification:
-   - **Factual**: `ar_simple_ret` -> `ar_simple_gen` -- Single-pass vector retrieval, then direct answer generation. Fast and cheap.
-   - **Analytical**: `ar_mhop_ret` -> `ar_reason` -> `ar_anal_gen` -- Multi-hop retrieval across multiple documents, intermediate chain-of-thought reasoning, then synthesis. Thorough but more expensive.
-   - **Creative** (default): `ar_creative_gen` -- Free-form generation without retrieval. No vector store cost.
+2. **Route** (SWITCH): Conductor's SWITCH task routes based on the classification:
+   - **Factual**: `ar_simple_ret` -> `ar_simple_gen`. Single-pass vector retrieval, then direct answer generation. Fast and cheap.
+   - **Analytical**: `ar_mhop_ret` -> `ar_reason` -> `ar_anal_gen`. Multi-hop retrieval across multiple documents, intermediate chain-of-thought reasoning, then synthesis. Thorough but more expensive.
+   - **Creative** (default): `ar_creative_gen`. Free-form generation without retrieval. No vector store cost.
 
 This saves tokens and latency on simple questions while giving complex questions the depth they need. Every execution records which strategy was selected, so you can analyze classification accuracy and strategy effectiveness over time.
 
 ## How to Extend
 
-Each worker handles one retrieval strategy or classification step -- plug in a real LLM classifier, connect vector stores for simple and multi-hop retrieval, and add chain-of-thought reasoning via Claude or GPT-4, and the adaptive routing runs unchanged.
+Each worker handles one retrieval strategy or classification step. Plug in a real LLM classifier, connect vector stores for simple and multi-hop retrieval, and add chain-of-thought reasoning via Claude or GPT-4, and the adaptive routing runs unchanged.
 
-- **ClassifyWorker** (`ar_classify`) -- use a real LLM classifier (Claude, GPT-4) to determine query complexity, or fine-tune a small BERT model on labeled query complexity data for faster, cheaper classification
-- **SimpleRetrieveWorker** (`ar_simple_ret`) -- query a real vector database (Pinecone, Weaviate, Qdrant, pgvector) with the embedded question to retrieve relevant document chunks
-- **MultiHopRetrieveWorker** (`ar_mhop_ret`) -- implement iterative retrieval with query reformulation: retrieve initial documents, extract key entities, reformulate the query, and retrieve additional documents across multiple hops
-- **ReasoningWorker** (`ar_reason`) -- call Claude or GPT-4 with chain-of-thought prompting to build a structured reasoning trace from the multi-hop evidence
-- **AnalyticalGenerateWorker** (`ar_anal_gen`) -- call a real LLM with the reasoning chain and retrieved context, using a specialized analytical prompt that instructs cross-source synthesis and evidence-based reasoning
+- **ClassifyWorker** (`ar_classify`): use a real LLM classifier (Claude, GPT-4) to determine query complexity, or fine-tune a small BERT model on labeled query complexity data for faster, cheaper classification
+- **SimpleRetrieveWorker** (`ar_simple_ret`): query a real vector database (Pinecone, Weaviate, Qdrant, pgvector) with the embedded question to retrieve relevant document chunks
+- **MultiHopRetrieveWorker** (`ar_mhop_ret`): implement iterative retrieval with query reformulation: retrieve initial documents, extract key entities, reformulate the query, and retrieve additional documents across multiple hops
+- **ReasoningWorker** (`ar_reason`): call Claude or GPT-4 with chain-of-thought prompting to build a structured reasoning trace from the multi-hop evidence
+- **AnalyticalGenerateWorker** (`ar_anal_gen`): call a real LLM with the reasoning chain and retrieved context, using a specialized analytical prompt that instructs cross-source synthesis and evidence-based reasoning
 
-Each worker's interface is fixed -- replace the classifier model, upgrade the retrieval strategy, or swap LLM providers, and the adaptive routing runs without modification.
+Each worker's interface is fixed. Replace the classifier model, upgrade the retrieval strategy, or swap LLM providers, and the adaptive routing runs without modification.
 
 ## SDK
 

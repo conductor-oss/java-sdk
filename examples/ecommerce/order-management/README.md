@@ -1,18 +1,18 @@
-# Order Management in Java Using Conductor -- Create, Validate, Fulfill, Ship, Deliver
+# Order Management in Java Using Conductor: Create, Validate, Fulfill, Ship, Deliver
 
-A customer orders a laptop and a USB-C hub. The warehouse picks the laptop but grabs the wrong hub -- someone else's return, repackaged with the wrong SKU label. The customer opens the box, finds a used cable they didn't order, and initiates a return. But the returns system doesn't cross-reference the original pick list, so it marks the laptop as returned too and issues a full refund for items the customer still has. One mis-pick cascades into a $2,000 inventory discrepancy that takes three departments a week to untangle. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate each order stage as independent workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer orders a laptop and a USB-C hub. The warehouse picks the laptop but grabs the wrong hub: someone else's return, repackaged with the wrong SKU label. The customer opens the box, finds a used cable they didn't order, and initiates a return. But the returns system doesn't cross-reference the original pick list, so it marks the laptop as returned too and issues a full refund for items the customer still has. One mis-pick cascades into a $2,000 inventory discrepancy that takes three departments a week to untangle. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate each order stage as independent workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Orders Have Five Stages, Each With Different Failure Modes
 
-An order for 3 items with next-day shipping must flow through creation (assign order number, lock prices), validation (verify inventory, check payment authorization), fulfillment (pick items, pack shipment, generate packing slip), shipping (create label, schedule pickup, trigger tracking), and delivery confirmation (update status, send delivery notification). Each stage involves different systems -- the order database, inventory service, warehouse management, carrier API, and notification service.
+An order for 3 items with next-day shipping must flow through creation (assign order number, lock prices), validation (verify inventory, check payment authorization), fulfillment (pick items, pack shipment, generate packing slip), shipping (create label, schedule pickup, trigger tracking), and delivery confirmation (update status, send delivery notification). Each stage involves different systems, the order database, inventory service, warehouse management, carrier API, and notification service.
 
-If the carrier API is down during the shipping step, the order is already packed and waiting -- retrying should resume from shipping, not restart fulfillment. If delivery confirmation fails, the shipment is still in transit -- the status update should be retried. Every order needs a complete audit trail showing exactly when it moved through each stage.
+If the carrier API is down during the shipping step, the order is already packed and waiting: retrying should resume from shipping, not restart fulfillment. If delivery confirmation fails, the shipment is still in transit, the status update should be retried. Every order needs a complete audit trail showing exactly when it moved through each stage.
 
 ## The Solution
 
 **You just write the order creation, validation, fulfillment, shipping, and delivery confirmation logic. Conductor handles fulfillment retries, status transition tracking, and order lifecycle audit trails.**
 
-`CreateWorker` initializes the order with a unique ID, line items, pricing, and customer details. `ValidateWorker` verifies item availability, confirms pricing hasn't changed, and validates the shipping address. `FulfillWorker` triggers warehouse operations -- pick list generation, item picking, packing, and quality check. `ShipWorker` creates shipping labels, schedules carrier pickup, and generates tracking numbers. `DeliverWorker` monitors delivery status and sends confirmation notifications upon delivery. Conductor sequences these five stages, retries failed carrier calls without re-packing, and records timestamps for every stage transition.
+`CreateWorker` initializes the order with a unique ID, line items, pricing, and customer details. `ValidateWorker` verifies item availability, confirms pricing hasn't changed, and validates the shipping address. `FulfillWorker` triggers warehouse operations. Pick list generation, item picking, packing, and quality check. `ShipWorker` creates shipping labels, schedules carrier pickup, and generates tracking numbers. `DeliverWorker` monitors delivery status and sends confirmation notifications upon delivery. Conductor sequences these five stages, retries failed carrier calls without re-packing, and records timestamps for every stage transition.
 
 ### What You Write: Workers
 
@@ -26,15 +26,15 @@ Five workers track an order from creation through validation, fulfillment, shipp
 | **ShipOrderWorker** | `ord_ship` | Ships the order | Simulated |
 | **ValidateOrderWorker** | `ord_validate` | Performs the validate order operation | Simulated |
 
-Workers simulate e-commerce operations -- payment processing, inventory checks, shipping -- with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -87,9 +87,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -165,11 +165,11 @@ conductor workflow search -w order_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real fulfillment stack -- your OMS for order creation, your WMS for warehouse picking, carrier APIs for shipping labels -- and the workflow runs identically in production.
+Wire each worker to your real fulfillment stack. Your OMS for order creation, your WMS for warehouse picking, carrier APIs for shipping labels, and the workflow runs identically in production.
 
-- **FulfillWorker** (`ord_fulfill`) -- integrate with warehouse management systems (ShipBob, ShipMonk) or send pick lists to a WMS via EDI/API for physical warehouse operations
-- **ShipWorker** (`ord_ship`) -- use EasyPost, Shippo, or ShipStation APIs for multi-carrier rate shopping, label generation, and tracking number assignment
-- **DeliverWorker** (`ord_deliver`) -- poll carrier tracking APIs (FedEx, UPS, USPS) for delivery status, send push notifications via Firebase Cloud Messaging, and trigger post-delivery review requests
+- **FulfillWorker** (`ord_fulfill`): integrate with warehouse management systems (ShipBob, ShipMonk) or send pick lists to a WMS via EDI/API for physical warehouse operations
+- **ShipWorker** (`ord_ship`): use EasyPost, Shippo, or ShipStation APIs for multi-carrier rate shopping, label generation, and tracking number assignment
+- **DeliverWorker** (`ord_deliver`): poll carrier tracking APIs (FedEx, UPS, USPS) for delivery status, send push notifications via Firebase Cloud Messaging, and trigger post-delivery review requests
 
 Connect each worker to your fulfillment systems and the order lifecycle operates without pipeline changes.
 

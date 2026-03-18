@@ -1,10 +1,10 @@
-# Deadline Management in Java Using Conductor -- Check Deadlines, Route by Urgency, and Handle Overdue Items
+# Deadline Management in Java Using Conductor: Check Deadlines, Route by Urgency, and Handle Overdue Items
 
-The SOC 2 compliance filing was due Friday. On Monday morning, the auditor emails asking where it is. You check Jira -- the ticket was assigned to someone who went on vacation. The "deadline reminder" was a cron job that sent an email three days before the due date, but the assignee's inbox had 200 unread messages. Nobody escalated because the system doesn't distinguish between "due in two weeks" and "due in four hours." By the time the overdue item surfaces, you're already in breach, scrambling to file late, and explaining to leadership why a known deadline slipped through a process that was supposed to prevent exactly this.
+The SOC 2 compliance filing was due Friday. On Monday morning, the auditor emails asking where it is. You check Jira, the ticket was assigned to someone who went on vacation. The "deadline reminder" was a cron job that sent an email three days before the due date, but the assignee's inbox had 200 unread messages. Nobody escalated because the system doesn't distinguish between "due in two weeks" and "due in four hours." By the time the overdue item surfaces, you're already in breach, scrambling to file late, and explaining to leadership why a known deadline slipped through a process that was supposed to prevent exactly this.
 
 ## The Problem
 
-You manage tasks with deadlines -- support tickets, deliverables, compliance filings. Each task's urgency depends on how close it is to its due date: still on track (normal processing), approaching deadline (urgent -- escalate priority), or past due (overdue -- immediate escalation and notification). The routing must be automatic and consistent across all tasks.
+You manage tasks with deadlines: support tickets, deliverables, compliance filings. Each task's urgency depends on how close it is to its due date: still on track (normal processing), approaching deadline (urgent, escalate priority), or past due (overdue, immediate escalation and notification). The routing must be automatic and consistent across all tasks.
 
 Without orchestration, deadline tracking lives in spreadsheets or dashboards that require manual review. Someone checks the list daily, misses an overdue item, and it becomes a fire drill. Building deadline automation as a script means hardcoding urgency thresholds and manually routing to different handling paths.
 
@@ -12,7 +12,7 @@ Without orchestration, deadline tracking lives in spreadsheets or dashboards tha
 
 **You just write the deadline evaluation and escalation rules. Conductor handles urgency-based routing via SWITCH tasks, retries on escalation service failures, and a full record of every deadline evaluation and routing decision.**
 
-A deadline checker worker evaluates the task's due date against current time. Conductor's SWITCH task routes to the appropriate handler -- normal, urgent, or overdue -- based on the urgency classification. Each handler takes the right action for its urgency level. Every deadline evaluation is tracked, so you can audit which items were escalated and when. You get all of that for free, without writing a single line of orchestration code.
+A deadline checker worker evaluates the task's due date against current time. Conductor's SWITCH task routes to the appropriate handler: normal, urgent, or overdue, based on the urgency classification. Each handler takes the right action for its urgency level. Every deadline evaluation is tracked, so you can audit which items were escalated and when. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ Workers handle each urgency level: CheckDeadlinesWorker evaluates how close a ta
 | **HandleOverdueWorker** | `ded_handle_overdue` | Escalates overdue tasks to management with P0 priority, reporting hours past deadline | Simulated |
 | **HandleUrgentWorker** | `ded_handle_urgent` | Escalates urgent tasks to the senior team with P1 priority, reporting remaining hours before deadline | Simulated |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic -- the schedule triggers, retry behavior, and monitoring stay the same.
+Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
@@ -79,9 +79,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -157,11 +157,11 @@ conductor workflow search -w deadline_management_410 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one deadline concern -- connect the deadline checker to Jira or your project management tool, the escalation handler to PagerDuty or Slack, and the check-route-handle workflow stays the same.
+Each worker handles one deadline concern. Connect the deadline checker to Jira or your project management tool, the escalation handler to PagerDuty or Slack, and the check-route-handle workflow stays the same.
 
-- **CheckDeadlinesWorker** (`ded_check_deadlines`) -- query your task management system (Jira, Asana) for real due dates and compute urgency based on business calendar rules
-- **HandleNormalWorker** (`ded_handle_normal`) -- process normally -- update task status, no escalation needed
-- **HandleOverdueWorker** (`ded_handle_overdue`) -- create escalation tickets, notify managers via Slack/email, trigger SLA breach workflows
+- **CheckDeadlinesWorker** (`ded_check_deadlines`): query your task management system (Jira, Asana) for real due dates and compute urgency based on business calendar rules
+- **HandleNormalWorker** (`ded_handle_normal`): process normally. Update task status, no escalation needed
+- **HandleOverdueWorker** (`ded_handle_overdue`): create escalation tickets, notify managers via Slack/email, trigger SLA breach workflows
 
 Connect to your ticketing system and escalation channels, and the deadline routing workflow runs in production without changes.
 

@@ -1,10 +1,10 @@
 # Event Notification in Java Using Conductor
 
-A customer's payment fails. They need to know immediately -- via email, SMS, and push. But your notification code sends them sequentially: email first, then SMS, then push. The SMS provider is having a bad day and hangs for 30 seconds before timing out. Now your push notification arrives a minute late, and the email -- which actually succeeded -- is sitting in a retry loop because the whole pipeline is blocked. The customer sees nothing, retries the payment, gets double-charged, and opens a support ticket. This workflow sends notifications across all channels in parallel, so a slow SMS never blocks the email, and every delivery attempt is tracked. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer's payment fails. They need to know immediately: via email, SMS, and push. But your notification code sends them sequentially: email first, then SMS, then push. The SMS provider is having a bad day and hangs for 30 seconds before timing out. Now your push notification arrives a minute late, and the email, which actually succeeded, is sitting in a retry loop because the whole pipeline is blocked. The customer sees nothing, retries the payment, gets double-charged, and opens a support ticket. This workflow sends notifications across all channels in parallel, so a slow SMS never blocks the email, and every delivery attempt is tracked. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to send notifications about events across multiple channels simultaneously. When an event occurs, the recipient must be notified via email, SMS, and push notification -- all in parallel to minimize delivery latency. After all channels complete, the delivery status for each channel must be recorded for tracking and compliance. A single slow channel (e.g., email SMTP delays) should not block the other channels.
+You need to send notifications about events across multiple channels simultaneously. When an event occurs, the recipient must be notified via email, SMS, and push notification, all in parallel to minimize delivery latency. After all channels complete, the delivery status for each channel must be recorded for tracking and compliance. A single slow channel (e.g., email SMTP delays) should not block the other channels.
 
 Without orchestration, you'd spawn threads for each notification channel, manage per-channel retry logic with different backoff strategies, aggregate delivery receipts from multiple providers, and handle partial failures where email succeeds but SMS fails.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd spawn threads for each notification channel, manage
 
 **You just write the event-parse, email, SMS, push, and delivery-recording workers. Conductor handles parallel multi-channel delivery, per-channel retry isolation, and unified delivery status tracking.**
 
-Each notification channel is a simple, independent worker -- a plain Java class that does one thing. Conductor takes care of parsing the event, sending across all three channels in parallel via FORK_JOIN, recording delivery status for each, retrying any failed channel independently, and tracking the entire notification lifecycle. You get all of that for free, without writing a single line of orchestration code.
+Each notification channel is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of parsing the event, sending across all three channels in parallel via FORK_JOIN, recording delivery status for each, retrying any failed channel independently, and tracking the entire notification lifecycle. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,15 @@ Five workers deliver multi-channel notifications: ParseEventWorker extracts reci
 | **SendPushWorker** | `en_send_push` | Sends a push notification to a recipient. | Simulated |
 | **SendSmsWorker** | `en_send_sms` | Sends an SMS notification to a recipient. | Simulated |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources -- the workflow and routing logic stay the same.
+Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -87,9 +87,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -165,12 +165,12 @@ conductor workflow search -w event_notification -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each channel worker to your real email (SES, SendGrid), SMS (Twilio), and push notification (Firebase, APNs) services -- the parse-send-record notification workflow stays exactly the same.
+Connect each channel worker to your real email (SES, SendGrid), SMS (Twilio), and push notification (Firebase, APNs) services, the parse-send-record notification workflow stays exactly the same.
 
-- **Email sender** -- send via SendGrid, AWS SES, or SMTP with template rendering and attachment support
-- **SMS sender** -- send via Twilio, Vonage, or AWS SNS with phone number validation and opt-out checking
-- **Push notification sender** -- send via Firebase Cloud Messaging (FCM) or Apple Push Notification Service (APNS)
-- **Delivery recorder** -- persist delivery receipts to your notification tracking database for compliance and analytics
+- **Email sender**: send via SendGrid, AWS SES, or SMTP with template rendering and attachment support
+- **SMS sender**: send via Twilio, Vonage, or AWS SNS with phone number validation and opt-out checking
+- **Push notification sender**: send via Firebase Cloud Messaging (FCM) or Apple Push Notification Service (APNS)
+- **Delivery recorder**: persist delivery receipts to your notification tracking database for compliance and analytics
 
 Connecting SendEmailWorker to SES, SendSmsWorker to Twilio, or SendPushWorker to Firebase requires no workflow changes.
 

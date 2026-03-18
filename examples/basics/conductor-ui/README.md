@@ -1,38 +1,38 @@
-# Conductor UI Explorer in Java with Conductor -- A 3-Step Workflow for Learning the Dashboard
+# Conductor UI Explorer in Java with Conductor: A 3-Step Workflow for Learning the Dashboard
 
-A Java Conductor workflow designed specifically for exploring the Conductor UI at `http://localhost:5000`. This three-step workflow gives you a running execution to inspect in the dashboard -- you can see task inputs and outputs flowing between steps, watch execution progress in real time, and explore the workflow diagram, timeline, and task detail views. Uses [Conductor](https://github.com/conductor-oss/conductor) to provide a live workflow execution you can explore visually.
+A Java Conductor workflow designed specifically for exploring the Conductor UI at `http://localhost:5000`. This three-step workflow gives you a running execution to inspect in the dashboard. You can see task inputs and outputs flowing between steps, watch execution progress in real time, and explore the workflow diagram, timeline, and task detail views. Uses [Conductor](https://github.com/conductor-oss/conductor) to provide a live workflow execution you can explore visually.
 
 ## Seeing Orchestration in Action
 
 Reading about workflow orchestration is abstract. Seeing it in a UI makes it concrete. This workflow runs three sequential tasks that pass data between them, giving you a real execution to explore in Conductor's built-in dashboard. You can click on each task to see its inputs, outputs, and timing. You can see how data flows from one step to the next via JSONPath expressions. And you can use the workflow diagram view to visualize the execution path.
 
-This is a learning tool -- the tasks themselves are simple, but the UI exploration skills you build here apply to any Conductor workflow.
+This is a learning tool, the tasks themselves are simple, but the UI exploration skills you build here apply to any Conductor workflow.
 
 ## The Solution
 
 **You just write the step workers that produce inspectable outputs. Conductor handles sequencing, data flow, and the dashboard visualization.**
 
-Three simple workers produce outputs that flow between tasks. The value is in exploring the Conductor UI -- task detail panels, workflow diagrams, execution timelines, and search/filtering -- using a real, running workflow as your sandbox.
+Three simple workers produce outputs that flow between tasks. The value is in exploring the Conductor UI. task detail panels, workflow diagrams, execution timelines, and search/filtering, using a real, running workflow as your sandbox.
 
 ### What You Write: Workers
 
-Three simple workers -- StepOneWorker, StepTwoWorker, and StepThreeWorker -- give you a multi-step workflow to explore in the Conductor UI dashboard.
+Three simple workers. StepOneWorker, StepTwoWorker, and StepThreeWorker. Give you a multi-step workflow to explore in the Conductor UI dashboard.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **StepOneWorker** | `ui_step_one` | Step One -- Processes user action input. | Simulated |
-| **StepThreeWorker** | `ui_step_three` | Step Three -- Summarizes results from steps one and two. | Simulated |
-| **StepTwoWorker** | `ui_step_two` | Step Two -- Enriches data from step one with metadata. | Simulated |
+| **StepOneWorker** | `ui_step_one` | Step One. Processes user action input. | Simulated |
+| **StepThreeWorker** | `ui_step_three` | Step Three. Summarizes results from steps one and two. | Simulated |
+| **StepTwoWorker** | `ui_step_two` | Step Two. Enriches data from step one with metadata. | Simulated |
 
-Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls -- the worker contract stays the same.
+Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -79,9 +79,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -159,9 +159,9 @@ conductor workflow search -w ui_demo_workflow -s COMPLETED -c 5
 
 Replace the demo workers with your real application logic, then use the same Conductor UI to inspect task inputs, outputs, timing, and execution diagrams in production.
 
-- **StepOneWorker** (`ui_step_one`) -- integrate with your production Conductor deployment with proper authentication and monitoring
-- **StepThreeWorker** (`ui_step_three`) -- integrate with your production Conductor deployment with proper authentication and monitoring
-- **StepTwoWorker** (`ui_step_two`) -- integrate with your production Conductor deployment with proper authentication and monitoring
+- **StepOneWorker** (`ui_step_one`): integrate with your production Conductor deployment with proper authentication and monitoring
+- **StepThreeWorker** (`ui_step_three`): integrate with your production Conductor deployment with proper authentication and monitoring
+- **StepTwoWorker** (`ui_step_two`): integrate with your production Conductor deployment with proper authentication and monitoring
 
 Each step's logic is self-contained, so you can extend any step without affecting the others.
 

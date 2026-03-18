@@ -1,10 +1,10 @@
-# Parallel Tool Use in Java Using Conductor -- Plan, Call Weather/News/Stocks Simultaneously, Combine
+# Parallel Tool Use in Java Using Conductor: Plan, Call Weather/News/Stocks Simultaneously, Combine
 
-Your agent calls the weather API, waits 3 seconds for the response, then calls the news API, waits 2 seconds, then calls the stock market API, waits another 2 seconds. Total latency: 7 seconds for data that could have been fetched in 3 seconds if the calls ran in parallel. Sequential tool use is the default in most agent frameworks, and it makes multi-source queries painfully slow. This example uses [Conductor](https://github.com/conductor-oss/conductor) to dispatch weather, news, and stock API calls simultaneously via `FORK_JOIN`, combine the results into a single morning briefing, and deliver it in the time of the slowest call -- not the sum of all three.
+Your agent calls the weather API, waits 3 seconds for the response, then calls the news API, waits 2 seconds, then calls the stock market API, waits another 2 seconds. Total latency: 7 seconds for data that could have been fetched in 3 seconds if the calls ran in parallel. Sequential tool use is the default in most agent frameworks, and it makes multi-source queries painfully slow. This example uses [Conductor](https://github.com/conductor-oss/conductor) to dispatch weather, news, and stock API calls simultaneously via `FORK_JOIN`, combine the results into a single morning briefing, and deliver it in the time of the slowest call. . Not the sum of all three.
 
 ## Multi-Tool Queries Shouldn't Wait in Line
 
-A question like "Give me a morning briefing for San Francisco" needs weather (58F, morning fog clearing to sunny), news (top technology, business, and world headlines), and stock market data (AAPL, GOOGL, MSFT, AMZN quotes). Called sequentially, each API takes 1-2 seconds -- totaling 3-6 seconds. Called in parallel, the total is 1-2 seconds (the slowest API).
+A question like "Give me a morning briefing for San Francisco" needs weather (58F, morning fog clearing to sunny), news (top technology, business, and world headlines), and stock market data (AAPL, GOOGL, MSFT, AMZN quotes). Called sequentially, each API takes 1-2 seconds. Totaling 3-6 seconds. Called in parallel, the total is 1-2 seconds (the slowest API).
 
 Parallel tool use requires determining which tools are needed (the planning step), dispatching all tool calls simultaneously, handling partial failures (stocks API is down but weather and news responded), and combining heterogeneous results (weather data, news headlines, market numbers) into a coherent response.
 
@@ -16,26 +16,26 @@ Parallel tool use requires determining which tools are needed (the planning step
 
 ### What You Write: Workers
 
-Five workers deliver the morning briefing -- planning which tools to call, then dispatching weather, news, and stock APIs in parallel before combining results.
+Five workers deliver the morning briefing. Planning which tools to call, then dispatching weather, news, and stock APIs in parallel before combining results.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **PlanToolsWorker** | `tp_plan_tools` | Analyzes the user request and determines which tools to invoke in parallel. Returns tool configurations: weather units (fahrenheit) and hourly toggle, news topics (technology, business, world), and stock tickers (AAPL, GOOGL, MSFT, AMZN). Reports tool count of 3. | Simulated -- swap in an LLM to dynamically select tools |
-| **CallWeatherWorker** | `tp_call_weather` | Fetches weather data for the given location. Returns current conditions (58F, Morning Fog, 85% humidity), 4-entry hourly forecast (08:00-14:00), and daily high/low (68F/55F). | Simulated -- swap in OpenWeatherMap or WeatherAPI |
-| **CallNewsWorker** | `tp_call_news` | Retrieves top headlines across requested topic categories. Returns 4 headlines with titles, topics (technology, business, world), and sources (TechDaily, MarketWatch, WorldNews, Bloomberg). | Simulated -- swap in NewsAPI or Google News API |
-| **CallStocksWorker** | `tp_call_stocks` | Fetches stock market quotes for requested tickers. Returns 4 quotes with price, change, and change percent (AAPL +1.33%, GOOGL +1.11%, MSFT -0.20%, AMZN +1.74%), plus overall market sentiment (bullish). | Simulated -- swap in Alpha Vantage or Polygon.io |
-| **CombineResultsWorker** | `tp_combine_results` | Merges parallel weather, news, and stocks data into a unified morning briefing object. Produces a human-readable summary paragraph and records the list of tools used and generation timestamp. | Simulated -- swap in an LLM for natural language synthesis |
+| **PlanToolsWorker** | `tp_plan_tools` | Analyzes the user request and determines which tools to invoke in parallel. Returns tool configurations: weather units (fahrenheit) and hourly toggle, news topics (technology, business, world), and stock tickers (AAPL, GOOGL, MSFT, AMZN). Reports tool count of 3. | Simulated. Swap in an LLM to dynamically select tools |
+| **CallWeatherWorker** | `tp_call_weather` | Fetches weather data for the given location. Returns current conditions (58F, Morning Fog, 85% humidity), 4-entry hourly forecast (08:00-14:00), and daily high/low (68F/55F). | Simulated. Swap in OpenWeatherMap or WeatherAPI |
+| **CallNewsWorker** | `tp_call_news` | Retrieves top headlines across requested topic categories. Returns 4 headlines with titles, topics (technology, business, world), and sources (TechDaily, MarketWatch, WorldNews, Bloomberg). | Simulated. Swap in NewsAPI or Google News API |
+| **CallStocksWorker** | `tp_call_stocks` | Fetches stock market quotes for requested tickers. Returns 4 quotes with price, change, and change percent (AAPL +1.33%, GOOGL +1.11%, MSFT -0.20%, AMZN +1.74%), plus overall market sentiment (bullish). | Simulated. Swap in Alpha Vantage or Polygon.io |
+| **CombineResultsWorker** | `tp_combine_results` | Merges parallel weather, news, and stocks data into a unified morning briefing object. Produces a human-readable summary paragraph and records the list of tools used and generation timestamp. | Simulated. Swap in an LLM for natural language synthesis |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call -- the worker interface stays the same, and no workflow changes are needed.
+The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
 | **Parallel execution** | `FORK_JOIN` runs weather, news, and stocks API calls simultaneously and waits for all to complete |
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -60,9 +60,9 @@ tp_combine_results
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -183,13 +183,13 @@ conductor workflow search -w tool_use_parallel -s COMPLETED -c 5
 
 ## How to Extend
 
-Each tool worker wraps one data API -- integrate OpenWeatherMap for weather, NewsAPI for headlines, and Alpha Vantage for stock quotes, and the plan-fork-combine parallel tool workflow runs unchanged.
+Each tool worker wraps one data API. Integrate OpenWeatherMap for weather, NewsAPI for headlines, and Alpha Vantage for stock quotes, and the plan-fork-combine parallel tool workflow runs unchanged.
 
-- **PlanToolsWorker** (`tp_plan_tools`) -- use OpenAI function calling or Anthropic tool use to dynamically select which tools to invoke based on the user's request, including conditional tool selection (skip stocks on weekends, add calendar on workdays)
-- **CallWeatherWorker** (`tp_call_weather`) -- integrate with OpenWeatherMap (free tier: 1000 calls/day), WeatherAPI, or NOAA APIs for real weather data with 7-day forecasts and severe weather alerts
-- **CallNewsWorker** (`tp_call_news`) -- use NewsAPI (free tier: 100 requests/day), Google News RSS feeds, or Bing News Search for real headlines with publication time, source credibility, and article links
-- **CallStocksWorker** (`tp_call_stocks`) -- connect to Alpha Vantage (free tier: 25 requests/day), Yahoo Finance via yfinance, or Polygon.io for real-time market data with historical charts and technical indicators
-- **Add a new tool** -- create a new worker class, add a branch to the `FORK_JOIN` in `workflow.json`, update the `JOIN` on clause, and extend `CombineResultsWorker` to include the new data source. No existing code changes needed.
+- **PlanToolsWorker** (`tp_plan_tools`): use OpenAI function calling or Anthropic tool use to dynamically select which tools to invoke based on the user's request, including conditional tool selection (skip stocks on weekends, add calendar on workdays)
+- **CallWeatherWorker** (`tp_call_weather`): integrate with OpenWeatherMap (free tier: 1000 calls/day), WeatherAPI, or NOAA APIs for real weather data with 7-day forecasts and severe weather alerts
+- **CallNewsWorker** (`tp_call_news`): use NewsAPI (free tier: 100 requests/day), Google News RSS feeds, or Bing News Search for real headlines with publication time, source credibility, and article links
+- **CallStocksWorker** (`tp_call_stocks`): connect to Alpha Vantage (free tier: 25 requests/day), Yahoo Finance via yfinance, or Polygon.io for real-time market data with historical charts and technical indicators
+- **Add a new tool**: create a new worker class, add a branch to the `FORK_JOIN` in `workflow.json`, update the `JOIN` on clause, and extend `CombineResultsWorker` to include the new data source. No existing code changes needed.
 
 Plug in OpenWeatherMap, NewsAPI, and Alpha Vantage; the parallel tool pipeline preserves the same plan-dispatch-combine interface.
 

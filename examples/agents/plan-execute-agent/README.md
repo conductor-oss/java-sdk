@@ -1,6 +1,6 @@
-# Plan-Execute Agent in Java Using Conductor -- Create Plan, Execute Three Steps, Compile Results
+# Plan-Execute Agent in Java Using Conductor: Create Plan, Execute Three Steps, Compile Results
 
-Tell an AI agent "deploy the new version" without a planning step and watch it start deploying immediately, realize halfway through it needs to run tests first, roll back, re-run tests, then deploy again -- three times the work, three times the risk, because it never stopped to think before acting. The plan-execute pattern is the fix: create a structured plan upfront, execute each step in order, compile the results. This example uses [Conductor](https://github.com/conductor-oss/conductor) to separate planning from execution as distinct workers -- if step 2 fails, Conductor retries it without re-running step 1 or regenerating the plan, and every intermediate result is persisted for inspection.
+Tell an AI agent "deploy the new version" without a planning step and watch it start deploying immediately, realize halfway through it needs to run tests first, roll back, re-run tests, then deploy again: three times the work, three times the risk, because it never stopped to think before acting. The plan-execute pattern is the fix: create a structured plan upfront, execute each step in order, compile the results. This example uses [Conductor](https://github.com/conductor-oss/conductor) to separate planning from execution as distinct workers, if step 2 fails, Conductor retries it without re-running step 1 or regenerating the plan, and every intermediate result is persisted for inspection.
 
 ## Simple Objectives Need Simple Plans
 
@@ -16,25 +16,25 @@ The plan-execute pattern is the simplest multi-step agent architecture: create a
 
 ### What You Write: Workers
 
-Five workers implement plan-then-execute -- creating a structured plan, executing three steps in sequence, and compiling results into a final report.
+Five workers implement plan-then-execute. Creating a structured plan, executing three steps in sequence, and compiling results into a final report.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **CreatePlanWorker** | `pe_create_plan` | Decomposes a high-level objective into three ordered steps ("Gather market data and competitor analysis", "Analyze trends and identify opportunities", "Generate strategic recommendations"). Returns the step list and total step count. | Simulated -- swap in an LLM to generate dynamic plans |
-| **ExecuteStep1Worker** | `pe_execute_step_1` | Executes step 1 of the plan: gathers market data and competitor analysis. Returns a summary of 5 competitors analyzed and a $4.2B market size estimate. | Simulated -- swap in web search or database queries |
-| **ExecuteStep2Worker** | `pe_execute_step_2` | Executes step 2: analyzes trends and identifies opportunities. Receives the step 1 result as context. Returns 3 growth opportunities (API platform, enterprise tier, international expansion). | Simulated -- swap in analytics APIs or LLM analysis |
-| **ExecuteStep3Worker** | `pe_execute_step_3` | Executes step 3: generates strategic recommendations. Receives the step 2 result as context. Returns prioritized recommendations with ROI estimates (API platform at capacity-planning%, enterprise tier at 210%). | Simulated -- swap in LLM synthesis or strategy frameworks |
-| **CompileResultsWorker** | `pe_compile_results` | Compiles all three step results into a single report string formatted as "Objective: ... | Step 1: ... | Step 2: ... | Step 3: ...". | Simulated -- swap in LLM to generate a coherent narrative report |
+| **CreatePlanWorker** | `pe_create_plan` | Decomposes a high-level objective into three ordered steps ("Gather market data and competitor analysis", "Analyze trends and identify opportunities", "Generate strategic recommendations"). Returns the step list and total step count. | Simulated. Swap in an LLM to generate dynamic plans |
+| **ExecuteStep1Worker** | `pe_execute_step_1` | Executes step 1 of the plan: gathers market data and competitor analysis. Returns a summary of 5 competitors analyzed and a $4.2B market size estimate. | Simulated. Swap in web search or database queries |
+| **ExecuteStep2Worker** | `pe_execute_step_2` | Executes step 2: analyzes trends and identifies opportunities. Receives the step 1 result as context. Returns 3 growth opportunities (API platform, enterprise tier, international expansion). | Simulated. Swap in analytics APIs or LLM analysis |
+| **ExecuteStep3Worker** | `pe_execute_step_3` | Executes step 3: generates strategic recommendations. Receives the step 2 result as context. Returns prioritized recommendations with ROI estimates (API platform at capacity-planning%, enterprise tier at 210%). | Simulated. Swap in LLM synthesis or strategy frameworks |
+| **CompileResultsWorker** | `pe_compile_results` | Compiles all three step results into a single report string formatted as "Objective: .. | Step 1: .. | Step 2: .. | Step 3: ...". | Simulated. Swap in LLM to generate a coherent narrative report |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call -- the worker interface stays the same, and no workflow changes are needed.
+The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -59,9 +59,9 @@ pe_compile_results
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -180,12 +180,12 @@ conductor workflow search -w plan_execute_agent -s COMPLETED -c 5
 
 ## How to Extend
 
-Each step worker is a self-contained executor -- connect an LLM for dynamic plan creation, SerpAPI or databases for research steps, and an LLM for narrative report compilation, and the plan-execute-compile workflow runs unchanged.
+Each step worker is a self-contained executor. Connect an LLM for dynamic plan creation, SerpAPI or databases for research steps, and an LLM for narrative report compilation, and the plan-execute-compile workflow runs unchanged.
 
-- **CreatePlanWorker** (`pe_create_plan`) -- use OpenAI function calling or Anthropic tool use to generate dynamic plans with variable step counts based on objective complexity, or integrate LangChain's `PlanAndExecute` agent to decompose objectives into dependency-aware task graphs
-- **Execute workers** (`pe_execute_step_1/2/3`) -- connect to real tools based on step type: SerpAPI or Tavily for web research, Pandas/DuckDB for data analysis, or call domain-specific APIs (Crunchbase for competitor data, Statista for market sizing)
-- **CompileResultsWorker** (`pe_compile_results`) -- use GPT-4 or Claude to synthesize step results into a coherent narrative report with executive summary, comparison tables, and prioritized recommendations
-- **Add more steps** -- create additional `ExecuteStepNWorker` classes and extend the workflow JSON with new tasks. Each step worker follows the same interface, so adding steps is copy-paste.
+- **CreatePlanWorker** (`pe_create_plan`): use OpenAI function calling or Anthropic tool use to generate dynamic plans with variable step counts based on objective complexity, or integrate LangChain's `PlanAndExecute` agent to decompose objectives into dependency-aware task graphs
+- **Execute workers** (`pe_execute_step_1/2/3`): connect to real tools based on step type: SerpAPI or Tavily for web research, Pandas/DuckDB for data analysis, or call domain-specific APIs (Crunchbase for competitor data, Statista for market sizing)
+- **CompileResultsWorker** (`pe_compile_results`): use GPT-4 or Claude to synthesize step results into a coherent narrative report with executive summary, comparison tables, and prioritized recommendations
+- **Add more steps**: create additional `ExecuteStepNWorker` classes and extend the workflow JSON with new tasks. Each step worker follows the same interface, so adding steps is copy-paste.
 
 Replace with LLM-generated plans and real data queries; the plan-execute pipeline preserves the same step-by-step interface.
 

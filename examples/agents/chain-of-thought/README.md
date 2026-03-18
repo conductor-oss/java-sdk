@@ -1,6 +1,6 @@
-# Chain-of-Thought in Java Using Conductor -- Understand, Reason, Calculate, Verify, Answer
+# Chain-of-Thought in Java Using Conductor: Understand, Reason, Calculate, Verify, Answer
 
-You ask the model "What's the compound interest on $10,000 at 5% for 3 years?" and it confidently replies "$11,576.25." Wrong. The real answer is $11,576.25 only if compounded annually -- but you didn't specify, and the model didn't ask. Worse, you can't tell where it went wrong because the entire reasoning happened inside a single opaque API call. Did it misunderstand the problem, pick the wrong formula, or botch the arithmetic? This example externalizes each reasoning step -- understand, reason, calculate, verify, answer -- as a separate Conductor worker, so you can see exactly which step failed and retry just that step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You ask the model "What's the compound interest on $10,000 at 5% for 3 years?" and it confidently replies "$11,576.25." Wrong. The real answer is $11,576.25 only if compounded annually; but you didn't specify, and the model didn't ask. Worse, you can't tell where it went wrong because the entire reasoning happened inside a single opaque API call. Did it misunderstand the problem, pick the wrong formula, or botch the arithmetic? This example externalizes each reasoning step: understand, reason, calculate, verify, answer, as a separate Conductor worker, so you can see exactly which step failed and retry just that step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Making AI Reasoning Transparent and Debuggable
 
@@ -12,11 +12,11 @@ Externalizing each reasoning step as a separate worker makes the thought process
 
 **You write the understanding, reasoning, calculation, and verification logic. Conductor handles the reasoning chain, step-level retries, and full observability into each thought.**
 
-`UnderstandProblemWorker` parses the problem statement and extracts the key question, known values, and what needs to be found. `Step1ReasonWorker` develops the solution approach -- which formulas to use, what assumptions to make, and the logical sequence. `Step2CalculateWorker` executes the calculations step by step using the chosen approach. `Step3VerifyWorker` checks the result by substituting back into the original constraints or using an alternative method. `FinalAnswerWorker` assembles the verified result with the full reasoning chain as the final answer. Conductor makes each reasoning step individually observable and retriable.
+`UnderstandProblemWorker` parses the problem statement and extracts the key question, known values, and what needs to be found. `Step1ReasonWorker` develops the solution approach, which formulas to use, what assumptions to make, and the logical sequence. `Step2CalculateWorker` executes the calculations step by step using the chosen approach. `Step3VerifyWorker` checks the result by substituting back into the original constraints or using an alternative method. `FinalAnswerWorker` assembles the verified result with the full reasoning chain as the final answer. Conductor makes each reasoning step individually observable and retriable.
 
 ### What You Write: Workers
 
-Five workers externalize the reasoning chain -- understanding the problem, choosing an approach, calculating step by step, verifying the result, and assembling the final answer.
+Five workers externalize the reasoning chain. Understanding the problem, choosing an approach, calculating step by step, verifying the result, and assembling the final answer.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,15 +26,15 @@ Five workers externalize the reasoning chain -- understanding the problem, choos
 | **Step3VerifyWorker** | `ct_step_3_verify` | Verifies the calculation result using fixed (hardcoded) verification values. No year-by-year computation is performed. | Simulated |
 | **UnderstandProblemWorker** | `ct_understand_problem` | Analyzes the incoming problem and produces a structured understanding including the problem type and known values. | Simulated |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode -- the agent workflow stays the same.
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -166,11 +166,11 @@ conductor workflow search -w chain_of_thought -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker externalizes one reasoning step -- replace simulations with an LLM for problem understanding, a computation engine (Wolfram Alpha, BigDecimal) for calculation, and formal verification for result checking, and the understand-reason-calculate-verify pipeline runs unchanged.
+Each worker externalizes one reasoning step. Replace simulations with an LLM for problem understanding, a computation engine (Wolfram Alpha, BigDecimal) for calculation, and formal verification for result checking, and the understand-reason-calculate-verify pipeline runs unchanged.
 
-- **Step2CalculateWorker** (`ct_step_2_calculate`) -- use a dedicated computation engine (Wolfram Alpha API, SymPy, or Java's BigDecimal) for reliable arithmetic instead of LLM-based calculation
-- **Step3VerifyWorker** (`ct_step_3_verify`) -- implement formal verification: substitute the answer back into the original equations, cross-check with known bounds, or use a second LLM call as an independent verifier
-- **UnderstandProblemWorker** (`ct_understand_problem`) -- use GPT-4 with structured output to extract problem components (given values, unknowns, constraints, relationships) into a machine-readable format
+- **Step2CalculateWorker** (`ct_step_2_calculate`): use a dedicated computation engine (Wolfram Alpha API, SymPy, or Java's BigDecimal) for reliable arithmetic instead of LLM-based calculation
+- **Step3VerifyWorker** (`ct_step_3_verify`): implement formal verification: substitute the answer back into the original equations, cross-check with known bounds, or use a second LLM call as an independent verifier
+- **UnderstandProblemWorker** (`ct_understand_problem`): use GPT-4 with structured output to extract problem components (given values, unknowns, constraints, relationships) into a machine-readable format
 
 Plug in real LLM reasoning for each step; the reasoning chain uses the same understand-reason-calculate-verify interface.
 

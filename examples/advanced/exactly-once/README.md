@@ -1,10 +1,10 @@
-# Exactly-Once Processing in Java Using Conductor -- Lock, Dedup, Process, Commit, Unlock
+# Exactly-Once Processing in Java Using Conductor: Lock, Dedup, Process, Commit, Unlock
 
-The payment service processes the $49.99 debit, then crashes before acknowledging the message. The broker retries. Another instance picks it up and processes it again -- customer double-charged. You add an idempotency check, but two instances grab the same message simultaneously and both pass the check before either records it. You add a distributed lock, but the lock holder crashes mid-processing and the TTL expires before cleanup. Every fix opens a new failure mode. Exactly-once delivery is impossible, but exactly-once processing is achievable with the right protocol. This example implements the full lock-check-process-commit-unlock sequence with Conductor, ensuring the business effect happens once even when messages arrive twice. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+The payment service processes the $49.99 debit, then crashes before acknowledging the message. The broker retries. Another instance picks it up and processes it again, customer double-charged. You add an idempotency check, but two instances grab the same message simultaneously and both pass the check before either records it. You add a distributed lock, but the lock holder crashes mid-processing and the TTL expires before cleanup. Every fix opens a new failure mode. Exactly-once delivery is impossible, but exactly-once processing is achievable with the right protocol. This example implements the full lock-check-process-commit-unlock sequence with Conductor, ensuring the business effect happens once even when messages arrive twice. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Preventing Duplicate Processing in Distributed Systems
 
-A payment message arrives twice -- once from the original send, once from a retry after a timeout. Without exactly-once semantics, the customer gets charged twice. A stock trade gets executed, the acknowledgment is lost, and the retry creates a duplicate position. In any system where the same message can arrive more than once, you need a way to guarantee that the business effect happens exactly once.
+A payment message arrives twice. Once from the original send, once from a retry after a timeout. Without exactly-once semantics, the customer gets charged twice. A stock trade gets executed, the acknowledgment is lost, and the retry creates a duplicate position. In any system where the same message can arrive more than once, you need a way to guarantee that the business effect happens exactly once.
 
 Exactly-once processing requires a careful protocol: acquire a distributed lock on the resource key (so no other consumer can process the same message concurrently), check the idempotency store to see if this message ID was already processed, execute the business logic only if it's new, atomically commit the result and record the message ID, then release the lock. If any step fails between lock and commit, the lock's TTL ensures eventual release, and the next retry will find the message uncommitted and reprocess it safely.
 
@@ -16,7 +16,7 @@ Exactly-once processing requires a careful protocol: acquire a distributed lock 
 
 ### What You Write: Workers
 
-Five workers enforce the exactly-once protocol -- distributed locking, state checking, business logic execution, atomic commit, and lock release -- each owning one step of the deduplication boundary.
+Five workers enforce the exactly-once protocol: distributed locking, state checking, business logic execution, atomic commit, and lock release, each owning one step of the deduplication boundary.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,15 +26,15 @@ Five workers enforce the exactly-once protocol -- distributed locking, state che
 | **ExoProcessWorker** | `exo_process` | Executes the idempotent business logic (e.g., applying a debit and computing new balance) | Simulated |
 | **ExoUnlockWorker** | `exo_unlock` | Releases the distributed lock after processing and commit are complete | Simulated |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations -- the pattern and Conductor orchestration stay the same.
+Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -89,9 +89,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -167,13 +167,13 @@ conductor workflow search -w exo_exactly_once -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker enforces one part of the lock-check-process-commit protocol -- replace the simulated Redis locks and idempotency lookups with real distributed lock and dedup store APIs and the exactly-once guarantee runs unchanged.
+Each worker enforces one part of the lock-check-process-commit protocol. Replace the simulated Redis locks and idempotency lookups with real distributed lock and dedup store APIs and the exactly-once guarantee runs unchanged.
 
-- **ExoLockWorker** (`exo_lock`) -- acquire a real distributed lock using Redis (Redisson `RLock`), ZooKeeper (`InterProcessMutex`), or DynamoDB conditional writes with a TTL
-- **ExoCheckStateWorker** (`exo_check_state`) -- query a real idempotency store (DynamoDB `getItem` by message ID, PostgreSQL `SELECT` on a processed_messages table, or Redis `EXISTS`)
-- **ExoCommitWorker** (`exo_commit`) -- atomically write the result and mark the message as processed in a single database transaction, or use DynamoDB `TransactWriteItems` to commit both in one call
+- **ExoLockWorker** (`exo_lock`): acquire a real distributed lock using Redis (Redisson `RLock`), ZooKeeper (`InterProcessMutex`), or DynamoDB conditional writes with a TTL
+- **ExoCheckStateWorker** (`exo_check_state`): query a real idempotency store (DynamoDB `getItem` by message ID, PostgreSQL `SELECT` on a processed_messages table, or Redis `EXISTS`)
+- **ExoCommitWorker** (`exo_commit`): atomically write the result and mark the message as processed in a single database transaction, or use DynamoDB `TransactWriteItems` to commit both in one call
 
-The lock-check-commit protocol stays fixed -- swap the simulated Redis lock for a real distributed lock (Redlock, ZooKeeper) and the deduplication guarantee holds unchanged.
+The lock-check-commit protocol stays fixed. Swap the simulated Redis lock for a real distributed lock (Redlock, ZooKeeper) and the deduplication guarantee holds unchanged.
 
 ## SDK
 

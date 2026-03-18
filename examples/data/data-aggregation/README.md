@@ -1,10 +1,10 @@
-# Data Aggregation in Java Using Conductor -- Group-By, Statistical Computation, and Report Generation
+# Data Aggregation in Java Using Conductor: Group-By, Statistical Computation, and Report Generation
 
-The VP of Sales opens the regional revenue dashboard Monday morning and it takes 45 seconds to load. The dashboard runs a query that scans 12 million raw transaction rows, groups them by region, and computes sum/average/min/max -- live, on every page load. By Wednesday, when the table has grown by another 2 million rows, the query times out entirely. So someone adds a materialized view, but it's stale by the time the next sales call happens. The real problem is that aggregation is happening at read time against raw data, instead of being computed once, stored, and served instantly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+The VP of Sales opens the regional revenue dashboard Monday morning and it takes 45 seconds to load. The dashboard runs a query that scans 12 million raw transaction rows, groups them by region, and computes sum/average/min/max: live, on every page load. By Wednesday, when the table has grown by another 2 million rows, the query times out entirely. So someone adds a materialized view, but it's stale by the time the next sales call happens. The real problem is that aggregation is happening at read time against raw data, instead of being computed once, stored, and served instantly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You have a dataset of records -- sales transactions, sensor readings, user events -- and you need to answer questions like "what's the average revenue per region?" or "what's the total count per department?" That means loading the dataset, grouping rows by a specified dimension (region, category, department), computing statistical aggregates (count, sum, average, min, max) on a numeric field for each group, formatting the results into a readable report, and delivering the output. Each step depends on the previous one: you can't compute aggregates without groups, and you can't group without loaded data.
+You have a dataset of records. Sales transactions, sensor readings, user events, and you need to answer questions like "what's the average revenue per region?" or "what's the total count per department?" That means loading the dataset, grouping rows by a specified dimension (region, category, department), computing statistical aggregates (count, sum, average, min, max) on a numeric field for each group, formatting the results into a readable report, and delivering the output. Each step depends on the previous one: you can't compute aggregates without groups, and you can't group without loaded data.
 
 Without orchestration, you'd write a single method that reads data, does the grouping with `Collectors.groupingBy`, computes stats inline, formats output, and returns everything. If the data source times out, you'd add manual retry logic. If the process crashes after expensive computation but before emitting results, that work is lost. Changing the grouping dimension or adding a new aggregate function (median, percentiles) means touching deeply coupled code with no visibility into which step is slow.
 
@@ -26,15 +26,15 @@ Five workers cover the full aggregation lifecycle: loading records, grouping by 
 | **GroupByDimensionWorker** | `agg_group_by_dimension` | Groups records by a specified dimension field. | Simulated |
 | **LoadDataWorker** | `agg_load_data` | Loads input records and passes them through with a count. | Simulated |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks -- the pipeline structure and error handling stay the same.
+Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -89,9 +89,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -175,9 +175,9 @@ Connect the loader to a real data source like PostgreSQL or Elasticsearch, add a
 - **FormatReportWorker** → generate output in different formats (HTML tables, PDF, Excel via Apache POI, Markdown)
 - **EmitResultsWorker** → write results to a data warehouse, push to a BI tool API, or send as an email attachment
 
-Any worker can be swapped out -- a new data source, a different grouping strategy, or additional statistics -- without altering the rest of the pipeline, as long as the output fields remain consistent.
+Any worker can be swapped out, a new data source, a different grouping strategy, or additional statistics., without altering the rest of the pipeline, as long as the output fields remain consistent.
 
-**Add new stages** by inserting tasks in `workflow.json` -- for example, a filtering step before grouping, an outlier detection pass after aggregation, or a comparison step that computes deltas against a previous period's aggregates.
+**Add new stages** by inserting tasks in `workflow.json`, for example, a filtering step before grouping, an outlier detection pass after aggregation, or a comparison step that computes deltas against a previous period's aggregates.
 
 ## SDK
 

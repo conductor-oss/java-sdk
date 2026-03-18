@@ -1,6 +1,6 @@
 # Bulkhead Pattern in Java with Conductor
 
-It's Tuesday at 3 AM. The recommendation service starts returning 504s because a third-party ML endpoint is hanging. No big deal -- except every request to the recommendation service is holding a thread from the shared pool. Within two minutes, the thread pool is exhausted. Now the payment service, the user service, and the search service can't get threads either. Customers can't check out, can't log in, can't search. Your entire platform is down because a non-critical recommendation feature got slow. This is the noisy-neighbor problem: without resource isolation, one misbehaving service starves everything else. This workflow implements the bulkhead pattern -- classifying requests into isolated resource pools so a failure in one service never consumes resources needed by others. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+It's Tuesday at 3 AM. The recommendation service starts returning 504s because a third-party ML endpoint is hanging. No big deal. except every request to the recommendation service is holding a thread from the shared pool. Within two minutes, the thread pool is exhausted. Now the payment service, the user service, and the search service can't get threads either. Customers can't check out, can't log in, can't search. Your entire platform is down because a non-critical recommendation feature got slow. This is the noisy-neighbor problem: without resource isolation, one misbehaving service starves everything else. This workflow implements the bulkhead pattern, classifying requests into isolated resource pools so a failure in one service never consumes resources needed by others. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, implementing bulkhead isolation means managing thread poo
 
 **You just write the request-classification, pool-allocation, and execution workers. Conductor handles pool-aware task ordering, per-request retries, and full visibility into slot utilization.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing -- your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. Your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ The bulkhead pipeline uses four workers: ClassifyRequestWorker assigns incoming 
 | **ExecuteRequestWorker** | `bh_execute_request` | Executes the request within the allocated pool. | Simulated |
 | **ReleasePoolWorker** | `bh_release_pool` | Releases the pool slot after request execution. | Simulated |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients -- the workflow coordination stays the same.
+Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,11 +161,11 @@ conductor workflow search -w bulkhead_pattern_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real tenant registry, Redis or ZooKeeper semaphore, and downstream services -- the bulkhead isolation workflow stays exactly the same.
+Connect each worker to your real tenant registry, Redis or ZooKeeper semaphore, and downstream services, the bulkhead isolation workflow stays exactly the same.
 
-- **AllocatePoolWorker** (`bh_allocate_pool`) -- integrate with a distributed semaphore (Redis, ZooKeeper) to enforce cross-instance concurrency limits
-- **ClassifyRequestWorker** (`bh_classify_request`) -- look up tenant tier and priority from your tenant-management service or database
-- **ExecuteRequestWorker** (`bh_execute_request`) -- make the real downstream service call within the bounded pool
+- **AllocatePoolWorker** (`bh_allocate_pool`): integrate with a distributed semaphore (Redis, ZooKeeper) to enforce cross-instance concurrency limits
+- **ClassifyRequestWorker** (`bh_classify_request`): look up tenant tier and priority from your tenant-management service or database
+- **ExecuteRequestWorker** (`bh_execute_request`): make the real downstream service call within the bounded pool
 
 Switching from a simulated semaphore to a Redis-backed distributed one changes nothing in the isolation workflow.
 

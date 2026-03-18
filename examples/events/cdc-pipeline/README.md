@@ -1,18 +1,18 @@
 # CDC Pipeline in Java Using Conductor
 
-A customer updates their shipping address at 2:03 PM. The downstream cache still shows the old address at 2:18 PM because the sync job runs on a 15-minute cron. The warehouse ships to the wrong address. The real-time price update your marketing team pushed to the products table at 11:00 AM doesn't reach the storefront until 11:15 -- after 200 customers have already checked out at the old price. Every minute your CDC pipeline lags is a minute your downstream systems are lying to users. This example builds a change-data-capture pipeline with Conductor that detects INSERTs, UPDATEs, and DELETEs from a source table, transforms them into structured events, publishes downstream, and confirms delivery -- all orchestrated with retries and a full audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer updates their shipping address at 2:03 PM. The downstream cache still shows the old address at 2:18 PM because the sync job runs on a 15-minute cron. The warehouse ships to the wrong address. The real-time price update your marketing team pushed to the products table at 11:00 AM doesn't reach the storefront until 11:15. after 200 customers have already checked out at the old price. Every minute your CDC pipeline lags is a minute your downstream systems are lying to users. This example builds a change-data-capture pipeline with Conductor that detects INSERTs, UPDATEs, and DELETEs from a source table, transforms them into structured events, publishes downstream, and confirms delivery, all orchestrated with retries and a full audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
 You need to capture every INSERT, UPDATE, and DELETE from a source database table and propagate those changes downstream as structured events. The pipeline must detect changes since a given timestamp, transform raw change records into normalized event payloads (with entity IDs, before/after values, and operation types), publish them to a downstream topic, and confirm that every message was successfully delivered. Missing a change means downstream systems go out of sync; publishing without confirmation means you cannot guarantee delivery.
 
-Without orchestration, you'd build a single CDC polling service that queries the database change log, transforms rows inline, pushes to Kafka, and checks consumer offsets -- manually handling partial publishes when the broker is unavailable, retrying failed deliveries without re-publishing duplicates, and logging every step to debug why downstream data is stale.
+Without orchestration, you'd build a single CDC polling service that queries the database change log, transforms rows inline, pushes to Kafka, and checks consumer offsets. Manually handling partial publishes when the broker is unavailable, retrying failed deliveries without re-publishing duplicates, and logging every step to debug why downstream data is stale.
 
 ## The Solution
 
 **You just write the change-detection, transform, publish, and delivery-confirmation workers. Conductor handles pipeline sequencing, automatic retry when the broker is unavailable, and a durable record of every CDC run.**
 
-Each CDC concern is a simple, independent worker -- a plain Java class that does one thing. Conductor takes care of executing them in order (detect changes, transform, publish, confirm), retrying when the message broker is temporarily unavailable, tracking every pipeline run with full change-record details, and resuming from the last successful step if the process crashes mid-publish. You get all of that for free, without writing a single line of orchestration code.
+Each CDC concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (detect changes, transform, publish, confirm), retrying when the message broker is temporarily unavailable, tracking every pipeline run with full change-record details, and resuming from the last successful step if the process crashes mid-publish. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ Four workers form the CDC pipeline: DetectChangesWorker polls a source table for
 | **PublishDownstreamWorker** | `cd_publish_downstream` | Publishes transformed CDC changes to a downstream topic. Returns fixed message IDs for deterministic behavior. | Simulated |
 | **TransformChangesWorker** | `cd_transform_changes` | Transforms raw CDC change records into structured event payloads with eventType, entityId, payload, previousPayload, ... | Simulated |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources -- the workflow and routing logic stay the same.
+Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,12 +161,12 @@ conductor workflow search -w cdc_pipeline_wf -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real database change log (Debezium, DMS), transformation logic, and Kafka broker -- the detect-transform-publish-confirm CDC pipeline workflow stays exactly the same.
+Point each worker at your real database change log (Debezium, DMS), transformation logic, and Kafka broker, the detect-transform-publish-confirm CDC pipeline workflow stays exactly the same.
 
-- **DetectChangesWorker** (`cd_detect_changes`) -- read from your database's change log (Debezium connector for MySQL/Postgres binlog, DynamoDB Streams, or SQL Server Change Tracking)
-- **TransformChangesWorker** (`cd_transform_changes`) -- normalize change records into your downstream event schema; handle schema evolution and field mapping
-- **PublishDownstreamWorker** (`cd_publish_downstream`) -- publish events to Kafka, AWS SNS/SQS, or Google Pub/Sub using the appropriate client SDK
-- **ConfirmDeliveryWorker** (`cd_confirm_delivery`) -- verify consumer offsets or check delivery receipts to confirm all messages reached their destination
+- **DetectChangesWorker** (`cd_detect_changes`): read from your database's change log (Debezium connector for MySQL/Postgres binlog, DynamoDB Streams, or SQL Server Change Tracking)
+- **TransformChangesWorker** (`cd_transform_changes`): normalize change records into your downstream event schema; handle schema evolution and field mapping
+- **PublishDownstreamWorker** (`cd_publish_downstream`): publish events to Kafka, AWS SNS/SQS, or Google Pub/Sub using the appropriate client SDK
+- **ConfirmDeliveryWorker** (`cd_confirm_delivery`): verify consumer offsets or check delivery receipts to confirm all messages reached their destination
 
 Switching from a simulated change log to Debezium or AWS DMS requires no modifications to the pipeline workflow.
 

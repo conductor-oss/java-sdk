@@ -1,10 +1,10 @@
-# Workflow Testing in Java Using Conductor -- Fixture Setup, Assertions, Teardown, and Report Generation
+# Workflow Testing in Java Using Conductor: Fixture Setup, Assertions, Teardown, and Report Generation
 
-A Java Conductor workflow example for automated workflow test orchestration -- defining test fixtures, executing the workflow under test against golden inputs, asserting that actual outputs match expected outputs field-by-field, tearing down test resources, and generating a pass/fail report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for automated workflow test orchestration: defining test fixtures, executing the workflow under test against golden inputs, asserting that actual outputs match expected outputs field-by-field, tearing down test resources, and generating a pass/fail report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You have workflows in production and you need to verify they behave correctly after every change. Unit-testing individual workers is easy -- they're just Java classes. But testing the full workflow -- does the SWITCH route correctly? Does the FORK_JOIN merge outputs properly? Does the workflow handle a failed task and retry? -- requires running the entire orchestration end-to-end.
+You have workflows in production and you need to verify they behave correctly after every change. Unit-testing individual workers is easy, they're just Java classes. But testing the full workflow, does the SWITCH route correctly? Does the FORK_JOIN merge outputs properly? Does the workflow handle a failed task and retry?, requires running the entire orchestration end-to-end.
 
 You need to set up test data, trigger the workflow, wait for completion, check that every task produced the expected output, clean up, and report whether the test passed. Doing this manually after every change is unsustainable. Automating it means defining test suites with golden inputs and expected outputs, running them against the real Conductor engine, and producing pass/fail reports with detailed assertion results.
 
@@ -14,11 +14,11 @@ This example is for teams building CI/CD pipelines around Conductor workflows, v
 
 **You write the fixtures and assertions. Conductor handles the test orchestration, teardown sequencing, and report generation.**
 
-`SetupWorker` prepares the test environment -- creating mock databases, mock API endpoints, and test data fixtures. `ExecuteWorker` triggers the workflow under test with the golden input and captures its output. `AssertWorker` compares each field of the actual output against the expected output, producing a per-assertion pass/fail result with expected vs. actual values. `TeardownWorker` releases mock databases, API endpoints, and test data. `ReportWorker` computes the final test report from the assertion results -- total assertions, passed count, overall pass/fail verdict, and teardown status. Conductor records every test run for regression tracking.
+`SetupWorker` prepares the test environment: creating mock databases, mock API endpoints, and test data fixtures. `ExecuteWorker` triggers the workflow under test with the golden input and captures its output. `AssertWorker` compares each field of the actual output against the expected output, producing a per-assertion pass/fail result with expected vs, actual values. `TeardownWorker` releases mock databases, API endpoints, and test data. `ReportWorker` computes the final test report from the assertion results, total assertions, passed count, overall pass/fail verdict, and teardown status. Conductor records every test run for regression tracking.
 
 ### What You Write: Workers
 
-Five workers orchestrate the test lifecycle -- fixture setup, workflow execution against golden inputs, field-by-field assertion, resource teardown, and pass/fail report generation.
+Five workers orchestrate the test lifecycle. Fixture setup, workflow execution against golden inputs, field-by-field assertion, resource teardown, and pass/fail report generation.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -28,20 +28,20 @@ Five workers orchestrate the test lifecycle -- fixture setup, workflow execution
 | **TeardownWorker** | `wft_teardown` | Releases all fixture resources: mockDb, mockApi, testData. Reports cleanup status. | Simulated |
 | **ReportWorker** | `wft_report` | Computes the test report from the assertion list: counts total and passed assertions, determines overall PASSED/FAILED verdict, includes teardown status. | Simulated |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations -- the pattern and Conductor orchestration stay the same.
+Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
-The five tasks run sequentially. Each task's output feeds into the next task's input via Conductor's expression language -- no custom wiring code.
+The five tasks run sequentially. Each task's output feeds into the next task's input via Conductor's expression language.; no custom wiring code.
 
 ```
 wft_setup          (create fixtures: mockDb, mockApi, testData)
@@ -63,9 +63,9 @@ wft_report         (compute report: total/passed assertions, PASSED/FAILED verdi
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -135,7 +135,7 @@ Step 4: Starting workflow...
   [assert] Checking assertions against expected output
     Assertions: 3/3 passed
   [teardown] Cleaning up test fixtures
-  [report] Generating report -- suite \"order-processing-tests\" passedPASSEDFAILED-value
+  [report] Generating report. Suite \"order-processing-tests\" passedPASSEDFAILED-value
     Assertions: 0/0 passed
     Teardown clean: true
 
@@ -179,15 +179,15 @@ conductor workflow search -w wft_workflow_testing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one test lifecycle phase -- replace the simulated fixture setup and assertions with real test framework integrations and the setup-execute-assert-report pipeline runs unchanged.
+Each worker handles one test lifecycle phase. Replace the simulated fixture setup and assertions with real test framework integrations and the setup-execute-assert-report pipeline runs unchanged.
 
-- **SetupWorker** (`wft_setup`) -- create real test fixtures: insert test data into a staging database via JDBC, deploy mock services with WireMock or MockServer, or register test workflow definitions via Conductor's metadata API
-- **ExecuteWorker** (`wft_execute`) -- trigger the real workflow under test: call `WorkflowClient.startWorkflow()` with the golden input, poll for completion, and capture the actual output from the completed workflow execution
-- **AssertWorker** (`wft_assert`) -- implement rich assertions: JSON deep-compare using Jackson's `JsonNode.equals()`, regex matching for dynamic fields (timestamps, UUIDs), or integrate AssertJ/Hamcrest for fluent assertion DSLs with detailed mismatch messages
-- **TeardownWorker** (`wft_teardown`) -- clean up real resources: drop staging database tables, stop WireMock servers, deregister temporary workflow definitions
-- **ReportWorker** (`wft_report`) -- generate CI/CD-compatible reports: JUnit XML format for Jenkins/GitHub Actions integration, HTML reports via Allure for visual dashboards, or post pass/fail summaries to Slack/Teams with links to failed Conductor executions
+- **SetupWorker** (`wft_setup`): create real test fixtures: insert test data into a staging database via JDBC, deploy mock services with WireMock or MockServer, or register test workflow definitions via Conductor's metadata API
+- **ExecuteWorker** (`wft_execute`): trigger the real workflow under test: call `WorkflowClient.startWorkflow()` with the golden input, poll for completion, and capture the actual output from the completed workflow execution
+- **AssertWorker** (`wft_assert`): implement rich assertions: JSON deep-compare using Jackson's `JsonNode.equals()`, regex matching for dynamic fields (timestamps, UUIDs), or integrate AssertJ/Hamcrest for fluent assertion DSLs with detailed mismatch messages
+- **TeardownWorker** (`wft_teardown`): clean up real resources: drop staging database tables, stop WireMock servers, deregister temporary workflow definitions
+- **ReportWorker** (`wft_report`): generate CI/CD-compatible reports: JUnit XML format for Jenkins/GitHub Actions integration, HTML reports via Allure for visual dashboards, or post pass/fail summaries to Slack/Teams with links to failed Conductor executions
 
-The fixture and assertion contract stays fixed -- swap the simulated test runner for a real Conductor execution and the assert-teardown-report pipeline runs unchanged.
+The fixture and assertion contract stays fixed. Swap the simulated test runner for a real Conductor execution and the assert-teardown-report pipeline runs unchanged.
 
 ## SDK
 
@@ -221,9 +221,9 @@ workflow-testing/
 │       ├── SetupWorker.java         # Creates mock fixtures
 │       └── TeardownWorker.java      # Releases test resources
 └── src/test/java/workflowtesting/workers/
-    ├── AssertWorkerTest.java        # 10 tests -- matching, mismatch, null handling
-    ├── ExecuteWorkerTest.java       # 9 tests -- output shape, null handling
-    ├── ReportWorkerTest.java        # 13 tests -- assertion counting, verdict, teardown
-    ├── SetupWorkerTest.java         # 8 tests -- fixture structure, null handling
-    └── TeardownWorkerTest.java      # 8 tests -- cleanup status, resource list
+    ├── AssertWorkerTest.java        # 10 tests. Matching, mismatch, null handling
+    ├── ExecuteWorkerTest.java       # 9 tests. Output shape, null handling
+    ├── ReportWorkerTest.java        # 13 tests. Assertion counting, verdict, teardown
+    ├── SetupWorkerTest.java         # 8 tests. Fixture structure, null handling
+    └── TeardownWorkerTest.java      # 8 tests. Cleanup status, resource list
 ```

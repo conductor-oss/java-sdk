@@ -1,12 +1,12 @@
 # Password Reset Workflow in Java Using Conductor
 
-User clicks "Reset Password." The email takes eight minutes because your SMTP relay is backed up. They click "Reset" again. Now two tokens are live. The first email arrives, they click it, but that token expired after five minutes. Locked out. They try the second link -- it works, but the password update succeeds while the confirmation email fails, so they don't know the reset went through and submit a third request. Support gets a ticket from a frustrated user who "can't log in" with a trail of three tokens, two expired, one used, and no audit log of what happened. This example orchestrates the password reset flow with Conductor: account lookup, token validation, credential update, and confirmation notification -- each step sequenced, retriable, and fully auditable. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the identity logic, Conductor handles retries, failure routing, durability, and observability for free.
+User clicks "Reset Password." The email takes eight minutes because your SMTP relay is backed up. They click "Reset" again. Now two tokens are live. The first email arrives, they click it, but that token expired after five minutes. Locked out. They try the second link: it works, but the password update succeeds while the confirmation email fails, so they don't know the reset went through and submit a third request. Support gets a ticket from a frustrated user who "can't log in" with a trail of three tokens, two expired, one used, and no audit log of what happened. This example orchestrates the password reset flow with Conductor: account lookup, token validation, credential update, and confirmation notification, each step sequenced, retriable, and fully auditable. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the identity logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Forgot-Password Flow
 
-A user clicks "Forgot Password" and enters their email. The system needs to look up the account, validate the reset token (checking it was issued for this user and hasn't expired), update the credential store with the new password hash, and send a confirmation email -- all in the correct order, with no step skipped. If the token is valid but the password update fails, the user is stuck: the token may be consumed but the password unchanged. If the notification fails, the user doesn't know the reset succeeded and submits another request.
+A user clicks "Forgot Password" and enters their email. The system needs to look up the account, validate the reset token (checking it was issued for this user and hasn't expired), update the credential store with the new password hash, and send a confirmation email, all in the correct order, with no step skipped. If the token is valid but the password update fails, the user is stuck: the token may be consumed but the password unchanged. If the notification fails, the user doesn't know the reset succeeded and submits another request.
 
-Without orchestration, you'd chain all of this in a single servlet or controller method -- catching exceptions at each step, manually rolling back on failure, and hoping the email service doesn't time out while you're holding a database transaction open. That code becomes brittle, hard to test, and impossible to audit when security reviews ask "show me every reset that happened last month."
+Without orchestration, you'd chain all of this in a single servlet or controller method. Catching exceptions at each step, manually rolling back on failure, and hoping the email service doesn't time out while you're holding a database transaction open. That code becomes brittle, hard to test, and impossible to audit when security reviews ask "show me every reset that happened last month."
 
 ## The Solution
 
@@ -16,7 +16,7 @@ Each worker handles one user lifecycle step. Conductor manages the onboarding se
 
 ### What You Write: Workers
 
-RequestWorker looks up the account by email, VerifyTokenWorker validates the reset token, ResetWorker updates the password hash, and NotifyWorker sends a confirmation email -- each handles one step of the secure reset flow.
+RequestWorker looks up the account by email, VerifyTokenWorker validates the reset token, ResetWorker updates the password hash, and NotifyWorker sends a confirmation email, each handles one step of the secure reset flow.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ RequestWorker looks up the account by email, VerifyTokenWorker validates the res
 | `ResetWorker` | `pwd_reset` | Updates the user's password in the credential store and records the update timestamp | Simulated |
 | `NotifyWorker` | `pwd_notify` | Sends a password-change confirmation email to the user's address | Simulated |
 
-Workers simulate user lifecycle operations -- account creation, verification, profile setup -- with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers simulate user lifecycle operations: account creation, verification, profile setup, with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -55,9 +55,9 @@ pwd_notify
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -169,15 +169,15 @@ conductor workflow search -w pwd_password_reset -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one reset step -- connect your identity provider (Auth0, Cognito, Okta) for credential updates and your email service (SendGrid, SES) for confirmation delivery, and the password-reset workflow stays the same.
+Each worker handles one reset step. Connect your identity provider (Auth0, Cognito, Okta) for credential updates and your email service (SendGrid, SES) for confirmation delivery, and the password-reset workflow stays the same.
 
-- **`RequestWorker`** -- Look up the user in your identity provider (Auth0, Cognito, Keycloak, or a database) and generate a time-limited reset token stored in Redis or a token table.
+- **`RequestWorker`**: Look up the user in your identity provider (Auth0, Cognito, Keycloak, or a database) and generate a time-limited reset token stored in Redis or a token table.
 
-- **`VerifyTokenWorker`** -- Validate the token against the stored hash, check expiration, and enforce single-use by marking it consumed after verification.
+- **`VerifyTokenWorker`**: Validate the token against the stored hash, check expiration, and enforce single-use by marking it consumed after verification.
 
-- **`ResetWorker`** -- Hash the new password with bcrypt/scrypt and update the credential store, invalidating all existing sessions for the user.
+- **`ResetWorker`**: Hash the new password with bcrypt/scrypt and update the credential store, invalidating all existing sessions for the user.
 
-- **`NotifyWorker`** -- Send a confirmation email via SendGrid, SES, or your transactional email service, including device/location metadata for security awareness.
+- **`NotifyWorker`**: Send a confirmation email via SendGrid, SES, or your transactional email service, including device/location metadata for security awareness.
 
 Connect your credential store and email service and the lookup-verify-reset-notify password flow operates without any workflow changes.
 

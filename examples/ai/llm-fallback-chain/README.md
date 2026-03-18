@@ -1,24 +1,24 @@
-# LLM Fallback Chain in Java Using Conductor -- GPT-4, Claude, Gemini with Automatic Provider Failover
+# LLM Fallback Chain in Java Using Conductor: GPT-4, Claude, Gemini with Automatic Provider Failover
 
-GPT-4 returns a 429 and your entire AI feature goes dark -- because you bet everything on a single provider. Claude has a maintenance window the same week. Your users see error pages while three other perfectly capable models sit idle. This example builds an automatic fallback chain using [Conductor](https://github.com/conductor-oss/conductor) that tries GPT-4 first, falls back to Claude on failure, then to Gemini, and reports which model actually served the request -- so a single provider outage never takes down your AI feature again.
+GPT-4 returns a 429 and your entire AI feature goes dark. Because you bet everything on a single provider. Claude has a maintenance window the same week. Your users see error pages while three other perfectly capable models sit idle. This example builds an automatic fallback chain using [Conductor](https://github.com/conductor-oss/conductor) that tries GPT-4 first, falls back to Claude on failure, then to Gemini, and reports which model actually served the request, so a single provider outage never takes down your AI feature again.
 
 ## LLM Providers Go Down
 
-No single LLM provider has 100% uptime. GPT-4 rate-limits under heavy load. Claude has maintenance windows. Gemini returns 503s during capacity crunches. If your application depends on a single provider, an outage means your users get errors -- even though two other perfectly capable models are available.
+No single LLM provider has 100% uptime. GPT-4 rate-limits under heavy load. Claude has maintenance windows. Gemini returns 503s during capacity crunches. If your application depends on a single provider, an outage means your users get errors. Even though two other perfectly capable models are available.
 
 A fallback chain tries GPT-4 first (your preferred model). If GPT-4 returns a failure status, the workflow calls Claude. If Claude also fails, it tries Gemini. The response comes from whichever provider succeeds first. A formatting step at the end normalizes the output and records which model was used and how many fallbacks were triggered.
 
-This creates nested conditional logic -- try A, check status, try B on failure, check status, try C on failure. Without orchestration, this becomes a deeply nested try/catch chain where you lose visibility into which provider failed, why it failed, and how often each fallback is triggered.
+This creates nested conditional logic. Try A, check status, try B on failure, check status, try C on failure. Without orchestration, this becomes a deeply nested try/catch chain where you lose visibility into which provider failed, why it failed, and how often each fallback is triggered.
 
 ## The Solution
 
 **You write the API integration for each LLM provider. Conductor handles the failover routing, retries, and observability.**
 
-Each provider is an independent worker -- GPT-4, Claude, Gemini -- each returning a status and response. Conductor's nested `SWITCH` tasks inspect each status and route to the next provider only when the previous one failed. Every execution records the full fallback path: which providers were tried, which failed, and which ultimately served the request.
+Each provider is an independent worker. GPT-4, Claude, Gemini, each returning a status and response. Conductor's nested `SWITCH` tasks inspect each status and route to the next provider only when the previous one failed. Every execution records the full fallback path: which providers were tried, which failed, and which ultimately served the request.
 
 ### What You Write: Workers
 
-Four workers implement the multi-provider fallback -- one per LLM provider (GPT-4, Claude, Gemini) plus a formatter that reports which model served the request and how many failovers occurred.
+Four workers implement the multi-provider fallback. One per LLM provider (GPT-4, Claude, Gemini) plus a formatter that reports which model served the request and how many failovers occurred.
 
 | Worker | Task | What It Does | Live / Simulated |
 |---|---|---|---|
@@ -27,15 +27,15 @@ Four workers implement the multi-provider fallback -- one per LLM provider (GPT-
 | **FbCallGeminiWorker** | `fb_call_gemini` | Calls Gemini (last resort). In live mode, calls the Google Generative Language API. In simulated mode, returns a `` success response completing the fallback chain | Live when `GOOGLE_API_KEY` is set; simulated otherwise |
 | **FbFormatResultWorker** | `fb_format_result` | Inspects the status of each model's response, selects the first successful response, and reports which model was used and how many fallbacks were triggered (0 = GPT-4 succeeded, 1 = Claude, 2 = Gemini) | Always runs locally |
 
-Each worker auto-detects whether to make live API calls or return simulated responses based on the corresponding environment variable. No code changes are needed to switch between modes -- just set or unset the API key. All API calls use `java.net.http.HttpClient` (built into Java 21) with Jackson for JSON serialization.
+Each worker auto-detects whether to make live API calls or return simulated responses based on the corresponding environment variable. No code changes are needed to switch between modes. Just set or unset the API key. All API calls use `java.net.http.HttpClient` (built into Java 21) with Jackson for JSON serialization.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
@@ -56,9 +56,9 @@ fb_format_result
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -125,7 +125,7 @@ CONDUCTOR_OPENAI_API_KEY=sk-... CONDUCTOR_ANTHROPIC_API_KEY=sk-ant-... GOOGLE_AP
 | `CONDUCTOR_ANTHROPIC_API_KEY` | _(not set)_ | Anthropic API key. When set, `FbCallClaudeWorker` makes live API calls to Claude |
 | `GOOGLE_API_KEY` | _(not set)_ | Google API key. When set, `FbCallGeminiWorker` makes live API calls to Gemini |
 
-Each LLM worker independently checks for its API key. You can set any combination -- for example, set only `GOOGLE_API_KEY` to make live Gemini calls while GPT-4 and Claude run in simulated mode.
+Each LLM worker independently checks for its API key. You can set any combination, for example, set only `GOOGLE_API_KEY` to make live Gemini calls while GPT-4 and Claude run in simulated mode.
 
 ## Example Output
 
@@ -198,14 +198,14 @@ conductor workflow search -w llm_fallback_chain_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker wraps one LLM provider call with live/simulated dual-mode. The real API integrations are already built in -- just set the corresponding environment variable to enable live calls.
+Each worker wraps one LLM provider call with live/simulated dual-mode. The real API integrations are already built in. Just set the corresponding environment variable to enable live calls.
 
-- **FbCallGpt4Worker** (`fb_call_gpt4`) -- calls OpenAI Chat Completions API (`gpt-4`) when `CONDUCTOR_OPENAI_API_KEY` is set. Customize the model, max_tokens, or add system prompts by editing the request body
-- **FbCallClaudeWorker** (`fb_call_claude`) -- calls Anthropic Messages API (`claude-sonnet-4-6`) when `CONDUCTOR_ANTHROPIC_API_KEY` is set. Handles rate limits (429) and server errors as `status: "failed"`
-- **FbCallGeminiWorker** (`fb_call_gemini`) -- calls Google Generative Language API (`gemini-2.0-flash`) when `GOOGLE_API_KEY` is set
-- **FbFormatResultWorker** (`fb_format_result`) -- customize the output normalization to match your application's expected response format. Add token usage tracking from each provider's response to compare costs
-- **Add more providers** -- extend the SWITCH chain with additional providers (Mistral, Llama via Together AI, Cohere) for deeper fallback coverage
-- **Add per-provider retries** -- configure Conductor task-level retries (e.g., retry each provider 2x with exponential backoff before falling back to the next provider)
+- **FbCallGpt4Worker** (`fb_call_gpt4`): calls OpenAI Chat Completions API (`gpt-4`) when `CONDUCTOR_OPENAI_API_KEY` is set. Customize the model, max_tokens, or add system prompts by editing the request body
+- **FbCallClaudeWorker** (`fb_call_claude`): calls Anthropic Messages API (`claude-sonnet-4-6`) when `CONDUCTOR_ANTHROPIC_API_KEY` is set. Handles rate limits (429) and server errors as `status: "failed"`
+- **FbCallGeminiWorker** (`fb_call_gemini`): calls Google Generative Language API (`gemini-2.0-flash`) when `GOOGLE_API_KEY` is set
+- **FbFormatResultWorker** (`fb_format_result`): customize the output normalization to match your application's expected response format. Add token usage tracking from each provider's response to compare costs
+- **Add more providers**: extend the SWITCH chain with additional providers (Mistral, Llama via Together AI, Cohere) for deeper fallback coverage
+- **Add per-provider retries**: configure Conductor task-level retries (e.g., retry each provider 2x with exponential backoff before falling back to the next provider)
 
 Each provider worker returns the same status/response shape, so adding new providers or reordering the fallback chain requires no changes to the existing workers.
 
@@ -243,5 +243,5 @@ llm-fallback-chain/
     ├── FbCallClaudeWorkerTest.java
     ├── FbCallGeminiWorkerTest.java
     ├── FbCallGpt4WorkerTest.java
-    └── FbFormatResultWorkerTest.java # 4 tests -- GPT-4 success, Claude fallback, Gemini fallback, all fail
+    └── FbFormatResultWorkerTest.java # 4 tests. GPT-4 success, Claude fallback, Gemini fallback, all fail
 ```

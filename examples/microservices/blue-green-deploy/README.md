@@ -1,10 +1,10 @@
 # Blue Green Deploy in Java with Conductor
 
-You need to ship v2.5.0 of the payment service. The old deploy process takes the service down for 90 seconds while the new containers start up -- and last time, the health check took longer than expected, so the outage stretched to four minutes during peak checkout hours. Your Slack exploded. You could spin up the new version alongside the old one and flip traffic over, but the last time someone tried that manually, they updated the load balancer target group but forgot to run smoke tests on the new environment first. Traffic shifted to containers that couldn't connect to the database. Rolling back meant another manual LB change under pressure, at 2 AM, with the VP of Engineering watching. This workflow automates blue-green deployment: stand up the new environment, run smoke tests, switch traffic atomically, and verify -- with a full audit trail so you know exactly what happened and when. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You need to ship v2.5.0 of the payment service. The old deploy process takes the service down for 90 seconds while the new containers start up, and last time, the health check took longer than expected, so the outage stretched to four minutes during peak checkout hours. Your Slack exploded. You could spin up the new version alongside the old one and flip traffic over, but the last time someone tried that manually, they updated the load balancer target group but forgot to run smoke tests on the new environment first. Traffic shifted to containers that couldn't connect to the database. Rolling back meant another manual LB change under pressure, at 2 AM, with the VP of Engineering watching. This workflow automates blue-green deployment: stand up the new environment, run smoke tests, switch traffic atomically, and verify. with a full audit trail so you know exactly what happened and when. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-Deploying a new version of a service must happen with zero downtime. Blue-green deployment achieves this by standing up the new version in an idle (green) environment, running smoke tests against it, switching live traffic from blue to green, and verifying the switch succeeded -- all as an atomic, auditable sequence.
+Deploying a new version of a service must happen with zero downtime. Blue-green deployment achieves this by standing up the new version in an idle (green) environment, running smoke tests against it, switching live traffic from blue to green, and verifying the switch succeeded, all as an atomic, auditable sequence.
 
 Without orchestration, deployment scripts become fragile shell pipelines where a failure at the traffic-switch step can leave both environments in an inconsistent state. There is no automatic rollback, no execution history, and diagnosing a failed deploy means grepping through CI logs.
 
@@ -12,7 +12,7 @@ Without orchestration, deployment scripts become fragile shell pipelines where a
 
 **You just write the green-environment, traffic-switch, and verification workers. Conductor handles step sequencing, crash-safe resume during the traffic switch, and a complete deployment audit trail.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing -- your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. Your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -24,15 +24,15 @@ Three workers carry out the deployment: PrepareGreenWorker stands up the new env
 | **SwitchTrafficWorker** | `bg_switch_traffic` | Atomically shifts live traffic from blue to green by updating DNS or load-balancer rules. | Simulated |
 | **VerifyDeploymentWorker** | `bg_verify_deployment` | Verifies the deployment succeeded by checking error rate, p99 latency, and rollback availability. | Simulated |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients -- the workflow coordination stays the same.
+Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -82,9 +82,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -160,11 +160,11 @@ conductor workflow search -w blue_green_deploy_296 -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real container orchestrator (Kubernetes, ECS), load balancer, and monitoring stack -- the blue-green deployment workflow stays exactly the same.
+Point each worker at your real container orchestrator (Kubernetes, ECS), load balancer, and monitoring stack, the blue-green deployment workflow stays exactly the same.
 
-- **PrepareGreenWorker** (`bg_prepare_green`) -- call your container orchestrator (Kubernetes, ECS) to create a new deployment in the green namespace
-- **SwitchTrafficWorker** (`bg_switch_traffic`) -- update your load balancer (ALB, Nginx, Istio VirtualService) to point to the green target group
-- **VerifyDeploymentWorker** (`bg_verify_deployment`) -- query Prometheus, Datadog, or CloudWatch for real error-rate and latency metrics after the switch
+- **PrepareGreenWorker** (`bg_prepare_green`): call your container orchestrator (Kubernetes, ECS) to create a new deployment in the green namespace
+- **SwitchTrafficWorker** (`bg_switch_traffic`): update your load balancer (ALB, Nginx, Istio VirtualService) to point to the green target group
+- **VerifyDeploymentWorker** (`bg_verify_deployment`): query Prometheus, Datadog, or CloudWatch for real error-rate and latency metrics after the switch
 
 Replacing the container orchestrator or monitoring stack behind any worker leaves the deployment pipeline untouched.
 

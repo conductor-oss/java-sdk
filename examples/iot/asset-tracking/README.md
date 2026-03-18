@@ -1,18 +1,18 @@
 # Asset Tracking in Java with Conductor
 
-A shipping container carrying $180,000 in electronics left the port of Long Beach 6 hours ago, and the last GPS ping was at 10:14 AM. It's now 4 PM. Is the tracker's battery dead? Did the container pass through a cellular dead zone on I-15? Or did someone peel off the GPS unit and divert the truck? You can't tell, because your tracking system only records pings when they arrive -- it has no concept of a ping that should have arrived but didn't. By the time someone manually notices the gap, the container could be in another state. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a complete asset tracking pipeline -- tagging, location polling, geofence checking, alert triggering, and registry updates -- as independent workers.
+A shipping container carrying $180,000 in electronics left the port of Long Beach 6 hours ago, and the last GPS ping was at 10:14 AM. It's now 4 PM. Is the tracker's battery dead? Did the container pass through a cellular dead zone on I-15? Or did someone peel off the GPS unit and divert the truck? You can't tell, because your tracking system only records pings when they arrive. it has no concept of a ping that should have arrived but didn't. By the time someone manually notices the gap, the container could be in another state. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a complete asset tracking pipeline, tagging, location polling, geofence checking, alert triggering, and registry updates, as independent workers.
 
 ## Why Asset Tracking Needs Orchestration
 
 Tracking high-value assets across a facility or supply chain requires a pipeline where each step builds on the previous one. You tag the asset with a tracking device to get a unique tag ID. You poll the tracker for current GPS coordinates. You check those coordinates against a geofence boundary to determine whether the asset is inside the permitted zone and how far it is from the boundary. Based on the geofence result, you trigger an alert if the asset has left the authorized area. Finally, you update the central asset registry with the latest position, geofence status, and any alert information.
 
-Each step depends on output from the previous one -- location tracking needs the tag ID, geofence checking needs coordinates, alerting needs the geofence result. If a GPS poll times out, you need to retry without re-tagging the asset. Without orchestration, you'd build a monolithic tracking system that mixes device communication, geospatial calculations, alert dispatch, and registry updates -- making it impossible to swap GPS providers, change geofence shapes, or audit which location update triggered which alert.
+Each step depends on output from the previous one. Location tracking needs the tag ID, geofence checking needs coordinates, alerting needs the geofence result. If a GPS poll times out, you need to retry without re-tagging the asset. Without orchestration, you'd build a monolithic tracking system that mixes device communication, geospatial calculations, alert dispatch, and registry updates, making it impossible to swap GPS providers, change geofence shapes, or audit which location update triggered which alert.
 
 ## The Solution
 
-**You just write the asset tracking workers -- tag registration, GPS polling, geofence evaluation, alert triggering, and registry updates. Conductor handles tag-to-alert sequencing, GPS retry logic, and a complete location history for every tracked asset.**
+**You just write the asset tracking workers. Tag registration, GPS polling, geofence evaluation, alert triggering, and registry updates. Conductor handles tag-to-alert sequencing, GPS retry logic, and a complete location history for every tracked asset.**
 
-Each worker handles one IoT operation -- data ingestion, threshold analysis, device command, or alert dispatch. Conductor manages the telemetry pipeline, device state tracking, and alert escalation.
+Each worker handles one IoT operation. Data ingestion, threshold analysis, device command, or alert dispatch. Conductor manages the telemetry pipeline, device state tracking, and alert escalation.
 
 ### What You Write: Workers
 
@@ -26,15 +26,15 @@ Five workers form the tracking pipeline: TagAssetWorker registers IoT identifier
 | **TriggerAlertWorker** | `ast_trigger_alert` | Evaluates geofence status and triggers an alert if the asset is outside the authorized zone. | Simulated |
 | **UpdateRegistryWorker** | `ast_update_registry` | Updates the central asset registry with current location, geofence status, and alert information. | Simulated |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs -- the workflow and alerting logic stay the same.
+Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -168,11 +168,11 @@ conductor workflow search -w asset_tracking_workflow -s COMPLETED -c 5
 
 Connect TagAssetWorker to your IoT device registry, TrackLocationWorker to your GPS tracking platform, and TriggerAlertWorker to your operations notification system. The workflow definition stays exactly the same.
 
-- **TagAssetWorker** (`ast_tag_asset`) -- register the asset with your IoT tracking platform (Tile, Apple AirTag network, custom BLE tags) or asset management system to get a tag ID
-- **TrackLocationWorker** (`ast_track_location`) -- query real GPS positions from your tracking hardware (CalAmp, Queclink, Sierra Wireless) or a fleet tracking API (Samsara, GPS Trackit)
-- **GeofenceCheckWorker** (`ast_geofence_check`) -- perform real geospatial boundary checks using PostGIS, JTS Topology Suite, or Google Maps Geofencing API with polygon or radius-based fences
-- **TriggerAlertWorker** (`ast_trigger_alert`) -- send real alerts via SMS, email, or push notifications to security or logistics teams when assets leave authorized zones
-- **UpdateRegistryWorker** (`ast_update_registry`) -- write location and status updates to your asset management database, ERP system, or CMDB
+- **TagAssetWorker** (`ast_tag_asset`): register the asset with your IoT tracking platform (Tile, Apple AirTag network, custom BLE tags) or asset management system to get a tag ID
+- **TrackLocationWorker** (`ast_track_location`): query real GPS positions from your tracking hardware (CalAmp, Queclink, Sierra Wireless) or a fleet tracking API (Samsara, GPS Trackit)
+- **GeofenceCheckWorker** (`ast_geofence_check`): perform real geospatial boundary checks using PostGIS, JTS Topology Suite, or Google Maps Geofencing API with polygon or radius-based fences
+- **TriggerAlertWorker** (`ast_trigger_alert`): send real alerts via SMS, email, or push notifications to security or logistics teams when assets leave authorized zones
+- **UpdateRegistryWorker** (`ast_update_registry`): write location and status updates to your asset management database, ERP system, or CMDB
 
 Swap each worker for a production GPS provider or alert system while keeping the same output fields, and the tracking workflow needs no changes.
 

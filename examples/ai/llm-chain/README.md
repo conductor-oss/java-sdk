@@ -1,22 +1,22 @@
-# LLM Chain in Java Using Conductor -- Prompt, Generate, Parse, Validate
+# LLM Chain in Java Using Conductor: Prompt, Generate, Parse, Validate
 
-First LLM call summarizes a customer email. Second one extracts product IDs. Third one validates against the catalog. If the second one fails with a rate limit, you've wasted the first call's tokens and the third one never runs -- or worse, you retry the whole chain from scratch because everything was jammed into one function. When the final answer is wrong, you can't tell if the prompt was bad, the generation hallucinated, the parser choked, or the validator missed a rule. This example builds a four-step LLM chain using [Conductor](https://github.com/conductor-oss/conductor) -- prompt, generate, parse, validate -- where each step is independently retryable and its inputs and outputs are recorded for debugging.
+First LLM call summarizes a customer email. Second one extracts product IDs. Third one validates against the catalog. If the second one fails with a rate limit, you've wasted the first call's tokens and the third one never runs, or worse, you retry the whole chain from scratch because everything was jammed into one function. When the final answer is wrong, you can't tell if the prompt was bad, the generation hallucinated, the parser choked, or the validator missed a rule. This example builds a four-step LLM chain using [Conductor](https://github.com/conductor-oss/conductor): prompt, generate, parse, validate, where each step is independently retryable and its inputs and outputs are recorded for debugging.
 
 ## LLM Output You Can Trust
 
-LLMs generate text, but applications need structured, validated data. When a customer email asks about product recommendations, the LLM's response needs to be parsed into a structured format (product IDs, quantities, reasons) and validated against the actual product catalog -- does product X exist? Is it in stock? Is the price correct?
+LLMs generate text, but applications need structured, validated data. When a customer email asks about product recommendations, the LLM's response needs to be parsed into a structured format (product IDs, quantities, reasons) and validated against the actual product catalog. Does product X exist? Is it in stock? Is the price correct?
 
-Each step in this chain depends on the previous one: the prompt must be formatted before generation, the raw text must be generated before parsing, and the parsed data must exist before validation. If the LLM generates malformed JSON, the parser catches it. If the parser succeeds but references a product ID that doesn't exist, the validator catches it. Without separating these concerns, you end up with a single method where prompt formatting, API calls, JSON parsing, and business validation are tangled together -- impossible to test individually and impossible to retry a failed LLM call without re-building the prompt.
+Each step in this chain depends on the previous one: the prompt must be formatted before generation, the raw text must be generated before parsing, and the parsed data must exist before validation. If the LLM generates malformed JSON, the parser catches it. If the parser succeeds but references a product ID that doesn't exist, the validator catches it. Without separating these concerns, you end up with a single method where prompt formatting, API calls, JSON parsing, and business validation are tangled together. Impossible to test individually and impossible to retry a failed LLM call without re-building the prompt.
 
 ## The Solution
 
 **You write the prompt engineering, generation, parsing, and business validation logic. Conductor handles the chain sequencing, retries, and observability.**
 
-Each stage of the chain is an independent worker -- prompt construction (combining customer email with product catalog), LLM generation, response parsing (extracting structured JSON from raw text), and catalog validation (checking product IDs and prices). Conductor sequences them, retries the LLM call if it's rate-limited, and tracks every step so you can see exactly where in the chain a failure occurred -- was it a bad prompt, a generation error, a parse failure, or a validation mismatch?
+Each stage of the chain is an independent worker. prompt construction (combining customer email with product catalog), LLM generation, response parsing (extracting structured JSON from raw text), and catalog validation (checking product IDs and prices). Conductor sequences them, retries the LLM call if it's rate-limited, and tracks every step so you can see exactly where in the chain a failure occurred, was it a bad prompt, a generation error, a parse failure, or a validation mismatch?
 
 ### What You Write: Workers
 
-Four workers form a sequential processing chain -- prompt construction from customer email context, LLM generation, structured response parsing, and output validation -- each step refining the previous output.
+Four workers form a sequential processing chain: prompt construction from customer email context, LLM generation, structured response parsing, and output validation, each step refining the previous output.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -31,9 +31,9 @@ Four workers form a sequential processing chain -- prompt construction from cust
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -79,9 +79,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -158,14 +158,14 @@ conductor workflow search -w llm_chain_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one chain step -- swap in a real LLM for generation, connect your product catalog for validation, customize the prompt template for your domain, and the prompt-generate-parse-validate chain runs unchanged.
+Each worker owns one chain step. Swap in a real LLM for generation, connect your product catalog for validation, customize the prompt template for your domain, and the prompt-generate-parse-validate chain runs unchanged.
 
-- **ChainPromptWorker** (`chain_prompt`) -- customize the prompt template for your specific domain (e.g., invoice processing, support ticket routing, lead qualification)
-- **ChainGenerateWorker** (`chain_generate`) -- swap in a real LLM call to OpenAI, Claude, or Gemini with appropriate temperature and token settings
-- **ChainParseWorker** (`chain_parse`) -- replace with real JSON/XML parsing with error recovery for malformed LLM output
-- **ChainValidateWorker** (`chain_validate`) -- integrate with your product catalog, CRM, or inventory system for business rule validation
+- **ChainPromptWorker** (`chain_prompt`): customize the prompt template for your specific domain (e.g., invoice processing, support ticket routing, lead qualification)
+- **ChainGenerateWorker** (`chain_generate`): swap in a real LLM call to OpenAI, Claude, or Gemini with appropriate temperature and token settings
+- **ChainParseWorker** (`chain_parse`): replace with real JSON/XML parsing with error recovery for malformed LLM output
+- **ChainValidateWorker** (`chain_validate`): integrate with your product catalog, CRM, or inventory system for business rule validation
 
-Each worker's input/output shape is fixed -- swap the LLM provider, add new validation rules, or change the prompt template without altering the chain structure.
+Each worker's input/output shape is fixed. Swap the LLM provider, add new validation rules, or change the prompt template without altering the chain structure.
 
 ## SDK
 

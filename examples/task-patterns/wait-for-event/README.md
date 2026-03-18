@@ -1,18 +1,18 @@
 # Wait-for-Event in Java with Conductor
 
-WAIT task demo -- pauses a workflow durably until an external system sends a signal (approval, webhook callback, or third-party notification), then processes the signal data. The workflow survives process restarts while waiting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+WAIT task demo. pauses a workflow durably until an external system sends a signal (approval, webhook callback, or third-party notification), then processes the signal data. The workflow survives process restarts while waiting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need a workflow to pause and wait for an external event -- a human approval, a webhook callback from a payment processor, or a notification from a third-party system -- before continuing. The wait could last seconds, hours, or days. If the process hosting the workflow restarts while waiting, the workflow state must not be lost. Once the external signal arrives, the workflow must resume exactly where it left off, with the signal data available to downstream tasks.
+You need a workflow to pause and wait for an external event: a human approval, a webhook callback from a payment processor, or a notification from a third-party system, before continuing. The wait could last seconds, hours, or days. If the process hosting the workflow restarts while waiting, the workflow state must not be lost. Once the external signal arrives, the workflow must resume exactly where it left off, with the signal data available to downstream tasks.
 
-Without orchestration, you'd poll a database for approval status in a loop, manage timeout logic manually, and lose the workflow context if the process restarts while waiting. You'd need to build durable state persistence, timeout handling, and a mechanism for external systems to resume the flow -- essentially re-implementing what a workflow engine already provides.
+Without orchestration, you'd poll a database for approval status in a loop, manage timeout logic manually, and lose the workflow context if the process restarts while waiting. You'd need to build durable state persistence, timeout handling, and a mechanism for external systems to resume the flow. Essentially re-implementing what a workflow engine already provides.
 
 ## The Solution
 
 **You just write the request preparation and signal processing workers. Conductor handles the durable pause via WAIT, surviving restarts until the external signal arrives.**
 
-This example demonstrates the WAIT task for pausing a workflow until an external system sends a signal. PrepareWorker takes a `requestId` and `requester`, logs the pending request, and returns preparation metadata (prepared=true, requestId, requester). The workflow then hits a WAIT task (`wait_for_signal`) that durably pauses execution -- surviving process restarts -- until an external system completes the task via Conductor's API with signal data (e.g., `{"decision": "approved", "signalData": "manager-notes"}`). Once the signal arrives, ProcessSignalWorker picks up the decision and signal data to finalize the request, returning processed=true, the requestId, and the decision. The WAIT task is a system task with no worker -- Conductor manages the durable pause internally.
+This example demonstrates the WAIT task for pausing a workflow until an external system sends a signal. PrepareWorker takes a `requestId` and `requester`, logs the pending request, and returns preparation metadata (prepared=true, requestId, requester). The workflow then hits a WAIT task (`wait_for_signal`) that durably pauses execution: surviving process restarts, until an external system completes the task via Conductor's API with signal data (e.g., `{"decision": "approved", "signalData": "manager-notes"}`). Once the signal arrives, ProcessSignalWorker picks up the decision and signal data to finalize the request, returning processed=true, the requestId, and the decision. The WAIT task is a system task with no worker. Conductor manages the durable pause internally.
 
 ### What You Write: Workers
 
@@ -23,15 +23,15 @@ Two workers bookend the durable WAIT pause: PrepareWorker readies the request an
 | **PrepareWorker** | `we_prepare` | Prepares a request before the workflow pauses. Takes requestId and requester from workflow input, returns prepared=true along with both values echoed back. Passes through null values without error. | Simulated |
 | **ProcessSignalWorker** | `we_process_signal` | Processes the signal after the WAIT task completes. Takes requestId, signalData, and decision from the WAIT task output, returns processed=true with the requestId and decision. Handles null values gracefully. | Simulated |
 
-The WAIT task (`wait_for_signal`) is a Conductor system task -- no worker is needed. It pauses the workflow until an external system completes it via the Conductor API.
+The WAIT task (`wait_for_signal`) is a Conductor system task.; no worker is needed. It pauses the workflow until an external system completes it via the Conductor API.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
-| **Durability** | The WAIT task survives process restarts -- the workflow resumes exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- including how long the WAIT lasted |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
+| **Durability** | The WAIT task survives process restarts, the workflow resumes exactly where it left off |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status. Including how long the WAIT lasted |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline; the WAIT task can have its own timeout |
 | **External integration** | The WAIT task provides a clean API endpoint for external systems to resume workflow execution |
 
@@ -51,9 +51,9 @@ we_process_signal
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -119,7 +119,7 @@ conductor workflow start \
   --version 1 \
   --input '{"requestId": "REQ-001", "requester": "alice"}'
 
-# 2. Check workflow status -- it will be RUNNING, paused at the WAIT task
+# 2. Check workflow status: it will be RUNNING, paused at the WAIT task
 conductor workflow status <workflow_id>
 
 # 3. Find the WAIT task ID from the execution details
@@ -130,7 +130,7 @@ curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
   -d '{"taskId": "<WAIT_TASK_ID>", "status": "COMPLETED", "outputData": {"decision": "approved", "signalData": "manager-approved-2024"}}'
 
-# 5. Check workflow status again -- it should now be COMPLETED
+# 5. Check workflow status again: it should now be COMPLETED
 conductor workflow status <workflow_id>
 ```
 
@@ -149,7 +149,7 @@ conductor workflow search -w wait_event_demo -s COMPLETED -c 5
 
 Step 1: Registering task definitions...
   Registered: we_prepare, we_process_signal
-  Note: wait_for_signal is a system WAIT task -- no worker needed.
+  Note: wait_for_signal is a system WAIT task.; no worker needed.
 
 Step 2: Registering workflow 'wait_event_demo'...
   Workflow registered.
@@ -182,9 +182,9 @@ Example:
 
 Connect the preparation step to a real notification system (email, Slack, PagerDuty) and the signal processing to your fulfillment service, and the durable WAIT pattern works unchanged.
 
-- **PrepareWorker** (`we_prepare`) -- send a real notification (email, Slack, PagerDuty) to the approver with a deep link to an approval UI that calls Conductor's task completion API, or create a pending record in your ticketing system (Jira, ServiceNow)
-- **ProcessSignalWorker** (`we_process_signal`) -- act on the approval decision: provision the requested resource, update the request status in your database, notify the requester of the outcome, or trigger a downstream fulfillment workflow
-- **Add a timeout** -- set `timeoutSeconds` on the WAIT task in workflow.json so that unanswered approvals automatically expire and route to an escalation path
+- **PrepareWorker** (`we_prepare`): send a real notification (email, Slack, PagerDuty) to the approver with a deep link to an approval UI that calls Conductor's task completion API, or create a pending record in your ticketing system (Jira, ServiceNow)
+- **ProcessSignalWorker** (`we_process_signal`): act on the approval decision: provision the requested resource, update the request status in your database, notify the requester of the outcome, or trigger a downstream fulfillment workflow
+- **Add a timeout**: set `timeoutSeconds` on the WAIT task in workflow.json so that unanswered approvals automatically expire and route to an escalation path
 
 Connecting the preparation step to a real notification system and the signal processor to your fulfillment service does not affect the durable WAIT pattern, since Conductor manages the pause and signal-to-workflow routing independently of what the workers do.
 

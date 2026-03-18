@@ -1,10 +1,10 @@
-# Database Agent in Java Using Conductor -- Natural Language to SQL with Validation and Execution
+# Database Agent in Java Using Conductor: Natural Language to SQL with Validation and Execution
 
-The support engineer needs to know which departments have the highest revenue. The data is in the database. They don't know SQL. So they Slack the developer, who is in a meeting for the next two hours. The developer eventually runs the query, pastes the results in a thread, and the support engineer squints at raw column output trying to figure out what "dept_id 7" means. Multiply this by every team that needs data but doesn't have database access. This example builds a natural-language-to-SQL pipeline with Conductor: parse the question, generate the query, validate it for safety (no DROP, no unbounded scans), execute it, and format the results into a human-readable answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+The support engineer needs to know which departments have the highest revenue. The data is in the database. They don't know SQL. So they Slack the developer, who is in a meeting for the next two hours. The developer eventually runs the query, pastes the results in a thread, and the support engineer squints at raw column output trying to figure out what "dept_id 7" means. Multiply this by every team that needs data but doesn't have database access. This example builds a natural-language-to-SQL pipeline with Conductor: parse the question, generate the query, validate it for safety (no DROP, no unbounded scans), execute it, and format the results into a human-readable answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Users Shouldn't Need SQL to Query Their Data
 
-A product manager asks "Which customers churned last quarter?" and expects an answer, not a SQL tutorial. A database agent translates this into `SELECT customer_id, churn_date FROM customers WHERE churn_date BETWEEN '2025-07-01' AND '2025-09-30'` -- but there are critical safety steps between the question and the result.
+A product manager asks "Which customers churned last quarter?" and expects an answer, not a SQL tutorial. A database agent translates this into `SELECT customer_id, churn_date FROM customers WHERE churn_date BETWEEN '2025-07-01' AND '2025-09-30'`; but there are critical safety steps between the question and the result.
 
 The generated SQL must be validated: no destructive operations (DROP, DELETE, TRUNCATE), no full table scans on billion-row tables, proper JOIN conditions to avoid cartesian products, and parameterized queries to prevent injection. Only after validation should the query execute. And the raw query results (rows and columns) need to be formatted into a human-readable answer ("47 customers churned last quarter, with the highest concentration in August").
 
@@ -16,7 +16,7 @@ The generated SQL must be validated: no destructive operations (DROP, DELETE, TR
 
 ### What You Write: Workers
 
-Five workers form the text-to-SQL pipeline -- parsing the question, generating SQL, validating for safety, executing the query, and formatting results into natural language.
+Five workers form the text-to-SQL pipeline. Parsing the question, generating SQL, validating for safety, executing the query, and formatting results into natural language.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,15 +26,15 @@ Five workers form the text-to-SQL pipeline -- parsing the question, generating S
 | **ParseQuestionWorker** | `db_parse_question` | Parses a natural-language question against a database schema. Extracts the user's intent, relevant entities (metric, ... | Simulated |
 | **ValidateQueryWorker** | `db_validate_query` | Validates a generated SQL query for safety and correctness. Runs five validation checks (syntax, tables exist, no mut... | Simulated |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode -- the agent workflow stays the same.
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -166,11 +166,11 @@ conductor workflow search -w database_agent -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one stage of the text-to-SQL pipeline -- plug in an LLM (GPT-4, SQLCoder) for query generation, a real SQL parser (JSqlParser) for validation, and JDBC for execution against live databases, and the parse-generate-validate-execute-format workflow runs unchanged.
+Each worker owns one stage of the text-to-SQL pipeline. Plug in an LLM (GPT-4, SQLCoder) for query generation, a real SQL parser (JSqlParser) for validation, and JDBC for execution against live databases, and the parse-generate-validate-execute-format workflow runs unchanged.
 
-- **GenerateQueryWorker** (`db_generate_query`) -- use GPT-4 with the database schema as context and few-shot examples of question-to-SQL mappings, or use specialized text-to-SQL models like SQLCoder
-- **ValidateQueryWorker** (`db_validate_query`) -- integrate with a SQL parser (JSqlParser) for AST-level validation, EXPLAIN plan analysis for performance checks, and a blocklist of dangerous patterns
-- **ExecuteQueryWorker** (`db_execute_query`) -- connect to real databases via JDBC with read-only credentials, query timeout limits, and result set size caps to prevent runaway queries
+- **GenerateQueryWorker** (`db_generate_query`): use GPT-4 with the database schema as context and few-shot examples of question-to-SQL mappings, or use specialized text-to-SQL models like SQLCoder
+- **ValidateQueryWorker** (`db_validate_query`): integrate with a SQL parser (JSqlParser) for AST-level validation, EXPLAIN plan analysis for performance checks, and a blocklist of dangerous patterns
+- **ExecuteQueryWorker** (`db_execute_query`): connect to real databases via JDBC with read-only credentials, query timeout limits, and result set size caps to prevent runaway queries
 
 Wire in a real database and LLM for SQL generation; the query pipeline maintains the same parse-generate-validate-execute contract.
 

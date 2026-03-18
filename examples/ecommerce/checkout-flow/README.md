@@ -1,12 +1,12 @@
-# Checkout Flow in Java Using Conductor -- Validate Cart, Calculate Tax, Process Payment, Confirm Order
+# Checkout Flow in Java Using Conductor: Validate Cart, Calculate Tax, Process Payment, Confirm Order
 
-Your checkout abandonment rate is 68%. Not because customers changed their minds -- because your checkout calls five APIs sequentially: inventory validation, price confirmation, tax calculation, payment processing, and order creation. Any one of them timing out kills the entire flow, and the customer sees a spinner for 12 seconds before a generic error page. They refresh, get a new cart with different prices, and leave. The tax service went down for 90 seconds during a Tuesday sale and you lost $40,000 in completed carts that never converted. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate checkout steps as independent workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Your checkout abandonment rate is 68%. Not because customers changed their minds. because your checkout calls five APIs sequentially: inventory validation, price confirmation, tax calculation, payment processing, and order creation. Any one of them timing out kills the entire flow, and the customer sees a spinner for 12 seconds before a generic error page. They refresh, get a new cart with different prices, and leave. The tax service went down for 90 seconds during a Tuesday sale and you lost $40,000 in completed carts that never converted. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate checkout steps as independent workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Checkout Must Be Reliable and Atomic
 
-A customer clicks "Place Order" with a $230 cart. The system must verify every item is still in stock and priced correctly (prices may have changed since the item was added), calculate the correct tax for the shipping destination (sales tax varies by state, county, and city), charge the payment method, and create the order -- all as a reliable sequence where a failure at any step doesn't leave the system in an inconsistent state.
+A customer clicks "Place Order" with a $230 cart. The system must verify every item is still in stock and priced correctly (prices may have changed since the item was added), calculate the correct tax for the shipping destination (sales tax varies by state, county, and city), charge the payment method, and create the order, all as a reliable sequence where a failure at any step doesn't leave the system in an inconsistent state.
 
-If the payment processor times out after the tax calculation, you need to retry the payment -- not recalculate the tax. If the payment succeeds but order confirmation fails, the payment must be recorded so the customer isn't charged again on retry. Every checkout needs a complete audit trail: what was in the cart, what tax was calculated, whether payment succeeded, and the final order confirmation.
+If the payment processor times out after the tax calculation, you need to retry the payment. . Not recalculate the tax. If the payment succeeds but order confirmation fails, the payment must be recorded so the customer isn't charged again on retry. Every checkout needs a complete audit trail: what was in the cart, what tax was calculated, whether payment succeeded, and the final order confirmation.
 
 ## The Solution
 
@@ -16,7 +16,7 @@ If the payment processor times out after the tax calculation, you need to retry 
 
 ### What You Write: Workers
 
-Four checkout workers -- cart validation, tax calculation, payment processing, and order confirmation -- each encapsulate one transactional step of the purchase.
+Four checkout workers: cart validation, tax calculation, payment processing, and order confirmation, each encapsulate one transactional step of the purchase.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ Four checkout workers -- cart validation, tax calculation, payment processing, a
 | **ProcessPaymentWorker** | `chk_process_payment` | Processes payment and returns a payment ID. | Simulated |
 | **ValidateCartWorker** | `chk_validate_cart` | Validates the shopping cart and returns subtotal information. | Simulated |
 
-Workers simulate e-commerce operations -- payment processing, inventory checks, shipping -- with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -82,9 +82,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -160,12 +160,12 @@ conductor workflow search -w checkout_flow -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real checkout services -- Stripe for payments, Avalara for tax, your inventory system for cart validation -- and the workflow runs identically in production.
+Connect each worker to your real checkout services. Stripe for payments, Avalara for tax, your inventory system for cart validation, and the workflow runs identically in production.
 
-- **ValidateCartWorker** (`chk_validate_cart`) -- verify item availability against real inventory, confirm current pricing, and check for any cart-level restrictions (minimum order, shipping eligibility)
-- **CalculateTaxWorker** (`chk_calculate_tax`) -- integrate with Avalara AvaTax, TaxJar, or Stripe Tax for real-time tax calculation with jurisdiction-level accuracy and exemption handling
-- **ProcessPaymentWorker** (`chk_process_payment`) -- use Stripe Payment Intents or Braintree Transactions API with idempotency keys to prevent double-charging on retries
-- **ConfirmOrderWorker** (`chk_confirm_order`) -- create orders in Shopify, WooCommerce, or a custom OMS, send confirmation emails via SendGrid, and publish order events to an event stream for downstream systems
+- **ValidateCartWorker** (`chk_validate_cart`): verify item availability against real inventory, confirm current pricing, and check for any cart-level restrictions (minimum order, shipping eligibility)
+- **CalculateTaxWorker** (`chk_calculate_tax`): integrate with Avalara AvaTax, TaxJar, or Stripe Tax for real-time tax calculation with jurisdiction-level accuracy and exemption handling
+- **ProcessPaymentWorker** (`chk_process_payment`): use Stripe Payment Intents or Braintree Transactions API with idempotency keys to prevent double-charging on retries
+- **ConfirmOrderWorker** (`chk_confirm_order`): create orders in Shopify, WooCommerce, or a custom OMS, send confirmation emails via SendGrid, and publish order events to an event stream for downstream systems
 
 Connect each worker to your real checkout services and the workflow runs identically in production.
 

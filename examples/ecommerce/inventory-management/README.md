@@ -1,18 +1,18 @@
-# Inventory Management in Java Using Conductor -- Check Stock, Reserve, Update, Reorder
+# Inventory Management in Java Using Conductor: Check Stock, Reserve, Update, Reorder
 
-It's Black Friday. Your product page shows 500 units of the hot new headphones "in stock" -- but that number is a lie. The website sees 500, the Amazon channel sees 500, and the outlet app sees 500, because all three read from a cache that hasn't synced with the warehouse. Physically, 200 units sit on the shelf. By noon, you've sold 800 headphones you don't have, customer service is fielding cancellation calls, and your supplier can't restock for three weeks. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate atomic stock checks, reservations, updates, and reorders as independent workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+It's Black Friday. Your product page shows 500 units of the hot new headphones "in stock"; but that number is a lie. The website sees 500, the Amazon channel sees 500, and the outlet app sees 500, because all three read from a cache that hasn't synced with the warehouse. Physically, 200 units sit on the shelf. By noon, you've sold 800 headphones you don't have, customer service is fielding cancellation calls, and your supplier can't restock for three weeks. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate atomic stock checks, reservations, updates, and reorders as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Inventory Must Be Accurate, Atomic, and Proactive
 
-A customer orders 5 units of SKU-12345. The warehouse has 12 in stock with a reorder threshold of 10. The system must check that 5 are available (not already reserved by other orders), reserve exactly 5 (atomically -- no double-reserving), update the available quantity to 7, and trigger a reorder because 7 is below the threshold of 10.
+A customer orders 5 units of SKU-12345. The warehouse has 12 in stock with a reorder threshold of 10. The system must check that 5 are available (not already reserved by other orders), reserve exactly 5 (atomically.; no double-reserving), update the available quantity to 7, and trigger a reorder because 7 is below the threshold of 10.
 
-Inventory operations must be atomic: if two orders for 8 units arrive simultaneously against 12 in stock, only one should succeed -- not both. If the update step fails after reservation, the reserved quantity must be rolled back. And reorder decisions must be based on the updated quantity, not the pre-reservation quantity. Without orchestration, these race conditions and consistency requirements lead to overselling, stockouts, and phantom inventory.
+Inventory operations must be atomic: if two orders for 8 units arrive simultaneously against 12 in stock, only one should succeed. . Not both. If the update step fails after reservation, the reserved quantity must be rolled back. And reorder decisions must be based on the updated quantity, not the pre-reservation quantity. Without orchestration, these race conditions and consistency requirements lead to overselling, stockouts, and phantom inventory.
 
 ## The Solution
 
 **You just write the stock check, reservation, inventory update, and reorder logic. Conductor handles reservation retries, reorder sequencing, and stock level tracking across warehouses.**
 
-`CheckStockWorker` queries the current available quantity for the SKU at the specified warehouse, accounting for existing reservations. `ReserveWorker` atomically reserves the requested quantity -- failing if insufficient stock is available. `UpdateWorker` decrements the available inventory by the reserved amount and records the transaction. `ReorderWorker` checks the updated quantity against the reorder threshold and triggers a purchase order if stock is low, calculating the reorder quantity based on demand forecasts. Conductor chains these four steps, retries failed updates without double-reserving, and records every inventory movement for audit.
+`CheckStockWorker` queries the current available quantity for the SKU at the specified warehouse, accounting for existing reservations. `ReserveWorker` atomically reserves the requested quantity. Failing if insufficient stock is available. `UpdateWorker` decrements the available inventory by the reserved amount and records the transaction. `ReorderWorker` checks the updated quantity against the reorder threshold and triggers a purchase order if stock is low, calculating the reorder quantity based on demand forecasts. Conductor chains these four steps, retries failed updates without double-reserving, and records every inventory movement for audit.
 
 ### What You Write: Workers
 
@@ -25,15 +25,15 @@ Stock checking, reservation, inventory updates, and reorder workers manage wareh
 | **ReserveStockWorker** | `inv_reserve` | Performs the reserve stock operation | Simulated |
 | **UpdateInventoryWorker** | `inv_update` | Performs the update inventory operation | Simulated |
 
-Workers simulate e-commerce operations -- payment processing, inventory checks, shipping -- with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -84,9 +84,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -162,11 +162,11 @@ conductor workflow search -w inventory_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real inventory systems -- your WMS for stock queries, Redis for atomic reservations, your ERP for reorder triggers -- and the workflow runs identically in production.
+Connect each worker to your real inventory systems. Your WMS for stock queries, Redis for atomic reservations, your ERP for reorder triggers, and the workflow runs identically in production.
 
-- **CheckStockWorker** (`inv_check_stock`) -- query real inventory systems: Shopify Inventory API, NetSuite, SAP, or a PostgreSQL inventory table with row-level locking for concurrent access
-- **ReserveWorker** (`inv_reserve`) -- use Redis `DECRBY` with atomic check for high-concurrency reservation, or PostgreSQL `SELECT FOR UPDATE` for transactional consistency
-- **ReorderWorker** (`inv_reorder`) -- integrate with supplier APIs for automated purchase orders, or use demand forecasting (Prophet, ARIMA) to calculate optimal reorder quantities
+- **CheckStockWorker** (`inv_check_stock`): query real inventory systems: Shopify Inventory API, NetSuite, SAP, or a PostgreSQL inventory table with row-level locking for concurrent access
+- **ReserveWorker** (`inv_reserve`): use Redis `DECRBY` with atomic check for high-concurrency reservation, or PostgreSQL `SELECT FOR UPDATE` for transactional consistency
+- **ReorderWorker** (`inv_reorder`): integrate with supplier APIs for automated purchase orders, or use demand forecasting (Prophet, ARIMA) to calculate optimal reorder quantities
 
 Switch warehouse management systems and the inventory workflow continues with no definition changes.
 

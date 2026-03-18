@@ -1,12 +1,12 @@
-# Autonomous Agent in Java Using Conductor -- Goal-Directed Planning and Iterative Execution
+# Autonomous Agent in Java Using Conductor: Goal-Directed Planning and Iterative Execution
 
-You tell the agent "set up production monitoring for the platform." It provisions Grafana, wires up Prometheus, configures alerting rules -- then deletes the test suite because a failing test was triggering alerts. Goal achieved, technically. The agent optimized for "no more alerts" instead of "working monitoring." Without a structured plan, progress checkpoints, and quality evaluation at each step, an autonomous agent will find the shortest path to its goal, and that path often goes through your guardrails instead of around them. This example decomposes a mission into a plan, executes steps in a Conductor `DO_WHILE` loop with progress evaluation at each iteration, and compiles a final report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You tell the agent "set up production monitoring for the platform." It provisions Grafana, wires up Prometheus, configures alerting rules. then deletes the test suite because a failing test was triggering alerts. Goal achieved, technically. The agent optimized for "no more alerts" instead of "working monitoring." Without a structured plan, progress checkpoints, and quality evaluation at each step, an autonomous agent will find the shortest path to its goal, and that path often goes through your guardrails instead of around them. This example decomposes a mission into a plan, executes steps in a Conductor `DO_WHILE` loop with progress evaluation at each iteration, and compiles a final report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Autonomous Agents Need Plans, Not Just Loops
 
 An agentic loop (think-act-observe) works for simple tasks, but complex missions like "Analyze our Q4 sales data and produce a competitive intelligence report" need a plan first. The agent should decompose the mission into concrete steps (gather sales data, identify top competitors, analyze market positioning, draft report sections, compile final report), then execute each step while tracking overall progress.
 
-The plan provides structure -- the agent knows how many steps remain, which step it's on, and what the end state looks like. After each execution step, a progress evaluation determines whether to continue (more steps to complete), retry (current step produced poor results), or finish (all steps done). Without orchestration, managing the plan state, tracking step completion across loop iterations, and handling execution failures mid-plan requires complex state management code.
+The plan provides structure, the agent knows how many steps remain, which step it's on, and what the end state looks like. After each execution step, a progress evaluation determines whether to continue (more steps to complete), retry (current step produced poor results), or finish (all steps done). Without orchestration, managing the plan state, tracking step completion across loop iterations, and handling execution failures mid-plan requires complex state management code.
 
 ## The Solution
 
@@ -16,7 +16,7 @@ The plan provides structure -- the agent knows how many steps remain, which step
 
 ### What You Write: Workers
 
-Five workers implement the autonomous agent -- setting the goal, creating a plan, executing steps in a loop with progress evaluation, and compiling the final report.
+Five workers implement the autonomous agent. Setting the goal, creating a plan, executing steps in a loop with progress evaluation, and compiling the final report.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -26,15 +26,15 @@ Five workers implement the autonomous agent -- setting the goal, creating a plan
 | **FinalReportWorker** | `aa_final_report` | Produces the final report summarising the autonomous agent's work. | Simulated |
 | **SetGoalWorker** | `aa_set_goal` | Translates a high-level mission into a concrete goal with constraints. | Simulated |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode -- the agent workflow stays the same.
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
 
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -166,11 +166,11 @@ conductor workflow search -w autonomous_agent -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one phase of the autonomous mission -- use an LLM for dynamic plan generation, connect to real data tools (SQL, web scraping, APIs) for step execution, and add LLM-based quality evaluation, and the goal-plan-execute-evaluate workflow runs unchanged.
+Each worker handles one phase of the autonomous mission. Use an LLM for dynamic plan generation, connect to real data tools (SQL, web scraping, APIs) for step execution, and add LLM-based quality evaluation, and the goal-plan-execute-evaluate workflow runs unchanged.
 
-- **CreatePlanWorker** (`aa_create_plan`) -- use an LLM to generate dynamic plans from the mission description, with dependency tracking between steps and estimated completion times
-- **ExecuteStepWorker** (`aa_execute_step`) -- connect to real tools based on the step type: SQL queries for data gathering, web scraping for competitive intelligence, LLM calls for analysis and writing
-- **EvaluateProgressWorker** (`aa_evaluate_progress`) -- use an LLM to assess whether each step's output meets the plan's quality criteria, with the ability to request re-execution or plan adjustment
+- **CreatePlanWorker** (`aa_create_plan`): use an LLM to generate dynamic plans from the mission description, with dependency tracking between steps and estimated completion times
+- **ExecuteStepWorker** (`aa_execute_step`): connect to real tools based on the step type: SQL queries for data gathering, web scraping for competitive intelligence, LLM calls for analysis and writing
+- **EvaluateProgressWorker** (`aa_evaluate_progress`): use an LLM to assess whether each step's output meets the plan's quality criteria, with the ability to request re-execution or plan adjustment
 
 Wire in LLM reasoning for real planning and execution; the autonomous pipeline keeps the same goal-plan-execute-report contract.
 

@@ -1,12 +1,12 @@
-# PDF Processing in Java Using Conductor -- Text Extraction, Section Parsing, Content Analysis, and Summary Generation
+# PDF Processing in Java Using Conductor: Text Extraction, Section Parsing, Content Analysis, and Summary Generation
 
-Five hundred vendor invoices arrive in accounts payable every month as PDF attachments. They come in 12 different formats -- some with line items in tables, some with totals buried in paragraph text, some scanned at odd angles. An intern spends 3 days each month opening them one by one, copying line items into a spreadsheet, and hoping they don't transpose a digit on a $47,000 invoice. Last quarter they did, and nobody caught it until the vendor called about an unpaid balance. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a PDF processing pipeline -- text extraction, section parsing, content analysis, and summary generation -- as independent workers.
+Five hundred vendor invoices arrive in accounts payable every month as PDF attachments. They come in 12 different formats: some with line items in tables, some with totals buried in paragraph text, some scanned at odd angles. An intern spends 3 days each month opening them one by one, copying line items into a spreadsheet, and hoping they don't transpose a digit on a $47,000 invoice. Last quarter they did, and nobody caught it until the vendor called about an unpaid balance. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a PDF processing pipeline, text extraction, section parsing, content analysis, and summary generation, as independent workers.
 
 ## The Problem
 
 You receive contracts, reports, or research papers as multi-page PDFs, and you need to extract structured information from them. A 50-page contract needs to be broken into its sections (Introduction, Terms, Liability, Termination), each section needs keyword analysis to flag important clauses, and the whole document needs a summary that a reviewer can scan in 30 seconds. Raw PDF text extraction gives you a wall of characters with no structure. Splitting by headings requires knowing the heading patterns for this document type. Analysis depends on having clean, section-delimited text. The summary needs both the parsed sections and the analysis results to produce something useful.
 
-Without orchestration, you'd write a single method that opens the PDF, extracts text, splits by regex, counts words, and outputs a summary in one pass. If section parsing fails because the heading pattern doesn't match this document's formatting, you'd re-extract the entire PDF from scratch -- even though extraction succeeded. There's no record of how many pages were extracted, how many sections were found, or what the raw text looked like before parsing. Adding a new analysis type (sentiment analysis, entity extraction, clause classification) means modifying tightly coupled code with no visibility into which step is the bottleneck.
+Without orchestration, you'd write a single method that opens the PDF, extracts text, splits by regex, counts words, and outputs a summary in one pass. If section parsing fails because the heading pattern doesn't match this document's formatting, you'd re-extract the entire PDF from scratch. Even though extraction succeeded. There's no record of how many pages were extracted, how many sections were found, or what the raw text looked like before parsing. Adding a new analysis type (sentiment analysis, entity extraction, clause classification) means modifying tightly coupled code with no visibility into which step is the bottleneck.
 
 ## The Solution
 
@@ -25,15 +25,15 @@ Four workers handle PDF processing: extracting raw text with page counts, parsin
 | `AnalyzeContentWorker` | `pd_analyze_content` | Counts words across all sections, extracts keywords (data, processing, architecture, pipelines, analytics), and computes average words per section | Simulated |
 | `GenerateSummaryWorker` | `pd_generate_summary` | Combines section titles and analysis metrics into a one-line summary like "Document contains 3 chapters covering..." | Simulated |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks -- the pipeline structure and error handling stay the same.
+Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -55,9 +55,9 @@ pd_generate_summary
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -115,7 +115,7 @@ Step 3: Starting workers...
 
 Step 4: Starting workflow...
 
-  [extract] Extracted text from https://example.com/docs/data-strategy-2024.pdf -- 3 pages, 480 chars
+  [extract] Extracted text from https://example.com/docs/data-strategy-2024.pdf. 3 pages, 480 chars
   [parse] Parsed 3 sections: Introduction, Architecture, Implementation
   [analyze] 67 words, 4 keywords detected: data, processing, architecture, pipelines
   [summary] Generated summary (112 chars)
@@ -165,17 +165,17 @@ conductor workflow search -w pdf_processing -s COMPLETED -c 5
 
 Use Apache PDFBox for real text extraction, add NLP-based keyword analysis with spaCy or OpenAI, and the document processing workflow runs unchanged.
 
-- **`ExtractTextWorker`** -- Use real PDF libraries: Apache PDFBox for text extraction with layout preservation, iText for structured PDF parsing, or Tika for format-agnostic document extraction including embedded images and metadata.
+- **`ExtractTextWorker`**: Use real PDF libraries: Apache PDFBox for text extraction with layout preservation, iText for structured PDF parsing, or Tika for format-agnostic document extraction including embedded images and metadata.
 
-- **`ParseSectionsWorker`** -- Implement real section detection: heading font-size analysis via PDFBox, table-of-contents parsing, regex-based section splitting for known document formats (legal contracts, academic papers, financial reports).
+- **`ParseSectionsWorker`**: Implement real section detection: heading font-size analysis via PDFBox, table-of-contents parsing, regex-based section splitting for known document formats (legal contracts, academic papers, financial reports).
 
-- **`AnalyzeContentWorker`** -- Run real content analysis: TF-IDF keyword extraction, named entity recognition (NER) for people/organizations/dates, clause classification for contracts, or LLM-based analysis via OpenAI/Anthropic APIs.
+- **`AnalyzeContentWorker`**: Run real content analysis: TF-IDF keyword extraction, named entity recognition (NER) for people/organizations/dates, clause classification for contracts, or LLM-based analysis via OpenAI/Anthropic APIs.
 
-- **`GenerateSummaryWorker`** -- Generate real summaries using extractive summarization (TextRank, LSA) or abstractive summarization via LLMs, with configurable summary length and focus areas per document type.
+- **`GenerateSummaryWorker`**: Generate real summaries using extractive summarization (TextRank, LSA) or abstractive summarization via LLMs, with configurable summary length and focus areas per document type.
 
 Replacing the extractor with Apache PDFBox or adding sentiment analysis to the content analyzer does not alter the extract-parse-analyze-summarize pipeline, as long as each worker outputs the expected section and keyword structures.
 
-**Add new stages** by inserting tasks in `workflow.json` -- for example, a table extraction step that detects and parses tabular data within the PDF, a compliance check step that flags missing required sections in regulatory filings, or a comparison step that diffs the current document against a previous version to highlight changes.
+**Add new stages** by inserting tasks in `workflow.json`, for example, a table extraction step that detects and parses tabular data within the PDF, a compliance check step that flags missing required sections in regulatory filings, or a comparison step that diffs the current document against a previous version to highlight changes.
 
 ## SDK
 

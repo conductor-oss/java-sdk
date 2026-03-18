@@ -1,12 +1,12 @@
-# Document Ingestion Pipeline in Java Using Conductor -- PDF to Vector Store in Four Steps
+# Document Ingestion Pipeline in Java Using Conductor: PDF to Vector Store in Four Steps
 
-Someone dumps 10,000 PDFs into a shared drive and expects the RAG system to answer questions about them by Monday. Your chatbot can't find anything because nobody extracted the text, chunked it for embedding models, generated vectors, or loaded them into the vector store. If the embedding API rate-limits you halfway through, a naive script loses track of what was already processed and starts over from page one. This example builds a four-stage document ingestion pipeline using [Conductor](https://github.com/conductor-oss/conductor) -- extract, chunk, embed, store -- that turns raw PDFs into searchable vectors with per-stage retries and full visibility into which document failed at which step.
+Someone dumps 10,000 PDFs into a shared drive and expects the RAG system to answer questions about them by Monday. Your chatbot can't find anything because nobody extracted the text, chunked it for embedding models, generated vectors, or loaded them into the vector store. If the embedding API rate-limits you halfway through, a naive script loses track of what was already processed and starts over from page one. This example builds a four-stage document ingestion pipeline using [Conductor](https://github.com/conductor-oss/conductor): extract, chunk, embed, store, that turns raw PDFs into searchable vectors with per-stage retries and full visibility into which document failed at which step.
 
 ## Turning Documents into Searchable Knowledge
 
 Before a RAG system can answer questions, documents must be ingested: raw PDFs need to be parsed into plain text, that text needs to be split into chunks small enough for embedding models (with overlap to preserve context at boundaries), each chunk needs to be embedded into a vector, and those vectors need to be upserted into a collection in your vector store.
 
-Each step depends on the previous one's output -- you can't chunk text you haven't extracted, and you can't embed chunks you haven't created. If the embedding API rate-limits you mid-batch or the vector store connection drops during upsert, you need to retry that specific step without re-extracting a 200-page PDF. And when you're ingesting thousands of documents, you need to see exactly which document failed at which stage.
+Each step depends on the previous one's output. You can't chunk text you haven't extracted, and you can't embed chunks you haven't created. If the embedding API rate-limits you mid-batch or the vector store connection drops during upsert, you need to retry that specific step without re-extracting a 200-page PDF. And when you're ingesting thousands of documents, you need to see exactly which document failed at which stage.
 
 Without orchestration, this becomes a fragile script where a single embedding API timeout means restarting from scratch, with no record of what was already processed.
 
@@ -14,11 +14,11 @@ Without orchestration, this becomes a fragile script where a single embedding AP
 
 **You write the extraction, chunking, embedding, and storage logic. Conductor handles the pipeline sequencing, retries, and observability.**
 
-Each stage of the ingestion pipeline is an independent worker -- PDF extraction, text chunking, embedding generation, vector storage. Conductor sequences them, passes the output of each stage to the next, retries on transient failures (embedding API timeouts, vector store connection drops), and tracks every document's journey from PDF to stored vectors. You get a production-grade ingestion pipeline without writing retry loops or progress tracking.
+Each stage of the ingestion pipeline is an independent worker. PDF extraction, text chunking, embedding generation, vector storage. Conductor sequences them, passes the output of each stage to the next, retries on transient failures (embedding API timeouts, vector store connection drops), and tracks every document's journey from PDF to stored vectors. You get a production-grade ingestion pipeline without writing retry loops or progress tracking.
 
 ### What You Write: Workers
 
-Four workers form the ingestion pipeline -- PDF text extraction, word-based chunking with configurable overlap, embedding generation, and vector database upsert -- each stage feeding its output to the next.
+Four workers form the ingestion pipeline. PDF text extraction, word-based chunking with configurable overlap, embedding generation, and vector database upsert, each stage feeding its output to the next.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -27,15 +27,15 @@ Four workers form the ingestion pipeline -- PDF text extraction, word-based chun
 | **IngestExtractPdfWorker** | `ingest_extract_pdf` | Worker 1: Extracts text from a PDF document. Simulates PDF parsing by returning fixed text about vector databases. | Simulated |
 | **IngestStoreVectorsWorker** | `ingest_store_vectors` | Worker 4: Stores embedding vectors in a vector database collection. Simulates upserting vectors and returns the count... | Simulated |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode -- the workflow and worker interfaces stay the same.
+Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -89,9 +89,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -168,12 +168,12 @@ conductor workflow search -w document_ingestion_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one ingestion stage -- swap in Apache PDFBox for extraction, OpenAI Embeddings for vectorization, upsert to Pinecone or Weaviate for storage, and the four-step pipeline runs unchanged.
+Each worker handles one ingestion stage. Swap in Apache PDFBox for extraction, OpenAI Embeddings for vectorization, upsert to Pinecone or Weaviate for storage, and the four-step pipeline runs unchanged.
 
-- **IngestExtractPdfWorker** (`ingest_extract_pdf`) -- swap in Apache PDFBox, Tika, or a cloud document AI service for real PDF text extraction
-- **IngestChunkTextWorker** (`ingest_chunk_text`) -- integrate LangChain4j's text splitters or implement custom sentence-boundary chunking
-- **IngestEmbedChunksWorker** (`ingest_embed_chunks`) -- replace fixed embeddings with calls to OpenAI Embeddings, Cohere, or a local sentence-transformers model
-- **IngestStoreVectorsWorker** (`ingest_store_vectors`) -- swap in real upsert calls to Pinecone, Weaviate, pgvector, Qdrant, or Milvus
+- **IngestExtractPdfWorker** (`ingest_extract_pdf`): swap in Apache PDFBox, Tika, or a cloud document AI service for real PDF text extraction
+- **IngestChunkTextWorker** (`ingest_chunk_text`): integrate LangChain4j's text splitters or implement custom sentence-boundary chunking
+- **IngestEmbedChunksWorker** (`ingest_embed_chunks`): replace fixed embeddings with calls to OpenAI Embeddings, Cohere, or a local sentence-transformers model
+- **IngestStoreVectorsWorker** (`ingest_store_vectors`): swap in real upsert calls to Pinecone, Weaviate, pgvector, Qdrant, or Milvus
 
 Each worker preserves the same chunk/embedding contract, so replacing PDFBox with Tika or swapping Pinecone for Weaviate requires no workflow changes.
 

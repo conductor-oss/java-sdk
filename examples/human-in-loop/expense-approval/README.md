@@ -1,40 +1,40 @@
-# Expense Approval in Java Using Conductor -- Policy Validation, SWITCH for Auto-Approve vs. Manager Approval via WAIT, and Processing
+# Expense Approval in Java Using Conductor: Policy Validation, SWITCH for Auto-Approve vs. Manager Approval via WAIT, and Processing
 
-A Java Conductor workflow example for expense approval -- validating an expense against policy rules (amount > $100 or category "travel" requires approval), using SWITCH to route expenses that need approval to a WAIT task for manager review, and processing the expense after approval or auto-approval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for expense approval. validating an expense against policy rules (amount > $100 or category "travel" requires approval), using SWITCH to route expenses that need approval to a WAIT task for manager review, and processing the expense after approval or auto-approval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Expenses Above Policy Thresholds Need Human Approval
 
-An employee submits an expense report, but not all expenses can be auto-approved. The workflow validates the expense against policy rules -- if the amount exceeds $100 or the category is "travel", a human manager must approve it via a WAIT task. Otherwise, the expense is processed automatically. The SWITCH task routes between the approval path and the direct-processing path based on the policy check. If processing fails after approval, you need to retry it without asking the manager to re-approve.
+An employee submits an expense report, but not all expenses can be auto-approved. The workflow validates the expense against policy rules. If the amount exceeds $100 or the category is "travel", a human manager must approve it via a WAIT task. Otherwise, the expense is processed automatically. The SWITCH task routes between the approval path and the direct-processing path based on the policy check. If processing fails after approval, you need to retry it without asking the manager to re-approve.
 
 ## The Solution
 
 **You just write the policy validation and expense processing workers. Conductor handles the routing, approval holds, and retries.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging -- your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. Your code handles the decision logic.
 
 ### What You Write: Workers
 
-ValidatePolicyWorker checks expense amounts and categories, while ProcessWorker handles reimbursement -- neither knows about the SWITCH or WAIT tasks that connect them.
+ValidatePolicyWorker checks expense amounts and categories, while ProcessWorker handles reimbursement. Neither knows about the SWITCH or WAIT tasks that connect them.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **ValidatePolicyWorker** | `exp_validate_policy` | Checks the expense amount and category against policy rules -- amounts over $100 or "travel" category require manager approval; returns `approvalRequired: "true"` or `"false"` as a string for the SWITCH evaluator | Simulated -- swap in your expense policy engine (SAP Concur, Expensify, Brex) for production |
-| *SWITCH task* | `approval_switch` | Routes based on `approvalRequired` -- `"true"` sends to a WAIT task for manager approval, default skips straight to processing | Built-in Conductor SWITCH -- no worker needed |
-| *WAIT task* | `wait_for_approval` | Pauses the workflow until a manager approves or rejects the expense via `POST /tasks/{taskId}` -- see [Completing the WAIT Task](#completing-the-wait-task-human-approval) | Built-in Conductor WAIT -- no worker needed |
-| **ProcessWorker** | `exp_process` | Finalizes the approved expense -- posts the reimbursement to payroll, updates the general ledger, and sends the employee a confirmation email; returns `processed: true` | Simulated -- swap in your ERP or expense management system (SAP, NetSuite, QuickBooks) for production |
+| **ValidatePolicyWorker** | `exp_validate_policy` | Checks the expense amount and category against policy rules. amounts over $100 or "travel" category require manager approval; returns `approvalRequired: "true"` or `"false"` as a string for the SWITCH evaluator | Simulated, swap in your expense policy engine (SAP Concur, Expensify, Brex) for production |
+| *SWITCH task* | `approval_switch` | Routes based on `approvalRequired`. `"true"` sends to a WAIT task for manager approval, default skips straight to processing | Built-in Conductor SWITCH.; no worker needed |
+| *WAIT task* | `wait_for_approval` | Pauses the workflow until a manager approves or rejects the expense via `POST /tasks/{taskId}`. See [Completing the WAIT Task](#completing-the-wait-task-human-approval) | Built-in Conductor WAIT.; no worker needed |
+| **ProcessWorker** | `exp_process` | Finalizes the approved expense: posts the reimbursement to payroll, updates the general ledger, and sends the employee a confirmation email; returns `processed: true` | Simulated, swap in your ERP or expense management system (SAP, NetSuite, QuickBooks) for production |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments -- the workflow structure stays the same.
+Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-| **Human-in-the-loop** | WAIT tasks pause the workflow until an external signal (API call) resumes it -- no polling, no state management |
+| **Human-in-the-loop** | WAIT tasks pause the workflow until an external signal (API call) resumes it.; no polling, no state management |
 
 ### The Workflow
 
@@ -53,9 +53,9 @@ exp_process
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -134,7 +134,7 @@ Result: PASSED
 
 ## Using the Conductor CLI
 
-You can use the [Conductor CLI](https://github.com/conductor-oss/conductor-cli) to register definitions, start workflows, and inspect executions. The CLI handles the Conductor server side -- but **workers must still be running** to poll and execute tasks.
+You can use the [Conductor CLI](https://github.com/conductor-oss/conductor-cli) to register definitions, start workflows, and inspect executions. The CLI handles the Conductor server side; but **workers must still be running** to poll and execute tasks.
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:
 
@@ -223,7 +223,7 @@ When the workflow hits the `wait_for_approval` WAIT task, it pauses until an ext
 **Step 1: Find the WAIT task ID**
 
 ```bash
-# Get the execution details -- look for the task named "wait_for_approval"
+# Get the execution details: look for the task named "wait_for_approval"
 conductor workflow get-execution <workflow_id> -c
 ```
 
@@ -255,7 +255,7 @@ curl -X POST http://localhost:8080/api/tasks \
     "workflowInstanceId": "<workflow_id>",
     "taskId": "<task_id>",
     "status": "FAILED",
-    "reasonForIncompletion": "Expense rejected -- exceeds department budget",
+    "reasonForIncompletion": "Expense rejected. Exceeds department budget",
     "outputData": {
       "approved": false,
       "rejectedBy": "manager@example.com",
@@ -291,15 +291,15 @@ conductor task list
 
 ## How to Extend
 
-Each worker wraps a single expense operation -- plug in your policy engine (SAP Concur, Expensify, Brex) or ERP (SAP, NetSuite, QuickBooks) and the workflow runs identically without any changes.
+Each worker wraps a single expense operation. Plug in your policy engine (SAP Concur, Expensify, Brex) or ERP (SAP, NetSuite, QuickBooks) and the workflow runs identically without any changes.
 
-**Example -- make `ValidatePolicyWorker` real with a policy engine:**
+**Example. Make `ValidatePolicyWorker` real with a policy engine:**
 
 ```java
 // Before (simulated):
 boolean needsApproval = amount > 100 || "travel".equals(category);
 
-// After (real -- load rules from a database):
+// After (real. Load rules from a database):
 PolicyEngine engine = PolicyEngine.forDepartment(submitterDepartment);
 boolean needsApproval = engine.evaluate(amount, category, submitter);
 // Supports per-department thresholds, category-specific rules,
@@ -344,6 +344,6 @@ expense-approval/
 │       ├── ValidatePolicyWorker.java # Policy check: amount > $100 or travel
 │       └── ProcessWorker.java        # Expense finalization
 └── src/test/java/expenseapproval/workers/
-    ├── ValidatePolicyWorkerTest.java  # 10 tests -- boundary values, categories, types
-    └── ProcessWorkerTest.java         # 4 tests -- completion, output shape
+    ├── ValidatePolicyWorkerTest.java  # 10 tests. Boundary values, categories, types
+    └── ProcessWorkerTest.java         # 4 tests. Completion, output shape
 ```

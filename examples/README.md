@@ -1,6 +1,6 @@
 # Conductor Java SDK Examples
 
-118 self-contained examples for the Conductor Java SDK. Each example is an independent Maven project with its own `pom.xml`, workers, workflow definition, tests, and launcher script -- clone one, build it, run it.
+118 self-contained examples for the Conductor Java SDK. Each example is an independent Maven project with its own `pom.xml`, workers, workflow definition, tests, and launcher script. Clone one, build it, run it.
 
 ## Quick Start
 
@@ -25,7 +25,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 
 | Example | What it does |
 |---------|-------------|
-| [hello-world](basics/hello-world/) | One workflow, one task, one worker -- the minimum viable Conductor example |
+| [hello-world](basics/hello-world/) | One workflow, one task, one worker, the minimum viable Conductor example |
 | [creating-workers](basics/creating-workers/) | Implement and register workers that poll and execute tasks |
 | [registering-workflows](basics/registering-workflows/) | Register workflow and task definitions programmatically via the SDK |
 | [workflow-input-output](basics/workflow-input-output/) | Pass data between workflow input, tasks, and workflow output |
@@ -107,7 +107,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 |---------|-------------|
 | [checkout-flow](ecommerce/checkout-flow/) | Validate cart → reserve inventory → charge payment → confirm |
 | [fraud-detection](ecommerce/fraud-detection/) | 7-factor weighted fraud scoring: velocity, amount, geo, device, BIN, time, history |
-| [inventory-management](ecommerce/inventory-management/) | CAS-based inventory with AtomicInteger -- no overselling |
+| [inventory-management](ecommerce/inventory-management/) | CAS-based inventory with AtomicInteger.; no overselling |
 | [order-management](ecommerce/order-management/) | Order lifecycle: validate → pay → pick-and-pack → ship → notify |
 | [payment-processing](ecommerce/payment-processing/) | Stripe SDK: authorize → capture → handle webhooks |
 

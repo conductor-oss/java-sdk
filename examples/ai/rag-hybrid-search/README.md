@@ -1,10 +1,10 @@
-# RAG Hybrid Search in Java Using Conductor -- Vector + Keyword Search with Reciprocal Rank Fusion
+# RAG Hybrid Search in Java Using Conductor: Vector + Keyword Search with Reciprocal Rank Fusion
 
-Pure vector search returns documents about "network connectivity issues" when the user searched for the exact error code `ERR_CONNECTION_REFUSED` -- semantically similar, factually useless. Pure keyword search finds the error code but misses the doc titled "Troubleshooting refused connections" because it uses different words. Neither search strategy alone is good enough, and running both sequentially doubles your latency. This example builds a hybrid search pipeline using [Conductor](https://github.com/conductor-oss/conductor) that runs vector and BM25 keyword search in parallel, fuses the results with Reciprocal Rank Fusion, and generates an answer from the combined context.
+Pure vector search returns documents about "network connectivity issues" when the user searched for the exact error code `ERR_CONNECTION_REFUSED`. Semantically similar, factually useless. Pure keyword search finds the error code but misses the doc titled "Troubleshooting refused connections" because it uses different words. Neither search strategy alone is good enough, and running both sequentially doubles your latency. This example builds a hybrid search pipeline using [Conductor](https://github.com/conductor-oss/conductor) that runs vector and BM25 keyword search in parallel, fuses the results with Reciprocal Rank Fusion, and generates an answer from the combined context.
 
 ## Neither Vector Nor Keyword Search Is Enough Alone
 
-Vector search understands meaning but misses exact terms -- searching for "ERR_CONNECTION_REFUSED" by semantic similarity might return documents about network errors in general, not the specific error code. Keyword search finds exact matches but misses synonyms -- searching for "car insurance" won't find documents about "automobile coverage." Hybrid search runs both in parallel and combines the results.
+Vector search understands meaning but misses exact terms. searching for "ERR_CONNECTION_REFUSED" by semantic similarity might return documents about network errors in general, not the specific error code. Keyword search finds exact matches but misses synonyms, searching for "car insurance" won't find documents about "automobile coverage." Hybrid search runs both in parallel and combines the results.
 
 Reciprocal rank fusion (RRF) merges the two ranked lists by giving each document a score based on its position in each list. Documents that rank highly in both searches float to the top.
 
@@ -16,7 +16,7 @@ Vector search and keyword search are independent workers. Conductor's `FORK_JOIN
 
 ### What You Write: Workers
 
-Four workers implement hybrid search -- running vector similarity and BM25 keyword search in parallel via FORK_JOIN, merging results with Reciprocal Rank Fusion, and generating an answer from the fused context.
+Four workers implement hybrid search. Running vector similarity and BM25 keyword search in parallel via FORK_JOIN, merging results with Reciprocal Rank Fusion, and generating an answer from the fused context.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ Four workers implement hybrid search -- running vector similarity and BM25 keywo
 | **RrfMergeWorker** | `hs_rrf_merge` | Reciprocal Rank Fusion (RRF) merge worker. Deduplicates results from vector and keyword searches by document id, keep... | Simulated |
 | **VectorSearchWorker** | `hs_vector_search` | Vector similarity search worker. Simulates embedding the query and searching an HNSW index (cosine similarity). | Simulated |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode -- the workflow and worker interfaces stay the same.
+Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
@@ -87,9 +87,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -166,11 +166,11 @@ conductor workflow search -w rag_hybrid_search -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one search strategy -- swap in a real vector store for semantic search, Elasticsearch or Solr for BM25 keyword search, and the parallel search with reciprocal rank fusion runs unchanged.
+Each worker handles one search strategy. Swap in a real vector store for semantic search, Elasticsearch or Solr for BM25 keyword search, and the parallel search with reciprocal rank fusion runs unchanged.
 
-- **GenerateAnswerWorker** (`hs_generate_answer`) -- send the merged context documents to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer
-- **KeywordSearchWorker** (`hs_keyword_search`) -- tokenize the query and search a BM25 inverted index (Elasticsearch, Apache Solr, OpenSearch) for keyword-matching documents
-- **RrfMergeWorker** (`hs_rrf_merge`) -- apply Reciprocal Rank Fusion to merge and deduplicate results from both vector and keyword searches into a single ranked list
+- **GenerateAnswerWorker** (`hs_generate_answer`): send the merged context documents to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer
+- **KeywordSearchWorker** (`hs_keyword_search`): tokenize the query and search a BM25 inverted index (Elasticsearch, Apache Solr, OpenSearch) for keyword-matching documents
+- **RrfMergeWorker** (`hs_rrf_merge`): apply Reciprocal Rank Fusion to merge and deduplicate results from both vector and keyword searches into a single ranked list
 
 Each search worker returns the same scored-result shape, so tuning RRF weights, adding new search strategies, or swapping the vector store requires no changes to the merge or generation workers.
 

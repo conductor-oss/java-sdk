@@ -1,16 +1,16 @@
 # Elasticsearch Integration in Java Using Conductor
 
-It's 3 AM and your production service is throwing 500 errors. You open Kibana to search the logs from the traffic spike at 2:47 AM -- and they're not there. The log pipeline silently dropped events when the indexing queue backed up during the load spike. The exact 8 minutes you need to diagnose the incident are a blank hole in your search index. You have logs from before the incident and after the recovery, but the critical window -- the one that would show you the root cause -- was lost because the pipeline had no backpressure handling and no retry on index failures. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a durable Elasticsearch index-search-aggregate-analyze pipeline with retries and full observability.
+It's 3 AM and your production service is throwing 500 errors. You open Kibana to search the logs from the traffic spike at 2:47 AM, and they're not there. The log pipeline silently dropped events when the indexing queue backed up during the load spike. The exact 8 minutes you need to diagnose the incident are a blank hole in your search index. You have logs from before the incident and after the recovery, but the critical window: the one that would show you the root cause, was lost because the pipeline had no backpressure handling and no retry on index failures. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a durable Elasticsearch index-search-aggregate-analyze pipeline with retries and full observability.
 
 ## Indexing, Searching, and Analyzing Data in Elasticsearch
 
-A common Elasticsearch pattern involves indexing a document, searching for related content, aggregating the results to find patterns, and drawing insights from the aggregations. Each step depends on the previous one -- you cannot search before indexing, and you cannot aggregate without search hits. If the indexing step fails or the search returns no results, downstream steps need to handle it gracefully.
+A common Elasticsearch pattern involves indexing a document, searching for related content, aggregating the results to find patterns, and drawing insights from the aggregations. Each step depends on the previous one. You cannot search before indexing, and you cannot aggregate without search hits. If the indexing step fails or the search returns no results, downstream steps need to handle it gracefully.
 
 Without orchestration, you would chain Elasticsearch REST calls manually and manage index names, document IDs, and hit lists between steps. Conductor sequences the pipeline and passes these values automatically via JSONPath.
 
 ## The Solution
 
-**You just write the Elasticsearch workers -- document indexing, search execution, aggregation, and insight analysis. Conductor handles document-to-analysis sequencing, index operation retries, and document ID routing between pipeline stages.**
+**You just write the Elasticsearch workers. Document indexing, search execution, aggregation, and insight analysis. Conductor handles document-to-analysis sequencing, index operation retries, and document ID routing between pipeline stages.**
 
 Each worker integrates with one external system. Conductor manages the integration sequence, retry logic, timeout handling, and data transformation between systems.
 
@@ -20,20 +20,20 @@ Four workers form the search pipeline: IndexDocWorker writes documents, SearchWo
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **IndexDocWorker** | `els_index_doc` | Indexes a document in Elasticsearch -- writes the document to the specified index and returns the document ID | Simulated -- swap in Elasticsearch RestHighLevelClient.index() or the new Java API Client for production |
-| **SearchWorker** | `els_search` | Searches the index -- executes the search query against the indexed documents and returns matching hits | Simulated -- swap in Elasticsearch SearchRequest with your query DSL for production |
-| **AggregateWorker** | `els_aggregate` | Aggregates search results -- runs aggregation queries (terms, histogram, stats) on the search hits to find patterns and distributions | Simulated -- swap in Elasticsearch AggregationBuilders for production |
-| **AnalyzeWorker** | `els_analyze` | Analyzes aggregated results -- produces analytical insights and summaries from the aggregation data | Simulated -- swap in your analytics logic or visualization pipeline for production |
+| **IndexDocWorker** | `els_index_doc` | Indexes a document in Elasticsearch. writes the document to the specified index and returns the document ID | Simulated, swap in Elasticsearch RestHighLevelClient.index() or the new Java API Client for production |
+| **SearchWorker** | `els_search` | Searches the index. executes the search query against the indexed documents and returns matching hits | Simulated, swap in Elasticsearch SearchRequest with your query DSL for production |
+| **AggregateWorker** | `els_aggregate` | Aggregates search results: runs aggregation queries (terms, histogram, stats) on the search hits to find patterns and distributions | Simulated, swap in Elasticsearch AggregationBuilders for production |
+| **AnalyzeWorker** | `els_analyze` | Analyzes aggregated results. produces analytical insights and summaries from the aggregation data | Simulated, swap in your analytics logic or visualization pipeline for production |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients -- the workflow orchestration and error handling stay the same.
+Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -133,7 +133,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `ELASTICSEARCH_URL` | _(none)_ | Elasticsearch cluster URL (e.g., `http://localhost:9200`). Currently unused -- all workers run in simulated mode with `` output prefix. Swap in Elasticsearch Java client for production. |
+| `ELASTICSEARCH_URL` | _(none)_ | Elasticsearch cluster URL (e.g., `http://localhost:9200`). Currently unused, all workers run in simulated mode with `` output prefix. Swap in Elasticsearch Java client for production. |
 
 ## Using the Conductor CLI
 
@@ -164,9 +164,9 @@ conductor workflow search -w elasticsearch_integration_446 -s COMPLETED -c 5
 
 Swap in the Elasticsearch Java API Client for indexing, your query DSL for search, and AggregationBuilders for the aggregation step against your real cluster. The workflow definition stays exactly the same.
 
-- **AggregateWorker** (`els_aggregate`) -- use the Elasticsearch Java client's SearchRequest with AggregationBuilders for real aggregations
-- **IndexDocWorker** (`els_index_doc`) -- use the Elasticsearch Java client's IndexRequest to index real documents
-- **SearchWorker** (`els_search`) -- use the Elasticsearch Java client's SearchRequest with QueryBuilders for real full-text search
+- **AggregateWorker** (`els_aggregate`): use the Elasticsearch Java client's SearchRequest with AggregationBuilders for real aggregations
+- **IndexDocWorker** (`els_index_doc`): use the Elasticsearch Java client's IndexRequest to index real documents
+- **SearchWorker** (`els_search`): use the Elasticsearch Java client's SearchRequest with QueryBuilders for real full-text search
 
 Swap each simulation for real Elasticsearch API calls while preserving return fields, and the index-search-analyze pipeline needs no changes.
 

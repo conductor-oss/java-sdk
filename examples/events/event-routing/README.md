@@ -1,6 +1,6 @@
 # Event Routing in Java Using Conductor
 
-An order-cancellation event lands in the user-profile handler. The handler doesn't know what to do with it, silently drops it, and the customer's order stays active. Meanwhile, a user-signup event hits the order processor, which tries to look up a nonexistent order ID and throws a NullPointerException -- taking down the entire event consumer. You restart the consumer, but the misrouted events are gone. When every event flows through the same pipe with a big `if/else` block deciding where it goes, one wrong routing decision cascades into data corruption, silent failures, and lost events. This workflow extracts each event's domain, routes it to the correct processor via a SWITCH task, and gives you a full trace of every routing decision. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+An order-cancellation event lands in the user-profile handler. The handler doesn't know what to do with it, silently drops it, and the customer's order stays active. Meanwhile, a user-signup event hits the order processor, which tries to look up a nonexistent order ID and throws a NullPointerException, taking down the entire event consumer. You restart the consumer, but the misrouted events are gone. When every event flows through the same pipe with a big `if/else` block deciding where it goes, one wrong routing decision cascades into data corruption, silent failures, and lost events. This workflow extracts each event's domain, routes it to the correct processor via a SWITCH task, and gives you a full trace of every routing decision. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a routing table with a switch statement or ma
 
 **You just write the event-receive, type-extraction, and domain-specific processor workers. Conductor handles domain-based SWITCH routing, per-processor retries, and full traceability of every routing decision.**
 
-Each domain processor is a simple, independent worker -- a plain Java class that does one thing. Conductor takes care of receiving the event, extracting its domain, routing via a SWITCH task to the correct processor (user, order, system), retrying if the processor fails, and tracking every event's routing and outcome. You get all of that for free, without writing a single line of orchestration code.
+Each domain processor is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of receiving the event, extracting its domain, routing via a SWITCH task to the correct processor (user, order, system), retrying if the processor fails, and tracking every event's routing and outcome. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,15 @@ Five workers implement domain-based routing: ReceiveEventWorker ingests the even
 | **SystemProcessorWorker** | `eo_system_processor` | Default processor for events that do not match user or order domains. Passes through the domain and marks the event a... | Simulated |
 | **UserProcessorWorker** | `eo_user_processor` | Processes user-domain events. Returns a fixed result indicating the user event was handled: profile updated, notifica... | Simulated |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources -- the workflow and routing logic stay the same.
+Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
@@ -84,9 +84,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -162,14 +162,14 @@ conductor workflow search -w event_routing_wf -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each domain processor at your real user service, order management API, and system-event handler -- the receive-extract-route workflow stays exactly the same.
+Point each domain processor at your real user service, order management API, and system-event handler, the receive-extract-route workflow stays exactly the same.
 
-- **User processor** -- handle user events (signup, profile update, login) by writing to your user service or CRM (Salesforce, HubSpot)
-- **Order processor** -- handle order events (created, updated, cancelled) by updating your OMS and notifying fulfillment
-- **System processor** -- handle system events (alerts, metrics, health checks) by forwarding to your monitoring platform (Datadog, PagerDuty)
-- Add new domain processors by adding SWITCH cases and workers -- existing processors remain untouched
+- **User processor**: handle user events (signup, profile update, login) by writing to your user service or CRM (Salesforce, HubSpot)
+- **Order processor**: handle order events (created, updated, cancelled) by updating your OMS and notifying fulfillment
+- **System processor**: handle system events (alerts, metrics, health checks) by forwarding to your monitoring platform (Datadog, PagerDuty)
+- Add new domain processors by adding SWITCH cases and workers. Existing processors remain untouched
 
-Adding a new domain processor means one new worker and a SWITCH case -- existing domain handlers stay untouched.
+Adding a new domain processor means one new worker and a SWITCH case. Existing domain handlers stay untouched.
 
 ## SDK
 

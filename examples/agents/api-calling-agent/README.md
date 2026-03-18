@@ -1,12 +1,12 @@
-# API-Calling Agent in Java Using Conductor -- Plan, Authenticate, Call, Parse, Format
+# API-Calling Agent in Java Using Conductor: Plan, Authenticate, Call, Parse, Format
 
-A user says "cancel my last order" and your AI understands the intent perfectly -- but it has no idea which API to call, what parameters it needs, how to authenticate, or what to do when the API returns a 429. The gap between natural language intent and a successful `POST /orders/{id}/cancel` with a valid bearer token is five distinct steps, each with its own failure mode. This example uses [Conductor](https://github.com/conductor-oss/conductor) to bridge that gap as a durable pipeline: plan the API call, acquire credentials, execute the request, parse the response, and format a human-readable answer -- with per-step retries, timeout handling, and a full audit trail of every API interaction.
+A user says "cancel my last order" and your AI understands the intent perfectly; but it has no idea which API to call, what parameters it needs, how to authenticate, or what to do when the API returns a 429. The gap between natural language intent and a successful `POST /orders/{id}/cancel` with a valid bearer token is five distinct steps, each with its own failure mode. This example uses [Conductor](https://github.com/conductor-oss/conductor) to bridge that gap as a durable pipeline: plan the API call, acquire credentials, execute the request, parse the response, and format a human-readable answer, with per-step retries, timeout handling, and a full audit trail of every API interaction.
 
 ## Users Speak Natural Language, APIs Speak JSON
 
 A user says "Tell me about the Conductor open-source repository on GitHub" but the GitHub API needs a structured call: `GET /repos/conductor-oss/conductor` with a bearer token in the Authorization header. Bridging this gap requires five steps: understanding the user's intent and mapping it to an API endpoint with parameters, acquiring authentication credentials (API keys, OAuth tokens), making the HTTP call, parsing the nested JSON response, and formatting the result into a human-readable answer.
 
-Each step has different failure modes -- the LLM might plan the wrong API, the auth token might be expired, the API might rate-limit you, the response format might have changed. Without orchestration, these steps get tangled in a single method where an auth failure means re-running the planning step, a parse error has no record of what the API actually returned, and there's no audit trail of which APIs the agent called.
+Each step has different failure modes, the LLM might plan the wrong API, the auth token might be expired, the API might rate-limit you, the response format might have changed. Without orchestration, these steps get tangled in a single method where an auth failure means re-running the planning step, a parse error has no record of what the API actually returned, and there's no audit trail of which APIs the agent called.
 
 ## The Solution
 
@@ -16,25 +16,25 @@ Each step has different failure modes -- the LLM might plan the wrong API, the a
 
 ### What You Write: Workers
 
-Five workers bridge natural language to API calls -- planning the endpoint, authenticating, executing the request, parsing the response, and formatting the answer.
+Five workers bridge natural language to API calls. Planning the endpoint, authenticating, executing the request, parsing the response, and formatting the answer.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **PlanApiCallWorker** | `ap_plan_api_call` | Plans an API call based on the user's request and an API catalog. Selects GitHub as the best API, determines the endpoint (`https://api.github.com/repos/conductor-oss/conductor`), method (GET), params (owner, repo), auth type (bearer_token), and expected response schema (8 fields). | Simulated -- swap in GPT-4 function calling for dynamic API selection |
-| **AuthenticateWorker** | `ap_authenticate` | Authenticates against the selected API by producing a bearer token. Takes apiName and authType, returns a simulated token (`ghp_sim_...`), expiry (3600s), and token type (Bearer). | Simulated -- swap in AWS Secrets Manager or Auth0 for real credentials |
-| **CallApiWorker** | `ap_call_api` | Calls the selected API endpoint. Takes endpoint, method, params, and authToken. Returns a simulated GitHub repo response (conductor-oss/conductor with 16500 stars, 2100 forks, Java, Apache-2.0 license), status code (200), and response time (185ms). | Simulated -- swap in OkHttp or Apache HttpClient for real HTTP calls |
-| **ParseResponseWorker** | `ap_parse_response` | Parses and validates the raw API response against the expected schema. Extracts fields (name, description, stars, forks, language, license, openIssues, defaultBranch), counts fields extracted, and validates that status code is 200 with fields present. | Real -- deterministic field extraction and validation logic |
-| **FormatOutputWorker** | `ap_format_output` | Formats the parsed API data into a human-readable answer. Constructs a natural language sentence: "The repository conductor-oss/conductor is ... It is written in Java and has 16500 stars and 2100 forks. It is licensed under Apache License 2.0." | Real -- deterministic template-based formatting |
+| **PlanApiCallWorker** | `ap_plan_api_call` | Plans an API call based on the user's request and an API catalog. Selects GitHub as the best API, determines the endpoint (`https://api.github.com/repos/conductor-oss/conductor`), method (GET), params (owner, repo), auth type (bearer_token), and expected response schema (8 fields). | Simulated. Swap in GPT-4 function calling for dynamic API selection |
+| **AuthenticateWorker** | `ap_authenticate` | Authenticates against the selected API by producing a bearer token. Takes apiName and authType, returns a simulated token (`ghp_sim_...`), expiry (3600s), and token type (Bearer). | Simulated. Swap in AWS Secrets Manager or Auth0 for real credentials |
+| **CallApiWorker** | `ap_call_api` | Calls the selected API endpoint. Takes endpoint, method, params, and authToken. Returns a simulated GitHub repo response (conductor-oss/conductor with 16500 stars, 2100 forks, Java, Apache-2.0 license), status code (200), and response time (185ms). | Simulated. Swap in OkHttp or Apache HttpClient for real HTTP calls |
+| **ParseResponseWorker** | `ap_parse_response` | Parses and validates the raw API response against the expected schema. Extracts fields (name, description, stars, forks, language, license, openIssues, defaultBranch), counts fields extracted, and validates that status code is 200 with fields present. | Real. Deterministic field extraction and validation logic |
+| **FormatOutputWorker** | `ap_format_output` | Formats the parsed API data into a human-readable answer. Constructs a natural language sentence: "The repository conductor-oss/conductor is .. It is written in Java and has 16500 stars and 2100 forks. It is licensed under Apache License 2.0." | Real. Deterministic template-based formatting |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call -- the worker interface stays the same, and no workflow changes are needed.
+The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If an API call fails (rate limit, timeout), Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If an API call fails (rate limit, timeout), Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes after authentication but before the API call, Conductor resumes from exactly where it left off with the token still available |
-| **Observability** | Every step is tracked with inputs, outputs, timing, and status -- full audit trail of which API was called, what response was received, and how it was formatted |
+| **Observability** | Every step is tracked with inputs, outputs, timing, and status. Full audit trail of which API was called, what response was received, and how it was formatted |
 | **Timeout management** | Per-task timeouts prevent hung API calls from blocking the pipeline |
 
 ### The Workflow
@@ -59,9 +59,9 @@ ap_format_output
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -180,14 +180,14 @@ conductor workflow search -w api_calling_agent -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one stage of the API-calling pipeline -- connect GPT-4 for intent-to-endpoint planning, real credential stores (Vault, AWS Secrets Manager) for auth, and OkHttp for execution, and the plan-authenticate-call-parse-format workflow runs unchanged.
+Each worker owns one stage of the API-calling pipeline. Connect GPT-4 for intent-to-endpoint planning, real credential stores (Vault, AWS Secrets Manager) for auth, and OkHttp for execution, and the plan-authenticate-call-parse-format workflow runs unchanged.
 
-- **PlanApiCallWorker** (`ap_plan_api_call`) -- use GPT-4 function calling to map natural language to API specifications from an OpenAPI/Swagger catalog, with schema-aware parameter extraction and endpoint selection
-- **AuthenticateWorker** (`ap_authenticate`) -- integrate with real credential stores: AWS Secrets Manager for API keys, Auth0 for OAuth token management, HashiCorp Vault for dynamic credentials, or implement OAuth 2.0 refresh token flows
-- **CallApiWorker** (`ap_call_api`) -- use OkHttp or Apache HttpClient to make real HTTP calls with proper timeout handling, retry headers (Retry-After), circuit breakers, and response streaming for large payloads
-- **ParseResponseWorker** (`ap_parse_response`) -- add schema evolution handling for API version changes, JSON Path extraction for deeply nested responses, and error response parsing with actionable error messages
-- **FormatOutputWorker** (`ap_format_output`) -- use an LLM to generate natural language answers that incorporate the parsed data conversationally, or support multiple output formats (text, markdown, JSON, voice-optimized)
-- **Add error handling** -- insert a `SWITCH` task after `CallApiWorker` to route non-200 responses to a retry-with-different-params path or an error-reporting path
+- **PlanApiCallWorker** (`ap_plan_api_call`): use GPT-4 function calling to map natural language to API specifications from an OpenAPI/Swagger catalog, with schema-aware parameter extraction and endpoint selection
+- **AuthenticateWorker** (`ap_authenticate`): integrate with real credential stores: AWS Secrets Manager for API keys, Auth0 for OAuth token management, HashiCorp Vault for dynamic credentials, or implement OAuth 2.0 refresh token flows
+- **CallApiWorker** (`ap_call_api`): use OkHttp or Apache HttpClient to make real HTTP calls with proper timeout handling, retry headers (Retry-After), circuit breakers, and response streaming for large payloads
+- **ParseResponseWorker** (`ap_parse_response`): add schema evolution handling for API version changes, JSON Path extraction for deeply nested responses, and error response parsing with actionable error messages
+- **FormatOutputWorker** (`ap_format_output`): use an LLM to generate natural language answers that incorporate the parsed data conversationally, or support multiple output formats (text, markdown, JSON, voice-optimized)
+- **Add error handling**: insert a `SWITCH` task after `CallApiWorker` to route non-200 responses to a retry-with-different-params path or an error-reporting path
 
 Replace with real HTTP calls and LLM planning; the API pipeline preserves the same plan-authenticate-call-parse-format interface.
 

@@ -1,10 +1,10 @@
-# Basic RAG in Java Using Conductor -- Embed Query, Search Vectors, Generate Answer
+# Basic RAG in Java Using Conductor: Embed Query, Search Vectors, Generate Answer
 
-A user asks your chatbot "What's our refund policy?" and it confidently invents a policy that doesn't exist -- because the LLM has zero access to your actual documents. Without retrieval, every answer is a plausible-sounding fabrication. This example builds a three-stage RAG pipeline using [Conductor](https://github.com/conductor-oss/conductor) -- embed the question, search a vector store for real document chunks, and generate an answer grounded in what was actually retrieved -- so the LLM can only cite facts you control.
+A user asks your chatbot "What's our refund policy?" and it confidently invents a policy that doesn't exist. because the LLM has zero access to your actual documents. Without retrieval, every answer is a plausible-sounding fabrication. This example builds a three-stage RAG pipeline using [Conductor](https://github.com/conductor-oss/conductor), embed the question, search a vector store for real document chunks, and generate an answer grounded in what was actually retrieved, so the LLM can only cite facts you control.
 
 ## LLMs Hallucinate Without Grounding in Your Data
 
-You ask an LLM about your company's refund policy and it invents a plausible-sounding but completely wrong answer. RAG fixes this by retrieving the actual policy document and providing it as context to the LLM, so the answer is grounded in your real data. But RAG has three distinct stages -- embedding the question, searching the vector store, and generating with context -- and each can fail independently: the embedding API might timeout, the vector search might return irrelevant results, or the LLM generation might fail due to rate limiting.
+You ask an LLM about your company's refund policy and it invents a plausible-sounding but completely wrong answer. RAG fixes this by retrieving the actual policy document and providing it as context to the LLM, so the answer is grounded in your real data. But RAG has three distinct stages. Embedding the question, searching the vector store, and generating with context, and each can fail independently: the embedding API might timeout, the vector search might return irrelevant results, or the LLM generation might fail due to rate limiting.
 
 Building RAG as a single function means a retry in the embedding step re-runs the entire pipeline, a vector search failure crashes the generation, and there's no visibility into which stage produced poor results. Was the answer bad because the retrieval missed the right document, or because the LLM ignored the context?
 
@@ -16,12 +16,12 @@ Building RAG as a single function means a retry in the embedding step re-runs th
 
 ### What You Write: Workers
 
-Three workers cover the full RAG pipeline -- embedding the query, searching the vector store, and generating an answer -- each independently testable and deployable.
+Three workers cover the full RAG pipeline: embedding the query, searching the vector store, and generating an answer, each independently testable and deployable.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
 | **EmbedQueryWorker** | `brag_embed_query` | Converts the user's question into a vector embedding using OpenAI (`OPENAI_EMBED_MODEL`, default `text-embedding-3-small`), returning the embedding array, model name, and dimensions | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; simulated (fixed 8-dim vector) otherwise |
-| **SearchVectorsWorker** | `brag_search_vectors` | Queries a vector database with the embedding to retrieve the top-k most relevant document chunks, each with id, text, and similarity score (0.85-0.94) | **Always simulated** -- no real vector DB. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples |
+| **SearchVectorsWorker** | `brag_search_vectors` | Queries a vector database with the embedding to retrieve the top-k most relevant document chunks, each with id, text, and similarity score (0.85-0.94) | **Always simulated**.; no real vector DB. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples |
 | **GenerateAnswerWorker** | `brag_generate_answer` | Sends the original question plus retrieved context to OpenAI (`OPENAI_CHAT_MODEL`, default `gpt-4o-mini`), producing a grounded answer; returns the answer text and token count | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; simulated (fixed answer) otherwise |
 
 **Important:** Vector search is always simulated in this example, even in live mode. `CONDUCTOR_OPENAI_API_KEY` only turns on real embedding and generation calls. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples. Without the key, all three workers produce deterministic simulated output so the workflow runs end-to-end without any external dependencies.
@@ -32,7 +32,7 @@ Three workers cover the full RAG pipeline -- embedding the query, searching the 
 |---|---|
 | **Configurable retry policy** | These example task definitions intentionally use `retryCount=0` so provider failures fail fast during development. Increase retries per task when you want automatic replay behavior. |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -51,9 +51,9 @@ brag_generate_answer
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -170,7 +170,7 @@ Result: PASSED
 === Example 131: Basic RAG ===
 
 Mode: LIVE embeddings (text-embedding-3-small) + LIVE generation (gpt-4o-mini) + SIMULATED vector search
-  (vector search is always simulated -- see rag-pinecone/rag-chromadb/rag-pgvector for real search)
+  (vector search is always simulated. See rag-pinecone/rag-chromadb/rag-pgvector for real search)
 
 Step 1: Registering task definitions...
   Registered: brag_embed_query, brag_search_vectors, brag_generate_answer
@@ -239,22 +239,22 @@ conductor workflow search -w basic_rag_workflow -s COMPLETED -c 5
 
 This example implements the foundational Retrieval-Augmented Generation pattern in three stages:
 
-1. **Embed** (`brag_embed_query`) -- The user's question is converted into a dense vector representation using an embedding model. This vector captures the semantic meaning of the question, enabling similarity-based search rather than keyword matching.
+1. **Embed** (`brag_embed_query`): The user's question is converted into a dense vector representation using an embedding model. This vector captures the semantic meaning of the question, enabling similarity-based search rather than keyword matching.
 
-2. **Search** (`brag_search_vectors`) -- The query embedding is compared against pre-indexed document embeddings in a vector database. The top-k most similar document chunks are returned, ranked by cosine similarity score. Each chunk includes the source text and a relevance score.
+2. **Search** (`brag_search_vectors`): The query embedding is compared against pre-indexed document embeddings in a vector database. The top-k most similar document chunks are returned, ranked by cosine similarity score. Each chunk includes the source text and a relevance score.
 
-3. **Generate** (`brag_generate_answer`) -- The original question and the retrieved document chunks are sent to an LLM. The model generates an answer grounded in the provided context, reducing hallucination by anchoring responses in actual source material.
+3. **Generate** (`brag_generate_answer`): The original question and the retrieved document chunks are sent to an LLM. The model generates an answer grounded in the provided context, reducing hallucination by anchoring responses in actual source material.
 
-Conductor orchestrates these three stages as independent workers. If the embedding API times out, Conductor retries just that step. If the vector search returns but the LLM call fails, the retrieved documents are preserved and only generation is retried. Every execution records the embedding, retrieved chunks, and generated answer -- so you can diagnose whether a bad answer came from poor retrieval or poor generation.
+Conductor orchestrates these three stages as independent workers. If the embedding API times out, Conductor retries just that step. If the vector search returns but the LLM call fails, the retrieved documents are preserved and only generation is retried. Every execution records the embedding, retrieved chunks, and generated answer, so you can diagnose whether a bad answer came from poor retrieval or poor generation.
 
 ## How to Extend
 
 Embedding and generation already use real OpenAI APIs when `CONDUCTOR_OPENAI_API_KEY` is set. The main extension point is the vector search worker, which is always simulated in this example.
 
-- **EmbedQueryWorker** (`brag_embed_query`) -- already calls OpenAI in live mode and respects `OPENAI_EMBED_MODEL`. To swap providers, replace the API call with Cohere `embed()` or a local sentence-transformers model
-- **SearchVectorsWorker** (`brag_search_vectors`) -- always simulated. Replace with a real vector database: Pinecone `query()`, Weaviate GraphQL, Qdrant `search`, Milvus, or pgvector in PostgreSQL. See the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples
-- **GenerateAnswerWorker** (`brag_generate_answer`) -- already calls OpenAI in live mode and respects `OPENAI_CHAT_MODEL`. To swap providers, replace with Claude Messages API or a local Ollama model
-- **Add a reranker** -- insert a reranking step between search and generation (Cohere Rerank, cross-encoder models) to improve retrieval precision before feeding context to the LLM
+- **EmbedQueryWorker** (`brag_embed_query`): already calls OpenAI in live mode and respects `OPENAI_EMBED_MODEL`. To swap providers, replace the API call with Cohere `embed()` or a local sentence-transformers model
+- **SearchVectorsWorker** (`brag_search_vectors`): always simulated. Replace with a real vector database: Pinecone `query()`, Weaviate GraphQL, Qdrant `search`, Milvus, or pgvector in PostgreSQL. See the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples
+- **GenerateAnswerWorker** (`brag_generate_answer`): already calls OpenAI in live mode and respects `OPENAI_CHAT_MODEL`. To swap providers, replace with Claude Messages API or a local Ollama model
+- **Add a reranker**: insert a reranking step between search and generation (Cohere Rerank, cross-encoder models) to improve retrieval precision before feeding context to the LLM
 
 Each worker preserves its input/output contract, so swapping embedding providers or vector stores requires zero workflow changes.
 
@@ -288,7 +288,7 @@ basic-rag/
 │       ├── GenerateAnswerWorker.java # Context + question -> grounded answer
 │       └── SearchVectorsWorker.java # Embedding -> top-k document chunks
 └── src/test/java/basicrag/workers/
-    ├── EmbedQueryWorkerTest.java    # 5 tests -- embedding shape, metadata, edge cases
-    ├── GenerateAnswerWorkerTest.java # 4 tests -- context size, tokens, null handling
-    └── SearchVectorsWorkerTest.java # 6 tests -- document count, scores, topK default
+    ├── EmbedQueryWorkerTest.java    # 5 tests. Embedding shape, metadata, edge cases
+    ├── GenerateAnswerWorkerTest.java # 4 tests. Context size, tokens, null handling
+    └── SearchVectorsWorkerTest.java # 6 tests. Document count, scores, topK default
 ```

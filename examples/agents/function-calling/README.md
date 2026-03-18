@@ -1,12 +1,12 @@
-# Function Calling in Java Using Conductor -- LLM Plans, Extract Call, Execute, Synthesize
+# Function Calling in Java Using Conductor: LLM Plans, Extract Call, Execute, Synthesize
 
-You ask "What's Apple's stock price?" and the model calls `get_stock_price(ticker="APPL")` -- a ticker that doesn't exist. Or it invents a function called `fetch_realtime_quote` that was never in the schema. Or it calls `get_stock_price` with `{"user_id": "12345"}` because it confused the parameters from a different function. When an LLM has direct API access, every hallucinated function name, wrong parameter type, or confused argument is a live production call. This example separates intent from execution: the LLM decides what to call, a validation layer checks it against the real function registry, and only then does execution happen. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You ask "What's Apple's stock price?" and the model calls `get_stock_price(ticker="APPL")`. a ticker that doesn't exist. Or it invents a function called `fetch_realtime_quote` that was never in the schema. Or it calls `get_stock_price` with `{"user_id": "12345"}` because it confused the parameters from a different function. When an LLM has direct API access, every hallucinated function name, wrong parameter type, or confused argument is a live production call. This example separates intent from execution: the LLM decides what to call, a validation layer checks it against the real function registry, and only then does execution happen. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Giving LLMs the Ability to Call Functions
 
 An LLM can reason about what needs to happen ("I should look up the current weather") but can't actually call a weather API. Function calling bridges this gap: the LLM receives a list of available function definitions (name, description, parameters), decides which function to call for the user's query, and outputs a structured function call. A separate step executes the actual function and returns the result. The LLM then synthesizes the function output into a natural language response.
 
-This four-step pattern separates intent (LLM decides what to call) from execution (worker actually calls the function). The LLM never has direct API access -- it only specifies what it wants. The execution layer validates the call, applies rate limits, and handles errors. Without this separation, you'd give the LLM direct API access, which is both a security risk and makes debugging impossible.
+This four-step pattern separates intent (LLM decides what to call) from execution (worker actually calls the function). The LLM never has direct API access. It only specifies what it wants. The execution layer validates the call, applies rate limits, and handles errors. Without this separation, you'd give the LLM direct API access, which is both a security risk and makes debugging impossible.
 
 ## The Solution
 
@@ -16,24 +16,24 @@ This four-step pattern separates intent (LLM decides what to call) from executio
 
 ### What You Write: Workers
 
-Four workers implement function calling -- the LLM plans which function to invoke, the call is extracted and validated, the function executes, and the result is synthesized into natural language.
+Four workers implement function calling, the LLM plans which function to invoke, the call is extracted and validated, the function executes, and the result is synthesized into natural language.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
 | **ExecuteFunctionWorker** | `fc_execute_function` | Executes the specified function with the given arguments. Currently supports get_stock_price; returns a fixed determi... | Simulated |
 | **ExtractFunctionCallWorker** | `fc_extract_function_call` | Extracts a structured function call (name + arguments) from the LLM output and validates it against the available fun... | Simulated |
-| **LlmPlanWorker** | `fc_llm_plan` | Llm Plan -- computes and returns llm response | Simulated |
-| **LlmSynthesizeWorker** | `fc_llm_synthesize` | LLM synthesis worker -- takes the function execution result and produces a natural-language answer for the user. | Simulated |
+| **LlmPlanWorker** | `fc_llm_plan` | Llm Plan. Computes and returns llm response | Simulated |
+| **LlmSynthesizeWorker** | `fc_llm_synthesize` | LLM synthesis worker. Takes the function execution result and produces a natural-language answer for the user. | Simulated |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode -- the agent workflow stays the same.
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -83,9 +83,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,11 +161,11 @@ conductor workflow search -w function_calling -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one phase of the function-calling pattern -- connect OpenAI's function calling or Claude's tool use for planning, build a validated function registry for execution, and use an LLM for answer synthesis, and the plan-extract-execute-synthesize workflow runs unchanged.
+Each worker owns one phase of the function-calling pattern. Connect OpenAI's function calling or Claude's tool use for planning, build a validated function registry for execution, and use an LLM for answer synthesis, and the plan-extract-execute-synthesize workflow runs unchanged.
 
-- **LlmPlanWorker** (`fc_llm_plan`) -- use OpenAI's function calling API or Claude's tool use feature for native structured function call output instead of parsing free-text responses
-- **ExecuteFunctionWorker** (`fc_execute_function`) -- build a real function registry with input validation, sandboxed execution, rate limiting, and audit logging per function call
-- **LlmSynthesizeWorker** (`fc_llm_synthesize`) -- use streaming responses for real-time output, with citation of which function provided which data points in the answer
+- **LlmPlanWorker** (`fc_llm_plan`): use OpenAI's function calling API or Claude's tool use feature for native structured function call output instead of parsing free-text responses
+- **ExecuteFunctionWorker** (`fc_execute_function`): build a real function registry with input validation, sandboxed execution, rate limiting, and audit logging per function call
+- **LlmSynthesizeWorker** (`fc_llm_synthesize`): use streaming responses for real-time output, with citation of which function provided which data points in the answer
 
 Wire in a real LLM and function registry; the plan-extract-execute-synthesize pipeline preserves the same interface.
 

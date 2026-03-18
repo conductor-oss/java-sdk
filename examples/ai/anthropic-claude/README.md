@@ -1,10 +1,10 @@
-# Anthropic Claude Integration in Java Using Conductor -- Build Messages, Call API, Process Response
+# Anthropic Claude Integration in Java Using Conductor: Build Messages, Call API, Process Response
 
-You need Claude for long-context analysis in a production pipeline -- security audits, document review, code analysis -- but calling the Messages API directly means no retries on 429 rate limits, no fallback when the model is overloaded, and no centralized record of prompts, responses, or token spend. A single timeout loses your carefully constructed system prompt. This example builds a three-step Claude integration using [Conductor](https://github.com/conductor-oss/conductor) -- message construction, API invocation, and response processing -- so every call is durable, observable, and independently retryable.
+You need Claude for long-context analysis in a production pipeline: security audits, document review, code analysis; but calling the Messages API directly means no retries on 429 rate limits, no fallback when the model is overloaded, and no centralized record of prompts, responses, or token spend. A single timeout loses your carefully constructed system prompt. This example builds a three-step Claude integration using [Conductor](https://github.com/conductor-oss/conductor), message construction, API invocation, and response processing, so every call is durable, observable, and independently retryable.
 
 ## Integrating Claude into Production Pipelines
 
-Claude's Messages API is straightforward for a single call -- construct the messages, POST to the endpoint, read the response. But production usage means managing the system prompt separately from user messages, handling rate limits (429 errors) with exponential backoff, extracting the assistant's response from the structured JSON output, tracking token usage for cost allocation, and logging every prompt/response pair for evaluation and debugging.
+Claude's Messages API is straightforward for a single call. Construct the messages, POST to the endpoint, read the response. But production usage means managing the system prompt separately from user messages, handling rate limits (429 errors) with exponential backoff, extracting the assistant's response from the structured JSON output, tracking token usage for cost allocation, and logging every prompt/response pair for evaluation and debugging.
 
 Without orchestration, prompt construction, API calling, error handling, and response parsing are all mixed together. When you want to add prompt caching, swap models (claude-3-opus to claude-3-haiku for cost savings), or add response post-processing, you're editing a monolithic method.
 
@@ -16,7 +16,7 @@ Without orchestration, prompt construction, API calling, error handling, and res
 
 ### What You Write: Workers
 
-Three workers isolate each phase of the Claude integration -- message construction with system prompts, API invocation with rate-limit handling, and content-block response processing with token tracking.
+Three workers isolate each phase of the Claude integration. Message construction with system prompts, API invocation with rate-limit handling, and content-block response processing with token tracking.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -32,7 +32,7 @@ Three workers isolate each phase of the Claude integration -- message constructi
 |---|---|
 | **Configurable retry policy** | These example task definitions intentionally use `retryCount=0` so provider 4xx/429 failures fail fast during development. Increase retries per task when you want automatic replay behavior. |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -84,9 +84,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -176,13 +176,13 @@ conductor workflow search -w anthropic_claude_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one concern of the Claude integration -- swap in real Anthropic Messages API calls with prompt caching and token tracking, and the three-step pipeline runs unchanged.
+Each worker owns one concern of the Claude integration. Swap in real Anthropic Messages API calls with prompt caching and token tracking, and the three-step pipeline runs unchanged.
 
-- **ClaudeCallApiWorker** (`claude_call_api`) -- already supports real API calls via `java.net.http.HttpClient` when `CONDUCTOR_ANTHROPIC_API_KEY` is set. Extend with prompt caching, streaming, or custom retry logic
-- **ClaudeBuildMessagesWorker** (`claude_build_messages`) -- implement real prompt engineering: load system prompts from a template store, inject few-shot examples, or apply prompt caching with the `cache_control` parameter
-- **ClaudeProcessResponseWorker** (`claude_process_response`) -- extract structured data from Claude's response: parse JSON outputs from tool use, handle streaming responses, or apply content filtering before returning to the caller
+- **ClaudeCallApiWorker** (`claude_call_api`): already supports real API calls via `java.net.http.HttpClient` when `CONDUCTOR_ANTHROPIC_API_KEY` is set. Extend with prompt caching, streaming, or custom retry logic
+- **ClaudeBuildMessagesWorker** (`claude_build_messages`): implement real prompt engineering: load system prompts from a template store, inject few-shot examples, or apply prompt caching with the `cache_control` parameter
+- **ClaudeProcessResponseWorker** (`claude_process_response`): extract structured data from Claude's response: parse JSON outputs from tool use, handle streaming responses, or apply content filtering before returning to the caller
 
-The message-in, text-out contract stays fixed at each boundary -- upgrade Claude models, add prompt caching, or switch to streaming without changing the workflow.
+The message-in, text-out contract stays fixed at each boundary. Upgrade Claude models, add prompt caching, or switch to streaming without changing the workflow.
 
 ## SDK
 

@@ -1,18 +1,18 @@
 # Fan-Out/Fan-In in Java with Conductor
 
-Fan-Out/Fan-In -- scatter-gather image processing using FORK_JOIN_DYNAMIC. Splits a variable-length image list into parallel processing tasks, compresses each independently, then aggregates results into a manifest with total savings. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Fan-Out/Fan-In. scatter-gather image processing using FORK_JOIN_DYNAMIC. Splits a variable-length image list into parallel processing tasks, compresses each independently, then aggregates results into a manifest with total savings. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to process a batch of images in parallel -- resizing, generating thumbnails, extracting metadata, or running object detection -- where the number of images varies per request. A user uploads 5 images or 500, and each one must be processed independently at the same time. After every image is processed, the results must be aggregated into a single manifest with processed count, total size, and per-image metadata.
+You need to process a batch of images in parallel: resizing, generating thumbnails, extracting metadata, or running object detection, where the number of images varies per request. A user uploads 5 images or 500, and each one must be processed independently at the same time. After every image is processed, the results must be aggregated into a single manifest with processed count, total size, and per-image metadata.
 
-Without orchestration, you'd build a thread pool, submit each image as a task, manage futures for each one, wait for all completions with a barrier, and merge results manually. If processing crashes after 47 of 50 images complete, you lose the 47 already-processed results and start over. There is no way to see which images are still in flight, which have completed, or which failed -- you get either all results or nothing.
+Without orchestration, you'd build a thread pool, submit each image as a task, manage futures for each one, wait for all completions with a barrier, and merge results manually. If processing crashes after 47 of 50 images complete, you lose the 47 already-processed results and start over. There is no way to see which images are still in flight, which have completed, or which failed. You get either all results or nothing.
 
 ## The Solution
 
 **You just write the image preparation, processing, and aggregation workers. Conductor handles fanning out to N parallel branches via FORK_JOIN_DYNAMIC and joining the results.**
 
-This example demonstrates the scatter-gather pattern using Conductor's FORK_JOIN_DYNAMIC. The PrepareWorker inspects the input image list and generates one `fo_process_image` task per image, each with a unique reference name (img_0_ref, img_1_ref, ...). Conductor fans out to N parallel branches -- where N equals the number of images submitted. Each ProcessImageWorker processes its assigned image independently, compressing to 1/3 of original size and converting to WebP format. A JOIN task waits until every branch completes, then the AggregateWorker collects all per-image results from the join output into a unified manifest with processed count, total original and processed sizes, and savings percentage. If one image fails to process, Conductor retries just that branch -- the other images are unaffected.
+This example demonstrates the scatter-gather pattern using Conductor's FORK_JOIN_DYNAMIC. The PrepareWorker inspects the input image list and generates one `fo_process_image` task per image, each with a unique reference name (img_0_ref, img_1_ref...). Conductor fans out to N parallel branches. where N equals the number of images submitted. Each ProcessImageWorker processes its assigned image independently, compressing to 1/3 of original size and converting to WebP format. A JOIN task waits until every branch completes, then the AggregateWorker collects all per-image results from the join output into a unified manifest with processed count, total original and processed sizes, and savings percentage. If one image fails to process, Conductor retries just that branch, the other images are unaffected.
 
 ### What You Write: Workers
 
@@ -24,15 +24,15 @@ Three workers implement scatter-gather: PrepareWorker generates one task per ima
 | **ProcessImageWorker** | `fo_process_image` | Processes a single image: compresses to processedSize = originalSize / 3, converts to WebP format, and computes a deterministic processingTime based on name length and index. Returns name, originalSize, processedSize, format, and processingTime. | Simulated |
 | **AggregateWorker** | `fo_aggregate` | Collects all per-image results from the JOIN output, sorted by reference name. Computes processedCount, totalOriginal, totalProcessed, and savings percentage. Ignores non-image keys in the join output. | Simulated |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic -- the task pattern and Conductor orchestration remain unchanged.
+Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Dynamic parallelism** | FORK_JOIN_DYNAMIC creates parallel branches at runtime based on input data |
 | **Automatic joining** | JOIN waits for all dynamically forked tasks to complete |
@@ -54,9 +54,9 @@ fo_aggregate
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -164,9 +164,9 @@ Result: PASSED
 
 Replace the image compression stub with real processing (ImageMagick, Thumbnailator, AWS Rekognition), and the scatter-gather parallelism works unchanged.
 
-- **PrepareWorker** (`fo_prepare`) -- query a database or S3 bucket for the list of images to process, filter by format or size, and generate the dynamic task definitions with per-image configuration (target resolution, output format, quality settings)
-- **ProcessImageWorker** (`fo_process_image`) -- perform real image processing using ImageMagick, Thumbnailator, or a cloud vision API (AWS Rekognition, Google Vision); resize, generate thumbnails, extract EXIF metadata, run object detection, or apply watermarks
-- **AggregateWorker** (`fo_aggregate`) -- merge all per-image results into a processing manifest, compute statistics (total bytes saved, success/failure rate, average processing time), upload the manifest to S3, and update the image catalog database
+- **PrepareWorker** (`fo_prepare`): query a database or S3 bucket for the list of images to process, filter by format or size, and generate the dynamic task definitions with per-image configuration (target resolution, output format, quality settings)
+- **ProcessImageWorker** (`fo_process_image`): perform real image processing using ImageMagick, Thumbnailator, or a cloud vision API (AWS Rekognition, Google Vision); resize, generate thumbnails, extract EXIF metadata, run object detection, or apply watermarks
+- **AggregateWorker** (`fo_aggregate`): merge all per-image results into a processing manifest, compute statistics (total bytes saved, success/failure rate, average processing time), upload the manifest to S3, and update the image catalog database
 
 Replacing the simulated compression with real image processing does not change the scatter-gather workflow, as long as each branch returns the expected name, size, and format fields.
 

@@ -1,18 +1,18 @@
 # Claims Processing in Java with Conductor
 
-A policyholder rear-ends someone at a stoplight and files a claim that afternoon. Eight days pass before an adjuster is assigned -- the intake system routed it to a queue that nobody monitors on weekends. The adjuster schedules an inspection, but the body shop estimate doesn't come back for another three weeks because the request sat in the shop's email. Six weeks after a fender bender, the customer still doesn't have a repair estimate, and they switch carriers. The claim itself was straightforward -- the process just had no urgency, no tracking, and no escalation when steps stalled. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full claims lifecycle -- submission, verification, damage assessment, settlement, and closure -- as independent workers.
+A policyholder rear-ends someone at a stoplight and files a claim that afternoon. Eight days pass before an adjuster is assigned. the intake system routed it to a queue that nobody monitors on weekends. The adjuster schedules an inspection, but the body shop estimate doesn't come back for another three weeks because the request sat in the shop's email. Six weeks after a fender bender, the customer still doesn't have a repair estimate, and they switch carriers. The claim itself was straightforward, the process just had no urgency, no tracking, and no escalation when steps stalled. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full claims lifecycle, submission, verification, damage assessment, settlement, and closure, as independent workers.
 
 ## The Problem
 
 You need to process insurance claims from submission to settlement. A policyholder submits a claim with description and estimated amount, the claims team verifies policy coverage and claim details, a damage assessment determines the actual loss, the settlement amount is calculated based on coverage limits and deductibles, and the claim is closed. Settling without proper verification exposes the insurer to fraudulent claims; inadequate damage assessment leads to underpayment disputes.
 
-Without orchestration, you'd build a monolithic claims handler that validates policies, contacts adjusters, calculates settlements, and updates the claims database -- manually coordinating between adjusters in the field, retrying failed policy lookups, and maintaining claim state across what can be a weeks-long process.
+Without orchestration, you'd build a monolithic claims handler that validates policies, contacts adjusters, calculates settlements, and updates the claims database. Manually coordinating between adjusters in the field, retrying failed policy lookups, and maintaining claim state across what can be a weeks-long process.
 
 ## The Solution
 
-**You just write the claims workers -- submission intake, policy verification, damage assessment, settlement calculation, and claim closure. Conductor handles sequential step execution, automatic retries when the policy system is unavailable, and full claims lifecycle tracking for regulatory compliance.**
+**You just write the claims workers. Submission intake, policy verification, damage assessment, settlement calculation, and claim closure. Conductor handles sequential step execution, automatic retries when the policy system is unavailable, and full claims lifecycle tracking for regulatory compliance.**
 
-Each claims concern is a simple, independent worker -- a plain Java class that does one thing. Conductor takes care of executing them in order (submit, verify, assess, settle, close), retrying if the policy system is unavailable, tracking every claim's full lifecycle for regulatory compliance, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each claims concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (submit, verify, assess, settle, close), retrying if the policy system is unavailable, tracking every claim's full lifecycle for regulatory compliance, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,15 @@ Five workers handle the claims lifecycle: SubmitClaimWorker intakes the claim, V
 | **SubmitClaimWorker** | `clp_submit_claim` | Submits an insurance claim and returns policy metadata. | Simulated |
 | **VerifyDetailsWorker** | `clp_verify_details` | Verifies policy details for a claim. | Simulated |
 
-Workers simulate financial operations -- risk assessment, compliance checks, settlement -- with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -73,10 +73,10 @@ Step 4: Starting workflow...
   Workflow ID: 73541258-a494-1d27-aeaa-d19f417f4b31
 
   [submit] Claim CLM-8810 for policy POL-3322
-  [verify] Verifying policy POL-3322 -- status: active
+  [verify] Verifying policy POL-3322. Status: active
   [assess] Requested: $longrequested-value, Assessed: $assessed-value
   [settle] Assessed: $longassessed-value, Settled: $True (after deductible)
-  [close] Claim closed -- settled $True via direct_deposit
+  [close] Claim closed. Settled $True via direct_deposit
 
 
   Status: COMPLETED
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -168,11 +168,11 @@ conductor workflow search -w claims_processing_workflow -s COMPLETED -c 5
 
 Connect SubmitClaimWorker to your claims intake portal, VerifyDetailsWorker to your policy administration system, and AssessDamageWorker to your adjuster tools and estimation platform. The workflow definition stays exactly the same.
 
-- **Claim submitter** -- persist claims to your claims management system (Guidewire, Duck Creek, Majesco) with document attachments
-- **Verifier** -- validate policy coverage and status against your policy administration system; check for prior claims and fraud indicators
-- **Damage assessor** -- integrate with adjuster dispatch systems, receive field reports, or use AI-based damage estimation from photos
-- **Settlement calculator** -- compute settlement based on coverage limits, deductibles, depreciation, and applicable state regulations
-- **Claim closer** -- issue payment via ACH/check, update the claims database, and generate closure documents
+- **Claim submitter**: persist claims to your claims management system (Guidewire, Duck Creek, Majesco) with document attachments
+- **Verifier**: validate policy coverage and status against your policy administration system; check for prior claims and fraud indicators
+- **Damage assessor**: integrate with adjuster dispatch systems, receive field reports, or use AI-based damage estimation from photos
+- **Settlement calculator**: compute settlement based on coverage limits, deductibles, depreciation, and applicable state regulations
+- **Claim closer**: issue payment via ACH/check, update the claims database, and generate closure documents
 
 Point each worker at your real policy administration and adjuster management systems while keeping the same output structure, and the claims pipeline requires zero workflow changes.
 

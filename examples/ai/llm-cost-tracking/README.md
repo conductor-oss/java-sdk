@@ -1,29 +1,29 @@
-# LLM Cost Tracking in Java Using Conductor -- Multi-Model Calls with Per-Provider Cost Aggregation
+# LLM Cost Tracking in Java Using Conductor: Multi-Model Calls with Per-Provider Cost Aggregation
 
-End of month AWS bill: $12,000 in OpenAI API calls. Nobody knows which feature consumed what, or that the summarization pipeline was running GPT-4 on 10-word inputs that Gemini could have handled for pennies. Every provider bills differently -- per-token with separate input/output rates, usage metadata buried in different response fields -- and without centralized tracking you're flying blind. This example builds a multi-provider cost tracking pipeline using [Conductor](https://github.com/conductor-oss/conductor) that sends the same prompt to GPT-4, Claude, and Gemini, captures per-call token usage, and aggregates a side-by-side cost breakdown so you know exactly where every dollar goes.
+End of month AWS bill: $12,000 in OpenAI API calls. Nobody knows which feature consumed what, or that the summarization pipeline was running GPT-4 on 10-word inputs that Gemini could have handled for pennies. Every provider bills differently. Per-token with separate input/output rates, usage metadata buried in different response fields, and without centralized tracking you're flying blind. This example builds a multi-provider cost tracking pipeline using [Conductor](https://github.com/conductor-oss/conductor) that sends the same prompt to GPT-4, Claude, and Gemini, captures per-call token usage, and aggregates a side-by-side cost breakdown so you know exactly where every dollar goes.
 
 ## Knowing What Your LLM Calls Actually Cost
 
-When your application calls multiple LLM providers, cost tracking becomes fragmented. GPT-4 charges per token with different rates for input vs. output. Claude has its own token pricing. Gemini uses a different pricing model entirely. Without centralized tracking, you get a surprise bill at the end of the month with no breakdown of which provider, which prompt, or which feature drove the cost.
+When your application calls multiple LLM providers, cost tracking becomes fragmented. GPT-4 charges per token with different rates for input vs, output. Claude has its own token pricing. Gemini uses a different pricing model entirely. Without centralized tracking, you get a surprise bill at the end of the month with no breakdown of which provider, which prompt, or which feature drove the cost.
 
-This workflow makes cost visible per call: each provider returns its token usage (prompt tokens, completion tokens), and an aggregation step applies each provider's pricing to compute per-model costs and a total. Over many executions, you build a dataset showing exactly how much each provider costs for your specific workloads -- enabling data-driven decisions about which model to use for which tasks.
+This workflow makes cost visible per call: each provider returns its token usage (prompt tokens, completion tokens), and an aggregation step applies each provider's pricing to compute per-model costs and a total. Over many executions, you build a dataset showing exactly how much each provider costs for your specific workloads. Enabling data-driven decisions about which model to use for which tasks.
 
 ## The Solution
 
 **You write the provider API calls and pricing aggregation logic. Conductor handles the sequencing, retries, and observability.**
 
-Each provider call is an independent worker -- GPT-4, Claude, Gemini -- each returning token usage alongside its response. An aggregation worker applies per-provider pricing rates to compute costs. Conductor sequences the calls, retries if any provider's API is temporarily unavailable, and tracks every execution with full token usage data. Over time, the execution history becomes your cost analytics dataset.
+Each provider call is an independent worker. GPT-4, Claude, Gemini, each returning token usage alongside its response. An aggregation worker applies per-provider pricing rates to compute costs. Conductor sequences the calls, retries if any provider's API is temporarily unavailable, and tracks every execution with full token usage data. Over time, the execution history becomes your cost analytics dataset.
 
 ### What You Write: Workers
 
-Four workers track costs across providers -- calling GPT-4, Claude, and Gemini sequentially with per-call token and cost tracking, then aggregating total spend, token usage, and per-model breakdowns in a final report.
+Four workers track costs across providers. Calling GPT-4, Claude, and Gemini sequentially with per-call token and cost tracking, then aggregating total spend, token usage, and per-model breakdowns in a final report.
 
 | Worker | Task | What It Does | Live / Simulated |
 |---|---|---|---|
 | **CallGpt4Worker** | `ct_call_gpt4` | Calls GPT-4 with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_OPENAI_API_KEY` is set (calls OpenAI API, extracts `usage.prompt_tokens` and `usage.completion_tokens`). **Simulated** otherwise (returns fixed tokens with `` prefix) |
 | **CallClaudeWorker** | `ct_call_claude` | Calls Claude with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_ANTHROPIC_API_KEY` is set (calls Anthropic API, extracts `usage.input_tokens` and `usage.output_tokens`). **Simulated** otherwise |
 | **CallGeminiWorker** | `ct_call_gemini` | Calls Gemini with the prompt and returns token usage alongside the response text | **Live** when `GOOGLE_API_KEY` is set (calls Gemini API, extracts `usageMetadata`). **Simulated** otherwise |
-| **AggregateCostsWorker** | `ct_aggregate_costs` | Aggregate Costs -- computes and returns breakdown, total cost, total tokens | Pricing-based aggregation of real or simulated token counts |
+| **AggregateCostsWorker** | `ct_aggregate_costs` | Aggregate Costs. Computes and returns breakdown, total cost, total tokens | Pricing-based aggregation of real or simulated token counts |
 
 Each worker auto-detects its API key from the environment. Set one, two, or all three keys to mix live and simulated providers in the same workflow run. Without any keys, everything runs in simulated mode with realistic output shapes.
 
@@ -31,9 +31,9 @@ Each worker auto-detects its API key from the environment. Set one, two, or all 
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -55,9 +55,9 @@ ct_aggregate_costs
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### API Keys (optional)
 
@@ -126,9 +126,9 @@ CONDUCTOR_OPENAI_API_KEY="sk-..." CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." GOOGL
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(unset)_ | OpenAI API key -- enables live GPT-4 calls |
-| `CONDUCTOR_ANTHROPIC_API_KEY` | _(unset)_ | Anthropic API key -- enables live Claude calls |
-| `GOOGLE_API_KEY` | _(unset)_ | Google API key -- enables live Gemini calls |
+| `CONDUCTOR_OPENAI_API_KEY` | _(unset)_ | OpenAI API key. Enables live GPT-4 calls |
+| `CONDUCTOR_ANTHROPIC_API_KEY` | _(unset)_ | Anthropic API key. Enables live Claude calls |
+| `GOOGLE_API_KEY` | _(unset)_ | Google API key. Enables live Gemini calls |
 
 ## Example Output
 
@@ -191,11 +191,11 @@ conductor workflow search -w llm_cost_tracking_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls one LLM provider and reports token usage. The same worker interface supports both live and simulated modes -- set the corresponding API key to switch.
+Each worker calls one LLM provider and reports token usage. The same worker interface supports both live and simulated modes. Set the corresponding API key to switch.
 
-- **AggregateCostsWorker** (`ct_aggregate_costs`) -- update pricing rates as providers change their pricing, or write cost data to a time-series database (InfluxDB, TimescaleDB) or observability platform (Datadog, Grafana) for dashboarding
-- **Run providers in parallel** -- replace the sequential task chain with a FORK/JOIN to call all three providers simultaneously, reducing total latency from 3x to 1x
-- **Add a cost-based router** -- use the historical cost data to build a SWITCH-based router that sends simple prompts to cheaper models (Gemini) and complex prompts to more capable models (GPT-4, Claude)
+- **AggregateCostsWorker** (`ct_aggregate_costs`): update pricing rates as providers change their pricing, or write cost data to a time-series database (InfluxDB, TimescaleDB) or observability platform (Datadog, Grafana) for dashboarding
+- **Run providers in parallel**: replace the sequential task chain with a FORK/JOIN to call all three providers simultaneously, reducing total latency from 3x to 1x
+- **Add a cost-based router**: use the historical cost data to build a SWITCH-based router that sends simple prompts to cheaper models (Gemini) and complex prompts to more capable models (GPT-4, Claude)
 
 Each provider worker returns the same cost/token shape, so adding providers or changing pricing models requires no changes to the aggregation logic.
 
@@ -230,7 +230,7 @@ llm-cost-tracking/
 │       ├── CallGeminiWorker.java     # Gemini call (live via Google API or simulated)
 │       └── CallGpt4Worker.java       # GPT-4 call (live via OpenAI API or simulated)
 └── src/test/java/llmcosttracking/workers/
-    ├── AggregateCostsWorkerTest.java # 3 tests -- full cost calculation, small token counts
+    ├── AggregateCostsWorkerTest.java # 3 tests. Full cost calculation, small token counts
     ├── CallClaudeWorkerTest.java
     ├── CallGeminiWorkerTest.java
     └── CallGpt4WorkerTest.java

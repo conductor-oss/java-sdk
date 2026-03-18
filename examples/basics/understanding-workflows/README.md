@@ -1,6 +1,6 @@
-# Understanding Workflows in Java with Conductor -- A 3-Step Order Pipeline
+# Understanding Workflows in Java with Conductor: A 3-Step Order Pipeline
 
-Your team calls everything a "workflow" -- the JIRA board, the CI pipeline, the Slack approval chain. But a Conductor workflow is something specific: a directed acyclic graph of typed tasks with durable state, automatic retries, and observable data flow between steps. Understanding that distinction is the first step toward building reliable orchestration. This example makes it concrete with a three-step order pipeline (validate, calculate total, send confirmation) that shows how workflow input flows into the first task, how JSONPath expressions pass data between tasks, and how Conductor handles the execution lifecycle.
+Your team calls everything a "workflow", the JIRA board, the CI pipeline, the Slack approval chain. But a Conductor workflow is something specific: a directed acyclic graph of typed tasks with durable state, automatic retries, and observable data flow between steps. Understanding that distinction is the first step toward building reliable orchestration. This example makes it concrete with a three-step order pipeline (validate, calculate total, send confirmation) that shows how workflow input flows into the first task, how JSONPath expressions pass data between tasks, and how Conductor handles the execution lifecycle.
 
 ## Learning by Building an Order Pipeline
 
@@ -12,11 +12,11 @@ The three steps are intentionally simple so you can focus on how the workflow co
 
 **You just write the order validation, total calculation, and confirmation logic. Conductor handles sequencing, data passing, and the execution lifecycle.**
 
-Three workers handle the order lifecycle -- validation (checking order data), total calculation (summing prices and quantities), and confirmation (notifying the customer). The workflow definition in JSON declares the sequence and data flow. Each worker is independent -- it doesn't know about the others.
+Three workers handle the order lifecycle: validation (checking order data), total calculation (summing prices and quantities), and confirmation (notifying the customer). The workflow definition in JSON declares the sequence and data flow. Each worker is independent, it doesn't know about the others.
 
 ### What You Write: Workers
 
-Three workers model a simple order pipeline -- validate, process, ship -- to demonstrate how Conductor sequences tasks and passes data between them.
+Three workers model a simple order pipeline: validate, process, ship, to demonstrate how Conductor sequences tasks and passes data between them.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -28,9 +28,9 @@ Three workers model a simple order pipeline -- validate, process, ship -- to dem
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -49,9 +49,9 @@ send_confirmation
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -155,9 +155,9 @@ conductor workflow search -w order_pipeline -s COMPLETED -c 5
 
 ## How to Extend
 
-- **ValidateOrderWorker** (`validate_order`) -- check item availability against a real inventory database, reject out-of-stock items, or apply business rules (minimum order value, shipping restrictions).
-- **CalculateTotalWorker** (`calculate_total`) -- look up location-based tax rates or integrate with a tax calculation API like Avalara.
-- **SendConfirmationWorker** (`send_confirmation`) -- send a real email via SendGrid, SES, or Mailgun with an order summary template.
+- **ValidateOrderWorker** (`validate_order`): check item availability against a real inventory database, reject out-of-stock items, or apply business rules (minimum order value, shipping restrictions).
+- **CalculateTotalWorker** (`calculate_total`): look up location-based tax rates or integrate with a tax calculation API like Avalara.
+- **SendConfirmationWorker** (`send_confirmation`): send a real email via SendGrid, SES, or Mailgun with an order summary template.
 
 ## SDK
 

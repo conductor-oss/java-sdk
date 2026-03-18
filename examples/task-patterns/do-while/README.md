@@ -1,10 +1,10 @@
 # Do-While Loop in Java with Conductor
 
-DO_WHILE loop demo -- processes items in a batch one at a time, iterating until the batch is complete, then summarizes all results. Demonstrates Conductor's declarative loop construct where the orchestrator manages iteration state, progress tracking, and per-iteration retry. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+DO_WHILE loop demo: processes items in a batch one at a time, iterating until the batch is complete, then summarizes all results. Demonstrates Conductor's declarative loop construct where the orchestrator manages iteration state, progress tracking, and per-iteration retry. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## The Problem
 
-You need to process items in a batch one at a time, where each item requires a separate task execution with its own retry policy and timeout. The batch size is determined at runtime (could be 5 items or 500), and if processing fails on item 47 of 100, you need to retry just item 47 -- not restart from item 1. After all items are processed, you need a summary of what happened.
+You need to process items in a batch one at a time, where each item requires a separate task execution with its own retry policy and timeout. The batch size is determined at runtime (could be 5 items or 500), and if processing fails on item 47 of 100, you need to retry just item 47. . Not restart from item 1. After all items are processed, you need a summary of what happened.
 
 Without orchestration, you'd write a for-loop in a single long-running process, managing iteration state manually, adding checkpointing logic to survive crashes, and building retry handling for individual item failures. If the process dies mid-batch, you either restart from scratch (wasting work on items 1-46) or build complex resume logic with database-backed state that is hard to test and fragile to maintain.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd write a for-loop in a single long-running process, 
 
 **You just write the per-item processing and summarization workers. Conductor handles the iteration, state tracking, and per-iteration retry.**
 
-This example demonstrates Conductor's DO_WHILE loop task -- a declarative iteration construct where the loop condition (`iteration < batchSize`) is evaluated by Conductor after each pass. ProcessItemWorker handles one item per iteration: it receives the current iteration number, processes the item, and returns the incremented iteration counter. If the worker fails on any iteration, Conductor retries that specific iteration without re-processing already-completed items. After the loop exits (when iteration >= batchSize), SummarizeWorker aggregates the results into a completion message with the total count. Conductor tracks every iteration with its own inputs and outputs, giving you full visibility into batch progress without any custom logging or state management.
+This example demonstrates Conductor's DO_WHILE loop task, a declarative iteration construct where the loop condition (`iteration < batchSize`) is evaluated by Conductor after each pass. ProcessItemWorker handles one item per iteration: it receives the current iteration number, processes the item, and returns the incremented iteration counter. If the worker fails on any iteration, Conductor retries that specific iteration without re-processing already-completed items. After the loop exits (when iteration >= batchSize), SummarizeWorker aggregates the results into a completion message with the total count. Conductor tracks every iteration with its own inputs and outputs, giving you full visibility into batch progress without any custom logging or state management.
 
 ### What You Write: Workers
 
@@ -23,14 +23,14 @@ Two workers handle the iterative batch: ProcessItemWorker processes one item per
 | **ProcessItemWorker** | `dw_process_item` | Processes a single item within the loop. Takes the current iteration number, increments it, and returns itemProcessed=true, the new iteration count, and a result string like "Item-3 processed". Defaults iteration to 0 if missing. | Simulated |
 | **SummarizeWorker** | `dw_summarize` | Runs after the loop completes. Takes totalIterations and returns totalProcessed and a summary string like "Processed 5 items successfully". Defaults to 0 if totalIterations is missing. | Simulated |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic -- the task pattern and Conductor orchestration remain unchanged.
+Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off -- no lost iterations |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
+| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off.; no lost iterations |
 | **Observability** | Every iteration is tracked with its own inputs, outputs, timing, and status |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Loop execution** | DO_WHILE repeats a set of tasks until a JavaScript condition evaluates to false |
@@ -49,9 +49,9 @@ dw_summarize (runs once after loop exits)
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -165,11 +165,11 @@ Result: PASSED
 
 ## How to Extend
 
-Replace the simulated item processor with your real per-item logic -- database writes, API calls, or file operations -- and the DO_WHILE loop workflow runs unchanged.
+Replace the simulated item processor with your real per-item logic. Database writes, API calls, or file operations, and the DO_WHILE loop workflow runs unchanged.
 
-- **ProcessItemWorker** (`dw_process_item`) -- process real items from a queue or database: transform a CSV row, call an external API for enrichment, send an individual notification, or migrate a record from one system to another
-- **SummarizeWorker** (`dw_summarize`) -- aggregate results from all iterations: count successes vs. failures, compute total processing time, generate a batch completion report, and write it to S3 or email it to stakeholders
-- **Add a validation step** -- add a second task inside the loopOver array (e.g., `dw_validate_item`) that runs before `dw_process_item` on each iteration; Conductor executes both tasks sequentially per iteration
+- **ProcessItemWorker** (`dw_process_item`): process real items from a queue or database: transform a CSV row, call an external API for enrichment, send an individual notification, or migrate a record from one system to another
+- **SummarizeWorker** (`dw_summarize`): aggregate results from all iterations: count successes vs: failures, compute total processing time, generate a batch completion report, and write it to S3 or email it to stakeholders
+- **Add a validation step**: add a second task inside the loopOver array (e.g., `dw_validate_item`) that runs before `dw_process_item` on each iteration; Conductor executes both tasks sequentially per iteration
 
 Replacing the simulated item processing with real per-record logic does not affect the DO_WHILE loop mechanics, as long as each iteration returns the updated iteration counter.
 

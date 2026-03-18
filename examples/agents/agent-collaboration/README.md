@@ -1,12 +1,12 @@
-# Agent Collaboration in Java Using Conductor -- Sequential Analyst, Strategist, Executor, and Plan Compiler
+# Agent Collaboration in Java Using Conductor: Sequential Analyst, Strategist, Executor, and Plan Compiler
 
-Four specialized AI agents chained in sequence sounds clean on a whiteboard, but in practice Agent 2 sits idle while Agent 1 thinks, Agent 3 has no way to flag that Agent 2's output is garbage, and when Agent 1's LLM call times out you end up re-running the entire pipeline because nothing preserved the intermediate state. This example uses [Conductor](https://github.com/conductor-oss/conductor) to wire an analyst, strategist, executor, and plan compiler into a durable sequential pipeline -- each agent is an independent worker with its own retries and timeout, Conductor persists every intermediate output, and you can inspect exactly which agent produced which piece of the final business plan.
+Four specialized AI agents chained in sequence sounds clean on a whiteboard, but in practice Agent 2 sits idle while Agent 1 thinks, Agent 3 has no way to flag that Agent 2's output is garbage, and when Agent 1's LLM call times out you end up re-running the entire pipeline because nothing preserved the intermediate state. This example uses [Conductor](https://github.com/conductor-oss/conductor) to wire an analyst, strategist, executor, and plan compiler into a durable sequential pipeline, each agent is an independent worker with its own retries and timeout, Conductor persists every intermediate output, and you can inspect exactly which agent produced which piece of the final business plan.
 
 ## Business Planning Requires Multiple Perspectives in Sequence
 
-A useful business plan requires analysis, strategy, execution planning, and synthesis -- four distinct cognitive tasks that build on each other. The analyst identifies problems (customer churn concentrated in the 90-day post-acquisition window, repeat purchase rate declining 22% QoQ). The strategist takes those findings and develops responses (retention program, pricing restructure). The executor turns strategies into implementation tasks with deadlines and resource requirements. The compiler weaves all three outputs into a coherent plan.
+A useful business plan requires analysis, strategy, execution planning, and synthesis. Four distinct cognitive tasks that build on each other. The analyst identifies problems (customer churn concentrated in the 90-day post-acquisition window, repeat purchase rate declining 22% QoQ). The strategist takes those findings and develops responses (retention program, pricing restructure). The executor turns strategies into implementation tasks with deadlines and resource requirements. The compiler weaves all three outputs into a coherent plan.
 
-Each agent's output is the next agent's input -- the strategist can't develop recommendations without the analyst's findings, and the executor can't create tasks without the strategist's priorities. If the strategist's LLM call times out, you need to retry it with the analyst's findings still available, not re-run the entire analysis. And you need to see each agent's individual contribution to understand how the final plan was assembled.
+Each agent's output is the next agent's input, the strategist can't develop recommendations without the analyst's findings, and the executor can't create tasks without the strategist's priorities. If the strategist's LLM call times out, you need to retry it with the analyst's findings still available, not re-run the entire analysis. And you need to see each agent's individual contribution to understand how the final plan was assembled.
 
 ## The Solution
 
@@ -16,24 +16,24 @@ Each agent's output is the next agent's input -- the strategist can't develop re
 
 ### What You Write: Workers
 
-Four agents collaborate sequentially -- the analyst produces findings, the strategist develops recommendations, the executor creates tasks, and the compiler assembles the plan.
+Four agents collaborate sequentially, the analyst produces findings, the strategist develops recommendations, the executor creates tasks, and the compiler assembles the plan.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **AnalystWorker** | `ac_analyst` | Examines the business context and produces 4 structured insights with severity ratings (critical, high, medium) across retention, revenue, operations, and engagement categories. Returns a metrics summary with churn rate (15%), repeat purchase decline (22%), support response time (48h), and loyalty engagement (12%). | Simulated -- swap in Mixpanel/Amplitude data queries |
-| **StrategistWorker** | `ac_strategist` | Takes the analyst's insights and metrics, then formulates the "Stabilize & Retain" strategy with a thesis, 3 strategic pillars (Customer Experience Overhaul, Support Response Acceleration, Loyalty Program Revitalization), and 4 ranked priorities with effort/impact assessments. | Simulated -- swap in GPT-4/Claude for strategy generation |
-| **ExecutorWorker** | `ac_executor` | Translates the strategy into 6 concrete action items with owners (Marketing, Customer Support, Product, Data Science, Operations), deadlines (Week 2-8), and priority levels. Creates a 3-phase, 8-week timeline (Quick Wins, Foundation, Scale & Sustain). | Simulated -- swap in Jira/Linear API for task creation |
-| **CompilePlanWorker** | `ac_compile_plan` | Assembles insights, strategy, action items, and timeline into a consolidated plan summary. Reports counts (insights used, strategy pillars, action items) and timeline duration. Sets status to "ready_for_review". | Simulated -- swap in LLM for narrative plan generation |
+| **AnalystWorker** | `ac_analyst` | Examines the business context and produces 4 structured insights with severity ratings (critical, high, medium) across retention, revenue, operations, and engagement categories. Returns a metrics summary with churn rate (15%), repeat purchase decline (22%), support response time (48h), and loyalty engagement (12%). | Simulated. Swap in Mixpanel/Amplitude data queries |
+| **StrategistWorker** | `ac_strategist` | Takes the analyst's insights and metrics, then formulates the "Stabilize & Retain" strategy with a thesis, 3 strategic pillars (Customer Experience Overhaul, Support Response Acceleration, Loyalty Program Revitalization), and 4 ranked priorities with effort/impact assessments. | Simulated. Swap in GPT-4/Claude for strategy generation |
+| **ExecutorWorker** | `ac_executor` | Translates the strategy into 6 concrete action items with owners (Marketing, Customer Support, Product, Data Science, Operations), deadlines (Week 2-8), and priority levels. Creates a 3-phase, 8-week timeline (Quick Wins, Foundation, Scale & Sustain). | Simulated. Swap in Jira/Linear API for task creation |
+| **CompilePlanWorker** | `ac_compile_plan` | Assembles insights, strategy, action items, and timeline into a consolidated plan summary. Reports counts (insights used, strategy pillars, action items) and timeline duration. Sets status to "ready_for_review". | Simulated. Swap in LLM for narrative plan generation |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call -- the worker interface stays the same, and no workflow changes are needed.
+The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -55,9 +55,9 @@ ac_compile_plan
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -175,13 +175,13 @@ conductor workflow search -w agent_collaboration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each agent in the pipeline owns one cognitive role -- plug in real data sources (Mixpanel, QuickBooks), LLMs for strategy generation, and project management APIs (Jira, Linear), and the four-stage business planning workflow runs unchanged.
+Each agent in the pipeline owns one cognitive role. Plug in real data sources (Mixpanel, QuickBooks), LLMs for strategy generation, and project management APIs (Jira, Linear), and the four-stage business planning workflow runs unchanged.
 
-- **AnalystWorker** (`ac_analyst`) -- connect to real data sources: pull metrics from Mixpanel/Amplitude for user behavior analysis, query financial data from QuickBooks/Xero APIs, or scrape competitor data from SimilarWeb
-- **StrategistWorker** (`ac_strategist`) -- use GPT-4 or Claude with domain-specific system prompts to generate strategic recommendations, or integrate with strategy frameworks like SWOT/Porter's Five Forces templates
-- **ExecutorWorker** (`ac_executor`) -- create real tasks in Jira/Linear/Asana via their APIs, assign to team members, set sprint deadlines, and link to the strategy document for traceability
-- **CompilePlanWorker** (`ac_compile_plan`) -- generate the final plan as a formatted PDF using Apache PDFBox, push it to Google Docs via the Docs API, or post a summary to Slack/Teams for stakeholder review
-- **Add a new agent** -- create a new worker class and insert it into the workflow JSON sequence. For example, add a `BudgetWorker` between executor and compiler to estimate costs for each action item.
+- **AnalystWorker** (`ac_analyst`): connect to real data sources: pull metrics from Mixpanel/Amplitude for user behavior analysis, query financial data from QuickBooks/Xero APIs, or scrape competitor data from SimilarWeb
+- **StrategistWorker** (`ac_strategist`): use GPT-4 or Claude with domain-specific system prompts to generate strategic recommendations, or integrate with strategy frameworks like SWOT/Porter's Five Forces templates
+- **ExecutorWorker** (`ac_executor`): create real tasks in Jira/Linear/Asana via their APIs, assign to team members, set sprint deadlines, and link to the strategy document for traceability
+- **CompilePlanWorker** (`ac_compile_plan`): generate the final plan as a formatted PDF using Apache PDFBox, push it to Google Docs via the Docs API, or post a summary to Slack/Teams for stakeholder review
+- **Add a new agent**: create a new worker class and insert it into the workflow JSON sequence. For example, add a `BudgetWorker` between executor and compiler to estimate costs for each action item.
 
 Swap in LLM calls or analytics APIs for real analysis; the four-agent pipeline keeps the same data handoff between steps.
 

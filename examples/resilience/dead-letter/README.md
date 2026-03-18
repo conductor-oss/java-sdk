@@ -1,22 +1,22 @@
-# Implementing Dead Letter Queue Pattern in Java with Conductor -- Capture Poison Messages Instead of Losing Them
+# Implementing Dead Letter Queue Pattern in Java with Conductor: Capture Poison Messages Instead of Losing Them
 
-A Java Conductor workflow example demonstrating the dead letter queue pattern -- processing messages where some will inevitably fail (malformed data, missing fields, permanently unavailable dependencies), and routing persistently failed items to a dead letter handler for investigation instead of losing them silently.
+A Java Conductor workflow example demonstrating the dead letter queue pattern. Processing messages where some will inevitably fail (malformed data, missing fields, permanently unavailable dependencies), and routing persistently failed items to a dead letter handler for investigation instead of losing them silently.
 
 ## The Problem
 
-You have a message processing pipeline where some messages are "poison" -- they will never succeed no matter how many times you retry. A malformed JSON payload, a reference to a deleted customer, a request for a discontinued product. After exhausting retries, those failed messages need to be captured somewhere durable (a dead letter queue) with full context about why they failed, instead of being silently dropped.
+You have a message processing pipeline where some messages are "poison". They will never succeed no matter how many times you retry. A malformed JSON payload, a reference to a deleted customer, a request for a discontinued product. After exhausting retries, those failed messages need to be captured somewhere durable (a dead letter queue) with full context about why they failed, instead of being silently dropped.
 
 ### What Goes Wrong Without Dead Letter Handling
 
 Consider an order processing pipeline that ingests events from a queue:
 
 1. Message arrives: `{orderId: "ORD-456", customerId: "DELETED-CUST"}`
-2. Worker tries to process -- **FAILS** (customer not found in database)
-3. Conductor retries 3 times -- **FAILS** each time (same error -- customer is permanently deleted)
+2. Worker tries to process. **FAILS** (customer not found in database)
+3. Conductor retries 3 times. **FAILS** each time (same error, customer is permanently deleted)
 4. Message is exhausted and discarded
 
 Without dead letter handling:
-- The order is silently lost -- nobody knows it failed
+- The order is silently lost. Nobody knows it failed
 - The customer may have already been charged but never received their order
 - The operations team has no record of the failure to investigate
 - The same class of error keeps happening without anyone noticing the pattern
@@ -27,15 +27,15 @@ With the dead letter pattern, the failed message and its full context (original 
 
 **You just write the message processor and dead letter handler. Conductor handles retry exhaustion detection, automatic routing of poison messages to the dead-letter handler workflow, and a complete record of every failed message with its error context and retry history.**
 
-The processing worker handles the business logic, and when it fails with retries exhausted, Conductor's failure workflow mechanism captures the failed task with its full context -- original inputs, error details, retry history. A separate handler workflow receives the dead letter items and can log them, alert operators, or persist them for manual review. Every failed item is tracked with complete execution history, so you always know what failed, why, and how many times it was retried. You get all of that for free, without writing a single line of orchestration code.
+The processing worker handles the business logic, and when it fails with retries exhausted, Conductor's failure workflow mechanism captures the failed task with its full context. Original inputs, error details, retry history. A separate handler workflow receives the dead letter items and can log them, alert operators, or persist them for manual review. Every failed item is tracked with complete execution history, so you always know what failed, why, and how many times it was retried. You get all of that for free, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
-ProcessWorker handles message processing and reports success or failure, while HandleFailureWorker captures permanently failed messages with full context -- original inputs, error details, and retry history -- for investigation and manual review.
+ProcessWorker handles message processing and reports success or failure, while HandleFailureWorker captures permanently failed messages with full context: original inputs, error details, and retry history, for investigation and manual review.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **ProcessWorker** | `dl_process` | Processes data based on mode input. When `mode="fail"`, returns FAILED with `{error: "Processing failed for data: order-456"}`. When mode is anything else (or missing), returns COMPLETED with `{result: "Processed: order-456"}`. Only accepts String inputs -- non-string mode defaults to "success", non-string data defaults to empty string. | Simulated |
+| **ProcessWorker** | `dl_process` | Processes data based on mode input. When `mode="fail"`, returns FAILED with `{error: "Processing failed for data: order-456"}`. When mode is anything else (or missing), returns COMPLETED with `{result: "Processed: order-456"}`. Only accepts String inputs. Non-string mode defaults to "success", non-string data defaults to empty string. | Simulated |
 | **HandleFailureWorker** | `dl_handle_failure` | Handles dead letter entries by logging the failed task details. Receives `failedWorkflowId`, `failedTaskName`, and `error` as inputs. Returns `{handled: true, summary: "Failure handled for workflow wf-123, task dl_process: ..."}`. Always succeeds. | Simulated |
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
@@ -44,9 +44,9 @@ Workers simulate success and failure scenarios so you can observe the resilience
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 | **Failure workflows** | When a workflow fails after exhausting retries, Conductor can automatically trigger a failure handler workflow |
 
@@ -57,7 +57,7 @@ Workers simulate success and failure scenarios so you can observe the resilience
 dl_process
     |
     |-- success: workflow COMPLETED with {result: "Processed: order-123"}
-    |-- failure: workflow FAILED (retries exhausted) -- triggers dead letter handler
+    |-- failure: workflow FAILED (retries exhausted). Triggers dead letter handler
 ```
 
 **Dead letter handler** (`dead_letter_handler`):
@@ -74,9 +74,9 @@ The main workflow has `retryCount: 0` on the process task, so a failure immediat
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -125,7 +125,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 Step 1: Registering task definitions...
 
-  Registered: dl_process (no retries -- failures go to dead letter)
+  Registered: dl_process (no retries. Failures go to dead letter)
   Registered: dl_handle_failure
     Timeout: 60s total, 30s response
 
@@ -211,12 +211,12 @@ conductor workflow search -w dead_letter_demo -s FAILED -c 5
 
 ## How to Extend
 
-Each worker handles one message concern -- connect the processor to your real order or event handler, the dead letter worker to persist poison messages in a durable store (SQS DLQ, database), and the process-or-dead-letter workflow stays the same.
+Each worker handles one message concern. Connect the processor to your real order or event handler, the dead letter worker to persist poison messages in a durable store (SQS DLQ, database), and the process-or-dead-letter workflow stays the same.
 
-- **ProcessWorker** (`dl_process`) -- replace with your real message processing logic (parse events, validate schemas, call downstream APIs). Add retries (retryCount=3) so transient failures resolve before reaching the dead letter queue.
-- **HandleFailureWorker** (`dl_handle_failure`) -- persist dead letter items to a DynamoDB/Postgres table, send alerts to Slack/PagerDuty, or publish to an SQS dead letter queue for manual review
-- **Auto-trigger handler** -- use Conductor's `failureWorkflow` field on the main workflow definition to automatically start the dead letter handler when the main workflow fails, instead of triggering it manually
-- **Add retry-from-DLQ** -- build a separate workflow that reads items from the dead letter store and retries them after the root cause is fixed
+- **ProcessWorker** (`dl_process`): replace with your real message processing logic (parse events, validate schemas, call downstream APIs). Add retries (retryCount=3) so transient failures resolve before reaching the dead letter queue.
+- **HandleFailureWorker** (`dl_handle_failure`): persist dead letter items to a DynamoDB/Postgres table, send alerts to Slack/PagerDuty, or publish to an SQS dead letter queue for manual review
+- **Auto-trigger handler**: use Conductor's `failureWorkflow` field on the main workflow definition to automatically start the dead letter handler when the main workflow fails, instead of triggering it manually
+- **Add retry-from-DLQ**: build a separate workflow that reads items from the dead letter store and retries them after the root cause is fixed
 
 Swap in your real message processor and connect the dead-letter handler to a durable store, and the poison-message capture pipeline runs in production without modification.
 

@@ -1,6 +1,6 @@
-# Legal Contract Review in Java Using Conductor -- AI Term Extraction, Human Legal Review via WAIT, and Finalization
+# Legal Contract Review in Java Using Conductor: AI Term Extraction, Human Legal Review via WAIT, and Finalization
 
-A Java Conductor workflow example for legal contract review -- using AI to extract key terms (parties, payment terms, liability caps, termination clauses) and risk flags (unlimited liability, auto-renewal, broad IP assignment) from a contract, pausing at a WAIT task for a lawyer to verify the extracted terms and approve or flag issues, then finalizing the reviewed contract. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers -- you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for legal contract review: using AI to extract key terms (parties, payment terms, liability caps, termination clauses) and risk flags (unlimited liability, auto-renewal, broad IP assignment) from a contract, pausing at a WAIT task for a lawyer to verify the extracted terms and approve or flag issues, then finalizing the reviewed contract. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
 
 ## Contracts Need AI-Assisted Extraction Followed by Human Legal Review
 
@@ -10,27 +10,27 @@ Legal contracts contain key terms (parties, payment terms, liability caps, termi
 
 **You just write the term-extraction and review-finalization workers. Conductor handles the durable pause for lawyer review and the retry logic.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging -- your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. Your code handles the decision logic.
 
 ### What You Write: Workers
 
-LcrExtractTermsWorker pulls key clauses and risk flags from contracts, and LcrFinalizeWorker records the lawyer's redline notes -- the WAIT task between them holds state for days if needed.
+LcrExtractTermsWorker pulls key clauses and risk flags from contracts, and LcrFinalizeWorker records the lawyer's redline notes, the WAIT task between them holds state for days if needed.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **LcrExtractTermsWorker** | `lcr_extract_terms` | Uses AI to extract key contract terms (parties, payment terms, liability caps, IP clauses, termination conditions) and flag risk areas (unlimited liability, auto-renewal) | Simulated -- swap in your contract AI platform (Kira Systems, LawGeex, Ironclad, ContractPodAi) for production |
-| *WAIT task* | `lcr_legal_review` | Pauses with the extracted terms and risk flags until a lawyer reviews, verifies accuracy, and submits their assessment via `POST /tasks/{taskId}` | Built-in Conductor WAIT -- no worker needed |
-| **LcrFinalizeWorker** | `lcr_finalize` | Finalizes the contract review -- records the lawyer's approval and any redline notes, updates the contract status in the CLM system | Simulated -- swap in your contract lifecycle management system (Ironclad, DocuSign CLM, Agiloft) for production |
+| **LcrExtractTermsWorker** | `lcr_extract_terms` | Uses AI to extract key contract terms (parties, payment terms, liability caps, IP clauses, termination conditions) and flag risk areas (unlimited liability, auto-renewal) | Simulated. Swap in your contract AI platform (Kira Systems, LawGeex, Ironclad, ContractPodAi) for production |
+| *WAIT task* | `lcr_legal_review` | Pauses with the extracted terms and risk flags until a lawyer reviews, verifies accuracy, and submits their assessment via `POST /tasks/{taskId}` | Built-in Conductor WAIT.; no worker needed |
+| **LcrFinalizeWorker** | `lcr_finalize` | Finalizes the contract review. records the lawyer's approval and any redline notes, updates the contract status in the CLM system | Simulated, swap in your contract lifecycle management system (Ironclad, DocuSign CLM, Agiloft) for production |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments -- the workflow structure stays the same.
+Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -49,9 +49,9 @@ lcr_finalize
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -161,7 +161,7 @@ When the workflow hits the `legal_review` WAIT task, it pauses with the extracte
 **Step 1: Find the WAIT task ID**
 
 ```bash
-# Get the execution details -- look for the task named "legal_review"
+# Get the execution details: look for the task named "legal_review"
 conductor workflow get-execution <workflow_id> -c
 ```
 
@@ -213,12 +213,12 @@ After the lawyer completes the review, the workflow automatically resumes and th
 
 ## How to Extend
 
-Each worker handles one piece of the contract pipeline -- connect your legal AI platform (Kira Systems, LawGeex, Ironclad) for extraction and your CLM system (DocuSign CLM, Agiloft) for finalization, and the review workflow stays the same.
+Each worker handles one piece of the contract pipeline. Connect your legal AI platform (Kira Systems, LawGeex, Ironclad) for extraction and your CLM system (DocuSign CLM, Agiloft) for finalization, and the review workflow stays the same.
 
-- **LcrExtractTermsWorker** (`lcr_extract_terms`) -- use a legal NLP service like Kira Systems, LawGeex, or an LLM (Claude, GPT-4) fine-tuned on contracts to extract real terms and identify risk flags from uploaded contract PDFs
-- **WAIT task** -- trigger from your legal review dashboard or CLM (Contract Lifecycle Management) system, where the lawyer sees the extracted terms, marks up risk flags, and clicks Approve/Reject to call `POST /tasks/{taskId}`
-- **LcrFinalizeWorker** (`lcr_finalize`) -- push the reviewed contract to a CLM system like Ironclad, DocuSign CLM, or Agiloft, update the deal record in your CRM (Salesforce, HubSpot), and notify the requesting team via email or Slack
-- **Add a redline loop** -- if the lawyer flags issues, add a sub-workflow that sends redlines to the counterparty, waits for a revised contract, re-extracts terms, and returns to the legal review WAIT task
+- **LcrExtractTermsWorker** (`lcr_extract_terms`): use a legal NLP service like Kira Systems, LawGeex, or an LLM (Claude, GPT-4) fine-tuned on contracts to extract real terms and identify risk flags from uploaded contract PDFs
+- **WAIT task**: trigger from your legal review dashboard or CLM (Contract Lifecycle Management) system, where the lawyer sees the extracted terms, marks up risk flags, and clicks Approve/Reject to call `POST /tasks/{taskId}`
+- **LcrFinalizeWorker** (`lcr_finalize`): push the reviewed contract to a CLM system like Ironclad, DocuSign CLM, or Agiloft, update the deal record in your CRM (Salesforce, HubSpot), and notify the requesting team via email or Slack
+- **Add a redline loop**: if the lawyer flags issues, add a sub-workflow that sends redlines to the counterparty, waits for a revised contract, re-extracts terms, and returns to the legal review WAIT task
 
 Replace the simulated extraction with a real contract AI platform and the review pipeline continues to work as designed.
 
@@ -251,6 +251,6 @@ legal-contract-review/
 │       ├── LcrExtractTermsWorker.java   # AI-based term extraction with risk flags
 │       └── LcrFinalizeWorker.java       # Records lawyer's review outcome
 └── src/test/java/legalcontractreview/workers/
-    ├── LcrExtractTermsWorkerTest.java   # 8 tests -- key terms, risk flags, determinism
-    └── LcrFinalizeWorkerTest.java       # 5 tests -- completion, output shape
+    ├── LcrExtractTermsWorkerTest.java   # 8 tests. Key terms, risk flags, determinism
+    └── LcrFinalizeWorkerTest.java       # 5 tests. Completion, output shape
 ```

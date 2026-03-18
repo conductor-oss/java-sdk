@@ -1,18 +1,18 @@
-# IoT Device Lifecycle Management in Java with Conductor -- Registration, Provisioning, and Health Monitoring
+# IoT Device Lifecycle Management in Java with Conductor: Registration, Provisioning, and Health Monitoring
 
-You have 10,000 temperature sensors deployed across 200 facilities, all running firmware v2.1. A critical security vulnerability is discovered in v2.1's MQTT authentication -- an attacker on the same network can spoof telemetry data. The patch is in v2.3, and it needs to roll out now. But 1,400 of those sensors are on flaky cellular connections in rural warehouses. Push the update too aggressively and you brick sensors that lose connectivity mid-flash. Skip them and you leave 1,400 attack vectors in the field. You need an update pipeline that tracks each device's state, retries on connection drops, and never leaves a sensor half-updated. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full device lifecycle -- registration, provisioning, configuration, health monitoring, and firmware updates -- as independent workers.
+You have 10,000 temperature sensors deployed across 200 facilities, all running firmware v2.1. A critical security vulnerability is discovered in v2.1's MQTT authentication. an attacker on the same network can spoof telemetry data. The patch is in v2.3, and it needs to roll out now. But 1,400 of those sensors are on flaky cellular connections in rural warehouses. Push the update too aggressively and you brick sensors that lose connectivity mid-flash. Skip them and you leave 1,400 attack vectors in the field. You need an update pipeline that tracks each device's state, retries on connection drops, and never leaves a sensor half-updated. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full device lifecycle, registration, provisioning, configuration, health monitoring, and firmware updates, as independent workers.
 
 ## Why Device Onboarding Needs Orchestration
 
-Bringing a new IoT device online requires a strict sequence of steps that each depend on the previous one. You register the device in your fleet registry to get a registration ID. You use that ID to provision TLS certificates and an MQTT endpoint. You use those credentials to push telemetry configuration -- reporting intervals, topic subscriptions, device shadow creation. Only then can you start health monitoring (battery level, signal strength, uptime) and check whether the device needs a firmware update.
+Bringing a new IoT device online requires a strict sequence of steps that each depend on the previous one. You register the device in your fleet registry to get a registration ID. You use that ID to provision TLS certificates and an MQTT endpoint. You use those credentials to push telemetry configuration. Reporting intervals, topic subscriptions, device shadow creation. Only then can you start health monitoring (battery level, signal strength, uptime) and check whether the device needs a firmware update.
 
-If provisioning fails halfway through, you need to know exactly which step succeeded so you can resume without re-registering or issuing duplicate certificates. If health monitoring reveals a degraded device, you need that signal to flow into the firmware update step. Without orchestration, you'd build this as a monolithic onboarding script -- manually threading credentials between steps, wrapping every call in retry logic, and writing state-tracking code so you can recover from partial failures. That script becomes the single point of failure for your entire fleet onboarding process.
+If provisioning fails halfway through, you need to know exactly which step succeeded so you can resume without re-registering or issuing duplicate certificates. If health monitoring reveals a degraded device, you need that signal to flow into the firmware update step. Without orchestration, you'd build this as a monolithic onboarding script. Manually threading credentials between steps, wrapping every call in retry logic, and writing state-tracking code so you can recover from partial failures. That script becomes the single point of failure for your entire fleet onboarding process.
 
 ## How This Workflow Solves It
 
-**You just write the device lifecycle workers -- registration, credential provisioning, telemetry configuration, health monitoring, and firmware updates. Conductor handles strict onboarding sequencing, MQTT broker retries, and durable state tracking so partial failures resume exactly where they stopped.**
+**You just write the device lifecycle workers. Registration, credential provisioning, telemetry configuration, health monitoring, and firmware updates. Conductor handles strict onboarding sequencing, MQTT broker retries, and durable state tracking so partial failures resume exactly where they stopped.**
 
-Each lifecycle stage is a standalone worker that does one thing -- register, provision, configure, monitor, or update. Conductor chains them together, passes each worker's output as the next worker's input, retries transient failures (network timeouts to your device registry, MQTT broker unavailability), and resumes from the exact step that failed if the process crashes. You get durable, observable device onboarding without writing a single line of orchestration code.
+Each lifecycle stage is a standalone worker that does one thing. Register, provision, configure, monitor, or update. Conductor chains them together, passes each worker's output as the next worker's input, retries transient failures (network timeouts to your device registry, MQTT broker unavailability), and resumes from the exact step that failed if the process crashes. You get durable, observable device onboarding without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,15 @@ Five workers manage the device lifecycle: RegisterDeviceWorker adds the device t
 | **PushUpdateWorker** | `dev_push_update` | Checks for and pushes firmware updates to a device. | Simulated |
 | **RegisterDeviceWorker** | `dev_register_device` | Registers a new IoT device in the device registry. | Simulated |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs -- the workflow and alerting logic stay the same.
+Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -76,9 +76,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -156,11 +156,11 @@ conductor workflow search -w device_management -s COMPLETED -c 5
 
 Connect RegisterDeviceWorker to your IoT device registry (AWS IoT Core, Azure IoT Hub), ProvisionWorker to your certificate authority, and MonitorHealthWorker to your device health dashboard. The workflow definition stays exactly the same.
 
-- **RegisterDeviceWorker** (`dev_register_device`) -- call AWS IoT Core `RegisterThing`, Azure IoT Hub device provisioning, or your own device registry API to create the device record and get a registration ID
-- **ProvisionWorker** (`dev_provision`) -- generate X.509 certificates via AWS IoT, provision MQTT credentials, and attach IoT policies for topic-level access control
-- **ConfigureWorker** (`dev_configure`) -- push reporting interval and telemetry topic subscriptions to the device shadow (AWS IoT Device Shadow, Azure Device Twin) and confirm the shadow was created
-- **MonitorHealthWorker** (`dev_monitor_health`) -- query real device telemetry (battery level, signal strength, last-seen timestamp) from your time-series store or device shadow
-- **PushUpdateWorker** (`dev_push_update`) -- check your firmware repository for the latest version, trigger an OTA update job if the device is behind, and track rollout status
+- **RegisterDeviceWorker** (`dev_register_device`): call AWS IoT Core `RegisterThing`, Azure IoT Hub device provisioning, or your own device registry API to create the device record and get a registration ID
+- **ProvisionWorker** (`dev_provision`): generate X.509 certificates via AWS IoT, provision MQTT credentials, and attach IoT policies for topic-level access control
+- **ConfigureWorker** (`dev_configure`): push reporting interval and telemetry topic subscriptions to the device shadow (AWS IoT Device Shadow, Azure Device Twin) and confirm the shadow was created
+- **MonitorHealthWorker** (`dev_monitor_health`): query real device telemetry (battery level, signal strength, last-seen timestamp) from your time-series store or device shadow
+- **PushUpdateWorker** (`dev_push_update`): check your firmware repository for the latest version, trigger an OTA update job if the device is behind, and track rollout status
 
 Wire each worker to your IoT platform or device registry while preserving output fields, and the onboarding pipeline adapts seamlessly.
 

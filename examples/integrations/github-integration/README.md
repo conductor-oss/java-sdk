@@ -1,16 +1,16 @@
 # Github Integration in Java Using Conductor
 
-A critical bug fix gets merged to main at 3 PM. The deployment pipeline should have triggered automatically, but GitHub's webhook delivery failed -- a transient 500 from your CI server that GitHub retried once and then gave up on. Nobody notices. The fix sits undeployed for 4 hours while customers keep hitting the bug, until an engineer happens to check the deploy dashboard and sees the last deploy was from yesterday. The webhook payload is gone, the CI job never ran, and there's no record of why. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the push-to-merge pipeline with durable webhook handling, CI retries, and full audit trails.
+A critical bug fix gets merged to main at 3 PM. The deployment pipeline should have triggered automatically, but GitHub's webhook delivery failed, a transient 500 from your CI server that GitHub retried once and then gave up on. Nobody notices. The fix sits undeployed for 4 hours while customers keep hitting the bug, until an engineer happens to check the deploy dashboard and sees the last deploy was from yesterday. The webhook payload is gone, the CI job never ran, and there's no record of why. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the push-to-merge pipeline with durable webhook handling, CI retries, and full audit trails.
 
 ## Automating the PR Lifecycle from Push to Merge
 
-When a developer pushes code, the resulting pull request needs to be created, CI checks need to run against it, and if all checks pass, the PR should be merged automatically. Each step depends on the previous one -- you cannot run checks without a PR number, and you cannot merge without knowing the check results. If checks fail, the merge should be skipped.
+When a developer pushes code, the resulting pull request needs to be created, CI checks need to run against it, and if all checks pass, the PR should be merged automatically. Each step depends on the previous one. You cannot run checks without a PR number, and you cannot merge without knowing the check results. If checks fail, the merge should be skipped.
 
 Without orchestration, you would chain GitHub API calls manually, poll for check status, and manage PR numbers and SHA references between steps. Conductor sequences the pipeline and routes webhook data, PR metadata, and check results between workers automatically.
 
 ## The Solution
 
-**You just write the GitHub workers -- webhook reception, PR creation, CI check execution, and merge handling. Conductor handles push-to-merge sequencing, CI check retries, and PR metadata routing between pipeline stages.**
+**You just write the GitHub workers. Webhook reception, PR creation, CI check execution, and merge handling. Conductor handles push-to-merge sequencing, CI check retries, and PR metadata routing between pipeline stages.**
 
 Each worker integrates with one external system. Conductor manages the integration sequence, retry logic, timeout handling, and data transformation between systems.
 
@@ -31,9 +31,9 @@ The workers auto-detect GitHub credentials at startup. When `GITHUB_TOKEN` is se
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -88,9 +88,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -169,8 +169,8 @@ conductor workflow search -w github_integration_434 -s COMPLETED -c 5
 
 CreatePrWorker and MergePrWorker already use the real GitHub REST API (via java.net.http) when `GITHUB_TOKEN` is provided. The remaining workers are simulated:
 
-- **ReceiveWebhookWorker** (`gh_receive_webhook`) -- integrate with a real webhook endpoint that receives GitHub push events
-- **RunChecksWorker** (`gh_run_checks`) -- integrate with GitHub Actions, Jenkins, or another CI system to run real CI checks against the PR
+- **ReceiveWebhookWorker** (`gh_receive_webhook`): integrate with a real webhook endpoint that receives GitHub push events
+- **RunChecksWorker** (`gh_run_checks`): integrate with GitHub Actions, Jenkins, or another CI system to run real CI checks against the PR
 
 Replace each simulation with real API calls while keeping the same return schema, and the webhook-to-merge pipeline adapts without changes.
 

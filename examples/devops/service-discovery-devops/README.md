@@ -1,22 +1,22 @@
-# Service Discovery in Java with Conductor -- Register, Health Check, Update Routing, Notify Consumers
+# Service Discovery in Java with Conductor: Register, Health Check, Update Routing, Notify Consumers
 
-You deployed v2.4.1 of the recommendation engine ten minutes ago. It's running, it's healthy, and it's serving exactly zero traffic -- because the routing table still points to the three old instances, the load balancer doesn't know it exists, and the five downstream services that depend on it are still hitting stale endpoints. One of those old instances just ran out of memory, so now a third of your recommendation requests are 503ing and nobody can figure out why the "new deploy" didn't fix it. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to automate the full service registration lifecycle -- register, health-check, update routing, and notify consumers -- so new instances actually receive traffic and dead ones stop getting it.
+You deployed v2.4.1 of the recommendation engine ten minutes ago. It's running, it's healthy, and it's serving exactly zero traffic. because the routing table still points to the three old instances, the load balancer doesn't know it exists, and the five downstream services that depend on it are still hitting stale endpoints. One of those old instances just ran out of memory, so now a third of your recommendation requests are 503ing and nobody can figure out why the "new deploy" didn't fix it. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to automate the full service registration lifecycle, register, health-check, update routing, and notify consumers, so new instances actually receive traffic and dead ones stop getting it.
 
 ## New Services That Are Actually Reachable
 
-You just deployed a new instance of the user-api service. But other services cannot find it yet -- it is not registered in the service mesh, the load balancer does not know about it, and downstream consumers are still routing to the old set of instances. The workflow registers the instance, verifies it passes health checks, updates routing so traffic reaches it, and notifies consumers that a new endpoint is available.
+You just deployed a new instance of the user-api service. But other services cannot find it yet. It is not registered in the service mesh, the load balancer does not know about it, and downstream consumers are still routing to the old set of instances. The workflow registers the instance, verifies it passes health checks, updates routing so traffic reaches it, and notifies consumers that a new endpoint is available.
 
-Without orchestration, you'd wire all of this together in a single monolithic class -- managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. Managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the registration and health check logic. Conductor handles the register-verify-route-notify sequence and ensures no traffic reaches an unhealthy instance.**
 
-`RegisterWorker` adds the service instance to the discovery registry with its endpoint, version, and metadata, producing a deterministic registration ID. `HealthCheckWorker` runs initial health checks against the registered endpoint -- verifying HTTP readiness and recording response times. `UpdateRoutingWorker` configures load balancers and service meshes to route traffic to the new healthy instance. `NotifyConsumersWorker` informs downstream services of the new endpoint via webhooks, DNS updates, or service mesh configuration refresh. Conductor sequences these steps, ensuring no traffic reaches an unhealthy instance.
+`RegisterWorker` adds the service instance to the discovery registry with its endpoint, version, and metadata, producing a deterministic registration ID. `HealthCheckWorker` runs initial health checks against the registered endpoint. Verifying HTTP readiness and recording response times. `UpdateRoutingWorker` configures load balancers and service meshes to route traffic to the new healthy instance. `NotifyConsumersWorker` informs downstream services of the new endpoint via webhooks, DNS updates, or service mesh configuration refresh. Conductor sequences these steps, ensuring no traffic reaches an unhealthy instance.
 
 ### What You Write: Workers
 
-Four workers manage service registration -- registering the instance, running health probes, updating routing tables, and notifying downstream consumers.
+Four workers manage service registration. Registering the instance, running health probes, updating routing tables, and notifying downstream consumers.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
@@ -25,15 +25,15 @@ Four workers manage service registration -- registering the instance, running he
 | `UpdateRoutingWorker` | `sd_update_routing` | Updates load balancer and routing tables to include the new healthy instance | Simulated |
 | `NotifyConsumersWorker` | `sd_notify_consumers` | Notifies downstream consumers via webhook that a new service endpoint is available | Simulated |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls -- the workflow and rollback logic stay the same.
+Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -82,9 +82,9 @@ Result: PASSED
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -190,15 +190,15 @@ conductor workflow search -w service_discovery_devops_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one service discovery step -- replace the simulated calls with Consul, Eureka, or Kubernetes Service APIs for real registration and routing updates, and the discovery workflow runs unchanged.
+Each worker handles one service discovery step. Replace the simulated calls with Consul, Eureka, or Kubernetes Service APIs for real registration and routing updates, and the discovery workflow runs unchanged.
 
-- **`RegisterWorker`** -- Replace the simulated registration with a call to [HashiCorp Consul](https://www.consul.io/) service catalog, [Netflix Eureka](https://github.com/Netflix/eureka) registry, or the [Kubernetes Service API](https://kubernetes.io/docs/concepts/services-networking/service/) to register the instance in a real service mesh.
+- **`RegisterWorker`**: Replace the simulated registration with a call to [HashiCorp Consul](https://www.consul.io/) service catalog, [Netflix Eureka](https://github.com/Netflix/eureka) registry, or the [Kubernetes Service API](https://kubernetes.io/docs/concepts/services-networking/service/) to register the instance in a real service mesh.
 
-- **`HealthCheckWorker`** -- Replace the simulated health probe with real HTTP or gRPC health checks against the service endpoint, or integrate with [Kubernetes readiness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) to verify the instance is ready to receive traffic.
+- **`HealthCheckWorker`**: Replace the simulated health probe with real HTTP or gRPC health checks against the service endpoint, or integrate with [Kubernetes readiness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) to verify the instance is ready to receive traffic.
 
-- **`UpdateRoutingWorker`** -- Replace the simulated routing update with calls to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) configuration, NGINX upstream config updates, or [AWS ALB target group](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) registration to route real traffic to the new instance.
+- **`UpdateRoutingWorker`**: Replace the simulated routing update with calls to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) configuration, NGINX upstream config updates, or [AWS ALB target group](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) registration to route real traffic to the new instance.
 
-- **`NotifyConsumersWorker`** -- Replace the simulated notification with DNS record updates, webhook callbacks to downstream services, or service mesh sidecar configuration refresh (e.g., Envoy xDS push) so consumers discover the new endpoint.
+- **`NotifyConsumersWorker`**: Replace the simulated notification with DNS record updates, webhook callbacks to downstream services, or service mesh sidecar configuration refresh (e.g., Envoy xDS push) so consumers discover the new endpoint.
 
 Integrate with Consul or Eureka for real service registration; the discovery pipeline preserves the same register-verify-route interface.
 

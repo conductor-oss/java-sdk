@@ -1,10 +1,10 @@
-# Multi-Agent Customer Support in Java Using Conductor -- Classify, Route by Category, Propose Solutions, QA Validate
+# Multi-Agent Customer Support in Java Using Conductor: Classify, Route by Category, Propose Solutions, QA Validate
 
-Tier 1 support copies a customer's "I can't log in -- error 403 after password reset" into the billing queue because the word "password" wasn't in the tech-support routing rules. Billing says "not my problem." Forty-eight hours later, the customer churns -- over a bug that had a known fix in the knowledge base. When every ticket funnels through the same generic agent, bugs get treated like feature requests and feature requests get lost in the general queue. This example uses [Conductor](https://github.com/conductor-oss/conductor) to classify tickets, route them through a `SWITCH` to category-specific handlers (bug pipeline with KB search, feature evaluation against the roadmap, or general response), and run every answer through QA validation before it reaches the customer.
+Tier 1 support copies a customer's "I can't log in. error 403 after password reset" into the billing queue because the word "password" wasn't in the tech-support routing rules. Billing says "not my problem." Forty-eight hours later, the customer churns, over a bug that had a known fix in the knowledge base. When every ticket funnels through the same generic agent, bugs get treated like feature requests and feature requests get lost in the general queue. This example uses [Conductor](https://github.com/conductor-oss/conductor) to classify tickets, route them through a `SWITCH` to category-specific handlers (bug pipeline with KB search, feature evaluation against the roadmap, or general response), and run every answer through QA validation before it reaches the customer.
 
 ## Support Tickets Need Category-Specific Handling
 
-A customer submits "Login fails with error 403 after password reset" -- that's a bug report that needs knowledge base search for known issues and a specific solution. Another submits "Can you add dark mode?" -- that's a feature request that needs evaluation against the product roadmap. A third asks "What's your refund policy?" -- that's a general inquiry with a straightforward answer.
+A customer submits "Login fails with error 403 after password reset". that's a bug report that needs knowledge base search for known issues and a specific solution. Another submits "Can you add dark mode?", that's a feature request that needs evaluation against the product roadmap. A third asks "What's your refund policy?", that's a general inquiry with a straightforward answer.
 
 Each category needs a different agent pipeline. Bugs need knowledge base search followed by solution proposal. Feature requests need roadmap evaluation and prioritization. General inquiries need direct response generation. After the category-specific handling, all responses need QA validation to ensure accuracy and tone before reaching the customer. Without orchestration, this branching logic with shared QA at the end becomes a sprawling if/else tree.
 
@@ -16,27 +16,27 @@ Each category needs a different agent pipeline. Bugs need knowledge base search 
 
 ### What You Write: Workers
 
-Six workers handle support tickets -- classifying the category, routing to bug/feature/general handlers via SWITCH, and validating response quality before delivery.
+Six workers handle support tickets. Classifying the category, routing to bug/feature/general handlers via SWITCH, and validating response quality before delivery.
 
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
-| **ClassifyTicketWorker** | `cs_classify_ticket` | Classifies a support ticket by keyword matching in subject/description. Detects bug keywords (error, crash, bug, broken, fail), feature keywords (feature, request, enhance, add), or defaults to general. Returns category, severity (high/medium/low), matched keywords, and 0.94 confidence. | Real -- deterministic keyword classification |
-| **KnowledgeSearchWorker** | `cs_knowledge_search` | Searches the knowledge base for articles matching the ticket keywords. Returns 3 relevant KB articles (Troubleshooting Common Errors, System Recovery Procedures, Known Issues and Workarounds) with relevance scores (0.95, 0.87, 0.82) and search time. | Simulated -- swap in Zendesk Guide or RAG pipeline |
-| **SolutionProposeWorker** | `cs_solution_propose` | Proposes a solution based on knowledge base articles and ticket description. Returns a 5-step fix (clear cache, verify config, check resources, apply patch, escalate) with referenced KB article IDs and solution type ("known_fix"). | Simulated -- swap in LLM with retrieval-augmented generation |
-| **FeatureEvaluateWorker** | `cs_feature_evaluate` | Evaluates a feature request against the product roadmap. Returns a response acknowledging alignment with roadmap, priority level (high), ETA (Q2 2026), and roadmap tracking ID (FR-4521). Premium tier customers get expedited evaluation. | Simulated -- swap in product management API (Productboard, Aha!) |
-| **GeneralRespondWorker** | `cs_general_respond` | Handles general inquiries by providing a helpful response and suggesting relevant documentation (Getting Started Guide, FAQ, API Documentation). | Simulated -- swap in knowledge base API or LLM |
-| **QaValidateWorker** | `cs_qa_validate` | Validates the quality of the support response by running 4 checks: tone appropriate, includes greeting, includes next steps, no sensitive data exposed. Returns approved status, check results, and a formatted final response. | Simulated -- swap in LLM for semantic QA validation |
+| **ClassifyTicketWorker** | `cs_classify_ticket` | Classifies a support ticket by keyword matching in subject/description. Detects bug keywords (error, crash, bug, broken, fail), feature keywords (feature, request, enhance, add), or defaults to general. Returns category, severity (high/medium/low), matched keywords, and 0.94 confidence. | Real. Deterministic keyword classification |
+| **KnowledgeSearchWorker** | `cs_knowledge_search` | Searches the knowledge base for articles matching the ticket keywords. Returns 3 relevant KB articles (Troubleshooting Common Errors, System Recovery Procedures, Known Issues and Workarounds) with relevance scores (0.95, 0.87, 0.82) and search time. | Simulated. Swap in Zendesk Guide or RAG pipeline |
+| **SolutionProposeWorker** | `cs_solution_propose` | Proposes a solution based on knowledge base articles and ticket description. Returns a 5-step fix (clear cache, verify config, check resources, apply patch, escalate) with referenced KB article IDs and solution type ("known_fix"). | Simulated. Swap in LLM with retrieval-augmented generation |
+| **FeatureEvaluateWorker** | `cs_feature_evaluate` | Evaluates a feature request against the product roadmap. Returns a response acknowledging alignment with roadmap, priority level (high), ETA (Q2 2026), and roadmap tracking ID (FR-4521). Premium tier customers get expedited evaluation. | Simulated. Swap in product management API (Productboard, Aha!) |
+| **GeneralRespondWorker** | `cs_general_respond` | Handles general inquiries by providing a helpful response and suggesting relevant documentation (Getting Started Guide, FAQ, API Documentation). | Simulated. Swap in knowledge base API or LLM |
+| **QaValidateWorker** | `cs_qa_validate` | Validates the quality of the support response by running 4 checks: tone appropriate, includes greeting, includes next steps, no sensitive data exposed. Returns approved status, check results, and a formatted final response. | Simulated. Swap in LLM for semantic QA validation |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call -- the worker interface stays the same, and no workflow changes are needed.
+The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Conditional routing** | `SWITCH` task routes to bug, feature, or general handler based on classification output -- no if/else chains in your code |
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Conditional routing** | `SWITCH` task routes to bug, feature, or general handler based on classification output.; no if/else chains in your code |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- routing analytics without custom logging |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status, routing analytics without custom logging |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -58,9 +58,9 @@ cs_qa_validate
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -178,14 +178,14 @@ conductor workflow search -w multi_agent_customer_support -s COMPLETED -c 5
 
 ## How to Extend
 
-Each handler specializes in one support category -- integrate a classifier (HuggingFace, GPT-4), Zendesk for knowledge base search, Productboard for roadmap evaluation, and an LLM for QA validation, and the classify-route-solve-validate workflow runs unchanged.
+Each handler specializes in one support category. Integrate a classifier (HuggingFace, GPT-4), Zendesk for knowledge base search, Productboard for roadmap evaluation, and an LLM for QA validation, and the classify-route-solve-validate workflow runs unchanged.
 
-- **ClassifyTicketWorker** (`cs_classify_ticket`) -- use a fine-tuned classifier (HuggingFace text-classification pipeline) or GPT-4 with few-shot examples from your actual ticket history for accurate multi-label category detection with confidence calibration
-- **KnowledgeSearchWorker** (`cs_knowledge_search`) -- integrate with Zendesk Guide search API, Confluence search, or build a RAG pipeline over your internal knowledge base using Pinecone/Weaviate for semantic article retrieval
-- **SolutionProposeWorker** (`cs_solution_propose`) -- use an LLM (GPT-4/Claude) with retrieved KB articles as context to generate step-by-step solutions tailored to the specific error, or integrate with runbook automation tools like PagerDuty Runbook Automation
-- **FeatureEvaluateWorker** (`cs_feature_evaluate`) -- connect to Productboard or Aha! APIs for roadmap lookup, check for duplicate feature requests, and auto-assign priority based on customer tier and request frequency
-- **QaValidateWorker** (`cs_qa_validate`) -- use an LLM to check factual accuracy against the knowledge base, tone appropriateness for the customer tier, and completeness of the response. Flag responses that mention internal systems or contain sensitive data.
-- **Add a new category** -- create a new worker class, add a case to the `SWITCH` in `workflow.json`, and update the classification keywords. No existing code changes needed.
+- **ClassifyTicketWorker** (`cs_classify_ticket`): use a fine-tuned classifier (HuggingFace text-classification pipeline) or GPT-4 with few-shot examples from your actual ticket history for accurate multi-label category detection with confidence calibration
+- **KnowledgeSearchWorker** (`cs_knowledge_search`): integrate with Zendesk Guide search API, Confluence search, or build a RAG pipeline over your internal knowledge base using Pinecone/Weaviate for semantic article retrieval
+- **SolutionProposeWorker** (`cs_solution_propose`): use an LLM (GPT-4/Claude) with retrieved KB articles as context to generate step-by-step solutions tailored to the specific error, or integrate with runbook automation tools like PagerDuty Runbook Automation
+- **FeatureEvaluateWorker** (`cs_feature_evaluate`): connect to Productboard or Aha! APIs for roadmap lookup, check for duplicate feature requests, and auto-assign priority based on customer tier and request frequency
+- **QaValidateWorker** (`cs_qa_validate`): use an LLM to check factual accuracy against the knowledge base, tone appropriateness for the customer tier, and completeness of the response. Flag responses that mention internal systems or contain sensitive data.
+- **Add a new category**: create a new worker class, add a case to the `SWITCH` in `workflow.json`, and update the classification keywords. No existing code changes needed.
 
 Swap in Zendesk and LLM-powered responses; the classify-route-validate pipeline maintains the same QA contract.
 

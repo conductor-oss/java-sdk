@@ -1,12 +1,12 @@
-# ETL Basics in Java Using Conductor -- Extract, Transform, Validate, Load, and Confirm
+# ETL Basics in Java Using Conductor: Extract, Transform, Validate, Load, and Confirm
 
-Your company's data lives in 3 databases, 2 third-party APIs, and a shared Google Drive folder that someone updates manually on Fridays. The analyst's "ETL pipeline" is a Python script on their laptop that connects to each source, munges the data with pandas, and writes to the warehouse. It works great -- until the VPN disconnects at row 50,000, or the analyst goes on vacation and nobody else can run it, or the Google Drive CSV changes column order and the script silently loads first names into the email field. There's no retry, no validation, and no record of what was loaded when. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a durable ETL pipeline -- extract, transform, validate, load, and confirm -- as independent workers with automatic retries and per-stage tracking.
+Your company's data lives in 3 databases, 2 third-party APIs, and a shared Google Drive folder that someone updates manually on Fridays. The analyst's "ETL pipeline" is a Python script on their laptop that connects to each source, munges the data with pandas, and writes to the warehouse. It works great: until the VPN disconnects at row 50,000, or the analyst goes on vacation and nobody else can run it, or the Google Drive CSV changes column order and the script silently loads first names into the email field. There's no retry, no validation, and no record of what was loaded when. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a durable ETL pipeline, extract, transform, validate, load, and confirm, as independent workers with automatic retries and per-stage tracking.
 
 ## The Problem
 
-You need to move data from a source system to a destination, but the data needs cleaning along the way. Names have extra whitespace. Emails are inconsistently cased. Amounts are stored as strings that need parsing to numbers. Some records are incomplete and shouldn't be loaded at all. You need a pipeline that extracts, transforms, validates, loads, and confirms -- with each step depending on the previous one's output. If the load fails after transforming 10,000 records, you shouldn't have to re-extract and re-transform from scratch.
+You need to move data from a source system to a destination, but the data needs cleaning along the way. Names have extra whitespace. Emails are inconsistently cased. Amounts are stored as strings that need parsing to numbers. Some records are incomplete and shouldn't be loaded at all. You need a pipeline that extracts, transforms, validates, loads, and confirms, with each step depending on the previous one's output. If the load fails after transforming 10,000 records, you shouldn't have to re-extract and re-transform from scratch.
 
-Without orchestration, you'd write a single ETL method that connects to the source, reads records, transforms inline, validates inline, writes to the destination, and hopes nothing crashes. If the destination database is briefly unavailable, the entire pipeline fails with no retry. There's no visibility into how many records were extracted vs. transformed vs. validated vs. loaded, and debugging a data quality issue means adding println statements throughout coupled code.
+Without orchestration, you'd write a single ETL method that connects to the source, reads records, transforms inline, validates inline, writes to the destination, and hopes nothing crashes. If the destination database is briefly unavailable, the entire pipeline fails with no retry. There's no visibility into how many records were extracted vs: transformed vs: validated vs: loaded, and debugging a data quality issue means adding println statements throughout coupled code.
 
 ## The Solution
 
@@ -26,15 +26,15 @@ Five workers form the classic ETL pipeline: extracting records from a source, tr
 | `LoadDataWorker` | `el_load_data` | Writes the validated records to the destination and returns a loaded count | Simulated |
 | `ConfirmLoadWorker` | `el_confirm_load` | Confirms the load completed by returning status `ETL_COMPLETE` with the final loaded count | Simulated |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks -- the pipeline structure and error handling stay the same.
+Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### What Conductor Gives You For Free
 
 | Capability | How It Works |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically -- configurable per task |
+| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
 | **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status -- no logging code needed |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
 | **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
@@ -59,9 +59,9 @@ el_confirm_load
 
 ### Prerequisites
 
-- **Java 21+** -- verify with `java -version`
-- **Maven 3.8+** -- verify with `mvn -version`
-- **Docker** -- to run Conductor
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
 
 ### Option 1: Docker Compose (everything included)
 
@@ -168,21 +168,21 @@ conductor workflow search -w etl_basics_wf -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect the extractor to a real PostgreSQL or Salesforce source, add custom transform rules, and load into your data warehouse -- the ETL workflow runs unchanged.
+Connect the extractor to a real PostgreSQL or Salesforce source, add custom transform rules, and load into your data warehouse, the ETL workflow runs unchanged.
 
-- **`ExtractDataWorker`** -- Connect to a real source (PostgreSQL, MySQL, REST API, S3 CSV, Salesforce export) via JDBC or HTTP.
+- **`ExtractDataWorker`**: Connect to a real source (PostgreSQL, MySQL, REST API, S3 CSV, Salesforce export) via JDBC or HTTP.
 
-- **`TransformDataWorker`** -- Add custom transformation rules (currency conversion, date format normalization, field derivation, lookup enrichment).
+- **`TransformDataWorker`**: Add custom transformation rules (currency conversion, date format normalization, field derivation, lookup enrichment).
 
-- **`ValidateOutputWorker`** -- Implement domain-specific validation (business rule checks, schema conformance, referential integrity).
+- **`ValidateOutputWorker`**: Implement domain-specific validation (business rule checks, schema conformance, referential integrity).
 
-- **`LoadDataWorker`** -- Write to a real destination (data warehouse, database, API endpoint, message queue) with batch insert for performance.
+- **`LoadDataWorker`**: Write to a real destination (data warehouse, database, API endpoint, message queue) with batch insert for performance.
 
-- **`ConfirmLoadWorker`** -- Run count verification between source and destination, send a Slack notification, or trigger downstream pipelines.
+- **`ConfirmLoadWorker`**: Run count verification between source and destination, send a Slack notification, or trigger downstream pipelines.
 
 Connecting the extractor to a real database or replacing the transformer with production cleaning logic does not require workflow changes, as long as each worker returns records in the expected shape.
 
-**Add new stages** by inserting tasks in `workflow.json` -- for example, a deduplication step before loading, a data quality score computation, or an archival step that backs up the source data after successful load.
+**Add new stages** by inserting tasks in `workflow.json`, for example, a deduplication step before loading, a data quality score computation, or an archival step that backs up the source data after successful load.
 
 ## SDK
 
