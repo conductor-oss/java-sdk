@@ -1,0 +1,64 @@
+{
+  "name": "price_calculator",
+  "description": "4-step price calculator pipeline demonstrating data flow between tasks using JSONPath expressions",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["productId", "quantity", "couponCode"],
+  "tasks": [
+    {
+      "name": "lookup_price",
+      "taskReferenceName": "lookup_price_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${workflow.input.productId}",
+        "quantity": "${workflow.input.quantity}"
+      }
+    },
+    {
+      "name": "apply_discount",
+      "taskReferenceName": "apply_discount_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subtotal": "${lookup_price_ref.output.subtotal}",
+        "couponCode": "${workflow.input.couponCode}"
+      }
+    },
+    {
+      "name": "calculate_tax",
+      "taskReferenceName": "calculate_tax_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "discountedTotal": "${apply_discount_ref.output.discountedTotal}"
+      }
+    },
+    {
+      "name": "format_invoice",
+      "taskReferenceName": "format_invoice_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productName": "${lookup_price_ref.output.productName}",
+        "unitPrice": "${lookup_price_ref.output.unitPrice}",
+        "quantity": "${lookup_price_ref.output.quantity}",
+        "subtotal": "${lookup_price_ref.output.subtotal}",
+        "couponCode": "${apply_discount_ref.output.couponCode}",
+        "discountRate": "${apply_discount_ref.output.discountRate}",
+        "discountAmount": "${apply_discount_ref.output.discountAmount}",
+        "discountedTotal": "${apply_discount_ref.output.discountedTotal}",
+        "taxRate": "${calculate_tax_ref.output.taxRate}",
+        "taxAmount": "${calculate_tax_ref.output.taxAmount}",
+        "finalTotal": "${calculate_tax_ref.output.finalTotal}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "productName": "${lookup_price_ref.output.productName}",
+    "subtotal": "${lookup_price_ref.output.subtotal}",
+    "discountAmount": "${apply_discount_ref.output.discountAmount}",
+    "discountedTotal": "${apply_discount_ref.output.discountedTotal}",
+    "taxAmount": "${calculate_tax_ref.output.taxAmount}",
+    "finalTotal": "${calculate_tax_ref.output.finalTotal}",
+    "invoice": "${format_invoice_ref.output.invoice}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

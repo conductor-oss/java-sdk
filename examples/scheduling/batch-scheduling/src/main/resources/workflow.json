@@ -1,0 +1,50 @@
+{
+  "name": "batch_scheduling_404",
+  "description": "Batch scheduling workflow that prioritizes jobs, allocates resources, and executes the batch.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "batchId",
+    "jobs",
+    "maxConcurrency"
+  ],
+  "tasks": [
+    {
+      "name": "bs_prioritize_jobs",
+      "taskReferenceName": "bs_prioritize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "jobs": "${workflow.input.jobs}"
+      }
+    },
+    {
+      "name": "bs_allocate_resources",
+      "taskReferenceName": "bs_allocate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "orderedJobs": "${bs_prioritize_ref.output.orderedJobs}",
+        "maxConcurrency": "${workflow.input.maxConcurrency}"
+      }
+    },
+    {
+      "name": "bs_execute_batch",
+      "taskReferenceName": "bs_execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "allocation": "${bs_allocate_ref.output.allocation}",
+        "orderedJobs": "${bs_prioritize_ref.output.orderedJobs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalJobs": "${bs_prioritize_ref.output.totalJobs}",
+    "resourcesAllocated": "${bs_allocate_ref.output.resourcesAllocated}",
+    "jobsCompleted": "${bs_execute_ref.output.jobsCompleted}",
+    "totalDurationMs": "${bs_execute_ref.output.totalDurationMs}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

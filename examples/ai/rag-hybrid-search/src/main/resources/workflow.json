@@ -1,0 +1,69 @@
+{
+  "name": "rag_hybrid_search",
+  "description": "RAG with Hybrid Search - Vector + Keyword retrieval merged via reciprocal rank fusion",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question"],
+  "tasks": [
+    {
+      "name": "parallel_search",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "hs_vector_search",
+            "taskReferenceName": "vector_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "hs_keyword_search",
+            "taskReferenceName": "keyword_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_searches",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["vector_ref", "keyword_ref"]
+    },
+    {
+      "name": "hs_rrf_merge",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vectorResults": "${vector_ref.output.results}",
+        "keywordResults": "${keyword_ref.output.results}"
+      }
+    },
+    {
+      "name": "hs_generate_answer",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "context": "${merge_ref.output.mergedDocs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "question": "${workflow.input.question}",
+    "answer": "${gen_ref.output.answer}",
+    "sourceDocs": "${merge_ref.output.mergedDocs}",
+    "vectorCount": "${vector_ref.output.count}",
+    "keywordCount": "${keyword_ref.output.count}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

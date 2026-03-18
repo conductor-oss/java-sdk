@@ -1,0 +1,50 @@
+{
+  "name": "enr_content_enricher",
+  "description": "Content Enricher pattern: receive a message, look up additional data, enrich the message, and forward it.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["message", "enrichmentSources"],
+  "tasks": [
+    {
+      "name": "enr_receive_message",
+      "taskReferenceName": "enr_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "message": "${workflow.input.message}"
+      }
+    },
+    {
+      "name": "enr_lookup_data",
+      "taskReferenceName": "enr_lookup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${enr_receive_ref.output.customerId}",
+        "enrichmentSources": "${workflow.input.enrichmentSources}"
+      }
+    },
+    {
+      "name": "enr_enrich",
+      "taskReferenceName": "enr_enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalMessage": "${enr_receive_ref.output.message}",
+        "lookupData": "${enr_lookup_ref.output.lookupData}"
+      }
+    },
+    {
+      "name": "enr_forward",
+      "taskReferenceName": "enr_forward_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enrichedMessage": "${enr_enrich_ref.output.enrichedMessage}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalMessage": "${enr_receive_ref.output.message}",
+    "enrichedMessage": "${enr_enrich_ref.output.enrichedMessage}",
+    "forwarded": "${enr_forward_ref.output.forwarded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,27 @@
+{
+  "name": "dead_letter_handler",
+  "description": "Dead letter handler workflow -- handles failed task details by logging and marking them as processed.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["failedWorkflowId", "failedTaskName", "error"],
+  "tasks": [
+    {
+      "name": "dl_handle_failure",
+      "taskReferenceName": "dl_handle_failure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "failedWorkflowId": "${workflow.input.failedWorkflowId}",
+        "failedTaskName": "${workflow.input.failedTaskName}",
+        "error": "${workflow.input.error}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "handled": "${dl_handle_failure_ref.output.handled}",
+    "failedWorkflowId": "${dl_handle_failure_ref.output.failedWorkflowId}",
+    "failedTaskName": "${dl_handle_failure_ref.output.failedTaskName}",
+    "summary": "${dl_handle_failure_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

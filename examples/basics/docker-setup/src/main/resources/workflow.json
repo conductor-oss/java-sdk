@@ -1,0 +1,23 @@
+{
+  "name": "docker_setup_test",
+  "description": "Simple one-task workflow to verify Docker setup is working",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["message"],
+  "tasks": [
+    {
+      "name": "docker_test_task",
+      "taskReferenceName": "docker_test_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "message": "${workflow.input.message}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "message": "${docker_test_task_ref.output.message}",
+    "timestamp": "${docker_test_task_ref.output.timestamp}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

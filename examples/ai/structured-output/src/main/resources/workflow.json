@@ -1,0 +1,41 @@
+{
+  "name": "structured_output_workflow",
+  "description": "Generate, validate, and transform structured JSON output",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["entity", "fields"],
+  "tasks": [
+    {
+      "name": "so_generate_json",
+      "taskReferenceName": "so_generate_json_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "entity": "${workflow.input.entity}",
+        "fields": "${workflow.input.fields}"
+      }
+    },
+    {
+      "name": "so_validate_schema",
+      "taskReferenceName": "so_validate_schema_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jsonOutput": "${so_generate_json_ref.output.jsonOutput}",
+        "schema": "${so_generate_json_ref.output.schema}"
+      }
+    },
+    {
+      "name": "so_transform",
+      "taskReferenceName": "so_transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validated": "${so_validate_schema_ref.output.validated}",
+        "data": "${so_validate_schema_ref.output.data}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "finalResult": "${so_transform_ref.output.final}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

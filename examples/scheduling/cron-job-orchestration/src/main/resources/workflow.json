@@ -1,0 +1,59 @@
+{
+  "name": "cron_job_orchestration_401",
+  "description": "Orchestrate cron jobs: schedule the job, execute it, log the result, and clean up temporary resources.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "jobName",
+    "cronExpression",
+    "command"
+  ],
+  "tasks": [
+    {
+      "name": "cj_schedule_job",
+      "taskReferenceName": "cj_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobName": "${workflow.input.jobName}",
+        "cronExpression": "${workflow.input.cronExpression}"
+      }
+    },
+    {
+      "name": "cj_execute_job",
+      "taskReferenceName": "cj_execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobName": "${workflow.input.jobName}",
+        "command": "${workflow.input.command}",
+        "scheduledAt": "${cj_schedule_ref.output.scheduledAt}"
+      }
+    },
+    {
+      "name": "cj_log_result",
+      "taskReferenceName": "cj_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobName": "${workflow.input.jobName}",
+        "exitCode": "${cj_execute_ref.output.exitCode}",
+        "duration": "${cj_execute_ref.output.durationMs}"
+      }
+    },
+    {
+      "name": "cj_cleanup",
+      "taskReferenceName": "cj_cleanup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobName": "${workflow.input.jobName}",
+        "tempFiles": "${cj_execute_ref.output.tempFiles}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "scheduledAt": "${cj_schedule_ref.output.scheduledAt}",
+    "exitCode": "${cj_execute_ref.output.exitCode}",
+    "logged": "${cj_log_ref.output.logged}",
+    "cleanedUp": "${cj_cleanup_ref.output.cleanedUp}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

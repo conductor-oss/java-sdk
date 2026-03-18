@@ -1,0 +1,60 @@
+{
+  "name": "csv_processing",
+  "description": "Sequential CSV processing workflow: parse CSV data, validate rows, transform fields, and generate clean output records.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "csvData",
+    "delimiter",
+    "hasHeader"
+  ],
+  "tasks": [
+    {
+      "name": "cv_parse_csv",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "csvData": "${workflow.input.csvData}",
+        "delimiter": "${workflow.input.delimiter}",
+        "hasHeader": "${workflow.input.hasHeader}"
+      }
+    },
+    {
+      "name": "cv_validate_rows",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rows": "${parse_ref.output.rows}",
+        "headers": "${parse_ref.output.headers}"
+      }
+    },
+    {
+      "name": "cv_transform_fields",
+      "taskReferenceName": "transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validRows": "${validate_ref.output.validRows}",
+        "headers": "${parse_ref.output.headers}"
+      }
+    },
+    {
+      "name": "cv_generate_output",
+      "taskReferenceName": "output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedRows": "${transform_ref.output.rows}",
+        "totalParsed": "${parse_ref.output.rowCount}",
+        "totalValid": "${validate_ref.output.validCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalParsed": "${parse_ref.output.rowCount}",
+    "validRows": "${validate_ref.output.validCount}",
+    "invalidRows": "${validate_ref.output.invalidCount}",
+    "outputRecords": "${output_ref.output.recordCount}",
+    "summary": "${output_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

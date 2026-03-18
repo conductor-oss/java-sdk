@@ -1,0 +1,90 @@
+{
+  "name": "event_notification",
+  "description": "Event notification workflow that parses events and sends notifications across email, SMS, and push channels in parallel using FORK_JOIN, then records delivery status.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "event",
+    "recipientId"
+  ],
+  "tasks": [
+    {
+      "name": "en_parse_event",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "event": "${workflow.input.event}",
+        "recipientId": "${workflow.input.recipientId}"
+      }
+    },
+    {
+      "name": "parallel_notify",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "en_send_email",
+            "taskReferenceName": "email_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "recipientId": "${parse_ref.output.recipientId}",
+              "subject": "${parse_ref.output.subject}",
+              "body": "${parse_ref.output.body}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "en_send_sms",
+            "taskReferenceName": "sms_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "recipientId": "${parse_ref.output.recipientId}",
+              "message": "${parse_ref.output.smsMessage}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "en_send_push",
+            "taskReferenceName": "push_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "recipientId": "${parse_ref.output.recipientId}",
+              "title": "${parse_ref.output.subject}",
+              "body": "${parse_ref.output.body}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_notify",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "email_ref",
+        "sms_ref",
+        "push_ref"
+      ]
+    },
+    {
+      "name": "en_record_delivery",
+      "taskReferenceName": "record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "emailStatus": "${email_ref.output.deliveryStatus}",
+        "smsStatus": "${sms_ref.output.deliveryStatus}",
+        "pushStatus": "${push_ref.output.deliveryStatus}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "recipientId": "${parse_ref.output.recipientId}",
+    "channelsUsed": 3,
+    "overallDelivery": "${record_ref.output.overallStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

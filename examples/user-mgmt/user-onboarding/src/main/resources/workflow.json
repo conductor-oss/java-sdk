@@ -1,0 +1,53 @@
+{
+  "name": "uo_user_onboarding",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["email", "fullName", "plan"],
+  "tasks": [
+    {
+      "name": "uo_create_account",
+      "taskReferenceName": "uo_create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}",
+        "fullName": "${workflow.input.fullName}",
+        "plan": "${workflow.input.plan}"
+      }
+    },
+    {
+      "name": "uo_verify_email",
+      "taskReferenceName": "uo_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${uo_create_ref.output.userId}",
+        "email": "${workflow.input.email}"
+      }
+    },
+    {
+      "name": "uo_set_preferences",
+      "taskReferenceName": "uo_prefs_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${uo_create_ref.output.userId}",
+        "plan": "${workflow.input.plan}"
+      }
+    },
+    {
+      "name": "uo_welcome",
+      "taskReferenceName": "uo_welcome_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${uo_create_ref.output.userId}",
+        "fullName": "${workflow.input.fullName}",
+        "email": "${workflow.input.email}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${uo_create_ref.output.userId}",
+    "verified": "${uo_verify_ref.output.verified}",
+    "welcomeSent": "${uo_welcome_ref.output.welcomeSent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

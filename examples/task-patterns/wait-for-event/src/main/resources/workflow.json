@@ -1,0 +1,44 @@
+{
+  "name": "wait_event_demo",
+  "description": "Pause workflow until external signal via WAIT task",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "requestId",
+    "requester"
+  ],
+  "tasks": [
+    {
+      "name": "we_prepare",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "requester": "${workflow.input.requester}"
+      }
+    },
+    {
+      "name": "wait_for_signal",
+      "taskReferenceName": "wait_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "we_process_signal",
+      "taskReferenceName": "process_signal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "signalData": "${wait_ref.output.signalData}",
+        "decision": "${wait_ref.output.decision}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${workflow.input.requestId}",
+    "decision": "${process_signal_ref.output.decision}",
+    "processed": "${process_signal_ref.output.processed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

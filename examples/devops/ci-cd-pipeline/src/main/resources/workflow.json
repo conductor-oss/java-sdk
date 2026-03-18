@@ -1,0 +1,94 @@
+{
+  "name": "cicd_pipeline_workflow",
+  "version": 1,
+  "description": "Orchestrates a complete CI/CD pipeline: build, parallel tests (unit, integration, security), deploy to staging, and promote to production.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "repoUrl",
+    "branch",
+    "commitSha"
+  ],
+  "tasks": [
+    {
+      "name": "cicd_build",
+      "taskReferenceName": "build_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repoUrl": "${workflow.input.repoUrl}",
+        "branch": "${workflow.input.branch}",
+        "commitSha": "${workflow.input.commitSha}"
+      }
+    },
+    {
+      "name": "parallel_tests",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "cicd_unit_test",
+            "taskReferenceName": "unit_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "buildId": "${build_ref.output.buildId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "cicd_integration_test",
+            "taskReferenceName": "integ_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "buildId": "${build_ref.output.buildId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "cicd_security_scan",
+            "taskReferenceName": "sec_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "buildId": "${build_ref.output.buildId}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_tests",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "unit_ref",
+        "integ_ref",
+        "sec_ref"
+      ]
+    },
+    {
+      "name": "cicd_deploy_staging",
+      "taskReferenceName": "staging_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildId": "${build_ref.output.buildId}",
+        "imageTag": "${build_ref.output.imageTag}"
+      }
+    },
+    {
+      "name": "cicd_deploy_prod",
+      "taskReferenceName": "prod_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildId": "${build_ref.output.buildId}",
+        "imageTag": "${build_ref.output.imageTag}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "buildId": "${build_ref.output.buildId}",
+    "deployed": "${prod_ref.output.deployed}"
+  }
+}

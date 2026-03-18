@@ -1,0 +1,95 @@
+{
+  "name": "mpr_map_reduce",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "documents",
+    "searchTerm"
+  ],
+  "tasks": [
+    {
+      "name": "mpr_split_input",
+      "taskReferenceName": "mpr_split_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documents": "${workflow.input.documents}"
+      }
+    },
+    {
+      "name": "map_fork",
+      "taskReferenceName": "mpr_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "mpr_map_1",
+            "taskReferenceName": "mpr_map1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "partition": "${mpr_split_ref.output.partitions[0]}",
+              "searchTerm": "${workflow.input.searchTerm}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mpr_map_2",
+            "taskReferenceName": "mpr_map2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "partition": "${mpr_split_ref.output.partitions[1]}",
+              "searchTerm": "${workflow.input.searchTerm}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mpr_map_3",
+            "taskReferenceName": "mpr_map3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "partition": "${mpr_split_ref.output.partitions[2]}",
+              "searchTerm": "${workflow.input.searchTerm}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "map_join",
+      "taskReferenceName": "mpr_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "mpr_map1_ref",
+        "mpr_map2_ref",
+        "mpr_map3_ref"
+      ]
+    },
+    {
+      "name": "mpr_reduce",
+      "taskReferenceName": "mpr_reduce_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mapped1": "${mpr_map1_ref.output.mapped}",
+        "mapped2": "${mpr_map2_ref.output.mapped}",
+        "mapped3": "${mpr_map3_ref.output.mapped}"
+      }
+    },
+    {
+      "name": "mpr_output",
+      "taskReferenceName": "mpr_output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reducedResult": "${mpr_reduce_ref.output.reduced}",
+        "searchTerm": "${workflow.input.searchTerm}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "searchTerm": "${workflow.input.searchTerm}",
+    "totalOccurrences": "${mpr_reduce_ref.output.totalOccurrences}",
+    "result": "${mpr_output_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

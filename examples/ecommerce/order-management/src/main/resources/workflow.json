@@ -1,0 +1,65 @@
+{
+  "name": "order_management",
+  "description": "Order management workflow: create, validate, fulfill, ship, deliver",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "items", "shippingAddress", "shippingMethod"],
+  "tasks": [
+    {
+      "name": "ord_create",
+      "taskReferenceName": "create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "ord_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${create_ref.output.orderId}",
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "ord_fulfill",
+      "taskReferenceName": "fulfill_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${create_ref.output.orderId}",
+        "items": "${workflow.input.items}",
+        "warehouseId": "WH-EAST-01"
+      }
+    },
+    {
+      "name": "ord_ship",
+      "taskReferenceName": "ship_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${create_ref.output.orderId}",
+        "fulfillmentId": "${fulfill_ref.output.fulfillmentId}",
+        "shippingAddress": "${workflow.input.shippingAddress}",
+        "shippingMethod": "${workflow.input.shippingMethod}"
+      }
+    },
+    {
+      "name": "ord_deliver",
+      "taskReferenceName": "deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${create_ref.output.orderId}",
+        "trackingNumber": "${ship_ref.output.trackingNumber}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${create_ref.output.orderId}",
+    "fulfillmentId": "${fulfill_ref.output.fulfillmentId}",
+    "trackingNumber": "${ship_ref.output.trackingNumber}",
+    "delivered": "${deliver_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

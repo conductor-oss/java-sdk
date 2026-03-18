@@ -1,0 +1,43 @@
+{
+  "name": "legal_contract_review_demo",
+  "description": "Legal Contract Review -- AI extracts key terms, waits for human legal review, then finalizes.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["contractId"],
+  "tasks": [
+    {
+      "name": "lcr_extract_terms",
+      "taskReferenceName": "lcr_extract_terms_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contractId": "${workflow.input.contractId}"
+      }
+    },
+    {
+      "name": "legal_review",
+      "taskReferenceName": "legal_review_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "keyTerms": "${lcr_extract_terms_ref.output.keyTerms}",
+        "riskFlags": "${lcr_extract_terms_ref.output.riskFlags}"
+      }
+    },
+    {
+      "name": "lcr_finalize",
+      "taskReferenceName": "lcr_finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contractId": "${workflow.input.contractId}",
+        "keyTerms": "${lcr_extract_terms_ref.output.keyTerms}",
+        "riskFlags": "${lcr_extract_terms_ref.output.riskFlags}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "keyTerms": "${lcr_extract_terms_ref.output.keyTerms}",
+    "riskFlags": "${lcr_extract_terms_ref.output.riskFlags}",
+    "finalized": "${lcr_finalize_ref.output.finalized}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

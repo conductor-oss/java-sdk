@@ -1,0 +1,59 @@
+{
+  "name": "patient_intake_workflow",
+  "description": "Patient intake: registration, insurance verification, triage, provider assignment",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "patientId",
+    "name",
+    "chiefComplaint",
+    "insuranceId"
+  ],
+  "tasks": [
+    {
+      "name": "pit_register",
+      "taskReferenceName": "register_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "name": "${workflow.input.name}",
+        "chiefComplaint": "${workflow.input.chiefComplaint}"
+      }
+    },
+    {
+      "name": "pit_verify_insurance",
+      "taskReferenceName": "verify_insurance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "insuranceId": "${workflow.input.insuranceId}"
+      }
+    },
+    {
+      "name": "pit_triage",
+      "taskReferenceName": "triage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "chiefComplaint": "${workflow.input.chiefComplaint}"
+      }
+    },
+    {
+      "name": "pit_assign",
+      "taskReferenceName": "assign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "triageLevel": "${triage_ref.output.triageLevel}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "registrationResult": "${register_ref.output}",
+    "insuranceVerified": "${verify_insurance_ref.output.verified}",
+    "triageLevel": "${triage_ref.output.triageLevel}",
+    "assignedProvider": "${assign_ref.output.assignedProvider}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

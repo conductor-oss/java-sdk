@@ -1,0 +1,50 @@
+{
+  "name": "ls_lead_scoring",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["leadId", "email", "company"],
+  "tasks": [
+    {
+      "name": "ls_collect_signals",
+      "taskReferenceName": "ls_signals_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "leadId": "${workflow.input.leadId}",
+        "email": "${workflow.input.email}",
+        "company": "${workflow.input.company}"
+      }
+    },
+    {
+      "name": "ls_score",
+      "taskReferenceName": "ls_score_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "signals": "${ls_signals_ref.output.signals}"
+      }
+    },
+    {
+      "name": "ls_classify",
+      "taskReferenceName": "ls_classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "score": "${ls_score_ref.output.totalScore}"
+      }
+    },
+    {
+      "name": "ls_route",
+      "taskReferenceName": "ls_route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "leadId": "${workflow.input.leadId}",
+        "classification": "${ls_classify_ref.output.classification}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "leadScore": "${ls_score_ref.output.totalScore}",
+    "classification": "${ls_classify_ref.output.classification}",
+    "assignedTo": "${ls_route_ref.output.assignedTo}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

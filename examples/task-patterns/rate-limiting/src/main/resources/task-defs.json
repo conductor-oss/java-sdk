@@ -1,0 +1,12 @@
+[
+  {
+    "name": "rl_api_call",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io",
+    "rateLimitPerFrequency": 5,
+    "rateLimitFrequencyInSeconds": 10,
+    "concurrentExecLimit": 2
+  }
+]

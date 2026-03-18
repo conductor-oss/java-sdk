@@ -1,0 +1,56 @@
+{
+  "name": "blue_green_deploy_296",
+  "description": "Blue-green deployment with zero-downtime switch",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["appName", "newVersion", "currentEnv"],
+  "tasks": [
+    {
+      "name": "bg_prepare_green",
+      "taskReferenceName": "bg_prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "newVersion": "${workflow.input.newVersion}",
+        "targetEnv": "green"
+      }
+    },
+    {
+      "name": "bg_test_green",
+      "taskReferenceName": "bg_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "environment": "green",
+        "version": "${workflow.input.newVersion}"
+      }
+    },
+    {
+      "name": "bg_switch_traffic",
+      "taskReferenceName": "bg_switch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "from": "${workflow.input.currentEnv}",
+        "to": "green"
+      }
+    },
+    {
+      "name": "bg_verify_deployment",
+      "taskReferenceName": "bg_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "activeEnv": "green",
+        "version": "${workflow.input.newVersion}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "deploymentStatus": "${bg_verify_ref.output.status}",
+    "activeEnvironment": "${bg_switch_ref.output.activeEnv}",
+    "version": "${workflow.input.newVersion}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

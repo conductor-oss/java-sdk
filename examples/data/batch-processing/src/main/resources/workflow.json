@@ -1,0 +1,60 @@
+{
+  "name": "batch_processing",
+  "description": "Process records in batches using a DO_WHILE loop. Each iteration processes one batch, continuing until all batches are done.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "batchSize"
+  ],
+  "tasks": [
+    {
+      "name": "bp_prepare_batches",
+      "taskReferenceName": "prep_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}",
+        "batchSize": "${workflow.input.batchSize}"
+      }
+    },
+    {
+      "name": "batch_loop",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < $.totalBatches) { true; } else { false; }",
+      "inputParameters": {
+        "totalBatches": "${prep_ref.output.totalBatches}"
+      },
+      "loopOver": [
+        {
+          "name": "bp_process_batch",
+          "taskReferenceName": "batch_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "iteration": "${loop_ref.output.iteration}",
+            "batchSize": "${workflow.input.batchSize}",
+            "totalRecords": "${prep_ref.output.totalRecords}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bp_summarize",
+      "taskReferenceName": "summary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "totalBatches": "${prep_ref.output.totalBatches}",
+        "totalRecords": "${prep_ref.output.totalRecords}",
+        "iterations": "${loop_ref.output.iteration}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalRecords": "${prep_ref.output.totalRecords}",
+    "totalBatches": "${prep_ref.output.totalBatches}",
+    "iterationsCompleted": "${loop_ref.output.iteration}",
+    "summary": "${summary_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

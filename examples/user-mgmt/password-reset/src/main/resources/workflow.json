@@ -1,0 +1,55 @@
+{
+  "name": "pwd_password_reset",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "email",
+    "newPassword"
+  ],
+  "tasks": [
+    {
+      "name": "pwd_request",
+      "taskReferenceName": "pwd_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}"
+      }
+    },
+    {
+      "name": "pwd_verify",
+      "taskReferenceName": "pwd_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resetToken": "${pwd_request_ref.output.resetToken}",
+        "expiresAt": "${pwd_request_ref.output.expiresAt}"
+      }
+    },
+    {
+      "name": "pwd_reset",
+      "taskReferenceName": "pwd_reset_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${pwd_request_ref.output.userId}",
+        "verified": "${pwd_verify_ref.output.verified}",
+        "newPassword": "${workflow.input.newPassword}"
+      }
+    },
+    {
+      "name": "pwd_notify",
+      "taskReferenceName": "pwd_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${pwd_request_ref.output.userId}",
+        "email": "${workflow.input.email}",
+        "resetSuccess": "${pwd_reset_ref.output.resetSuccess}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${pwd_request_ref.output.userId}",
+    "resetSuccess": "${pwd_reset_ref.output.resetSuccess}",
+    "notified": "${pwd_notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

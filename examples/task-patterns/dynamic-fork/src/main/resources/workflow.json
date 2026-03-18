@@ -1,0 +1,48 @@
+{
+  "name": "dynamic_fork_demo",
+  "description": "Dynamic FORK — fetches multiple URLs in parallel using FORK_JOIN_DYNAMIC. The number of branches is determined at runtime by the prepare task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["urls"],
+  "tasks": [
+    {
+      "name": "df_prepare_tasks",
+      "taskReferenceName": "df_prepare_tasks_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "urls": "${workflow.input.urls}"
+      }
+    },
+    {
+      "name": "dynamic_fork",
+      "taskReferenceName": "dynamic_fork_ref",
+      "type": "FORK_JOIN_DYNAMIC",
+      "inputParameters": {
+        "dynamicTasks": "${df_prepare_tasks_ref.output.dynamicTasks}",
+        "dynamicTasksInput": "${df_prepare_tasks_ref.output.dynamicTasksInput}"
+      },
+      "dynamicForkTasksParam": "dynamicTasks",
+      "dynamicForkTasksInputParamName": "dynamicTasksInput"
+    },
+    {
+      "name": "dynamic_join",
+      "taskReferenceName": "dynamic_join_ref",
+      "type": "JOIN"
+    },
+    {
+      "name": "df_aggregate",
+      "taskReferenceName": "df_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "joinOutput": "${dynamic_join_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "results": "${df_aggregate_ref.output.results}",
+    "totalProcessed": "${df_aggregate_ref.output.totalProcessed}",
+    "totalSize": "${df_aggregate_ref.output.totalSize}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

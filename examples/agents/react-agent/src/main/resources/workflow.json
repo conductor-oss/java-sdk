@@ -1,0 +1,69 @@
+{
+  "name": "react_agent",
+  "description": "ReAct Agent — Reason-Act-Observe loop that iteratively reasons about a question, takes actions, and observes results before producing a final answer.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question"],
+  "tasks": [
+    {
+      "name": "rx_init_task",
+      "taskReferenceName": "init_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "loop_task",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < 3) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "rx_reason",
+          "taskReferenceName": "reason_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${init_ref.output.question}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "rx_act",
+          "taskReferenceName": "act_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "thought": "${reason_ref.output.thought}",
+            "action": "${reason_ref.output.action}",
+            "query": "${reason_ref.output.query}"
+          }
+        },
+        {
+          "name": "rx_observe",
+          "taskReferenceName": "observe_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "actionResult": "${act_ref.output.result}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "rx_final_answer",
+      "taskReferenceName": "final_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${init_ref.output.question}",
+        "totalIterations": 3
+      }
+    }
+  ],
+  "outputParameters": {
+    "question": "${init_ref.output.question}",
+    "iterations": 3,
+    "answer": "${final_ref.output.answer}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

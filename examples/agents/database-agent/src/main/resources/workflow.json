@@ -1,0 +1,68 @@
+{
+  "name": "database_agent",
+  "description": "Database Agent — parses a natural-language question, generates SQL, validates it, executes it, and formats the results through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "databaseSchema"],
+  "tasks": [
+    {
+      "name": "db_parse_question",
+      "taskReferenceName": "db_parse_question_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "databaseSchema": "${workflow.input.databaseSchema}"
+      }
+    },
+    {
+      "name": "db_generate_query",
+      "taskReferenceName": "db_generate_query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "intent": "${db_parse_question_ref.output.intent}",
+        "entities": "${db_parse_question_ref.output.entities}",
+        "tables": "${db_parse_question_ref.output.relevantTables}",
+        "databaseSchema": "${workflow.input.databaseSchema}"
+      }
+    },
+    {
+      "name": "db_validate_query",
+      "taskReferenceName": "db_validate_query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${db_generate_query_ref.output.query}",
+        "queryType": "${db_generate_query_ref.output.queryType}",
+        "databaseSchema": "${workflow.input.databaseSchema}"
+      }
+    },
+    {
+      "name": "db_execute_query",
+      "taskReferenceName": "db_execute_query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${db_validate_query_ref.output.validatedQuery}",
+        "isReadOnly": "${db_validate_query_ref.output.isReadOnly}"
+      }
+    },
+    {
+      "name": "db_format",
+      "taskReferenceName": "db_format_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "queryResults": "${db_execute_query_ref.output.results}",
+        "rowCount": "${db_execute_query_ref.output.rowCount}",
+        "query": "${db_generate_query_ref.output.query}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${db_format_ref.output.answer}",
+    "summary": "${db_format_ref.output.summary}",
+    "query": "${db_generate_query_ref.output.query}",
+    "rowCount": "${db_execute_query_ref.output.rowCount}",
+    "executionTimeMs": "${db_execute_query_ref.output.executionTimeMs}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

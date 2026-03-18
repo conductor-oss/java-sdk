@@ -1,0 +1,24 @@
+services:
+  conductor:
+    image: orkesio/orkes-conductor-standalone:latest
+    ports:
+      - "${CONDUCTOR_PORT:-8080}:8080"
+      - "${CONDUCTOR_UI_PORT:-1234}:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    environment:
+      - conductor.app.ownerEmailMandatory=false
+
+  basic-rag:
+    build: .
+    depends_on:
+      conductor:
+        condition: service_healthy
+    environment:
+      - CONDUCTOR_BASE_URL=http://conductor:8080/api
+      - CONDUCTOR_OPENAI_API_KEY=${CONDUCTOR_OPENAI_API_KEY:-}
+      - OPENAI_CHAT_MODEL=${OPENAI_CHAT_MODEL:-gpt-4o-mini}
+      - OPENAI_EMBED_MODEL=${OPENAI_EMBED_MODEL:-text-embedding-3-small}

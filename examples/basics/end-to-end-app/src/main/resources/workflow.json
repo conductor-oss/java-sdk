@@ -1,0 +1,51 @@
+{
+  "name": "support_ticket_pipeline",
+  "description": "Complete support ticket pipeline: classify, assign, and notify",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["ticketId", "subject", "description", "category", "customerEmail"],
+  "tasks": [
+    {
+      "name": "classify_ticket",
+      "taskReferenceName": "classify_ticket_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${workflow.input.ticketId}",
+        "subject": "${workflow.input.subject}",
+        "description": "${workflow.input.description}",
+        "category": "${workflow.input.category}"
+      }
+    },
+    {
+      "name": "assign_ticket",
+      "taskReferenceName": "assign_ticket_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${workflow.input.ticketId}",
+        "category": "${workflow.input.category}",
+        "priority": "${classify_ticket_ref.output.priority}"
+      }
+    },
+    {
+      "name": "notify_customer",
+      "taskReferenceName": "notify_customer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerEmail": "${workflow.input.customerEmail}",
+        "ticketId": "${workflow.input.ticketId}",
+        "priority": "${classify_ticket_ref.output.priority}",
+        "assignedTeam": "${assign_ticket_ref.output.team}",
+        "estimatedResponse": "${assign_ticket_ref.output.estimatedResponse}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ticketId": "${workflow.input.ticketId}",
+    "priority": "${classify_ticket_ref.output.priority}",
+    "team": "${assign_ticket_ref.output.team}",
+    "estimatedResponse": "${assign_ticket_ref.output.estimatedResponse}",
+    "notificationSent": "${notify_customer_ref.output.sent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

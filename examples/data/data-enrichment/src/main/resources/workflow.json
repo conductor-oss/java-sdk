@@ -1,0 +1,60 @@
+{
+  "name": "data_enrichment",
+  "description": "Data enrichment workflow that loads records and sequentially enriches them with geo, company, and credit data before merging the results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records"
+  ],
+  "tasks": [
+    {
+      "name": "dr_load_records",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}"
+      }
+    },
+    {
+      "name": "dr_lookup_geo",
+      "taskReferenceName": "geo_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${load_ref.output.records}"
+      }
+    },
+    {
+      "name": "dr_lookup_company",
+      "taskReferenceName": "company_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${geo_ref.output.enriched}"
+      }
+    },
+    {
+      "name": "dr_lookup_credit",
+      "taskReferenceName": "credit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${company_ref.output.enriched}"
+      }
+    },
+    {
+      "name": "dr_merge_enriched",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${credit_ref.output.enriched}",
+        "originalCount": "${load_ref.output.count}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalCount": "${load_ref.output.count}",
+    "enrichedCount": "${merge_ref.output.enrichedCount}",
+    "fieldsAdded": "${merge_ref.output.fieldsAdded}",
+    "summary": "${merge_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

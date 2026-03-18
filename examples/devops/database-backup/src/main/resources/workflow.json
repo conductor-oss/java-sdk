@@ -1,0 +1,99 @@
+{
+  "name": "database_backup",
+  "version": 1,
+  "description": "Orchestrates a complete database backup: validates config, takes a snapshot, verifies integrity, uploads to offsite storage, enforces retention policy, and sends a completion notification.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "database",
+    "storage",
+    "retention",
+    "notification"
+  ],
+  "tasks": [
+    {
+      "name": "backup_validate_config",
+      "taskReferenceName": "backup_validate_config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "database": "${workflow.input.database}",
+        "storage": "${workflow.input.storage}",
+        "retention": "${workflow.input.retention}"
+      }
+    },
+    {
+      "name": "backup_take_snapshot",
+      "taskReferenceName": "backup_take_snapshot_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "databaseType": "${backup_validate_config_ref.output.databaseType}",
+        "databaseHost": "${backup_validate_config_ref.output.databaseHost}",
+        "databaseName": "${backup_validate_config_ref.output.databaseName}"
+      }
+    },
+    {
+      "name": "backup_verify_integrity",
+      "taskReferenceName": "backup_verify_integrity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filename": "${backup_take_snapshot_ref.output.filename}",
+        "checksum": "${backup_take_snapshot_ref.output.checksum}",
+        "checksumAlgorithm": "${backup_take_snapshot_ref.output.checksumAlgorithm}",
+        "sizeBytes": "${backup_take_snapshot_ref.output.sizeBytes}",
+        "compressed": "${backup_take_snapshot_ref.output.compressed}",
+        "databaseType": "${backup_take_snapshot_ref.output.databaseType}",
+        "databaseName": "${backup_take_snapshot_ref.output.databaseName}"
+      }
+    },
+    {
+      "name": "backup_upload_to_storage",
+      "taskReferenceName": "backup_upload_to_storage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filename": "${backup_take_snapshot_ref.output.filename}",
+        "sizeBytes": "${backup_take_snapshot_ref.output.sizeBytes}",
+        "checksum": "${backup_take_snapshot_ref.output.checksum}",
+        "storage": "${workflow.input.storage}"
+      }
+    },
+    {
+      "name": "backup_cleanup_old",
+      "taskReferenceName": "backup_cleanup_old_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "databaseName": "${backup_validate_config_ref.output.databaseName}",
+        "storageType": "${backup_validate_config_ref.output.storageType}",
+        "bucket": "${workflow.input.storage.bucket}",
+        "retentionDays": "${backup_validate_config_ref.output.retentionDays}",
+        "maxBackups": "${backup_validate_config_ref.output.maxBackups}"
+      }
+    },
+    {
+      "name": "backup_send_notification",
+      "taskReferenceName": "backup_send_notification_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filename": "${backup_take_snapshot_ref.output.filename}",
+        "sizeBytes": "${backup_take_snapshot_ref.output.sizeBytes}",
+        "storageUri": "${backup_upload_to_storage_ref.output.storageUri}",
+        "verified": "${backup_verify_integrity_ref.output.verified}",
+        "deletedCount": "${backup_cleanup_old_ref.output.deletedCount}",
+        "freedFormatted": "${backup_cleanup_old_ref.output.freedFormatted}",
+        "databaseName": "${backup_validate_config_ref.output.databaseName}",
+        "notification": "${workflow.input.notification}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "databaseName": "${backup_validate_config_ref.output.databaseName}",
+    "filename": "${backup_take_snapshot_ref.output.filename}",
+    "sizeBytes": "${backup_take_snapshot_ref.output.sizeBytes}",
+    "sizeFormatted": "${backup_upload_to_storage_ref.output.sizeBytes}",
+    "storageUri": "${backup_upload_to_storage_ref.output.storageUri}",
+    "verified": "${backup_verify_integrity_ref.output.verified}",
+    "deletedCount": "${backup_cleanup_old_ref.output.deletedCount}",
+    "freedFormatted": "${backup_cleanup_old_ref.output.freedFormatted}",
+    "notificationStatus": "${backup_send_notification_ref.output.status}"
+  }
+}

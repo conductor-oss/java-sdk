@@ -1,0 +1,71 @@
+{
+  "name": "fork_join_demo",
+  "description": "FORK_JOIN demo — fetch product, inventory, and reviews in parallel, then merge into a product page.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["productId"],
+  "tasks": [
+    {
+      "name": "fork_product_data",
+      "taskReferenceName": "fork_product_data_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "fj_get_product",
+            "taskReferenceName": "fj_get_product_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "productId": "${workflow.input.productId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "fj_get_inventory",
+            "taskReferenceName": "fj_get_inventory_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "productId": "${workflow.input.productId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "fj_get_reviews",
+            "taskReferenceName": "fj_get_reviews_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "productId": "${workflow.input.productId}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_product_data",
+      "taskReferenceName": "join_product_data_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "fj_get_product_ref",
+        "fj_get_inventory_ref",
+        "fj_get_reviews_ref"
+      ]
+    },
+    {
+      "name": "fj_merge_results",
+      "taskReferenceName": "fj_merge_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "product": "${fj_get_product_ref.output.product}",
+        "inventory": "${fj_get_inventory_ref.output.inventory}",
+        "reviews": "${fj_get_reviews_ref.output.reviews}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "productPage": "${fj_merge_results_ref.output.productPage}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

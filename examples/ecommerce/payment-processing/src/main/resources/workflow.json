@@ -1,0 +1,68 @@
+{
+  "name": "payment_processing",
+  "description": "Payment processing workflow: validate, authorize, capture, receipt, reconcile",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "amount", "currency", "paymentMethod", "merchantId"],
+  "tasks": [
+    {
+      "name": "pay_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}",
+        "currency": "${workflow.input.currency}",
+        "paymentMethod": "${workflow.input.paymentMethod}"
+      }
+    },
+    {
+      "name": "pay_authorize",
+      "taskReferenceName": "auth_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}",
+        "paymentMethod": "${workflow.input.paymentMethod}"
+      }
+    },
+    {
+      "name": "pay_capture",
+      "taskReferenceName": "capture_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "authorizationId": "${auth_ref.output.authorizationId}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "pay_receipt",
+      "taskReferenceName": "receipt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "captureId": "${capture_ref.output.captureId}",
+        "amount": "${workflow.input.amount}",
+        "currency": "${workflow.input.currency}"
+      }
+    },
+    {
+      "name": "pay_reconcile",
+      "taskReferenceName": "reconcile_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "captureId": "${capture_ref.output.captureId}",
+        "merchantId": "${workflow.input.merchantId}",
+        "amount": "${workflow.input.amount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "authorizationId": "${auth_ref.output.authorizationId}",
+    "captureId": "${capture_ref.output.captureId}",
+    "receiptId": "${receipt_ref.output.receiptId}",
+    "reconciled": "${reconcile_ref.output.reconciled}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

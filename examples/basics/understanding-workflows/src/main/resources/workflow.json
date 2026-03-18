@@ -1,0 +1,47 @@
+{
+  "name": "order_pipeline",
+  "description": "A 3-step order pipeline: validate, calculate total, send confirmation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "customerEmail", "items"],
+  "tasks": [
+    {
+      "name": "validate_order",
+      "taskReferenceName": "validate_order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "calculate_total",
+      "taskReferenceName": "calculate_total_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validatedItems": "${validate_order_ref.output.validatedItems}"
+      }
+    },
+    {
+      "name": "send_confirmation",
+      "taskReferenceName": "send_confirmation_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerEmail": "${workflow.input.customerEmail}",
+        "total": "${calculate_total_ref.output.total}",
+        "orderId": "${workflow.input.orderId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "itemCount": "${validate_order_ref.output.itemCount}",
+    "subtotal": "${calculate_total_ref.output.subtotal}",
+    "tax": "${calculate_total_ref.output.tax}",
+    "total": "${calculate_total_ref.output.total}",
+    "emailSent": "${send_confirmation_ref.output.emailSent}",
+    "recipient": "${send_confirmation_ref.output.recipient}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

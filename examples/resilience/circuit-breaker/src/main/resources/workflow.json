@@ -1,0 +1,58 @@
+{
+  "name": "circuit_breaker_demo",
+  "description": "Circuit breaker pattern -- checks circuit state, routes to fallback when OPEN, calls service when CLOSED.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["circuitState", "failureCount", "threshold", "serviceName"],
+  "tasks": [
+    {
+      "name": "cb_check_circuit",
+      "taskReferenceName": "check_circuit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "circuitState": "${workflow.input.circuitState}",
+        "failureCount": "${workflow.input.failureCount}",
+        "threshold": "${workflow.input.threshold}"
+      }
+    },
+    {
+      "name": "circuit_switch",
+      "taskReferenceName": "circuit_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${check_circuit_ref.output.state}"
+      },
+      "decisionCases": {
+        "OPEN": [
+          {
+            "name": "cb_fallback",
+            "taskReferenceName": "fallback_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "serviceName": "${workflow.input.serviceName}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "cb_call_service",
+          "taskReferenceName": "call_service_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "serviceName": "${workflow.input.serviceName}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "circuitState": "${check_circuit_ref.output.state}",
+    "result": "${circuit_switch_ref.output.result}",
+    "source": "${circuit_switch_ref.output.source}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

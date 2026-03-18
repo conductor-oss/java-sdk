@@ -1,0 +1,63 @@
+{
+  "name": "data_aggregation_wf",
+  "description": "Sequential data aggregation workflow: load_data -> group_by_dimension -> compute_aggregates -> format_report -> emit_results",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "groupBy",
+    "aggregateField"
+  ],
+  "tasks": [
+    {
+      "name": "agg_load_data",
+      "taskReferenceName": "load_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}"
+      }
+    },
+    {
+      "name": "agg_group_by_dimension",
+      "taskReferenceName": "group_by_dimension_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${load_data_ref.output.records}",
+        "groupBy": "${workflow.input.groupBy}"
+      }
+    },
+    {
+      "name": "agg_compute_aggregates",
+      "taskReferenceName": "compute_aggregates_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "groups": "${group_by_dimension_ref.output.groups}",
+        "aggregateField": "${workflow.input.aggregateField}"
+      }
+    },
+    {
+      "name": "agg_format_report",
+      "taskReferenceName": "format_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregates": "${compute_aggregates_ref.output.aggregates}"
+      }
+    },
+    {
+      "name": "agg_emit_results",
+      "taskReferenceName": "emit_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "report": "${format_report_ref.output.report}",
+        "groupCount": "${group_by_dimension_ref.output.groupCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${emit_results_ref.output.summary}",
+    "report": "${format_report_ref.output.report}",
+    "groupCount": "${group_by_dimension_ref.output.groupCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,50 @@
+{
+  "name": "gdpr_compliance_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "subjectId",
+    "requestType"
+  ],
+  "tasks": [
+    {
+      "name": "gdpr_verify_identity",
+      "taskReferenceName": "verify_identity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subjectId": "${workflow.input.subjectId}",
+        "requestType": "${workflow.input.requestType}"
+      }
+    },
+    {
+      "name": "gdpr_locate_data",
+      "taskReferenceName": "locate_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "locate_dataData": "${verify_identity_ref.output}"
+      }
+    },
+    {
+      "name": "gdpr_process_request",
+      "taskReferenceName": "process_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "process_requestData": "${locate_data_ref.output}"
+      }
+    },
+    {
+      "name": "gdpr_confirm_completion",
+      "taskReferenceName": "confirm_completion_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "confirm_completionData": "${process_request_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "verify_identityResult": "${verify_identity_ref.output}",
+    "confirm_completionResult": "${confirm_completion_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 86400
+}

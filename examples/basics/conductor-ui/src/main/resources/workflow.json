@@ -1,0 +1,43 @@
+{
+  "name": "ui_demo_workflow",
+  "description": "A 3-step workflow designed for exploring the Conductor UI",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "action"],
+  "tasks": [
+    {
+      "name": "ui_step_one",
+      "taskReferenceName": "ui_step_one_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "action": "${workflow.input.action}"
+      }
+    },
+    {
+      "name": "ui_step_two",
+      "taskReferenceName": "ui_step_two_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "previousResult": "${ui_step_one_ref.output.result}"
+      }
+    },
+    {
+      "name": "ui_step_three",
+      "taskReferenceName": "ui_step_three_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "allData": {
+          "stepOneResult": "${ui_step_one_ref.output.result}",
+          "stepTwoResult": "${ui_step_two_ref.output.result}"
+        }
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${ui_step_three_ref.output.summary}",
+    "path": "${ui_step_three_ref.output.path}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,52 @@
+{
+  "name": "document_ingestion_workflow",
+  "description": "Document ingestion pipeline — PDF extract, chunk, embed, store",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["documentUrl", "collection", "chunkSize", "chunkOverlap"],
+  "tasks": [
+    {
+      "name": "ingest_extract_pdf",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documentUrl": "${workflow.input.documentUrl}"
+      }
+    },
+    {
+      "name": "ingest_chunk_text",
+      "taskReferenceName": "chunk_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "text": "${extract_ref.output.text}",
+        "chunkSize": "${workflow.input.chunkSize}",
+        "chunkOverlap": "${workflow.input.chunkOverlap}"
+      }
+    },
+    {
+      "name": "ingest_embed_chunks",
+      "taskReferenceName": "embed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "chunks": "${chunk_ref.output.chunks}"
+      }
+    },
+    {
+      "name": "ingest_store_vectors",
+      "taskReferenceName": "store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vectors": "${embed_ref.output.vectors}",
+        "collection": "${workflow.input.collection}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "documentUrl": "${workflow.input.documentUrl}",
+    "pagesExtracted": "${extract_ref.output.pageCount}",
+    "chunksCreated": "${chunk_ref.output.chunkCount}",
+    "vectorsStored": "${store_ref.output.storedCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

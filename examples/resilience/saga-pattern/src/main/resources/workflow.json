@@ -1,0 +1,91 @@
+{
+  "name": "trip_booking_saga",
+  "description": "Saga pattern: orchestrated compensation for distributed trip booking",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "tripId",
+    "shouldFail"
+  ],
+  "tasks": [
+    {
+      "name": "saga_reserve_hotel",
+      "taskReferenceName": "reserve_hotel_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}"
+      }
+    },
+    {
+      "name": "saga_book_flight",
+      "taskReferenceName": "book_flight_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}"
+      }
+    },
+    {
+      "name": "saga_charge_payment",
+      "taskReferenceName": "charge_payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}",
+        "shouldFail": "${workflow.input.shouldFail}"
+      }
+    },
+    {
+      "name": "check_payment_status",
+      "taskReferenceName": "check_payment_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${charge_payment_ref.output.status}"
+      },
+      "decisionCases": {
+        "failed": [
+          {
+            "name": "saga_cancel_flight",
+            "taskReferenceName": "cancel_flight_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "tripId": "${workflow.input.tripId}",
+              "bookingId": "${book_flight_ref.output.bookingId}"
+            }
+          },
+          {
+            "name": "saga_cancel_hotel",
+            "taskReferenceName": "cancel_hotel_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "tripId": "${workflow.input.tripId}",
+              "reservationId": "${reserve_hotel_ref.output.reservationId}"
+            }
+          },
+          {
+            "name": "terminate_rolled_back",
+            "taskReferenceName": "terminate_ref",
+            "type": "TERMINATE",
+            "inputParameters": {
+              "terminationStatus": "COMPLETED",
+              "workflowOutput": {
+                "tripId": "${workflow.input.tripId}",
+                "status": "ROLLED_BACK"
+              }
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "tripId": "${workflow.input.tripId}",
+    "hotel": "${reserve_hotel_ref.output.reservationId}",
+    "flight": "${book_flight_ref.output.bookingId}",
+    "payment": "${charge_payment_ref.output.status}",
+    "transactionId": "${charge_payment_ref.output.transactionId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

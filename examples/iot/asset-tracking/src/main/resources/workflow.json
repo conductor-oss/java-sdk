@@ -1,0 +1,71 @@
+{
+  "name": "asset_tracking_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "assetId",
+    "assetType",
+    "geofenceId"
+  ],
+  "tasks": [
+    {
+      "name": "ast_tag_asset",
+      "taskReferenceName": "ast_tag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "assetType": "${workflow.input.assetType}"
+      }
+    },
+    {
+      "name": "ast_track_location",
+      "taskReferenceName": "ast_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "tagId": "${ast_tag_ref.output.tagId}"
+      }
+    },
+    {
+      "name": "ast_geofence_check",
+      "taskReferenceName": "ast_geofence_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "geofenceId": "${workflow.input.geofenceId}",
+        "latitude": "${ast_track_ref.output.latitude}",
+        "longitude": "${ast_track_ref.output.longitude}"
+      }
+    },
+    {
+      "name": "ast_trigger_alert",
+      "taskReferenceName": "ast_alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "insideGeofence": "${ast_geofence_ref.output.insideGeofence}",
+        "distanceFromBoundary": "${ast_geofence_ref.output.distanceFromBoundary}"
+      }
+    },
+    {
+      "name": "ast_update_registry",
+      "taskReferenceName": "ast_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "latitude": "${ast_track_ref.output.latitude}",
+        "longitude": "${ast_track_ref.output.longitude}",
+        "insideGeofence": "${ast_geofence_ref.output.insideGeofence}",
+        "alertTriggered": "${ast_alert_ref.output.alertTriggered}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "assetId": "${workflow.input.assetId}",
+    "insideGeofence": "${ast_geofence_ref.output.insideGeofence}",
+    "alertTriggered": "${ast_alert_ref.output.alertTriggered}",
+    "registryUpdated": "${ast_update_ref.output.updated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

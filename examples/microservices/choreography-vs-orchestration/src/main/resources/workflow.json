@@ -1,0 +1,18 @@
+{
+  "name": "orchestrated_order_flow",
+  "description": "Orchestrated order flow demonstrating Conductor-based orchestration vs choreography",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["orderId", "items", "customerId"],
+  "tasks": [
+    {"name": "cvo_place_order", "taskReferenceName": "order_ref", "type": "SIMPLE",
+      "inputParameters": {"orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}"}},
+    {"name": "cvo_reserve_inventory", "taskReferenceName": "inv_ref", "type": "SIMPLE",
+      "inputParameters": {"orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}"}},
+    {"name": "cvo_process_payment", "taskReferenceName": "pay_ref", "type": "SIMPLE",
+      "inputParameters": {"orderId": "${workflow.input.orderId}", "amount": "${order_ref.output.total}"}},
+    {"name": "cvo_ship_order", "taskReferenceName": "ship_ref", "type": "SIMPLE",
+      "inputParameters": {"orderId": "${workflow.input.orderId}", "warehouse": "${inv_ref.output.warehouse}"}}
+  ],
+  "outputParameters": {"orderId": "${workflow.input.orderId}", "shipped": "${ship_ref.output.shipped}", "trackingId": "${ship_ref.output.trackingId}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

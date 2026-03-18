@@ -1,0 +1,42 @@
+{
+  "name": "do_while_demo",
+  "description": "DO_WHILE loop demo — processes items in a batch by iterating until iteration >= batchSize.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batchSize"],
+  "tasks": [
+    {
+      "name": "loop_ref",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < $.batchSize) { true; } else { false; }",
+      "inputParameters": {
+        "batchSize": "${workflow.input.batchSize}"
+      },
+      "loopOver": [
+        {
+          "name": "dw_process_item",
+          "taskReferenceName": "dw_process_item_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "dw_summarize",
+      "taskReferenceName": "dw_summarize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "totalIterations": "${loop_ref.output.iteration}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalProcessed": "${dw_summarize_ref.output.totalProcessed}",
+    "summary": "${dw_summarize_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

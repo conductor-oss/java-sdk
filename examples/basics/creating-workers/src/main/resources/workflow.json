@@ -1,0 +1,42 @@
+{
+  "name": "worker_demo_workflow",
+  "description": "Demonstrates three worker patterns: sync transform, async fetch, and error-handling process",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["text", "source"],
+  "tasks": [
+    {
+      "name": "simple_transform",
+      "taskReferenceName": "simple_transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "text": "${workflow.input.text}"
+      }
+    },
+    {
+      "name": "fetch_data",
+      "taskReferenceName": "fetch_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "source": "${workflow.input.source}"
+      }
+    },
+    {
+      "name": "safe_process",
+      "taskReferenceName": "safe_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${fetch_data_ref.output.records}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "transformedText": "${simple_transform_ref.output.upper}",
+    "textLength": "${simple_transform_ref.output.length}",
+    "fetchedRecords": "${fetch_data_ref.output.recordCount}",
+    "processingSummary": "${safe_process_ref.output.summary}",
+    "processedResults": "${safe_process_ref.output.results}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

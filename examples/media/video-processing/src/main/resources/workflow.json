@@ -1,0 +1,70 @@
+{
+  "name": "video_processing_workflow",
+  "description": "Video workflow: upload, transcode to multiple formats, generate thumbnails, extract metadata, and publish.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["videoId", "sourceUrl", "title", "creatorId"],
+  "tasks": [
+    {
+      "name": "vid_upload",
+      "taskReferenceName": "vid_upload_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "videoId": "${workflow.input.videoId}",
+        "sourceUrl": "${workflow.input.sourceUrl}",
+        "creatorId": "${workflow.input.creatorId}"
+      }
+    },
+    {
+      "name": "vid_transcode",
+      "taskReferenceName": "vid_transcode_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "videoId": "${workflow.input.videoId}",
+        "storagePath": "${vid_upload_ref.output.storagePath}",
+        "duration": "${vid_upload_ref.output.duration}"
+      }
+    },
+    {
+      "name": "vid_thumbnail",
+      "taskReferenceName": "vid_thumbnail_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "videoId": "${workflow.input.videoId}",
+        "storagePath": "${vid_upload_ref.output.storagePath}",
+        "duration": "${vid_upload_ref.output.duration}"
+      }
+    },
+    {
+      "name": "vid_metadata",
+      "taskReferenceName": "vid_metadata_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "videoId": "${workflow.input.videoId}",
+        "title": "${workflow.input.title}",
+        "duration": "${vid_upload_ref.output.duration}",
+        "resolutions": "${vid_transcode_ref.output.resolutions}"
+      }
+    },
+    {
+      "name": "vid_publish",
+      "taskReferenceName": "vid_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "videoId": "${workflow.input.videoId}",
+        "title": "${workflow.input.title}",
+        "thumbnailUrl": "${vid_thumbnail_ref.output.thumbnailUrl}",
+        "hlsUrl": "${vid_transcode_ref.output.hlsUrl}",
+        "metadata": "${vid_metadata_ref.output.metadata}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "videoId": "${workflow.input.videoId}",
+    "publishUrl": "${vid_publish_ref.output.publishUrl}",
+    "resolutions": "${vid_transcode_ref.output.resolutions}",
+    "duration": "${vid_upload_ref.output.duration}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

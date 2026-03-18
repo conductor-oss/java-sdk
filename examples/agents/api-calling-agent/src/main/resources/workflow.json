@@ -1,0 +1,66 @@
+{
+  "name": "api_calling_agent",
+  "description": "API Calling Agent — plans an API call, authenticates, calls the API, parses the response, and formats the output through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userRequest", "apiCatalog"],
+  "tasks": [
+    {
+      "name": "ap_plan_api_call",
+      "taskReferenceName": "ap_plan_api_call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userRequest": "${workflow.input.userRequest}",
+        "apiCatalog": "${workflow.input.apiCatalog}"
+      }
+    },
+    {
+      "name": "ap_authenticate",
+      "taskReferenceName": "ap_authenticate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apiName": "${ap_plan_api_call_ref.output.selectedApi}",
+        "authType": "${ap_plan_api_call_ref.output.authType}"
+      }
+    },
+    {
+      "name": "ap_call_api",
+      "taskReferenceName": "ap_call_api_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${ap_plan_api_call_ref.output.endpoint}",
+        "method": "${ap_plan_api_call_ref.output.method}",
+        "params": "${ap_plan_api_call_ref.output.params}",
+        "authToken": "${ap_authenticate_ref.output.token}"
+      }
+    },
+    {
+      "name": "ap_parse_response",
+      "taskReferenceName": "ap_parse_response_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawResponse": "${ap_call_api_ref.output.response}",
+        "statusCode": "${ap_call_api_ref.output.statusCode}",
+        "expectedSchema": "${ap_plan_api_call_ref.output.responseSchema}"
+      }
+    },
+    {
+      "name": "ap_format_output",
+      "taskReferenceName": "ap_format_output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userRequest": "${workflow.input.userRequest}",
+        "parsedData": "${ap_parse_response_ref.output.parsedData}",
+        "apiName": "${ap_plan_api_call_ref.output.selectedApi}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${ap_format_output_ref.output.answer}",
+    "dataSource": "${ap_format_output_ref.output.dataSource}",
+    "fieldsUsed": "${ap_format_output_ref.output.fieldsUsed}",
+    "validationPassed": "${ap_parse_response_ref.output.validationPassed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

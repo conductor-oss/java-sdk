@@ -1,0 +1,53 @@
+{
+  "name": "citation_rag_workflow",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "question"
+  ],
+  "tasks": [
+    {
+      "name": "cr_retrieve_docs",
+      "taskReferenceName": "retrieve_docs_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "cr_generate_cited",
+      "taskReferenceName": "generate_cited_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "documents": "${retrieve_docs_ref.output.documents}"
+      }
+    },
+    {
+      "name": "cr_extract_citations",
+      "taskReferenceName": "extract_citations_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "answer": "${generate_cited_ref.output.answer}",
+        "citations": "${generate_cited_ref.output.citations}"
+      }
+    },
+    {
+      "name": "cr_verify_citations",
+      "taskReferenceName": "verify_citations_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "citations": "${generate_cited_ref.output.citations}",
+        "documents": "${retrieve_docs_ref.output.documents}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${generate_cited_ref.output.answer}",
+    "citations": "${generate_cited_ref.output.citations}",
+    "extractedCitations": "${extract_citations_ref.output.extractedCitations}",
+    "verificationResults": "${verify_citations_ref.output.results}"
+  }
+}

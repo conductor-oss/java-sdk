@@ -1,0 +1,43 @@
+{
+  "name": "compensatable_workflow",
+  "description": "Main workflow with three steps: A -> B -> C. Step C can fail based on failAtStep input, triggering compensation.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["failAtStep"],
+  "tasks": [
+    {
+      "name": "comp_step_a",
+      "taskReferenceName": "a_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "A"
+      }
+    },
+    {
+      "name": "comp_step_b",
+      "taskReferenceName": "b_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "B",
+        "prevResult": "${a_ref.output.result}"
+      }
+    },
+    {
+      "name": "comp_step_c",
+      "taskReferenceName": "c_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "C",
+        "failAtStep": "${workflow.input.failAtStep}",
+        "prevResult": "${b_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "stepA": "${a_ref.output.result}",
+    "stepB": "${b_ref.output.result}",
+    "stepC": "${c_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

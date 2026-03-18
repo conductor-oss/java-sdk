@@ -1,0 +1,95 @@
+{
+  "name": "adaptive_rag",
+  "description": "Adaptive RAG — Route queries to different strategies based on classification",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question"],
+  "tasks": [
+    {
+      "name": "ar_classify",
+      "taskReferenceName": "cls_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "route_strategy",
+      "taskReferenceName": "sw_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${cls_ref.output.queryType}"
+      },
+      "decisionCases": {
+        "factual": [
+          {
+            "name": "ar_simple_ret",
+            "taskReferenceName": "sret_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}"
+            }
+          },
+          {
+            "name": "ar_simple_gen",
+            "taskReferenceName": "sgen_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "context": "${sret_ref.output.documents}"
+            }
+          }
+        ],
+        "analytical": [
+          {
+            "name": "ar_mhop_ret",
+            "taskReferenceName": "mret_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}"
+            }
+          },
+          {
+            "name": "ar_reason",
+            "taskReferenceName": "rsn_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "documents": "${mret_ref.output.documents}"
+            }
+          },
+          {
+            "name": "ar_anal_gen",
+            "taskReferenceName": "agen_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "reasoning": "${rsn_ref.output.chain}",
+              "documents": "${mret_ref.output.documents}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "ar_creative_gen",
+          "taskReferenceName": "cgen_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${workflow.input.question}",
+            "style": "creative"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "question": "${workflow.input.question}",
+    "queryType": "${cls_ref.output.queryType}",
+    "confidence": "${cls_ref.output.confidence}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

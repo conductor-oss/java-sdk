@@ -1,0 +1,47 @@
+{
+  "name": "sub_order_workflow",
+  "description": "Parent workflow — orchestrates order processing. Calculates total, delegates payment to a SUB_WORKFLOW, then confirms the order.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "items", "paymentMethod"],
+  "tasks": [
+    {
+      "name": "sub_calc_total",
+      "taskReferenceName": "sub_calc_total_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "payment_sub_workflow",
+      "taskReferenceName": "payment_sub_workflow_ref",
+      "type": "SUB_WORKFLOW",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${sub_calc_total_ref.output.total}",
+        "paymentMethod": "${workflow.input.paymentMethod}"
+      },
+      "subWorkflowParam": {
+        "name": "sub_payment_process",
+        "version": 1
+      }
+    },
+    {
+      "name": "sub_confirm_order",
+      "taskReferenceName": "sub_confirm_order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "transactionId": "${payment_sub_workflow_ref.output.transactionId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${sub_confirm_order_ref.output.orderId}",
+    "transactionId": "${sub_confirm_order_ref.output.transactionId}",
+    "confirmed": "${sub_confirm_order_ref.output.confirmed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

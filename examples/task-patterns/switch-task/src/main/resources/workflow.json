@@ -1,0 +1,89 @@
+{
+  "name": "switch_demo",
+  "description": "Conditional routing by ticket priority using SWITCH with value-param",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "ticketId",
+    "priority",
+    "description"
+  ],
+  "tasks": [
+    {
+      "name": "route_by_priority",
+      "taskReferenceName": "route_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${workflow.input.priority}"
+      },
+      "decisionCases": {
+        "LOW": [
+          {
+            "name": "sw_auto_handle",
+            "taskReferenceName": "auto_handle_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "ticketId": "${workflow.input.ticketId}",
+              "priority": "${workflow.input.priority}",
+              "description": "${workflow.input.description}"
+            }
+          }
+        ],
+        "MEDIUM": [
+          {
+            "name": "sw_team_review",
+            "taskReferenceName": "team_review_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "ticketId": "${workflow.input.ticketId}",
+              "priority": "${workflow.input.priority}",
+              "description": "${workflow.input.description}"
+            }
+          }
+        ],
+        "HIGH": [
+          {
+            "name": "sw_escalate",
+            "taskReferenceName": "escalate_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "ticketId": "${workflow.input.ticketId}",
+              "priority": "${workflow.input.priority}",
+              "description": "${workflow.input.description}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "sw_unknown_priority",
+          "taskReferenceName": "unknown_priority_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "ticketId": "${workflow.input.ticketId}",
+            "priority": "${workflow.input.priority}",
+            "description": "${workflow.input.description}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sw_log_action",
+      "taskReferenceName": "log_action_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${workflow.input.ticketId}",
+        "priority": "${workflow.input.priority}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ticketId": "${workflow.input.ticketId}",
+    "priority": "${workflow.input.priority}",
+    "logged": "${log_action_ref.output.logged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

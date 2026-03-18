@@ -1,0 +1,45 @@
+{
+  "name": "anthropic_claude_workflow",
+  "description": "Orchestrates Anthropic Claude API calls through Conductor",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userMessage", "systemPrompt", "model"],
+  "tasks": [
+    {
+      "name": "claude_build_messages",
+      "taskReferenceName": "build_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userMessage": "${workflow.input.userMessage}",
+        "systemPrompt": "${workflow.input.systemPrompt}",
+        "model": "${workflow.input.model}",
+        "max_tokens": 1024,
+        "temperature": 0.5
+      }
+    },
+    {
+      "name": "claude_call_api",
+      "taskReferenceName": "api_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestBody": "${build_ref.output.requestBody}"
+      }
+    },
+    {
+      "name": "claude_process_response",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apiResponse": "${api_ref.output.apiResponse}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "analysis": "${process_ref.output.text}",
+    "model": "${api_ref.output.apiResponse.model}",
+    "usage": "${api_ref.output.apiResponse.usage}",
+    "stopReason": "${api_ref.output.apiResponse.stop_reason}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

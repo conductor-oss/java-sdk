@@ -1,0 +1,48 @@
+{
+  "name": "service_discovery_devops_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "endpoint", "version", "healthCheckUrl"],
+  "tasks": [
+    {
+      "name": "sd_register",
+      "taskReferenceName": "register_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "endpoint": "${workflow.input.endpoint}",
+        "version": "${workflow.input.version}"
+      }
+    },
+    {
+      "name": "sd_health_check",
+      "taskReferenceName": "health_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "health_checkData": "${register_ref.output}"
+      }
+    },
+    {
+      "name": "sd_update_routing",
+      "taskReferenceName": "update_routing_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "update_routingData": "${health_check_ref.output}"
+      }
+    },
+    {
+      "name": "sd_notify_consumers",
+      "taskReferenceName": "notify_consumers_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "notify_consumersData": "${update_routing_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "registerResult": "${register_ref.output}",
+    "notify_consumersResult": "${notify_consumers_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

@@ -1,0 +1,83 @@
+{
+  "name": "data_quality_checks",
+  "description": "Data quality checks workflow that loads records and runs completeness, accuracy, and consistency checks in parallel, then generates a quality report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records"
+  ],
+  "tasks": [
+    {
+      "name": "qc_load_data",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}"
+      }
+    },
+    {
+      "name": "parallel_quality_checks",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "qc_check_completeness",
+            "taskReferenceName": "complete_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "records": "${load_ref.output.records}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "qc_check_accuracy",
+            "taskReferenceName": "accuracy_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "records": "${load_ref.output.records}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "qc_check_consistency",
+            "taskReferenceName": "consist_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "records": "${load_ref.output.records}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_quality_checks",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["complete_ref", "accuracy_ref", "consist_ref"]
+    },
+    {
+      "name": "qc_generate_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "completeness": "${complete_ref.output.score}",
+        "accuracy": "${accuracy_ref.output.score}",
+        "consistency": "${consist_ref.output.score}",
+        "totalRecords": "${load_ref.output.count}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalRecords": "${load_ref.output.count}",
+    "completenessScore": "${complete_ref.output.score}",
+    "accuracyScore": "${accuracy_ref.output.score}",
+    "consistencyScore": "${consist_ref.output.score}",
+    "overallScore": "${report_ref.output.overallScore}",
+    "grade": "${report_ref.output.grade}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

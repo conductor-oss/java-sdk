@@ -1,0 +1,54 @@
+{
+  "name": "tool_use_basics",
+  "description": "Tool Use Basics — analyzes a user request, selects the appropriate tool, executes it, and formats the result into a natural language answer.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userRequest", "availableTools"],
+  "tasks": [
+    {
+      "name": "tu_analyze_request",
+      "taskReferenceName": "tu_analyze_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userRequest": "${workflow.input.userRequest}",
+        "availableTools": "${workflow.input.availableTools}"
+      }
+    },
+    {
+      "name": "tu_select_tool",
+      "taskReferenceName": "tu_select_tool_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analysis": "${tu_analyze_request_ref.output.analysis}",
+        "intent": "${tu_analyze_request_ref.output.intent}",
+        "availableTools": "${workflow.input.availableTools}"
+      }
+    },
+    {
+      "name": "tu_execute_tool",
+      "taskReferenceName": "tu_execute_tool_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${tu_select_tool_ref.output.selectedTool}",
+        "toolArgs": "${tu_select_tool_ref.output.toolArgs}"
+      }
+    },
+    {
+      "name": "tu_format_result",
+      "taskReferenceName": "tu_format_result_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userRequest": "${workflow.input.userRequest}",
+        "toolName": "${tu_select_tool_ref.output.selectedTool}",
+        "toolOutput": "${tu_execute_tool_ref.output.toolOutput}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${tu_format_result_ref.output.answer}",
+    "toolUsed": "${tu_format_result_ref.output.toolUsed}",
+    "sourceData": "${tu_format_result_ref.output.sourceData}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,15 @@
+{
+  "name": "account_opening_workflow",
+  "description": "Account opening workflow: collect info, verify identity, credit check, open account, send welcome.",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["applicationId", "applicantName", "accountType", "initialDeposit"],
+  "tasks": [
+    {"name": "acc_collect_info", "taskReferenceName": "acc_info_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "applicantName": "${workflow.input.applicantName}", "accountType": "${workflow.input.accountType}", "initialDeposit": "${workflow.input.initialDeposit}"}},
+    {"name": "acc_verify_identity", "taskReferenceName": "acc_identity_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "applicantName": "${workflow.input.applicantName}", "documents": "${acc_info_ref.output.documents}"}},
+    {"name": "acc_credit_check", "taskReferenceName": "acc_credit_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "applicantName": "${workflow.input.applicantName}"}},
+    {"name": "acc_open_account", "taskReferenceName": "acc_open_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "accountType": "${workflow.input.accountType}", "initialDeposit": "${workflow.input.initialDeposit}", "identityVerified": "${acc_identity_ref.output.verified}", "chexScore": "${acc_credit_ref.output.chexScore}"}},
+    {"name": "acc_welcome", "taskReferenceName": "acc_welcome_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "applicantName": "${workflow.input.applicantName}", "accountNumber": "${acc_open_ref.output.accountNumber}", "accountType": "${workflow.input.accountType}"}}
+  ],
+  "outputParameters": {"applicationId": "${workflow.input.applicationId}", "accountNumber": "${acc_open_ref.output.accountNumber}", "accountType": "${workflow.input.accountType}", "welcomeSent": "${acc_welcome_ref.output.welcomeSent}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}
