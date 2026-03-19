@@ -24,7 +24,7 @@ Three workers form the simplest possible LLM pipeline. Preparing the prompt with
 | **AiParseResponseWorker** | `ai_parse_response` | Worker that parses the raw LLM response and validates it. | Simulated |
 | **AiPreparePromptWorker** | `ai_prepare_prompt` | Worker that prepares a formatted prompt from a question and model name. | Simulated |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
+Workers run in simulated mode by default, returning realistic outputs so you can run the full pipeline without API keys. Set `CONDUCTOR_OPENAI_API_KEY` to switch to live mode (see Configuration below). The workflow and worker interfaces stay the same.
 
 ### What Conductor Gives You For Free
 

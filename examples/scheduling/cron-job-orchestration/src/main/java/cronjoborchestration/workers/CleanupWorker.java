@@ -10,7 +10,7 @@ import java.time.Instant;
  * Cleans up after job execution.
  */
 public class CleanupWorker implements Worker {
-    @Override public String getTaskDefName() { return "cron_cleanup"; }
+    @Override public String getTaskDefName() { return "cj_cleanup"; }
 
     @Override public TaskResult execute(Task task) {
         String jobName = (String) task.getInputData().get("jobName");

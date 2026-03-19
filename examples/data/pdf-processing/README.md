@@ -115,10 +115,10 @@ Step 3: Starting workers...
 
 Step 4: Starting workflow...
 
-  [extract] Extracted text from https://example.com/docs/data-strategy-2024.pdf. 3 pages, 480 chars
-  [parse] Parsed 3 sections: Introduction, Architecture, Implementation
-  [analyze] 67 words, 4 keywords detected: data, processing, architecture, pipelines
-  [summary] Generated summary (112 chars)
+  [extract] Extracted text from PDF -- 1 pages, 249 chars
+  [parse] Parsed sections from extracted text
+  [analyze] Analyzed content and extracted keywords
+  [summary] Generated summary
 
   Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
 
@@ -150,7 +150,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pdf_processing \
   --version 1 \
-  --input '{"pdfUrl": "https://example.com/docs/data-strategy-2024.pdf", "options": {"extractImages": false, "ocrFallback": true}}'
+  --input '{"pdfPath": "/path/to/your/document.pdf", "options": {"extractImages": false, "ocrFallback": true}}'
 ```
 
 ### Check workflow status

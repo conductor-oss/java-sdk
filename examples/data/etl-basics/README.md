@@ -119,10 +119,10 @@ Step 3: Starting workers...
 
 Step 4: Starting workflow...
 
-  [el_extract_data] Extracting data from source: customer-db
-  [el_transform_data] Transforming 4 records
-  [el_validate_output] Validating 4 records
-  [el_load_data] Loading 3 records to analytics-warehouse
+  [el_extract_data] Extracted 3 records from inline JSON
+  [el_transform_data] Transforming 3 records
+  [el_validate_output] Validating 3 records
+  [el_load_data] Loaded 3 records to analytics-warehouse
   [el_confirm_load] Confirming load of 3 records to analytics-warehouse
 
   Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
@@ -155,7 +155,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow etl_basics_wf \
   --version 1 \
-  --input '{"source": "customer-db", "destination": "analytics-warehouse", "rules": {"trimNames": true, "lowercaseEmails": true}}'
+  --input '{"jsonData": "[{\"id\":1,\"name\":\"Alice\",\"email\":\"ALICE@EXAMPLE.COM\"},{\"id\":2,\"name\":\"Bob\",\"email\":\"bob@test.org\"}]", "destination": "analytics-warehouse", "rules": {"trimNames": true, "lowercaseEmails": true}}'
 ```
 
 ### Check workflow status

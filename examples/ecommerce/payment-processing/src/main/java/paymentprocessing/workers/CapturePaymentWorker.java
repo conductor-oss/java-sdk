@@ -25,9 +25,7 @@ public class CapturePaymentWorker implements Worker {
     public CapturePaymentWorker() {
         this.stripeApiKey = System.getenv("STRIPE_API_KEY");
         if (stripeApiKey == null || stripeApiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "STRIPE_API_KEY environment variable is required. " +
-                    "Use a Stripe test key (sk_test_...) for test mode.");
+            System.out.println("  [capture] STRIPE_API_KEY not set — running in mock mode.");
         }
     }
 
@@ -47,6 +45,22 @@ public class CapturePaymentWorker implements Worker {
         double amount = 0;
         Object amountObj = task.getInputData().get("amount");
         if (amountObj instanceof Number) amount = ((Number) amountObj).doubleValue();
+
+        // Mock mode when Stripe key is not configured
+        if (stripeApiKey == null || stripeApiKey.isBlank()) {
+            String mockCaptureId = "CAPTURE-" + Math.abs(authorizationId.hashCode() % 9000 + 1000);
+            System.out.println("  [capture] Authorization " + authorizationId
+                    + ": captured $" + amount + " -> " + mockCaptureId + " (mock)");
+            output.put("captureId", mockCaptureId);
+            output.put("captured", true);
+            output.put("stripeStatus", "succeeded");
+            output.put("capturedAt", Instant.now().toString());
+            output.put("amountCaptured", Math.round(amount * 100));
+            output.put("simulated", true);
+            result.setOutputData(output);
+            result.setStatus(TaskResult.Status.COMPLETED);
+            return result;
+        }
 
         try {
             Stripe.apiKey = stripeApiKey;

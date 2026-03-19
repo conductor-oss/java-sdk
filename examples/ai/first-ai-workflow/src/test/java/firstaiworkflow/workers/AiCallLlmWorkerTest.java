@@ -14,11 +14,13 @@ class AiCallLlmWorkerTest {
     }
 
     @Test
-    void constructorThrowsWithoutApiKey() {
-        // The default constructor reads from env; if CONDUCTOR_OPENAI_API_KEY is not set it should throw
+    void constructorRunsInSimulatedModeWithoutApiKey() {
+        // The default constructor reads from env; if CONDUCTOR_OPENAI_API_KEY is not set
+        // it should start in simulated mode without throwing
         String key = System.getenv("CONDUCTOR_OPENAI_API_KEY");
         if (key == null || key.isBlank()) {
-            assertThrows(IllegalStateException.class, AiCallLlmWorker::new);
+            AiCallLlmWorker worker = new AiCallLlmWorker();
+            assertEquals("ai_call_llm", worker.getTaskDefName());
         }
     }
 }

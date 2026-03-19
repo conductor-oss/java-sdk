@@ -31,9 +31,7 @@ public class ReceiptWorker implements Worker {
     public ReceiptWorker() {
         this.stripeApiKey = System.getenv("STRIPE_API_KEY");
         if (stripeApiKey == null || stripeApiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "STRIPE_API_KEY environment variable is required. " +
-                    "Use a Stripe test key (sk_test_...) for test mode.");
+            System.out.println("  [receipt] STRIPE_API_KEY not set — running in mock mode.");
         }
     }
 
@@ -58,6 +56,23 @@ public class ReceiptWorker implements Worker {
                 ? task.getInputData().get("currency").toString().toUpperCase() : "USD";
 
         Instant now = Instant.now();
+
+        // Mock mode when Stripe key is not configured
+        if (stripeApiKey == null || stripeApiKey.isBlank()) {
+            String receiptId = generateReceiptId(orderId, captureId, now);
+            System.out.println("  [receipt] Generated " + receiptId + " for order "
+                    + orderId + ": $" + amount + " " + currency + " (mock)");
+            output.put("receiptId", receiptId);
+            output.put("orderId", orderId);
+            output.put("captureId", captureId);
+            output.put("amount", amount);
+            output.put("currency", currency);
+            output.put("generatedAt", now.toString());
+            output.put("simulated", true);
+            result.setOutputData(output);
+            result.setStatus(TaskResult.Status.COMPLETED);
+            return result;
+        }
 
         try {
             Stripe.apiKey = stripeApiKey;

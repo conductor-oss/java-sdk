@@ -18,8 +18,8 @@
       "taskReferenceName": "dynamic_fork_ref",
       "type": "FORK_JOIN_DYNAMIC",
       "inputParameters": {
-        "dynamicForkTasksParam": "dynamicTasks",
-        "dynamicForkTasksInputParamName": "dynamicTasksInput"
+        "dynamicTasks": "${fo_prepare_ref.output.dynamicTasks}",
+        "dynamicTasksInput": "${fo_prepare_ref.output.dynamicTasksInput}"
       },
       "dynamicForkTasksParam": "dynamicTasks",
       "dynamicForkTasksInputParamName": "dynamicTasksInput"

@@ -23,11 +23,12 @@ echo "=== First Ai Workflow (Java) ==="
 echo ""
 
 if [ -z "$CONDUCTOR_OPENAI_API_KEY" ]; then
-  echo "ERROR: CONDUCTOR_OPENAI_API_KEY is required. Set it in your .env file or environment."
+  echo "NOTE: CONDUCTOR_OPENAI_API_KEY not set — running in simulated mode."
+  echo "  To use real OpenAI API, set:"
   echo "  export CONDUCTOR_OPENAI_API_KEY=your-api-key-here"
-  exit 1
+else
+  echo "OpenAI API key detected — running in live mode."
 fi
-echo "OpenAI API key detected."
 
 CONDUCTOR_BASE_URL="${CONDUCTOR_BASE_URL:-http://localhost:${CONDUCTOR_PORT:-8080}/api}"
 HEALTH_URL="${CONDUCTOR_BASE_URL%/api}/health"

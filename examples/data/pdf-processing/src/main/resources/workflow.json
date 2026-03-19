@@ -4,7 +4,8 @@
   "version": 1,
   "schemaVersion": 2,
   "inputParameters": [
-    "pdfUrl",
+    "pdfBase64",
+    "pdfPath",
     "options"
   ],
   "tasks": [
@@ -13,7 +14,8 @@
       "taskReferenceName": "extract_ref",
       "type": "SIMPLE",
       "inputParameters": {
-        "pdfUrl": "${workflow.input.pdfUrl}",
+        "pdfBase64": "${workflow.input.pdfBase64}",
+        "pdfPath": "${workflow.input.pdfPath}",
         "options": "${workflow.input.options}"
       }
     },

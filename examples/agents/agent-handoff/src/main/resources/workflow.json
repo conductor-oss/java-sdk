@@ -69,8 +69,12 @@
   "outputParameters": {
     "category": "${ah_triage_ref.output.category}",
     "confidence": "${ah_triage_ref.output.confidence}",
-    "resolution": "${route_to_specialist_ref.output.resolution}",
-    "ticketId": "${route_to_specialist_ref.output.ticketId}"
+    "billingResolution": "${ah_billing_ref.output.resolution}",
+    "billingTicketId": "${ah_billing_ref.output.ticketId}",
+    "techResolution": "${ah_tech_ref.output.resolution}",
+    "techTicketId": "${ah_tech_ref.output.ticketId}",
+    "generalResolution": "${ah_general_ref.output.resolution}",
+    "generalTicketId": "${ah_general_ref.output.ticketId}"
   },
   "ownerEmail": "examples@orkes.io",
   "timeoutSeconds": 60

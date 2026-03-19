@@ -65,7 +65,7 @@ public class EtlBasicsExample {
         // Step 4 — Start the workflow
         System.out.println("Step 4: Starting workflow...\n");
         String workflowId = client.startWorkflow("etl_basics_wf", 1,
-                Map.of("source", "customer-db",
+                Map.of("jsonData", "[{\"id\":1,\"name\":\"Alice Johnson\",\"email\":\"ALICE@EXAMPLE.COM\"},{\"id\":2,\"name\":\" Bob Smith \",\"email\":\"Bob.Smith@Example.COM\"},{\"id\":3,\"name\":\"  Charlie Lee\",\"email\":\"charlie@test.org\"}]",
                         "destination", "analytics-warehouse",
                         "rules", Map.of("trimNames", true, "lowercaseEmails", true)));
         System.out.println("  Workflow ID: " + workflowId + "\n");

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * Parses cron expressions and computes next execution time. Real cron parsing.
  */
 public class ScheduleJobWorker implements Worker {
-    @Override public String getTaskDefName() { return "cron_schedule_job"; }
+    @Override public String getTaskDefName() { return "cj_schedule_job"; }
 
     @Override public TaskResult execute(Task task) {
         String cronExpression = (String) task.getInputData().get("cronExpression");

@@ -4,6 +4,8 @@
   "version": 1,
   "schemaVersion": 2,
   "inputParameters": [
+    "jsonData",
+    "csvData",
     "source",
     "destination",
     "rules"
@@ -14,6 +16,8 @@
       "taskReferenceName": "extract_ref",
       "type": "SIMPLE",
       "inputParameters": {
+        "jsonData": "${workflow.input.jsonData}",
+        "csvData": "${workflow.input.csvData}",
         "source": "${workflow.input.source}"
       }
     },

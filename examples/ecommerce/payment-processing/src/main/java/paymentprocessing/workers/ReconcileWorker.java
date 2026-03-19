@@ -35,9 +35,7 @@ public class ReconcileWorker implements Worker {
     public ReconcileWorker() {
         this.stripeApiKey = System.getenv("STRIPE_API_KEY");
         if (stripeApiKey == null || stripeApiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "STRIPE_API_KEY environment variable is required. " +
-                    "Use a Stripe test key (sk_test_...) for test mode.");
+            System.out.println("  [reconcile] STRIPE_API_KEY not set — running in mock mode.");
         }
     }
 
@@ -58,6 +56,29 @@ public class ReconcileWorker implements Worker {
         Object amountObj = task.getInputData().get("amount");
         double expectedAmount = 0;
         if (amountObj instanceof Number) expectedAmount = ((Number) amountObj).doubleValue();
+
+        // Mock mode when Stripe key is not configured
+        if (stripeApiKey == null || stripeApiKey.isBlank()) {
+            double processingFee = Math.round((expectedAmount * STRIPE_PERCENTAGE_FEE + STRIPE_FIXED_FEE) * 100.0) / 100.0;
+            double netAmount = Math.round((expectedAmount - processingFee) * 100.0) / 100.0;
+            String settlementDate = calculateSettlementDate(Instant.now());
+            System.out.println("  [reconcile] Capture " + captureId + ": $" + expectedAmount
+                    + " reconciled for merchant " + merchantId + " (mock)");
+            output.put("reconciled", true);
+            output.put("stripeStatus", "succeeded");
+            output.put("expectedAmount", expectedAmount);
+            output.put("actualAmount", expectedAmount);
+            output.put("amountMatches", true);
+            output.put("processingFee", processingFee);
+            output.put("netAmount", netAmount);
+            output.put("settlementDate", settlementDate);
+            output.put("merchantId", merchantId);
+            output.put("reconciledAt", Instant.now().toString());
+            output.put("simulated", true);
+            result.setOutputData(output);
+            result.setStatus(TaskResult.Status.COMPLETED);
+            return result;
+        }
 
         try {
             Stripe.apiKey = stripeApiKey;

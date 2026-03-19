@@ -38,12 +38,6 @@ public class CreateIssueWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        if (jiraUrl == null || jiraUrl.isBlank() || jiraApiToken == null || jiraApiToken.isBlank()) {
-            throw new IllegalStateException(
-                    "JIRA_URL and JIRA_API_TOKEN environment variables are required. "
-                            + "Set them in your .env file or environment to use this worker.");
-        }
-
         String project = (String) task.getInputData().get("project");
         if (project == null) {
             project = "DEFAULT";
@@ -55,6 +49,19 @@ public class CreateIssueWorker implements Worker {
         String description = (String) task.getInputData().get("description");
         if (description == null) {
             description = "";
+        }
+
+        // Fall back to simulated mode when Jira credentials are not configured
+        if (jiraUrl == null || jiraUrl.isBlank() || jiraApiToken == null || jiraApiToken.isBlank()) {
+            System.out.println("  [create] JIRA_URL/JIRA_API_TOKEN not set — running in simulated mode.");
+            String mockKey = project + "-" + (Math.abs(summary.hashCode() % 9000) + 1000);
+            System.out.println("  [create] Created issue " + mockKey + ": " + summary);
+            TaskResult mockResult = new TaskResult(task);
+            mockResult.setStatus(TaskResult.Status.COMPLETED);
+            mockResult.getOutputData().put("issueKey", mockKey);
+            mockResult.getOutputData().put("createdAt", java.time.Instant.now().toString());
+            mockResult.getOutputData().put("simulated", true);
+            return mockResult;
         }
 
         try {

@@ -32,15 +32,16 @@ public class AiCallLlmWorker implements Worker {
 
     public AiCallLlmWorker() {
         this.apiKey = System.getenv("CONDUCTOR_OPENAI_API_KEY");
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "Set CONDUCTOR_OPENAI_API_KEY environment variable to run this worker");
-        }
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
         this.objectMapper = new ObjectMapper();
-        System.out.println("  [ai_call_llm] CONDUCTOR_OPENAI_API_KEY detected");
+        if (apiKey == null || apiKey.isBlank()) {
+            System.out.println("  [ai_call_llm] CONDUCTOR_OPENAI_API_KEY not set — running in simulated mode.");
+            this.httpClient = null;
+        } else {
+            System.out.println("  [ai_call_llm] CONDUCTOR_OPENAI_API_KEY detected — live mode.");
+            this.httpClient = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+        }
     }
 
     /** Package-private constructor for testing with an explicit HTTP client. */
@@ -71,6 +72,26 @@ public class AiCallLlmWorker implements Worker {
             }
             if (temperature == null) {
                 temperature = 0.7;
+            }
+
+            // Simulated mode when API key is not configured
+            if (apiKey == null || apiKey.isBlank()) {
+                System.out.println("  [ai_call_llm worker] Calling " + model + " (simulated) with prompt length "
+                        + (prompt != null ? prompt.length() : 0));
+                String simulatedResponse = "Orkes Conductor is a platform for building distributed applications "
+                        + "using workflow orchestration. It lets you define complex workflows as code "
+                        + "and handles execution, retries, and observability.";
+                Map<String, Object> tokenUsage = new LinkedHashMap<>();
+                tokenUsage.put("promptTokens", 45);
+                tokenUsage.put("completionTokens", 38);
+                tokenUsage.put("totalTokens", 83);
+
+                TaskResult result = new TaskResult(task);
+                result.setStatus(TaskResult.Status.COMPLETED);
+                result.getOutputData().put("rawResponse", simulatedResponse);
+                result.getOutputData().put("tokenUsage", tokenUsage);
+                result.getOutputData().put("simulated", true);
+                return result;
             }
 
             System.out.println("  [ai_call_llm worker] Calling " + model + " with prompt length "

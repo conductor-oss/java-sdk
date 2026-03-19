@@ -2,13 +2,14 @@
   "name": "uo_user_onboarding",
   "version": 1,
   "schemaVersion": 2,
-  "inputParameters": ["email", "fullName", "plan"],
+  "inputParameters": ["username", "email", "fullName", "plan"],
   "tasks": [
     {
       "name": "uo_create_account",
       "taskReferenceName": "uo_create_ref",
       "type": "SIMPLE",
       "inputParameters": {
+        "username": "${workflow.input.username}",
         "email": "${workflow.input.email}",
         "fullName": "${workflow.input.fullName}",
         "plan": "${workflow.input.plan}"

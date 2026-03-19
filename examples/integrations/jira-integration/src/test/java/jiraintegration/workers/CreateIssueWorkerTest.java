@@ -18,7 +18,7 @@ class CreateIssueWorkerTest {
     }
 
     @Test
-    void throwsWithoutJiraCredentials() {
+    void simulatedModeWithoutJiraCredentials() {
         String jiraUrl = System.getenv("JIRA_URL");
         String jiraToken = System.getenv("JIRA_API_TOKEN");
         if (jiraUrl != null && !jiraUrl.isBlank() && jiraToken != null && !jiraToken.isBlank()) {
@@ -35,7 +35,12 @@ class CreateIssueWorkerTest {
                 "description", "Test description",
                 "assignee", "dev@example.com")));
 
-        assertThrows(IllegalStateException.class, () -> worker.execute(task),
-                "Should throw IllegalStateException when JIRA_URL/JIRA_API_TOKEN are not set");
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.COMPLETED, result.getStatus(),
+                "Should return COMPLETED in simulated mode when JIRA_URL/JIRA_API_TOKEN are not set");
+        assertNotNull(result.getOutputData().get("issueKey"),
+                "Should generate a simulated issue key");
+        assertEquals(true, result.getOutputData().get("simulated"),
+                "Should flag output as simulated");
     }
 }

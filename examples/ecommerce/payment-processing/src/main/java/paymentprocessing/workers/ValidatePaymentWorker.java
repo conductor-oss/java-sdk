@@ -30,12 +30,14 @@ public class ValidatePaymentWorker implements Worker {
             "credit_card", "debit_card", "card", "bank_transfer", "sepa_debit"
     );
 
+    private final boolean mockMode;
+
     public ValidatePaymentWorker() {
         String apiKey = System.getenv("STRIPE_API_KEY");
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "STRIPE_API_KEY environment variable is required. " +
-                    "Use a Stripe test key (sk_test_...) for test mode.");
+        this.mockMode = (apiKey == null || apiKey.isBlank());
+        if (mockMode) {
+            System.out.println("  [validate] STRIPE_API_KEY not set — running in mock mode. "
+                    + "Set STRIPE_API_KEY=sk_test_... for real Stripe validation.");
         }
     }
 
