@@ -27,9 +27,7 @@ public class AuthorizePaymentWorker implements Worker {
     public AuthorizePaymentWorker() {
         this.stripeApiKey = System.getenv("STRIPE_API_KEY");
         if (stripeApiKey == null || stripeApiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "STRIPE_API_KEY environment variable is required. " +
-                    "Use a Stripe test key (sk_test_...) for test mode.");
+            System.out.println("  [authorize] STRIPE_API_KEY not set — running in mock mode.");
         }
     }
 
@@ -55,6 +53,23 @@ public class AuthorizePaymentWorker implements Worker {
         Object currObj = task.getInputData().get("currency");
         if (currObj != null && !currObj.toString().isBlank()) {
             currency = currObj.toString().toLowerCase();
+        }
+
+        // Mock mode when Stripe key is not configured
+        if (stripeApiKey == null || stripeApiKey.isBlank()) {
+            String mockAuthId = "AUTHORIZATION-" + Math.abs(orderId.hashCode() % 9000 + 1000);
+            System.out.println("  [authorize] Order " + orderId + ": authorized " + mockAuthId
+                    + " for $" + amount + " " + currency + " (mock)");
+            output.put("authorizationId", mockAuthId);
+            output.put("authorized", true);
+            output.put("stripeStatus", "requires_capture");
+            output.put("amountInCents", Math.round(amount * 100));
+            output.put("currency", currency);
+            output.put("expiresAt", Instant.now().plus(7, ChronoUnit.DAYS).toString());
+            output.put("simulated", true);
+            result.setOutputData(output);
+            result.setStatus(TaskResult.Status.COMPLETED);
+            return result;
         }
 
         try {

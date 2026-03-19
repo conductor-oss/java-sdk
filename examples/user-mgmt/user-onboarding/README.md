@@ -148,7 +148,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow uo_user_onboarding \
   --version 1 \
-  --input '{"email": "alice@example.com", "fullName": "Alice Johnson", "plan": "pro"}'
+  --input '{"username": "alice_johnson", "email": "alice@example.com", "fullName": "Alice Johnson", "plan": "pro"}'
 ```
 
 ### Check workflow status

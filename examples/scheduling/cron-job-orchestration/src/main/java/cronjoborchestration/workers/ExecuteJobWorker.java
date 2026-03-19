@@ -11,7 +11,7 @@ import java.time.Instant;
  * Executes a scheduled job. Real execution time tracking.
  */
 public class ExecuteJobWorker implements Worker {
-    @Override public String getTaskDefName() { return "cron_execute_job"; }
+    @Override public String getTaskDefName() { return "cj_execute_job"; }
 
     @Override public TaskResult execute(Task task) {
         String jobName = (String) task.getInputData().get("jobName");

@@ -22,18 +22,15 @@ load_repo_env
 echo "=== Jira Integration (Java) ==="
 echo ""
 
-MISSING=""
-[ -z "$JIRA_URL" ] && MISSING="$MISSING JIRA_URL"
-[ -z "$JIRA_API_TOKEN" ] && MISSING="$MISSING JIRA_API_TOKEN"
-if [ -n "$MISSING" ]; then
-  echo "ERROR: Required environment variables are missing:$MISSING"
-  echo "  Set them in your .env file or environment."
+if [ -z "$JIRA_URL" ] || [ -z "$JIRA_API_TOKEN" ]; then
+  echo "NOTE: JIRA_URL and/or JIRA_API_TOKEN not set — running in simulated mode."
+  echo "  To use real Jira API, set:"
   echo "  export JIRA_URL=https://your-domain.atlassian.net"
   echo "  export JIRA_API_TOKEN=your-api-token"
   echo "  export JIRA_EMAIL=your-email@example.com  (optional, for Jira Cloud)"
-  exit 1
+else
+  echo "Jira credentials detected — running in live mode."
 fi
-echo "Jira credentials detected."
 echo ""
 
 CONDUCTOR_BASE_URL="${CONDUCTOR_BASE_URL:-http://localhost:${CONDUCTOR_PORT:-8080}/api}"

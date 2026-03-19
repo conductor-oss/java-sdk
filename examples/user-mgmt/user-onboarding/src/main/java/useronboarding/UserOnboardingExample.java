@@ -58,7 +58,7 @@ public class UserOnboardingExample {
         // Step 4 — Start the workflow
         System.out.println("Step 4: Starting workflow...\n");
         String workflowId = client.startWorkflow("uo_user_onboarding", 1,
-                Map.of("email", "alice@example.com", "fullName", "Alice Johnson", "plan", "pro"));
+                Map.of("username", "alice_johnson", "email", "alice@example.com", "fullName", "Alice Johnson", "plan", "pro"));
         System.out.println("  Workflow ID: " + workflowId + "\n");
 
         // Step 5 — Wait for completion

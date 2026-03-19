@@ -10,7 +10,7 @@ import java.time.Instant;
  * Logs job execution result.
  */
 public class LogResultWorker implements Worker {
-    @Override public String getTaskDefName() { return "cron_log_result"; }
+    @Override public String getTaskDefName() { return "cj_log_result"; }
 
     @Override public TaskResult execute(Task task) {
         String jobName = (String) task.getInputData().get("jobName");

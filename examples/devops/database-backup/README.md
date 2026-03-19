@@ -21,13 +21,13 @@ Six workers implement the full backup lifecycle. Configuration validation, snaps
 | Worker | Task | What It Does | Real / Simulated |
 |---|---|---|---|
 | **ValidateConfig** | `backup_validate_config` | Validates the backup configuration (database host, port, name, type; storage type, bucket; retention policy). Rejects invalid configs with `FAILED_WITH_TERMINAL_ERROR` before downstream workers run. Returns validated `databaseType`, `databaseHost`, `databaseName`, `storageType`, and retention settings. | Simulated (validation logic is real, but no actual database connection is tested) |
-| **TakeSnapshot** | `backup_take_snapshot` | Simulates a database snapshot (pg_dump, mysqldump, mongodump, or redis-cli BGSAVE depending on `databaseType`). Generates a deterministic filename with UTC timestamp, computes a SHA-256 checksum, and calculates a realistic file size (50 MB. 2 GB) based on the database name. | Simulated |
-| **VerifyIntegrity** | `backup_verify_integrity` | Runs four integrity checks against the snapshot: SHA-256 checksum verification, file size sanity check, compression header validation, and a simulated trial restore. Fails the task if any check does not pass. | Simulated |
+| **TakeSnapshot** | `backup_take_snapshot` | Takes a real database snapshot using pg_dump, mysqldump, mongodump, or redis-cli BGSAVE depending on `databaseType`. Computes a real SHA-256 checksum from the dump file. Falls back to mock mode with deterministic output if the required credentials (e.g., `PGPASSWORD` for PostgreSQL) are not set. | Real (mock fallback if credentials unset) |
+| **VerifyIntegrity** | `backup_verify_integrity` | Runs four integrity checks: SHA-256 checksum verification, file size sanity, compression header validation, and a real trial restore via `pg_restore --list` (falls back to file header validation if pg_restore is unavailable). Fails the task if any check does not pass. | Real |
 | **UploadToStorage** | `backup_upload_to_storage` | Uploads the verified backup to offsite storage (S3, GCS, Azure Blob, or local). Builds the full storage URI, simulates throughput (50--200 MB/s), and returns the `storageUri`, `etag`, and `versionId`. | Simulated |
 | **CleanupOldBackups** | `backup_cleanup_old` | Enforces the retention policy by listing existing backups (deterministically generated), deleting those older than `retentionDays` or exceeding `maxBackups`, and reporting freed storage. | Simulated |
 | **SendNotification** | `backup_send_notification` | Sends a backup completion notification summarizing the pipeline results (filename, size, storage location, verification status, cleanup results). Supports Slack, email, and console channels. | Simulated |
 
-Workers simulate database and storage operations with deterministic, realistic outputs so you can observe the full backup pipeline without running real infrastructure. Replace with actual pg_dump, S3 SDK, and Slack webhook calls, the workflow stays the same.
+TakeSnapshot runs real dump commands when credentials are available, and falls back to mock mode with deterministic output otherwise. The remaining workers simulate storage and notification operations with realistic outputs. Replace with actual S3 SDK and Slack webhook calls, the workflow stays the same.
 
 ### What Conductor Gives You For Free
 
@@ -587,6 +587,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
+| `PGPASSWORD` | _(none, mock mode)_ | PostgreSQL password. Required for real `pg_dump` backups. If unset, TakeSnapshot runs in mock mode with simulated output. |
 
 ## Using the Conductor CLI
 

@@ -7,8 +7,16 @@ import pdfprocessing.workers.ParseSectionsWorker;
 import pdfprocessing.workers.AnalyzeContentWorker;
 import pdfprocessing.workers.GenerateSummaryWorker;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 /**
  * PDF Processing Demo
@@ -63,7 +71,7 @@ public class PdfProcessingExample {
         // Step 4 — Start the workflow
         System.out.println("Step 4: Starting workflow...\n");
         String workflowId = client.startWorkflow("pdf_processing", 1,
-                Map.of("pdfUrl", "https://example.com/docs/data-strategy-2024.pdf",
+                Map.of("pdfBase64", generateSamplePdfBase64(),
                         "options", Map.of("extractImages", false, "ocrFallback", true)));
         System.out.println("  Workflow ID: " + workflowId + "\n");
 
@@ -82,6 +90,36 @@ public class PdfProcessingExample {
         } else {
             System.out.println("\nResult: FAILED");
             System.exit(1);
+        }
+    }
+
+    /**
+     * Generates a small sample PDF in-memory and returns it as a Base64 string.
+     */
+    private static String generateSamplePdfBase64() throws Exception {
+        try (PDDocument doc = new PDDocument()) {
+            PDPage page = new PDPage();
+            doc.addPage(page);
+            try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+                PDType1Font font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+                cs.beginText();
+                cs.setFont(font, 14);
+                cs.newLineAtOffset(50, 700);
+                cs.showText("Data Strategy 2024 - Sample Document");
+                cs.newLineAtOffset(0, -24);
+                cs.setFont(font, 11);
+                cs.showText("This is a sample PDF for the pdf-processing example.");
+                cs.newLineAtOffset(0, -18);
+                cs.showText("Section 1: Introduction to data governance and quality.");
+                cs.newLineAtOffset(0, -18);
+                cs.showText("Section 2: Cloud migration strategy and timeline.");
+                cs.newLineAtOffset(0, -18);
+                cs.showText("Section 3: Analytics platform modernization roadmap.");
+                cs.endText();
+            }
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            doc.save(baos);
+            return Base64.getEncoder().encodeToString(baos.toByteArray());
         }
     }
 }

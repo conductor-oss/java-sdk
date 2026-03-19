@@ -50,8 +50,10 @@
   ],
   "outputParameters": {
     "circuitState": "${check_circuit_ref.output.state}",
-    "result": "${circuit_switch_ref.output.result}",
-    "source": "${circuit_switch_ref.output.source}"
+    "liveResult": "${call_service_ref.output.result}",
+    "liveSource": "${call_service_ref.output.source}",
+    "fallbackResult": "${fallback_ref.output.result}",
+    "fallbackSource": "${fallback_ref.output.source}"
   },
   "ownerEmail": "examples@orkes.io",
   "timeoutSeconds": 120
