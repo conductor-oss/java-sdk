@@ -1,0 +1,9 @@
+{"name":"alerting_pipeline_413","version":1,"schemaVersion":2,"inputParameters":["metricName","currentValue","threshold"],
+"tasks":[
+ {"name":"alt_detect_anomaly","taskReferenceName":"alt_detect_ref","type":"SIMPLE","inputParameters":{"metricName":"${workflow.input.metricName}","currentValue":"${workflow.input.currentValue}","threshold":"${workflow.input.threshold}"}},
+ {"name":"alt_evaluate_rules","taskReferenceName":"alt_eval_ref","type":"SIMPLE","inputParameters":{"metricName":"${workflow.input.metricName}","severity":"${alt_detect_ref.output.severity}","anomalyScore":"${alt_detect_ref.output.anomalyScore}"}},
+ {"name":"alt_action_switch","taskReferenceName":"alt_switch_ref","type":"SWITCH","evaluatorType":"value-param","expression":"switchCaseValue",
+  "inputParameters":{"switchCaseValue":"${alt_eval_ref.output.action}"},
+  "decisionCases":{"fire":[{"name":"alt_send_alert","taskReferenceName":"alt_send_ref","type":"SIMPLE","inputParameters":{"metricName":"${workflow.input.metricName}","severity":"${alt_detect_ref.output.severity}","channel":"${alt_eval_ref.output.channel}","message":"${alt_eval_ref.output.message}"}}]},
+  "defaultCase":[{"name":"alt_suppress_alert","taskReferenceName":"alt_suppress_ref","type":"SIMPLE","inputParameters":{"metricName":"${workflow.input.metricName}","reason":"${alt_eval_ref.output.suppressReason}"}}]}
+],"outputParameters":{"severity":"${alt_detect_ref.output.severity}","action":"${alt_eval_ref.output.action}","metricName":"${workflow.input.metricName}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

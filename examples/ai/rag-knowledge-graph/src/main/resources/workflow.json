@@ -1,0 +1,80 @@
+{
+  "name": "rag_knowledge_graph_workflow",
+  "description": "Knowledge Graph RAG - Combines graph traversal with vector search for enriched context",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question"],
+  "tasks": [
+    {
+      "name": "kg_extract_entities",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "parallel_retrieval",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "kg_graph_traverse",
+            "taskReferenceName": "graph_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "entities": "${extract_ref.output.entities}",
+              "maxDepth": 2
+            }
+          }
+        ],
+        [
+          {
+            "name": "kg_vector_search",
+            "taskReferenceName": "vector_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "entityHints": "${extract_ref.output.entities}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_retrieval",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["graph_ref", "vector_ref"]
+    },
+    {
+      "name": "kg_merge_context",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "graphFacts": "${graph_ref.output.facts}",
+        "graphRelations": "${graph_ref.output.relations}",
+        "vectorDocs": "${vector_ref.output.documents}"
+      }
+    },
+    {
+      "name": "kg_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "mergedContext": "${merge_ref.output.mergedContext}",
+        "entities": "${extract_ref.output.entities}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "question": "${workflow.input.question}",
+    "answer": "${gen_ref.output.answer}",
+    "entities": "${extract_ref.output.entities}",
+    "totalSources": "${merge_ref.output.mergedContext.totalSources}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

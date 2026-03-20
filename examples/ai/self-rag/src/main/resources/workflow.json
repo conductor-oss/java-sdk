@@ -1,0 +1,99 @@
+{
+  "name": "self_rag",
+  "description": "Self-RAG: Self-Reflective Retrieval with Grading",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question"],
+  "tasks": [
+    {
+      "name": "sr_retrieve",
+      "taskReferenceName": "ret_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "sr_grade_docs",
+      "taskReferenceName": "gdoc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "documents": "${ret_ref.output.documents}"
+      }
+    },
+    {
+      "name": "sr_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "relevantDocs": "${gdoc_ref.output.relevantDocs}"
+      }
+    },
+    {
+      "name": "sr_grade_hallucination",
+      "taskReferenceName": "ghal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "answer": "${gen_ref.output.answer}",
+        "sourceDocs": "${gdoc_ref.output.relevantDocs}"
+      }
+    },
+    {
+      "name": "sr_grade_usefulness",
+      "taskReferenceName": "guse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "answer": "${gen_ref.output.answer}",
+        "halScore": "${ghal_ref.output.score}"
+      }
+    },
+    {
+      "name": "quality_gate",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${guse_ref.output.verdict}"
+      },
+      "decisionCases": {
+        "pass": [
+          {
+            "name": "sr_format_output",
+            "taskReferenceName": "fmt_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "answer": "${gen_ref.output.answer}",
+              "halScore": "${ghal_ref.output.score}",
+              "useScore": "${guse_ref.output.score}",
+              "sources": "${gdoc_ref.output.relevantDocs}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "sr_refine_retry",
+          "taskReferenceName": "retry_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${workflow.input.question}",
+            "halScore": "${ghal_ref.output.score}",
+            "useScore": "${guse_ref.output.score}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "question": "${workflow.input.question}",
+    "halScore": "${ghal_ref.output.score}",
+    "useScore": "${guse_ref.output.score}",
+    "verdict": "${guse_ref.output.verdict}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

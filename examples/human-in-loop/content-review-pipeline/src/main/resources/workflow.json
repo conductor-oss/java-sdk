@@ -1,0 +1,46 @@
+{
+  "name": "content_review_pipeline",
+  "description": "Content Review Pipeline -- AI generates draft, human reviews/edits, then publish.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["topic", "audience"],
+  "tasks": [
+    {
+      "name": "crp_ai_draft",
+      "taskReferenceName": "crp_ai_draft_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "audience": "${workflow.input.audience}"
+      }
+    },
+    {
+      "name": "crp_human_review",
+      "taskReferenceName": "crp_human_review_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "content": "${crp_ai_draft_ref.output.content}",
+        "wordCount": "${crp_ai_draft_ref.output.wordCount}",
+        "model": "${crp_ai_draft_ref.output.model}"
+      }
+    },
+    {
+      "name": "crp_publish",
+      "taskReferenceName": "crp_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "approved": "${crp_human_review_ref.output.approved}",
+        "content": "${crp_human_review_ref.output.editedContent}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "content": "${crp_ai_draft_ref.output.content}",
+    "wordCount": "${crp_ai_draft_ref.output.wordCount}",
+    "model": "${crp_ai_draft_ref.output.model}",
+    "published": "${crp_publish_ref.output.published}",
+    "url": "${crp_publish_ref.output.url}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

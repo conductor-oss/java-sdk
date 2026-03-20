@@ -1,0 +1,82 @@
+{
+  "name": "tool_use_conditional",
+  "description": "Tool Use Conditional — classifies a user query and routes to the appropriate tool (calculator, interpreter, or web search) via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userQuery"],
+  "tasks": [
+    {
+      "name": "tc_classify_query",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userQuery": "${workflow.input.userQuery}"
+      }
+    },
+    {
+      "name": "route_to_tool",
+      "taskReferenceName": "route_to_tool_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${classify_ref.output.category}"
+      },
+      "decisionCases": {
+        "math": [
+          {
+            "name": "tc_calculator",
+            "taskReferenceName": "tc_calculator_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "expression": "${classify_ref.output.parsedExpression}",
+              "userQuery": "${workflow.input.userQuery}"
+            }
+          }
+        ],
+        "code": [
+          {
+            "name": "tc_interpreter",
+            "taskReferenceName": "tc_interpreter_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "codeRequest": "${classify_ref.output.codeRequest}",
+              "language": "${classify_ref.output.language}",
+              "userQuery": "${workflow.input.userQuery}"
+            }
+          }
+        ],
+        "search": [
+          {
+            "name": "tc_web_search",
+            "taskReferenceName": "tc_web_search_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "searchQuery": "${classify_ref.output.searchQuery}",
+              "userQuery": "${workflow.input.userQuery}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "tc_web_search",
+          "taskReferenceName": "tc_web_search_default_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "searchQuery": "${workflow.input.userQuery}",
+            "userQuery": "${workflow.input.userQuery}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "category": "${classify_ref.output.category}",
+    "toolName": "${classify_ref.output.toolName}",
+    "answer": "${route_to_tool_ref.output.answer}",
+    "toolUsed": "${route_to_tool_ref.output.toolUsed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

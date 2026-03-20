@@ -1,0 +1,7 @@
+{"name":"log_aggregation_412","version":1,"schemaVersion":2,"inputParameters":["sources","timeRange","logLevel"],
+"tasks":[
+ {"name":"la_collect_logs","taskReferenceName":"la_collect_ref","type":"SIMPLE","inputParameters":{"sources":"${workflow.input.sources}","timeRange":"${workflow.input.timeRange}","logLevel":"${workflow.input.logLevel}"}},
+ {"name":"la_parse_logs","taskReferenceName":"la_parse_ref","type":"SIMPLE","inputParameters":{"rawLogCount":"${la_collect_ref.output.rawLogCount}","format":"${la_collect_ref.output.format}"}},
+ {"name":"la_enrich_logs","taskReferenceName":"la_enrich_ref","type":"SIMPLE","inputParameters":{"parsedCount":"${la_parse_ref.output.parsedCount}","structuredLogs":"${la_parse_ref.output.structuredLogs}"}},
+ {"name":"la_store_logs","taskReferenceName":"la_store_ref","type":"SIMPLE","inputParameters":{"enrichedCount":"${la_enrich_ref.output.enrichedCount}","sizeBytes":"${la_enrich_ref.output.sizeBytes}"}}
+],"outputParameters":{"rawLogCount":"${la_collect_ref.output.rawLogCount}","parsedCount":"${la_parse_ref.output.parsedCount}","enrichedCount":"${la_enrich_ref.output.enrichedCount}","stored":"${la_store_ref.output.stored}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

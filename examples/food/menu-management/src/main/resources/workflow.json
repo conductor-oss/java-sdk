@@ -1,0 +1,21 @@
+{
+  "name": "menu_management_734",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["restaurantId", "menuName"],
+  "tasks": [
+    { "name": "mnu_create_items", "taskReferenceName": "create_ref", "type": "SIMPLE",
+      "inputParameters": { "restaurantId": "${workflow.input.restaurantId}" } },
+    { "name": "mnu_price", "taskReferenceName": "price_ref", "type": "SIMPLE",
+      "inputParameters": { "items": "${create_ref.output.items}" } },
+    { "name": "mnu_categorize", "taskReferenceName": "cat_ref", "type": "SIMPLE",
+      "inputParameters": { "pricedItems": "${price_ref.output.pricedItems}" } },
+    { "name": "mnu_publish", "taskReferenceName": "publish_ref", "type": "SIMPLE",
+      "inputParameters": { "menu": "${cat_ref.output.menu}", "menuName": "${workflow.input.menuName}" } },
+    { "name": "mnu_update", "taskReferenceName": "update_ref", "type": "SIMPLE",
+      "inputParameters": { "menuId": "${publish_ref.output.menuId}" } }
+  ],
+  "outputParameters": { "menu": "${update_ref.output.menu}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

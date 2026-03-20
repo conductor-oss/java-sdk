@@ -1,0 +1,90 @@
+{
+  "name": "risk_assessment_workflow",
+  "description": "Risk assessment workflow with parallel market, credit, and operational risk analysis via FORK_JOIN.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "portfolioId",
+    "assessmentDate"
+  ],
+  "tasks": [
+    {
+      "name": "rsk_collect_factors",
+      "taskReferenceName": "rsk_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "portfolioId": "${workflow.input.portfolioId}",
+        "assessmentDate": "${workflow.input.assessmentDate}"
+      }
+    },
+    {
+      "name": "rsk_parallel_analysis",
+      "taskReferenceName": "rsk_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "rsk_market_risk",
+            "taskReferenceName": "rsk_market_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "portfolioId": "${workflow.input.portfolioId}",
+              "marketData": "${rsk_collect_ref.output.marketData}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "rsk_credit_risk",
+            "taskReferenceName": "rsk_credit_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "portfolioId": "${workflow.input.portfolioId}",
+              "creditData": "${rsk_collect_ref.output.creditData}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "rsk_operational_risk",
+            "taskReferenceName": "rsk_ops_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "portfolioId": "${workflow.input.portfolioId}",
+              "operationalData": "${rsk_collect_ref.output.operationalData}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "rsk_join_analysis",
+      "taskReferenceName": "rsk_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "rsk_market_ref",
+        "rsk_credit_ref",
+        "rsk_ops_ref"
+      ]
+    },
+    {
+      "name": "rsk_aggregate",
+      "taskReferenceName": "rsk_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "portfolioId": "${workflow.input.portfolioId}",
+        "marketRisk": "${rsk_market_ref.output.riskScore}",
+        "creditRisk": "${rsk_credit_ref.output.riskScore}",
+        "operationalRisk": "${rsk_ops_ref.output.riskScore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "portfolioId": "${workflow.input.portfolioId}",
+    "overallRisk": "${rsk_aggregate_ref.output.overallRisk}",
+    "riskCategory": "${rsk_aggregate_ref.output.riskCategory}",
+    "var95": "${rsk_aggregate_ref.output.var95}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

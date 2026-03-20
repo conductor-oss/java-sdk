@@ -1,0 +1,65 @@
+{
+  "name": "rmg_roaming_management",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "subscriberId",
+    "homeNetwork",
+    "visitedNetwork"
+  ],
+  "tasks": [
+    {
+      "name": "rmg_detect_roaming",
+      "taskReferenceName": "rmg_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscriberId": "${workflow.input.subscriberId}",
+        "visitedNetwork": "${workflow.input.visitedNetwork}"
+      }
+    },
+    {
+      "name": "rmg_validate_agreement",
+      "taskReferenceName": "rmg_val_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "homeNetwork": "${workflow.input.homeNetwork}",
+        "visitedNetwork": "${workflow.input.visitedNetwork}"
+      }
+    },
+    {
+      "name": "rmg_rate",
+      "taskReferenceName": "rmg_rate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "usage": "${rmg_detect_ref.output.usage}",
+        "agreement": "${rmg_val_ref.output.agreement}"
+      }
+    },
+    {
+      "name": "rmg_bill",
+      "taskReferenceName": "rmg_bill_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscriberId": "${workflow.input.subscriberId}",
+        "charges": "${rmg_rate_ref.output.charges}"
+      }
+    },
+    {
+      "name": "rmg_settle",
+      "taskReferenceName": "rmg_settle_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "homeNetwork": "${workflow.input.homeNetwork}",
+        "visitedNetwork": "${workflow.input.visitedNetwork}",
+        "amount": "${rmg_rate_ref.output.interCarrierAmount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "subscriberId": "${workflow.input.subscriberId}",
+    "totalCharges": "${rmg_rate_ref.output.charges}",
+    "settled": "${rmg_settle_ref.output.settled}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

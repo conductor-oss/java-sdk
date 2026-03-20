@@ -1,0 +1,57 @@
+{
+  "name": "sqs_consumer_wf",
+  "description": "SQS Consumer — receive an SQS message, validate it, process the event, and delete the message from the queue.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["queueUrl", "messageId", "receiptHandle", "body"],
+  "tasks": [
+    {
+      "name": "qs_receive_message",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "queueUrl": "${workflow.input.queueUrl}",
+        "messageId": "${workflow.input.messageId}",
+        "receiptHandle": "${workflow.input.receiptHandle}",
+        "body": "${workflow.input.body}"
+      }
+    },
+    {
+      "name": "qs_validate_message",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "parsedBody": "${receive_ref.output.parsedBody}",
+        "attributes": "${receive_ref.output.attributes}"
+      }
+    },
+    {
+      "name": "qs_process_message",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validatedData": "${validate_ref.output.validatedData}",
+        "messageType": "${validate_ref.output.messageType}"
+      }
+    },
+    {
+      "name": "qs_delete_message",
+      "taskReferenceName": "delete_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "queueUrl": "${workflow.input.queueUrl}",
+        "receiptHandle": "${workflow.input.receiptHandle}",
+        "processingResult": "${process_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${workflow.input.messageId}",
+    "messageType": "${validate_ref.output.messageType}",
+    "valid": "${validate_ref.output.valid}",
+    "processed": "${process_ref.output.processed}",
+    "deleted": "${delete_ref.output.deleted}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

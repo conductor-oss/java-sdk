@@ -1,0 +1,7 @@
+{"name":"trace_collection_416","version":1,"schemaVersion":2,"inputParameters":["serviceName","traceId","samplingRate"],
+"tasks":[
+ {"name":"trc_instrument","taskReferenceName":"trc_instrument_ref","type":"SIMPLE","inputParameters":{"serviceName":"${workflow.input.serviceName}","samplingRate":"${workflow.input.samplingRate}"}},
+ {"name":"trc_collect_spans","taskReferenceName":"trc_collect_ref","type":"SIMPLE","inputParameters":{"traceId":"${workflow.input.traceId}","instrumentedServices":"${trc_instrument_ref.output.instrumentedServices}"}},
+ {"name":"trc_assemble_trace","taskReferenceName":"trc_assemble_ref","type":"SIMPLE","inputParameters":{"traceId":"${workflow.input.traceId}","spanCount":"${trc_collect_ref.output.spanCount}"}},
+ {"name":"trc_store_trace","taskReferenceName":"trc_store_ref","type":"SIMPLE","inputParameters":{"traceId":"${workflow.input.traceId}","traceDepth":"${trc_assemble_ref.output.traceDepth}","totalDurationMs":"${trc_assemble_ref.output.totalDurationMs}"}}
+],"outputParameters":{"instrumentedServices":"${trc_instrument_ref.output.instrumentedServices}","spanCount":"${trc_collect_ref.output.spanCount}","traceDepth":"${trc_assemble_ref.output.traceDepth}","stored":"${trc_store_ref.output.stored}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

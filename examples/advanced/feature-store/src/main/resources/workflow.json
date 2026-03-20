@@ -1,0 +1,60 @@
+{
+  "name": "feature_store_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "featureGroupName",
+    "sourceTable",
+    "entityKey"
+  ],
+  "tasks": [
+    {
+      "name": "fst_compute_features",
+      "taskReferenceName": "fst_compute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "featureGroupName": "${workflow.input.featureGroupName}",
+        "sourceTable": "${workflow.input.sourceTable}",
+        "entityKey": "${workflow.input.entityKey}"
+      }
+    },
+    {
+      "name": "fst_validate",
+      "taskReferenceName": "fst_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "featureGroupName": "${workflow.input.featureGroupName}",
+        "features": "${fst_compute_ref.output.features}",
+        "stats": "${fst_compute_ref.output.stats}"
+      }
+    },
+    {
+      "name": "fst_register",
+      "taskReferenceName": "fst_register_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "featureGroupName": "${workflow.input.featureGroupName}",
+        "validatedFeatures": "${fst_validate_ref.output.validFeatures}",
+        "version": "${fst_validate_ref.output.version}"
+      }
+    },
+    {
+      "name": "fst_serve",
+      "taskReferenceName": "fst_serve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "featureGroupName": "${workflow.input.featureGroupName}",
+        "registryId": "${fst_register_ref.output.registryId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "featureGroupName": "${workflow.input.featureGroupName}",
+    "featureCount": "${fst_compute_ref.output.featureCount}",
+    "valid": "${fst_validate_ref.output.valid}",
+    "registryId": "${fst_register_ref.output.registryId}",
+    "serving": "${fst_serve_ref.output.serving}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

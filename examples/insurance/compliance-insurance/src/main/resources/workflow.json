@@ -1,0 +1,63 @@
+{
+  "name": "cpi_compliance_insurance",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "companyId",
+    "regulatoryBody",
+    "compliancePeriod"
+  ],
+  "tasks": [
+    {
+      "name": "cpi_audit",
+      "taskReferenceName": "cpi_audit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "companyId": "${workflow.input.companyId}",
+        "compliancePeriod": "${workflow.input.compliancePeriod}"
+      }
+    },
+    {
+      "name": "cpi_assess",
+      "taskReferenceName": "cpi_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "auditFindings": "${cpi_audit_ref.output.findings}"
+      }
+    },
+    {
+      "name": "cpi_file_reports",
+      "taskReferenceName": "cpi_file_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "regulatoryBody": "${workflow.input.regulatoryBody}",
+        "assessment": "${cpi_assess_ref.output.assessment}"
+      }
+    },
+    {
+      "name": "cpi_track",
+      "taskReferenceName": "cpi_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filingId": "${cpi_file_ref.output.filingId}",
+        "remediationItems": "${cpi_assess_ref.output.remediationItems}"
+      }
+    },
+    {
+      "name": "cpi_certify",
+      "taskReferenceName": "cpi_certify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "companyId": "${workflow.input.companyId}",
+        "allResolved": "${cpi_track_ref.output.allResolved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "filingId": "${cpi_file_ref.output.filingId}",
+    "complianceStatus": "${cpi_certify_ref.output.complianceStatus}",
+    "certificationId": "${cpi_certify_ref.output.certificationId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

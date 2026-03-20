@@ -1,0 +1,18 @@
+{
+  "name": "cqrs_command_workflow",
+  "description": "CQRS pattern - Command side with validation, persistence, and read model update",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["command", "aggregateId", "data"],
+  "tasks": [
+    {"name": "cqrs_validate_command", "taskReferenceName": "validate_ref", "type": "SIMPLE",
+      "inputParameters": {"command": "${workflow.input.command}", "aggregateId": "${workflow.input.aggregateId}", "data": "${workflow.input.data}"}},
+    {"name": "cqrs_persist_event", "taskReferenceName": "persist_ref", "type": "SIMPLE",
+      "inputParameters": {"aggregateId": "${workflow.input.aggregateId}", "event": "${validate_ref.output.event}"}},
+    {"name": "cqrs_update_read_model", "taskReferenceName": "read_ref", "type": "SIMPLE",
+      "inputParameters": {"aggregateId": "${workflow.input.aggregateId}", "event": "${validate_ref.output.event}"}}
+  ],
+  "outputParameters": {"eventId": "${persist_ref.output.eventId}", "readModelUpdated": "${read_ref.output.updated}"},
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

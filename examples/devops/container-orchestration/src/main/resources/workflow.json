@@ -1,0 +1,52 @@
+{
+  "name": "container_orchestration_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "image",
+    "tag",
+    "cluster"
+  ],
+  "tasks": [
+    {
+      "name": "co_build",
+      "taskReferenceName": "build_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "image": "${workflow.input.image}",
+        "tag": "${workflow.input.tag}",
+        "cluster": "${workflow.input.cluster}"
+      }
+    },
+    {
+      "name": "co_scan",
+      "taskReferenceName": "scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scanData": "${build_ref.output}"
+      }
+    },
+    {
+      "name": "co_deploy",
+      "taskReferenceName": "deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deployData": "${scan_ref.output}"
+      }
+    },
+    {
+      "name": "co_health_check",
+      "taskReferenceName": "health_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "health_checkData": "${deploy_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "buildResult": "${build_ref.output}",
+    "health_checkResult": "${health_check_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

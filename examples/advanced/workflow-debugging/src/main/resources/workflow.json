@@ -1,0 +1,58 @@
+{
+  "name": "wfd_workflow_debugging",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["workflowName", "debugLevel"],
+  "tasks": [
+    {
+      "name": "wfd_instrument",
+      "taskReferenceName": "wfd_instrument_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "workflowName": "${workflow.input.workflowName}",
+        "debugLevel": "${workflow.input.debugLevel}"
+      }
+    },
+    {
+      "name": "wfd_execute",
+      "taskReferenceName": "wfd_execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "instrumentedWorkflow": "${wfd_instrument_ref.output.instrumentedWorkflow}"
+      }
+    },
+    {
+      "name": "wfd_collect_trace",
+      "taskReferenceName": "wfd_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "executionId": "${wfd_execute_ref.output.executionId}",
+        "tracePoints": "${wfd_instrument_ref.output.tracePoints}"
+      }
+    },
+    {
+      "name": "wfd_analyze",
+      "taskReferenceName": "wfd_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "traceData": "${wfd_collect_ref.output.traceData}"
+      }
+    },
+    {
+      "name": "wfd_report",
+      "taskReferenceName": "wfd_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analysis": "${wfd_analyze_ref.output.analysis}",
+        "workflowName": "${workflow.input.workflowName}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "workflowName": "${workflow.input.workflowName}",
+    "anomalies": "${wfd_analyze_ref.output.analysis.anomalies}",
+    "debugReport": "${wfd_report_ref.output.debugReport}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

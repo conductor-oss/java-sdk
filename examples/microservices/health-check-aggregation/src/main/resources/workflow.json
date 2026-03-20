@@ -1,0 +1,20 @@
+{
+  "name": "health_check_aggregation",
+  "description": "System-wide health check aggregation using FORK/JOIN",
+  "version": 1, "schemaVersion": 2, "inputParameters": [],
+  "tasks": [
+    {"name": "parallel_health", "taskReferenceName": "fork_ref", "type": "FORK_JOIN",
+      "forkTasks": [
+        [{"name": "hc_check_api", "taskReferenceName": "api_ref", "type": "SIMPLE", "inputParameters": {}}],
+        [{"name": "hc_check_db", "taskReferenceName": "db_ref", "type": "SIMPLE", "inputParameters": {}}],
+        [{"name": "hc_check_cache", "taskReferenceName": "cache_ref", "type": "SIMPLE", "inputParameters": {}}],
+        [{"name": "hc_check_queue", "taskReferenceName": "queue_ref", "type": "SIMPLE", "inputParameters": {}}]
+      ]},
+    {"name": "join_health", "taskReferenceName": "join_ref", "type": "JOIN",
+      "joinOn": ["api_ref", "db_ref", "cache_ref", "queue_ref"]},
+    {"name": "hc_aggregate_health", "taskReferenceName": "agg_ref", "type": "SIMPLE",
+      "inputParameters": {"api": "${api_ref.output}", "db": "${db_ref.output}", "cache": "${cache_ref.output}", "queue": "${queue_ref.output}"}}
+  ],
+  "outputParameters": {"overallHealth": "${agg_ref.output.status}", "details": "${agg_ref.output.details}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 30
+}

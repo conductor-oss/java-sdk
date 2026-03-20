@@ -1,0 +1,56 @@
+{
+  "name": "workflow_inheritance_standard_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "requestId",
+    "data"
+  ],
+  "tasks": [
+    {
+      "name": "wi_init",
+      "taskReferenceName": "wi_init_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "variant": "standard"
+      }
+    },
+    {
+      "name": "wi_validate",
+      "taskReferenceName": "wi_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${workflow.input.data}"
+      }
+    },
+    {
+      "name": "wi_process_standard",
+      "taskReferenceName": "wi_proc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "variant": "standard",
+        "data": "${wi_validate_ref.output.validatedData}",
+        "priority": "normal"
+      }
+    },
+    {
+      "name": "wi_finalize",
+      "taskReferenceName": "wi_final_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "processResult": "${wi_proc_ref.output.result}",
+        "variant": "standard"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${workflow.input.requestId}",
+    "variant": "standard",
+    "result": "${wi_proc_ref.output.result}",
+    "finalized": "${wi_final_ref.output.finalized}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

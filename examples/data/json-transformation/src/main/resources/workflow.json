@@ -1,0 +1,62 @@
+{
+  "name": "json_transformation",
+  "description": "JSON-to-JSON mapping with field renaming, value transforms, nested restructuring, and output schema conformance.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "sourceJson",
+    "mappingRules"
+  ],
+  "tasks": [
+    {
+      "name": "jt_parse_input",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceJson": "${workflow.input.sourceJson}"
+      }
+    },
+    {
+      "name": "jt_map_fields",
+      "taskReferenceName": "map_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${parse_ref.output.parsed}",
+        "mappingRules": "${workflow.input.mappingRules}"
+      }
+    },
+    {
+      "name": "jt_restructure_nested",
+      "taskReferenceName": "restructure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mapped": "${map_ref.output.mapped}"
+      }
+    },
+    {
+      "name": "jt_validate_schema",
+      "taskReferenceName": "schema_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "record": "${restructure_ref.output.restructured}"
+      }
+    },
+    {
+      "name": "jt_emit_output",
+      "taskReferenceName": "emit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "finalRecord": "${schema_ref.output.validated}",
+        "isValid": "${schema_ref.output.isValid}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "inputFields": "${parse_ref.output.fieldCount}",
+    "outputFields": "${map_ref.output.mappedFieldCount}",
+    "isValid": "${schema_ref.output.isValid}",
+    "transformedRecord": "${emit_ref.output.record}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

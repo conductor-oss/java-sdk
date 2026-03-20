@@ -1,0 +1,48 @@
+{
+  "name": "service_registry_workflow",
+  "description": "Service registry workflow that registers a service, performs a health check, and discovers the service endpoint.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "serviceName",
+    "serviceUrl",
+    "version"
+  ],
+  "tasks": [
+    {
+      "name": "sr_register_service",
+      "taskReferenceName": "register_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "serviceUrl": "${workflow.input.serviceUrl}",
+        "version": "${workflow.input.version}"
+      }
+    },
+    {
+      "name": "sr_health_check",
+      "taskReferenceName": "health_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceUrl": "${workflow.input.serviceUrl}"
+      }
+    },
+    {
+      "name": "sr_discover_service",
+      "taskReferenceName": "discover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "registrationId": "${register_ref.output.registrationId}",
+        "healthy": "${health_ref.output.healthy}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "registrationId": "${register_ref.output.registrationId}",
+    "healthy": "${health_ref.output.healthy}",
+    "endpoint": "${discover_ref.output.endpoint}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

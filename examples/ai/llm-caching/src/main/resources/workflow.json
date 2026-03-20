@@ -1,0 +1,45 @@
+{
+  "name": "llm_caching",
+  "description": "LLM caching workflow — hash prompt, check cache, report savings",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt", "model"],
+  "tasks": [
+    {
+      "name": "cache_hash_prompt",
+      "taskReferenceName": "cache_hash_prompt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "cache_llm_call",
+      "taskReferenceName": "cache_llm_call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cacheKey": "${cache_hash_prompt_ref.output.cacheKey}",
+        "prompt": "${workflow.input.prompt}",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "cache_report",
+      "taskReferenceName": "cache_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cacheHit": "${cache_llm_call_ref.output.cacheHit}",
+        "response": "${cache_llm_call_ref.output.response}",
+        "latencyMs": "${cache_llm_call_ref.output.latencyMs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "cacheKey": "${cache_hash_prompt_ref.output.cacheKey}",
+    "response": "${cache_llm_call_ref.output.response}",
+    "cacheHit": "${cache_llm_call_ref.output.cacheHit}",
+    "latencyMs": "${cache_llm_call_ref.output.latencyMs}",
+    "saved": "${cache_report_ref.output.saved}"
+  }
+}

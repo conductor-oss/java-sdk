@@ -1,0 +1,78 @@
+{
+  "name": "tdd_task_dedup",
+  "description": "Task deduplication workflow that hashes input, checks for duplicates, and either executes new tasks or returns cached results via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["payload", "cacheEnabled"],
+  "tasks": [
+    {
+      "name": "tdd_hash_input",
+      "taskReferenceName": "tdd_hash_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "tdd_check_seen",
+      "taskReferenceName": "tdd_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "hash": "${tdd_hash_ref.output.hash}",
+        "cacheEnabled": "${workflow.input.cacheEnabled}"
+      }
+    },
+    {
+      "name": "dedup_switch",
+      "taskReferenceName": "tdd_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${tdd_check_ref.output.status}"
+      },
+      "decisionCases": {
+        "new": [
+          {
+            "name": "tdd_execute_new",
+            "taskReferenceName": "tdd_execute_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "payload": "${workflow.input.payload}",
+              "hash": "${tdd_hash_ref.output.hash}"
+            }
+          }
+        ],
+        "dup": [
+          {
+            "name": "tdd_return_cached",
+            "taskReferenceName": "tdd_cached_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "hash": "${tdd_hash_ref.output.hash}",
+              "cachedResult": "${tdd_check_ref.output.cachedResult}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "tdd_execute_new",
+          "taskReferenceName": "tdd_default_exec_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "payload": "${workflow.input.payload}",
+            "hash": "${tdd_hash_ref.output.hash}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "hash": "${tdd_hash_ref.output.hash}",
+    "dedupStatus": "${tdd_check_ref.output.status}",
+    "result": "${tdd_check_ref.output.status}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

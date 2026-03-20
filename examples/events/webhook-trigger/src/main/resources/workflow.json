@@ -1,0 +1,56 @@
+{
+  "name": "webhook_trigger_wf",
+  "description": "Webhook Trigger — process incoming webhook event, validate payload, transform data, and store the result through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["eventType", "payload", "source", "timestamp"],
+  "tasks": [
+    {
+      "name": "wt_process_event",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "${workflow.input.eventType}",
+        "payload": "${workflow.input.payload}",
+        "source": "${workflow.input.source}",
+        "timestamp": "${workflow.input.timestamp}"
+      }
+    },
+    {
+      "name": "wt_validate_payload",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "${process_ref.output.eventType}",
+        "parsedData": "${process_ref.output.parsedData}",
+        "schema": "${process_ref.output.schema}"
+      }
+    },
+    {
+      "name": "wt_transform_data",
+      "taskReferenceName": "transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validatedData": "${validate_ref.output.validatedData}",
+        "targetFormat": "${validate_ref.output.targetFormat}"
+      }
+    },
+    {
+      "name": "wt_store_result",
+      "taskReferenceName": "store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedData": "${transform_ref.output.transformedData}",
+        "destination": "${transform_ref.output.destination}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventType": "${process_ref.output.eventType}",
+    "valid": "${validate_ref.output.valid}",
+    "recordId": "${store_ref.output.recordId}",
+    "storedAt": "${store_ref.output.storedAt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

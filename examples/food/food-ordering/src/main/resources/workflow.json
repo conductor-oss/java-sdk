@@ -1,0 +1,56 @@
+{
+  "name": "food_ordering_731",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "restaurantId"],
+  "tasks": [
+    {
+      "name": "fod_browse",
+      "taskReferenceName": "browse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "restaurantId": "${workflow.input.restaurantId}"
+      }
+    },
+    {
+      "name": "fod_order",
+      "taskReferenceName": "order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "items": "${browse_ref.output.selectedItems}"
+      }
+    },
+    {
+      "name": "fod_pay",
+      "taskReferenceName": "pay_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "total": "${order_ref.output.total}"
+      }
+    },
+    {
+      "name": "fod_prepare",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}"
+      }
+    },
+    {
+      "name": "fod_deliver",
+      "taskReferenceName": "deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "customerId": "${workflow.input.customerId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "delivery": "${deliver_ref.output.delivery}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

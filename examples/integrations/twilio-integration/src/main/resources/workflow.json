@@ -1,0 +1,57 @@
+{
+  "name": "twilio_integration_436",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "toNumber",
+    "fromNumber",
+    "messageBody"
+  ],
+  "tasks": [
+    {
+      "name": "twl_send_sms",
+      "taskReferenceName": "send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "to": "${workflow.input.toNumber}",
+        "from": "${workflow.input.fromNumber}",
+        "body": "${workflow.input.messageBody}"
+      }
+    },
+    {
+      "name": "twl_wait_response",
+      "taskReferenceName": "wait_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageSid": "${send_ref.output.messageSid}",
+        "toNumber": "${workflow.input.toNumber}"
+      }
+    },
+    {
+      "name": "twl_process_response",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "responseBody": "${wait_ref.output.responseBody}",
+        "originalMessage": "${workflow.input.messageBody}"
+      }
+    },
+    {
+      "name": "twl_send_reply",
+      "taskReferenceName": "reply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "to": "${workflow.input.toNumber}",
+        "from": "${workflow.input.fromNumber}",
+        "body": "${process_ref.output.replyMessage}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalSid": "${send_ref.output.messageSid}",
+    "replySid": "${reply_ref.output.messageSid}",
+    "responseReceived": "${wait_ref.output.responseBody}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

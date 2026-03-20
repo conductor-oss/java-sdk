@@ -1,0 +1,13 @@
+{
+  "name": "cst_customs_clearance", "description": "Customs clearance: declare, validate, calculate duty, clear, and release.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["shipmentId", "origin", "destination", "goods"],
+  "tasks": [
+    {"name":"cst_declare","taskReferenceName":"cst_declare_ref","type":"SIMPLE","inputParameters":{"shipmentId":"${workflow.input.shipmentId}","origin":"${workflow.input.origin}","goods":"${workflow.input.goods}"}},
+    {"name":"cst_validate","taskReferenceName":"cst_validate_ref","type":"SIMPLE","inputParameters":{"declarationId":"${cst_declare_ref.output.declarationId}"}},
+    {"name":"cst_calculate_duty","taskReferenceName":"cst_duty_ref","type":"SIMPLE","inputParameters":{"goods":"${workflow.input.goods}","origin":"${workflow.input.origin}","destination":"${workflow.input.destination}"}},
+    {"name":"cst_clear","taskReferenceName":"cst_clear_ref","type":"SIMPLE","inputParameters":{"declarationId":"${cst_declare_ref.output.declarationId}","dutyAmount":"${cst_duty_ref.output.dutyAmount}"}},
+    {"name":"cst_release","taskReferenceName":"cst_release_ref","type":"SIMPLE","inputParameters":{"shipmentId":"${workflow.input.shipmentId}","clearanceId":"${cst_clear_ref.output.clearanceId}"}}
+  ],
+  "outputParameters": {"declarationId":"${cst_declare_ref.output.declarationId}","documentsValid":"${cst_validate_ref.output.valid}","dutyAmount":"${cst_duty_ref.output.dutyAmount}","clearanceId":"${cst_clear_ref.output.clearanceId}","released":"${cst_release_ref.output.released}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

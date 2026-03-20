@@ -1,0 +1,13 @@
+{
+  "name":"trm_training_management","description":"Training management: assign, track, assess, certify, record.","version":1,"schemaVersion":2,
+  "inputParameters":["employeeId","courseId","courseName"],
+  "tasks":[
+    {"name":"trm_assign","taskReferenceName":"trm_assign_ref","type":"SIMPLE","inputParameters":{"employeeId":"${workflow.input.employeeId}","courseId":"${workflow.input.courseId}"}},
+    {"name":"trm_track","taskReferenceName":"trm_track_ref","type":"SIMPLE","inputParameters":{"enrollmentId":"${trm_assign_ref.output.enrollmentId}"}},
+    {"name":"trm_assess","taskReferenceName":"trm_assess_ref","type":"SIMPLE","inputParameters":{"enrollmentId":"${trm_assign_ref.output.enrollmentId}"}},
+    {"name":"trm_certify","taskReferenceName":"trm_certify_ref","type":"SIMPLE","inputParameters":{"score":"${trm_assess_ref.output.score}","employeeId":"${workflow.input.employeeId}"}},
+    {"name":"trm_record","taskReferenceName":"trm_record_ref","type":"SIMPLE","inputParameters":{"certificationId":"${trm_certify_ref.output.certificationId}","employeeId":"${workflow.input.employeeId}"}}
+  ],
+  "outputParameters":{"certificationId":"${trm_certify_ref.output.certificationId}","score":"${trm_assess_ref.output.score}"},
+  "ownerEmail":"examples@orkes.io","timeoutSeconds":60
+}

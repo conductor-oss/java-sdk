@@ -1,0 +1,56 @@
+{
+  "name": "security_training_workflow",
+  "description": "Security awareness training: assign modules, send phishing exercise, evaluate results, report compliance",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "department",
+    "trainingModule"
+  ],
+  "tasks": [
+    {
+      "name": "st_assign_training",
+      "taskReferenceName": "assign_training_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "department": "${workflow.input.department}",
+        "trainingModule": "${workflow.input.trainingModule}"
+      }
+    },
+    {
+      "name": "st_send_phishing_sim",
+      "taskReferenceName": "send_phishing_sim_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "department": "${workflow.input.department}",
+        "assignmentId": "${assign_training_ref.output.assignmentId}"
+      }
+    },
+    {
+      "name": "st_evaluate_results",
+      "taskReferenceName": "evaluate_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assignmentId": "${assign_training_ref.output.assignmentId}",
+        "phishingResults": "${send_phishing_sim_ref.output}"
+      }
+    },
+    {
+      "name": "st_report_compliance",
+      "taskReferenceName": "report_compliance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "department": "${workflow.input.department}",
+        "evaluationResults": "${evaluate_results_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "assignmentId": "${assign_training_ref.output.assignmentId}",
+    "phishingSimSent": "${send_phishing_sim_ref.output}",
+    "evaluationResults": "${evaluate_results_ref.output}",
+    "complianceReport": "${report_compliance_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

@@ -1,0 +1,70 @@
+{
+  "name": "workflow_composition_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "orderId",
+    "customerId"
+  ],
+  "tasks": [
+    {
+      "name": "wcp_sub_a_step1",
+      "taskReferenceName": "wcp_a1_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "phase": "sub_workflow_a",
+        "step": 1,
+        "orderId": "${workflow.input.orderId}"
+      }
+    },
+    {
+      "name": "wcp_sub_a_step2",
+      "taskReferenceName": "wcp_a2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "phase": "sub_workflow_a",
+        "step": 2,
+        "validatedOrder": "${wcp_a1_ref.output.validated}"
+      }
+    },
+    {
+      "name": "wcp_sub_b_step1",
+      "taskReferenceName": "wcp_b1_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "phase": "sub_workflow_b",
+        "step": 1,
+        "customerId": "${workflow.input.customerId}"
+      }
+    },
+    {
+      "name": "wcp_sub_b_step2",
+      "taskReferenceName": "wcp_b2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "phase": "sub_workflow_b",
+        "step": 2,
+        "profile": "${wcp_b1_ref.output.profile}"
+      }
+    },
+    {
+      "name": "wcp_merge",
+      "taskReferenceName": "wcp_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderResult": "${wcp_a2_ref.output.result}",
+        "customerResult": "${wcp_b2_ref.output.result}",
+        "orderId": "${workflow.input.orderId}",
+        "customerId": "${workflow.input.customerId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "customerId": "${workflow.input.customerId}",
+    "composedResult": "${wcp_merge_ref.output.composedResult}",
+    "subWorkflowsCompleted": 2
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

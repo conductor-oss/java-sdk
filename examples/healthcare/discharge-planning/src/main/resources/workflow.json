@@ -1,0 +1,66 @@
+{
+  "name": "discharge_planning_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["patientId", "admissionId", "diagnosis"],
+  "tasks": [
+    {
+      "name": "dsc_assess_readiness",
+      "taskReferenceName": "dsc_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "admissionId": "${workflow.input.admissionId}",
+        "diagnosis": "${workflow.input.diagnosis}"
+      }
+    },
+    {
+      "name": "dsc_create_plan",
+      "taskReferenceName": "dsc_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "readiness": "${dsc_assess_ref.output.readiness}",
+        "needs": "${dsc_assess_ref.output.needs}"
+      }
+    },
+    {
+      "name": "dsc_coordinate",
+      "taskReferenceName": "dsc_coordinate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "services": "${dsc_plan_ref.output.services}"
+      }
+    },
+    {
+      "name": "dsc_educate",
+      "taskReferenceName": "dsc_educate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "diagnosis": "${workflow.input.diagnosis}",
+        "medications": "${dsc_plan_ref.output.medications}"
+      }
+    },
+    {
+      "name": "dsc_schedule_followup",
+      "taskReferenceName": "dsc_followup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "diagnosis": "${workflow.input.diagnosis}",
+        "followUpNeeds": "${dsc_plan_ref.output.followUpNeeds}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "patientId": "${workflow.input.patientId}",
+    "readyForDischarge": "${dsc_assess_ref.output.readiness}",
+    "servicesCoordinated": "${dsc_coordinate_ref.output.servicesArranged}",
+    "educated": "${dsc_educate_ref.output.educated}",
+    "followUpDate": "${dsc_followup_ref.output.appointmentDate}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

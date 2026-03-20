@@ -1,0 +1,50 @@
+{
+  "name": "gdc_gdpr_consent",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "consents"],
+  "tasks": [
+    {
+      "name": "gdc_present_options",
+      "taskReferenceName": "gdc_present_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "gdc_record_consent",
+      "taskReferenceName": "gdc_record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "consents": "${workflow.input.consents}"
+      }
+    },
+    {
+      "name": "gdc_update_systems",
+      "taskReferenceName": "gdc_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "consents": "${workflow.input.consents}"
+      }
+    },
+    {
+      "name": "gdc_audit",
+      "taskReferenceName": "gdc_audit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "consentRecord": "${gdc_record_ref.output.consentRecord}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "consentRecorded": "${gdc_record_ref.output.recorded}",
+    "systemsUpdated": "${gdc_update_ref.output.systemsUpdated}",
+    "auditTrailId": "${gdc_audit_ref.output.auditTrailId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

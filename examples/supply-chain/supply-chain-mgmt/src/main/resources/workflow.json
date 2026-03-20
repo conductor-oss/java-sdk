@@ -1,0 +1,61 @@
+{
+  "name": "scm_supply_chain",
+  "description": "End-to-end supply chain flow: plan, source, make, deliver, and handle returns.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["product", "quantity", "destination"],
+  "tasks": [
+    {
+      "name": "scm_plan",
+      "taskReferenceName": "scm_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "product": "${workflow.input.product}",
+        "quantity": "${workflow.input.quantity}"
+      }
+    },
+    {
+      "name": "scm_source",
+      "taskReferenceName": "scm_source_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "materials": "${scm_plan_ref.output.materials}"
+      }
+    },
+    {
+      "name": "scm_make",
+      "taskReferenceName": "scm_make_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "product": "${workflow.input.product}",
+        "quantity": "${workflow.input.quantity}",
+        "sourcedMaterials": "${scm_source_ref.output.sourcedMaterials}"
+      }
+    },
+    {
+      "name": "scm_deliver",
+      "taskReferenceName": "scm_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${scm_make_ref.output.batchId}",
+        "destination": "${workflow.input.destination}"
+      }
+    },
+    {
+      "name": "scm_return",
+      "taskReferenceName": "scm_return_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deliveryId": "${scm_deliver_ref.output.deliveryId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "planId": "${scm_plan_ref.output.planId}",
+    "batchId": "${scm_make_ref.output.batchId}",
+    "deliveryId": "${scm_deliver_ref.output.deliveryId}",
+    "returnPolicy": "${scm_return_ref.output.returnPolicy}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

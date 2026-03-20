@@ -1,0 +1,48 @@
+{
+  "name": "http_mixed_demo",
+  "description": "Mix HTTP system tasks with SIMPLE worker tasks",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["query", "conductorApiUrl"],
+  "tasks": [
+    {
+      "name": "http_prepare_request",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}"
+      }
+    },
+    {
+      "name": "http_call_api",
+      "taskReferenceName": "api_ref",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.conductorApiUrl}/workflow/search?query=workflowType%3D${prepare_ref.output.searchTerm}",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "connectionTimeOut": 5000,
+          "readTimeOut": 5000
+        }
+      }
+    },
+    {
+      "name": "http_process_response",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "statusCode": "${api_ref.output.response.statusCode}",
+        "responseBody": "${api_ref.output.response.body}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "apiStatus": "${api_ref.output.response.statusCode}",
+    "processedResult": "${process_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

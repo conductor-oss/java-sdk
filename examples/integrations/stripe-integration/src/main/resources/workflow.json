@@ -1,0 +1,59 @@
+{
+  "name": "stripe_integration_435",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "email",
+    "amount",
+    "currency",
+    "description"
+  ],
+  "tasks": [
+    {
+      "name": "stp_create_customer",
+      "taskReferenceName": "customer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}"
+      }
+    },
+    {
+      "name": "stp_payment_intent",
+      "taskReferenceName": "intent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${customer_ref.output.customerId}",
+        "amount": "${workflow.input.amount}",
+        "currency": "${workflow.input.currency}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "stp_charge",
+      "taskReferenceName": "charge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "paymentIntentId": "${intent_ref.output.paymentIntentId}",
+        "customerId": "${customer_ref.output.customerId}"
+      }
+    },
+    {
+      "name": "stp_send_receipt",
+      "taskReferenceName": "receipt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}",
+        "chargeId": "${charge_ref.output.chargeId}",
+        "amount": "${workflow.input.amount}",
+        "currency": "${workflow.input.currency}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "customerId": "${customer_ref.output.customerId}",
+    "chargeId": "${charge_ref.output.chargeId}",
+    "receiptSent": "${receipt_ref.output.sent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

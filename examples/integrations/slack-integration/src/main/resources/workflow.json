@@ -1,0 +1,58 @@
+{
+  "name": "slack_integration",
+  "description": "Slack integration: receive event, process event, post message, track delivery",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "channel",
+    "eventType",
+    "payload"
+  ],
+  "tasks": [
+    {
+      "name": "slk_receive_event",
+      "taskReferenceName": "receive_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "channel": "${workflow.input.channel}",
+        "eventType": "${workflow.input.eventType}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "slk_process_event",
+      "taskReferenceName": "process_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${receive_event_ref.output.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "slk_post_message",
+      "taskReferenceName": "post_message_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "channel": "${workflow.input.channel}",
+        "message": "${process_event_ref.output.formattedMessage}"
+      }
+    },
+    {
+      "name": "slk_track_delivery",
+      "taskReferenceName": "track_delivery_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${post_message_ref.output.messageId}",
+        "channel": "${workflow.input.channel}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${receive_event_ref.output.eventId}",
+    "messageId": "${post_message_ref.output.messageId}",
+    "delivered": "${track_delivery_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

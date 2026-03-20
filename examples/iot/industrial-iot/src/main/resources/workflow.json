@@ -1,0 +1,54 @@
+{
+  "name": "industrial_iot_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "plantId",
+    "machineId",
+    "machineType"
+  ],
+  "tasks": [
+    {
+      "name": "iit_monitor_machines",
+      "taskReferenceName": "iit_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "plantId": "${workflow.input.plantId}",
+        "machineId": "${workflow.input.machineId}",
+        "machineType": "${workflow.input.machineType}"
+      }
+    },
+    {
+      "name": "iit_predictive_analysis",
+      "taskReferenceName": "iit_predict_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "machineId": "${workflow.input.machineId}",
+        "machineType": "${workflow.input.machineType}",
+        "telemetry": "${iit_monitor_ref.output.telemetry}",
+        "anomalyScore": "${iit_monitor_ref.output.anomalyScore}"
+      }
+    },
+    {
+      "name": "iit_schedule_repair",
+      "taskReferenceName": "iit_repair_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "machineId": "${workflow.input.machineId}",
+        "plantId": "${workflow.input.plantId}",
+        "failureProbability": "${iit_predict_ref.output.failureProbability}",
+        "predictedComponent": "${iit_predict_ref.output.predictedComponent}",
+        "urgency": "${iit_predict_ref.output.urgency}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "machineId": "${workflow.input.machineId}",
+    "anomalyScore": "${iit_monitor_ref.output.anomalyScore}",
+    "failureProbability": "${iit_predict_ref.output.failureProbability}",
+    "repairScheduled": "${iit_repair_ref.output.repairScheduled}",
+    "workOrderId": "${iit_repair_ref.output.workOrderId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

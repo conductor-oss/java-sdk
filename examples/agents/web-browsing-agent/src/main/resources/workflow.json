@@ -1,0 +1,61 @@
+{
+  "name": "web_browsing_agent",
+  "description": "Web Browsing Agent — plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "maxPages"],
+  "tasks": [
+    {
+      "name": "wb_plan_search",
+      "taskReferenceName": "wb_plan_search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "wb_execute_search",
+      "taskReferenceName": "wb_execute_search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "searchQueries": "${wb_plan_search_ref.output.searchQueries}",
+        "searchEngine": "${wb_plan_search_ref.output.searchEngine}"
+      }
+    },
+    {
+      "name": "wb_select_pages",
+      "taskReferenceName": "wb_select_pages_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "searchResults": "${wb_execute_search_ref.output.results}",
+        "question": "${workflow.input.question}",
+        "maxPages": "${workflow.input.maxPages}"
+      }
+    },
+    {
+      "name": "wb_read_page",
+      "taskReferenceName": "wb_read_page_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "selectedPages": "${wb_select_pages_ref.output.selectedPages}"
+      }
+    },
+    {
+      "name": "wb_extract_answer",
+      "taskReferenceName": "wb_extract_answer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "pageContents": "${wb_read_page_ref.output.pageContents}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${wb_extract_answer_ref.output.answer}",
+    "sources": "${wb_extract_answer_ref.output.sources}",
+    "confidence": "${wb_extract_answer_ref.output.confidence}",
+    "wordCount": "${wb_extract_answer_ref.output.wordCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

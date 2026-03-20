@@ -1,0 +1,56 @@
+{
+  "name": "clinical_decision_workflow",
+  "description": "Clinical Decision Support: gather data, apply guidelines, score risk, recommend",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["patientId", "condition", "clinicalContext"],
+  "tasks": [
+    {
+      "name": "cds_gather_data",
+      "taskReferenceName": "cds_gather_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "condition": "${workflow.input.condition}"
+      }
+    },
+    {
+      "name": "cds_apply_guidelines",
+      "taskReferenceName": "cds_guidelines_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "condition": "${workflow.input.condition}",
+        "clinicalData": "${cds_gather_ref.output.clinicalData}"
+      }
+    },
+    {
+      "name": "cds_score_risk",
+      "taskReferenceName": "cds_risk_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "clinicalData": "${cds_gather_ref.output.clinicalData}",
+        "guidelineResults": "${cds_guidelines_ref.output.guidelineResults}"
+      }
+    },
+    {
+      "name": "cds_recommend",
+      "taskReferenceName": "cds_recommend_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "condition": "${workflow.input.condition}",
+        "riskScore": "${cds_risk_ref.output.riskScore}",
+        "guidelineResults": "${cds_guidelines_ref.output.guidelineResults}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "patientId": "${workflow.input.patientId}",
+    "riskScore": "${cds_risk_ref.output.riskScore}",
+    "riskCategory": "${cds_risk_ref.output.riskCategory}",
+    "recommendations": "${cds_recommend_ref.output.recommendations}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

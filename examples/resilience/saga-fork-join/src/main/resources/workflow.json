@@ -1,0 +1,87 @@
+{
+  "name": "saga_fork_join_demo",
+  "description": "Parallel booking saga -- FORK_JOIN with hotel, flight, car branches, then check results and confirm all.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["tripId"],
+  "tasks": [
+    {
+      "name": "fork_bookings",
+      "taskReferenceName": "fork_bookings_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "sfj_book_hotel",
+            "taskReferenceName": "sfj_book_hotel_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "tripId": "${workflow.input.tripId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sfj_book_flight",
+            "taskReferenceName": "sfj_book_flight_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "tripId": "${workflow.input.tripId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sfj_book_car",
+            "taskReferenceName": "sfj_book_car_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "tripId": "${workflow.input.tripId}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_bookings",
+      "taskReferenceName": "join_bookings_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "sfj_book_hotel_ref",
+        "sfj_book_flight_ref",
+        "sfj_book_car_ref"
+      ]
+    },
+    {
+      "name": "sfj_check_results",
+      "taskReferenceName": "sfj_check_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "hotelBookingId": "${sfj_book_hotel_ref.output.bookingId}",
+        "flightBookingId": "${sfj_book_flight_ref.output.bookingId}",
+        "carBookingId": "${sfj_book_car_ref.output.bookingId}"
+      }
+    },
+    {
+      "name": "sfj_confirm_all",
+      "taskReferenceName": "sfj_confirm_all_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}",
+        "hotelBookingId": "${sfj_book_hotel_ref.output.bookingId}",
+        "flightBookingId": "${sfj_book_flight_ref.output.bookingId}",
+        "carBookingId": "${sfj_book_car_ref.output.bookingId}",
+        "allValid": "${sfj_check_results_ref.output.allValid}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "tripId": "${workflow.input.tripId}",
+    "hotelBookingId": "${sfj_book_hotel_ref.output.bookingId}",
+    "flightBookingId": "${sfj_book_flight_ref.output.bookingId}",
+    "carBookingId": "${sfj_book_car_ref.output.bookingId}",
+    "confirmed": "${sfj_confirm_all_ref.output.confirmed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

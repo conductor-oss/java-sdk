@@ -1,0 +1,62 @@
+{
+  "name": "po_purchase_order",
+  "description": "Purchase order lifecycle: create, approve, send to vendor, track, and receive.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["vendor", "items", "totalAmount"],
+  "tasks": [
+    {
+      "name": "po_create",
+      "taskReferenceName": "po_create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendor": "${workflow.input.vendor}",
+        "items": "${workflow.input.items}",
+        "totalAmount": "${workflow.input.totalAmount}"
+      }
+    },
+    {
+      "name": "po_approve",
+      "taskReferenceName": "po_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "poNumber": "${po_create_ref.output.poNumber}",
+        "totalAmount": "${workflow.input.totalAmount}"
+      }
+    },
+    {
+      "name": "po_send",
+      "taskReferenceName": "po_send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "poNumber": "${po_create_ref.output.poNumber}",
+        "vendor": "${workflow.input.vendor}"
+      }
+    },
+    {
+      "name": "po_track",
+      "taskReferenceName": "po_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "poNumber": "${po_create_ref.output.poNumber}"
+      }
+    },
+    {
+      "name": "po_receive",
+      "taskReferenceName": "po_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "poNumber": "${po_create_ref.output.poNumber}",
+        "trackingStatus": "${po_track_ref.output.status}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "poNumber": "${po_create_ref.output.poNumber}",
+    "approved": "${po_approve_ref.output.approved}",
+    "sentToVendor": "${po_send_ref.output.sent}",
+    "received": "${po_receive_ref.output.received}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

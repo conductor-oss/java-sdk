@@ -1,0 +1,60 @@
+{
+  "name": "root_cause_analysis_425",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "incidentId",
+    "affectedService",
+    "symptom"
+  ],
+  "tasks": [
+    {
+      "name": "rca_detect_issue",
+      "taskReferenceName": "rca_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${workflow.input.incidentId}",
+        "affectedService": "${workflow.input.affectedService}",
+        "symptom": "${workflow.input.symptom}"
+      }
+    },
+    {
+      "name": "rca_collect_evidence",
+      "taskReferenceName": "rca_evidence_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${workflow.input.incidentId}",
+        "timeWindow": "${rca_detect_ref.output.timeWindow}",
+        "relatedServices": "${rca_detect_ref.output.relatedServices}"
+      }
+    },
+    {
+      "name": "rca_analyze",
+      "taskReferenceName": "rca_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "logs": "${rca_evidence_ref.output.logCount}",
+        "metrics": "${rca_evidence_ref.output.metricCount}",
+        "changes": "${rca_evidence_ref.output.recentChanges}"
+      }
+    },
+    {
+      "name": "rca_identify_root_cause",
+      "taskReferenceName": "rca_root_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${workflow.input.incidentId}",
+        "topCandidate": "${rca_analyze_ref.output.topCandidate}",
+        "confidence": "${rca_analyze_ref.output.confidence}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "rootCause": "${rca_root_ref.output.rootCause}",
+    "confidence": "${rca_analyze_ref.output.confidence}",
+    "remediation": "${rca_root_ref.output.remediation}",
+    "evidenceCount": "${rca_evidence_ref.output.totalEvidence}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

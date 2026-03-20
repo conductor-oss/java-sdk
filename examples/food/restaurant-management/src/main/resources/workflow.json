@@ -1,0 +1,56 @@
+{
+  "name": "restaurant_management_732",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["guestName", "partySize"],
+  "tasks": [
+    {
+      "name": "rst_reservations",
+      "taskReferenceName": "reserve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "guestName": "${workflow.input.guestName}",
+        "partySize": "${workflow.input.partySize}"
+      }
+    },
+    {
+      "name": "rst_seating",
+      "taskReferenceName": "seat_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reservation": "${reserve_ref.output.reservation}"
+      }
+    },
+    {
+      "name": "rst_order",
+      "taskReferenceName": "order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tableId": "${seat_ref.output.tableId}"
+      }
+    },
+    {
+      "name": "rst_kitchen",
+      "taskReferenceName": "kitchen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "items": "${order_ref.output.items}"
+      }
+    },
+    {
+      "name": "rst_checkout",
+      "taskReferenceName": "checkout_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "tableId": "${seat_ref.output.tableId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "bill": "${checkout_ref.output.bill}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

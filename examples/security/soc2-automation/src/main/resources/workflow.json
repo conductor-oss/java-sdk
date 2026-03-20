@@ -1,0 +1,50 @@
+{
+  "name": "soc2_automation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "trustServiceCriteria",
+    "period"
+  ],
+  "tasks": [
+    {
+      "name": "soc2_collect_controls",
+      "taskReferenceName": "collect_controls_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "trustServiceCriteria": "${workflow.input.trustServiceCriteria}",
+        "period": "${workflow.input.period}"
+      }
+    },
+    {
+      "name": "soc2_test_effectiveness",
+      "taskReferenceName": "test_effectiveness_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "test_effectivenessData": "${collect_controls_ref.output}"
+      }
+    },
+    {
+      "name": "soc2_identify_exceptions",
+      "taskReferenceName": "identify_exceptions_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "identify_exceptionsData": "${test_effectiveness_ref.output}"
+      }
+    },
+    {
+      "name": "soc2_generate_evidence",
+      "taskReferenceName": "generate_evidence_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "generate_evidenceData": "${identify_exceptions_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "collect_controlsResult": "${collect_controls_ref.output}",
+    "generate_evidenceResult": "${generate_evidence_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1200
+}

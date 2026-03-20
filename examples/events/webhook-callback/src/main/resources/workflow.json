@@ -1,0 +1,46 @@
+{
+  "name": "webhook_callback_wf",
+  "description": "Webhook Callback Workflow — receive an incoming webhook request, process the data, and notify the caller via callback URL.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId", "data", "callbackUrl"],
+  "tasks": [
+    {
+      "name": "wc_receive_request",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "data": "${workflow.input.data}"
+      }
+    },
+    {
+      "name": "wc_process_data",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${receive_ref.output.requestId}",
+        "parsedData": "${receive_ref.output.parsedData}"
+      }
+    },
+    {
+      "name": "wc_notify_callback",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "callbackUrl": "${workflow.input.callbackUrl}",
+        "requestId": "${process_ref.output.requestId}",
+        "result": "${process_ref.output.result}",
+        "status": "${process_ref.output.processingStatus}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${receive_ref.output.requestId}",
+    "processingStatus": "${process_ref.output.processingStatus}",
+    "callbackSent": "${notify_ref.output.callbackSent}",
+    "callbackResponse": "${notify_ref.output.callbackPayload}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,50 @@
+{
+  "name": "capacity_planning_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "period"
+  ],
+  "tasks": [
+    {
+      "name": "cp_collect_metrics",
+      "taskReferenceName": "collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "period": "${workflow.input.period}"
+      }
+    },
+    {
+      "name": "cp_analyze_trends",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataPoints": "${collect_ref.output.dataPoints}"
+      }
+    },
+    {
+      "name": "cp_forecast",
+      "taskReferenceName": "forecast_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "trend": "${analyze_ref.output.trend}"
+      }
+    },
+    {
+      "name": "cp_recommend",
+      "taskReferenceName": "recommend_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "daysUntilCapacity": "${forecast_ref.output.daysUntilCapacity}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "recommendation": "${recommend_ref.output.action}",
+    "daysLeft": "${forecast_ref.output.daysUntilCapacity}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

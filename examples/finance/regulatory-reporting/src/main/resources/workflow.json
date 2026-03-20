@@ -1,0 +1,15 @@
+{
+  "name": "regulatory_reporting_workflow",
+  "description": "Regulatory reporting workflow: collect data, validate, format, submit, and confirm.",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["reportId", "reportType", "reportingPeriod", "entity"],
+  "tasks": [
+    {"name": "reg_collect_data", "taskReferenceName": "reg_collect_ref", "type": "SIMPLE", "inputParameters": {"reportId": "${workflow.input.reportId}", "reportType": "${workflow.input.reportType}", "reportingPeriod": "${workflow.input.reportingPeriod}", "entity": "${workflow.input.entity}"}},
+    {"name": "reg_validate", "taskReferenceName": "reg_validate_ref", "type": "SIMPLE", "inputParameters": {"reportId": "${workflow.input.reportId}", "data": "${reg_collect_ref.output.data}", "reportType": "${workflow.input.reportType}"}},
+    {"name": "reg_format", "taskReferenceName": "reg_format_ref", "type": "SIMPLE", "inputParameters": {"reportId": "${workflow.input.reportId}", "validatedData": "${reg_validate_ref.output.validatedData}", "reportType": "${workflow.input.reportType}"}},
+    {"name": "reg_submit", "taskReferenceName": "reg_submit_ref", "type": "SIMPLE", "inputParameters": {"reportId": "${workflow.input.reportId}", "formattedReport": "${reg_format_ref.output.formattedReport}", "reportType": "${workflow.input.reportType}"}},
+    {"name": "reg_confirm", "taskReferenceName": "reg_confirm_ref", "type": "SIMPLE", "inputParameters": {"reportId": "${workflow.input.reportId}", "submissionId": "${reg_submit_ref.output.submissionId}"}}
+  ],
+  "outputParameters": {"reportId": "${workflow.input.reportId}", "submissionId": "${reg_submit_ref.output.submissionId}", "accepted": "${reg_confirm_ref.output.accepted}", "validationErrors": "${reg_validate_ref.output.errorCount}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

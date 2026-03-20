@@ -1,0 +1,30 @@
+{
+  "name": "bulk_ops_demo",
+  "description": "Bulk operations demo — two-step workflow used for bulk start, pause, resume, and terminate.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batchId"],
+  "tasks": [
+    {
+      "name": "bulk_step1",
+      "taskReferenceName": "bulk_step1_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}"
+      }
+    },
+    {
+      "name": "bulk_step2",
+      "taskReferenceName": "bulk_step2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${bulk_step1_ref.output.data}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${bulk_step2_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

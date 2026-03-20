@@ -1,0 +1,78 @@
+{
+  "name": "multi_cluster_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "jobId",
+    "datasetSize"
+  ],
+  "tasks": [
+    {
+      "name": "mcl_prepare",
+      "taskReferenceName": "mcl_prep_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "datasetSize": "${workflow.input.datasetSize}"
+      }
+    },
+    {
+      "name": "mcl_fork",
+      "taskReferenceName": "mcl_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "mcl_cluster_east",
+            "taskReferenceName": "mcl_east_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "cluster": "us-east-1",
+              "partition": "${mcl_prep_ref.output.partitionA}",
+              "jobId": "${workflow.input.jobId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mcl_cluster_west",
+            "taskReferenceName": "mcl_west_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "cluster": "us-west-2",
+              "partition": "${mcl_prep_ref.output.partitionB}",
+              "jobId": "${workflow.input.jobId}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "mcl_join",
+      "taskReferenceName": "mcl_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "mcl_east_ref",
+        "mcl_west_ref"
+      ]
+    },
+    {
+      "name": "mcl_aggregate",
+      "taskReferenceName": "mcl_agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eastResult": "${mcl_east_ref.output.processed}",
+        "westResult": "${mcl_west_ref.output.processed}",
+        "eastCount": "${mcl_east_ref.output.recordCount}",
+        "westCount": "${mcl_west_ref.output.recordCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "jobId": "${workflow.input.jobId}",
+    "totalProcessed": "${mcl_agg_ref.output.totalProcessed}",
+    "clusters": "${mcl_agg_ref.output.clusters}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

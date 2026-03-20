@@ -1,0 +1,49 @@
+{
+  "name": "cost_monitoring_419",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "accountId",
+    "billingPeriod",
+    "budgetLimit"
+  ],
+  "tasks": [
+    {
+      "name": "cos_collect_billing",
+      "taskReferenceName": "cos_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "accountId": "${workflow.input.accountId}",
+        "billingPeriod": "${workflow.input.billingPeriod}"
+      }
+    },
+    {
+      "name": "cos_analyze_trends",
+      "taskReferenceName": "cos_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "totalSpend": "${cos_collect_ref.output.totalSpend}",
+        "breakdown": "${cos_collect_ref.output.breakdown}",
+        "budgetLimit": "${workflow.input.budgetLimit}"
+      }
+    },
+    {
+      "name": "cos_alert_anomalies",
+      "taskReferenceName": "cos_alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "accountId": "${workflow.input.accountId}",
+        "trend": "${cos_analyze_ref.output.trend}",
+        "percentOfBudget": "${cos_analyze_ref.output.percentOfBudget}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalSpend": "${cos_collect_ref.output.totalSpend}",
+    "trend": "${cos_analyze_ref.output.trend}",
+    "percentOfBudget": "${cos_analyze_ref.output.percentOfBudget}",
+    "alertSent": "${cos_alert_ref.output.alertSent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

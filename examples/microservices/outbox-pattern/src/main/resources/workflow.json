@@ -1,0 +1,18 @@
+{
+  "name": "outbox_pattern_workflow",
+  "description": "Transactional outbox pattern for reliable event publishing",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["entityId", "entityData", "eventType"],
+  "tasks": [
+    {"name": "ob_write_with_outbox", "taskReferenceName": "write_ref", "type": "SIMPLE",
+      "inputParameters": {"entityId": "${workflow.input.entityId}", "entityData": "${workflow.input.entityData}", "eventType": "${workflow.input.eventType}"}},
+    {"name": "ob_poll_outbox", "taskReferenceName": "poll_ref", "type": "SIMPLE",
+      "inputParameters": {"outboxId": "${write_ref.output.outboxId}"}},
+    {"name": "ob_publish_event", "taskReferenceName": "publish_ref", "type": "SIMPLE",
+      "inputParameters": {"event": "${poll_ref.output.event}", "destination": "${poll_ref.output.destination}"}},
+    {"name": "ob_mark_published", "taskReferenceName": "mark_ref", "type": "SIMPLE",
+      "inputParameters": {"outboxId": "${write_ref.output.outboxId}"}}
+  ],
+  "outputParameters": {"outboxId": "${write_ref.output.outboxId}", "published": "${publish_ref.output.published}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

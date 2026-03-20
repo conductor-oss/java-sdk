@@ -1,0 +1,207 @@
+# Web Browsing Agent in Java Using Conductor :  Plan Search, Execute, Select Pages, Read, Extract Answer
+
+Web Browsing Agent .  plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+
+## Answering Questions by Actually Reading Web Pages
+
+Search engine snippets are often insufficient. "What are the specific system requirements for running Kubernetes 1.29 on bare metal?" requires actually reading the documentation page, not just the snippet. A web browsing agent goes deeper than search: it plans the right query, gets search results, selects which pages are most likely to contain the answer, reads the full page content, and extracts the specific information needed.
+
+This is a five-step pipeline where each step narrows the focus: search returns many results, page selection picks the best few, reading gets the content, and extraction finds the specific answer. If page reading fails (timeout, JavaScript-heavy site), the agent can try the next selected page without re-running the search.
+
+## The Solution
+
+**You write the search planning, page selection, content reading, and answer extraction logic. Conductor handles the browsing pipeline, retries on page fetch failures, and full research trail recording.**
+
+`PlanSearchWorker` analyzes the question and formulates an effective search query .  adding specific keywords, removing ambiguity, and targeting authoritative sources. `ExecuteSearchWorker` runs the query and returns ranked results with URLs, titles, and snippets. `SelectPagesWorker` evaluates the results and selects the most promising pages based on source authority, snippet relevance, and content type. `ReadPageWorker` fetches and parses the selected page content. `ExtractAnswerWorker` finds the specific answer to the question within the page content and returns it with the source citation. Conductor chains these five steps and records the full research trail.
+
+### What You Write: Workers
+
+Five workers browse the web. Planning search queries, executing the search, selecting relevant pages, reading their content, and extracting the answer with citations.
+
+| Worker | Task | What It Does |
+|---|---|---|
+| **ExecuteSearchWorker** | `wb_execute_search` | Executes search queries and returns simulated search results. Returns a list of results with url, title, snippet, and... |
+| **ExtractAnswerWorker** | `wb_extract_answer` | Extracts and synthesizes an answer from the page contents. Returns the answer, sources, confidence score, and word co... |
+| **PlanSearchWorker** | `wb_plan_search` | Plans search queries for a given question. Returns a list of search queries, the search engine to use, and the strategy. |
+| **ReadPageWorker** | `wb_read_page` | Reads the content of selected pages. Simulates page loading and content extraction. Returns page contents with url, t... |
+| **SelectPagesWorker** | `wb_select_pages` | Selects the most relevant pages from search results based on relevance score. Sorts by relevance descending and retur... |
+
+Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+
+### What Conductor Gives You For Free
+
+| Capability | How It Works |
+|---|---|
+| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
+| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
+| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
+| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
+
+### The Workflow
+
+```
+wb_plan_search
+    │
+    ▼
+wb_execute_search
+    │
+    ▼
+wb_select_pages
+    │
+    ▼
+wb_read_page
+    │
+    ▼
+wb_extract_answer
+```
+
+## Example Output
+
+```
+=== Web Browsing Agent Demo ===
+
+Step 1: Registering task definitions...
+  Registered: wb_plan_search, wb_execute_search, wb_select_pages, wb_read_page, wb_extract_answer
+
+Step 2: Registering workflow 'web_browsing_agent'...
+  Workflow registered.
+
+Step 3: Starting workers...
+  5 workers polling.
+
+Step 4: Starting workflow...
+  Workflow ID: f7a2c1e9-...
+
+  [wb_execute_search] Executing
+  [wb_extract_answer] Synthesizing answer from
+  [wb_plan_search] Planning search queries for:
+  [wb_read_page] Reading
+  [wb_select_pages] Selecting top
+
+  Status: COMPLETED
+  Output: {results=..., totalResults=..., answer=..., sources=...}
+
+Result: PASSED
+```
+
+## Running It
+
+### Prerequisites
+
+- **Java 21+**: verify with `java -version`
+- **Maven 3.8+**: verify with `mvn -version`
+- **Docker**: to run Conductor
+
+### Option 1: Docker Compose (everything included)
+
+```bash
+docker compose up --build
+```
+
+Starts Conductor on port 8080 and runs the example automatically.
+
+If port 8080 is already taken:
+
+```bash
+CONDUCTOR_PORT=9090 docker compose up --build
+```
+
+### Option 2: Run locally
+
+```bash
+# Start Conductor
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+
+# Wait for Conductor to be ready
+until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
+
+# Build and run
+mvn package -DskipTests
+java -jar target/web-browsing-agent-1.0.0.jar
+```
+
+### Option 3: Use the run script
+
+```bash
+./run.sh
+
+# Or on a custom port:
+CONDUCTOR_PORT=9090 ./run.sh
+
+# Or pointing at an existing Conductor:
+CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+```
+
+## Configuration
+
+| Environment Variable | Default | Description |
+|---|---|---|
+| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
+| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
+
+## Using the Conductor CLI
+
+Start the app in **worker-only mode** so workers keep polling while you use the CLI:
+
+```bash
+java -jar target/web-browsing-agent-1.0.0.jar --workers
+```
+
+Then in a separate terminal:
+
+```bash
+conductor workflow start \
+  --workflow web_browsing_agent \
+  --version 1 \
+  --input '{"question": "sample-question", "What are the key features and production capabilities of Conductor workflow engine?": "sample-What are the key features and production capabilities of Conductor workflow engine?", "maxPages": "sample-maxPages"}'
+```
+
+### Check workflow status
+
+```bash
+conductor workflow status <workflow_id>
+conductor workflow get-execution <workflow_id> -c
+conductor workflow search -w web_browsing_agent -s COMPLETED -c 5
+```
+
+## How to Extend
+
+Each worker handles one browsing step. Integrate SerpAPI for search, Playwright or Jina Reader for JavaScript-rendered page reading, and an LLM for answer extraction with source citations, and the plan-search-select-read-extract pipeline runs unchanged.
+
+- **ExecuteSearchWorker** (`wb_execute_search`): integrate with SerpAPI, Bing Search API, or Google Custom Search for real search results with rich snippet extraction
+- **ReadPageWorker** (`wb_read_page`): use Playwright or Selenium for JavaScript-rendered pages, Jsoup for static HTML, or Jina Reader API for clean content extraction from any URL
+- **ExtractAnswerWorker** (`wb_extract_answer`): use an LLM with the page content as context to extract specific answers with source quotes and confidence scores
+
+Connect to real search and page-reading APIs; the browsing pipeline preserves the same search-select-read-extract interface.
+
+## SDK
+
+Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
+
+
+## Project Structure
+
+```
+web-browsing-agent/
+├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
+├── Dockerfile                       # Multi-stage build
+├── docker-compose.yml               # Conductor + workers
+├── run.sh                           # Smart launcher
+├── src/main/resources/
+│   └── workflow.json                # Workflow definition
+├── src/main/java/webbrowsing/
+│   ├── ConductorClientHelper.java   # SDK v5 client setup
+│   ├── WebBrowsingAgentExample.java          # Main entry point (supports --workers mode)
+│   └── workers/
+│       ├── ExecuteSearchWorker.java
+│       ├── ExtractAnswerWorker.java
+│       ├── PlanSearchWorker.java
+│       ├── ReadPageWorker.java
+│       └── SelectPagesWorker.java
+└── src/test/java/webbrowsing/workers/
+    ├── ExecuteSearchWorkerTest.java        # 9 tests
+    ├── ExtractAnswerWorkerTest.java        # 9 tests
+    ├── PlanSearchWorkerTest.java        # 8 tests
+    ├── ReadPageWorkerTest.java        # 9 tests
+    └── SelectPagesWorkerTest.java        # 9 tests
+```

@@ -1,0 +1,75 @@
+{
+  "name": "social_media_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "campaignId",
+    "platform",
+    "message",
+    "mediaUrl"
+  ],
+  "tasks": [
+    {
+      "name": "soc_create_content",
+      "taskReferenceName": "soc_create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "platform": "${workflow.input.platform}",
+        "message": "${workflow.input.message}",
+        "mediaUrl": "${workflow.input.mediaUrl}"
+      }
+    },
+    {
+      "name": "soc_schedule_post",
+      "taskReferenceName": "soc_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "platform": "${workflow.input.platform}",
+        "contentId": "${soc_create_ref.output.contentId}",
+        "optimalTime": "${soc_create_ref.output.optimalTime}"
+      }
+    },
+    {
+      "name": "soc_publish_post",
+      "taskReferenceName": "soc_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "platform": "${workflow.input.platform}",
+        "contentId": "${soc_create_ref.output.contentId}",
+        "scheduledTime": "${soc_schedule_ref.output.scheduledTime}"
+      }
+    },
+    {
+      "name": "soc_monitor_engagement",
+      "taskReferenceName": "soc_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "postId": "${soc_publish_ref.output.postId}",
+        "platform": "${workflow.input.platform}"
+      }
+    },
+    {
+      "name": "soc_engage_responses",
+      "taskReferenceName": "soc_engage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "postId": "${soc_publish_ref.output.postId}",
+        "commentsCount": "${soc_monitor_ref.output.commentsCount}",
+        "mentionsCount": "${soc_monitor_ref.output.mentionsCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "campaignId": "${workflow.input.campaignId}",
+    "postId": "${soc_publish_ref.output.postId}",
+    "engagementRate": "${soc_monitor_ref.output.engagementRate}",
+    "responsesHandled": "${soc_engage_ref.output.responsesHandled}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

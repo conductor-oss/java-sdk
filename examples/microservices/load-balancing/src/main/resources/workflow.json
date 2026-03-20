@@ -1,0 +1,74 @@
+{
+  "name": "load_balancing_294",
+  "description": "Distribute requests across service instances in parallel",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestBatch"],
+  "tasks": [
+    {
+      "name": "lb_distribute",
+      "taskReferenceName": "lb_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "lb_call_instance",
+            "taskReferenceName": "lb_inst1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "instanceId": "inst-1",
+              "host": "10.0.1.10:8080",
+              "partition": "batch-part-1"
+            }
+          }
+        ],
+        [
+          {
+            "name": "lb_call_instance",
+            "taskReferenceName": "lb_inst2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "instanceId": "inst-2",
+              "host": "10.0.1.11:8080",
+              "partition": "batch-part-2"
+            }
+          }
+        ],
+        [
+          {
+            "name": "lb_call_instance",
+            "taskReferenceName": "lb_inst3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "instanceId": "inst-3",
+              "host": "10.0.1.12:8080",
+              "partition": "batch-part-3"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "lb_join",
+      "taskReferenceName": "lb_join_ref",
+      "type": "JOIN",
+      "joinOn": ["lb_inst1_ref", "lb_inst2_ref", "lb_inst3_ref"]
+    },
+    {
+      "name": "lb_aggregate_results",
+      "taskReferenceName": "lb_agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "result1": "${lb_inst1_ref.output.result}",
+        "result2": "${lb_inst2_ref.output.result}",
+        "result3": "${lb_inst3_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "aggregated": "${lb_agg_ref.output.aggregated}",
+    "totalProcessed": "${lb_agg_ref.output.totalProcessed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

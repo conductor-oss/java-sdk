@@ -1,0 +1,31 @@
+{
+  "name": "delivery_tracking_733",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "restaurantAddr", "customerAddr"],
+  "tasks": [
+    {
+      "name": "dlt_assign_driver", "taskReferenceName": "driver_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "restaurantAddr": "${workflow.input.restaurantAddr}" }
+    },
+    {
+      "name": "dlt_pickup", "taskReferenceName": "pickup_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "driverId": "${driver_ref.output.driverId}" }
+    },
+    {
+      "name": "dlt_track", "taskReferenceName": "track_ref", "type": "SIMPLE",
+      "inputParameters": { "driverId": "${driver_ref.output.driverId}", "destination": "${workflow.input.customerAddr}" }
+    },
+    {
+      "name": "dlt_deliver", "taskReferenceName": "deliver_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "driverId": "${driver_ref.output.driverId}" }
+    },
+    {
+      "name": "dlt_confirm", "taskReferenceName": "confirm_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}" }
+    }
+  ],
+  "outputParameters": { "delivery": "${confirm_ref.output.delivery}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

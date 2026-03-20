@@ -1,0 +1,35 @@
+{
+  "name": "approval_dashboard_react_demo",
+  "description": "Dashboard API for Pending Tasks -- dash_task (SIMPLE) followed by WAIT (pending_approval) with title, priority, and assignee inputs.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["title", "priority", "assignee"],
+  "tasks": [
+    {
+      "name": "dash_task",
+      "taskReferenceName": "dash_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "title": "${workflow.input.title}",
+        "priority": "${workflow.input.priority}",
+        "assignee": "${workflow.input.assignee}"
+      }
+    },
+    {
+      "name": "pending_approval",
+      "taskReferenceName": "pending_approval_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "title": "${workflow.input.title}",
+        "priority": "${workflow.input.priority}",
+        "assignee": "${workflow.input.assignee}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "processed": "${dash_task_ref.output.processed}",
+    "approvalStatus": "${pending_approval_ref.output.approvalStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

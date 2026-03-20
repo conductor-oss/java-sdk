@@ -1,0 +1,57 @@
+{
+  "name": "compliance_reporting_workflow",
+  "description": "Compliance reporting: collect evidence, map controls, assess gaps, generate report",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "framework",
+    "period"
+  ],
+  "tasks": [
+    {
+      "name": "cr_collect_evidence",
+      "taskReferenceName": "collect_evidence_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "framework": "${workflow.input.framework}",
+        "period": "${workflow.input.period}"
+      }
+    },
+    {
+      "name": "cr_map_controls",
+      "taskReferenceName": "map_controls_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "framework": "${workflow.input.framework}",
+        "evidence": "${collect_evidence_ref.output}"
+      }
+    },
+    {
+      "name": "cr_assess_gaps",
+      "taskReferenceName": "assess_gaps_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "controlMapping": "${map_controls_ref.output}",
+        "framework": "${workflow.input.framework}"
+      }
+    },
+    {
+      "name": "cr_generate_report",
+      "taskReferenceName": "generate_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "framework": "${workflow.input.framework}",
+        "period": "${workflow.input.period}",
+        "gaps": "${assess_gaps_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "evidenceCollected": "${collect_evidence_ref.output}",
+    "controlsMapped": "${map_controls_ref.output}",
+    "gapsAssessed": "${assess_gaps_ref.output}",
+    "reportGenerated": "${generate_report_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

@@ -1,0 +1,73 @@
+{
+  "name": "self_healing_demo",
+  "description": "Self-Healing Workflow — health check, diagnose, remediate, and retry on failure; process normally when healthy.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["service", "data"],
+  "tasks": [
+    {
+      "name": "sh_health_check",
+      "taskReferenceName": "health_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}"
+      }
+    },
+    {
+      "name": "health_switch",
+      "taskReferenceName": "health_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${health_ref.output.healthy}"
+      },
+      "decisionCases": {
+        "false": [
+          {
+            "name": "sh_diagnose",
+            "taskReferenceName": "diagnose_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "service": "${health_ref.output.service}",
+              "symptoms": "${health_ref.output.symptoms}"
+            }
+          },
+          {
+            "name": "sh_remediate",
+            "taskReferenceName": "remediate_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "diagnosis": "${diagnose_ref.output.diagnosis}",
+              "action": "${diagnose_ref.output.action}"
+            }
+          },
+          {
+            "name": "sh_retry_process",
+            "taskReferenceName": "retry_process_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "data": "${workflow.input.data}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "sh_process",
+          "taskReferenceName": "process_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "data": "${workflow.input.data}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "result": "${process_ref.output.result}${retry_process_ref.output.result}",
+    "healed": "${remediate_ref.output.fixed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

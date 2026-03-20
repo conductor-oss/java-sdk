@@ -1,0 +1,53 @@
+{
+  "name": "approval_delegation_demo",
+  "description": "Approval delegation — reassign approval to another person via WAIT + SWITCH",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "ad_prepare",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    },
+    {
+      "name": "initial_approval_wait",
+      "taskReferenceName": "initial_approval_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "delegation_switch",
+      "taskReferenceName": "delegation_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${initial_approval_ref.output.action}"
+      },
+      "decisionCases": {
+        "delegate": [
+          {
+            "name": "delegated_approval_wait",
+            "taskReferenceName": "delegated_approval_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "delegateTo": "${initial_approval_ref.output.delegateTo}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "ad_finalize",
+      "taskReferenceName": "finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    }
+  ],
+  "outputParameters": {
+    "done": "${finalize_ref.output.done}"
+  }
+}

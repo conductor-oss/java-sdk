@@ -1,0 +1,60 @@
+{
+  "name": "lth_litigation_hold",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["caseId", "custodians"],
+  "tasks": [
+    {
+      "name": "lth_identify",
+      "taskReferenceName": "lth_identify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseId": "${workflow.input.caseId}",
+        "custodians": "${workflow.input.custodians}"
+      }
+    },
+    {
+      "name": "lth_notify",
+      "taskReferenceName": "lth_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseId": "${workflow.input.caseId}",
+        "custodians": "${lth_identify_ref.output.identifiedCustodians}"
+      }
+    },
+    {
+      "name": "lth_collect",
+      "taskReferenceName": "lth_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseId": "${workflow.input.caseId}",
+        "custodians": "${lth_identify_ref.output.identifiedCustodians}"
+      }
+    },
+    {
+      "name": "lth_preserve",
+      "taskReferenceName": "lth_preserve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "collectedData": "${lth_collect_ref.output.collectedData}"
+      }
+    },
+    {
+      "name": "lth_track",
+      "taskReferenceName": "lth_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseId": "${workflow.input.caseId}",
+        "preservationId": "${lth_preserve_ref.output.preservationId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "holdId": "${lth_identify_ref.output.holdId}",
+    "notifiedCount": "${lth_notify_ref.output.notifiedCount}",
+    "preservationId": "${lth_preserve_ref.output.preservationId}",
+    "trackingId": "${lth_track_ref.output.trackingId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

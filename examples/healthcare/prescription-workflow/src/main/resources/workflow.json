@@ -1,0 +1,67 @@
+{
+  "name": "prescription_workflow",
+  "description": "Prescription processing: verify, check interactions, fill, dispense, track adherence",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "prescriptionId",
+    "patientId",
+    "medication",
+    "dosage"
+  ],
+  "tasks": [
+    {
+      "name": "prx_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prescriptionId": "${workflow.input.prescriptionId}",
+        "medication": "${workflow.input.medication}",
+        "dosage": "${workflow.input.dosage}"
+      }
+    },
+    {
+      "name": "prx_check_interactions",
+      "taskReferenceName": "check_interactions_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "medication": "${workflow.input.medication}",
+        "currentMedications": "${verify_ref.output.currentMedications}"
+      }
+    },
+    {
+      "name": "prx_fill",
+      "taskReferenceName": "fill_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "medication": "${workflow.input.medication}",
+        "dosage": "${workflow.input.dosage}"
+      }
+    },
+    {
+      "name": "prx_dispense",
+      "taskReferenceName": "dispense_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fillId": "${fill_ref.output.fillId}",
+        "patientId": "${workflow.input.patientId}"
+      }
+    },
+    {
+      "name": "prx_track",
+      "taskReferenceName": "track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prescriptionId": "${workflow.input.prescriptionId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "verified": "${verify_ref.output.verified}",
+    "interactionsCleared": "${check_interactions_ref.output.cleared}",
+    "dispensed": "${dispense_ref.output.dispensed}",
+    "trackingId": "${track_ref.output.trackingId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

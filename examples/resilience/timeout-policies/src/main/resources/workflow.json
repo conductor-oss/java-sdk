@@ -1,0 +1,22 @@
+{
+  "name": "timeout_policy_demo",
+  "description": "Timeout policies demo -- runs tp_critical to verify TIME_OUT_WF policy behavior.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["mode"],
+  "tasks": [
+    {
+      "name": "tp_critical",
+      "taskReferenceName": "crit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mode": "${workflow.input.mode}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${crit_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

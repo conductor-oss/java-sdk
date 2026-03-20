@@ -1,0 +1,87 @@
+{
+  "name": "ppr_parallel_processing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dataset",
+    "chunkSize"
+  ],
+  "tasks": [
+    {
+      "name": "ppr_split_work",
+      "taskReferenceName": "ppr_split_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataset": "${workflow.input.dataset}",
+        "chunkSize": "${workflow.input.chunkSize}"
+      }
+    },
+    {
+      "name": "parallel_chunks",
+      "taskReferenceName": "ppr_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "ppr_chunk_1",
+            "taskReferenceName": "ppr_chunk1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "chunk": "${ppr_split_ref.output.chunks[0]}",
+              "chunkIndex": 0
+            }
+          }
+        ],
+        [
+          {
+            "name": "ppr_chunk_2",
+            "taskReferenceName": "ppr_chunk2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "chunk": "${ppr_split_ref.output.chunks[1]}",
+              "chunkIndex": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "ppr_chunk_3",
+            "taskReferenceName": "ppr_chunk3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "chunk": "${ppr_split_ref.output.chunks[2]}",
+              "chunkIndex": 2
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_chunks",
+      "taskReferenceName": "ppr_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "ppr_chunk1_ref",
+        "ppr_chunk2_ref",
+        "ppr_chunk3_ref"
+      ]
+    },
+    {
+      "name": "ppr_merge",
+      "taskReferenceName": "ppr_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "result1": "${ppr_chunk1_ref.output.result}",
+        "result2": "${ppr_chunk2_ref.output.result}",
+        "result3": "${ppr_chunk3_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalChunks": "${ppr_split_ref.output.totalChunks}",
+    "mergedResult": "${ppr_merge_ref.output.mergedResult}",
+    "totalProcessed": "${ppr_merge_ref.output.totalProcessed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

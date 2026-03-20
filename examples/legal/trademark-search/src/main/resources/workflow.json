@@ -1,0 +1,50 @@
+{
+  "name": "tmk_trademark_search",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["trademarkName", "goodsAndServices"],
+  "tasks": [
+    {
+      "name": "tmk_search",
+      "taskReferenceName": "tmk_search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "trademarkName": "${workflow.input.trademarkName}",
+        "goodsAndServices": "${workflow.input.goodsAndServices}"
+      }
+    },
+    {
+      "name": "tmk_conflicts",
+      "taskReferenceName": "tmk_conflicts_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "searchResults": "${tmk_search_ref.output.searchResults}"
+      }
+    },
+    {
+      "name": "tmk_assess",
+      "taskReferenceName": "tmk_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "conflicts": "${tmk_conflicts_ref.output.conflicts}"
+      }
+    },
+    {
+      "name": "tmk_recommend",
+      "taskReferenceName": "tmk_recommend_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assessment": "${tmk_assess_ref.output.assessment}",
+        "trademarkName": "${workflow.input.trademarkName}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "searchResultsCount": "${tmk_search_ref.output.totalResults}",
+    "conflictsFound": "${tmk_conflicts_ref.output.conflictCount}",
+    "riskLevel": "${tmk_assess_ref.output.riskLevel}",
+    "recommendation": "${tmk_recommend_ref.output.recommendation}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

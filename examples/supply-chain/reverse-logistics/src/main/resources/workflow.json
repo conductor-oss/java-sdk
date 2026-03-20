@@ -1,0 +1,15 @@
+{
+  "name": "rvl_reverse_logistics", "description": "Reverse logistics: receive, inspect, switch on condition, and process.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["returnId", "product", "reason"],
+  "tasks": [
+    {"name":"rvl_receive_return","taskReferenceName":"rvl_receive_ref","type":"SIMPLE","inputParameters":{"returnId":"${workflow.input.returnId}","product":"${workflow.input.product}","reason":"${workflow.input.reason}"}},
+    {"name":"rvl_inspect","taskReferenceName":"rvl_inspect_ref","type":"SIMPLE","inputParameters":{"returnId":"${workflow.input.returnId}"}},
+    {"name":"condition_switch","taskReferenceName":"rvl_switch_ref","type":"SWITCH","evaluatorType":"value-param","expression":"switchCaseValue",
+      "inputParameters":{"switchCaseValue":"${rvl_inspect_ref.output.condition}"},
+      "decisionCases":{"refurbish":[{"name":"rvl_refurbish","taskReferenceName":"rvl_refurbish_ref","type":"SIMPLE","inputParameters":{"returnId":"${workflow.input.returnId}"}}],"recycle":[{"name":"rvl_recycle","taskReferenceName":"rvl_recycle_ref","type":"SIMPLE","inputParameters":{"returnId":"${workflow.input.returnId}"}}]},
+      "defaultCase":[{"name":"rvl_dispose","taskReferenceName":"rvl_dispose_ref","type":"SIMPLE","inputParameters":{"returnId":"${workflow.input.returnId}"}}]},
+    {"name":"rvl_process","taskReferenceName":"rvl_process_ref","type":"SIMPLE","inputParameters":{"returnId":"${workflow.input.returnId}","condition":"${rvl_inspect_ref.output.condition}"}}
+  ],
+  "outputParameters": {"returnId":"${workflow.input.returnId}","condition":"${rvl_inspect_ref.output.condition}","action":"${rvl_process_ref.output.action}","completed":"${rvl_process_ref.output.completed}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

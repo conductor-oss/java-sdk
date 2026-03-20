@@ -1,0 +1,25 @@
+{
+  "name": "database_per_service_workflow",
+  "description": "Database per service pattern with parallel queries and view composition",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId"],
+  "tasks": [
+    {"name": "parallel_queries", "taskReferenceName": "fork_ref", "type": "FORK_JOIN",
+      "forkTasks": [
+        [{"name": "dps_query_user_db", "taskReferenceName": "user_ref", "type": "SIMPLE",
+          "inputParameters": {"userId": "${workflow.input.userId}"}}],
+        [{"name": "dps_query_order_db", "taskReferenceName": "order_ref", "type": "SIMPLE",
+          "inputParameters": {"userId": "${workflow.input.userId}"}}],
+        [{"name": "dps_query_product_db", "taskReferenceName": "product_ref", "type": "SIMPLE",
+          "inputParameters": {"userId": "${workflow.input.userId}"}}]
+      ]},
+    {"name": "join_queries", "taskReferenceName": "join_ref", "type": "JOIN",
+      "joinOn": ["user_ref", "order_ref", "product_ref"]},
+    {"name": "dps_compose_view", "taskReferenceName": "compose_ref", "type": "SIMPLE",
+      "inputParameters": {"user": "${user_ref.output}", "orders": "${order_ref.output}", "products": "${product_ref.output}"}}
+  ],
+  "outputParameters": {"composedView": "${compose_ref.output.view}"},
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

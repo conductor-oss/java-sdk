@@ -1,0 +1,60 @@
+{
+  "name": "nmn_network_monitoring",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "networkSegment",
+    "checkType"
+  ],
+  "tasks": [
+    {
+      "name": "nmn_monitor",
+      "taskReferenceName": "nmn_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "networkSegment": "${workflow.input.networkSegment}"
+      }
+    },
+    {
+      "name": "nmn_detect_issues",
+      "taskReferenceName": "nmn_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metrics": "${nmn_monitor_ref.output.metrics}"
+      }
+    },
+    {
+      "name": "nmn_diagnose",
+      "taskReferenceName": "nmn_diag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "issues": "${nmn_detect_ref.output.issues}"
+      }
+    },
+    {
+      "name": "nmn_repair",
+      "taskReferenceName": "nmn_repair_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "diagnosis": "${nmn_diag_ref.output.diagnosis}",
+        "networkSegment": "${workflow.input.networkSegment}"
+      }
+    },
+    {
+      "name": "nmn_verify",
+      "taskReferenceName": "nmn_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "networkSegment": "${workflow.input.networkSegment}",
+        "repairId": "${nmn_repair_ref.output.repairId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "networkSegment": "${workflow.input.networkSegment}",
+    "issuesFound": "${nmn_detect_ref.output.issueCount}",
+    "repaired": "${nmn_repair_ref.output.repaired}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

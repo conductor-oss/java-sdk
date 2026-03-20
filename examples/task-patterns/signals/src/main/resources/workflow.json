@@ -1,0 +1,56 @@
+{
+  "name": "signal_demo",
+  "description": "Signals demo — send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId"],
+  "tasks": [
+    {
+      "name": "sig_prepare",
+      "taskReferenceName": "sig_prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}"
+      }
+    },
+    {
+      "name": "wait_shipping",
+      "taskReferenceName": "wait_shipping_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "sig_process_shipping",
+      "taskReferenceName": "sig_process_shipping_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "trackingNumber": "${wait_shipping_ref.output.trackingNumber}",
+        "carrier": "${wait_shipping_ref.output.carrier}"
+      }
+    },
+    {
+      "name": "wait_delivery",
+      "taskReferenceName": "wait_delivery_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "sig_complete",
+      "taskReferenceName": "sig_complete_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "deliveredAt": "${wait_delivery_ref.output.deliveredAt}",
+        "signature": "${wait_delivery_ref.output.signature}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "tracking": "${sig_process_shipping_ref.output.trackingNumber}",
+    "delivered": "${sig_complete_ref.output.done}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

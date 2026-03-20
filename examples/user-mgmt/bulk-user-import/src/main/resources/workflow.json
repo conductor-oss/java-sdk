@@ -1,0 +1,19 @@
+{
+  "name": "bui_bulk_user_import",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["fileUrl", "format"],
+  "tasks": [
+    { "name": "bui_parse_file", "taskReferenceName": "bui_parse_ref", "type": "SIMPLE", "inputParameters": { "fileUrl": "${workflow.input.fileUrl}", "format": "${workflow.input.format}" } },
+    { "name": "bui_validate", "taskReferenceName": "bui_validate_ref", "type": "SIMPLE", "inputParameters": { "records": "${bui_parse_ref.output.records}", "totalParsed": "${bui_parse_ref.output.totalParsed}" } },
+    { "name": "bui_batch_insert", "taskReferenceName": "bui_insert_ref", "type": "SIMPLE", "inputParameters": { "validRecords": "${bui_validate_ref.output.validRecords}" } },
+    { "name": "bui_report", "taskReferenceName": "bui_report_ref", "type": "SIMPLE", "inputParameters": { "parsed": "${bui_parse_ref.output.totalParsed}", "valid": "${bui_validate_ref.output.validCount}", "inserted": "${bui_insert_ref.output.insertedCount}" } }
+  ],
+  "outputParameters": {
+    "totalParsed": "${bui_parse_ref.output.totalParsed}",
+    "totalInserted": "${bui_insert_ref.output.insertedCount}",
+    "reportUrl": "${bui_report_ref.output.reportUrl}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

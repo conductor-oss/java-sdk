@@ -1,0 +1,22 @@
+{
+  "name": "versioned_workflow",
+  "description": "Versioned workflow V1 — calculation only. Returns value * 2.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["value"],
+  "tasks": [
+    {
+      "name": "ver_calc",
+      "taskReferenceName": "ver_calc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "value": "${workflow.input.value}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${ver_calc_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,50 @@
+{
+  "name": "access_review_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "department",
+    "reviewCycle"
+  ],
+  "tasks": [
+    {
+      "name": "ar_collect_entitlements",
+      "taskReferenceName": "collect_entitlements_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "department": "${workflow.input.department}",
+        "reviewCycle": "${workflow.input.reviewCycle}"
+      }
+    },
+    {
+      "name": "ar_identify_anomalies",
+      "taskReferenceName": "identify_anomalies_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "identify_anomaliesData": "${collect_entitlements_ref.output}"
+      }
+    },
+    {
+      "name": "ar_request_certification",
+      "taskReferenceName": "request_certification_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "request_certificationData": "${identify_anomalies_ref.output}"
+      }
+    },
+    {
+      "name": "ar_enforce_decisions",
+      "taskReferenceName": "enforce_decisions_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enforce_decisionsData": "${request_certification_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "collect_entitlementsResult": "${collect_entitlements_ref.output}",
+    "enforce_decisionsResult": "${enforce_decisions_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 7200
+}

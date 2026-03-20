@@ -1,0 +1,55 @@
+{
+  "name": "population_health_workflow",
+  "description": "Population Health: aggregate data, stratify risk, identify care gaps, intervene",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["cohortId", "condition", "reportingPeriod"],
+  "tasks": [
+    {
+      "name": "pop_aggregate_data",
+      "taskReferenceName": "pop_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cohortId": "${workflow.input.cohortId}",
+        "condition": "${workflow.input.condition}",
+        "reportingPeriod": "${workflow.input.reportingPeriod}"
+      }
+    },
+    {
+      "name": "pop_stratify_risk",
+      "taskReferenceName": "pop_stratify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cohortId": "${workflow.input.cohortId}",
+        "populationData": "${pop_aggregate_ref.output.populationData}"
+      }
+    },
+    {
+      "name": "pop_identify_gaps",
+      "taskReferenceName": "pop_gaps_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cohortId": "${workflow.input.cohortId}",
+        "riskStrata": "${pop_stratify_ref.output.riskStrata}"
+      }
+    },
+    {
+      "name": "pop_intervene",
+      "taskReferenceName": "pop_intervene_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cohortId": "${workflow.input.cohortId}",
+        "careGaps": "${pop_gaps_ref.output.careGaps}",
+        "riskStrata": "${pop_stratify_ref.output.riskStrata}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "cohortId": "${workflow.input.cohortId}",
+    "populationSize": "${pop_aggregate_ref.output.totalPatients}",
+    "careGaps": "${pop_gaps_ref.output.careGaps}",
+    "interventions": "${pop_intervene_ref.output.interventions}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

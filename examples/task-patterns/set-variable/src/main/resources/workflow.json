@@ -1,0 +1,68 @@
+{
+  "name": "set_variable_demo",
+  "description": "Demonstrates SET_VARIABLE system task for storing intermediate state accessible via ${workflow.variables.key}",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["items"],
+  "tasks": [
+    {
+      "name": "sv_process_items",
+      "taskReferenceName": "sv_process_items_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "store_item_results",
+      "taskReferenceName": "store_item_results_ref",
+      "type": "SET_VARIABLE",
+      "inputParameters": {
+        "totalAmount": "${sv_process_items_ref.output.totalAmount}",
+        "itemCount": "${sv_process_items_ref.output.itemCount}",
+        "category": "${sv_process_items_ref.output.category}"
+      }
+    },
+    {
+      "name": "sv_apply_rules",
+      "taskReferenceName": "sv_apply_rules_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "totalAmount": "${workflow.variables.totalAmount}",
+        "itemCount": "${workflow.variables.itemCount}",
+        "category": "${workflow.variables.category}"
+      }
+    },
+    {
+      "name": "store_rule_results",
+      "taskReferenceName": "store_rule_results_ref",
+      "type": "SET_VARIABLE",
+      "inputParameters": {
+        "needsApproval": "${sv_apply_rules_ref.output.needsApproval}",
+        "riskLevel": "${sv_apply_rules_ref.output.riskLevel}"
+      }
+    },
+    {
+      "name": "sv_finalize",
+      "taskReferenceName": "sv_finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "totalAmount": "${workflow.variables.totalAmount}",
+        "itemCount": "${workflow.variables.itemCount}",
+        "category": "${workflow.variables.category}",
+        "needsApproval": "${workflow.variables.needsApproval}",
+        "riskLevel": "${workflow.variables.riskLevel}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "decision": "${sv_finalize_ref.output.decision}",
+    "totalAmount": "${workflow.variables.totalAmount}",
+    "itemCount": "${workflow.variables.itemCount}",
+    "category": "${workflow.variables.category}",
+    "needsApproval": "${workflow.variables.needsApproval}",
+    "riskLevel": "${workflow.variables.riskLevel}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

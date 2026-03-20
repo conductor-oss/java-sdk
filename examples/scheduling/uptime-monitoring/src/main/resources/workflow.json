@@ -1,0 +1,61 @@
+{
+  "name": "uptime_monitoring_420",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "endpoint",
+    "expectedStatus",
+    "slaTarget"
+  ],
+  "tasks": [
+    {
+      "name": "um_check_endpoint",
+      "taskReferenceName": "um_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${workflow.input.endpoint}",
+        "expectedStatus": "${workflow.input.expectedStatus}"
+      }
+    },
+    {
+      "name": "um_log_result",
+      "taskReferenceName": "um_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${workflow.input.endpoint}",
+        "status": "${um_check_ref.output.httpStatus}",
+        "responseTimeMs": "${um_check_ref.output.responseTimeMs}",
+        "isUp": "${um_check_ref.output.isUp}"
+      }
+    },
+    {
+      "name": "um_calculate_sla",
+      "taskReferenceName": "um_sla_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${workflow.input.endpoint}",
+        "isUp": "${um_check_ref.output.isUp}",
+        "slaTarget": "${workflow.input.slaTarget}"
+      }
+    },
+    {
+      "name": "um_report",
+      "taskReferenceName": "um_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${workflow.input.endpoint}",
+        "currentSla": "${um_sla_ref.output.currentSla}",
+        "slaTarget": "${workflow.input.slaTarget}",
+        "slaMet": "${um_sla_ref.output.slaMet}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "isUp": "${um_check_ref.output.isUp}",
+    "responseTimeMs": "${um_check_ref.output.responseTimeMs}",
+    "currentSla": "${um_sla_ref.output.currentSla}",
+    "slaMet": "${um_sla_ref.output.slaMet}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

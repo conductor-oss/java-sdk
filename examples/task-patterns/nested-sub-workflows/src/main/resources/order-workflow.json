@@ -1,0 +1,38 @@
+{
+  "name": "nested_order",
+  "description": "Level 1 (root) — Order workflow. Calls payment sub-workflow, then fulfills the order.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "amount", "email", "items"],
+  "tasks": [
+    {
+      "name": "payment_sub",
+      "taskReferenceName": "payment_sub_ref",
+      "type": "SUB_WORKFLOW",
+      "subWorkflowParam": {
+        "name": "nested_payment",
+        "version": 1
+      },
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}",
+        "email": "${workflow.input.email}"
+      }
+    },
+    {
+      "name": "nest_fulfill",
+      "taskReferenceName": "nest_fulfill_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "transactionId": "${payment_sub_ref.output.transactionId}",
+    "fulfilled": "${nest_fulfill_ref.output.fulfilled}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 180
+}

@@ -1,0 +1,61 @@
+{
+  "name": "request_aggregation_workflow",
+  "description": "Aggregates data from multiple microservices in parallel using FORK_JOIN, then merges results into a single response.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId"],
+  "tasks": [
+    {
+      "name": "parallel_fetch",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "agg_fetch_user",
+            "taskReferenceName": "user_ref",
+            "type": "SIMPLE",
+            "inputParameters": { "userId": "${workflow.input.userId}" }
+          }
+        ],
+        [
+          {
+            "name": "agg_fetch_orders",
+            "taskReferenceName": "orders_ref",
+            "type": "SIMPLE",
+            "inputParameters": { "userId": "${workflow.input.userId}" }
+          }
+        ],
+        [
+          {
+            "name": "agg_fetch_recommendations",
+            "taskReferenceName": "recs_ref",
+            "type": "SIMPLE",
+            "inputParameters": { "userId": "${workflow.input.userId}" }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_fetch",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["user_ref", "orders_ref", "recs_ref"]
+    },
+    {
+      "name": "agg_merge_results",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "user": "${user_ref.output}",
+        "orders": "${orders_ref.output}",
+        "recommendations": "${recs_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "aggregatedResponse": "${merge_ref.output.merged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

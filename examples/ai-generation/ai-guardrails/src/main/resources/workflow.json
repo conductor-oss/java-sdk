@@ -1,0 +1,62 @@
+{
+  "name": "grl_ai_guardrails",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userPrompt",
+    "userId",
+    "modelId"
+  ],
+  "tasks": [
+    {
+      "name": "grl_input_check",
+      "taskReferenceName": "grl_input_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userPrompt": "${workflow.input.userPrompt}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "grl_content_filter",
+      "taskReferenceName": "grl_filter_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sanitizedPrompt": "${grl_input_ref.output.sanitizedPrompt}"
+      }
+    },
+    {
+      "name": "grl_generate",
+      "taskReferenceName": "grl_gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${grl_filter_ref.output.filteredPrompt}",
+        "modelId": "${workflow.input.modelId}"
+      }
+    },
+    {
+      "name": "grl_output_check",
+      "taskReferenceName": "grl_out_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "response": "${grl_gen_ref.output.response}"
+      }
+    },
+    {
+      "name": "grl_deliver",
+      "taskReferenceName": "grl_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "safeResponse": "${grl_out_ref.output.safeResponse}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "response": "${grl_out_ref.output.safeResponse}",
+    "inputSafe": "${grl_input_ref.output.safe}",
+    "outputSafe": "${grl_out_ref.output.safe}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

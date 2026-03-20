@@ -1,0 +1,58 @@
+{
+  "name": "infra_provisioning_workflow",
+  "version": 1,
+  "description": "Orchestrates infrastructure provisioning: plan, validate, provision, configure, and verify across cloud providers.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600,
+  "schemaVersion": 2,
+  "inputParameters": ["environment", "region", "resourceType"],
+  "tasks": [
+    {
+      "name": "ip_plan",
+      "taskReferenceName": "plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "environment": "${workflow.input.environment}",
+        "region": "${workflow.input.region}",
+        "resourceType": "${workflow.input.resourceType}"
+      }
+    },
+    {
+      "name": "ip_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "plan": "${plan_ref.output.plan}"
+      }
+    },
+    {
+      "name": "ip_provision",
+      "taskReferenceName": "provision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "plan": "${plan_ref.output.plan}",
+        "validated": "${validate_ref.output.valid}"
+      }
+    },
+    {
+      "name": "ip_configure",
+      "taskReferenceName": "config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceId": "${provision_ref.output.resourceId}"
+      }
+    },
+    {
+      "name": "ip_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceId": "${provision_ref.output.resourceId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "resourceId": "${provision_ref.output.resourceId}",
+    "verified": "${verify_ref.output.verified}"
+  }
+}

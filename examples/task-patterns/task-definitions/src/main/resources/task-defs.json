@@ -1,0 +1,30 @@
+[
+  {
+    "name": "td_critical_task",
+    "retryCount": 5,
+    "retryLogic": "EXPONENTIAL_BACKOFF",
+    "retryDelaySeconds": 2,
+    "timeoutSeconds": 300,
+    "responseTimeoutSeconds": 60,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "td_fast_task",
+    "retryCount": 1,
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 1,
+    "timeoutSeconds": 10,
+    "responseTimeoutSeconds": 5,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "td_limited_task",
+    "retryCount": 3,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "concurrentExecLimit": 3,
+    "rateLimitPerFrequency": 10,
+    "rateLimitFrequencyInSeconds": 60,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

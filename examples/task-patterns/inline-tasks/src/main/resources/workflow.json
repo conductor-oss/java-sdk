@@ -1,0 +1,69 @@
+{
+  "name": "inline_tasks_demo",
+  "description": "Demonstrates INLINE tasks — JavaScript that runs on the Conductor server with no workers",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["numbers", "text", "config"],
+  "tasks": [
+    {
+      "name": "math_aggregation",
+      "taskReferenceName": "math_aggregation_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "evaluatorType": "graaljs",
+        "expression": "(function() { var nums = $.numbers; var sum = 0; var min = nums[0]; var max = nums[0]; for (var i = 0; i < nums.length; i++) { sum += nums[i]; if (nums[i] < min) min = nums[i]; if (nums[i] > max) max = nums[i]; } var avg = Math.round((sum / nums.length) * 100) / 100; return { sum: sum, average: avg, min: min, max: max, count: nums.length }; })()",
+        "numbers": "${workflow.input.numbers}"
+      }
+    },
+    {
+      "name": "string_manipulation",
+      "taskReferenceName": "string_manipulation_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "evaluatorType": "graaljs",
+        "expression": "(function() { var text = $.text; var upper = text.toUpperCase(); var words = text.split(' '); var wordCount = words.length; var slug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); var reversed = text.split('').reverse().join(''); return { uppercase: upper, wordCount: wordCount, slug: slug, reversed: reversed }; })()",
+        "text": "${workflow.input.text}"
+      }
+    },
+    {
+      "name": "conditional_logic",
+      "taskReferenceName": "conditional_logic_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "evaluatorType": "graaljs",
+        "expression": "(function() { var avg = $.average; var config = $.config; var tier = 'bronze'; if (avg >= 90) { tier = 'gold'; } else if (avg >= 80) { tier = 'silver'; } var isHighPerformer = avg >= 90; var isEnabled = config && config.enabled === true; return { tier: tier, isHighPerformer: isHighPerformer, isEnabled: isEnabled, averageUsed: avg }; })()",
+        "average": "${math_aggregation_ref.output.result.average}",
+        "config": "${workflow.input.config}"
+      }
+    },
+    {
+      "name": "build_response",
+      "taskReferenceName": "build_response_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "evaluatorType": "graaljs",
+        "expression": "(function() { return { math: { sum: $.sum, average: $.average, min: $.min, max: $.max, count: $.count }, text: { uppercase: $.uppercase, wordCount: $.wordCount, slug: $.slug, reversed: $.reversed }, classification: { tier: $.tier, isHighPerformer: $.isHighPerformer, isEnabled: $.isEnabled }, summary: 'Processed ' + $.count + ' numbers (avg: ' + $.average + ', tier: ' + $.tier + ') and ' + $.wordCount + ' words' }; })()",
+        "sum": "${math_aggregation_ref.output.result.sum}",
+        "average": "${math_aggregation_ref.output.result.average}",
+        "min": "${math_aggregation_ref.output.result.min}",
+        "max": "${math_aggregation_ref.output.result.max}",
+        "count": "${math_aggregation_ref.output.result.count}",
+        "uppercase": "${string_manipulation_ref.output.result.uppercase}",
+        "wordCount": "${string_manipulation_ref.output.result.wordCount}",
+        "slug": "${string_manipulation_ref.output.result.slug}",
+        "reversed": "${string_manipulation_ref.output.result.reversed}",
+        "tier": "${conditional_logic_ref.output.result.tier}",
+        "isHighPerformer": "${conditional_logic_ref.output.result.isHighPerformer}",
+        "isEnabled": "${conditional_logic_ref.output.result.isEnabled}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "math": "${build_response_ref.output.result.math}",
+    "text": "${build_response_ref.output.result.text}",
+    "classification": "${build_response_ref.output.result.classification}",
+    "summary": "${build_response_ref.output.result.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

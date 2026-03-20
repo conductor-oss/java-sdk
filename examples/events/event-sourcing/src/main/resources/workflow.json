@@ -1,0 +1,58 @@
+{
+  "name": "event_sourcing_wf",
+  "description": "Event Sourcing — load event log, append new event, rebuild aggregate state, and snapshot for a bank account aggregate.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["aggregateId", "aggregateType", "newEvent"],
+  "tasks": [
+    {
+      "name": "ev_load_event_log",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregateId": "${workflow.input.aggregateId}",
+        "aggregateType": "${workflow.input.aggregateType}"
+      }
+    },
+    {
+      "name": "ev_append_new_event",
+      "taskReferenceName": "append_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregateId": "${workflow.input.aggregateId}",
+        "existingEvents": "${load_ref.output.events}",
+        "newEvent": "${workflow.input.newEvent}",
+        "nextSequence": "${load_ref.output.nextSequence}"
+      }
+    },
+    {
+      "name": "ev_rebuild_state",
+      "taskReferenceName": "rebuild_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregateId": "${workflow.input.aggregateId}",
+        "allEvents": "${append_ref.output.allEvents}",
+        "aggregateType": "${workflow.input.aggregateType}"
+      }
+    },
+    {
+      "name": "ev_snapshot_state",
+      "taskReferenceName": "snapshot_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregateId": "${workflow.input.aggregateId}",
+        "currentState": "${rebuild_ref.output.currentState}",
+        "version": "${rebuild_ref.output.version}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "aggregateId": "${workflow.input.aggregateId}",
+    "totalEvents": "${append_ref.output.totalEvents}",
+    "currentState": "${rebuild_ref.output.currentState}",
+    "version": "${rebuild_ref.output.version}",
+    "snapshotId": "${snapshot_ref.output.snapshotId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

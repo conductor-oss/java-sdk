@@ -1,0 +1,63 @@
+{
+  "name": "kyc_aml_workflow",
+  "description": "KYC/AML workflow that verifies customer identity, screens against watchlists, assesses risk, and makes a compliance decision.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "customerId",
+    "name",
+    "nationality",
+    "documentType"
+  ],
+  "tasks": [
+    {
+      "name": "kyc_verify_identity",
+      "taskReferenceName": "kyc_identity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "name": "${workflow.input.name}",
+        "documentType": "${workflow.input.documentType}"
+      }
+    },
+    {
+      "name": "kyc_screen_watchlists",
+      "taskReferenceName": "kyc_screen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "name": "${workflow.input.name}",
+        "nationality": "${workflow.input.nationality}"
+      }
+    },
+    {
+      "name": "kyc_assess_risk",
+      "taskReferenceName": "kyc_risk_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "identityVerified": "${kyc_identity_ref.output.verified}",
+        "watchlistHits": "${kyc_screen_ref.output.hits}",
+        "nationality": "${workflow.input.nationality}"
+      }
+    },
+    {
+      "name": "kyc_decide",
+      "taskReferenceName": "kyc_decide_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "riskLevel": "${kyc_risk_ref.output.riskLevel}",
+        "riskScore": "${kyc_risk_ref.output.riskScore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "customerId": "${workflow.input.customerId}",
+    "identityVerified": "${kyc_identity_ref.output.verified}",
+    "riskLevel": "${kyc_risk_ref.output.riskLevel}",
+    "decision": "${kyc_decide_ref.output.decision}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

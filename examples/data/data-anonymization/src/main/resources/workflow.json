@@ -1,0 +1,57 @@
+{
+  "name": "data_anonymization",
+  "description": "Data anonymization workflow that identifies PII, generalizes data, suppresses sensitive fields, and verifies anonymization.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dataset",
+    "anonymizationLevel"
+  ],
+  "tasks": [
+    {
+      "name": "an_identify_pii",
+      "taskReferenceName": "identify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataset": "${workflow.input.dataset}"
+      }
+    },
+    {
+      "name": "an_generalize_data",
+      "taskReferenceName": "generalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataset": "${workflow.input.dataset}",
+        "piiFields": "${identify_ref.output.piiFields}"
+      }
+    },
+    {
+      "name": "an_suppress_fields",
+      "taskReferenceName": "suppress_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "generalizedData": "${generalize_ref.output.generalized}",
+        "anonymizationLevel": "${workflow.input.anonymizationLevel}"
+      }
+    },
+    {
+      "name": "an_verify_anonymization",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "anonymizedData": "${suppress_ref.output.suppressed}",
+        "originalPiiFields": "${identify_ref.output.piiFields}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "piiFieldsFound": "${identify_ref.output.piiFieldCount}",
+    "generalizedFields": "${generalize_ref.output.generalizedCount}",
+    "suppressedFields": "${suppress_ref.output.suppressedCount}",
+    "verified": "${verify_ref.output.verified}",
+    "kAnonymity": "${verify_ref.output.kAnonymity}",
+    "anonymizedRecords": "${verify_ref.output.recordCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

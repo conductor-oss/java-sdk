@@ -1,0 +1,57 @@
+{
+  "name": "tool_use_sequential",
+  "description": "Tool Use Sequential -- search the web, read a page, extract data, and summarize through a sequential pipeline of tool calls.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["query", "maxResults"],
+  "tasks": [
+    {
+      "name": "ts_search_web",
+      "taskReferenceName": "ts_search_web_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}",
+        "maxResults": "${workflow.input.maxResults}"
+      }
+    },
+    {
+      "name": "ts_read_page",
+      "taskReferenceName": "ts_read_page_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "url": "${ts_search_web_ref.output.topResult.url}",
+        "title": "${ts_search_web_ref.output.topResult.title}"
+      }
+    },
+    {
+      "name": "ts_extract_data",
+      "taskReferenceName": "ts_extract_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pageContent": "${ts_read_page_ref.output.content}",
+        "query": "${workflow.input.query}"
+      }
+    },
+    {
+      "name": "ts_summarize",
+      "taskReferenceName": "ts_summarize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}",
+        "extractedData": "${ts_extract_data_ref.output.data}",
+        "sourceUrl": "${ts_read_page_ref.output.content.url}",
+        "sourceTitle": "${ts_read_page_ref.output.content.title}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${ts_summarize_ref.output.summary}",
+    "confidence": "${ts_summarize_ref.output.confidence}",
+    "wordCount": "${ts_summarize_ref.output.wordCount}",
+    "sourceUrl": "${ts_summarize_ref.output.sourceUrl}",
+    "totalSearchResults": "${ts_search_web_ref.output.totalFound}",
+    "relevanceScore": "${ts_extract_data_ref.output.relevanceScore}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

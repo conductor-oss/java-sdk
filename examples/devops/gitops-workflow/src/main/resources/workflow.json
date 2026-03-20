@@ -1,0 +1,47 @@
+{
+  "name": "gitops_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["repository", "targetCluster"],
+  "tasks": [
+    {
+      "name": "go_detect_drift",
+      "taskReferenceName": "detect_drift_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repository": "${workflow.input.repository}",
+        "targetCluster": "${workflow.input.targetCluster}"
+      }
+    },
+    {
+      "name": "go_plan_sync",
+      "taskReferenceName": "plan_sync_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "plan_syncData": "${detect_drift_ref.output}"
+      }
+    },
+    {
+      "name": "go_apply_sync",
+      "taskReferenceName": "apply_sync_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apply_syncData": "${plan_sync_ref.output}"
+      }
+    },
+    {
+      "name": "go_verify_state",
+      "taskReferenceName": "verify_state_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_stateData": "${apply_sync_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "detect_driftResult": "${detect_drift_ref.output}",
+    "verify_stateResult": "${verify_state_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

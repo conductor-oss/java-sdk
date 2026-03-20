@@ -1,0 +1,62 @@
+{
+  "name": "cmt_capacity_mgmt_telecom",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "region",
+    "networkType"
+  ],
+  "tasks": [
+    {
+      "name": "cmt_monitor",
+      "taskReferenceName": "cmt_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "region": "${workflow.input.region}",
+        "networkType": "${workflow.input.networkType}"
+      }
+    },
+    {
+      "name": "cmt_forecast",
+      "taskReferenceName": "cmt_forecast_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "currentUtilization": "${cmt_monitor_ref.output.utilization}",
+        "growthRate": "${cmt_monitor_ref.output.growthRate}"
+      }
+    },
+    {
+      "name": "cmt_plan",
+      "taskReferenceName": "cmt_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "forecast": "${cmt_forecast_ref.output.forecast}",
+        "region": "${workflow.input.region}"
+      }
+    },
+    {
+      "name": "cmt_provision",
+      "taskReferenceName": "cmt_prov_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "plan": "${cmt_plan_ref.output.plan}"
+      }
+    },
+    {
+      "name": "cmt_verify",
+      "taskReferenceName": "cmt_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "region": "${workflow.input.region}",
+        "provisionId": "${cmt_prov_ref.output.provisionId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "region": "${workflow.input.region}",
+    "newCapacity": "${cmt_prov_ref.output.newCapacity}",
+    "verified": "${cmt_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

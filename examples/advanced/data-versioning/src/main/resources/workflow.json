@@ -1,0 +1,69 @@
+{
+  "name": "data_versioning_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "datasetId",
+    "tagName",
+    "previousTag"
+  ],
+  "tasks": [
+    {
+      "name": "dvr_snapshot",
+      "taskReferenceName": "dvr_snap_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "datasetId": "${workflow.input.datasetId}"
+      }
+    },
+    {
+      "name": "dvr_tag",
+      "taskReferenceName": "dvr_tag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "snapshotId": "${dvr_snap_ref.output.snapshotId}",
+        "tagName": "${workflow.input.tagName}"
+      }
+    },
+    {
+      "name": "dvr_store",
+      "taskReferenceName": "dvr_store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "snapshotId": "${dvr_snap_ref.output.snapshotId}",
+        "tagName": "${workflow.input.tagName}",
+        "datasetId": "${workflow.input.datasetId}"
+      }
+    },
+    {
+      "name": "dvr_diff",
+      "taskReferenceName": "dvr_diff_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "datasetId": "${workflow.input.datasetId}",
+        "currentTag": "${workflow.input.tagName}",
+        "previousTag": "${workflow.input.previousTag}"
+      }
+    },
+    {
+      "name": "dvr_rollback",
+      "taskReferenceName": "dvr_rollback_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "datasetId": "${workflow.input.datasetId}",
+        "currentTag": "${workflow.input.tagName}",
+        "diffStats": "${dvr_diff_ref.output.diffStats}",
+        "needsRollback": "${dvr_diff_ref.output.needsRollback}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "datasetId": "${workflow.input.datasetId}",
+    "snapshotId": "${dvr_snap_ref.output.snapshotId}",
+    "tag": "${workflow.input.tagName}",
+    "diffSummary": "${dvr_diff_ref.output.summary}",
+    "rolledBack": "${dvr_rollback_ref.output.rolledBack}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,64 @@
+{
+  "name": "genomics_pipeline_workflow",
+  "description": "Genomics Pipeline: sequence, align, call variants, annotate, report",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sampleId", "patientId", "panelType"],
+  "tasks": [
+    {
+      "name": "gen_sequence",
+      "taskReferenceName": "gen_seq_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sampleId": "${workflow.input.sampleId}",
+        "panelType": "${workflow.input.panelType}"
+      }
+    },
+    {
+      "name": "gen_align",
+      "taskReferenceName": "gen_align_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sampleId": "${workflow.input.sampleId}",
+        "reads": "${gen_seq_ref.output.totalReads}",
+        "referenceGenome": "${gen_seq_ref.output.referenceGenome}"
+      }
+    },
+    {
+      "name": "gen_call_variants",
+      "taskReferenceName": "gen_variants_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sampleId": "${workflow.input.sampleId}",
+        "alignmentFile": "${gen_align_ref.output.alignmentFile}"
+      }
+    },
+    {
+      "name": "gen_annotate",
+      "taskReferenceName": "gen_annotate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sampleId": "${workflow.input.sampleId}",
+        "variants": "${gen_variants_ref.output.variants}"
+      }
+    },
+    {
+      "name": "gen_report",
+      "taskReferenceName": "gen_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sampleId": "${workflow.input.sampleId}",
+        "patientId": "${workflow.input.patientId}",
+        "annotatedVariants": "${gen_annotate_ref.output.annotatedVariants}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sampleId": "${workflow.input.sampleId}",
+    "totalVariants": "${gen_variants_ref.output.totalVariants}",
+    "clinicallySignificant": "${gen_report_ref.output.clinicallySignificant}",
+    "reportId": "${gen_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

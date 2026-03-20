@@ -1,0 +1,72 @@
+{
+  "name": "exclusive_join_demo",
+  "description": "EXCLUSIVE_JOIN demo — query three vendors in parallel, wait for all responses, then select the best offer by lowest price and fastest response time.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["query"],
+  "tasks": [
+    {
+      "name": "fork_vendor_queries",
+      "taskReferenceName": "fork_vendor_queries_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "ej_vendor_a",
+            "taskReferenceName": "ej_vendor_a_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${workflow.input.query}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ej_vendor_b",
+            "taskReferenceName": "ej_vendor_b_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${workflow.input.query}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ej_vendor_c",
+            "taskReferenceName": "ej_vendor_c_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${workflow.input.query}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_vendor_responses",
+      "taskReferenceName": "join_vendor_responses_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "ej_vendor_a_ref",
+        "ej_vendor_b_ref",
+        "ej_vendor_c_ref"
+      ]
+    },
+    {
+      "name": "ej_select_best",
+      "taskReferenceName": "ej_select_best_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendorA": "${ej_vendor_a_ref.output.vendorResult}",
+        "vendorB": "${ej_vendor_b_ref.output.vendorResult}",
+        "vendorC": "${ej_vendor_c_ref.output.vendorResult}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "winner": "${ej_select_best_ref.output.bestVendor.winner}",
+    "price": "${ej_select_best_ref.output.bestVendor.price}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

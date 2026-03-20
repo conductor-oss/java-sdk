@@ -1,0 +1,63 @@
+{
+  "name": "grd_grading",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studentId", "courseId", "assignmentId"],
+  "tasks": [
+    {
+      "name": "grd_submit",
+      "taskReferenceName": "grd_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "assignmentId": "${workflow.input.assignmentId}"
+      }
+    },
+    {
+      "name": "grd_grade",
+      "taskReferenceName": "grd_grade_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${grd_submit_ref.output.submissionId}",
+        "assignmentId": "${workflow.input.assignmentId}"
+      }
+    },
+    {
+      "name": "grd_review",
+      "taskReferenceName": "grd_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${grd_submit_ref.output.submissionId}",
+        "score": "${grd_grade_ref.output.score}"
+      }
+    },
+    {
+      "name": "grd_record",
+      "taskReferenceName": "grd_record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "courseId": "${workflow.input.courseId}",
+        "finalScore": "${grd_review_ref.output.finalScore}"
+      }
+    },
+    {
+      "name": "grd_notify",
+      "taskReferenceName": "grd_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "finalScore": "${grd_review_ref.output.finalScore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "submissionId": "${grd_submit_ref.output.submissionId}",
+    "score": "${grd_grade_ref.output.score}",
+    "finalScore": "${grd_review_ref.output.finalScore}",
+    "recorded": "${grd_record_ref.output.recorded}",
+    "notified": "${grd_notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

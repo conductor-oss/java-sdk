@@ -1,0 +1,96 @@
+{
+  "name": "agent_swarm_demo",
+  "description": "Agent Swarm — decompose a research topic into subtasks, run 4 swarm agents in parallel, then merge findings into a unified report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["researchTopic"],
+  "tasks": [
+    {
+      "name": "as_decompose",
+      "taskReferenceName": "as_decompose_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "researchTopic": "${workflow.input.researchTopic}"
+      }
+    },
+    {
+      "name": "fork_swarm",
+      "taskReferenceName": "fork_swarm_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "as_swarm_1",
+            "taskReferenceName": "as_swarm_1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subtask": "${as_decompose_ref.output.subtasks[0]}",
+              "agentId": "swarm-agent-1"
+            }
+          }
+        ],
+        [
+          {
+            "name": "as_swarm_2",
+            "taskReferenceName": "as_swarm_2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subtask": "${as_decompose_ref.output.subtasks[1]}",
+              "agentId": "swarm-agent-2"
+            }
+          }
+        ],
+        [
+          {
+            "name": "as_swarm_3",
+            "taskReferenceName": "as_swarm_3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subtask": "${as_decompose_ref.output.subtasks[2]}",
+              "agentId": "swarm-agent-3"
+            }
+          }
+        ],
+        [
+          {
+            "name": "as_swarm_4",
+            "taskReferenceName": "as_swarm_4_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subtask": "${as_decompose_ref.output.subtasks[3]}",
+              "agentId": "swarm-agent-4"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_swarm",
+      "taskReferenceName": "join_swarm_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "as_swarm_1_ref",
+        "as_swarm_2_ref",
+        "as_swarm_3_ref",
+        "as_swarm_4_ref"
+      ]
+    },
+    {
+      "name": "as_merge",
+      "taskReferenceName": "as_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.researchTopic}",
+        "result1": "${as_swarm_1_ref.output}",
+        "result2": "${as_swarm_2_ref.output}",
+        "result3": "${as_swarm_3_ref.output}",
+        "result4": "${as_swarm_4_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "report": "${as_merge_ref.output.report}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

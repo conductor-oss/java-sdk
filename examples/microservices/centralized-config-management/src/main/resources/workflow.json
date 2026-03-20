@@ -1,0 +1,18 @@
+{
+  "name": "config_management_workflow",
+  "description": "Centralized config management with staged rollout",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["configKey", "configValue", "targetServices"],
+  "tasks": [
+    {"name": "cfg_validate", "taskReferenceName": "validate_ref", "type": "SIMPLE",
+      "inputParameters": {"configKey": "${workflow.input.configKey}", "configValue": "${workflow.input.configValue}"}},
+    {"name": "cfg_stage_rollout", "taskReferenceName": "stage_ref", "type": "SIMPLE",
+      "inputParameters": {"targetServices": "${workflow.input.targetServices}", "configKey": "${workflow.input.configKey}"}},
+    {"name": "cfg_apply_config", "taskReferenceName": "apply_ref", "type": "SIMPLE",
+      "inputParameters": {"configKey": "${workflow.input.configKey}", "configValue": "${workflow.input.configValue}", "rolloutPlan": "${stage_ref.output.plan}"}},
+    {"name": "cfg_verify", "taskReferenceName": "verify_ref", "type": "SIMPLE",
+      "inputParameters": {"configKey": "${workflow.input.configKey}", "appliedTo": "${apply_ref.output.appliedServices}"}}
+  ],
+  "outputParameters": {"configKey": "${workflow.input.configKey}", "appliedTo": "${apply_ref.output.appliedServices}", "verified": "${verify_ref.output.verified}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 120
+}

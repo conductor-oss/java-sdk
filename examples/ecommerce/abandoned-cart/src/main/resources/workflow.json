@@ -1,0 +1,23 @@
+{
+  "name": "abandoned_cart_workflow",
+  "description": "Abandoned cart recovery: detect, wait, remind, offer discount, convert",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["cartId", "customerId", "cartTotal"],
+  "tasks": [
+    { "name": "abc_detect_abandonment", "taskReferenceName": "abc_detect_ref", "type": "SIMPLE",
+      "inputParameters": { "cartId": "${workflow.input.cartId}", "customerId": "${workflow.input.customerId}", "cartTotal": "${workflow.input.cartTotal}" } },
+    { "name": "abc_wait_period", "taskReferenceName": "abc_wait_ref", "type": "WAIT", "inputParameters": {} },
+    { "name": "abc_send_reminder", "taskReferenceName": "abc_remind_ref", "type": "SIMPLE",
+      "inputParameters": { "cartId": "${workflow.input.cartId}", "customerId": "${workflow.input.customerId}", "items": "${abc_detect_ref.output.items}" } },
+    { "name": "abc_offer_discount", "taskReferenceName": "abc_discount_ref", "type": "SIMPLE",
+      "inputParameters": { "cartId": "${workflow.input.cartId}", "cartTotal": "${workflow.input.cartTotal}" } },
+    { "name": "abc_convert", "taskReferenceName": "abc_convert_ref", "type": "SIMPLE",
+      "inputParameters": { "cartId": "${workflow.input.cartId}", "customerId": "${workflow.input.customerId}", "discountCode": "${abc_discount_ref.output.discountCode}" } }
+  ],
+  "outputParameters": {
+    "cartId": "${workflow.input.cartId}",
+    "recovered": "${abc_convert_ref.output.recovered}",
+    "discountApplied": "${abc_discount_ref.output.discountCode}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

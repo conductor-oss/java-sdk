@@ -1,0 +1,50 @@
+{
+  "name": "smoke_testing_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "environment"
+  ],
+  "tasks": [
+    {
+      "name": "st_check_endpoints",
+      "taskReferenceName": "check_endpoints_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "environment": "${workflow.input.environment}"
+      }
+    },
+    {
+      "name": "st_verify_data",
+      "taskReferenceName": "verify_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_dataData": "${check_endpoints_ref.output}"
+      }
+    },
+    {
+      "name": "st_test_integrations",
+      "taskReferenceName": "test_integrations_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "test_integrationsData": "${verify_data_ref.output}"
+      }
+    },
+    {
+      "name": "st_report_status",
+      "taskReferenceName": "report_status_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "report_statusData": "${test_integrations_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "check_endpointsResult": "${check_endpoints_ref.output}",
+    "report_statusResult": "${report_status_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

@@ -1,0 +1,24 @@
+{
+  "name": "customer_segmentation_workflow",
+  "description": "Customer segmentation: collect data, cluster, label segments, target",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["datasetId", "numSegments"],
+  "tasks": [
+    { "name": "seg_collect_data", "taskReferenceName": "seg_collect_ref", "type": "SIMPLE",
+      "inputParameters": { "datasetId": "${workflow.input.datasetId}" } },
+    { "name": "seg_cluster", "taskReferenceName": "seg_cluster_ref", "type": "SIMPLE",
+      "inputParameters": { "customers": "${seg_collect_ref.output.customers}", "numSegments": "${workflow.input.numSegments}" } },
+    { "name": "seg_label_segments", "taskReferenceName": "seg_label_ref", "type": "SIMPLE",
+      "inputParameters": { "clusters": "${seg_cluster_ref.output.clusters}" } },
+    { "name": "seg_target", "taskReferenceName": "seg_target_ref", "type": "SIMPLE",
+      "inputParameters": { "segments": "${seg_label_ref.output.segments}" } }
+  ],
+  "outputParameters": {
+    "datasetId": "${workflow.input.datasetId}",
+    "segments": "${seg_label_ref.output.segments}",
+    "campaigns": "${seg_target_ref.output.campaigns}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,63 @@
+{
+  "name": "ame_model_evaluation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "modelId",
+    "testDatasetId",
+    "taskType"
+  ],
+  "tasks": [
+    {
+      "name": "ame_load_model",
+      "taskReferenceName": "ame_load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${workflow.input.modelId}"
+      }
+    },
+    {
+      "name": "ame_prepare_test_set",
+      "taskReferenceName": "ame_prep_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testDatasetId": "${workflow.input.testDatasetId}",
+        "taskType": "${workflow.input.taskType}"
+      }
+    },
+    {
+      "name": "ame_run_inference",
+      "taskReferenceName": "ame_infer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelEndpoint": "${ame_load_ref.output.endpoint}",
+        "testSamples": "${ame_prep_ref.output.sampleCount}"
+      }
+    },
+    {
+      "name": "ame_compute_metrics",
+      "taskReferenceName": "ame_metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "predictions": "${ame_infer_ref.output.predictions}",
+        "groundTruth": "${ame_prep_ref.output.sampleCount}"
+      }
+    },
+    {
+      "name": "ame_report",
+      "taskReferenceName": "ame_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${workflow.input.modelId}",
+        "metrics": "${ame_metrics_ref.output.metrics}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "modelId": "${workflow.input.modelId}",
+    "accuracy": "${ame_metrics_ref.output.metrics}",
+    "reportId": "${ame_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

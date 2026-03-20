@@ -1,0 +1,17 @@
+{
+  "name": "df_demand_forecasting", "description": "Demand forecasting: collect data, analyze trends, forecast, and plan.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["productCategory", "horizon", "region"],
+  "tasks": [
+    {"name":"df_collect_data","taskReferenceName":"df_collect_ref","type":"SIMPLE","inputParameters":{"productCategory":"${workflow.input.productCategory}","region":"${workflow.input.region}"}},
+    {"name":"df_analyze_trends","taskReferenceName":"df_trends_ref","type":"SIMPLE","inputParameters":{"historicalData":"${df_collect_ref.output.historicalData}"}},
+    {"name":"df_forecast","taskReferenceName":"df_forecast_ref","type":"SIMPLE","inputParameters":{"trends":"${df_trends_ref.output.trends}","horizon":"${workflow.input.horizon}"}},
+    {"name":"df_plan","taskReferenceName":"df_plan_ref","type":"SIMPLE","inputParameters":{"forecast":"${df_forecast_ref.output.forecast}"}}
+  ],
+  "outputParameters": {
+    "dataPoints": "${df_collect_ref.output.dataPointCount}",
+    "trendDirection": "${df_trends_ref.output.direction}",
+    "forecastedDemand": "${df_forecast_ref.output.forecast}",
+    "plan": "${df_plan_ref.output.plan}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

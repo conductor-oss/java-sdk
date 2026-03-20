@@ -1,0 +1,42 @@
+{
+  "name": "msc_forward_workflow",
+  "description": "Forward workflow: create account, setup billing, provision resources",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "msc_create_account",
+      "taskReferenceName": "create_account_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "create_account"
+      }
+    },
+    {
+      "name": "msc_setup_billing",
+      "taskReferenceName": "setup_billing_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "setup_billing",
+        "accountId": "${create_account_ref.output.accountId}"
+      }
+    },
+    {
+      "name": "msc_provision_resources",
+      "taskReferenceName": "provision_resources_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "provision_resources",
+        "accountId": "${create_account_ref.output.accountId}",
+        "billingId": "${setup_billing_ref.output.billingId}",
+        "failAt": "${workflow.input.failAt}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "accountId": "${create_account_ref.output.accountId}",
+    "billingId": "${setup_billing_ref.output.billingId}",
+    "resourceId": "${provision_resources_ref.output.resourceId}"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "name": "multi_agent_content_creation",
+  "description": "Multi-Agent Content Creation — research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["topic", "targetAudience", "wordCount"],
+  "tasks": [
+    {
+      "name": "cc_research_agent",
+      "taskReferenceName": "cc_research_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "targetAudience": "${workflow.input.targetAudience}"
+      }
+    },
+    {
+      "name": "cc_writer_agent",
+      "taskReferenceName": "cc_writer_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "facts": "${cc_research_agent_ref.output.facts}",
+        "sources": "${cc_research_agent_ref.output.sources}",
+        "wordCount": "${workflow.input.wordCount}"
+      }
+    },
+    {
+      "name": "cc_seo_agent",
+      "taskReferenceName": "cc_seo_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "draft": "${cc_writer_agent_ref.output.article}",
+        "topic": "${workflow.input.topic}"
+      }
+    },
+    {
+      "name": "cc_editor_agent",
+      "taskReferenceName": "cc_editor_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "article": "${cc_seo_agent_ref.output.optimizedArticle}",
+        "seoSuggestions": "${cc_seo_agent_ref.output.suggestions}"
+      }
+    },
+    {
+      "name": "cc_publish",
+      "taskReferenceName": "cc_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "finalArticle": "${cc_editor_agent_ref.output.polishedArticle}",
+        "metadata": "${cc_editor_agent_ref.output.metadata}",
+        "seoScore": "${cc_seo_agent_ref.output.seoScore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "url": "${cc_publish_ref.output.url}",
+    "status": "${cc_publish_ref.output.status}",
+    "publishedAt": "${cc_publish_ref.output.publishedAt}",
+    "seoScore": "${cc_seo_agent_ref.output.seoScore}",
+    "metadata": "${cc_editor_agent_ref.output.metadata}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

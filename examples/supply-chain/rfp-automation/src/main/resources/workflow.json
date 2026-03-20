@@ -1,0 +1,13 @@
+{
+  "name": "rfp_automation", "description": "RFP pipeline: create, distribute, collect, evaluate, and select.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["projectTitle", "requirements", "deadline"],
+  "tasks": [
+    {"name":"rfp_create","taskReferenceName":"rfp_create_ref","type":"SIMPLE","inputParameters":{"projectTitle":"${workflow.input.projectTitle}","requirements":"${workflow.input.requirements}"}},
+    {"name":"rfp_distribute","taskReferenceName":"rfp_distribute_ref","type":"SIMPLE","inputParameters":{"rfpId":"${rfp_create_ref.output.rfpId}","deadline":"${workflow.input.deadline}"}},
+    {"name":"rfp_collect","taskReferenceName":"rfp_collect_ref","type":"SIMPLE","inputParameters":{"rfpId":"${rfp_create_ref.output.rfpId}"}},
+    {"name":"rfp_evaluate","taskReferenceName":"rfp_evaluate_ref","type":"SIMPLE","inputParameters":{"proposals":"${rfp_collect_ref.output.proposals}"}},
+    {"name":"rfp_select","taskReferenceName":"rfp_select_ref","type":"SIMPLE","inputParameters":{"rfpId":"${rfp_create_ref.output.rfpId}","topCandidate":"${rfp_evaluate_ref.output.topCandidate}"}}
+  ],
+  "outputParameters": {"rfpId":"${rfp_create_ref.output.rfpId}","proposalsReceived":"${rfp_collect_ref.output.proposalCount}","selectedVendor":"${rfp_select_ref.output.selectedVendor}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

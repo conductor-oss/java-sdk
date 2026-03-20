@@ -1,0 +1,58 @@
+{
+  "name": "debate_agents_demo",
+  "description": "Debate Agents — PRO and CON agents argue over a topic for multiple rounds, then a moderator summarizes.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["topic"],
+  "tasks": [
+    {
+      "name": "da_set_topic",
+      "taskReferenceName": "da_set_topic_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}"
+      }
+    },
+    {
+      "name": "debate_loop",
+      "taskReferenceName": "debate_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.debate_ref['iteration'] < 3) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "da_agent_pro",
+          "taskReferenceName": "da_agent_pro_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "topic": "${da_set_topic_ref.output.topic}",
+            "round": "${debate_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "da_agent_con",
+          "taskReferenceName": "da_agent_con_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "topic": "${da_set_topic_ref.output.topic}",
+            "round": "${debate_ref.output.iteration}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "da_moderator_summarize",
+      "taskReferenceName": "da_moderator_summarize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${da_set_topic_ref.output.topic}",
+        "totalRounds": 3
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${da_moderator_summarize_ref.output.summary}",
+    "verdict": "${da_moderator_summarize_ref.output.verdict}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

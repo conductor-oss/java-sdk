@@ -1,0 +1,52 @@
+{
+  "name": "spr_student_progress",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studentId", "semester"],
+  "tasks": [
+    {
+      "name": "spr_collect_grades",
+      "taskReferenceName": "spr_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "semester": "${workflow.input.semester}"
+      }
+    },
+    {
+      "name": "spr_analyze",
+      "taskReferenceName": "spr_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "grades": "${spr_collect_ref.output.grades}"
+      }
+    },
+    {
+      "name": "spr_generate_report",
+      "taskReferenceName": "spr_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "analysis": "${spr_analyze_ref.output.analysis}"
+      }
+    },
+    {
+      "name": "spr_notify",
+      "taskReferenceName": "spr_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "gpa": "${spr_analyze_ref.output.gpa}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "courseCount": "${spr_collect_ref.output.courseCount}",
+    "gpa": "${spr_analyze_ref.output.gpa}",
+    "standing": "${spr_analyze_ref.output.standing}",
+    "reportGenerated": "${spr_report_ref.output.generated}",
+    "notified": "${spr_notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

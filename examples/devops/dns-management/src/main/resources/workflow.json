@@ -1,0 +1,52 @@
+{
+  "name": "dns_management_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "domain",
+    "recordType",
+    "target"
+  ],
+  "tasks": [
+    {
+      "name": "dns_plan",
+      "taskReferenceName": "plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "domain": "${workflow.input.domain}",
+        "recordType": "${workflow.input.recordType}",
+        "target": "${workflow.input.target}"
+      }
+    },
+    {
+      "name": "dns_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validateData": "${plan_ref.output}"
+      }
+    },
+    {
+      "name": "dns_apply",
+      "taskReferenceName": "apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applyData": "${validate_ref.output}"
+      }
+    },
+    {
+      "name": "dns_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verifyData": "${apply_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "planResult": "${plan_ref.output}",
+    "verifyResult": "${verify_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

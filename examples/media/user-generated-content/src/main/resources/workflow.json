@@ -1,0 +1,76 @@
+{
+  "name": "user_generated_content_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "submissionId",
+    "userId",
+    "contentType",
+    "contentBody",
+    "title"
+  ],
+  "tasks": [
+    {
+      "name": "ugc_submit",
+      "taskReferenceName": "ugc_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${workflow.input.submissionId}",
+        "userId": "${workflow.input.userId}",
+        "contentType": "${workflow.input.contentType}",
+        "title": "${workflow.input.title}"
+      }
+    },
+    {
+      "name": "ugc_moderate",
+      "taskReferenceName": "ugc_moderate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${workflow.input.submissionId}",
+        "contentBody": "${workflow.input.contentBody}",
+        "contentType": "${workflow.input.contentType}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "ugc_approve",
+      "taskReferenceName": "ugc_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${workflow.input.submissionId}",
+        "moderationScore": "${ugc_moderate_ref.output.moderationScore}",
+        "flagged": "${ugc_moderate_ref.output.flagged}"
+      }
+    },
+    {
+      "name": "ugc_enrich",
+      "taskReferenceName": "ugc_enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${workflow.input.submissionId}",
+        "title": "${workflow.input.title}",
+        "contentType": "${workflow.input.contentType}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "ugc_publish",
+      "taskReferenceName": "ugc_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${workflow.input.submissionId}",
+        "title": "${workflow.input.title}",
+        "enrichedMetadata": "${ugc_enrich_ref.output.metadata}",
+        "approved": "${ugc_approve_ref.output.approved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "submissionId": "${workflow.input.submissionId}",
+    "published": "${ugc_publish_ref.output.published}",
+    "publishUrl": "${ugc_publish_ref.output.publishUrl}",
+    "moderationScore": "${ugc_moderate_ref.output.moderationScore}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

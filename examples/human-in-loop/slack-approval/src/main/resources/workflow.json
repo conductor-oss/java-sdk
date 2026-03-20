@@ -1,0 +1,50 @@
+{
+  "name": "slack_approval_demo",
+  "description": "Slack interactive button approval workflow -- submit, post Slack message with approve/reject buttons, WAIT for response, finalize.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestor", "reason", "channel"],
+  "tasks": [
+    {
+      "name": "sa_submit",
+      "taskReferenceName": "submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestor": "${workflow.input.requestor}",
+        "reason": "${workflow.input.reason}"
+      }
+    },
+    {
+      "name": "sa_post_slack",
+      "taskReferenceName": "post_slack_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "channel": "${workflow.input.channel}",
+        "requestor": "${workflow.input.requestor}",
+        "reason": "${workflow.input.reason}"
+      }
+    },
+    {
+      "name": "slack_response",
+      "taskReferenceName": "slack_response_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "sa_finalize",
+      "taskReferenceName": "finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "decision": "${slack_response_ref.output.decision}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "submitted": "${submit_ref.output.submitted}",
+    "posted": "${post_slack_ref.output.posted}",
+    "decision": "${finalize_ref.output.decision}",
+    "done": "${finalize_ref.output.done}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 3600
+}

@@ -1,0 +1,50 @@
+{
+  "name": "certificate_management_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "scope",
+    "renewalWindow"
+  ],
+  "tasks": [
+    {
+      "name": "cm_inventory",
+      "taskReferenceName": "inventory_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scope": "${workflow.input.scope}",
+        "renewalWindow": "${workflow.input.renewalWindow}"
+      }
+    },
+    {
+      "name": "cm_assess_expiry",
+      "taskReferenceName": "assess_expiry_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assess_expiryData": "${inventory_ref.output}"
+      }
+    },
+    {
+      "name": "cm_renew",
+      "taskReferenceName": "renew_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "renewData": "${assess_expiry_ref.output}"
+      }
+    },
+    {
+      "name": "cm_distribute",
+      "taskReferenceName": "distribute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "distributeData": "${renew_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "inventoryResult": "${inventory_ref.output}",
+    "distributeResult": "${distribute_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1200
+}

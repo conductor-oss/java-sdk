@@ -1,0 +1,44 @@
+{
+  "name": "cohere_text_generation",
+  "description": "Generates marketing copy using Cohere and selects the best generation",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "cohere_build_prompt",
+      "taskReferenceName": "cohere_build_prompt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productDescription": "${workflow.input.productDescription}",
+        "targetAudience": "${workflow.input.targetAudience}",
+        "model": "command",
+        "maxTokens": 300,
+        "temperature": 0.9,
+        "k": 0,
+        "p": 0.75,
+        "numGenerations": 3
+      }
+    },
+    {
+      "name": "cohere_generate",
+      "taskReferenceName": "cohere_generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestBody": "${cohere_build_prompt_ref.output.requestBody}"
+      }
+    },
+    {
+      "name": "cohere_select_best",
+      "taskReferenceName": "cohere_select_best_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "generations": "${cohere_generate_ref.output.apiResponse.generations}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "bestGeneration": "${cohere_select_best_ref.output.bestGeneration}",
+    "allTexts": "${cohere_select_best_ref.output.allTexts}"
+  }
+}

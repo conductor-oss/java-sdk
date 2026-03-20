@@ -1,0 +1,70 @@
+{
+  "name": "data_encryption",
+  "description": "Data encryption workflow that generates a key, identifies sensitive fields, encrypts them, stores the key reference, and verifies the encrypted output.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "algorithm",
+    "sensitiveFields"
+  ],
+  "tasks": [
+    {
+      "name": "dn_generate_key",
+      "taskReferenceName": "key_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "algorithm": "${workflow.input.algorithm}"
+      }
+    },
+    {
+      "name": "dn_identify_fields",
+      "taskReferenceName": "identify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}",
+        "sensitiveFields": "${workflow.input.sensitiveFields}"
+      }
+    },
+    {
+      "name": "dn_encrypt_fields",
+      "taskReferenceName": "encrypt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${identify_ref.output.records}",
+        "fieldsToEncrypt": "${identify_ref.output.fieldsToEncrypt}",
+        "keyId": "${key_ref.output.keyId}"
+      }
+    },
+    {
+      "name": "dn_store_key_ref",
+      "taskReferenceName": "store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "keyId": "${key_ref.output.keyId}",
+        "algorithm": "${workflow.input.algorithm}",
+        "encryptedRecordCount": "${encrypt_ref.output.encryptedCount}"
+      }
+    },
+    {
+      "name": "dn_verify_encrypted",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "encryptedRecords": "${encrypt_ref.output.encryptedRecords}",
+        "fieldsEncrypted": "${encrypt_ref.output.fieldsEncrypted}",
+        "keyId": "${key_ref.output.keyId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "keyId": "${key_ref.output.keyId}",
+    "algorithm": "${key_ref.output.algorithm}",
+    "fieldsEncrypted": "${encrypt_ref.output.fieldsEncrypted}",
+    "recordsEncrypted": "${encrypt_ref.output.encryptedCount}",
+    "keyStored": "${store_ref.output.stored}",
+    "verified": "${verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

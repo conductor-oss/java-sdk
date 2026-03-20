@@ -1,0 +1,76 @@
+{
+  "name": "automated_testing_workflow",
+  "version": 1,
+  "description": "Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300,
+  "schemaVersion": 2,
+  "inputParameters": ["suite", "branch"],
+  "tasks": [
+    {
+      "name": "at_setup_env",
+      "taskReferenceName": "setup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "branch": "${workflow.input.branch}"
+      }
+    },
+    {
+      "name": "parallel_tests",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "at_run_unit",
+            "taskReferenceName": "unit_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "buildId": "${setup_ref.output.buildId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "at_run_integration",
+            "taskReferenceName": "integ_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "buildId": "${setup_ref.output.buildId}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "at_run_e2e",
+            "taskReferenceName": "e2e_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "buildId": "${setup_ref.output.buildId}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_tests",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["unit_ref", "integ_ref", "e2e_ref"]
+    },
+    {
+      "name": "at_aggregate_results",
+      "taskReferenceName": "agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "unit": "${unit_ref.output}",
+        "integration": "${integ_ref.output}",
+        "e2e": "${e2e_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalPassed": "${agg_ref.output.totalPassed}",
+    "totalFailed": "${agg_ref.output.totalFailed}"
+  }
+}

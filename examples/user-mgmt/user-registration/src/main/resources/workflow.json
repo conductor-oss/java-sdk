@@ -1,0 +1,50 @@
+{
+  "name": "ur_user_registration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["username", "email", "password"],
+  "tasks": [
+    {
+      "name": "ur_validate",
+      "taskReferenceName": "ur_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "username": "${workflow.input.username}",
+        "email": "${workflow.input.email}"
+      }
+    },
+    {
+      "name": "ur_create",
+      "taskReferenceName": "ur_create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "username": "${workflow.input.username}",
+        "email": "${workflow.input.email}",
+        "valid": "${ur_validate_ref.output.valid}"
+      }
+    },
+    {
+      "name": "ur_confirm",
+      "taskReferenceName": "ur_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${ur_create_ref.output.userId}",
+        "email": "${workflow.input.email}"
+      }
+    },
+    {
+      "name": "ur_activate",
+      "taskReferenceName": "ur_activate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${ur_create_ref.output.userId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${ur_create_ref.output.userId}",
+    "active": "${ur_activate_ref.output.active}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

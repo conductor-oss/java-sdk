@@ -1,0 +1,56 @@
+{
+  "name": "care_coordination_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["patientId", "condition", "acuity"],
+  "tasks": [
+    {
+      "name": "ccr_assess_needs",
+      "taskReferenceName": "ccr_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "condition": "${workflow.input.condition}",
+        "acuity": "${workflow.input.acuity}"
+      }
+    },
+    {
+      "name": "ccr_create_plan",
+      "taskReferenceName": "ccr_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "needs": "${ccr_assess_ref.output.needs}",
+        "condition": "${workflow.input.condition}"
+      }
+    },
+    {
+      "name": "ccr_assign_team",
+      "taskReferenceName": "ccr_team_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "careplan": "${ccr_plan_ref.output.careplan}",
+        "acuity": "${workflow.input.acuity}"
+      }
+    },
+    {
+      "name": "ccr_monitor",
+      "taskReferenceName": "ccr_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "careplan": "${ccr_plan_ref.output.careplan}",
+        "team": "${ccr_team_ref.output.team}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "patientId": "${workflow.input.patientId}",
+    "carePlan": "${ccr_plan_ref.output.careplan}",
+    "team": "${ccr_team_ref.output.team}",
+    "monitoringActive": "${ccr_monitor_ref.output.active}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

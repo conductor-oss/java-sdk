@@ -1,0 +1,56 @@
+{
+  "name": "edge_orchestration_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "jobId",
+    "edgeNodes"
+  ],
+  "tasks": [
+    {
+      "name": "eor_dispatch",
+      "taskReferenceName": "eor_dispatch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "edgeNodes": "${workflow.input.edgeNodes}"
+      }
+    },
+    {
+      "name": "eor_edge_process",
+      "taskReferenceName": "eor_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "dispatched": "${eor_dispatch_ref.output.dispatched}",
+        "taskAssignments": "${eor_dispatch_ref.output.assignments}"
+      }
+    },
+    {
+      "name": "eor_collect",
+      "taskReferenceName": "eor_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "edgeResults": "${eor_process_ref.output.results}"
+      }
+    },
+    {
+      "name": "eor_merge",
+      "taskReferenceName": "eor_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "collected": "${eor_collect_ref.output.collected}",
+        "totalNodes": "${eor_collect_ref.output.nodeCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "jobId": "${workflow.input.jobId}",
+    "nodesUsed": "${eor_collect_ref.output.nodeCount}",
+    "mergedResult": "${eor_merge_ref.output.mergedResult}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

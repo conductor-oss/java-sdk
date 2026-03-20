@@ -1,0 +1,90 @@
+{
+  "name": "event_split",
+  "description": "Splits a composite event into multiple sub-events for parallel processing using FORK_JOIN.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "compositeEvent"
+  ],
+  "tasks": [
+    {
+      "name": "sp_receive_composite",
+      "taskReferenceName": "rcv_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "compositeEvent": "${workflow.input.compositeEvent}"
+      }
+    },
+    {
+      "name": "sp_split_event",
+      "taskReferenceName": "split_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "event": "${rcv_ref.output.event}"
+      }
+    },
+    {
+      "name": "process_fork",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "sp_process_sub_a",
+            "taskReferenceName": "sub_a_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subEvent": "${split_ref.output.subEventA}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sp_process_sub_b",
+            "taskReferenceName": "sub_b_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subEvent": "${split_ref.output.subEventB}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sp_process_sub_c",
+            "taskReferenceName": "sub_c_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subEvent": "${split_ref.output.subEventC}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "process_join",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "sub_a_ref",
+        "sub_b_ref",
+        "sub_c_ref"
+      ]
+    },
+    {
+      "name": "sp_combine_results",
+      "taskReferenceName": "combine_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resultA": "${sub_a_ref.output.result}",
+        "resultB": "${sub_b_ref.output.result}",
+        "resultC": "${sub_c_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "subEventsCreated": "${split_ref.output.subEventCount}",
+    "combinedStatus": "${combine_ref.output.status}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,50 @@
+{
+  "name": "intrusion_detection_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "sourceIp",
+    "eventType"
+  ],
+  "tasks": [
+    {
+      "name": "id_analyze_events",
+      "taskReferenceName": "analyze_events_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceIp": "${workflow.input.sourceIp}",
+        "eventType": "${workflow.input.eventType}"
+      }
+    },
+    {
+      "name": "id_correlate_threats",
+      "taskReferenceName": "correlate_threats_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlate_threatsData": "${analyze_events_ref.output}"
+      }
+    },
+    {
+      "name": "id_assess_severity",
+      "taskReferenceName": "assess_severity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assess_severityData": "${correlate_threats_ref.output}"
+      }
+    },
+    {
+      "name": "id_respond",
+      "taskReferenceName": "respond_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "respondData": "${assess_severity_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "analyze_eventsResult": "${analyze_events_ref.output}",
+    "respondResult": "${respond_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,98 @@
+{
+  "name": "tree_of_thought",
+  "description": "Tree of Thought — define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["problem"],
+  "tasks": [
+    {
+      "name": "tt_define_problem",
+      "taskReferenceName": "define_problem_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "problem": "${workflow.input.problem}"
+      }
+    },
+    {
+      "name": "fork_paths",
+      "taskReferenceName": "fork_paths_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "tt_path_a",
+            "taskReferenceName": "path_a_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "problem": "${define_problem_ref.output.problem}",
+              "approach": "analytical"
+            }
+          }
+        ],
+        [
+          {
+            "name": "tt_path_b",
+            "taskReferenceName": "path_b_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "problem": "${define_problem_ref.output.problem}",
+              "approach": "creative"
+            }
+          }
+        ],
+        [
+          {
+            "name": "tt_path_c",
+            "taskReferenceName": "path_c_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "problem": "${define_problem_ref.output.problem}",
+              "approach": "empirical"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_paths",
+      "taskReferenceName": "join_paths_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "path_a_ref",
+        "path_b_ref",
+        "path_c_ref"
+      ]
+    },
+    {
+      "name": "tt_evaluate_paths",
+      "taskReferenceName": "evaluate_paths_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pathA": "${path_a_ref.output.solution}",
+        "pathB": "${path_b_ref.output.solution}",
+        "pathC": "${path_c_ref.output.solution}",
+        "scoreA": "${path_a_ref.output.confidence}",
+        "scoreB": "${path_b_ref.output.confidence}",
+        "scoreC": "${path_c_ref.output.confidence}"
+      }
+    },
+    {
+      "name": "tt_select_best",
+      "taskReferenceName": "select_best_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "bestPath": "${evaluate_paths_ref.output.bestPath}",
+        "bestSolution": "${evaluate_paths_ref.output.bestSolution}",
+        "evaluation": "${evaluate_paths_ref.output.evaluation}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "problem": "${define_problem_ref.output.problem}",
+    "bestPath": "${select_best_ref.output.selectedPath}",
+    "solution": "${select_best_ref.output.solution}",
+    "allScores": "${evaluate_paths_ref.output.scores}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

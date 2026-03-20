@@ -1,0 +1,73 @@
+{
+  "name": "podcast_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "episodeId",
+    "showName",
+    "episodeTitle",
+    "hostId"
+  ],
+  "tasks": [
+    {
+      "name": "pod_record",
+      "taskReferenceName": "pod_record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "episodeId": "${workflow.input.episodeId}",
+        "showName": "${workflow.input.showName}",
+        "episodeTitle": "${workflow.input.episodeTitle}"
+      }
+    },
+    {
+      "name": "pod_edit",
+      "taskReferenceName": "pod_edit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "episodeId": "${workflow.input.episodeId}",
+        "rawAudioUrl": "${pod_record_ref.output.rawAudioUrl}",
+        "durationMinutes": "${pod_record_ref.output.durationMinutes}"
+      }
+    },
+    {
+      "name": "pod_transcribe",
+      "taskReferenceName": "pod_transcribe_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "episodeId": "${workflow.input.episodeId}",
+        "editedAudioUrl": "${pod_edit_ref.output.editedAudioUrl}",
+        "finalDuration": "${pod_edit_ref.output.finalDuration}"
+      }
+    },
+    {
+      "name": "pod_publish",
+      "taskReferenceName": "pod_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "episodeId": "${workflow.input.episodeId}",
+        "showName": "${workflow.input.showName}",
+        "episodeTitle": "${workflow.input.episodeTitle}",
+        "audioUrl": "${pod_edit_ref.output.editedAudioUrl}",
+        "transcriptUrl": "${pod_transcribe_ref.output.transcriptUrl}"
+      }
+    },
+    {
+      "name": "pod_distribute",
+      "taskReferenceName": "pod_distribute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "episodeId": "${workflow.input.episodeId}",
+        "rssUrl": "${pod_publish_ref.output.rssUrl}",
+        "episodeUrl": "${pod_publish_ref.output.episodeUrl}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "episodeId": "${workflow.input.episodeId}",
+    "episodeUrl": "${pod_publish_ref.output.episodeUrl}",
+    "directories": "${pod_distribute_ref.output.directories}",
+    "finalDuration": "${pod_edit_ref.output.finalDuration}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

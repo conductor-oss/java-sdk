@@ -1,0 +1,22 @@
+{
+  "name": "wm_warehouse_management",
+  "description": "Warehouse management: receive, put away, pick, pack, and ship.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "items", "shippingMethod"],
+  "tasks": [
+    {"name":"wm_receive","taskReferenceName":"wm_receive_ref","type":"SIMPLE","inputParameters":{"orderId":"${workflow.input.orderId}","items":"${workflow.input.items}"}},
+    {"name":"wm_put_away","taskReferenceName":"wm_putaway_ref","type":"SIMPLE","inputParameters":{"receivedItems":"${wm_receive_ref.output.receivedItems}"}},
+    {"name":"wm_pick","taskReferenceName":"wm_pick_ref","type":"SIMPLE","inputParameters":{"orderId":"${workflow.input.orderId}","locations":"${wm_putaway_ref.output.locations}"}},
+    {"name":"wm_pack","taskReferenceName":"wm_pack_ref","type":"SIMPLE","inputParameters":{"pickedItems":"${wm_pick_ref.output.pickedItems}"}},
+    {"name":"wm_ship","taskReferenceName":"wm_ship_ref","type":"SIMPLE","inputParameters":{"packageId":"${wm_pack_ref.output.packageId}","shippingMethod":"${workflow.input.shippingMethod}"}}
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "location": "${wm_putaway_ref.output.locations}",
+    "packageId": "${wm_pack_ref.output.packageId}",
+    "trackingNumber": "${wm_ship_ref.output.trackingNumber}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

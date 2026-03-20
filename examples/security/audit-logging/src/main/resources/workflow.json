@@ -1,0 +1,52 @@
+{
+  "name": "audit_logging_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "actor",
+    "action",
+    "resource"
+  ],
+  "tasks": [
+    {
+      "name": "al_capture_event",
+      "taskReferenceName": "capture_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "actor": "${workflow.input.actor}",
+        "action": "${workflow.input.action}",
+        "resource": "${workflow.input.resource}"
+      }
+    },
+    {
+      "name": "al_enrich_context",
+      "taskReferenceName": "enrich_context_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enrich_contextData": "${capture_event_ref.output}"
+      }
+    },
+    {
+      "name": "al_store_immutable",
+      "taskReferenceName": "store_immutable_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "store_immutableData": "${enrich_context_ref.output}"
+      }
+    },
+    {
+      "name": "al_verify_integrity",
+      "taskReferenceName": "verify_integrity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_integrityData": "${store_immutable_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "capture_eventResult": "${capture_event_ref.output}",
+    "verify_integrityResult": "${verify_integrity_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,63 @@
+{
+  "name": "predictive_maintenance_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "assetId",
+    "assetType",
+    "siteId"
+  ],
+  "tasks": [
+    {
+      "name": "pmn_collect_data",
+      "taskReferenceName": "pmn_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "assetType": "${workflow.input.assetType}",
+        "siteId": "${workflow.input.siteId}"
+      }
+    },
+    {
+      "name": "pmn_analyze_trends",
+      "taskReferenceName": "pmn_trends_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "operationalData": "${pmn_collect_ref.output.operationalData}",
+        "historicalData": "${pmn_collect_ref.output.historicalData}"
+      }
+    },
+    {
+      "name": "pmn_predict_failure",
+      "taskReferenceName": "pmn_predict_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "trendAnalysis": "${pmn_trends_ref.output.trendAnalysis}",
+        "degradationRate": "${pmn_trends_ref.output.degradationRate}"
+      }
+    },
+    {
+      "name": "pmn_schedule_maintenance",
+      "taskReferenceName": "pmn_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "siteId": "${workflow.input.siteId}",
+        "predictedFailureDate": "${pmn_predict_ref.output.predictedFailureDate}",
+        "confidence": "${pmn_predict_ref.output.confidence}",
+        "recommendedAction": "${pmn_predict_ref.output.recommendedAction}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "assetId": "${workflow.input.assetId}",
+    "predictedFailureDate": "${pmn_predict_ref.output.predictedFailureDate}",
+    "confidence": "${pmn_predict_ref.output.confidence}",
+    "maintenanceScheduled": "${pmn_schedule_ref.output.scheduled}",
+    "maintenanceDate": "${pmn_schedule_ref.output.maintenanceDate}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

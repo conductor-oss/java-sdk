@@ -1,0 +1,23 @@
+{
+  "name": "distributed_transaction_workflow",
+  "description": "Distributed transactions with prepare-commit saga pattern",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["orderId", "items", "paymentMethod"],
+  "tasks": [
+    {"name": "prepare_phase", "taskReferenceName": "fork_ref", "type": "FORK_JOIN",
+      "forkTasks": [
+        [{"name": "dtx_prepare_order", "taskReferenceName": "prep_order_ref", "type": "SIMPLE",
+          "inputParameters": {"orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}"}}],
+        [{"name": "dtx_prepare_payment", "taskReferenceName": "prep_pay_ref", "type": "SIMPLE",
+          "inputParameters": {"orderId": "${workflow.input.orderId}", "paymentMethod": "${workflow.input.paymentMethod}"}}],
+        [{"name": "dtx_prepare_inventory", "taskReferenceName": "prep_inv_ref", "type": "SIMPLE",
+          "inputParameters": {"items": "${workflow.input.items}"}}]
+      ]},
+    {"name": "join_prepare", "taskReferenceName": "join_ref", "type": "JOIN",
+      "joinOn": ["prep_order_ref", "prep_pay_ref", "prep_inv_ref"]},
+    {"name": "dtx_commit_all", "taskReferenceName": "commit_ref", "type": "SIMPLE",
+      "inputParameters": {"orderTxId": "${prep_order_ref.output.txId}", "paymentTxId": "${prep_pay_ref.output.txId}", "inventoryTxId": "${prep_inv_ref.output.txId}"}}
+  ],
+  "outputParameters": {"committed": "${commit_ref.output.committed}", "transactionId": "${commit_ref.output.globalTxId}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

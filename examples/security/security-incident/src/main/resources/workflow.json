@@ -1,0 +1,61 @@
+{
+  "name": "security_incident_workflow",
+  "description": "Security incident response: triage, contain, investigate, remediate",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "incidentType",
+    "severity",
+    "affectedSystem"
+  ],
+  "tasks": [
+    {
+      "name": "si_triage",
+      "taskReferenceName": "si_triage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentType": "${workflow.input.incidentType}",
+        "severity": "${workflow.input.severity}",
+        "affectedSystem": "${workflow.input.affectedSystem}"
+      }
+    },
+    {
+      "name": "si_contain",
+      "taskReferenceName": "si_contain_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentType": "${workflow.input.incidentType}",
+        "affectedSystem": "${workflow.input.affectedSystem}",
+        "triageResult": "${si_triage_ref.output}"
+      }
+    },
+    {
+      "name": "si_investigate",
+      "taskReferenceName": "si_investigate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentType": "${workflow.input.incidentType}",
+        "affectedSystem": "${workflow.input.affectedSystem}",
+        "containmentResult": "${si_contain_ref.output}"
+      }
+    },
+    {
+      "name": "si_remediate",
+      "taskReferenceName": "si_remediate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentType": "${workflow.input.incidentType}",
+        "affectedSystem": "${workflow.input.affectedSystem}",
+        "investigationResult": "${si_investigate_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "triageResult": "${si_triage_ref.output}",
+    "containmentResult": "${si_contain_ref.output}",
+    "investigationResult": "${si_investigate_ref.output}",
+    "remediationResult": "${si_remediate_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

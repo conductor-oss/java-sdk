@@ -1,0 +1,18 @@
+{
+  "name":"bgc_background_check","description":"Background check with parallel FORK_JOIN for criminal, employment, education.","version":1,"schemaVersion":2,
+  "inputParameters":["candidateName","candidateId"],
+  "tasks":[
+    {"name":"bgc_consent","taskReferenceName":"bgc_consent_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}"}},
+    {"name":"parallel_checks","taskReferenceName":"bgc_fork_ref","type":"FORK_JOIN",
+      "forkTasks":[
+        [{"name":"bgc_criminal","taskReferenceName":"bgc_criminal_ref","type":"SIMPLE","inputParameters":{"candidateId":"${workflow.input.candidateId}"}}],
+        [{"name":"bgc_employment","taskReferenceName":"bgc_employ_ref","type":"SIMPLE","inputParameters":{"candidateId":"${workflow.input.candidateId}"}}],
+        [{"name":"bgc_education","taskReferenceName":"bgc_edu_ref","type":"SIMPLE","inputParameters":{"candidateId":"${workflow.input.candidateId}"}}]
+      ]
+    },
+    {"name":"join_checks","taskReferenceName":"bgc_join_ref","type":"JOIN","joinOn":["bgc_criminal_ref","bgc_employ_ref","bgc_edu_ref"]},
+    {"name":"bgc_report","taskReferenceName":"bgc_report_ref","type":"SIMPLE","inputParameters":{"criminal":"${bgc_criminal_ref.output.result}","employment":"${bgc_employ_ref.output.result}","education":"${bgc_edu_ref.output.result}"}}
+  ],
+  "outputParameters":{"overallResult":"${bgc_report_ref.output.overallResult}","reportId":"${bgc_report_ref.output.reportId}"},
+  "ownerEmail":"examples@orkes.io","timeoutSeconds":60
+}

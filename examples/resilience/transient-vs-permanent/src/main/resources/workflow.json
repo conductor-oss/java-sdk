@@ -1,0 +1,25 @@
+{
+  "name": "transient_vs_permanent_demo",
+  "description": "Transient vs Permanent Error Detection demo -- smart worker classifies errors and uses appropriate failure strategy.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["errorType"],
+  "tasks": [
+    {
+      "name": "tvp_smart_task",
+      "taskReferenceName": "tvp_smart_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "errorType": "${workflow.input.errorType}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "attempt": "${tvp_smart_task_ref.output.attempt}",
+    "result": "${tvp_smart_task_ref.output.result}",
+    "errorType": "${tvp_smart_task_ref.output.errorType}",
+    "error": "${tvp_smart_task_ref.output.error}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,95 @@
+{
+  "name": "fine_tuned_deploy_wf",
+  "description": "Fine-tuned model deployment pipeline: validate, stage, test, promote, notify",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "modelId",
+    "modelVersion",
+    "baseModel"
+  ],
+  "tasks": [
+    {
+      "name": "ftd_validate_model",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${workflow.input.modelId}",
+        "modelVersion": "${workflow.input.modelVersion}",
+        "baseModel": "${workflow.input.baseModel}"
+      }
+    },
+    {
+      "name": "ftd_deploy_staging",
+      "taskReferenceName": "stage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${workflow.input.modelId}",
+        "checksum": "${validate_ref.output.checksum}"
+      }
+    },
+    {
+      "name": "ftd_run_tests",
+      "taskReferenceName": "test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${stage_ref.output.endpoint}",
+        "modelId": "${workflow.input.modelId}"
+      }
+    },
+    {
+      "name": "route_test_result",
+      "taskReferenceName": "route_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${test_ref.output.allPassed}"
+      },
+      "decisionCases": {
+        "true": [
+          {
+            "name": "ftd_promote_production",
+            "taskReferenceName": "prod_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "modelId": "${workflow.input.modelId}",
+              "stagingEndpoint": "${stage_ref.output.endpoint}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "ftd_notify",
+          "taskReferenceName": "fail_notify_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "modelId": "${workflow.input.modelId}",
+            "reason": "Acceptance tests failed",
+            "failures": "${test_ref.output.failures}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ftd_notify",
+      "taskReferenceName": "done_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${workflow.input.modelId}",
+        "reason": "Pipeline complete",
+        "prodEndpoint": "${prod_ref.output.prodEndpoint}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "modelId": "${workflow.input.modelId}",
+    "validated": "${validate_ref.output.valid}",
+    "stagingEndpoint": "${stage_ref.output.endpoint}",
+    "testsPassed": "${test_ref.output.allPassed}",
+    "prodEndpoint": "${prod_ref.output.prodEndpoint}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

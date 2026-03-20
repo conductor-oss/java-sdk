@@ -1,0 +1,90 @@
+{
+  "name": "multi_agent_planning",
+  "description": "Multi-Agent Project Planning — architect designs the system, three estimators run in parallel (frontend, backend, infra), then PM builds the timeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["projectName", "requirements"],
+  "tasks": [
+    {
+      "name": "pp_architect_design",
+      "taskReferenceName": "pp_architect_design_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "projectName": "${workflow.input.projectName}",
+        "requirements": "${workflow.input.requirements}"
+      }
+    },
+    {
+      "name": "fork_estimators",
+      "taskReferenceName": "fork_estimators_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "pp_estimate_frontend",
+            "taskReferenceName": "pp_estimate_frontend_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "components": "${pp_architect_design_ref.output.frontendComponents}",
+              "complexity": "${pp_architect_design_ref.output.frontendComplexity}",
+              "teamSize": 2
+            }
+          }
+        ],
+        [
+          {
+            "name": "pp_estimate_backend",
+            "taskReferenceName": "pp_estimate_backend_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "components": "${pp_architect_design_ref.output.backendComponents}",
+              "complexity": "${pp_architect_design_ref.output.backendComplexity}",
+              "teamSize": 3
+            }
+          }
+        ],
+        [
+          {
+            "name": "pp_estimate_infra",
+            "taskReferenceName": "pp_estimate_infra_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "components": "${pp_architect_design_ref.output.infrastructure}",
+              "complexity": "${pp_architect_design_ref.output.infraComplexity}",
+              "teamSize": 2
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_estimators",
+      "taskReferenceName": "join_estimators_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "pp_estimate_frontend_ref",
+        "pp_estimate_backend_ref",
+        "pp_estimate_infra_ref"
+      ]
+    },
+    {
+      "name": "pp_pm_timeline",
+      "taskReferenceName": "pp_pm_timeline_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "projectName": "${workflow.input.projectName}",
+        "architectureSummary": "${pp_architect_design_ref.output.architectureSummary}",
+        "frontendEstimate": "${pp_estimate_frontend_ref.output}",
+        "backendEstimate": "${pp_estimate_backend_ref.output}",
+        "infraEstimate": "${pp_estimate_infra_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "timeline": "${pp_pm_timeline_ref.output.timeline}",
+    "milestones": "${pp_pm_timeline_ref.output.milestones}",
+    "riskLevel": "${pp_pm_timeline_ref.output.riskLevel}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

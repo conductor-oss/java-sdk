@@ -1,0 +1,62 @@
+{
+  "name": "crm_agent",
+  "description": "CRM Agent — lookup customer, check history, update record, and generate response through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "inquiry", "channel"],
+  "tasks": [
+    {
+      "name": "cm_lookup_customer",
+      "taskReferenceName": "lookup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "channel": "${workflow.input.channel}"
+      }
+    },
+    {
+      "name": "cm_check_history",
+      "taskReferenceName": "history_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "customerTier": "${lookup_ref.output.tier}",
+        "accountAge": "${lookup_ref.output.accountAge}"
+      }
+    },
+    {
+      "name": "cm_update_record",
+      "taskReferenceName": "update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "inquiry": "${workflow.input.inquiry}",
+        "channel": "${workflow.input.channel}",
+        "interactionCount": "${history_ref.output.totalInteractions}"
+      }
+    },
+    {
+      "name": "cm_generate_response",
+      "taskReferenceName": "response_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerName": "${lookup_ref.output.name}",
+        "tier": "${lookup_ref.output.tier}",
+        "inquiry": "${workflow.input.inquiry}",
+        "recentIssues": "${history_ref.output.recentIssues}",
+        "sentiment": "${history_ref.output.sentiment}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "customerId": "${workflow.input.customerId}",
+    "customerName": "${lookup_ref.output.name}",
+    "tier": "${lookup_ref.output.tier}",
+    "ticketId": "${update_ref.output.ticketId}",
+    "response": "${response_ref.output.response}",
+    "priority": "${response_ref.output.priority}",
+    "estimatedResolution": "${response_ref.output.estimatedResolution}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

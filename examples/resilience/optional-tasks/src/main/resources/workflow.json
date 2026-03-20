@@ -1,0 +1,40 @@
+{
+  "name": "optional_tasks_demo",
+  "description": "Optional task demo -- required task, optional enrichment (continues on failure), and summarize that handles missing data.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["data"],
+  "tasks": [
+    {
+      "name": "opt_required",
+      "taskReferenceName": "opt_required_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${workflow.input.data}"
+      }
+    },
+    {
+      "name": "opt_optional_enrich",
+      "taskReferenceName": "opt_optional_enrich_ref",
+      "type": "SIMPLE",
+      "optional": true,
+      "inputParameters": {
+        "processedData": "${opt_required_ref.output.result}"
+      }
+    },
+    {
+      "name": "opt_summarize",
+      "taskReferenceName": "opt_summarize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "processedData": "${opt_required_ref.output.result}",
+        "enrichedData": "${opt_optional_enrich_ref.output.enriched}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${opt_summarize_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

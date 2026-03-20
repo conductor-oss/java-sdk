@@ -1,0 +1,89 @@
+{
+  "name": "event_filtering_wf",
+  "description": "Event filtering workflow that receives events, classifies them by priority, and routes to urgent, standard, or drop handlers via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "eventType",
+    "severity",
+    "payload"
+  ],
+  "tasks": [
+    {
+      "name": "ef_receive_event",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "severity": "${workflow.input.severity}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "ef_classify_priority",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "${receive_ref.output.eventType}",
+        "severity": "${receive_ref.output.severity}",
+        "metadata": "${receive_ref.output.metadata}"
+      }
+    },
+    {
+      "name": "priority_switch",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${classify_ref.output.priority}"
+      },
+      "decisionCases": {
+        "urgent": [
+          {
+            "name": "ef_urgent_handler",
+            "taskReferenceName": "urgent_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "payload": "${receive_ref.output.payload}",
+              "priority": "urgent"
+            }
+          }
+        ],
+        "standard": [
+          {
+            "name": "ef_standard_handler",
+            "taskReferenceName": "standard_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "payload": "${receive_ref.output.payload}",
+              "priority": "standard"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "ef_drop_event",
+          "taskReferenceName": "drop_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "eventId": "${workflow.input.eventId}",
+            "reason": "${classify_ref.output.dropReason}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "priority": "${classify_ref.output.priority}",
+    "filterResult": "${classify_ref.output.filterResult}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

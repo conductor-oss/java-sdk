@@ -1,0 +1,58 @@
+{
+  "name": "audio_transcription",
+  "description": "Audio transcription workflow that preprocesses audio, transcribes it, generates timestamps, and extracts keywords.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "audioUrl",
+    "language",
+    "speakerCount"
+  ],
+  "tasks": [
+    {
+      "name": "au_preprocess_audio",
+      "taskReferenceName": "preprocess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "audioUrl": "${workflow.input.audioUrl}",
+        "language": "${workflow.input.language}"
+      }
+    },
+    {
+      "name": "au_transcribe",
+      "taskReferenceName": "transcribe_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "processedAudio": "${preprocess_ref.output.processedAudio}",
+        "language": "${workflow.input.language}",
+        "speakerCount": "${workflow.input.speakerCount}"
+      }
+    },
+    {
+      "name": "au_generate_timestamps",
+      "taskReferenceName": "timestamps_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transcript": "${transcribe_ref.output.transcript}",
+        "segments": "${transcribe_ref.output.segments}"
+      }
+    },
+    {
+      "name": "au_extract_keywords",
+      "taskReferenceName": "keywords_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transcript": "${transcribe_ref.output.transcript}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "duration": "${preprocess_ref.output.duration}",
+    "wordCount": "${transcribe_ref.output.wordCount}",
+    "speakersDetected": "${transcribe_ref.output.speakersDetected}",
+    "timestampedSegments": "${timestamps_ref.output.segmentCount}",
+    "keywords": "${keywords_ref.output.keywords}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,21 @@
+{
+  "name": "kitchen_workflow_735",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "tableId", "items"],
+  "tasks": [
+    { "name": "kit_receive_order", "taskReferenceName": "receive_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}" } },
+    { "name": "kit_prep", "taskReferenceName": "prep_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "items": "${receive_ref.output.parsedItems}" } },
+    { "name": "kit_cook", "taskReferenceName": "cook_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "prepped": "${prep_ref.output.prepped}" } },
+    { "name": "kit_plate", "taskReferenceName": "plate_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}" } },
+    { "name": "kit_serve", "taskReferenceName": "serve_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "tableId": "${workflow.input.tableId}" } }
+  ],
+  "outputParameters": { "service": "${serve_ref.output.service}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

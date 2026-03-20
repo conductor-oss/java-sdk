@@ -1,0 +1,84 @@
+{
+  "name": "plg_plagiarism_detection",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studentId", "assignmentId", "documentText"],
+  "tasks": [
+    {
+      "name": "plg_submit",
+      "taskReferenceName": "plg_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "assignmentId": "${workflow.input.assignmentId}"
+      }
+    },
+    {
+      "name": "plg_scan",
+      "taskReferenceName": "plg_scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documentText": "${workflow.input.documentText}"
+      }
+    },
+    {
+      "name": "plg_compare",
+      "taskReferenceName": "plg_compare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scanResults": "${plg_scan_ref.output.scanResults}"
+      }
+    },
+    {
+      "name": "result_switch",
+      "taskReferenceName": "plg_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${plg_compare_ref.output.verdict}"
+      },
+      "decisionCases": {
+        "clean": [
+          {
+            "name": "plg_handle_clean",
+            "taskReferenceName": "plg_clean_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "assignmentId": "${workflow.input.assignmentId}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "plg_handle_flagged",
+          "taskReferenceName": "plg_flagged_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "studentId": "${workflow.input.studentId}",
+            "similarityScore": "${plg_compare_ref.output.similarityScore}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "plg_report",
+      "taskReferenceName": "plg_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "assignmentId": "${workflow.input.assignmentId}",
+        "verdict": "${plg_compare_ref.output.verdict}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "submissionId": "${plg_submit_ref.output.submissionId}",
+    "similarityScore": "${plg_compare_ref.output.similarityScore}",
+    "verdict": "${plg_compare_ref.output.verdict}",
+    "reportGenerated": "${plg_report_ref.output.generated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

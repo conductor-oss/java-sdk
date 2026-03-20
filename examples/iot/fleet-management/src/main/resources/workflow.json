@@ -1,0 +1,73 @@
+{
+  "name": "fleet_management_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "tripId",
+    "origin",
+    "destination",
+    "fleetId"
+  ],
+  "tasks": [
+    {
+      "name": "flt_track_vehicles",
+      "taskReferenceName": "flt_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fleetId": "${workflow.input.fleetId}",
+        "origin": "${workflow.input.origin}"
+      }
+    },
+    {
+      "name": "flt_optimize_routes",
+      "taskReferenceName": "flt_route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}",
+        "origin": "${workflow.input.origin}",
+        "destination": "${workflow.input.destination}",
+        "availableVehicles": "${flt_track_ref.output.availableVehicles}"
+      }
+    },
+    {
+      "name": "flt_dispatch",
+      "taskReferenceName": "flt_dispatch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}",
+        "vehicleId": "${flt_route_ref.output.assignedVehicleId}",
+        "driverId": "${flt_route_ref.output.driverId}",
+        "routeId": "${flt_route_ref.output.routeId}"
+      }
+    },
+    {
+      "name": "flt_monitor_trip",
+      "taskReferenceName": "flt_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}",
+        "vehicleId": "${flt_route_ref.output.assignedVehicleId}",
+        "dispatchId": "${flt_dispatch_ref.output.dispatchId}"
+      }
+    },
+    {
+      "name": "flt_generate_report",
+      "taskReferenceName": "flt_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tripId": "${workflow.input.tripId}",
+        "actualDistance": "${flt_monitor_ref.output.actualDistance}",
+        "actualDuration": "${flt_monitor_ref.output.actualDuration}",
+        "fuelUsed": "${flt_monitor_ref.output.fuelUsed}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "tripId": "${workflow.input.tripId}",
+    "vehicleId": "${flt_route_ref.output.assignedVehicleId}",
+    "tripStatus": "${flt_monitor_ref.output.tripStatus}",
+    "efficiency": "${flt_report_ref.output.efficiency}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

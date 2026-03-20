@@ -1,0 +1,93 @@
+{
+  "name": "spl_splitter_pattern",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "compositeMessage"
+  ],
+  "tasks": [
+    {
+      "name": "spl_receive_composite",
+      "taskReferenceName": "spl_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "compositeMessage": "${workflow.input.compositeMessage}"
+      }
+    },
+    {
+      "name": "spl_split",
+      "taskReferenceName": "spl_split_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "compositeMessage": "${spl_receive_ref.output.compositeMessage}"
+      }
+    },
+    {
+      "name": "process_parts_fork",
+      "taskReferenceName": "spl_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "spl_process_part_1",
+            "taskReferenceName": "spl_part1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "part": "${spl_split_ref.output.parts[0]}",
+              "partIndex": 0
+            }
+          }
+        ],
+        [
+          {
+            "name": "spl_process_part_2",
+            "taskReferenceName": "spl_part2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "part": "${spl_split_ref.output.parts[1]}",
+              "partIndex": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "spl_process_part_3",
+            "taskReferenceName": "spl_part3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "part": "${spl_split_ref.output.parts[2]}",
+              "partIndex": 2
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "process_parts_join",
+      "taskReferenceName": "spl_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "spl_part1_ref",
+        "spl_part2_ref",
+        "spl_part3_ref"
+      ]
+    },
+    {
+      "name": "spl_combine",
+      "taskReferenceName": "spl_combine_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "result1": "${spl_part1_ref.output.result}",
+        "result2": "${spl_part2_ref.output.result}",
+        "result3": "${spl_part3_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalParts": "${spl_split_ref.output.partCount}",
+    "combinedResult": "${spl_combine_ref.output.combinedResult}",
+    "allPartsProcessed": "${spl_combine_ref.output.allPartsProcessed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

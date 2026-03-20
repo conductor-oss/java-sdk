@@ -1,0 +1,61 @@
+{
+  "name": "ape_prompt_engineering",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "taskDescription",
+    "modelId",
+    "evaluationCriteria"
+  ],
+  "tasks": [
+    {
+      "name": "ape_define_task",
+      "taskReferenceName": "ape_define_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "taskDescription": "${workflow.input.taskDescription}"
+      }
+    },
+    {
+      "name": "ape_generate_prompts",
+      "taskReferenceName": "ape_gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "taskSpec": "${ape_define_ref.output.taskSpec}"
+      }
+    },
+    {
+      "name": "ape_test_variants",
+      "taskReferenceName": "ape_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompts": "${ape_gen_ref.output.prompts}",
+        "modelId": "${workflow.input.modelId}"
+      }
+    },
+    {
+      "name": "ape_evaluate",
+      "taskReferenceName": "ape_eval_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "results": "${ape_test_ref.output.results}",
+        "criteria": "${workflow.input.evaluationCriteria}"
+      }
+    },
+    {
+      "name": "ape_select_best",
+      "taskReferenceName": "ape_select_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rankings": "${ape_eval_ref.output.rankings}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "bestPromptId": "${ape_select_ref.output.bestPromptId}",
+    "bestScore": "${ape_select_ref.output.bestScore}",
+    "variantsTested": "${ape_test_ref.output.variantCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

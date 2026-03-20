@@ -1,0 +1,52 @@
+{
+  "name": "performance_testing_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "targetRps",
+    "duration"
+  ],
+  "tasks": [
+    {
+      "name": "pt_prepare_env",
+      "taskReferenceName": "prepare_env_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "targetRps": "${workflow.input.targetRps}",
+        "duration": "${workflow.input.duration}"
+      }
+    },
+    {
+      "name": "pt_run_load_test",
+      "taskReferenceName": "run_load_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "run_load_testData": "${prepare_env_ref.output}"
+      }
+    },
+    {
+      "name": "pt_analyze_results",
+      "taskReferenceName": "analyze_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analyze_resultsData": "${run_load_test_ref.output}"
+      }
+    },
+    {
+      "name": "pt_generate_report",
+      "taskReferenceName": "generate_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "generate_reportData": "${analyze_results_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "prepare_envResult": "${prepare_env_ref.output}",
+    "generate_reportResult": "${generate_report_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

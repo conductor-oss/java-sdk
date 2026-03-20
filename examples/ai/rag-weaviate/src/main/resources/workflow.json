@@ -1,0 +1,40 @@
+{
+  "name": "rag_weaviate_workflow",
+  "description": "RAG pipeline using Weaviate vector database: embed query, search vectors, generate answer",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "weav_embed",
+      "taskReferenceName": "weav_embed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "weav_search",
+      "taskReferenceName": "weav_search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "embedding": "${weav_embed_ref.output.embedding}",
+        "className": "${workflow.input.className}",
+        "properties": "${workflow.input.properties}",
+        "limit": "${workflow.input.limit}"
+      }
+    },
+    {
+      "name": "weav_generate",
+      "taskReferenceName": "weav_generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "objects": "${weav_search_ref.output.objects}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${weav_generate_ref.output.answer}"
+  }
+}

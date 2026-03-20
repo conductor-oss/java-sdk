@@ -1,0 +1,60 @@
+{
+  "name": "emr_emergency_response",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["incidentType", "location", "reportedBy"],
+  "tasks": [
+    {
+      "name": "emr_detect",
+      "taskReferenceName": "emr_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentType": "${workflow.input.incidentType}",
+        "location": "${workflow.input.location}"
+      }
+    },
+    {
+      "name": "emr_classify_severity",
+      "taskReferenceName": "emr_classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${emr_detect_ref.output.incidentId}",
+        "incidentType": "${workflow.input.incidentType}"
+      }
+    },
+    {
+      "name": "emr_dispatch",
+      "taskReferenceName": "emr_dispatch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "severity": "${emr_classify_ref.output.severity}",
+        "location": "${workflow.input.location}"
+      }
+    },
+    {
+      "name": "emr_coordinate",
+      "taskReferenceName": "emr_coord_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${emr_detect_ref.output.incidentId}",
+        "units": "${emr_dispatch_ref.output.units}"
+      }
+    },
+    {
+      "name": "emr_debrief",
+      "taskReferenceName": "emr_debrief_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${emr_detect_ref.output.incidentId}",
+        "outcome": "${emr_coord_ref.output.outcome}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "incidentId": "${emr_detect_ref.output.incidentId}",
+    "severity": "${emr_classify_ref.output.severity}",
+    "outcome": "${emr_coord_ref.output.outcome}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

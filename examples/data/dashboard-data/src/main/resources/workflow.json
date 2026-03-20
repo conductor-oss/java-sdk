@@ -1,0 +1,59 @@
+{
+  "name": "dashboard_data",
+  "description": "Dashboard data preparation workflow: aggregate metrics, compute KPIs, build widgets, and cache results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dashboardId",
+    "timeRange",
+    "refreshInterval"
+  ],
+  "tasks": [
+    {
+      "name": "dh_aggregate_metrics",
+      "taskReferenceName": "agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dashboardId": "${workflow.input.dashboardId}",
+        "timeRange": "${workflow.input.timeRange}"
+      }
+    },
+    {
+      "name": "dh_compute_kpis",
+      "taskReferenceName": "kpi_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metrics": "${agg_ref.output.metrics}"
+      }
+    },
+    {
+      "name": "dh_build_widgets",
+      "taskReferenceName": "widget_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "kpis": "${kpi_ref.output.kpis}",
+        "metrics": "${agg_ref.output.metrics}"
+      }
+    },
+    {
+      "name": "dh_cache_dashboard",
+      "taskReferenceName": "cache_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dashboardId": "${workflow.input.dashboardId}",
+        "widgets": "${widget_ref.output.widgets}",
+        "refreshInterval": "${workflow.input.refreshInterval}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "metricsCount": "${agg_ref.output.metricCount}",
+    "kpiCount": "${kpi_ref.output.kpiCount}",
+    "widgetCount": "${widget_ref.output.widgetCount}",
+    "cacheKey": "${cache_ref.output.cacheKey}",
+    "ttl": "${cache_ref.output.ttl}",
+    "dashboardReady": "${cache_ref.output.ready}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,90 @@
+{
+  "name": "tpr_task_priority",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "taskId",
+    "urgency",
+    "impact"
+  ],
+  "tasks": [
+    {
+      "name": "tpr_classify_priority",
+      "taskReferenceName": "tpr_classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "taskId": "${workflow.input.taskId}",
+        "urgency": "${workflow.input.urgency}",
+        "impact": "${workflow.input.impact}"
+      }
+    },
+    {
+      "name": "priority_switch",
+      "taskReferenceName": "tpr_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${tpr_classify_ref.output.priority}"
+      },
+      "decisionCases": {
+        "high": [
+          {
+            "name": "tpr_route_high",
+            "taskReferenceName": "tpr_high_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "taskId": "${workflow.input.taskId}",
+              "priority": "high",
+              "sla": "${tpr_classify_ref.output.slaMinutes}"
+            }
+          }
+        ],
+        "medium": [
+          {
+            "name": "tpr_route_medium",
+            "taskReferenceName": "tpr_medium_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "taskId": "${workflow.input.taskId}",
+              "priority": "medium",
+              "sla": "${tpr_classify_ref.output.slaMinutes}"
+            }
+          }
+        ],
+        "low": [
+          {
+            "name": "tpr_route_low",
+            "taskReferenceName": "tpr_low_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "taskId": "${workflow.input.taskId}",
+              "priority": "low",
+              "sla": "${tpr_classify_ref.output.slaMinutes}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "tpr_route_medium",
+          "taskReferenceName": "tpr_default_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "taskId": "${workflow.input.taskId}",
+            "priority": "medium",
+            "sla": "60"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "taskId": "${workflow.input.taskId}",
+    "priority": "${tpr_classify_ref.output.priority}",
+    "routedTo": "${tpr_classify_ref.output.priority}",
+    "slaMinutes": "${tpr_classify_ref.output.slaMinutes}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

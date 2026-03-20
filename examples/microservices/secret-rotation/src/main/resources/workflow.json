@@ -1,0 +1,24 @@
+{
+  "name": "secret_rotation_300",
+  "description": "Rotate secrets across services securely",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["secretName", "targetServices"],
+  "tasks": [
+    {"name": "sr_generate_secret", "taskReferenceName": "sr_generate_ref", "type": "SIMPLE",
+      "inputParameters": {"secretName": "${workflow.input.secretName}", "algorithm": "AES-256"}},
+    {"name": "sr_store_secret", "taskReferenceName": "sr_store_ref", "type": "SIMPLE",
+      "inputParameters": {"secretName": "${workflow.input.secretName}", "secretId": "${sr_generate_ref.output.secretId}", "vault": "hashicorp-vault"}},
+    {"name": "sr_update_services", "taskReferenceName": "sr_update_ref", "type": "SIMPLE",
+      "inputParameters": {"secretName": "${workflow.input.secretName}", "secretId": "${sr_generate_ref.output.secretId}", "targetServices": "${workflow.input.targetServices}"}},
+    {"name": "sr_verify_rotation", "taskReferenceName": "sr_verify_ref", "type": "SIMPLE",
+      "inputParameters": {"secretName": "${workflow.input.secretName}", "secretId": "${sr_generate_ref.output.secretId}", "targetServices": "${workflow.input.targetServices}"}}
+  ],
+  "outputParameters": {
+    "rotationStatus": "${sr_verify_ref.output.status}",
+    "secretName": "${workflow.input.secretName}",
+    "servicesUpdated": "${sr_update_ref.output.updatedCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,63 @@
+{
+  "name": "von_vendor_onboarding",
+  "description": "Vendor onboarding: apply, verify credentials, evaluate, approve, and activate.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["vendorName", "category", "country"],
+  "tasks": [
+    {
+      "name": "von_apply",
+      "taskReferenceName": "von_apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendorName": "${workflow.input.vendorName}",
+        "category": "${workflow.input.category}",
+        "country": "${workflow.input.country}"
+      }
+    },
+    {
+      "name": "von_verify",
+      "taskReferenceName": "von_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendorId": "${von_apply_ref.output.vendorId}"
+      }
+    },
+    {
+      "name": "von_evaluate",
+      "taskReferenceName": "von_evaluate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendorId": "${von_apply_ref.output.vendorId}",
+        "verificationResult": "${von_verify_ref.output.verified}"
+      }
+    },
+    {
+      "name": "von_approve",
+      "taskReferenceName": "von_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendorId": "${von_apply_ref.output.vendorId}",
+        "score": "${von_evaluate_ref.output.score}"
+      }
+    },
+    {
+      "name": "von_activate",
+      "taskReferenceName": "von_activate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendorId": "${von_apply_ref.output.vendorId}",
+        "approved": "${von_approve_ref.output.approved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "vendorId": "${von_apply_ref.output.vendorId}",
+    "verified": "${von_verify_ref.output.verified}",
+    "score": "${von_evaluate_ref.output.score}",
+    "approved": "${von_approve_ref.output.approved}",
+    "active": "${von_activate_ref.output.active}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

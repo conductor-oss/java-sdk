@@ -1,0 +1,57 @@
+{
+  "name": "dependency_mapping_426",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "environment",
+    "namespace"
+  ],
+  "tasks": [
+    {
+      "name": "dep_discover_services",
+      "taskReferenceName": "dep_discover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "environment": "${workflow.input.environment}",
+        "namespace": "${workflow.input.namespace}"
+      }
+    },
+    {
+      "name": "dep_trace_calls",
+      "taskReferenceName": "dep_trace_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceCount": "${dep_discover_ref.output.serviceCount}",
+        "services": "${dep_discover_ref.output.services}"
+      }
+    },
+    {
+      "name": "dep_build_graph",
+      "taskReferenceName": "dep_graph_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "edges": "${dep_trace_ref.output.edges}",
+        "edgeCount": "${dep_trace_ref.output.edgeCount}",
+        "serviceCount": "${dep_discover_ref.output.serviceCount}"
+      }
+    },
+    {
+      "name": "dep_visualize",
+      "taskReferenceName": "dep_viz_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "graphId": "${dep_graph_ref.output.graphId}",
+        "nodes": "${dep_graph_ref.output.nodes}",
+        "edges": "${dep_graph_ref.output.edgeCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "serviceCount": "${dep_discover_ref.output.serviceCount}",
+    "edgeCount": "${dep_trace_ref.output.edgeCount}",
+    "graphId": "${dep_graph_ref.output.graphId}",
+    "visualizationUrl": "${dep_viz_ref.output.visualizationUrl}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

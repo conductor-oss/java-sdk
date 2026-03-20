@@ -1,0 +1,58 @@
+{
+  "name": "agent_memory_demo",
+  "description": "Agent with Memory — loads conversation history, thinks with context, updates memory, and responds.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "userMessage"],
+  "tasks": [
+    {
+      "name": "am_load_memory",
+      "taskReferenceName": "am_load_memory_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "userMessage": "${workflow.input.userMessage}"
+      }
+    },
+    {
+      "name": "am_agent_think",
+      "taskReferenceName": "am_agent_think_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userMessage": "${workflow.input.userMessage}",
+        "conversationHistory": "${am_load_memory_ref.output.conversationHistory}",
+        "userProfile": "${am_load_memory_ref.output.userProfile}"
+      }
+    },
+    {
+      "name": "am_update_memory",
+      "taskReferenceName": "am_update_memory_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "userMessage": "${workflow.input.userMessage}",
+        "agentThoughts": "${am_agent_think_ref.output.thoughts}",
+        "relevantFacts": "${am_agent_think_ref.output.relevantFacts}",
+        "conversationHistory": "${am_load_memory_ref.output.conversationHistory}"
+      }
+    },
+    {
+      "name": "am_agent_respond",
+      "taskReferenceName": "am_agent_respond_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userMessage": "${workflow.input.userMessage}",
+        "thoughts": "${am_agent_think_ref.output.thoughts}",
+        "relevantFacts": "${am_agent_think_ref.output.relevantFacts}",
+        "updatedMemory": "${am_update_memory_ref.output.memorySnapshot}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "response": "${am_agent_respond_ref.output.response}",
+    "confidence": "${am_agent_respond_ref.output.confidence}",
+    "tokensUsed": "${am_agent_respond_ref.output.tokensUsed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

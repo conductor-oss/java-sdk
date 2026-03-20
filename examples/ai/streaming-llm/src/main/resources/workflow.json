@@ -1,0 +1,45 @@
+{
+  "name": "streaming_llm_wf",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt", "model", "maxTokens"],
+  "tasks": [
+    {
+      "name": "stream_prepare",
+      "taskReferenceName": "prep_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "stream_collect_chunks",
+      "taskReferenceName": "stream_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${prep_ref.output.formattedPrompt}",
+        "model": "${workflow.input.model}",
+        "maxTokens": "${workflow.input.maxTokens}"
+      }
+    },
+    {
+      "name": "stream_post_process",
+      "taskReferenceName": "post_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fullResponse": "${stream_ref.output.fullResponse}",
+        "chunkCount": "${stream_ref.output.chunkCount}",
+        "streamDurationMs": "${stream_ref.output.streamDurationMs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "response": "${stream_ref.output.fullResponse}",
+    "chunks": "${stream_ref.output.chunkCount}",
+    "streamMs": "${stream_ref.output.streamDurationMs}",
+    "wordCount": "${post_ref.output.wordCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

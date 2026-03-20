@@ -1,0 +1,64 @@
+{
+  "name": "tbt_trouble_ticket",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "customerId",
+    "issueType",
+    "description"
+  ],
+  "tasks": [
+    {
+      "name": "tbt_open",
+      "taskReferenceName": "tbt_open_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "issueType": "${workflow.input.issueType}"
+      }
+    },
+    {
+      "name": "tbt_diagnose",
+      "taskReferenceName": "tbt_diag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${tbt_open_ref.output.ticketId}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "tbt_assign",
+      "taskReferenceName": "tbt_assign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${tbt_open_ref.output.ticketId}",
+        "category": "${tbt_diag_ref.output.category}"
+      }
+    },
+    {
+      "name": "tbt_resolve",
+      "taskReferenceName": "tbt_resolve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${tbt_open_ref.output.ticketId}",
+        "assignee": "${tbt_assign_ref.output.assignee}"
+      }
+    },
+    {
+      "name": "tbt_close",
+      "taskReferenceName": "tbt_close_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${tbt_open_ref.output.ticketId}",
+        "resolution": "${tbt_resolve_ref.output.resolution}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ticketId": "${tbt_open_ref.output.ticketId}",
+    "resolution": "${tbt_resolve_ref.output.resolution}",
+    "closedAt": "${tbt_close_ref.output.closedAt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

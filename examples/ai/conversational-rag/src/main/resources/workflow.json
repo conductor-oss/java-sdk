@@ -1,0 +1,65 @@
+{
+  "name": "conversational_rag_workflow",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "sessionId",
+    "userMessage"
+  ],
+  "tasks": [
+    {
+      "name": "crag_load_history",
+      "taskReferenceName": "history_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sessionId": "${workflow.input.sessionId}"
+      }
+    },
+    {
+      "name": "crag_embed_with_context",
+      "taskReferenceName": "embed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userMessage": "${workflow.input.userMessage}",
+        "history": "${history_ref.output.history}"
+      }
+    },
+    {
+      "name": "crag_retrieve",
+      "taskReferenceName": "retrieve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "embedding": "${embed_ref.output.embedding}",
+        "contextualQuery": "${embed_ref.output.contextualQuery}"
+      }
+    },
+    {
+      "name": "crag_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userMessage": "${workflow.input.userMessage}",
+        "history": "${history_ref.output.history}",
+        "context": "${retrieve_ref.output.documents}"
+      }
+    },
+    {
+      "name": "crag_save_history",
+      "taskReferenceName": "save_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sessionId": "${workflow.input.sessionId}",
+        "userMessage": "${workflow.input.userMessage}",
+        "assistantMessage": "${gen_ref.output.response}",
+        "history": "${history_ref.output.history}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "response": "${gen_ref.output.response}",
+    "turnNumber": "${save_ref.output.turnNumber}",
+    "sourcesUsed": "${retrieve_ref.output.documents}"
+  }
+}

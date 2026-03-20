@@ -1,0 +1,16 @@
+[
+  {
+    "name": "car_classify",
+    "retryCount": 0,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "car_process",
+    "retryCount": 0,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

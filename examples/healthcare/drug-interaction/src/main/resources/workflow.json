@@ -1,0 +1,52 @@
+{
+  "name": "drug_interaction_workflow",
+  "description": "Drug Interaction: list medications, check pairs, flag conflicts, recommend alternatives",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["patientId", "newMedication"],
+  "tasks": [
+    {
+      "name": "drg_list_medications",
+      "taskReferenceName": "drg_list_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "newMedication": "${workflow.input.newMedication}"
+      }
+    },
+    {
+      "name": "drg_check_pairs",
+      "taskReferenceName": "drg_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "medications": "${drg_list_ref.output.medications}",
+        "newMedication": "${workflow.input.newMedication}"
+      }
+    },
+    {
+      "name": "drg_flag_conflicts",
+      "taskReferenceName": "drg_flag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "interactions": "${drg_check_ref.output.interactions}"
+      }
+    },
+    {
+      "name": "drg_recommend_alternatives",
+      "taskReferenceName": "drg_recommend_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "conflicts": "${drg_flag_ref.output.conflicts}",
+        "newMedication": "${workflow.input.newMedication}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "patientId": "${workflow.input.patientId}",
+    "conflictsFound": "${drg_flag_ref.output.conflictCount}",
+    "conflicts": "${drg_flag_ref.output.conflicts}",
+    "alternatives": "${drg_recommend_ref.output.alternatives}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,72 @@
+{
+  "name": "tool_use_caching",
+  "description": "Tool Use Caching — checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["toolName", "toolArgs", "cacheTtlSeconds"],
+  "tasks": [
+    {
+      "name": "uc_check_cache",
+      "taskReferenceName": "cache_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${workflow.input.toolName}",
+        "toolArgs": "${workflow.input.toolArgs}",
+        "cacheTtlSeconds": "${workflow.input.cacheTtlSeconds}"
+      }
+    },
+    {
+      "name": "cache_decision",
+      "taskReferenceName": "cache_decision_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${cache_ref.output.cacheStatus}"
+      },
+      "decisionCases": {
+        "hit": [
+          {
+            "name": "uc_return_cached",
+            "taskReferenceName": "return_cached_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "cachedResult": "${cache_ref.output.cachedResult}",
+              "cacheKey": "${cache_ref.output.cacheKey}",
+              "cachedAt": "${cache_ref.output.cachedAt}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "uc_execute_tool",
+          "taskReferenceName": "execute_tool_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "toolName": "${workflow.input.toolName}",
+            "toolArgs": "${workflow.input.toolArgs}"
+          }
+        },
+        {
+          "name": "uc_cache_result",
+          "taskReferenceName": "cache_result_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "cacheKey": "${cache_ref.output.cacheKey}",
+            "result": "${execute_tool_ref.output.result}",
+            "ttlSeconds": "${workflow.input.cacheTtlSeconds}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "cacheStatus": "${cache_ref.output.cacheStatus}",
+    "cacheKey": "${cache_ref.output.cacheKey}",
+    "result": "${cache_decision_ref.output.result}",
+    "fromCache": "${cache_decision_ref.output.fromCache}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

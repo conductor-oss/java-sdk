@@ -1,0 +1,55 @@
+{
+  "name": "event_transformation_wf",
+  "description": "Event Transformation Pipeline — parse raw events, enrich with context, map to CloudEvents schema, and deliver to target.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["rawEvent", "sourceFormat", "targetFormat"],
+  "tasks": [
+    {
+      "name": "et_parse_event",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawEvent": "${workflow.input.rawEvent}",
+        "sourceFormat": "${workflow.input.sourceFormat}"
+      }
+    },
+    {
+      "name": "et_enrich_event",
+      "taskReferenceName": "enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "parsedEvent": "${parse_ref.output.parsedEvent}",
+        "eventType": "${parse_ref.output.eventType}"
+      }
+    },
+    {
+      "name": "et_map_schema",
+      "taskReferenceName": "map_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enrichedEvent": "${enrich_ref.output.enrichedEvent}",
+        "targetFormat": "${workflow.input.targetFormat}"
+      }
+    },
+    {
+      "name": "et_output_event",
+      "taskReferenceName": "output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mappedEvent": "${map_ref.output.mappedEvent}",
+        "targetFormat": "${workflow.input.targetFormat}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sourceFormat": "${workflow.input.sourceFormat}",
+    "targetFormat": "${workflow.input.targetFormat}",
+    "eventType": "${parse_ref.output.eventType}",
+    "fieldsEnriched": "${enrich_ref.output.fieldsAdded}",
+    "outputEventId": "${output_ref.output.outputEventId}",
+    "delivered": "${output_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

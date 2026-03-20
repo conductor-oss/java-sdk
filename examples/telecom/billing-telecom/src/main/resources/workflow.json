@@ -1,0 +1,62 @@
+{
+  "name": "btl_billing_telecom",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "customerId",
+    "billingPeriod"
+  ],
+  "tasks": [
+    {
+      "name": "btl_collect_usage",
+      "taskReferenceName": "btl_usage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "billingPeriod": "${workflow.input.billingPeriod}"
+      }
+    },
+    {
+      "name": "btl_rate",
+      "taskReferenceName": "btl_rate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "usageRecords": "${btl_usage_ref.output.usageRecords}"
+      }
+    },
+    {
+      "name": "btl_invoice",
+      "taskReferenceName": "btl_invoice_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "ratedCharges": "${btl_rate_ref.output.ratedCharges}"
+      }
+    },
+    {
+      "name": "btl_send",
+      "taskReferenceName": "btl_send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "invoiceId": "${btl_invoice_ref.output.invoiceId}"
+      }
+    },
+    {
+      "name": "btl_collect_payment",
+      "taskReferenceName": "btl_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "invoiceId": "${btl_invoice_ref.output.invoiceId}",
+        "amount": "${btl_invoice_ref.output.totalAmount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "invoiceId": "${btl_invoice_ref.output.invoiceId}",
+    "totalAmount": "${btl_invoice_ref.output.totalAmount}",
+    "paymentStatus": "${btl_collect_ref.output.paymentStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

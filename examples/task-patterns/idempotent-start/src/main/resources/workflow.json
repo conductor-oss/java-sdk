@@ -1,0 +1,24 @@
+{
+  "name": "idempotent_demo",
+  "description": "Idempotent start demo — demonstrates correlationId-based dedup and search-based idempotency.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "amount"],
+  "tasks": [
+    {
+      "name": "idem_process",
+      "taskReferenceName": "idem_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${idem_process_ref.output.orderId}",
+    "result": "${idem_process_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

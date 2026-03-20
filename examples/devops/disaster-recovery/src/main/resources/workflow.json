@@ -1,0 +1,49 @@
+{
+  "name": "disaster_recovery_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "primaryRegion",
+    "drRegion"
+  ],
+  "tasks": [
+    {
+      "name": "dr_detect",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "primaryRegion": "${workflow.input.primaryRegion}"
+      }
+    },
+    {
+      "name": "dr_failover_db",
+      "taskReferenceName": "db_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "drRegion": "${workflow.input.drRegion}"
+      }
+    },
+    {
+      "name": "dr_update_dns",
+      "taskReferenceName": "dns_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "drRegion": "${workflow.input.drRegion}"
+      }
+    },
+    {
+      "name": "dr_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "drRegion": "${workflow.input.drRegion}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "recovered": "${verify_ref.output.recovered}",
+    "rtoMinutes": "${verify_ref.output.rtoMinutes}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

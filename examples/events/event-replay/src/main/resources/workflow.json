@@ -1,0 +1,58 @@
+{
+  "name": "event_replay_wf",
+  "description": "Event Replay Workflow — load event history, filter by criteria, replay failed events, and generate a summary report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sourceStream", "startTime", "endTime", "filterCriteria"],
+  "tasks": [
+    {
+      "name": "ep_load_history",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceStream": "${workflow.input.sourceStream}",
+        "startTime": "${workflow.input.startTime}",
+        "endTime": "${workflow.input.endTime}"
+      }
+    },
+    {
+      "name": "ep_filter_events",
+      "taskReferenceName": "filter_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${load_ref.output.events}",
+        "totalLoaded": "${load_ref.output.totalLoaded}",
+        "filterCriteria": "${workflow.input.filterCriteria}"
+      }
+    },
+    {
+      "name": "ep_replay_events",
+      "taskReferenceName": "replay_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filteredEvents": "${filter_ref.output.filteredEvents}",
+        "filteredCount": "${filter_ref.output.filteredCount}"
+      }
+    },
+    {
+      "name": "ep_generate_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "replayResults": "${replay_ref.output.results}",
+        "totalReplayed": "${replay_ref.output.totalReplayed}",
+        "sourceStream": "${workflow.input.sourceStream}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sourceStream": "${workflow.input.sourceStream}",
+    "totalLoaded": "${load_ref.output.totalLoaded}",
+    "totalFiltered": "${filter_ref.output.filteredCount}",
+    "totalReplayed": "${replay_ref.output.totalReplayed}",
+    "successRate": "${report_ref.output.successRate}",
+    "reportId": "${report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,70 @@
+{
+  "name": "model_serving_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "modelName",
+    "modelVersion",
+    "modelPath"
+  ],
+  "tasks": [
+    {
+      "name": "msv_load_model",
+      "taskReferenceName": "msv_load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "modelVersion": "${workflow.input.modelVersion}",
+        "modelPath": "${workflow.input.modelPath}"
+      }
+    },
+    {
+      "name": "msv_validate",
+      "taskReferenceName": "msv_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "signature": "${msv_load_ref.output.signature}",
+        "inputShape": "${msv_load_ref.output.inputShape}"
+      }
+    },
+    {
+      "name": "msv_deploy",
+      "taskReferenceName": "msv_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "modelVersion": "${workflow.input.modelVersion}",
+        "environment": "staging"
+      }
+    },
+    {
+      "name": "msv_test",
+      "taskReferenceName": "msv_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpointUrl": "${msv_deploy_ref.output.endpointUrl}",
+        "modelName": "${workflow.input.modelName}"
+      }
+    },
+    {
+      "name": "msv_promote",
+      "taskReferenceName": "msv_promote_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "modelVersion": "${workflow.input.modelVersion}",
+        "testsPassed": "${msv_test_ref.output.allPassed}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "modelName": "${workflow.input.modelName}",
+    "modelVersion": "${workflow.input.modelVersion}",
+    "endpointUrl": "${msv_deploy_ref.output.endpointUrl}",
+    "testsPassed": "${msv_test_ref.output.allPassed}",
+    "promoted": "${msv_promote_ref.output.promoted}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

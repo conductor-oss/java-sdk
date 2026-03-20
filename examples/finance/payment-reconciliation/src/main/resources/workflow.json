@@ -1,0 +1,60 @@
+{
+  "name": "payment_reconciliation_workflow",
+  "description": "Reconcile payments: match transactions, identify discrepancies, resolve mismatches, and generate report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batchId", "accountId", "periodStart", "periodEnd"],
+  "tasks": [
+    {
+      "name": "prc_match_transactions",
+      "taskReferenceName": "prc_match_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "accountId": "${workflow.input.accountId}",
+        "periodStart": "${workflow.input.periodStart}",
+        "periodEnd": "${workflow.input.periodEnd}"
+      }
+    },
+    {
+      "name": "prc_identify_discrepancies",
+      "taskReferenceName": "prc_discrepancy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "matchedCount": "${prc_match_ref.output.matchedCount}",
+        "unmatchedCount": "${prc_match_ref.output.unmatchedCount}",
+        "unmatchedItems": "${prc_match_ref.output.unmatchedItems}"
+      }
+    },
+    {
+      "name": "prc_resolve_mismatches",
+      "taskReferenceName": "prc_resolve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "discrepancies": "${prc_discrepancy_ref.output.discrepancies}"
+      }
+    },
+    {
+      "name": "prc_generate_report",
+      "taskReferenceName": "prc_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "accountId": "${workflow.input.accountId}",
+        "matchedCount": "${prc_match_ref.output.matchedCount}",
+        "resolvedCount": "${prc_resolve_ref.output.resolvedCount}",
+        "unresolvedCount": "${prc_resolve_ref.output.unresolvedCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "batchId": "${workflow.input.batchId}",
+    "matchedCount": "${prc_match_ref.output.matchedCount}",
+    "resolvedCount": "${prc_resolve_ref.output.resolvedCount}",
+    "reportId": "${prc_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

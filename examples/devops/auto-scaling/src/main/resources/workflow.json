@@ -1,0 +1,52 @@
+{
+  "name": "auto_scaling_workflow",
+  "version": 1,
+  "description": "Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "metric",
+    "threshold"
+  ],
+  "tasks": [
+    {
+      "name": "as_analyze",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "metric": "${workflow.input.metric}"
+      }
+    },
+    {
+      "name": "as_plan",
+      "taskReferenceName": "plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "currentLoad": "${analyze_ref.output.currentLoad}"
+      }
+    },
+    {
+      "name": "as_execute",
+      "taskReferenceName": "exec_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "action": "${plan_ref.output.action}"
+      }
+    },
+    {
+      "name": "as_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "action": "${plan_ref.output.action}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "action": "${plan_ref.output.action}",
+    "verified": "${verify_ref.output.verified}"
+  }
+}

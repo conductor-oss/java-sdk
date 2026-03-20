@@ -1,0 +1,89 @@
+{
+  "name": "multi_document_rag_workflow",
+  "description": "Multi-Document RAG — Search across multiple collections in parallel using FORK/JOIN, merge results, then generate an answer.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question"],
+  "tasks": [
+    {
+      "name": "mdrag_embed",
+      "taskReferenceName": "embed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "parallel_search",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "mdrag_search_api_docs",
+            "taskReferenceName": "api_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "embedding": "${embed_ref.output.embedding}",
+              "collection": "api_docs"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mdrag_search_tutorials",
+            "taskReferenceName": "tut_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "embedding": "${embed_ref.output.embedding}",
+              "collection": "tutorials"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mdrag_search_forums",
+            "taskReferenceName": "forum_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "embedding": "${embed_ref.output.embedding}",
+              "collection": "forums"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_search",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["api_ref", "tut_ref", "forum_ref"]
+    },
+    {
+      "name": "mdrag_merge_results",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apiDocs": "${api_ref.output.results}",
+        "tutorials": "${tut_ref.output.results}",
+        "forums": "${forum_ref.output.results}"
+      }
+    },
+    {
+      "name": "mdrag_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "mergedContext": "${merge_ref.output.merged}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${gen_ref.output.answer}",
+    "sourceCounts": "${merge_ref.output.sourceCounts}",
+    "totalResults": "${merge_ref.output.totalResults}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

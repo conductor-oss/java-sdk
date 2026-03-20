@@ -1,0 +1,54 @@
+{
+  "name": "graceful_shutdown_workflow",
+  "description": "Orchestrates graceful shutdown: stop accepting new work, drain in-flight tasks, checkpoint state, deregister from service registry, and terminate.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "serviceName",
+    "instanceId"
+  ],
+  "tasks": [
+    {
+      "name": "gs_stop_accepting",
+      "taskReferenceName": "stop_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "instanceId": "${workflow.input.instanceId}"
+      }
+    },
+    {
+      "name": "gs_drain_tasks",
+      "taskReferenceName": "drain_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "instanceId": "${workflow.input.instanceId}"
+      }
+    },
+    {
+      "name": "gs_checkpoint",
+      "taskReferenceName": "ckpt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "instanceId": "${workflow.input.instanceId}",
+        "pendingTasks": "${drain_ref.output.pendingTasks}"
+      }
+    },
+    {
+      "name": "gs_deregister",
+      "taskReferenceName": "dereg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "instanceId": "${workflow.input.instanceId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "drained": "${drain_ref.output.drained}",
+    "checkpointed": "${ckpt_ref.output.saved}",
+    "deregistered": "${dereg_ref.output.deregistered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

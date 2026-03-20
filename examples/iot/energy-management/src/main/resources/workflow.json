@@ -1,0 +1,55 @@
+{
+  "name": "energy_management_demo",
+  "description": "Energy management workflow that monitors consumption, analyzes patterns, optimizes settings, and generates a report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["buildingId", "period"],
+  "tasks": [
+    {
+      "name": "erg_monitor_consumption",
+      "taskReferenceName": "erg_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildingId": "${workflow.input.buildingId}",
+        "period": "${workflow.input.period}"
+      }
+    },
+    {
+      "name": "erg_analyze_patterns",
+      "taskReferenceName": "erg_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildingId": "${workflow.input.buildingId}",
+        "consumption": "${erg_monitor_ref.output.consumption}"
+      }
+    },
+    {
+      "name": "erg_optimize",
+      "taskReferenceName": "erg_optimize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildingId": "${workflow.input.buildingId}",
+        "patterns": "${erg_analyze_ref.output.patterns}",
+        "peakHours": "${erg_analyze_ref.output.peakHours}"
+      }
+    },
+    {
+      "name": "erg_report",
+      "taskReferenceName": "erg_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildingId": "${workflow.input.buildingId}",
+        "consumption": "${erg_monitor_ref.output.consumption}",
+        "savings": "${erg_optimize_ref.output.projectedSavings}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "buildingId": "${workflow.input.buildingId}",
+    "totalConsumptionKwh": "${erg_monitor_ref.output.totalKwh}",
+    "projectedSavings": "${erg_optimize_ref.output.projectedSavings}",
+    "reportId": "${erg_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

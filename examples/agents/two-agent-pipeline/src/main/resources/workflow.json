@@ -1,0 +1,44 @@
+{
+  "name": "two_agent_pipeline",
+  "description": "Sequential writer-editor pipeline: writer agent drafts content, editor agent refines it, final output assembles the result",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "tasks": [
+    {
+      "name": "tap_writer_agent",
+      "taskReferenceName": "writer_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "tone": "${workflow.input.tone}",
+        "systemPrompt": "${workflow.input.writerSystemPrompt}"
+      }
+    },
+    {
+      "name": "tap_editor_agent",
+      "taskReferenceName": "editor_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "draft": "${writer_agent_ref.output.draft}",
+        "tone": "${workflow.input.tone}",
+        "systemPrompt": "${workflow.input.editorSystemPrompt}"
+      }
+    },
+    {
+      "name": "tap_final_output",
+      "taskReferenceName": "final_output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalDraft": "${writer_agent_ref.output.draft}",
+        "editedContent": "${editor_agent_ref.output.editedContent}",
+        "editorNotes": "${editor_agent_ref.output.notes}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "finalContent": "${final_output_ref.output.finalContent}",
+    "summary": "${final_output_ref.output.summary}"
+  }
+}

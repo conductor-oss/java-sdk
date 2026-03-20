@@ -1,0 +1,11 @@
+[
+  {
+    "name": "resp_timeout_task",
+    "retryCount": 2,
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 1,
+    "timeoutSeconds": 30,
+    "responseTimeoutSeconds": 3,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

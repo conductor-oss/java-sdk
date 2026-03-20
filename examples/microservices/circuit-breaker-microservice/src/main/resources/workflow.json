@@ -1,0 +1,28 @@
+{
+  "name": "circuit_breaker_workflow",
+  "description": "Circuit breaker pattern for resilient service calls",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "request"],
+  "tasks": [
+    {"name": "cb_check_circuit", "taskReferenceName": "check_ref", "type": "SIMPLE",
+      "inputParameters": {"serviceName": "${workflow.input.serviceName}"}},
+    {"name": "circuit_switch", "taskReferenceName": "switch_ref", "type": "SWITCH",
+      "evaluatorType": "value-param", "expression": "switchCaseValue",
+      "inputParameters": {"switchCaseValue": "${check_ref.output.circuitState}"},
+      "decisionCases": {
+        "open": [{"name": "cb_fallback", "taskReferenceName": "fallback_ref", "type": "SIMPLE",
+          "inputParameters": {"serviceName": "${workflow.input.serviceName}", "reason": "circuit_open"}}]
+      },
+      "defaultCase": [
+        {"name": "cb_call_service", "taskReferenceName": "call_ref", "type": "SIMPLE",
+          "inputParameters": {"serviceName": "${workflow.input.serviceName}", "request": "${workflow.input.request}"}},
+        {"name": "cb_record_result", "taskReferenceName": "record_ref", "type": "SIMPLE",
+          "inputParameters": {"serviceName": "${workflow.input.serviceName}", "success": "${call_ref.output.success}"}}
+      ]
+    }
+  ],
+  "outputParameters": {"response": "${call_ref.output.response}", "circuitState": "${check_ref.output.circuitState}"},
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

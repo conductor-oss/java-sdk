@@ -1,0 +1,49 @@
+{
+  "name": "calculator_agent",
+  "description": "Calculator Agent — parse a math expression, compute step-by-step following PEMDAS, and explain the result.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["expression", "precision"],
+  "tasks": [
+    {
+      "name": "ca_parse_expression",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "expression": "${workflow.input.expression}",
+        "precision": "${workflow.input.precision}"
+      }
+    },
+    {
+      "name": "ca_compute_steps",
+      "taskReferenceName": "compute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tokens": "${parse_ref.output.tokens}",
+        "operationOrder": "${parse_ref.output.operationOrder}",
+        "precision": "${parse_ref.output.precision}"
+      }
+    },
+    {
+      "name": "ca_explain_result",
+      "taskReferenceName": "explain_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "expression": "${workflow.input.expression}",
+        "steps": "${compute_ref.output.steps}",
+        "finalResult": "${compute_ref.output.finalResult}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "expression": "${workflow.input.expression}",
+    "finalResult": "${compute_ref.output.finalResult}",
+    "precision": "${compute_ref.output.precision}",
+    "steps": "${compute_ref.output.steps}",
+    "explanation": "${explain_ref.output.explanation}",
+    "stepCount": "${explain_ref.output.stepCount}",
+    "difficulty": "${explain_ref.output.difficulty}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

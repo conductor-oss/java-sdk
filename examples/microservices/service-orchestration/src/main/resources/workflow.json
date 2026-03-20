@@ -1,0 +1,53 @@
+{
+  "name": "service_orchestration_291",
+  "description": "Orchestrate auth, catalog, cart, and checkout microservices",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "productId", "quantity"],
+  "tasks": [
+    {
+      "name": "so_authenticate",
+      "taskReferenceName": "so_auth_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "so_catalog_lookup",
+      "taskReferenceName": "so_catalog_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${workflow.input.productId}",
+        "authToken": "${so_auth_ref.output.token}"
+      }
+    },
+    {
+      "name": "so_add_to_cart",
+      "taskReferenceName": "so_cart_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "product": "${so_catalog_ref.output.product}",
+        "quantity": "${workflow.input.quantity}"
+      }
+    },
+    {
+      "name": "so_checkout",
+      "taskReferenceName": "so_checkout_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "cartId": "${so_cart_ref.output.cartId}",
+        "total": "${so_cart_ref.output.total}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${so_checkout_ref.output.orderId}",
+    "total": "${so_checkout_ref.output.total}",
+    "status": "${so_checkout_ref.output.orderStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

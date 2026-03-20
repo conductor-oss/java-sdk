@@ -1,0 +1,58 @@
+{
+  "name": "teams_integration",
+  "description": "Teams integration: receive webhook, format card, post card, acknowledge",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "teamId",
+    "channelId",
+    "webhookPayload"
+  ],
+  "tasks": [
+    {
+      "name": "tms_receive_webhook",
+      "taskReferenceName": "receive_webhook_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "teamId": "${workflow.input.teamId}",
+        "channelId": "${workflow.input.channelId}",
+        "webhookPayload": "${workflow.input.webhookPayload}"
+      }
+    },
+    {
+      "name": "tms_format_card",
+      "taskReferenceName": "format_card_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${receive_webhook_ref.output.eventId}",
+        "webhookPayload": "${workflow.input.webhookPayload}"
+      }
+    },
+    {
+      "name": "tms_post_card",
+      "taskReferenceName": "post_card_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "teamId": "${workflow.input.teamId}",
+        "channelId": "${workflow.input.channelId}",
+        "card": "${format_card_ref.output.card}"
+      }
+    },
+    {
+      "name": "tms_acknowledge",
+      "taskReferenceName": "acknowledge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${post_card_ref.output.messageId}",
+        "teamId": "${workflow.input.teamId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${receive_webhook_ref.output.eventId}",
+    "messageId": "${post_card_ref.output.messageId}",
+    "acknowledged": "${acknowledge_ref.output.acknowledged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

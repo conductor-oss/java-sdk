@@ -1,0 +1,35 @@
+{
+  "name": "error_handler_wf",
+  "description": "Error handler workflow. Runs automatically when main_with_failure_handler fails. Performs cleanup and sends failure notification.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["workflowId", "workflowType", "reason"],
+  "tasks": [
+    {
+      "name": "fw_cleanup",
+      "taskReferenceName": "fw_cleanup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "failedWorkflowId": "${workflow.input.workflowId}",
+        "failedWorkflowType": "${workflow.input.workflowType}",
+        "reason": "${workflow.input.reason}"
+      }
+    },
+    {
+      "name": "fw_notify_failure",
+      "taskReferenceName": "fw_notify_failure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "failedWorkflowId": "${workflow.input.workflowId}",
+        "cleaned": "${fw_cleanup_ref.output.cleaned}",
+        "reason": "${workflow.input.reason}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "cleaned": "${fw_cleanup_ref.output.cleaned}",
+    "notified": "${fw_notify_failure_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

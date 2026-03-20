@@ -1,0 +1,21 @@
+{
+  "name": "reservation_system_736",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["guestName", "date", "time", "partySize"],
+  "tasks": [
+    { "name": "rsv_check_availability", "taskReferenceName": "avail_ref", "type": "SIMPLE",
+      "inputParameters": { "date": "${workflow.input.date}", "time": "${workflow.input.time}", "partySize": "${workflow.input.partySize}" } },
+    { "name": "rsv_book", "taskReferenceName": "book_ref", "type": "SIMPLE",
+      "inputParameters": { "guestName": "${workflow.input.guestName}", "slot": "${avail_ref.output.slot}" } },
+    { "name": "rsv_confirm", "taskReferenceName": "confirm_ref", "type": "SIMPLE",
+      "inputParameters": { "reservationId": "${book_ref.output.reservationId}", "guestName": "${workflow.input.guestName}" } },
+    { "name": "rsv_remind", "taskReferenceName": "remind_ref", "type": "SIMPLE",
+      "inputParameters": { "reservationId": "${book_ref.output.reservationId}", "date": "${workflow.input.date}" } },
+    { "name": "rsv_seat", "taskReferenceName": "seat_ref", "type": "SIMPLE",
+      "inputParameters": { "reservationId": "${book_ref.output.reservationId}", "partySize": "${workflow.input.partySize}" } }
+  ],
+  "outputParameters": { "reservation": "${seat_ref.output.seated}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,103 @@
+{
+  "name": "event_driven_microservices",
+  "description": "Event-driven microservices workflow: order_service -> emit_order_created -> payment_service -> emit_payment_processed -> shipping_service -> emit_shipment_created -> notification_service -> finalize",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "customerId",
+    "items",
+    "shippingAddress",
+    "paymentMethod"
+  ],
+  "tasks": [
+    {
+      "name": "dm_order_service",
+      "taskReferenceName": "order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "dm_emit_order_created",
+      "taskReferenceName": "order_evt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "order.created",
+        "orderId": "${order_ref.output.orderId}",
+        "amount": "${order_ref.output.totalAmount}"
+      }
+    },
+    {
+      "name": "dm_payment_service",
+      "taskReferenceName": "payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "amount": "${order_ref.output.totalAmount}",
+        "paymentMethod": "${workflow.input.paymentMethod}"
+      }
+    },
+    {
+      "name": "dm_emit_payment_processed",
+      "taskReferenceName": "payment_evt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "payment.processed",
+        "orderId": "${order_ref.output.orderId}",
+        "transactionId": "${payment_ref.output.transactionId}"
+      }
+    },
+    {
+      "name": "dm_shipping_service",
+      "taskReferenceName": "shipping_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "address": "${workflow.input.shippingAddress}",
+        "items": "${order_ref.output.items}"
+      }
+    },
+    {
+      "name": "dm_emit_shipment_created",
+      "taskReferenceName": "ship_evt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "shipment.created",
+        "orderId": "${order_ref.output.orderId}",
+        "trackingNumber": "${shipping_ref.output.trackingNumber}"
+      }
+    },
+    {
+      "name": "dm_notification_service",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "orderId": "${order_ref.output.orderId}",
+        "trackingNumber": "${shipping_ref.output.trackingNumber}",
+        "transactionId": "${payment_ref.output.transactionId}"
+      }
+    },
+    {
+      "name": "dm_finalize",
+      "taskReferenceName": "final_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "eventsEmitted": 3,
+        "servicesInvolved": 4
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${order_ref.output.orderId}",
+    "transactionId": "${payment_ref.output.transactionId}",
+    "trackingNumber": "${shipping_ref.output.trackingNumber}",
+    "notificationSent": "${notify_ref.output.sent}",
+    "servicesCompleted": "${final_ref.output.servicesCompleted}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

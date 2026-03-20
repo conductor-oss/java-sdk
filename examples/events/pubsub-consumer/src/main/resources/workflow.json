@@ -1,0 +1,58 @@
+{
+  "name": "pubsub_consumer_wf",
+  "description": "Pub/Sub Consumer — receive a Pub/Sub message, decode the base64 payload, process sensor data with threshold checks, and acknowledge the message.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["subscription", "messageId", "publishTime", "data", "attributes"],
+  "tasks": [
+    {
+      "name": "ps_receive_message",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscription": "${workflow.input.subscription}",
+        "messageId": "${workflow.input.messageId}",
+        "publishTime": "${workflow.input.publishTime}",
+        "data": "${workflow.input.data}",
+        "attributes": "${workflow.input.attributes}"
+      }
+    },
+    {
+      "name": "ps_decode_payload",
+      "taskReferenceName": "decode_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "encodedData": "${receive_ref.output.encodedData}",
+        "encoding": "${receive_ref.output.encoding}",
+        "attributes": "${receive_ref.output.attributes}"
+      }
+    },
+    {
+      "name": "ps_process_data",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "decodedData": "${decode_ref.output.decodedData}",
+        "eventType": "${decode_ref.output.eventType}"
+      }
+    },
+    {
+      "name": "ps_ack_message",
+      "taskReferenceName": "ack_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscription": "${workflow.input.subscription}",
+        "messageId": "${workflow.input.messageId}",
+        "processingResult": "${process_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${workflow.input.messageId}",
+    "eventType": "${decode_ref.output.eventType}",
+    "processed": "${process_ref.output.processed}",
+    "acknowledged": "${ack_ref.output.acknowledged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,63 @@
+{
+  "name": "wtm_etl_postgres_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "batchId",
+    "options"
+  ],
+  "tasks": [
+    {
+      "name": "wtm_extract",
+      "taskReferenceName": "wtm_extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "source": "postgres",
+        "format": "sql",
+        "batchId": "${workflow.input.batchId}"
+      }
+    },
+    {
+      "name": "wtm_transform",
+      "taskReferenceName": "wtm_transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${wtm_extract_ref.output.records}",
+        "targetFormat": "parquet",
+        "transformRules": [
+          "normalize_dates",
+          "remove_pii"
+        ]
+      }
+    },
+    {
+      "name": "wtm_load",
+      "taskReferenceName": "wtm_load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "destination": "s3",
+        "data": "${wtm_transform_ref.output.transformed}"
+      }
+    },
+    {
+      "name": "wtm_verify",
+      "taskReferenceName": "wtm_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "source": "postgres",
+        "destination": "s3",
+        "extractCount": "${wtm_extract_ref.output.recordCount}",
+        "loadCount": "${wtm_load_ref.output.loadedCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "source": "postgres",
+    "destination": "s3",
+    "extracted": "${wtm_extract_ref.output.recordCount}",
+    "loaded": "${wtm_load_ref.output.loadedCount}",
+    "verified": "${wtm_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

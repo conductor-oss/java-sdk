@@ -1,0 +1,55 @@
+{
+  "name": "api_key_rotation_workflow",
+  "description": "API key rotation: generate new key, dual-active period, migrate consumers, revoke old key",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "keyId"
+  ],
+  "tasks": [
+    {
+      "name": "akr_generate_new",
+      "taskReferenceName": "generate_new_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "keyId": "${workflow.input.keyId}"
+      }
+    },
+    {
+      "name": "akr_dual_active",
+      "taskReferenceName": "dual_active_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "oldKeyId": "${workflow.input.keyId}",
+        "newKeyId": "${generate_new_ref.output.newKeyId}"
+      }
+    },
+    {
+      "name": "akr_migrate_consumers",
+      "taskReferenceName": "migrate_consumers_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "newKeyId": "${generate_new_ref.output.newKeyId}"
+      }
+    },
+    {
+      "name": "akr_revoke_old",
+      "taskReferenceName": "revoke_old_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "oldKeyId": "${workflow.input.keyId}",
+        "migrationComplete": "${migrate_consumers_ref.output.migrated}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "newKeyId": "${generate_new_ref.output.newKeyId}",
+    "consumersMigrated": "${migrate_consumers_ref.output.consumersMigrated}",
+    "oldKeyRevoked": "${revoke_old_ref.output.revoked}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

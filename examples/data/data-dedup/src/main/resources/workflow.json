@@ -1,0 +1,64 @@
+{
+  "name": "data_dedup",
+  "description": "Data deduplication workflow that loads records, computes dedup keys, finds duplicates, merges groups, and emits the deduplicated dataset.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "matchFields"
+  ],
+  "tasks": [
+    {
+      "name": "dp_load_records",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}"
+      }
+    },
+    {
+      "name": "dp_compute_keys",
+      "taskReferenceName": "keys_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${load_ref.output.records}",
+        "matchFields": "${workflow.input.matchFields}"
+      }
+    },
+    {
+      "name": "dp_find_duplicates",
+      "taskReferenceName": "dup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "keyedRecords": "${keys_ref.output.keyedRecords}"
+      }
+    },
+    {
+      "name": "dp_merge_groups",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "groups": "${dup_ref.output.groups}"
+      }
+    },
+    {
+      "name": "dp_emit_deduped",
+      "taskReferenceName": "emit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deduped": "${merge_ref.output.mergedRecords}",
+        "originalCount": "${load_ref.output.count}",
+        "dupCount": "${dup_ref.output.duplicateCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalCount": "${load_ref.output.count}",
+    "duplicateGroups": "${dup_ref.output.groupCount}",
+    "duplicatesFound": "${dup_ref.output.duplicateCount}",
+    "dedupedCount": "${emit_ref.output.dedupedCount}",
+    "summary": "${emit_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

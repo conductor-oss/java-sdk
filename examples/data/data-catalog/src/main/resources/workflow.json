@@ -1,0 +1,56 @@
+{
+  "name": "data_catalog",
+  "description": "Catalog data assets: discover, classify, tag, and index.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dataSource",
+    "scanDepth",
+    "classificationRules"
+  ],
+  "tasks": [
+    {
+      "name": "cg_discover_assets",
+      "taskReferenceName": "discover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataSource": "${workflow.input.dataSource}",
+        "scanDepth": "${workflow.input.scanDepth}"
+      }
+    },
+    {
+      "name": "cg_classify_data",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assets": "${discover_ref.output.assets}",
+        "rules": "${workflow.input.classificationRules}"
+      }
+    },
+    {
+      "name": "cg_tag_metadata",
+      "taskReferenceName": "tag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "classifiedAssets": "${classify_ref.output.classified}"
+      }
+    },
+    {
+      "name": "cg_index_catalog",
+      "taskReferenceName": "index_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "taggedAssets": "${tag_ref.output.tagged}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "assetsDiscovered": "${discover_ref.output.assetCount}",
+    "classifications": "${classify_ref.output.classificationSummary}",
+    "tagsApplied": "${tag_ref.output.tagCount}",
+    "indexedCount": "${index_ref.output.indexedCount}",
+    "catalogId": "${index_ref.output.catalogId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

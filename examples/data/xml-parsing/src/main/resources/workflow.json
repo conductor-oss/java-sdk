@@ -1,0 +1,62 @@
+{
+  "name": "xml_parsing_wf",
+  "description": "Sequential XML parsing workflow that receives XML, parses tags, extracts fields, converts to JSON, and emits records.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "xmlContent",
+    "rootElement"
+  ],
+  "tasks": [
+    {
+      "name": "xp_receive_xml",
+      "taskReferenceName": "receive_xml_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "xmlContent": "${workflow.input.xmlContent}",
+        "rootElement": "${workflow.input.rootElement}"
+      }
+    },
+    {
+      "name": "xp_parse_tags",
+      "taskReferenceName": "parse_tags_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "xml": "${receive_xml_ref.output.xml}",
+        "rootElement": "${receive_xml_ref.output.rootElement}"
+      }
+    },
+    {
+      "name": "xp_extract_fields",
+      "taskReferenceName": "extract_fields_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "elements": "${parse_tags_ref.output.elements}"
+      }
+    },
+    {
+      "name": "xp_convert_to_json",
+      "taskReferenceName": "convert_to_json_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "extractedData": "${extract_fields_ref.output.records}"
+      }
+    },
+    {
+      "name": "xp_emit_records",
+      "taskReferenceName": "emit_records_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jsonRecords": "${convert_to_json_ref.output.jsonRecords}",
+        "recordCount": "${convert_to_json_ref.output.count}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "status": "${emit_records_ref.output.status}",
+    "recordCount": "${emit_records_ref.output.recordCount}",
+    "records": "${convert_to_json_ref.output.jsonRecords}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

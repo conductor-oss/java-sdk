@@ -1,0 +1,47 @@
+{
+  "name": "data_wiring_demo",
+  "description": "Shows all the ways to pass data between tasks",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["region", "period"],
+  "tasks": [
+    {
+      "name": "generate_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "region": "${workflow.input.region}",
+        "period": "${workflow.input.period}"
+      }
+    },
+    {
+      "name": "enrich_report",
+      "taskReferenceName": "enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metrics": "${report_ref.output.metrics}",
+        "totalRevenue": "${report_ref.output.metrics.revenue}",
+        "topProducts": "${report_ref.output.topProducts}",
+        "region": "${workflow.input.region}"
+      }
+    },
+    {
+      "name": "summarize_report",
+      "taskReferenceName": "summary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalMetrics": "${report_ref.output.metrics}",
+        "enrichedInsights": "${enrich_ref.output.insights}",
+        "growthRate": "${enrich_ref.output.growthRate}",
+        "region": "${workflow.input.region}",
+        "period": "${workflow.input.period}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${summary_ref.output.summary}",
+    "recommendation": "${summary_ref.output.recommendation}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,85 @@
+{
+  "name": "multi_agent_code_review",
+  "description": "Multi-Agent Code Review — parses code, runs security/performance/style reviews in parallel, then compiles a final review report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["code", "language"],
+  "tasks": [
+    {
+      "name": "cr_parse_code",
+      "taskReferenceName": "cr_parse_code_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "code": "${workflow.input.code}",
+        "language": "${workflow.input.language}"
+      }
+    },
+    {
+      "name": "fork_reviewers",
+      "taskReferenceName": "fork_reviewers_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "cr_security_review",
+            "taskReferenceName": "cr_security_review_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "ast": "${cr_parse_code_ref.output.ast}",
+              "language": "${workflow.input.language}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "cr_performance_review",
+            "taskReferenceName": "cr_performance_review_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "ast": "${cr_parse_code_ref.output.ast}",
+              "language": "${workflow.input.language}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "cr_style_review",
+            "taskReferenceName": "cr_style_review_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "ast": "${cr_parse_code_ref.output.ast}",
+              "language": "${workflow.input.language}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_reviewers",
+      "taskReferenceName": "join_reviewers_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "cr_security_review_ref",
+        "cr_performance_review_ref",
+        "cr_style_review_ref"
+      ]
+    },
+    {
+      "name": "cr_compile_review",
+      "taskReferenceName": "cr_compile_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "securityFindings": "${cr_security_review_ref.output.findings}",
+        "performanceFindings": "${cr_performance_review_ref.output.findings}",
+        "styleFindings": "${cr_style_review_ref.output.findings}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalIssues": "${cr_compile_review_ref.output.totalIssues}",
+    "overallSeverity": "${cr_compile_review_ref.output.overallSeverity}",
+    "summary": "${cr_compile_review_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

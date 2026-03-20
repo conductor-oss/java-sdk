@@ -1,0 +1,43 @@
+{
+  "name": "jq_advanced_demo",
+  "description": "Advanced JQ data transformations — flatten orders, aggregate by customer, classify into tiers",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orders"],
+  "tasks": [
+    {
+      "name": "jq_flatten",
+      "taskReferenceName": "jq_flatten_ref",
+      "type": "JSON_JQ_TRANSFORM",
+      "inputParameters": {
+        "queryExpression": "[.orders[] | {orderId: .id, customerName: .customer.name, customerEmail: .customer.email, items: [.items[] | {itemName: .name, itemPrice: .price, itemQty: .qty, lineTotal: (.price * .qty)}], orderTotal: ([.items[] | .price * .qty] | add)}]",
+        "orders": "${workflow.input.orders}"
+      }
+    },
+    {
+      "name": "jq_aggregate",
+      "taskReferenceName": "jq_aggregate_ref",
+      "type": "JSON_JQ_TRANSFORM",
+      "inputParameters": {
+        "queryExpression": "[.flattenedOrders | group_by(.customerName)[] | {customerName: .[0].customerName, customerEmail: .[0].customerEmail, orderCount: length, totalSpent: ([.[].orderTotal] | add), averageOrderValue: (([.[].orderTotal] | add) / length), orders: [.[].orderId]}]",
+        "flattenedOrders": "${jq_flatten_ref.output.result}"
+      }
+    },
+    {
+      "name": "jq_classify",
+      "taskReferenceName": "jq_classify_ref",
+      "type": "JSON_JQ_TRANSFORM",
+      "inputParameters": {
+        "queryExpression": "[.customerSummary[] | . + {tier: (if .totalSpent >= 500 then \"gold\" elif .totalSpent >= 200 then \"silver\" else \"bronze\" end)}] | {tieredCustomers: ., tierBreakdown: {gold: [.[] | select(.tier == \"gold\") | .customerName], silver: [.[] | select(.tier == \"silver\") | .customerName], bronze: [.[] | select(.tier == \"bronze\") | .customerName]}}",
+        "customerSummary": "${jq_aggregate_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "flattenedOrders": "${jq_flatten_ref.output.result}",
+    "customerSummary": "${jq_aggregate_ref.output.result}",
+    "tieredCustomers": "${jq_classify_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

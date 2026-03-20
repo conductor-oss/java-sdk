@@ -1,0 +1,57 @@
+{
+  "name": "coupon_engine",
+  "description": "Coupon engine: validate code, check eligibility, apply discount, record usage",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["couponCode", "customerId", "cartTotal", "cartItems"],
+  "tasks": [
+    {
+      "name": "cpn_validate_code",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": { "couponCode": "${workflow.input.couponCode}" }
+    },
+    {
+      "name": "cpn_check_eligibility",
+      "taskReferenceName": "eligible_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "couponCode": "${workflow.input.couponCode}",
+        "customerId": "${workflow.input.customerId}",
+        "cartTotal": "${workflow.input.cartTotal}",
+        "cartItems": "${workflow.input.cartItems}",
+        "couponRules": "${validate_ref.output.rules}"
+      }
+    },
+    {
+      "name": "cpn_apply_discount",
+      "taskReferenceName": "apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "couponCode": "${workflow.input.couponCode}",
+        "cartTotal": "${workflow.input.cartTotal}",
+        "discountType": "${validate_ref.output.discountType}",
+        "discountValue": "${validate_ref.output.discountValue}"
+      }
+    },
+    {
+      "name": "cpn_record_usage",
+      "taskReferenceName": "record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "couponCode": "${workflow.input.couponCode}",
+        "customerId": "${workflow.input.customerId}",
+        "discountApplied": "${apply_ref.output.discountAmount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "valid": "${validate_ref.output.valid}",
+    "eligible": "${eligible_ref.output.eligible}",
+    "discountAmount": "${apply_ref.output.discountAmount}",
+    "newTotal": "${apply_ref.output.newTotal}",
+    "recorded": "${record_ref.output.recorded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,78 @@
+{
+  "name": "phw_public_health",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["region", "disease", "caseCount"],
+  "tasks": [
+    {
+      "name": "phw_surveillance",
+      "taskReferenceName": "phw_surv_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "region": "${workflow.input.region}",
+        "disease": "${workflow.input.disease}"
+      }
+    },
+    {
+      "name": "phw_detect_outbreak",
+      "taskReferenceName": "phw_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseCount": "${workflow.input.caseCount}",
+        "baseline": "${phw_surv_ref.output.baseline}"
+      }
+    },
+    {
+      "name": "route_action",
+      "taskReferenceName": "phw_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${phw_detect_ref.output.action}"
+      },
+      "decisionCases": {
+        "alert": [
+          {
+            "name": "phw_alert",
+            "taskReferenceName": "phw_alert_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "region": "${workflow.input.region}",
+              "disease": "${workflow.input.disease}",
+              "severity": "${phw_detect_ref.output.severity}"
+            }
+          }
+        ],
+        "monitor": [
+          {
+            "name": "phw_monitor",
+            "taskReferenceName": "phw_monitor_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "region": "${workflow.input.region}",
+              "nextCheckDate": "${phw_detect_ref.output.nextCheck}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "phw_respond",
+      "taskReferenceName": "phw_respond_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "region": "${workflow.input.region}",
+        "action": "${phw_detect_ref.output.action}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "region": "${workflow.input.region}",
+    "action": "${phw_detect_ref.output.action}",
+    "severity": "${phw_detect_ref.output.severity}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

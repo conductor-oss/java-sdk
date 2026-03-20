@@ -1,0 +1,50 @@
+{
+  "name": "approval_comments_demo",
+  "description": "Approval with Comments and Attachments -- prepares a document, waits for human review with comments/attachments, then applies feedback.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["documentId"],
+  "tasks": [
+    {
+      "name": "ac_prepare_doc",
+      "taskReferenceName": "prepare_doc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documentId": "${workflow.input.documentId}"
+      }
+    },
+    {
+      "name": "review_with_comments",
+      "taskReferenceName": "review_with_comments_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "documentId": "${workflow.input.documentId}",
+        "ready": "${prepare_doc_ref.output.ready}"
+      }
+    },
+    {
+      "name": "ac_apply_feedback",
+      "taskReferenceName": "apply_feedback_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "decision": "${review_with_comments_ref.output.decision}",
+        "comments": "${review_with_comments_ref.output.comments}",
+        "attachments": "${review_with_comments_ref.output.attachments}",
+        "attachmentCount": "${review_with_comments_ref.output.attachmentCount}",
+        "rating": "${review_with_comments_ref.output.rating}",
+        "tags": "${review_with_comments_ref.output.tags}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "decision": "${review_with_comments_ref.output.decision}",
+    "comments": "${review_with_comments_ref.output.comments}",
+    "attachments": "${review_with_comments_ref.output.attachments}",
+    "attachmentCount": "${review_with_comments_ref.output.attachmentCount}",
+    "rating": "${review_with_comments_ref.output.rating}",
+    "tags": "${review_with_comments_ref.output.tags}",
+    "applied": "${apply_feedback_ref.output.applied}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 3600
+}

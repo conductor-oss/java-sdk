@@ -1,0 +1,57 @@
+{
+  "name": "pbr_public_records",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requesterId", "recordType", "query"],
+  "tasks": [
+    {
+      "name": "pbr_request",
+      "taskReferenceName": "pbr_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requesterId": "${workflow.input.requesterId}",
+        "recordType": "${workflow.input.recordType}"
+      }
+    },
+    {
+      "name": "pbr_search",
+      "taskReferenceName": "pbr_search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}",
+        "recordType": "${workflow.input.recordType}"
+      }
+    },
+    {
+      "name": "pbr_verify",
+      "taskReferenceName": "pbr_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documents": "${pbr_search_ref.output.documents}"
+      }
+    },
+    {
+      "name": "pbr_redact",
+      "taskReferenceName": "pbr_redact_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documents": "${pbr_verify_ref.output.verifiedDocs}"
+      }
+    },
+    {
+      "name": "pbr_release",
+      "taskReferenceName": "pbr_release_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requesterId": "${workflow.input.requesterId}",
+        "documents": "${pbr_redact_ref.output.redactedDocs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${pbr_request_ref.output.requestId}",
+    "documentsReleased": "${pbr_release_ref.output.count}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

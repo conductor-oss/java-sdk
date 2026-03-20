@@ -1,0 +1,57 @@
+{
+  "name": "custom_metrics_422",
+  "description": "Custom metrics pipeline: define metrics, collect data, aggregate, update dashboard",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "metricDefinitions",
+    "collectionInterval",
+    "aggregationWindow"
+  ],
+  "tasks": [
+    {
+      "name": "cus_define_metrics",
+      "taskReferenceName": "define_metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metricDefinitions": "${workflow.input.metricDefinitions}",
+        "collectionInterval": "${workflow.input.collectionInterval}"
+      }
+    },
+    {
+      "name": "cus_collect_data",
+      "taskReferenceName": "collect_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "registeredMetrics": "${define_metrics_ref.output.registeredMetrics}",
+        "collectionInterval": "${workflow.input.collectionInterval}"
+      }
+    },
+    {
+      "name": "cus_aggregate",
+      "taskReferenceName": "aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawDataPoints": "${collect_data_ref.output.rawDataPoints}",
+        "aggregationWindow": "${workflow.input.aggregationWindow}"
+      }
+    },
+    {
+      "name": "cus_update_dashboard",
+      "taskReferenceName": "update_dashboard_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metricCount": "${aggregate_ref.output.metricCount}",
+        "aggregatedData": "${aggregate_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "registeredMetrics": "${define_metrics_ref.output.registeredMetrics}",
+    "rawDataPoints": "${collect_data_ref.output.rawDataPoints}",
+    "metricCount": "${aggregate_ref.output.metricCount}",
+    "dashboardUpdated": "${update_dashboard_ref.output.dashboardUpdated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

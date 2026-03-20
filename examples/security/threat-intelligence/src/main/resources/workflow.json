@@ -1,0 +1,50 @@
+{
+  "name": "threat_intelligence_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "feedSources",
+    "lookbackHours"
+  ],
+  "tasks": [
+    {
+      "name": "ti_ingest_feeds",
+      "taskReferenceName": "ingest_feeds_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "feedSources": "${workflow.input.feedSources}",
+        "lookbackHours": "${workflow.input.lookbackHours}"
+      }
+    },
+    {
+      "name": "ti_correlate_iocs",
+      "taskReferenceName": "correlate_iocs_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlate_iocsData": "${ingest_feeds_ref.output}"
+      }
+    },
+    {
+      "name": "ti_enrich_context",
+      "taskReferenceName": "enrich_context_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enrich_contextData": "${correlate_iocs_ref.output}"
+      }
+    },
+    {
+      "name": "ti_distribute_intel",
+      "taskReferenceName": "distribute_intel_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "distribute_intelData": "${enrich_context_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ingest_feedsResult": "${ingest_feeds_ref.output}",
+    "distribute_intelResult": "${distribute_intel_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

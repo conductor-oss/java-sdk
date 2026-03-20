@@ -1,0 +1,50 @@
+{
+  "name": "deployment_rollback_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "reason"
+  ],
+  "tasks": [
+    {
+      "name": "rb_detect_failure",
+      "taskReferenceName": "detect_failure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "reason": "${workflow.input.reason}"
+      }
+    },
+    {
+      "name": "rb_identify_version",
+      "taskReferenceName": "identify_version_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "identify_versionData": "${detect_failure_ref.output}"
+      }
+    },
+    {
+      "name": "rb_rollback_deploy",
+      "taskReferenceName": "rollback_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rollback_deployData": "${identify_version_ref.output}"
+      }
+    },
+    {
+      "name": "rb_verify_rollback",
+      "taskReferenceName": "verify_rollback_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_rollbackData": "${rollback_deploy_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "detect_failureResult": "${detect_failure_ref.output}",
+    "verify_rollbackResult": "${verify_rollback_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

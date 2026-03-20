@@ -1,0 +1,38 @@
+{
+  "name": "approval_dashboard_nextjs_demo",
+  "description": "Next.js Full-Stack Approval Dashboard -- SIMPLE task processes the request, then WAIT task pauses for human approval.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["type", "title", "amount", "requester"],
+  "tasks": [
+    {
+      "name": "nxt_process",
+      "taskReferenceName": "nxt_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "type": "${workflow.input.type}",
+        "title": "${workflow.input.title}",
+        "amount": "${workflow.input.amount}",
+        "requester": "${workflow.input.requester}"
+      }
+    },
+    {
+      "name": "nxt_approval",
+      "taskReferenceName": "nxt_approval_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "type": "${workflow.input.type}",
+        "title": "${workflow.input.title}",
+        "amount": "${workflow.input.amount}",
+        "requester": "${workflow.input.requester}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "processed": "${nxt_process_ref.output.processed}",
+    "approved": "${nxt_approval_ref.output.approved}",
+    "approver": "${nxt_approval_ref.output.approver}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

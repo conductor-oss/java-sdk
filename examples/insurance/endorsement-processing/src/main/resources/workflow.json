@@ -1,0 +1,64 @@
+{
+  "name": "edp_endorsement_processing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "policyId",
+    "changeType",
+    "details"
+  ],
+  "tasks": [
+    {
+      "name": "edp_request_change",
+      "taskReferenceName": "edp_req_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "changeType": "${workflow.input.changeType}"
+      }
+    },
+    {
+      "name": "edp_assess",
+      "taskReferenceName": "edp_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "changeType": "${workflow.input.changeType}",
+        "details": "${workflow.input.details}"
+      }
+    },
+    {
+      "name": "edp_price",
+      "taskReferenceName": "edp_price_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "impactAssessment": "${edp_assess_ref.output.impact}"
+      }
+    },
+    {
+      "name": "edp_approve",
+      "taskReferenceName": "edp_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "premiumChange": "${edp_price_ref.output.premiumChange}"
+      }
+    },
+    {
+      "name": "edp_apply",
+      "taskReferenceName": "edp_apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "endorsementId": "${edp_req_ref.output.endorsementId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "endorsementId": "${edp_req_ref.output.endorsementId}",
+    "premiumChange": "${edp_price_ref.output.premiumChange}",
+    "applied": "${edp_apply_ref.output.applied}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

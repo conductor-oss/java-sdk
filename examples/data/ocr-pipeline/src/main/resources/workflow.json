@@ -1,0 +1,60 @@
+{
+  "name": "ocr_pipeline",
+  "description": "OCR pipeline workflow that preprocesses an image, extracts text, validates it, and structures the output.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "imageUrl",
+    "documentType",
+    "language"
+  ],
+  "tasks": [
+    {
+      "name": "oc_preprocess_image",
+      "taskReferenceName": "preprocess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageUrl": "${workflow.input.imageUrl}",
+        "documentType": "${workflow.input.documentType}"
+      }
+    },
+    {
+      "name": "oc_extract_text",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "processedImage": "${preprocess_ref.output.processedImage}",
+        "language": "${workflow.input.language}"
+      }
+    },
+    {
+      "name": "oc_validate_text",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawText": "${extract_ref.output.rawText}",
+        "confidence": "${extract_ref.output.confidence}",
+        "documentType": "${workflow.input.documentType}"
+      }
+    },
+    {
+      "name": "oc_structure_output",
+      "taskReferenceName": "structure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validatedText": "${validate_ref.output.cleanText}",
+        "fields": "${validate_ref.output.fields}",
+        "documentType": "${workflow.input.documentType}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "documentType": "${workflow.input.documentType}",
+    "confidence": "${extract_ref.output.confidence}",
+    "fieldsExtracted": "${structure_ref.output.fieldCount}",
+    "structuredData": "${structure_ref.output.structured}",
+    "validationScore": "${validate_ref.output.validationScore}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

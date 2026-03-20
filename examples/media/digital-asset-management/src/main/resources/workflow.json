@@ -1,0 +1,69 @@
+{
+  "name": "digital_asset_management_workflow",
+  "description": "Digital asset management: ingest, AI auto-tag, version control, store, distribute via CDN",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "assetId",
+    "assetType",
+    "sourceUrl",
+    "projectId"
+  ],
+  "tasks": [
+    {
+      "name": "dam_ingest_asset",
+      "taskReferenceName": "ingest_asset_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "assetType": "${workflow.input.assetType}",
+        "sourceUrl": "${workflow.input.sourceUrl}"
+      }
+    },
+    {
+      "name": "dam_auto_tag",
+      "taskReferenceName": "auto_tag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "assetType": "${workflow.input.assetType}"
+      }
+    },
+    {
+      "name": "dam_version_control",
+      "taskReferenceName": "version_control_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "projectId": "${workflow.input.projectId}"
+      }
+    },
+    {
+      "name": "dam_store_asset",
+      "taskReferenceName": "store_asset_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "version": "${version_control_ref.output.version}"
+      }
+    },
+    {
+      "name": "dam_distribute_asset",
+      "taskReferenceName": "distribute_asset_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "storageLocation": "${store_asset_ref.output.storageLocation}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ingested": "${ingest_asset_ref.output.ingested}",
+    "tags": "${auto_tag_ref.output.tags}",
+    "version": "${version_control_ref.output.version}",
+    "stored": "${store_asset_ref.output.stored}",
+    "distributed": "${distribute_asset_ref.output.distributed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

@@ -1,0 +1,58 @@
+{
+  "name": "vtw_voting_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["voterId", "electionId", "precinct"],
+  "tasks": [
+    {
+      "name": "vtw_register",
+      "taskReferenceName": "vtw_register_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "voterId": "${workflow.input.voterId}",
+        "precinct": "${workflow.input.precinct}"
+      }
+    },
+    {
+      "name": "vtw_verify_identity",
+      "taskReferenceName": "vtw_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "voterId": "${workflow.input.voterId}"
+      }
+    },
+    {
+      "name": "vtw_cast_ballot",
+      "taskReferenceName": "vtw_cast_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "electionId": "${workflow.input.electionId}",
+        "verified": "${vtw_verify_ref.output.verified}"
+      }
+    },
+    {
+      "name": "vtw_count",
+      "taskReferenceName": "vtw_count_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ballotId": "${vtw_cast_ref.output.ballotId}",
+        "electionId": "${workflow.input.electionId}"
+      }
+    },
+    {
+      "name": "vtw_certify",
+      "taskReferenceName": "vtw_certify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "electionId": "${workflow.input.electionId}",
+        "totalVotes": "${vtw_count_ref.output.totalVotes}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ballotId": "${vtw_cast_ref.output.ballotId}",
+    "certified": "${vtw_certify_ref.output.certified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

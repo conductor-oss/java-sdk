@@ -1,0 +1,52 @@
+{
+  "name": "maintenance_window_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "system",
+    "maintenanceType",
+    "duration"
+  ],
+  "tasks": [
+    {
+      "name": "mw_notify_start",
+      "taskReferenceName": "notify_start_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "system": "${workflow.input.system}",
+        "maintenanceType": "${workflow.input.maintenanceType}",
+        "duration": "${workflow.input.duration}"
+      }
+    },
+    {
+      "name": "mw_suppress_alerts",
+      "taskReferenceName": "suppress_alerts_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "suppress_alertsData": "${notify_start_ref.output}"
+      }
+    },
+    {
+      "name": "mw_execute_maintenance",
+      "taskReferenceName": "execute_maintenance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "execute_maintenanceData": "${suppress_alerts_ref.output}"
+      }
+    },
+    {
+      "name": "mw_restore_normal",
+      "taskReferenceName": "restore_normal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "restore_normalData": "${execute_maintenance_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "notify_startResult": "${notify_start_ref.output}",
+    "restore_normalResult": "${restore_normal_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 7200
+}

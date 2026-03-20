@@ -1,0 +1,71 @@
+{
+  "name": "multi_tenant_approval_demo",
+  "description": "Multi-Tenant Approval -- tenant-specific approval rules based on amount and tenant configuration.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["tenantId", "amount"],
+  "tasks": [
+    {
+      "name": "mta_load_config",
+      "taskReferenceName": "mta_load_config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tenantId": "${workflow.input.tenantId}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "approval_switch",
+      "taskReferenceName": "approval_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${mta_load_config_ref.output.approvalLevel}"
+      },
+      "decisionCases": {
+        "manager": [
+          {
+            "name": "manager_approval_wait",
+            "taskReferenceName": "manager_approval_wait_ref",
+            "type": "WAIT",
+            "inputParameters": {}
+          }
+        ],
+        "executive": [
+          {
+            "name": "manager_approval_wait",
+            "taskReferenceName": "exec_manager_approval_wait_ref",
+            "type": "WAIT",
+            "inputParameters": {}
+          },
+          {
+            "name": "executive_approval_wait",
+            "taskReferenceName": "executive_approval_wait_ref",
+            "type": "WAIT",
+            "inputParameters": {}
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "mta_finalize",
+      "taskReferenceName": "mta_finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tenantId": "${workflow.input.tenantId}",
+        "amount": "${workflow.input.amount}",
+        "approvalLevel": "${mta_load_config_ref.output.approvalLevel}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "processed": "${mta_finalize_ref.output.processed}",
+    "approvalLevel": "${mta_load_config_ref.output.approvalLevel}",
+    "tenantId": "${workflow.input.tenantId}",
+    "amount": "${workflow.input.amount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

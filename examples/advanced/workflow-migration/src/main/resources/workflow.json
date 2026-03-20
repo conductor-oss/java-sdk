@@ -1,0 +1,61 @@
+{
+  "name": "workflow_migration_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "sourceSystem",
+    "targetSystem",
+    "workflowName"
+  ],
+  "tasks": [
+    {
+      "name": "wm_export_old",
+      "taskReferenceName": "wm_export_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceSystem": "${workflow.input.sourceSystem}",
+        "workflowName": "${workflow.input.workflowName}"
+      }
+    },
+    {
+      "name": "wm_transform",
+      "taskReferenceName": "wm_transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "definition": "${wm_export_ref.output.definition}",
+        "sourceFormat": "${wm_export_ref.output.format}",
+        "targetSystem": "${workflow.input.targetSystem}"
+      }
+    },
+    {
+      "name": "wm_import_new",
+      "taskReferenceName": "wm_import_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "targetSystem": "${workflow.input.targetSystem}",
+        "transformedDef": "${wm_transform_ref.output.transformed}"
+      }
+    },
+    {
+      "name": "wm_verify",
+      "taskReferenceName": "wm_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceSystem": "${workflow.input.sourceSystem}",
+        "targetSystem": "${workflow.input.targetSystem}",
+        "originalTasks": "${wm_export_ref.output.taskCount}",
+        "importedTasks": "${wm_import_ref.output.importedTaskCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sourceSystem": "${workflow.input.sourceSystem}",
+    "targetSystem": "${workflow.input.targetSystem}",
+    "exported": "${wm_export_ref.output.exported}",
+    "transformed": "${wm_transform_ref.output.transformSuccess}",
+    "imported": "${wm_import_ref.output.imported}",
+    "verified": "${wm_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

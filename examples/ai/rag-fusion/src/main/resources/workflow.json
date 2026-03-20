@@ -1,0 +1,95 @@
+{
+  "name": "rag_fusion_workflow",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "question"
+  ],
+  "tasks": [
+    {
+      "name": "rf_rewrite_queries",
+      "taskReferenceName": "rewrite_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "fork_searches",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "rf_search_v1",
+            "taskReferenceName": "search_v1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${rewrite_ref.output.query1}",
+              "variantIndex": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "rf_search_v2",
+            "taskReferenceName": "search_v2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${rewrite_ref.output.query2}",
+              "variantIndex": 2
+            }
+          }
+        ],
+        [
+          {
+            "name": "rf_search_v3",
+            "taskReferenceName": "search_v3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${rewrite_ref.output.query3}",
+              "variantIndex": 3
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_searches",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "search_v1_ref",
+        "search_v2_ref",
+        "search_v3_ref"
+      ]
+    },
+    {
+      "name": "rf_fuse_results",
+      "taskReferenceName": "fuse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "results1": "${search_v1_ref.output.results}",
+        "results2": "${search_v2_ref.output.results}",
+        "results3": "${search_v3_ref.output.results}"
+      }
+    },
+    {
+      "name": "rf_generate_answer",
+      "taskReferenceName": "generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "fusedContext": "${fuse_ref.output.fusedDocs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${generate_ref.output.answer}",
+    "fusedCount": "${fuse_ref.output.fusedCount}",
+    "totalCandidates": "${fuse_ref.output.totalCandidates}",
+    "fusedDocs": "${fuse_ref.output.fusedDocs}"
+  }
+}

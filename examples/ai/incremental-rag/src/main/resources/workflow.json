@@ -1,0 +1,63 @@
+{
+  "name": "incremental_rag",
+  "description": "Detect changed documents, embed incrementally, upsert vectors, and verify index",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "tasks": [
+    {
+      "name": "ir_detect_changes",
+      "taskReferenceName": "detect_changes_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceCollection": "${workflow.input.sourceCollection}",
+        "lastSyncTimestamp": "${workflow.input.lastSyncTimestamp}"
+      }
+    },
+    {
+      "name": "ir_filter_new_docs",
+      "taskReferenceName": "filter_new_docs_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changedDocIds": "${detect_changes_ref.output.changedDocIds}",
+        "existingHashes": "${detect_changes_ref.output.existingHashes}"
+      }
+    },
+    {
+      "name": "ir_embed_incremental",
+      "taskReferenceName": "embed_incremental_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "docsToEmbed": "${filter_new_docs_ref.output.docsToEmbed}"
+      }
+    },
+    {
+      "name": "ir_upsert_vectors",
+      "taskReferenceName": "upsert_vectors_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "embeddings": "${embed_incremental_ref.output.embeddings}",
+        "docIds": "${embed_incremental_ref.output.docIds}"
+      }
+    },
+    {
+      "name": "ir_verify_index",
+      "taskReferenceName": "verify_index_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "upsertedCount": "${upsert_vectors_ref.output.upsertedCount}",
+        "docIds": "${upsert_vectors_ref.output.docIds}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalChanged": "${detect_changes_ref.output.totalChanged}",
+    "newCount": "${filter_new_docs_ref.output.newCount}",
+    "updatedCount": "${filter_new_docs_ref.output.updatedCount}",
+    "embeddedCount": "${embed_incremental_ref.output.embeddedCount}",
+    "upsertedCount": "${upsert_vectors_ref.output.upsertedCount}",
+    "verified": "${verify_index_ref.output.verified}",
+    "vectorCount": "${verify_index_ref.output.vectorCount}"
+  }
+}

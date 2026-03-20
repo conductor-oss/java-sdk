@@ -1,0 +1,59 @@
+{
+  "name": "subscription_billing",
+  "description": "Subscription billing: check period, generate invoice, charge, activate next period",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["subscriptionId", "customerId", "plan", "billingCycle"],
+  "tasks": [
+    {
+      "name": "sub_check_period",
+      "taskReferenceName": "period_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscriptionId": "${workflow.input.subscriptionId}",
+        "billingCycle": "${workflow.input.billingCycle}"
+      }
+    },
+    {
+      "name": "sub_generate_invoice",
+      "taskReferenceName": "invoice_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscriptionId": "${workflow.input.subscriptionId}",
+        "customerId": "${workflow.input.customerId}",
+        "plan": "${workflow.input.plan}",
+        "periodStart": "${period_ref.output.periodStart}",
+        "periodEnd": "${period_ref.output.periodEnd}"
+      }
+    },
+    {
+      "name": "sub_charge",
+      "taskReferenceName": "charge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "invoiceId": "${invoice_ref.output.invoiceId}",
+        "customerId": "${workflow.input.customerId}",
+        "amount": "${invoice_ref.output.amount}"
+      }
+    },
+    {
+      "name": "sub_activate",
+      "taskReferenceName": "activate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscriptionId": "${workflow.input.subscriptionId}",
+        "chargeId": "${charge_ref.output.chargeId}",
+        "nextPeriodStart": "${period_ref.output.periodEnd}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "invoiceId": "${invoice_ref.output.invoiceId}",
+    "amount": "${invoice_ref.output.amount}",
+    "chargeId": "${charge_ref.output.chargeId}",
+    "nextPeriodStart": "${activate_ref.output.nextPeriodStart}",
+    "active": "${activate_ref.output.active}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,50 @@
+{
+  "name": "np_notification_preferences",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "preferences"],
+  "tasks": [
+    {
+      "name": "np_load",
+      "taskReferenceName": "np_load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "np_update",
+      "taskReferenceName": "np_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "current": "${np_load_ref.output.current}",
+        "newPrefs": "${workflow.input.preferences}"
+      }
+    },
+    {
+      "name": "np_sync_channels",
+      "taskReferenceName": "np_sync_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "updated": "${np_update_ref.output.updated}"
+      }
+    },
+    {
+      "name": "np_confirm",
+      "taskReferenceName": "np_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "channels": "${np_sync_ref.output.syncedChannels}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "preferencesUpdated": "${np_update_ref.output.updated}",
+    "channelsSynced": "${np_sync_ref.output.syncedChannels}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,64 @@
+{
+  "name": "rin_reinsurance",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "policyId",
+    "coverageAmount",
+    "riskCategory"
+  ],
+  "tasks": [
+    {
+      "name": "rin_assess_risk",
+      "taskReferenceName": "rin_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "coverageAmount": "${workflow.input.coverageAmount}"
+      }
+    },
+    {
+      "name": "rin_treaty_lookup",
+      "taskReferenceName": "rin_treaty_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "riskCategory": "${workflow.input.riskCategory}",
+        "exposureAmount": "${rin_assess_ref.output.netExposure}"
+      }
+    },
+    {
+      "name": "rin_cede",
+      "taskReferenceName": "rin_cede_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "treatyId": "${rin_treaty_ref.output.treatyId}",
+        "cessionAmount": "${rin_treaty_ref.output.cessionAmount}"
+      }
+    },
+    {
+      "name": "rin_confirm",
+      "taskReferenceName": "rin_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cessionId": "${rin_cede_ref.output.cessionId}",
+        "reinsurer": "${rin_treaty_ref.output.reinsurer}"
+      }
+    },
+    {
+      "name": "rin_reconcile",
+      "taskReferenceName": "rin_reconcile_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cessionId": "${rin_cede_ref.output.cessionId}",
+        "policyId": "${workflow.input.policyId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "policyId": "${workflow.input.policyId}",
+    "cessionId": "${rin_cede_ref.output.cessionId}",
+    "retainedRisk": "${rin_assess_ref.output.retainedRisk}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

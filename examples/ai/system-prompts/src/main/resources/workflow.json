@@ -1,0 +1,63 @@
+{
+  "name": "system_prompts_workflow",
+  "description": "Runs the same user prompt through formal and casual system prompts, then compares",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userPrompt", "model"],
+  "tasks": [
+    {
+      "name": "sp_build_prompt",
+      "taskReferenceName": "formal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userPrompt": "${workflow.input.userPrompt}",
+        "style": "formal",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "sp_call_llm",
+      "taskReferenceName": "formal_llm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fullPrompt": "${formal_ref.output.fullPrompt}",
+        "style": "${formal_ref.output.style}",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "sp_build_prompt",
+      "taskReferenceName": "casual_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userPrompt": "${workflow.input.userPrompt}",
+        "style": "casual",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "sp_call_llm",
+      "taskReferenceName": "casual_llm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fullPrompt": "${casual_ref.output.fullPrompt}",
+        "style": "${casual_ref.output.style}",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "sp_compare_outputs",
+      "taskReferenceName": "compare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "formalResponse": "${formal_llm_ref.output.response}",
+        "casualResponse": "${casual_llm_ref.output.response}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "comparison": "${compare_ref.output.comparison}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

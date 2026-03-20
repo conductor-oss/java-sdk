@@ -1,0 +1,97 @@
+{
+  "name": "event_correlation_wf",
+  "description": "Event Correlation — init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["correlationId", "expectedEvents"],
+  "tasks": [
+    {
+      "name": "ec_init_correlation",
+      "taskReferenceName": "ec_init_correlation_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlationId": "${workflow.input.correlationId}",
+        "expectedEvents": "${workflow.input.expectedEvents}"
+      }
+    },
+    {
+      "name": "fork_receive_events",
+      "taskReferenceName": "fork_receive_events_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "ec_receive_order",
+            "taskReferenceName": "ec_receive_order_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "correlationId": "${workflow.input.correlationId}",
+              "eventType": "order"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ec_receive_payment",
+            "taskReferenceName": "ec_receive_payment_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "correlationId": "${workflow.input.correlationId}",
+              "eventType": "payment"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ec_receive_shipping",
+            "taskReferenceName": "ec_receive_shipping_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "correlationId": "${workflow.input.correlationId}",
+              "eventType": "shipping"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_receive_events",
+      "taskReferenceName": "join_receive_events_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "ec_receive_order_ref",
+        "ec_receive_payment_ref",
+        "ec_receive_shipping_ref"
+      ]
+    },
+    {
+      "name": "ec_correlate_events",
+      "taskReferenceName": "ec_correlate_events_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlationId": "${workflow.input.correlationId}",
+        "orderEvent": "${ec_receive_order_ref.output.event}",
+        "paymentEvent": "${ec_receive_payment_ref.output.event}",
+        "shippingEvent": "${ec_receive_shipping_ref.output.event}"
+      }
+    },
+    {
+      "name": "ec_process_correlated",
+      "taskReferenceName": "ec_process_correlated_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlationId": "${workflow.input.correlationId}",
+        "correlatedData": "${ec_correlate_events_ref.output.correlatedData}",
+        "matchScore": "${ec_correlate_events_ref.output.matchScore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "correlationId": "${workflow.input.correlationId}",
+    "eventsCorrelated": "${ec_correlate_events_ref.output.eventsCorrelated}",
+    "matchScore": "${ec_correlate_events_ref.output.matchScore}",
+    "actionTaken": "${ec_process_correlated_ref.output.action}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,65 @@
+{
+  "name": "delayed_event",
+  "description": "Delayed event processing workflow that receives an event, computes a delay, applies it, processes the event, and logs completion.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "payload",
+    "delaySeconds"
+  ],
+  "tasks": [
+    {
+      "name": "de_receive_event",
+      "taskReferenceName": "rcv_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "de_compute_delay",
+      "taskReferenceName": "delay_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "delaySeconds": "${workflow.input.delaySeconds}",
+        "eventId": "${workflow.input.eventId}"
+      }
+    },
+    {
+      "name": "de_apply_delay",
+      "taskReferenceName": "wait_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "delayMs": "${delay_ref.output.delayMs}",
+        "eventId": "${workflow.input.eventId}"
+      }
+    },
+    {
+      "name": "de_process_event",
+      "taskReferenceName": "proc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "de_log_completion",
+      "taskReferenceName": "log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "processedAt": "${proc_ref.output.processedAt}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "delayApplied": "${delay_ref.output.delayMs}",
+    "processedAt": "${proc_ref.output.processedAt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

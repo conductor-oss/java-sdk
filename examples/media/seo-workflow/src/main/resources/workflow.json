@@ -1,0 +1,67 @@
+{
+  "name": "seo_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "siteUrl",
+    "targetKeywords",
+    "pageUrl"
+  ],
+  "tasks": [
+    {
+      "name": "seo_audit_site",
+      "taskReferenceName": "seo_audit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "siteUrl": "${workflow.input.siteUrl}",
+        "pageUrl": "${workflow.input.pageUrl}"
+      }
+    },
+    {
+      "name": "seo_research_keywords",
+      "taskReferenceName": "seo_keywords_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "targetKeywords": "${workflow.input.targetKeywords}",
+        "currentRankings": "${seo_audit_ref.output.currentRankings}"
+      }
+    },
+    {
+      "name": "seo_optimize_content",
+      "taskReferenceName": "seo_optimize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pageUrl": "${workflow.input.pageUrl}",
+        "topKeywords": "${seo_keywords_ref.output.topKeywords}",
+        "auditIssues": "${seo_audit_ref.output.issues}"
+      }
+    },
+    {
+      "name": "seo_submit_sitemap",
+      "taskReferenceName": "seo_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "siteUrl": "${workflow.input.siteUrl}",
+        "optimizedPages": "${seo_optimize_ref.output.optimizedPages}"
+      }
+    },
+    {
+      "name": "seo_monitor_rankings",
+      "taskReferenceName": "seo_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "siteUrl": "${workflow.input.siteUrl}",
+        "trackedKeywords": "${seo_keywords_ref.output.topKeywords}",
+        "submissionId": "${seo_submit_ref.output.submissionId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "siteUrl": "${workflow.input.siteUrl}",
+    "seoScore": "${seo_audit_ref.output.seoScore}",
+    "optimizedPages": "${seo_optimize_ref.output.optimizedPages}",
+    "monitoringStatus": "${seo_monitor_ref.output.monitoringStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,20 @@
+{
+  "name": "ses_session_management",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "deviceInfo"],
+  "tasks": [
+    { "name": "ses_create", "taskReferenceName": "ses_create_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "deviceInfo": "${workflow.input.deviceInfo}" } },
+    { "name": "ses_validate", "taskReferenceName": "ses_validate_ref", "type": "SIMPLE", "inputParameters": { "sessionId": "${ses_create_ref.output.sessionId}", "userId": "${workflow.input.userId}" } },
+    { "name": "ses_refresh", "taskReferenceName": "ses_refresh_ref", "type": "SIMPLE", "inputParameters": { "sessionId": "${ses_create_ref.output.sessionId}" } },
+    { "name": "ses_revoke", "taskReferenceName": "ses_revoke_ref", "type": "SIMPLE", "inputParameters": { "sessionId": "${ses_create_ref.output.sessionId}", "userId": "${workflow.input.userId}" } }
+  ],
+  "outputParameters": {
+    "sessionId": "${ses_create_ref.output.sessionId}",
+    "wasValid": "${ses_validate_ref.output.valid}",
+    "refreshed": "${ses_refresh_ref.output.refreshed}",
+    "revoked": "${ses_revoke_ref.output.revoked}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

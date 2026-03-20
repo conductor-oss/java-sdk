@@ -1,0 +1,77 @@
+{
+  "name": "content_publishing_workflow",
+  "description": "Publishing pipeline: draft content, review, approve, format for distribution, publish, and distribute to channels.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["contentId", "authorId", "contentType", "title"],
+  "tasks": [
+    {
+      "name": "pub_draft_content",
+      "taskReferenceName": "pub_draft_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "authorId": "${workflow.input.authorId}",
+        "contentType": "${workflow.input.contentType}",
+        "title": "${workflow.input.title}"
+      }
+    },
+    {
+      "name": "pub_review_content",
+      "taskReferenceName": "pub_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "draftVersion": "${pub_draft_ref.output.draftVersion}",
+        "wordCount": "${pub_draft_ref.output.wordCount}"
+      }
+    },
+    {
+      "name": "pub_approve_content",
+      "taskReferenceName": "pub_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "reviewScore": "${pub_review_ref.output.reviewScore}",
+        "reviewNotes": "${pub_review_ref.output.reviewNotes}"
+      }
+    },
+    {
+      "name": "pub_format_content",
+      "taskReferenceName": "pub_format_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "contentType": "${workflow.input.contentType}",
+        "approved": "${pub_approve_ref.output.approved}"
+      }
+    },
+    {
+      "name": "pub_publish_content",
+      "taskReferenceName": "pub_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "formattedUrl": "${pub_format_ref.output.formattedUrl}",
+        "seoMetadata": "${pub_format_ref.output.seoMetadata}"
+      }
+    },
+    {
+      "name": "pub_distribute_content",
+      "taskReferenceName": "pub_distribute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "publishUrl": "${pub_publish_ref.output.publishUrl}",
+        "title": "${workflow.input.title}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "contentId": "${workflow.input.contentId}",
+    "publishUrl": "${pub_publish_ref.output.publishUrl}",
+    "distributedChannels": "${pub_distribute_ref.output.channels}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

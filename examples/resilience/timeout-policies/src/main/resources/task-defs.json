@@ -1,0 +1,28 @@
+[
+  {
+    "name": "tp_critical",
+    "retryCount": 0,
+    "timeoutSeconds": 30,
+    "responseTimeoutSeconds": 10,
+    "timeoutPolicy": "TIME_OUT_WF",
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "tp_optional",
+    "retryCount": 0,
+    "timeoutSeconds": 30,
+    "responseTimeoutSeconds": 10,
+    "timeoutPolicy": "ALERT_ONLY",
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "tp_retryable",
+    "retryCount": 2,
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 1,
+    "timeoutSeconds": 30,
+    "responseTimeoutSeconds": 10,
+    "timeoutPolicy": "RETRY",
+    "ownerEmail": "examples@orkes.io"
+  }
+]

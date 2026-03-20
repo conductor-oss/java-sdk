@@ -1,0 +1,9 @@
+{"name":"distributed_logging_415","version":1,"schemaVersion":2,"inputParameters":["traceId","timeRange"],
+"tasks":[
+ {"name":"dg_fork_collect","taskReferenceName":"dg_fork_ref","type":"FORK_JOIN","forkTasks":[
+  [{"name":"dg_collect_svc1","taskReferenceName":"dg_svc1_ref","type":"SIMPLE","inputParameters":{"traceId":"${workflow.input.traceId}","service":"api-gateway","timeRange":"${workflow.input.timeRange}"}}],
+  [{"name":"dg_collect_svc2","taskReferenceName":"dg_svc2_ref","type":"SIMPLE","inputParameters":{"traceId":"${workflow.input.traceId}","service":"order-service","timeRange":"${workflow.input.timeRange}"}}],
+  [{"name":"dg_collect_svc3","taskReferenceName":"dg_svc3_ref","type":"SIMPLE","inputParameters":{"traceId":"${workflow.input.traceId}","service":"payment-service","timeRange":"${workflow.input.timeRange}"}}]]},
+ {"name":"dg_join_collect","taskReferenceName":"dg_join_ref","type":"JOIN","joinOn":["dg_svc1_ref","dg_svc2_ref","dg_svc3_ref"]},
+ {"name":"dg_correlate","taskReferenceName":"dg_correlate_ref","type":"SIMPLE","inputParameters":{"svc1Logs":"${dg_svc1_ref.output.logCount}","svc2Logs":"${dg_svc2_ref.output.logCount}","svc3Logs":"${dg_svc3_ref.output.logCount}","traceId":"${workflow.input.traceId}"}}
+],"outputParameters":{"svc1Logs":"${dg_svc1_ref.output.logCount}","svc2Logs":"${dg_svc2_ref.output.logCount}","svc3Logs":"${dg_svc3_ref.output.logCount}","correlatedEvents":"${dg_correlate_ref.output.correlatedEvents}","totalLogs":"${dg_correlate_ref.output.totalLogs}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

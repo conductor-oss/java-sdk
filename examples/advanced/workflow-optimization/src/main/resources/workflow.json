@@ -1,0 +1,55 @@
+{
+  "name": "wfo_workflow_optimization",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "workflowName",
+    "executionHistory"
+  ],
+  "tasks": [
+    {
+      "name": "wfo_analyze_execution",
+      "taskReferenceName": "wfo_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "workflowName": "${workflow.input.workflowName}",
+        "executionHistory": "${workflow.input.executionHistory}"
+      }
+    },
+    {
+      "name": "wfo_identify_waste",
+      "taskReferenceName": "wfo_waste_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dependencyGraph": "${wfo_analyze_ref.output.dependencyGraph}",
+        "taskTimings": "${wfo_analyze_ref.output.taskTimings}"
+      }
+    },
+    {
+      "name": "wfo_parallelize",
+      "taskReferenceName": "wfo_parallel_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "independentTasks": "${wfo_waste_ref.output.independentTasks}",
+        "originalOrder": "${wfo_analyze_ref.output.originalOrder}"
+      }
+    },
+    {
+      "name": "wfo_benchmark",
+      "taskReferenceName": "wfo_bench_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalDurationMs": "${wfo_analyze_ref.output.totalDurationMs}",
+        "optimizedPlan": "${wfo_parallel_ref.output.optimizedPlan}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "workflowName": "${workflow.input.workflowName}",
+    "wasteIdentified": "${wfo_waste_ref.output.wasteItems}",
+    "optimizedPlan": "${wfo_parallel_ref.output.optimizedPlan}",
+    "benchmarkResult": "${wfo_bench_ref.output.benchmarkResult}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

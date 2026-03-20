@@ -1,0 +1,51 @@
+{
+  "name": "error_notification",
+  "description": "Notification workflow -- sends Slack and Email alerts in parallel via FORK/JOIN.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["workflowId", "workflowName", "reason"],
+  "tasks": [
+    {
+      "name": "notification_fork",
+      "taskReferenceName": "notification_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "en_send_slack",
+            "taskReferenceName": "en_send_slack_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "channel": "#alerts",
+              "message": "Workflow ${workflow.input.workflowName} (${workflow.input.workflowId}) failed: ${workflow.input.reason}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "en_send_email",
+            "taskReferenceName": "en_send_email_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "to": "oncall@example.com",
+              "subject": "Workflow Failure: ${workflow.input.workflowName}",
+              "body": "Workflow ${workflow.input.workflowName} (${workflow.input.workflowId}) failed: ${workflow.input.reason}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "notification_join",
+      "taskReferenceName": "notification_join_ref",
+      "type": "JOIN",
+      "joinOn": ["en_send_slack_ref", "en_send_email_ref"]
+    }
+  ],
+  "outputParameters": {
+    "slackSent": "${en_send_slack_ref.output.sent}",
+    "emailSent": "${en_send_email_ref.output.sent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

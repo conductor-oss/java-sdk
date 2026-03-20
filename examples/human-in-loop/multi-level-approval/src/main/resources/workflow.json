@@ -1,0 +1,152 @@
+{
+  "name": "multi_level_approval",
+  "description": "Multi-level approval chain: Manager -> Director -> VP. Each level uses a WAIT task for human input, followed by a SWITCH to check approval. Rejection at any level terminates the workflow.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId", "requestor"],
+  "tasks": [
+    {
+      "name": "mla_submit",
+      "taskReferenceName": "submit_request",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "requestor": "${workflow.input.requestor}"
+      }
+    },
+    {
+      "name": "wait_manager_approval",
+      "taskReferenceName": "wait_manager_approval",
+      "type": "WAIT",
+      "inputParameters": {
+        "level": "manager",
+        "requestId": "${workflow.input.requestId}"
+      }
+    },
+    {
+      "name": "check_manager_decision",
+      "taskReferenceName": "check_manager_decision",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "approved",
+      "inputParameters": {
+        "approved": "${wait_manager_approval.output.approved}"
+      },
+      "decisionCases": {
+        "false": [
+          {
+            "name": "terminate_manager_rejected",
+            "taskReferenceName": "terminate_manager_rejected",
+            "type": "TERMINATE",
+            "inputParameters": {
+              "terminationStatus": "TERMINATED",
+              "terminationReason": "Rejected by manager",
+              "workflowOutput": {
+                "status": "rejected",
+                "rejectedBy": "manager",
+                "requestId": "${workflow.input.requestId}"
+              }
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "wait_director_approval",
+          "taskReferenceName": "wait_director_approval",
+          "type": "WAIT",
+          "inputParameters": {
+            "level": "director",
+            "requestId": "${workflow.input.requestId}"
+          }
+        },
+        {
+          "name": "check_director_decision",
+          "taskReferenceName": "check_director_decision",
+          "type": "SWITCH",
+          "evaluatorType": "value-param",
+          "expression": "approved",
+          "inputParameters": {
+            "approved": "${wait_director_approval.output.approved}"
+          },
+          "decisionCases": {
+            "false": [
+              {
+                "name": "terminate_director_rejected",
+                "taskReferenceName": "terminate_director_rejected",
+                "type": "TERMINATE",
+                "inputParameters": {
+                  "terminationStatus": "TERMINATED",
+                  "terminationReason": "Rejected by director",
+                  "workflowOutput": {
+                    "status": "rejected",
+                    "rejectedBy": "director",
+                    "requestId": "${workflow.input.requestId}"
+                  }
+                }
+              }
+            ]
+          },
+          "defaultCase": [
+            {
+              "name": "wait_vp_approval",
+              "taskReferenceName": "wait_vp_approval",
+              "type": "WAIT",
+              "inputParameters": {
+                "level": "vp",
+                "requestId": "${workflow.input.requestId}"
+              }
+            },
+            {
+              "name": "check_vp_decision",
+              "taskReferenceName": "check_vp_decision",
+              "type": "SWITCH",
+              "evaluatorType": "value-param",
+              "expression": "approved",
+              "inputParameters": {
+                "approved": "${wait_vp_approval.output.approved}"
+              },
+              "decisionCases": {
+                "false": [
+                  {
+                    "name": "terminate_vp_rejected",
+                    "taskReferenceName": "terminate_vp_rejected",
+                    "type": "TERMINATE",
+                    "inputParameters": {
+                      "terminationStatus": "TERMINATED",
+                      "terminationReason": "Rejected by VP",
+                      "workflowOutput": {
+                        "status": "rejected",
+                        "rejectedBy": "vp",
+                        "requestId": "${workflow.input.requestId}"
+                      }
+                    }
+                  }
+                ]
+              },
+              "defaultCase": [
+                {
+                  "name": "mla_finalize",
+                  "taskReferenceName": "finalize_request",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "requestId": "${workflow.input.requestId}",
+                    "requestor": "${workflow.input.requestor}",
+                    "managerApproval": "${wait_manager_approval.output.approved}",
+                    "directorApproval": "${wait_director_approval.output.approved}",
+                    "vpApproval": "${wait_vp_approval.output.approved}"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${workflow.input.requestId}",
+    "submitted": "${submit_request.output.submitted}",
+    "finalized": "${finalize_request.output.finalized}"
+  }
+}

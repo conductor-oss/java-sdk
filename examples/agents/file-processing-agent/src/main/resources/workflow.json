@@ -1,0 +1,61 @@
+{
+  "name": "file_processing_agent",
+  "description": "File Processing Agent — detect file type, extract content, analyze, and generate summary through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["fileName", "fileSize", "mimeType"],
+  "tasks": [
+    {
+      "name": "fp_detect_file_type",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fileName": "${workflow.input.fileName}",
+        "fileSize": "${workflow.input.fileSize}",
+        "mimeType": "${workflow.input.mimeType}"
+      }
+    },
+    {
+      "name": "fp_extract_content",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fileName": "${workflow.input.fileName}",
+        "fileType": "${detect_ref.output.fileType}",
+        "extractionMethod": "${detect_ref.output.extractionMethod}"
+      }
+    },
+    {
+      "name": "fp_analyze_content",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "content": "${extract_ref.output.content}",
+        "metadata": "${extract_ref.output.metadata}",
+        "fileType": "${detect_ref.output.fileType}"
+      }
+    },
+    {
+      "name": "fp_generate_summary",
+      "taskReferenceName": "summary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fileName": "${workflow.input.fileName}",
+        "analysis": "${analyze_ref.output.analysis}",
+        "keyFindings": "${analyze_ref.output.keyFindings}",
+        "fileType": "${detect_ref.output.fileType}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "fileName": "${workflow.input.fileName}",
+    "fileType": "${detect_ref.output.fileType}",
+    "wordCount": "${extract_ref.output.metadata.wordCount}",
+    "keyFindings": "${analyze_ref.output.keyFindings}",
+    "summary": "${summary_ref.output.summary}",
+    "sentiment": "${analyze_ref.output.analysis.sentiment}",
+    "confidence": "${summary_ref.output.confidence}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

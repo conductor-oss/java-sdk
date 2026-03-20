@@ -1,0 +1,53 @@
+{
+  "name": "stream_processing",
+  "description": "Process streaming data with windowing: ingest events, group into time windows, aggregate, detect anomalies, and emit results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["events", "windowSizeMs"],
+  "tasks": [
+    {
+      "name": "st_ingest_stream",
+      "taskReferenceName": "ingest_ref",
+      "type": "SIMPLE",
+      "inputParameters": { "events": "${workflow.input.events}" }
+    },
+    {
+      "name": "st_window_events",
+      "taskReferenceName": "window_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${ingest_ref.output.events}",
+        "windowSizeMs": "${workflow.input.windowSizeMs}"
+      }
+    },
+    {
+      "name": "st_aggregate_windows",
+      "taskReferenceName": "agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": { "windows": "${window_ref.output.windows}" }
+    },
+    {
+      "name": "st_detect_anomalies",
+      "taskReferenceName": "anomaly_ref",
+      "type": "SIMPLE",
+      "inputParameters": { "aggregates": "${agg_ref.output.aggregates}" }
+    },
+    {
+      "name": "st_emit_results",
+      "taskReferenceName": "emit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregates": "${agg_ref.output.aggregates}",
+        "anomalies": "${anomaly_ref.output.anomalies}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalEvents": "${ingest_ref.output.eventCount}",
+    "windowCount": "${window_ref.output.windowCount}",
+    "anomaliesDetected": "${anomaly_ref.output.anomalyCount}",
+    "summary": "${emit_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,59 @@
+{
+  "name": "agriculture_iot_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "fieldId",
+    "cropType"
+  ],
+  "tasks": [
+    {
+      "name": "agr_soil_sensors",
+      "taskReferenceName": "agr_soil_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fieldId": "${workflow.input.fieldId}",
+        "cropType": "${workflow.input.cropType}"
+      }
+    },
+    {
+      "name": "agr_weather_data",
+      "taskReferenceName": "agr_weather_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fieldId": "${workflow.input.fieldId}"
+      }
+    },
+    {
+      "name": "agr_irrigation_decision",
+      "taskReferenceName": "agr_decide_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "soilMoisture": "${agr_soil_ref.output.moisture}",
+        "soilPh": "${agr_soil_ref.output.ph}",
+        "temperature": "${agr_weather_ref.output.temperature}",
+        "rainForecast": "${agr_weather_ref.output.rainProbability}",
+        "cropType": "${workflow.input.cropType}"
+      }
+    },
+    {
+      "name": "agr_actuate",
+      "taskReferenceName": "agr_actuate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fieldId": "${workflow.input.fieldId}",
+        "irrigate": "${agr_decide_ref.output.shouldIrrigate}",
+        "duration": "${agr_decide_ref.output.durationMinutes}",
+        "zones": "${agr_decide_ref.output.zones}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "fieldId": "${workflow.input.fieldId}",
+    "soilMoisture": "${agr_soil_ref.output.moisture}",
+    "shouldIrrigate": "${agr_decide_ref.output.shouldIrrigate}",
+    "durationMinutes": "${agr_decide_ref.output.durationMinutes}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

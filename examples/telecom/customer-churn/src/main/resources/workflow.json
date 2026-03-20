@@ -1,0 +1,64 @@
+{
+  "name": "ccn_customer_churn",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "customerId",
+    "accountAge",
+    "usageTrend"
+  ],
+  "tasks": [
+    {
+      "name": "ccn_detect_risk",
+      "taskReferenceName": "ccn_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "usageTrend": "${workflow.input.usageTrend}"
+      }
+    },
+    {
+      "name": "ccn_analyze_reasons",
+      "taskReferenceName": "ccn_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "riskScore": "${ccn_detect_ref.output.riskScore}"
+      }
+    },
+    {
+      "name": "ccn_create_offer",
+      "taskReferenceName": "ccn_offer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reasons": "${ccn_analyze_ref.output.reasons}",
+        "accountAge": "${workflow.input.accountAge}"
+      }
+    },
+    {
+      "name": "ccn_deliver",
+      "taskReferenceName": "ccn_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "offer": "${ccn_offer_ref.output.offer}"
+      }
+    },
+    {
+      "name": "ccn_track",
+      "taskReferenceName": "ccn_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "offerId": "${ccn_offer_ref.output.offerId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "riskScore": "${ccn_detect_ref.output.riskScore}",
+    "offerId": "${ccn_offer_ref.output.offerId}",
+    "retained": "${ccn_track_ref.output.retained}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

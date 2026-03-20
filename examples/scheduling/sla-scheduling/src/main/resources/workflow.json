@@ -1,0 +1,6 @@
+{"name":"sla_scheduling_409","version":1,"schemaVersion":2,"inputParameters":["tickets","slaPolicy"],
+"tasks":[
+ {"name":"sla_prioritize","taskReferenceName":"sla_prioritize_ref","type":"SIMPLE","inputParameters":{"tickets":"${workflow.input.tickets}","slaPolicy":"${workflow.input.slaPolicy}"}},
+ {"name":"sla_execute_tasks","taskReferenceName":"sla_execute_ref","type":"SIMPLE","inputParameters":{"orderedTickets":"${sla_prioritize_ref.output.orderedTickets}","totalTickets":"${sla_prioritize_ref.output.totalTickets}"}},
+ {"name":"sla_track_compliance","taskReferenceName":"sla_track_ref","type":"SIMPLE","inputParameters":{"results":"${sla_execute_ref.output.results}","slaPolicy":"${workflow.input.slaPolicy}"}}
+],"outputParameters":{"totalTickets":"${sla_prioritize_ref.output.totalTickets}","completedOnTime":"${sla_track_ref.output.completedOnTime}","complianceRate":"${sla_track_ref.output.complianceRate}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

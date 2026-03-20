@@ -1,0 +1,71 @@
+{
+  "name": "event_replay_testing",
+  "description": "Event Replay Testing — loads recorded events, sets up a sandbox environment, replays each event in a DO_WHILE loop comparing results, then generates a test report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["testSuiteId", "eventSource"],
+  "tasks": [
+    {
+      "name": "rt_load_events",
+      "taskReferenceName": "load_events_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testSuiteId": "${workflow.input.testSuiteId}",
+        "eventSource": "${workflow.input.eventSource}"
+      }
+    },
+    {
+      "name": "rt_setup_sandbox",
+      "taskReferenceName": "setup_sandbox_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testSuiteId": "${workflow.input.testSuiteId}"
+      }
+    },
+    {
+      "name": "replay_loop",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < 3) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "rt_replay_event",
+          "taskReferenceName": "replay_event_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "events": "${load_events_ref.output.events}",
+            "sandboxId": "${setup_sandbox_ref.output.sandboxId}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "rt_compare_result",
+          "taskReferenceName": "compare_result_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "actual": "${replay_event_ref.output.result}",
+            "expected": "${replay_event_ref.output.expectedResult}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "rt_test_report",
+      "taskReferenceName": "test_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testSuiteId": "${workflow.input.testSuiteId}",
+        "totalReplayed": "${loop_ref.output.iteration}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "testSuiteId": "${workflow.input.testSuiteId}",
+    "status": "${test_report_ref.output.status}",
+    "passCount": "${test_report_ref.output.passCount}",
+    "failCount": "${test_report_ref.output.failCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

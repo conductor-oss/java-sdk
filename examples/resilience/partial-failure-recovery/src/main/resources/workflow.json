@@ -1,0 +1,38 @@
+{
+  "name": "partial_failure_recovery_demo",
+  "description": "Partial Failure Recovery demo -- three sequential steps where step 2 fails on first attempt, demonstrating resume from last good state via POST /workflow/{id}/retry.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["data"],
+  "tasks": [
+    {
+      "name": "pfr_step1",
+      "taskReferenceName": "s1_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${workflow.input.data}"
+      }
+    },
+    {
+      "name": "pfr_step2",
+      "taskReferenceName": "s2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prev": "${s1_ref.output.result}"
+      }
+    },
+    {
+      "name": "pfr_step3",
+      "taskReferenceName": "s3_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prev": "${s2_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "finalResult": "${s3_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

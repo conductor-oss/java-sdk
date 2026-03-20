@@ -1,0 +1,29 @@
+[
+  {
+    "name": "ptr_validate",
+    "retryCount": 1,
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 1,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "ptr_payment",
+    "retryCount": 5,
+    "retryLogic": "EXPONENTIAL_BACKOFF",
+    "retryDelaySeconds": 1,
+    "timeoutSeconds": 120,
+    "responseTimeoutSeconds": 60,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "ptr_notify",
+    "retryCount": 3,
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

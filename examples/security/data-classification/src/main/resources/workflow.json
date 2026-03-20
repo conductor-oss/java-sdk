@@ -1,0 +1,55 @@
+{
+  "name": "data_classification_workflow",
+  "description": "Data classification: scan data stores, detect PII, classify sensitivity, apply labels",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dataStore",
+    "scanType"
+  ],
+  "tasks": [
+    {
+      "name": "dc_scan_data_stores",
+      "taskReferenceName": "scan_data_stores_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataStore": "${workflow.input.dataStore}",
+        "scanType": "${workflow.input.scanType}"
+      }
+    },
+    {
+      "name": "dc_detect_pii",
+      "taskReferenceName": "detect_pii_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scanResults": "${scan_data_stores_ref.output}"
+      }
+    },
+    {
+      "name": "dc_classify",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "piiResults": "${detect_pii_ref.output}",
+        "dataStore": "${workflow.input.dataStore}"
+      }
+    },
+    {
+      "name": "dc_apply_labels",
+      "taskReferenceName": "apply_labels_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "classifications": "${classify_ref.output}",
+        "dataStore": "${workflow.input.dataStore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "scanResult": "${scan_data_stores_ref.output}",
+    "piiDetected": "${detect_pii_ref.output}",
+    "classification": "${classify_ref.output}",
+    "labelsApplied": "${apply_labels_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

@@ -1,0 +1,57 @@
+{
+  "name": "apm_workflow_421",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "serviceName",
+    "timeRange",
+    "percentile"
+  ],
+  "tasks": [
+    {
+      "name": "apm_collect_traces",
+      "taskReferenceName": "apm_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "timeRange": "${workflow.input.timeRange}"
+      }
+    },
+    {
+      "name": "apm_analyze_latency",
+      "taskReferenceName": "apm_latency_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "traceCount": "${apm_collect_ref.output.traceCount}",
+        "serviceName": "${workflow.input.serviceName}",
+        "percentile": "${workflow.input.percentile}"
+      }
+    },
+    {
+      "name": "apm_detect_bottlenecks",
+      "taskReferenceName": "apm_bottleneck_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "p99Latency": "${apm_latency_ref.output.p99Latency}",
+        "p50Latency": "${apm_latency_ref.output.p50Latency}"
+      }
+    },
+    {
+      "name": "apm_report",
+      "taskReferenceName": "apm_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "bottlenecks": "${apm_bottleneck_ref.output.bottlenecks}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "traceCount": "${apm_collect_ref.output.traceCount}",
+    "p99Latency": "${apm_latency_ref.output.p99Latency}",
+    "bottlenecksFound": "${apm_bottleneck_ref.output.bottleneckCount}",
+    "reportGenerated": "${apm_report_ref.output.reportGenerated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

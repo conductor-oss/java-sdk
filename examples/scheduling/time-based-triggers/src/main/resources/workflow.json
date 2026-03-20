@@ -1,0 +1,70 @@
+{
+  "name": "time_based_triggers_405",
+  "description": "Time-based triggers workflow that checks the current time window and routes to the appropriate job.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["timezone", "currentHour"],
+  "tasks": [
+    {
+      "name": "tb_check_time",
+      "taskReferenceName": "tb_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "timezone": "${workflow.input.timezone}",
+        "currentHour": "${workflow.input.currentHour}"
+      }
+    },
+    {
+      "name": "tb_time_switch",
+      "taskReferenceName": "tb_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${tb_check_ref.output.timeWindow}"
+      },
+      "decisionCases": {
+        "morning": [
+          {
+            "name": "tb_morning_job",
+            "taskReferenceName": "tb_morning_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "timezone": "${workflow.input.timezone}",
+              "jobType": "morning-sync"
+            }
+          }
+        ],
+        "afternoon": [
+          {
+            "name": "tb_afternoon_job",
+            "taskReferenceName": "tb_afternoon_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "timezone": "${workflow.input.timezone}",
+              "jobType": "afternoon-reports"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "tb_evening_job",
+          "taskReferenceName": "tb_evening_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "timezone": "${workflow.input.timezone}",
+            "jobType": "evening-cleanup"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "timeWindow": "${tb_check_ref.output.timeWindow}",
+    "localTime": "${tb_check_ref.output.localTime}",
+    "jobExecuted": "${tb_check_ref.output.timeWindow}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

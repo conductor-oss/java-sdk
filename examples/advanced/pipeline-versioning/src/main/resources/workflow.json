@@ -1,0 +1,61 @@
+{
+  "name": "pipeline_versioning_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "pipelineName",
+    "versionTag",
+    "environment"
+  ],
+  "tasks": [
+    {
+      "name": "pvr_snapshot_config",
+      "taskReferenceName": "pvr_snap_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pipelineName": "${workflow.input.pipelineName}",
+        "environment": "${workflow.input.environment}"
+      }
+    },
+    {
+      "name": "pvr_tag_version",
+      "taskReferenceName": "pvr_tag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pipelineName": "${workflow.input.pipelineName}",
+        "configSnapshot": "${pvr_snap_ref.output.configSnapshot}",
+        "versionTag": "${workflow.input.versionTag}"
+      }
+    },
+    {
+      "name": "pvr_test_pipeline",
+      "taskReferenceName": "pvr_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pipelineName": "${workflow.input.pipelineName}",
+        "versionTag": "${workflow.input.versionTag}",
+        "environment": "${workflow.input.environment}"
+      }
+    },
+    {
+      "name": "pvr_promote",
+      "taskReferenceName": "pvr_promote_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pipelineName": "${workflow.input.pipelineName}",
+        "versionTag": "${workflow.input.versionTag}",
+        "testsPassed": "${pvr_test_ref.output.allPassed}",
+        "environment": "${workflow.input.environment}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "pipelineName": "${workflow.input.pipelineName}",
+    "versionTag": "${workflow.input.versionTag}",
+    "configHash": "${pvr_snap_ref.output.configHash}",
+    "testsPassed": "${pvr_test_ref.output.allPassed}",
+    "promoted": "${pvr_promote_ref.output.promoted}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

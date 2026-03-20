@@ -1,0 +1,52 @@
+{
+  "name": "service_migration_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "sourceEnv",
+    "targetEnv"
+  ],
+  "tasks": [
+    {
+      "name": "sm_assess",
+      "taskReferenceName": "assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "sourceEnv": "${workflow.input.sourceEnv}",
+        "targetEnv": "${workflow.input.targetEnv}"
+      }
+    },
+    {
+      "name": "sm_replicate",
+      "taskReferenceName": "replicate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "replicateData": "${assess_ref.output}"
+      }
+    },
+    {
+      "name": "sm_cutover",
+      "taskReferenceName": "cutover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cutoverData": "${replicate_ref.output}"
+      }
+    },
+    {
+      "name": "sm_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validateData": "${cutover_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "assessResult": "${assess_ref.output}",
+    "validateResult": "${validate_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

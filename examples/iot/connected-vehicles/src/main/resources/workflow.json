@@ -1,0 +1,59 @@
+{
+  "name": "connected_vehicles_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "vehicleId",
+    "vin"
+  ],
+  "tasks": [
+    {
+      "name": "veh_telemetry",
+      "taskReferenceName": "veh_telem_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vehicleId": "${workflow.input.vehicleId}",
+        "vin": "${workflow.input.vin}"
+      }
+    },
+    {
+      "name": "veh_diagnostics",
+      "taskReferenceName": "veh_diag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vehicleId": "${workflow.input.vehicleId}",
+        "engineRpm": "${veh_telem_ref.output.engineRpm}",
+        "fuelLevel": "${veh_telem_ref.output.fuelLevel}",
+        "batteryVoltage": "${veh_telem_ref.output.batteryVoltage}"
+      }
+    },
+    {
+      "name": "veh_geolocation",
+      "taskReferenceName": "veh_geo_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vehicleId": "${workflow.input.vehicleId}",
+        "speed": "${veh_telem_ref.output.speed}"
+      }
+    },
+    {
+      "name": "veh_status_report",
+      "taskReferenceName": "veh_status_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vehicleId": "${workflow.input.vehicleId}",
+        "health": "${veh_diag_ref.output.overallHealth}",
+        "location": "${veh_geo_ref.output.location}",
+        "speed": "${veh_telem_ref.output.speed}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "vehicleId": "${workflow.input.vehicleId}",
+    "health": "${veh_diag_ref.output.overallHealth}",
+    "location": "${veh_geo_ref.output.location}",
+    "speed": "${veh_telem_ref.output.speed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

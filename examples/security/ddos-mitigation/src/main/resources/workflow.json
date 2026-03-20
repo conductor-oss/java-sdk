@@ -1,0 +1,50 @@
+{
+  "name": "ddos_mitigation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "targetService",
+    "trafficAnomaly"
+  ],
+  "tasks": [
+    {
+      "name": "ddos_detect",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "targetService": "${workflow.input.targetService}",
+        "trafficAnomaly": "${workflow.input.trafficAnomaly}"
+      }
+    },
+    {
+      "name": "ddos_classify",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "classifyData": "${detect_ref.output}"
+      }
+    },
+    {
+      "name": "ddos_mitigate",
+      "taskReferenceName": "mitigate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mitigateData": "${classify_ref.output}"
+      }
+    },
+    {
+      "name": "ddos_verify_service",
+      "taskReferenceName": "verify_service_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_serviceData": "${mitigate_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "detectResult": "${detect_ref.output}",
+    "verify_serviceResult": "${verify_service_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

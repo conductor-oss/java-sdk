@@ -1,0 +1,54 @@
+{
+  "name": "salesforce_integration_438",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "query",
+    "scoringModel",
+    "syncTarget"
+  ],
+  "tasks": [
+    {
+      "name": "sfc_query_leads",
+      "taskReferenceName": "query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}"
+      }
+    },
+    {
+      "name": "sfc_score_leads",
+      "taskReferenceName": "score_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "leads": "${query_ref.output.leads}",
+        "model": "${workflow.input.scoringModel}"
+      }
+    },
+    {
+      "name": "sfc_update_records",
+      "taskReferenceName": "update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scoredLeads": "${score_ref.output.scoredLeads}"
+      }
+    },
+    {
+      "name": "sfc_sync_crm",
+      "taskReferenceName": "sync_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "updatedCount": "${update_ref.output.updatedCount}",
+        "syncTarget": "${workflow.input.syncTarget}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "leadsQueried": "${query_ref.output.totalCount}",
+    "leadsScored": "${score_ref.output.scoredCount}",
+    "recordsUpdated": "${update_ref.output.updatedCount}",
+    "synced": "${sync_ref.output.synced}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

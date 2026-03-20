@@ -1,0 +1,19 @@
+{
+  "name": "ner_named_entity_extraction",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["text"],
+  "tasks": [
+    { "name": "ner_tokenize", "taskReferenceName": "ner_tokenize_ref", "type": "SIMPLE", "inputParameters": { "text": "${workflow.input.text}" } },
+    { "name": "ner_tag", "taskReferenceName": "ner_tag_ref", "type": "SIMPLE", "inputParameters": { "tokens": "${ner_tokenize_ref.output.tokens}" } },
+    { "name": "ner_extract_entities", "taskReferenceName": "ner_extract_ref", "type": "SIMPLE", "inputParameters": { "taggedTokens": "${ner_tag_ref.output.taggedTokens}" } },
+    { "name": "ner_link", "taskReferenceName": "ner_link_ref", "type": "SIMPLE", "inputParameters": { "entities": "${ner_extract_ref.output.entities}" } }
+  ],
+  "outputParameters": {
+    "tokenCount": "${ner_tokenize_ref.output.tokenCount}",
+    "entities": "${ner_extract_ref.output.entities}",
+    "linkedEntities": "${ner_link_ref.output.linkedEntities}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

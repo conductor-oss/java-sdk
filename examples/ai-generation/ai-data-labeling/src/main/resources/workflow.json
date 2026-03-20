@@ -1,0 +1,77 @@
+{
+  "name": "adl_data_labeling",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["datasetId", "labelType"],
+  "tasks": [
+    {
+      "name": "adl_prepare_data",
+      "taskReferenceName": "adl_prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "datasetId": "${workflow.input.datasetId}",
+        "labelType": "${workflow.input.labelType}"
+      }
+    },
+    {
+      "name": "parallel_labeling",
+      "taskReferenceName": "adl_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "adl_labeler_1",
+            "taskReferenceName": "adl_l1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "batch": "${adl_prepare_ref.output.batch}",
+              "labeler": "labeler-1"
+            }
+          }
+        ],
+        [
+          {
+            "name": "adl_labeler_2",
+            "taskReferenceName": "adl_l2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "batch": "${adl_prepare_ref.output.batch}",
+              "labeler": "labeler-2"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_labelers",
+      "taskReferenceName": "adl_join_ref",
+      "type": "JOIN",
+      "joinOn": ["adl_l1_ref", "adl_l2_ref"]
+    },
+    {
+      "name": "adl_reconcile",
+      "taskReferenceName": "adl_reconcile_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "labels1": "${adl_l1_ref.output.labels}",
+        "labels2": "${adl_l2_ref.output.labels}"
+      }
+    },
+    {
+      "name": "adl_export",
+      "taskReferenceName": "adl_export_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reconciledLabels": "${adl_reconcile_ref.output.finalLabels}",
+        "datasetId": "${workflow.input.datasetId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalLabeled": "${adl_reconcile_ref.output.totalLabeled}",
+    "agreement": "${adl_reconcile_ref.output.agreement}",
+    "exportPath": "${adl_export_ref.output.exportPath}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

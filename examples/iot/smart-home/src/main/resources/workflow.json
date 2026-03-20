@@ -1,0 +1,103 @@
+{
+  "name": "smart_home_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "sensorId",
+    "eventType",
+    "value"
+  ],
+  "tasks": [
+    {
+      "name": "smh_detect_event",
+      "taskReferenceName": "smh_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "sensorId": "${workflow.input.sensorId}",
+        "eventType": "${workflow.input.eventType}",
+        "value": "${workflow.input.value}"
+      }
+    },
+    {
+      "name": "smh_evaluate_rules",
+      "taskReferenceName": "smh_rules_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "value": "${workflow.input.value}",
+        "context": "${smh_detect_ref.output.context}"
+      }
+    },
+    {
+      "name": "smh_action_switch",
+      "taskReferenceName": "smh_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${smh_rules_ref.output.actionType}"
+      },
+      "decisionCases": {
+        "lights": [
+          {
+            "name": "smh_actuate_lights",
+            "taskReferenceName": "smh_lights_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "action": "${smh_rules_ref.output.action}",
+              "room": "${smh_rules_ref.output.targetRoom}"
+            }
+          }
+        ],
+        "thermostat": [
+          {
+            "name": "smh_actuate_thermostat",
+            "taskReferenceName": "smh_thermo_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "targetTemp": "${smh_rules_ref.output.targetTemp}",
+              "mode": "${smh_rules_ref.output.action}"
+            }
+          }
+        ],
+        "security": [
+          {
+            "name": "smh_actuate_security",
+            "taskReferenceName": "smh_security_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "action": "${smh_rules_ref.output.action}",
+              "zone": "${smh_rules_ref.output.targetRoom}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "smh_log_event",
+      "taskReferenceName": "smh_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "actionType": "${smh_rules_ref.output.actionType}",
+        "action": "${smh_rules_ref.output.action}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "actionType": "${smh_rules_ref.output.actionType}",
+    "action": "${smh_rules_ref.output.action}",
+    "logged": "${smh_log_ref.output.logged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

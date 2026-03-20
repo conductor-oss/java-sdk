@@ -1,0 +1,70 @@
+{
+  "name": "data_warehouse_load",
+  "description": "Data warehouse load workflow that stages data to temp tables, runs pre-load checks, upserts into target, validates post-load, and updates metadata.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "targetTable",
+    "schema"
+  ],
+  "tasks": [
+    {
+      "name": "wh_stage_data",
+      "taskReferenceName": "stage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}",
+        "targetTable": "${workflow.input.targetTable}"
+      }
+    },
+    {
+      "name": "wh_pre_load_checks",
+      "taskReferenceName": "precheck_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stagingTable": "${stage_ref.output.stagingTable}",
+        "recordCount": "${stage_ref.output.stagedCount}",
+        "schema": "${workflow.input.schema}"
+      }
+    },
+    {
+      "name": "wh_upsert_target",
+      "taskReferenceName": "upsert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stagingTable": "${stage_ref.output.stagingTable}",
+        "targetTable": "${workflow.input.targetTable}",
+        "recordCount": "${precheck_ref.output.validCount}"
+      }
+    },
+    {
+      "name": "wh_post_load_validation",
+      "taskReferenceName": "postcheck_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "targetTable": "${workflow.input.targetTable}",
+        "expectedCount": "${upsert_ref.output.upsertedCount}"
+      }
+    },
+    {
+      "name": "wh_update_metadata",
+      "taskReferenceName": "meta_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "targetTable": "${workflow.input.targetTable}",
+        "recordsLoaded": "${upsert_ref.output.upsertedCount}",
+        "validationPassed": "${postcheck_ref.output.passed}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "stagedCount": "${stage_ref.output.stagedCount}",
+    "preCheckPassed": "${precheck_ref.output.passed}",
+    "upsertedCount": "${upsert_ref.output.upsertedCount}",
+    "postCheckPassed": "${postcheck_ref.output.passed}",
+    "summary": "${meta_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

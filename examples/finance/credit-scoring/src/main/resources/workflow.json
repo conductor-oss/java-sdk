@@ -1,0 +1,53 @@
+{
+  "name": "credit_scoring_workflow",
+  "description": "Credit scoring: collect data, calculate factors, compute score, classify applicant.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["applicantId", "ssn"],
+  "tasks": [
+    {
+      "name": "csc_collect_data",
+      "taskReferenceName": "csc_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "ssn": "${workflow.input.ssn}"
+      }
+    },
+    {
+      "name": "csc_calculate_factors",
+      "taskReferenceName": "csc_factors_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "creditHistory": "${csc_collect_ref.output.creditHistory}"
+      }
+    },
+    {
+      "name": "csc_score",
+      "taskReferenceName": "csc_score_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "factors": "${csc_factors_ref.output.factors}"
+      }
+    },
+    {
+      "name": "csc_classify",
+      "taskReferenceName": "csc_classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "score": "${csc_score_ref.output.score}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "applicantId": "${workflow.input.applicantId}",
+    "score": "${csc_score_ref.output.score}",
+    "classification": "${csc_classify_ref.output.classification}",
+    "factors": "${csc_factors_ref.output.factors}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

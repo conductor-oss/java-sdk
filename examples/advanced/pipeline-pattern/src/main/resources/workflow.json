@@ -1,0 +1,58 @@
+{
+  "name": "pip_pipeline_pattern",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "rawData",
+    "pipelineId"
+  ],
+  "tasks": [
+    {
+      "name": "pip_stage_1",
+      "taskReferenceName": "pip_stage1_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "input": "${workflow.input.rawData}",
+        "pipelineId": "${workflow.input.pipelineId}",
+        "stage": "validate"
+      }
+    },
+    {
+      "name": "pip_stage_2",
+      "taskReferenceName": "pip_stage2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "input": "${pip_stage1_ref.output.data}",
+        "pipelineId": "${workflow.input.pipelineId}",
+        "stage": "transform"
+      }
+    },
+    {
+      "name": "pip_stage_3",
+      "taskReferenceName": "pip_stage3_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "input": "${pip_stage2_ref.output.data}",
+        "pipelineId": "${workflow.input.pipelineId}",
+        "stage": "enrich"
+      }
+    },
+    {
+      "name": "pip_stage_4",
+      "taskReferenceName": "pip_stage4_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "input": "${pip_stage3_ref.output.data}",
+        "pipelineId": "${workflow.input.pipelineId}",
+        "stage": "output"
+      }
+    }
+  ],
+  "outputParameters": {
+    "pipelineId": "${workflow.input.pipelineId}",
+    "stagesCompleted": 4,
+    "finalOutput": "${pip_stage4_ref.output.data}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

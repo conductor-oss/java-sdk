@@ -1,0 +1,64 @@
+{
+  "name": "slv_salvage_recovery",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "claimId",
+    "vehicleId",
+    "damageType"
+  ],
+  "tasks": [
+    {
+      "name": "slv_assess_damage",
+      "taskReferenceName": "slv_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "vehicleId": "${workflow.input.vehicleId}"
+      }
+    },
+    {
+      "name": "slv_salvage",
+      "taskReferenceName": "slv_salvage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vehicleId": "${workflow.input.vehicleId}",
+        "salvageValue": "${slv_assess_ref.output.salvageValue}"
+      }
+    },
+    {
+      "name": "slv_auction",
+      "taskReferenceName": "slv_auction_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vehicleId": "${workflow.input.vehicleId}",
+        "reservePrice": "${slv_salvage_ref.output.reservePrice}"
+      }
+    },
+    {
+      "name": "slv_settle",
+      "taskReferenceName": "slv_settle_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "auctionProceeds": "${slv_auction_ref.output.proceeds}"
+      }
+    },
+    {
+      "name": "slv_close",
+      "taskReferenceName": "slv_close_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${workflow.input.claimId}",
+        "recoveryAmount": "${slv_settle_ref.output.recoveryAmount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "claimId": "${workflow.input.claimId}",
+    "recoveryAmount": "${slv_settle_ref.output.recoveryAmount}",
+    "closed": "${slv_close_ref.output.closed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

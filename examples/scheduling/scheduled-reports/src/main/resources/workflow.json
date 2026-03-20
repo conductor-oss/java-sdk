@@ -1,0 +1,45 @@
+{
+  "name": "scheduled_reports_402",
+  "description": "Generate scheduled reports: query data sources, format the report, and distribute to recipients.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["reportType", "dateRange", "recipients"],
+  "tasks": [
+    {
+      "name": "sch_query_data",
+      "taskReferenceName": "sch_query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportType": "${workflow.input.reportType}",
+        "dateRange": "${workflow.input.dateRange}"
+      }
+    },
+    {
+      "name": "sch_format_report",
+      "taskReferenceName": "sch_format_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportType": "${workflow.input.reportType}",
+        "data": "${sch_query_ref.output.data}",
+        "rowCount": "${sch_query_ref.output.rowCount}"
+      }
+    },
+    {
+      "name": "sch_distribute_report",
+      "taskReferenceName": "sch_distribute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportUrl": "${sch_format_ref.output.reportUrl}",
+        "recipients": "${workflow.input.recipients}",
+        "reportType": "${workflow.input.reportType}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "rowCount": "${sch_query_ref.output.rowCount}",
+    "reportUrl": "${sch_format_ref.output.reportUrl}",
+    "delivered": "${sch_distribute_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

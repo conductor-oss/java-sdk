@@ -1,0 +1,50 @@
+{
+  "name": "emv_email_verification",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["email", "userId"],
+  "tasks": [
+    {
+      "name": "emv_send_code",
+      "taskReferenceName": "emv_send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "emv_wait_input",
+      "taskReferenceName": "emv_wait_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "expectedCode": "${emv_send_ref.output.verificationCode}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "emv_verify",
+      "taskReferenceName": "emv_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submittedCode": "${emv_wait_ref.output.submittedCode}",
+        "expectedCode": "${emv_send_ref.output.verificationCode}"
+      }
+    },
+    {
+      "name": "emv_activate",
+      "taskReferenceName": "emv_activate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "verified": "${emv_verify_ref.output.codeMatch}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "emailVerified": "${emv_verify_ref.output.codeMatch}",
+    "accountActivated": "${emv_activate_ref.output.activated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}
