@@ -18,12 +18,12 @@ The SWITCH + WAIT pattern is the key here. After the KYC check determines the ri
 
 KycCheckWorker assesses identity and watchlist risk, while KycActivateWorker enables account access. Neither manages the routing between auto-approval and manual compliance review.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **KycCheckWorker** | `kyc_check` | Performs automated KYC risk assessment: checks identity, watchlists, PEP status, and jurisdiction risk, returning a risk level and needsReview flag with any compliance flags | Simulated, swap in your KYC/AML provider (Jumio, Onfido, LexisNexis, Trulioo) for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **KycCheckWorker** | `kyc_check` | Performs automated KYC risk assessment: checks identity, watchlists, PEP status, and jurisdiction risk, returning a risk level and needsReview flag with any compliance flags |
 | *SWITCH task* | `kyc_review_decision` | Routes based on needsReview. "true" sends to a manual WAIT task for compliance analyst review, default auto-approves and proceeds to activation | Built-in Conductor SWITCH.; no worker needed |
 | *WAIT task* | `manual_kyc_review` | Pauses for a compliance analyst to review the flags and make an approve/reject decision via `POST /tasks/{taskId}` | Built-in Conductor WAIT.; no worker needed |
-| **KycActivateWorker** | `kyc_activate` | Activates the customer account after KYC approval (automatic or manual), enabling login and product access | Simulated. Swap in your core banking or account management system for production |
+| **KycActivateWorker** | `kyc_activate` | Activates the customer account after KYC approval (automatic or manual), enabling login and product access |
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 

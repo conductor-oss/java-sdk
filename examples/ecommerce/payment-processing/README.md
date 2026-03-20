@@ -18,13 +18,13 @@ Authorize-then-capture is standard because you don't want to charge until you're
 
 Payment workers isolate authorization, capture, settlement, and notification into separate steps, so retry logic targets only the failed transaction phase.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ValidatePaymentWorker** | `pay_validate` | Validates payment method, amount, currency, and computes fraud score | Real validation logic (mock mode if `STRIPE_API_KEY` unset) |
-| **AuthorizePaymentWorker** | `pay_authorize` | Creates a Stripe PaymentIntent with manual capture (authorize only) | Real Stripe SDK (mock mode if `STRIPE_API_KEY` unset) |
-| **CapturePaymentWorker** | `pay_capture` | Captures a previously authorized PaymentIntent | Real Stripe SDK (mock mode if `STRIPE_API_KEY` unset) |
-| **ReceiptWorker** | `pay_receipt` | Generates a receipt with SHA-256 ID, retrieves charge details from Stripe | Real Stripe SDK (mock mode if `STRIPE_API_KEY` unset) |
-| **ReconcileWorker** | `pay_reconcile` | Reconciles captured amount against Stripe, computes fees and net amount | Real Stripe SDK (mock mode if `STRIPE_API_KEY` unset) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ValidatePaymentWorker** | `pay_validate` | Validates payment method, amount, currency, and computes fraud score |
+| **AuthorizePaymentWorker** | `pay_authorize` | Creates a Stripe PaymentIntent with manual capture (authorize only) |
+| **CapturePaymentWorker** | `pay_capture` | Captures a previously authorized PaymentIntent |
+| **ReceiptWorker** | `pay_receipt` | Generates a receipt with SHA-256 ID, retrieves charge details from Stripe |
+| **ReconcileWorker** | `pay_reconcile` | Reconciles captured amount against Stripe, computes fees and net amount |
 
 All workers run in mock mode by default when `STRIPE_API_KEY` is not set, producing realistic deterministic output. Set `STRIPE_API_KEY=sk_test_...` to use the real Stripe API. The workflow stays the same either way.
 

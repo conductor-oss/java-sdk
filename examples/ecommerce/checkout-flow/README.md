@@ -18,12 +18,12 @@ If the payment processor times out after the tax calculation, you need to retry 
 
 Four checkout workers: cart validation, tax calculation, payment processing, and order confirmation, each encapsulate one transactional step of the purchase.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CalculateTaxWorker** | `chk_calculate_tax` | Calculates tax, shipping, and grand total based on subtotal and shipping address. | Simulated |
-| **ConfirmOrderWorker** | `chk_confirm_order` | Confirms the order and generates an order ID. | Simulated |
-| **ProcessPaymentWorker** | `chk_process_payment` | Processes payment and returns a payment ID. | Simulated |
-| **ValidateCartWorker** | `chk_validate_cart` | Validates the shopping cart and returns subtotal information. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CalculateTaxWorker** | `chk_calculate_tax` | Calculates tax, shipping, and grand total based on subtotal and shipping address. |
+| **ConfirmOrderWorker** | `chk_confirm_order` | Confirms the order and generates an order ID. |
+| **ProcessPaymentWorker** | `chk_process_payment` | Processes payment and returns a payment ID. |
+| **ValidateCartWorker** | `chk_validate_cart` | Validates the shopping cart and returns subtotal information. |
 
 Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 

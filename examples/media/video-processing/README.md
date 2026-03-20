@@ -18,13 +18,13 @@ Each video processing stage is an independent worker. Upload, transcode, thumbna
 
 Five workers process each video: UploadWorker ingests the source with codec detection, TranscodeWorker creates adaptive bitrate renditions, ThumbnailWorker extracts a preview frame, MetadataWorker builds the search index, and PublishWorker makes the video live.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **UploadWorker** | `vid_upload` | Ingests source video from a URL, stores it to object storage, and detects codec (`h264`), duration (`185s`), and file size (`742 MB`). Returns `storagePath`, `duration`, `fileSizeMb`, `codec`. | Simulated. Returns fixed media properties for the given `videoId` |
-| **TranscodeWorker** | `vid_transcode` | Transcodes the raw video to adaptive bitrate HLS with three resolution renditions: 1080p (5000k), 720p (2500k), 480p (1000k). Returns `resolutions` list, `hlsUrl`, `format`. | Simulated. Returns deterministic rendition profiles and an HLS manifest URL |
-| **ThumbnailWorker** | `vid_thumbnail` | Generates a thumbnail by extracting a frame at one-third of the video duration (avoiding black intro frames). Returns `thumbnailUrl`, `capturedAtSecond`, `width`, `height`. | Simulated. Computes capture position from input `duration`, returns a CDN thumbnail URL |
-| **MetadataWorker** | `vid_metadata` | Assembles a metadata index from upstream outputs: title, duration, resolution list, content type, for search and discovery. Returns a `metadata` map. | Simulated, builds a deterministic metadata map from task inputs |
-| **PublishWorker** | `vid_publish` | Publishes the video with its HLS manifest, thumbnail, and metadata to a live watch URL. Returns `publishUrl`, `publishedAt`, `status`. | Simulated. Returns a deterministic watch URL and `published` status |
+| Worker | Task | What It Does |
+|---|---|---|
+| **UploadWorker** | `vid_upload` | Ingests source video from a URL, stores it to object storage, and detects codec (`h264`), duration (`185s`), and file size (`742 MB`). Returns `storagePath`, `duration`, `fileSizeMb`, `codec`. |
+| **TranscodeWorker** | `vid_transcode` | Transcodes the raw video to adaptive bitrate HLS with three resolution renditions: 1080p (5000k), 720p (2500k), 480p (1000k). Returns `resolutions` list, `hlsUrl`, `format`. |
+| **ThumbnailWorker** | `vid_thumbnail` | Generates a thumbnail by extracting a frame at one-third of the video duration (avoiding black intro frames). Returns `thumbnailUrl`, `capturedAtSecond`, `width`, `height`. |
+| **MetadataWorker** | `vid_metadata` | Assembles a metadata index from upstream outputs: title, duration, resolution list, content type, for search and discovery. Returns a `metadata` map. |
+| **PublishWorker** | `vid_publish` | Publishes the video with its HLS manifest, thumbnail, and metadata to a live watch URL. Returns `publishUrl`, `publishedAt`, `status`. |
 
 Workers simulate media processing stages: transcoding, thumbnail generation, metadata extraction, with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 

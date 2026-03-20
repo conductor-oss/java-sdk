@@ -18,11 +18,11 @@ Three workers handle the order lifecycle: validation (checking order data), tota
 
 Three workers model a simple order pipeline: validate, process, ship, to demonstrate how Conductor sequences tasks and passes data between them.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ValidateOrderWorker** | `validate_order` | Iterates through each item in the order, marks it as `validated: true` and `inStock: true`, and returns the enriched list with an item count. | Simulated (always passes validation) |
-| **CalculateTotalWorker** | `calculate_total` | Sums `price * qty` for each validated item, applies 8% tax (rounded to cents), and returns subtotal, tax, and total. | Real (arithmetic) |
-| **SendConfirmationWorker** | `send_confirmation` | Logs a confirmation message for the customer email and order total. Returns `emailSent: true` and the recipient address. | Simulated (logs instead of sending) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ValidateOrderWorker** | `validate_order` | Iterates through each item in the order, marks it as `validated: true` and `inStock: true`, and returns the enriched list with an item count. |
+| **CalculateTotalWorker** | `calculate_total` | Sums `price * qty` for each validated item, applies 8% tax (rounded to cents), and returns subtotal, tax, and total. |
+| **SendConfirmationWorker** | `send_confirmation` | Logs a confirmation message for the customer email and order total. Returns `emailSent: true` and the recipient address. |
 
 ### What Conductor Gives You For Free
 

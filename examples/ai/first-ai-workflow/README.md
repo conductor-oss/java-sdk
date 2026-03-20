@@ -18,11 +18,11 @@ Each step is an independent worker. Prompt preparation, LLM invocation, response
 
 Three workers form the simplest possible LLM pipeline. Preparing the prompt with system and user messages, calling the model, and parsing the structured response into application-ready fields.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AiCallLlmWorker** | `ai_call_llm` | Worker that simulates an LLM call and returns a fixed response. | Simulated |
-| **AiParseResponseWorker** | `ai_parse_response` | Worker that parses the raw LLM response and validates it. | Simulated |
-| **AiPreparePromptWorker** | `ai_prepare_prompt` | Worker that prepares a formatted prompt from a question and model name. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AiCallLlmWorker** | `ai_call_llm` | Worker that simulates an LLM call and returns a fixed response. |
+| **AiParseResponseWorker** | `ai_parse_response` | Worker that parses the raw LLM response and validates it. |
+| **AiPreparePromptWorker** | `ai_prepare_prompt` | Worker that prepares a formatted prompt from a question and model name. |
 
 Workers run in simulated mode by default, returning realistic outputs so you can run the full pipeline without API keys. Set `CONDUCTOR_OPENAI_API_KEY` to switch to live mode (see Configuration below). The workflow and worker interfaces stay the same.
 

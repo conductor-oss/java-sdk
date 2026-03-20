@@ -18,9 +18,9 @@ The example shows the complete registration lifecycle. Creating task definitions
 
 Workers here illustrate how task definitions and workflow registrations connect through the SDK, showing the registration lifecycle.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **EchoWorker** | `echo_task` | Simple worker that echoes an input message back as output. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **EchoWorker** | `echo_task` | Simple worker that echoes an input message back as output. |
 
 Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
 

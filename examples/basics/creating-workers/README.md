@@ -18,11 +18,11 @@ Three workers demonstrate three patterns, a transform worker that processes text
 
 This example demonstrates three common patterns for writing Conductor workers: stateless transformations, external API calls, and conditional logic.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **SimpleTransformWorker** | `simple_transform` | Takes a text string and returns four fields: `upper` (uppercased), `lower` (lowercased), `length` (character count), and `original` (unchanged input). Pure logic, no side effects. | Real (string operations) |
-| **FetchDataWorker** | `fetch_data` | Takes a `source` name and returns 3 deterministic records prefixed with the source name (e.g., `"my-api-record-1"`). Includes a 100ms sleep to simulate API latency. | Simulated (fake records) |
-| **SafeProcessWorker** | `safe_process` | Takes a list of records and scores each one using a deterministic hash-based algorithm (PASS if score >= 50, FAIL otherwise). Wraps all logic in try/catch. On exception, returns `FAILED` status so Conductor can retry. | Real (scoring + error handling) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **SimpleTransformWorker** | `simple_transform` | Takes a text string and returns four fields: `upper` (uppercased), `lower` (lowercased), `length` (character count), and `original` (unchanged input). Pure logic, no side effects. |
+| **FetchDataWorker** | `fetch_data` | Takes a `source` name and returns 3 deterministic records prefixed with the source name (e.g., `"my-api-record-1"`). Includes a 100ms sleep to simulate API latency. |
+| **SafeProcessWorker** | `safe_process` | Takes a list of records and scores each one using a deterministic hash-based algorithm (PASS if score >= 50, FAIL otherwise). Wraps all logic in try/catch. On exception, returns `FAILED` status so Conductor can retry. |
 
 ### What Conductor Gives You For Free
 

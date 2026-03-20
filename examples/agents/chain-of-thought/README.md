@@ -18,13 +18,13 @@ Externalizing each reasoning step as a separate worker makes the thought process
 
 Five workers externalize the reasoning chain. Understanding the problem, choosing an approach, calculating step by step, verifying the result, and assembling the final answer.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **FinalAnswerWorker** | `ct_final_answer` | Produces the final human-readable answer combining the verified result and confidence score. | Simulated |
-| **Step1ReasonWorker** | `ct_step_1_reason` | Takes the problem understanding and produces a reasoning step identifying the formula and variables to use. | Simulated |
-| **Step2CalculateWorker** | `ct_step_2_calculate` | Step2s Calculate and computes calculation, interest | Simulated |
-| **Step3VerifyWorker** | `ct_step_3_verify` | Verifies the calculation result using fixed (hardcoded) verification values. No year-by-year computation is performed. | Simulated |
-| **UnderstandProblemWorker** | `ct_understand_problem` | Analyzes the incoming problem and produces a structured understanding including the problem type and known values. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **FinalAnswerWorker** | `ct_final_answer` | Produces the final human-readable answer combining the verified result and confidence score. |
+| **Step1ReasonWorker** | `ct_step_1_reason` | Takes the problem understanding and produces a reasoning step identifying the formula and variables to use. |
+| **Step2CalculateWorker** | `ct_step_2_calculate` | Step2s Calculate and computes calculation, interest |
+| **Step3VerifyWorker** | `ct_step_3_verify` | Verifies the calculation result using fixed (hardcoded) verification values. No year-by-year computation is performed. |
+| **UnderstandProblemWorker** | `ct_understand_problem` | Analyzes the incoming problem and produces a structured understanding including the problem type and known values. |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

@@ -18,13 +18,13 @@ Parallel tool use requires determining which tools are needed (the planning step
 
 Five workers deliver the morning briefing. Planning which tools to call, then dispatching weather, news, and stock APIs in parallel before combining results.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **PlanToolsWorker** | `tp_plan_tools` | Analyzes the user request and determines which tools to invoke in parallel. Returns tool configurations: weather units (fahrenheit) and hourly toggle, news topics (technology, business, world), and stock tickers (AAPL, GOOGL, MSFT, AMZN). Reports tool count of 3. | Simulated. Swap in an LLM to dynamically select tools |
-| **CallWeatherWorker** | `tp_call_weather` | Fetches weather data for the given location. Returns current conditions (58F, Morning Fog, 85% humidity), 4-entry hourly forecast (08:00-14:00), and daily high/low (68F/55F). | Simulated. Swap in OpenWeatherMap or WeatherAPI |
-| **CallNewsWorker** | `tp_call_news` | Retrieves top headlines across requested topic categories. Returns 4 headlines with titles, topics (technology, business, world), and sources (TechDaily, MarketWatch, WorldNews, Bloomberg). | Simulated. Swap in NewsAPI or Google News API |
-| **CallStocksWorker** | `tp_call_stocks` | Fetches stock market quotes for requested tickers. Returns 4 quotes with price, change, and change percent (AAPL +1.33%, GOOGL +1.11%, MSFT -0.20%, AMZN +1.74%), plus overall market sentiment (bullish). | Simulated. Swap in Alpha Vantage or Polygon.io |
-| **CombineResultsWorker** | `tp_combine_results` | Merges parallel weather, news, and stocks data into a unified morning briefing object. Produces a human-readable summary paragraph and records the list of tools used and generation timestamp. | Simulated. Swap in an LLM for natural language synthesis |
+| Worker | Task | What It Does |
+|---|---|---|
+| **PlanToolsWorker** | `tp_plan_tools` | Analyzes the user request and determines which tools to invoke in parallel. Returns tool configurations: weather units (fahrenheit) and hourly toggle, news topics (technology, business, world), and stock tickers (AAPL, GOOGL, MSFT, AMZN). Reports tool count of 3. |
+| **CallWeatherWorker** | `tp_call_weather` | Fetches weather data for the given location. Returns current conditions (58F, Morning Fog, 85% humidity), 4-entry hourly forecast (08:00-14:00), and daily high/low (68F/55F). |
+| **CallNewsWorker** | `tp_call_news` | Retrieves top headlines across requested topic categories. Returns 4 headlines with titles, topics (technology, business, world), and sources (TechDaily, MarketWatch, WorldNews, Bloomberg). |
+| **CallStocksWorker** | `tp_call_stocks` | Fetches stock market quotes for requested tickers. Returns 4 quotes with price, change, and change percent (AAPL +1.33%, GOOGL +1.11%, MSFT -0.20%, AMZN +1.74%), plus overall market sentiment (bullish). |
+| **CombineResultsWorker** | `tp_combine_results` | Merges parallel weather, news, and stocks data into a unified morning briefing object. Produces a human-readable summary paragraph and records the list of tools used and generation timestamp. |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

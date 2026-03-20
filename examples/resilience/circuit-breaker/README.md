@@ -40,11 +40,11 @@ Each circuit breaker concern is a simple, independent worker. One evaluates the 
 
 CheckCircuitWorker evaluates the circuit state from failure counts and thresholds, CallServiceWorker makes the live service call when the circuit is CLOSED, and FallbackWorker returns cached data when the circuit is OPEN to protect the failing dependency.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CheckCircuitWorker** | `cb_check_circuit` | Evaluates the circuit breaker state. If `circuitState` is "OPEN" or "HALF_OPEN", returns that state directly (manual override). Otherwise, compares `failureCount` against `threshold`. Returns "OPEN" if failures >= threshold, "CLOSED" otherwise. Defaults: failureCount=0, threshold=3. | Simulated |
-| **CallServiceWorker** | `cb_call_service` | Makes the real service call. Called when the circuit is CLOSED or HALF_OPEN. Returns `{result: "Service payment-api responded successfully", source: "live"}`. | Simulated |
-| **FallbackWorker** | `cb_fallback` | Returns cached/fallback data. Called when the circuit is OPEN. Returns `{result: "Fallback data for payment-api", source: "cache"}`. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CheckCircuitWorker** | `cb_check_circuit` | Evaluates the circuit breaker state. If `circuitState` is "OPEN" or "HALF_OPEN", returns that state directly (manual override). Otherwise, compares `failureCount` against `threshold`. Returns "OPEN" if failures >= threshold, "CLOSED" otherwise. Defaults: failureCount=0, threshold=3. |
+| **CallServiceWorker** | `cb_call_service` | Makes the real service call. Called when the circuit is CLOSED or HALF_OPEN. Returns `{result: "Service payment-api responded successfully", source: "live"}`. |
+| **FallbackWorker** | `cb_fallback` | Returns cached/fallback data. Called when the circuit is OPEN. Returns `{result: "Fallback data for payment-api", source: "cache"}`. |
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 

@@ -18,12 +18,12 @@ Each worker represents a service boundary. Conductor manages cross-service orche
 
 The order flow chains four domain workers: PlaceOrderWorker creates the order, ReserveInventoryWorker holds stock, ProcessPaymentWorker charges the customer, and ShipOrderWorker dispatches the shipment.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **PlaceOrderWorker** | `cvo_place_order` | Creates the order record with items and computes the order total. | Simulated |
-| **ProcessPaymentWorker** | `cvo_process_payment` | Charges the order total to the customer's payment method. | Simulated |
-| **ReserveInventoryWorker** | `cvo_reserve_inventory` | Reserves the ordered items in the warehouse and returns the warehouse ID for shipping. | Simulated |
-| **ShipOrderWorker** | `cvo_ship_order` | Creates a shipment from the assigned warehouse and returns a tracking ID. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **PlaceOrderWorker** | `cvo_place_order` | Creates the order record with items and computes the order total. |
+| **ProcessPaymentWorker** | `cvo_process_payment` | Charges the order total to the customer's payment method. |
+| **ReserveInventoryWorker** | `cvo_reserve_inventory` | Reserves the ordered items in the warehouse and returns the warehouse ID for shipping. |
+| **ShipOrderWorker** | `cvo_ship_order` | Creates a shipment from the assigned warehouse and returns a tracking ID. |
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 

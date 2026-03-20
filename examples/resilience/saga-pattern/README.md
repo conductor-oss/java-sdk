@@ -30,14 +30,14 @@ Each forward step (book flight, reserve hotel, charge payment) and its compensat
 
 Six workers form the saga: ReserveHotelWorker, BookFlightWorker, and ChargePaymentWorker handle forward booking, while CancelHotelWorker, CancelFlightWorker, and RefundPaymentWorker execute compensating rollbacks in reverse order when any step fails.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **BookFlightWorker** | `saga_book_flight` | Books a flight for the given tripId, returns a booking ID like `FLT-TRIP-001`. | Simulated |
-| **CancelFlightWorker** | `saga_cancel_flight` | Compensation: cancels a previously booked flight using the tripId. Returns `{cancelled: true}`. | Simulated |
-| **CancelHotelWorker** | `saga_cancel_hotel` | Compensation: cancels a previously reserved hotel using the tripId. Returns `{cancelled: true}`. | Simulated |
-| **ChargePaymentWorker** | `saga_charge_payment` | Charges payment for the trip. When `shouldFail=true`, returns `{status: "failed"}` to trigger saga rollback. Otherwise returns `{status: "success", transactionId: "TXN-TRIP-001"}`. | Simulated |
-| **RefundPaymentWorker** | `saga_refund_payment` | Compensation: refunds a previously charged payment. Returns `{refunded: true}`. Registered but not used in the current workflow (payment failure prevents a charge from existing). | Simulated |
-| **ReserveHotelWorker** | `saga_reserve_hotel` | Reserves a hotel room for the given tripId, returns a reservation ID like `HTL-TRIP-001`. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **BookFlightWorker** | `saga_book_flight` | Books a flight for the given tripId, returns a booking ID like `FLT-TRIP-001`. |
+| **CancelFlightWorker** | `saga_cancel_flight` | Compensation: cancels a previously booked flight using the tripId. Returns `{cancelled: true}`. |
+| **CancelHotelWorker** | `saga_cancel_hotel` | Compensation: cancels a previously reserved hotel using the tripId. Returns `{cancelled: true}`. |
+| **ChargePaymentWorker** | `saga_charge_payment` | Charges payment for the trip. When `shouldFail=true`, returns `{status: "failed"}` to trigger saga rollback. Otherwise returns `{status: "success", transactionId: "TXN-TRIP-001"}`. |
+| **RefundPaymentWorker** | `saga_refund_payment` | Compensation: refunds a previously charged payment. Returns `{refunded: true}`. Registered but not used in the current workflow (payment failure prevents a charge from existing). |
+| **ReserveHotelWorker** | `saga_reserve_hotel` | Reserves a hotel room for the given tripId, returns a reservation ID like `HTL-TRIP-001`. |
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 

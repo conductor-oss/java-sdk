@@ -18,14 +18,14 @@ If one partition's search worker fails, you need to retry just that partition wi
 
 Six workers implement the map-reduce pattern: corpus splitting, three parallel partition mappers, result reduction, and final output formatting, each scoped to one phase of the search pipeline.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **MprMap1Worker** | `mpr_map_1` | Scans the first document partition for the search term and returns per-document match counts | Simulated |
-| **MprMap2Worker** | `mpr_map_2` | Scans the second document partition for the search term and returns per-document match counts | Simulated |
-| **MprMap3Worker** | `mpr_map_3` | Scans the third document partition for the search term and returns per-document match counts | Simulated |
-| **MprOutputWorker** | `mpr_output` | Produces the final summary with the search term and total occurrences across all documents | Simulated |
-| **MprReduceWorker** | `mpr_reduce` | Combines map results from all partitions, ranking documents by match count and summing totals | Simulated |
-| **MprSplitInputWorker** | `mpr_split_input` | Splits the document corpus into three partitions for parallel map processing | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **MprMap1Worker** | `mpr_map_1` | Scans the first document partition for the search term and returns per-document match counts |
+| **MprMap2Worker** | `mpr_map_2` | Scans the second document partition for the search term and returns per-document match counts |
+| **MprMap3Worker** | `mpr_map_3` | Scans the third document partition for the search term and returns per-document match counts |
+| **MprOutputWorker** | `mpr_output` | Produces the final summary with the search term and total occurrences across all documents |
+| **MprReduceWorker** | `mpr_reduce` | Combines map results from all partitions, ranking documents by match count and summing totals |
+| **MprSplitInputWorker** | `mpr_split_input` | Splits the document corpus into three partitions for parallel map processing |
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 

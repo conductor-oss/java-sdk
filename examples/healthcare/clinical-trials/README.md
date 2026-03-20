@@ -18,13 +18,13 @@ Each stage of the trial enrollment pipeline is a simple, independent worker, a p
 
 Five workers manage the trial enrollment pipeline: ScreenWorker checks eligibility, ConsentWorker records informed consent, RandomizeWorker assigns treatment arms, MonitorWorker tracks adverse events, and AnalyzeTrialWorker runs outcome analysis.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ScreenWorker** | `clt_screen` | Evaluates the participant against inclusion/exclusion criteria for the specified trial and condition | Simulated. Swap in your CTMS eligibility engine for production |
-| **ConsentWorker** | `clt_consent` | Records the participant's informed consent with electronic signature and version tracking | Simulated. Swap in your eConsent platform (DocuSign, REDCap) for production |
-| **RandomizeWorker** | `clt_randomize` | Assigns the participant to a treatment arm using stratified block randomization | Simulated. Swap in your IWRS/IRT randomization system for production |
-| **MonitorWorker** | `clt_monitor` | Tracks the participant through the trial for adverse events, protocol deviations, and study visits | Simulated. Swap in your EDC system (Medidata Rave, Oracle Clinical) for production |
-| **AnalyzeTrialWorker** | `clt_analyze` | Runs the statistical analysis on collected trial data and generates outcome reports | Simulated. Swap in your biostatistics platform (SAS, R) for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ScreenWorker** | `clt_screen` | Evaluates the participant against inclusion/exclusion criteria for the specified trial and condition |
+| **ConsentWorker** | `clt_consent` | Records the participant's informed consent with electronic signature and version tracking |
+| **RandomizeWorker** | `clt_randomize` | Assigns the participant to a treatment arm using stratified block randomization |
+| **MonitorWorker** | `clt_monitor` | Tracks the participant through the trial for adverse events, protocol deviations, and study visits |
+| **AnalyzeTrialWorker** | `clt_analyze` | Runs the statistical analysis on collected trial data and generates outcome reports |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
 

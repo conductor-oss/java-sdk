@@ -18,12 +18,12 @@ Each worker integrates with one external system. Conductor manages the integrati
 
 Four workers manage the issue lifecycle: CreateIssueWorker opens tickets, TransitionWorker moves issues through statuses, TrackStatusWorker monitors current state, and NotifyWorker alerts assignees of changes.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue via the Jira REST API (POST /rest/api/3/issue). When `JIRA_URL` and `JIRA_API_TOKEN` are set, calls the real Jira API. When unset, runs in simulated mode with deterministic issue keys. | Real (simulated fallback if credentials unset) |
-| **TransitionWorker** | `jra_transition` | Transitions the issue. moves the issue through workflow statuses (To Do -> In Progress -> Done) and returns the new status | Simulated, swap in Jira REST API (POST /rest/api/3/issue/{key}/transitions) for production |
-| **TrackStatusWorker** | `jra_track_status` | Tracks the issue status: queries the current status, assignee, and last update timestamp for the issue | Simulated, swap in Jira REST API (GET /rest/api/3/issue/{key}) for production |
-| **NotifyWorker** | `jra_notify` | Notifies the assignee. sends a notification about the status change with the issue key and new status | Simulated, swap in Jira notification API, Slack integration, or email notification for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue via the Jira REST API (POST /rest/api/3/issue). When `JIRA_URL` and `JIRA_API_TOKEN` are set, calls the real Jira API. When unset, runs in simulated mode with deterministic issue keys. |
+| **TransitionWorker** | `jra_transition` | Transitions the issue. moves the issue through workflow statuses (To Do -> In Progress -> Done) and returns the new status |
+| **TrackStatusWorker** | `jra_track_status` | Tracks the issue status: queries the current status, assignee, and last update timestamp for the issue |
+| **NotifyWorker** | `jra_notify` | Notifies the assignee. sends a notification about the status change with the issue key and new status |
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
 

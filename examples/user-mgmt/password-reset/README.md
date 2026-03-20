@@ -18,12 +18,12 @@ Each worker handles one user lifecycle step. Conductor manages the onboarding se
 
 RequestWorker looks up the account by email, VerifyTokenWorker validates the reset token, ResetWorker updates the password hash, and NotifyWorker sends a confirmation email, each handles one step of the secure reset flow.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `RequestWorker` | `pwd_request` | Looks up the user account by email and returns the user ID (`USR-A1B2C3`) and a timestamp | Simulated |
-| `VerifyTokenWorker` | `pwd_verify` | Validates the reset token against the user ID, confirming it is valid with 900 seconds remaining | Simulated |
-| `ResetWorker` | `pwd_reset` | Updates the user's password in the credential store and records the update timestamp | Simulated |
-| `NotifyWorker` | `pwd_notify` | Sends a password-change confirmation email to the user's address | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `RequestWorker` | `pwd_request` | Looks up the user account by email and returns the user ID (`USR-A1B2C3`) and a timestamp |
+| `VerifyTokenWorker` | `pwd_verify` | Validates the reset token against the user ID, confirming it is valid with 900 seconds remaining |
+| `ResetWorker` | `pwd_reset` | Updates the user's password in the credential store and records the update timestamp |
+| `NotifyWorker` | `pwd_notify` | Sends a password-change confirmation email to the user's address |
 
 Workers simulate user lifecycle operations: account creation, verification, profile setup, with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 

@@ -18,12 +18,12 @@ Each worker automates one operational step. Conductor manages execution sequenci
 
 Four workers handle the incident lifecycle. Creating the ticket, paging the responder, pulling diagnostics, and attempting automated remediation.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `CreateIncidentWorker` | `ir_create_incident` | Creates a tracked incident record with ID `INC-42` and the provided severity level (e.g., P1) | Simulated |
-| `NotifyOncallWorker` | `ir_notify_oncall` | Pages the current on-call engineer with the incident ID so they can begin investigation | Simulated |
-| `GatherDiagnosticsWorker` | `ir_gather_diagnostics` | Collects live metrics from the affected service. Returns CPU usage (95%) and error rate (5%) | Simulated |
-| `AutoRemediateWorker` | `ir_auto_remediate` | Attempts automated recovery (scales up 2 replicas) and reports whether remediation succeeded | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `CreateIncidentWorker` | `ir_create_incident` | Creates a tracked incident record with ID `INC-42` and the provided severity level (e.g., P1) |
+| `NotifyOncallWorker` | `ir_notify_oncall` | Pages the current on-call engineer with the incident ID so they can begin investigation |
+| `GatherDiagnosticsWorker` | `ir_gather_diagnostics` | Collects live metrics from the affected service. Returns CPU usage (95%) and error rate (5%) |
+| `AutoRemediateWorker` | `ir_auto_remediate` | Attempts automated recovery (scales up 2 replicas) and reports whether remediation succeeded |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 

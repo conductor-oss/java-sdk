@@ -18,13 +18,13 @@ Each worker handles one IoT operation. Data ingestion, threshold analysis, devic
 
 Five workers form the tracking pipeline: TagAssetWorker registers IoT identifiers, TrackLocationWorker polls GPS coordinates, GeofenceCheckWorker evaluates boundary compliance, TriggerAlertWorker dispatches violations, and UpdateRegistryWorker records current position and status.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **GeofenceCheckWorker** | `ast_geofence_check` | Checks whether the asset's GPS coordinates fall inside or outside the defined geofence boundary and computes distance from the boundary. | Simulated |
-| **TagAssetWorker** | `ast_tag_asset` | Registers an IoT tracking tag for the asset and returns the assigned tag ID. | Simulated |
-| **TrackLocationWorker** | `ast_track_location` | Polls the tracking device for the asset's current GPS latitude and longitude. | Simulated |
-| **TriggerAlertWorker** | `ast_trigger_alert` | Evaluates geofence status and triggers an alert if the asset is outside the authorized zone. | Simulated |
-| **UpdateRegistryWorker** | `ast_update_registry` | Updates the central asset registry with current location, geofence status, and alert information. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **GeofenceCheckWorker** | `ast_geofence_check` | Checks whether the asset's GPS coordinates fall inside or outside the defined geofence boundary and computes distance from the boundary. |
+| **TagAssetWorker** | `ast_tag_asset` | Registers an IoT tracking tag for the asset and returns the assigned tag ID. |
+| **TrackLocationWorker** | `ast_track_location` | Polls the tracking device for the asset's current GPS latitude and longitude. |
+| **TriggerAlertWorker** | `ast_trigger_alert` | Evaluates geofence status and triggers an alert if the asset is outside the authorized zone. |
+| **UpdateRegistryWorker** | `ast_update_registry` | Updates the central asset registry with current location, geofence status, and alert information. |
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
 

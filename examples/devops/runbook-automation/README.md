@@ -18,12 +18,12 @@ Each worker automates one operational step. Conductor manages execution sequenci
 
 Each worker handles one runbook stage. Loading the procedure, executing remediation, verifying the fix, and logging the outcome with timing data.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `LoadRunbookWorker` | `ra_load_runbook` | Looks up the versioned runbook definition by name and returns its ID and version (e.g., "database-failover v3") | Simulated |
-| `ExecuteStepWorker` | `ra_execute_step` | Runs the primary remediation action from the runbook (e.g., promotes a database replica to primary) | Simulated |
-| `VerifyStepWorker` | `ra_verify_step` | Validates that the remediation succeeded (e.g., confirms the new primary is accepting connections) | Simulated |
-| `LogOutcomeWorker` | `ra_log_outcome` | Records the final execution outcome and duration (45s) for audit and post-mortem review | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `LoadRunbookWorker` | `ra_load_runbook` | Looks up the versioned runbook definition by name and returns its ID and version (e.g., "database-failover v3") |
+| `ExecuteStepWorker` | `ra_execute_step` | Runs the primary remediation action from the runbook (e.g., promotes a database replica to primary) |
+| `VerifyStepWorker` | `ra_verify_step` | Validates that the remediation succeeded (e.g., confirms the new primary is accepting connections) |
+| `LogOutcomeWorker` | `ra_log_outcome` | Records the final execution outcome and duration (45s) for audit and post-mortem review |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 

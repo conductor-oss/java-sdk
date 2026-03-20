@@ -18,13 +18,13 @@ Each step has different failure modes, the LLM might plan the wrong API, the aut
 
 Five workers bridge natural language to API calls. Planning the endpoint, authenticating, executing the request, parsing the response, and formatting the answer.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **PlanApiCallWorker** | `ap_plan_api_call` | Plans an API call based on the user's request and an API catalog. Selects GitHub as the best API, determines the endpoint (`https://api.github.com/repos/conductor-oss/conductor`), method (GET), params (owner, repo), auth type (bearer_token), and expected response schema (8 fields). | Simulated. Swap in GPT-4 function calling for dynamic API selection |
-| **AuthenticateWorker** | `ap_authenticate` | Authenticates against the selected API by producing a bearer token. Takes apiName and authType, returns a simulated token (`ghp_sim_...`), expiry (3600s), and token type (Bearer). | Simulated. Swap in AWS Secrets Manager or Auth0 for real credentials |
-| **CallApiWorker** | `ap_call_api` | Calls the selected API endpoint. Takes endpoint, method, params, and authToken. Returns a simulated GitHub repo response (conductor-oss/conductor with 16500 stars, 2100 forks, Java, Apache-2.0 license), status code (200), and response time (185ms). | Simulated. Swap in OkHttp or Apache HttpClient for real HTTP calls |
-| **ParseResponseWorker** | `ap_parse_response` | Parses and validates the raw API response against the expected schema. Extracts fields (name, description, stars, forks, language, license, openIssues, defaultBranch), counts fields extracted, and validates that status code is 200 with fields present. | Real. Deterministic field extraction and validation logic |
-| **FormatOutputWorker** | `ap_format_output` | Formats the parsed API data into a human-readable answer. Constructs a natural language sentence: "The repository conductor-oss/conductor is .. It is written in Java and has 16500 stars and 2100 forks. It is licensed under Apache License 2.0." | Real. Deterministic template-based formatting |
+| Worker | Task | What It Does |
+|---|---|---|
+| **PlanApiCallWorker** | `ap_plan_api_call` | Plans an API call based on the user's request and an API catalog. Selects GitHub as the best API, determines the endpoint (`https://api.github.com/repos/conductor-oss/conductor`), method (GET), params (owner, repo), auth type (bearer_token), and expected response schema (8 fields). |
+| **AuthenticateWorker** | `ap_authenticate` | Authenticates against the selected API by producing a bearer token. Takes apiName and authType, returns a HMAC-signed JWT ), expiry (3600s), and token type (Bearer). |
+| **CallApiWorker** | `ap_call_api` | Calls the selected API endpoint. Takes endpoint, method, params, and authToken. Returns a simulated GitHub repo response (conductor-oss/conductor with 16500 stars, 2100 forks, Java, Apache-2.0 license), status code (200), and response time (185ms). |
+| **ParseResponseWorker** | `ap_parse_response` | Parses and validates the raw API response against the expected schema. Extracts fields (name, description, stars, forks, language, license, openIssues, defaultBranch), counts fields extracted, and validates that status code is 200 with fields present. |
+| **FormatOutputWorker** | `ap_format_output` | Formats the parsed API data into a human-readable answer. Constructs a natural language sentence: "The repository conductor-oss/conductor is .. It is written in Java and has 16500 stars and 2100 forks. It is licensed under Apache License 2.0." |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

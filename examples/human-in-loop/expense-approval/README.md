@@ -16,12 +16,12 @@ Each worker handles one stage of the approval chain. Conductor manages task assi
 
 ValidatePolicyWorker checks expense amounts and categories, while ProcessWorker handles reimbursement. Neither knows about the SWITCH or WAIT tasks that connect them.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ValidatePolicyWorker** | `exp_validate_policy` | Checks the expense amount and category against policy rules. amounts over $100 or "travel" category require manager approval; returns `approvalRequired: "true"` or `"false"` as a string for the SWITCH evaluator | Simulated, swap in your expense policy engine (SAP Concur, Expensify, Brex) for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ValidatePolicyWorker** | `exp_validate_policy` | Checks the expense amount and category against policy rules. amounts over $100 or "travel" category require manager approval; returns `approvalRequired: "true"` or `"false"` as a string for the SWITCH evaluator |
 | *SWITCH task* | `approval_switch` | Routes based on `approvalRequired`. `"true"` sends to a WAIT task for manager approval, default skips straight to processing | Built-in Conductor SWITCH.; no worker needed |
 | *WAIT task* | `wait_for_approval` | Pauses the workflow until a manager approves or rejects the expense via `POST /tasks/{taskId}`. See [Completing the WAIT Task](#completing-the-wait-task-human-approval) | Built-in Conductor WAIT.; no worker needed |
-| **ProcessWorker** | `exp_process` | Finalizes the approved expense: posts the reimbursement to payroll, updates the general ledger, and sends the employee a confirmation email; returns `processed: true` | Simulated, swap in your ERP or expense management system (SAP, NetSuite, QuickBooks) for production |
+| **ProcessWorker** | `exp_process` | Finalizes the approved expense: posts the reimbursement to payroll, updates the general ledger, and sends the employee a confirmation email; returns `processed: true` |
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 

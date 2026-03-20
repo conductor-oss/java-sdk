@@ -33,10 +33,10 @@ The processing worker handles the business logic, and when it fails with retries
 
 ProcessWorker handles message processing and reports success or failure, while HandleFailureWorker captures permanently failed messages with full context: original inputs, error details, and retry history, for investigation and manual review.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ProcessWorker** | `dl_process` | Processes data based on mode input. When `mode="fail"`, returns FAILED with `{error: "Processing failed for data: order-456"}`. When mode is anything else (or missing), returns COMPLETED with `{result: "Processed: order-456"}`. Only accepts String inputs. Non-string mode defaults to "success", non-string data defaults to empty string. | Simulated |
-| **HandleFailureWorker** | `dl_handle_failure` | Handles dead letter entries by logging the failed task details. Receives `failedWorkflowId`, `failedTaskName`, and `error` as inputs. Returns `{handled: true, summary: "Failure handled for workflow wf-123, task dl_process: ..."}`. Always succeeds. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ProcessWorker** | `dl_process` | Processes data based on mode input. When `mode="fail"`, returns FAILED with `{error: "Processing failed for data: order-456"}`. When mode is anything else (or missing), returns COMPLETED with `{result: "Processed: order-456"}`. Only accepts String inputs. Non-string mode defaults to "success", non-string data defaults to empty string. |
+| **HandleFailureWorker** | `dl_handle_failure` | Handles dead letter entries by logging the failed task details. Receives `failedWorkflowId`, `failedTaskName`, and `error` as inputs. Returns `{handled: true, summary: "Failure handled for workflow wf-123, task dl_process: ..."}`. Always succeeds. |
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 

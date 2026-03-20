@@ -18,13 +18,13 @@ Each stage of the procure-to-pay process is a simple, independent worker, a plai
 
 Five workers cover the procure-to-pay cycle: RequisitionWorker creates the request, ApproveWorker validates the budget, PurchaseWorker generates the PO, ReceiveWorker confirms delivery, and PayWorker processes vendor payment.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ApproveWorker** | `prw_approve` | Approves or rejects a requisition based on budget. | Simulated |
-| **PayWorker** | `prw_pay` | Processes payment for a purchase order. | Simulated |
-| **PurchaseWorker** | `prw_purchase` | Creates a purchase order. | Simulated |
-| **ReceiveWorker** | `prw_receive` | Confirms goods receipt. | Simulated |
-| **RequisitionWorker** | `prw_requisition` | Creates a purchase requisition. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ApproveWorker** | `prw_approve` | Approves or rejects a requisition based on budget. |
+| **PayWorker** | `prw_pay` | Processes payment for a purchase order. |
+| **PurchaseWorker** | `prw_purchase` | Creates a purchase order. |
+| **ReceiveWorker** | `prw_receive` | Confirms goods receipt. |
+| **RequisitionWorker** | `prw_requisition` | Creates a purchase requisition. |
 
 Workers simulate supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 

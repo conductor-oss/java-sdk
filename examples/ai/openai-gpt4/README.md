@@ -18,11 +18,11 @@ Each concern is an independent worker. Request building (constructing the messag
 
 Three workers handle the OpenAI integration. Building the chat completion request with messages and parameters, calling the GPT-4 API, and extracting the response text with usage statistics.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **Gpt4BuildRequestWorker** | `gpt4_build_request` | Builds an OpenAI chat completion request body from workflow input parameters. | Real (no API needed) |
-| **Gpt4CallApiWorker** | `gpt4_call_api` | Calls the OpenAI GPT-4 chat completion API, or returns a simulated response when no API key is set. | Real with `CONDUCTOR_OPENAI_API_KEY` / Simulated without |
-| **Gpt4ExtractResultWorker** | `gpt4_extract_result` | Extracts the assistant's response content from the GPT-4 API response. | Real (no API needed) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **Gpt4BuildRequestWorker** | `gpt4_build_request` | Builds an OpenAI chat completion request body from workflow input parameters. |
+| **Gpt4CallApiWorker** | `gpt4_call_api` | Calls the OpenAI GPT-4 chat completion API, or returns a simulated response when no API key is set. |
+| **Gpt4ExtractResultWorker** | `gpt4_extract_result` | Extracts the assistant's response content from the GPT-4 API response. |
 
 Without `CONDUCTOR_OPENAI_API_KEY`, the `Gpt4CallApiWorker` runs in simulated mode with `` output. Set the environment variable to make real OpenAI API calls. The default chat model is `gpt-4o-mini`, configurable through `OPENAI_CHAT_MODEL` or workflow input `model`, and the worker interface stays the same.
 
@@ -130,7 +130,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 ## Configuration
 
 | Environment Variable | Required For | Default | Description |
-|---|---|---|---|
+|---|---|---|
 | `CONDUCTOR_OPENAI_API_KEY` | Real mode | _(none)_ | OpenAI API key for GPT-4 chat completion. Without this, workers run in simulated mode with `` output. |
 | `OPENAI_CHAT_MODEL` | Optional | `gpt-4o-mini` | Default chat model for live runs. You can also override it per workflow input with `model`. |
 | `CONDUCTOR_BASE_URL` | Conductor | `http://localhost:8080/api` | Conductor server URL |

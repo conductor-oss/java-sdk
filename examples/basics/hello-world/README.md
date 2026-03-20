@@ -18,9 +18,9 @@ A single `greet` worker receives a name, produces a greeting, and returns it. Co
 
 A single GreetWorker demonstrates the minimum Conductor contract: receive input via `getInputData()`, do your work, return output via `getOutputData()`.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **GreetWorker** | `greet` | Takes a `name` from input, returns `"Hello, {name}! Welcome to Conductor."`. Defaults to `"World"` if name is blank or missing. | Real (pure logic) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **GreetWorker** | `greet` | Takes a `name` from input, returns `"Hello, {name}! Welcome to Conductor."`. Defaults to `"World"` if name is blank or missing. |
 
 ### What Conductor Gives You For Free
 

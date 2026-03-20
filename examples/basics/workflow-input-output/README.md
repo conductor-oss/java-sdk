@@ -18,12 +18,12 @@ Four workers form the price calculation pipeline. Price lookup, discount applica
 
 The price calculator workers show how JSONPath expressions route specific fields from workflow input to each worker and aggregate their outputs.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **LookupPriceWorker** | `lookup_price` | Resolves a product ID against a built-in catalog (PROD-001 = Wireless Keyboard $79.99, PROD-002 = 27" Monitor $349.99, PROD-003 = USB-C Hub $49.99) and multiplies by quantity to produce a subtotal. | Real (in-memory catalog) |
-| **ApplyDiscountWorker** | `apply_discount` | Looks up a coupon code (SAVE10 = 10%, SAVE20 = 20%, HALF = 50%) and subtracts the discount from the subtotal. Unknown or missing coupons apply 0% discount. | Real (coupon lookup + math) |
-| **CalculateTaxWorker** | `calculate_tax` | Applies a fixed 8.25% sales tax rate to the discounted total and returns the tax amount and final total. | Real (tax math) |
-| **FormatInvoiceWorker** | `format_invoice` | Assembles all prior outputs (product, price, discount, tax) into a formatted plaintext invoice string. | Real (string formatting) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **LookupPriceWorker** | `lookup_price` | Resolves a product ID against a built-in catalog (PROD-001 = Wireless Keyboard $79.99, PROD-002 = 27" Monitor $349.99, PROD-003 = USB-C Hub $49.99) and multiplies by quantity to produce a subtotal. |
+| **ApplyDiscountWorker** | `apply_discount` | Looks up a coupon code (SAVE10 = 10%, SAVE20 = 20%, HALF = 50%) and subtracts the discount from the subtotal. Unknown or missing coupons apply 0% discount. |
+| **CalculateTaxWorker** | `calculate_tax` | Applies a fixed 8.25% sales tax rate to the discounted total and returns the tax amount and final total. |
+| **FormatInvoiceWorker** | `format_invoice` | Assembles all prior outputs (product, price, discount, tax) into a formatted plaintext invoice string. |
 
 ### What Conductor Gives You For Free
 

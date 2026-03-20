@@ -18,12 +18,12 @@ SubmitWorker captures the travel request details (employee, destination, purpose
 
 Request submission, policy check, manager review, and approval notification workers each handle one gate in the corporate travel authorization process.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **SubmitWorker** | `tva_submit` | Captures travel request details (employee ID, destination) and returns a unique request ID | Simulated |
-| **EstimateWorker** | `tva_estimate` | Evaluates the estimated cost against the $1,000 policy threshold and returns the approval type (`auto_approve` or `manager`) and total estimate | Simulated |
-| **AutoApproveWorker** | `tva_auto_approve` | Marks requests under the threshold as approved with method `auto` | Simulated |
-| **ManagerApproveWorker** | `tva_manager_approve` | Routes requests over the threshold to a manager for review and records the approver identity | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **SubmitWorker** | `tva_submit` | Captures travel request details (employee ID, destination) and returns a unique request ID |
+| **EstimateWorker** | `tva_estimate` | Evaluates the estimated cost against the $1,000 policy threshold and returns the approval type (`auto_approve` or `manager`) and total estimate |
+| **AutoApproveWorker** | `tva_auto_approve` | Marks requests under the threshold as approved with method `auto` |
+| **ManagerApproveWorker** | `tva_manager_approve` | Routes requests over the threshold to a manager for review and records the approver identity |
 
 Workers simulate travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 

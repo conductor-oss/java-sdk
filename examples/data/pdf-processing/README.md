@@ -18,12 +18,12 @@ Each stage of the PDF pipeline is a simple, independent worker. The text extract
 
 Four workers handle PDF processing: extracting raw text with page counts, parsing text into logical sections by heading patterns, analyzing content for word counts and keywords, and generating a structured document summary.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `ExtractTextWorker` | `pd_extract_text` | Loads the PDF from the source URL and returns raw text, page count (3), and character count | Simulated |
-| `ParseSectionsWorker` | `pd_parse_sections` | Splits raw text into logical sections by detecting "Chapter N:" heading patterns, returning title/content pairs | Simulated |
-| `AnalyzeContentWorker` | `pd_analyze_content` | Counts words across all sections, extracts keywords (data, processing, architecture, pipelines, analytics), and computes average words per section | Simulated |
-| `GenerateSummaryWorker` | `pd_generate_summary` | Combines section titles and analysis metrics into a one-line summary like "Document contains 3 chapters covering..." | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `ExtractTextWorker` | `pd_extract_text` | Loads the PDF from the source URL and returns raw text, page count (3), and character count |
+| `ParseSectionsWorker` | `pd_parse_sections` | Splits raw text into logical sections by detecting "Chapter N:" heading patterns, returning title/content pairs |
+| `AnalyzeContentWorker` | `pd_analyze_content` | Counts words across all sections, extracts keywords (data, processing, architecture, pipelines, analytics), and computes average words per section |
+| `GenerateSummaryWorker` | `pd_generate_summary` | Combines section titles and analysis metrics into a one-line summary like "Document contains 3 chapters covering..." |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 

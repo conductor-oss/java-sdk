@@ -18,9 +18,9 @@ Each stage is an independent worker. JSON generation (LLM call with structured o
 
 Three workers form the structured output pipeline. JSON generation from entity descriptions, schema validation against required fields and types, and transformation into the application's expected format.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **GenerateJsonWorker** | `so_generate_json` | Generates a structured JSON object for the given entity. Calls OpenAI API in live mode, returns deterministic output in simulated mode. | Live (with `CONDUCTOR_OPENAI_API_KEY`) / Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **GenerateJsonWorker** | `so_generate_json` | Generates a structured JSON object for the given entity. Calls OpenAI API in live mode, returns deterministic output in simulated mode. |
 | **ValidateSchemaWorker** | `so_validate_schema` | Validates the generated JSON against the schema: checks that all required fields exist and that their types match (string, number). Returns a `valid` boolean, a list of errors, and the validated data | Processing only |
 | **TransformWorker** | `so_transform` | Enriches the validated data by adding metadata fields (`_validated: true`, `_timestamp`) to produce the final application-ready JSON | Processing only |
 

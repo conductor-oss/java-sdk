@@ -18,13 +18,13 @@ Exactly-once processing requires a careful protocol: acquire a distributed lock 
 
 Five workers enforce the exactly-once protocol: distributed locking, state checking, business logic execution, atomic commit, and lock release, each owning one step of the deduplication boundary.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ExoCheckStateWorker** | `exo_check_state` | Checks whether the message was already processed by looking up its current state and sequence number | Simulated |
-| **ExoCommitWorker** | `exo_commit` | Atomically commits the processing result and records the state transition (pending to completed) | Simulated |
-| **ExoLockWorker** | `exo_lock` | Acquires a distributed lock with a TTL to prevent concurrent processing of the same message | Simulated |
-| **ExoProcessWorker** | `exo_process` | Executes the idempotent business logic (e.g., applying a debit and computing new balance) | Simulated |
-| **ExoUnlockWorker** | `exo_unlock` | Releases the distributed lock after processing and commit are complete | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ExoCheckStateWorker** | `exo_check_state` | Checks whether the message was already processed by looking up its current state and sequence number |
+| **ExoCommitWorker** | `exo_commit` | Atomically commits the processing result and records the state transition (pending to completed) |
+| **ExoLockWorker** | `exo_lock` | Acquires a distributed lock with a TTL to prevent concurrent processing of the same message |
+| **ExoProcessWorker** | `exo_process` | Executes the idempotent business logic (e.g., applying a debit and computing new balance) |
+| **ExoUnlockWorker** | `exo_unlock` | Releases the distributed lock after processing and commit are complete |
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 

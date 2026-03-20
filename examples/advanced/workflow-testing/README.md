@@ -20,13 +20,13 @@ This example is for teams building CI/CD pipelines around Conductor workflows, v
 
 Five workers orchestrate the test lifecycle. Fixture setup, workflow execution against golden inputs, field-by-field assertion, resource teardown, and pass/fail report generation.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **SetupWorker** | `wft_setup` | Creates test fixtures: mock database (localhost:5432/test_db), mock API endpoint (localhost:9090), and two test data records (alpha, beta). | Simulated |
-| **ExecuteWorker** | `wft_execute` | Runs the workflow under test with the fixtures and captures its actual output (status, processed count, per-record results). | Simulated |
-| **AssertWorker** | `wft_assert` | Compares actual vs. expected output field-by-field: checks `status` equality and `processed` count match. Returns a list of named assertions with expected/actual/passed for each. | Simulated |
-| **TeardownWorker** | `wft_teardown` | Releases all fixture resources: mockDb, mockApi, testData. Reports cleanup status. | Simulated |
-| **ReportWorker** | `wft_report` | Computes the test report from the assertion list: counts total and passed assertions, determines overall PASSED/FAILED verdict, includes teardown status. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **SetupWorker** | `wft_setup` | Creates test fixtures: mock database (localhost:5432/test_db), mock API endpoint (localhost:9090), and two test data records (alpha, beta). |
+| **ExecuteWorker** | `wft_execute` | Runs the workflow under test with the fixtures and captures its actual output (status, processed count, per-record results). |
+| **AssertWorker** | `wft_assert` | Compares actual vs. expected output field-by-field: checks `status` equality and `processed` count match. Returns a list of named assertions with expected/actual/passed for each. |
+| **TeardownWorker** | `wft_teardown` | Releases all fixture resources: mockDb, mockApi, testData. Reports cleanup status. |
+| **ReportWorker** | `wft_report` | Computes the test report from the assertion list: counts total and passed assertions, determines overall PASSED/FAILED verdict, includes teardown status. |
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 

@@ -18,13 +18,13 @@ Each account-opening concern is a simple, independent worker, a plain Java class
 
 Five workers cover the onboarding pipeline: CollectInfoWorker gathers identity documents, VerifyIdentityWorker runs KYC checks, CreditCheckWorker queries ChexSystems, OpenAccountWorker provisions the account, and WelcomeWorker sends the welcome package.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CollectInfoWorker** | `acc_collect_info` | Collects applicant documents (driver's license, SSN, proof of address) and records that all required identity documents are present | Simulated |
-| **CreditCheckWorker** | `acc_credit_check` | Runs a credit and banking history check via ChexSystems | Simulated |
-| **OpenAccountWorker** | `acc_open_account` | Provisions the new account in the core banking system. Generates an account number, assigns a routing number, and records the account type and initial deposit | Simulated |
-| **VerifyIdentityWorker** | `acc_verify_identity` | Verifies the applicant's identity using KYC document checks | Simulated |
-| **WelcomeWorker** | `acc_welcome` | Sends the welcome package to the new account holder. Includes debit card, checks, online banking enrollment, and mobile app setup | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CollectInfoWorker** | `acc_collect_info` | Collects applicant documents (driver's license, SSN, proof of address) and records that all required identity documents are present |
+| **CreditCheckWorker** | `acc_credit_check` | Runs a credit and banking history check via ChexSystems |
+| **OpenAccountWorker** | `acc_open_account` | Provisions the new account in the core banking system. Generates an account number, assigns a routing number, and records the account type and initial deposit |
+| **VerifyIdentityWorker** | `acc_verify_identity` | Verifies the applicant's identity using KYC document checks |
+| **WelcomeWorker** | `acc_welcome` | Sends the welcome package to the new account holder. Includes debit card, checks, online banking enrollment, and mobile app setup |
 
 Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 

@@ -18,13 +18,13 @@ The plan provides structure, the agent knows how many steps remain, which step i
 
 Five workers implement the autonomous agent. Setting the goal, creating a plan, executing steps in a loop with progress evaluation, and compiling the final report.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreatePlanWorker** | `aa_create_plan` | Creates a multi-step plan from a goal and its constraints. | Simulated |
-| **EvaluateProgressWorker** | `aa_evaluate_progress` | Evaluates progress after each executed step. | Simulated |
-| **ExecuteStepWorker** | `aa_execute_step` | Executes a single step from the plan based on the current iteration. | Simulated |
-| **FinalReportWorker** | `aa_final_report` | Produces the final report summarising the autonomous agent's work. | Simulated |
-| **SetGoalWorker** | `aa_set_goal` | Translates a high-level mission into a concrete goal with constraints. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CreatePlanWorker** | `aa_create_plan` | Creates a multi-step plan from a goal and its constraints. |
+| **EvaluateProgressWorker** | `aa_evaluate_progress` | Evaluates progress after each executed step. |
+| **ExecuteStepWorker** | `aa_execute_step` | Executes a single step from the plan based on the current iteration. |
+| **FinalReportWorker** | `aa_final_report` | Produces the final report summarising the autonomous agent's work. |
+| **SetGoalWorker** | `aa_set_goal` | Translates a high-level mission into a concrete goal with constraints. |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

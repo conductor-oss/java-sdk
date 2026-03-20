@@ -18,12 +18,12 @@ The pipeline must be idempotent: re-running it with the same commit SHA should p
 
 Four workers run the CI/CD pipeline. Building from a commit, running tests in parallel, deploying to staging, and promoting to production.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **Build** | `cicd_build` | Builds the application from the specified repo, branch, and commit. | Simulated |
-| **DeployProd** | `cicd_deploy_prod` | Deploys the build to production environment. | Simulated |
-| **DeployStaging** | `cicd_deploy_staging` | Deploys the build to staging environment. | Simulated |
-| **SecurityScan** | `cicd_security_scan` | Runs security scan for the build. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **Build** | `cicd_build` | Builds the application from the specified repo, branch, and commit. |
+| **DeployProd** | `cicd_deploy_prod` | Deploys the build to production environment. |
+| **DeployStaging** | `cicd_deploy_staging` | Deploys the build to staging environment. |
+| **SecurityScan** | `cicd_security_scan` | Runs security scan for the build. |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 

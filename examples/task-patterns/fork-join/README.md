@@ -18,12 +18,12 @@ This example demonstrates Conductor's FORK_JOIN task for parallel data aggregati
 
 Four workers demonstrate parallel data aggregation: GetProductWorker, GetInventoryWorker, and GetReviewsWorker each fetch from their respective microservice concurrently, then MergeResultsWorker combines all three into a unified product page.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **GetProductWorker** | `fj_get_product` | Returns product catalog data (id, name, price, category) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. | Simulated |
-| **GetInventoryWorker** | `fj_get_inventory` | Returns inventory data (productId, inStock flag, quantity, warehouse location) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. | Simulated |
-| **GetReviewsWorker** | `fj_get_reviews` | Returns review data (productId, averageRating, totalReviews, topReview text) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. | Simulated |
-| **MergeResultsWorker** | `fj_merge_results` | Combines product, inventory, and review data into a single product page with name, price, availability, stock count, rating, and review count. Handles null inputs gracefully with safe defaults. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **GetProductWorker** | `fj_get_product` | Returns product catalog data (id, name, price, category) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. |
+| **GetInventoryWorker** | `fj_get_inventory` | Returns inventory data (productId, inStock flag, quantity, warehouse location) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. |
+| **GetReviewsWorker** | `fj_get_reviews` | Returns review data (productId, averageRating, totalReviews, topReview text) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. |
+| **MergeResultsWorker** | `fj_merge_results` | Combines product, inventory, and review data into a single product page with name, price, availability, stock count, rating, and review count. Handles null inputs gracefully with safe defaults. |
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 

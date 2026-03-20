@@ -16,11 +16,11 @@ Three workers handle the ticket lifecycle. Classification (determining category 
 
 The support ticket pipeline uses three workers: classify, assign, and notify, to show how a complete Conductor application fits together from registration to execution.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ClassifyTicketWorker** | `classify_ticket` | Scans subject and description for priority keywords (e.g., "down" or "outage" = CRITICAL, "question" = LOW). Returns a priority level and the keywords that matched. | Real (keyword matching) |
-| **AssignTicketWorker** | `assign_ticket` | Maps category to team (billing -> Finance Support, technical -> Engineering) and upgrades response time for CRITICAL (30 min) and HIGH (1 hour) tickets. | Real (lookup + priority override) |
-| **NotifyCustomerWorker** | `notify_customer` | Logs a notification to the customer with ticket details (priority, assigned team, response time). Returns `sent: true` and `channel: email`. | Simulated (logs instead of sending) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ClassifyTicketWorker** | `classify_ticket` | Scans subject and description for priority keywords (e.g., "down" or "outage" = CRITICAL, "question" = LOW). Returns a priority level and the keywords that matched. |
+| **AssignTicketWorker** | `assign_ticket` | Maps category to team (billing -> Finance Support, technical -> Engineering) and upgrades response time for CRITICAL (30 min) and HIGH (1 hour) tickets. |
+| **NotifyCustomerWorker** | `notify_customer` | Logs a notification to the customer with ticket details (priority, assigned team, response time). Returns `sent: true` and `channel: email`. |
 
 ### What Conductor Gives You For Free
 

@@ -18,12 +18,12 @@ Building enrichment inline means coupling your message consumer to every data so
 
 Four workers form the enrichment pipeline: message reception, external data lookup, payload merging, and downstream forwarding, each decoupled from the data sources it queries.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ReceiveMessageWorker** | `enr_receive_message` | Parses the incoming order/signup event and extracts the customer ID for downstream lookup | Simulated |
-| **LookupDataWorker** | `enr_lookup_data` | Queries enrichment sources (CRM, customer DB) and returns account name, tier, region, credit limit, and order history | Simulated |
-| **EnrichWorker** | `enr_enrich` | Merges lookup fields into the original message, producing a single enriched payload with full customer context | Simulated |
-| **ForwardWorker** | `enr_forward` | Delivers the enriched message to the downstream queue (e.g., `order_processing_queue`) for fulfillment or analytics | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ReceiveMessageWorker** | `enr_receive_message` | Parses the incoming order/signup event and extracts the customer ID for downstream lookup |
+| **LookupDataWorker** | `enr_lookup_data` | Queries enrichment sources (CRM, customer DB) and returns account name, tier, region, credit limit, and order history |
+| **EnrichWorker** | `enr_enrich` | Merges lookup fields into the original message, producing a single enriched payload with full customer context |
+| **ForwardWorker** | `enr_forward` | Delivers the enriched message to the downstream queue (e.g., `order_processing_queue`) for fulfillment or analytics |
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 

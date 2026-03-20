@@ -18,11 +18,11 @@ Each worker represents a service boundary. Conductor manages cross-service orche
 
 Three workers carry out the deployment: PrepareGreenWorker stands up the new environment, SwitchTrafficWorker atomically redirects live traffic, and VerifyDeploymentWorker checks error rates and latency after the switch.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **PrepareGreenWorker** | `bg_prepare_green` | Deploys the new application version to the green environment and reports container count and image tag. | Simulated |
-| **SwitchTrafficWorker** | `bg_switch_traffic` | Atomically shifts live traffic from blue to green by updating DNS or load-balancer rules. | Simulated |
-| **VerifyDeploymentWorker** | `bg_verify_deployment` | Verifies the deployment succeeded by checking error rate, p99 latency, and rollback availability. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **PrepareGreenWorker** | `bg_prepare_green` | Deploys the new application version to the green environment and reports container count and image tag. |
+| **SwitchTrafficWorker** | `bg_switch_traffic` | Atomically shifts live traffic from blue to green by updating DNS or load-balancer rules. |
+| **VerifyDeploymentWorker** | `bg_verify_deployment` | Verifies the deployment succeeded by checking error rate, p99 latency, and rollback availability. |
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 

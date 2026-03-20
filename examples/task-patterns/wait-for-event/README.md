@@ -18,10 +18,10 @@ This example demonstrates the WAIT task for pausing a workflow until an external
 
 Two workers bookend the durable WAIT pause: PrepareWorker readies the request and returns preparation metadata before the workflow pauses, and ProcessSignalWorker acts on the external signal data (decision, notes) after the WAIT task resumes.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **PrepareWorker** | `we_prepare` | Prepares a request before the workflow pauses. Takes requestId and requester from workflow input, returns prepared=true along with both values echoed back. Passes through null values without error. | Simulated |
-| **ProcessSignalWorker** | `we_process_signal` | Processes the signal after the WAIT task completes. Takes requestId, signalData, and decision from the WAIT task output, returns processed=true with the requestId and decision. Handles null values gracefully. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **PrepareWorker** | `we_prepare` | Prepares a request before the workflow pauses. Takes requestId and requester from workflow input, returns prepared=true along with both values echoed back. Passes through null values without error. |
+| **ProcessSignalWorker** | `we_process_signal` | Processes the signal after the WAIT task completes. Takes requestId, signalData, and decision from the WAIT task output, returns processed=true with the requestId and decision. Handles null values gracefully. |
 
 The WAIT task (`wait_for_signal`) is a Conductor system task.; no worker is needed. It pauses the workflow until an external system completes it via the Conductor API.
 

@@ -18,11 +18,11 @@ Three simple workers produce outputs that flow between tasks. The value is in ex
 
 Three simple workers. StepOneWorker, StepTwoWorker, and StepThreeWorker. Give you a multi-step workflow to explore in the Conductor UI dashboard.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **StepOneWorker** | `ui_step_one` | Step One. Processes user action input. | Simulated |
-| **StepThreeWorker** | `ui_step_three` | Step Three. Summarizes results from steps one and two. | Simulated |
-| **StepTwoWorker** | `ui_step_two` | Step Two. Enriches data from step one with metadata. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **StepOneWorker** | `ui_step_one` | Step One. Processes user action input. |
+| **StepThreeWorker** | `ui_step_three` | Step Three. Summarizes results from steps one and two. |
+| **StepTwoWorker** | `ui_step_two` | Step Two. Enriches data from step one with metadata. |
 
 Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
 

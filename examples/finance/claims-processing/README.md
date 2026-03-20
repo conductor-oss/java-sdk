@@ -18,13 +18,13 @@ Each claims concern is a simple, independent worker, a plain Java class that doe
 
 Five workers handle the claims lifecycle: SubmitClaimWorker intakes the claim, VerifyDetailsWorker checks policy coverage, AssessDamageWorker determines actual loss, SettleAmountWorker calculates the payout, and CloseClaimWorker finalizes the record.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AssessDamageWorker** | `clp_assess_damage` | Assesses damage for a claim and computes assessed amount (85% of requested). | Simulated |
-| **CloseClaimWorker** | `clp_close_claim` | Closes a claim after settlement. | Simulated |
-| **SettleAmountWorker** | `clp_settle_amount` | Settles claim amount (assessed minus $500 deductible). | Simulated |
-| **SubmitClaimWorker** | `clp_submit_claim` | Submits an insurance claim and returns policy metadata. | Simulated |
-| **VerifyDetailsWorker** | `clp_verify_details` | Verifies policy details for a claim. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AssessDamageWorker** | `clp_assess_damage` | Assesses damage for a claim and computes assessed amount (85% of requested). |
+| **CloseClaimWorker** | `clp_close_claim` | Closes a claim after settlement. |
+| **SettleAmountWorker** | `clp_settle_amount` | Settles claim amount (assessed minus $500 deductible). |
+| **SubmitClaimWorker** | `clp_submit_claim` | Submits an insurance claim and returns policy metadata. |
+| **VerifyDetailsWorker** | `clp_verify_details` | Verifies policy details for a claim. |
 
 Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 

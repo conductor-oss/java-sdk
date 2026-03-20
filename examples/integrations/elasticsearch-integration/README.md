@@ -18,12 +18,12 @@ Each worker integrates with one external system. Conductor manages the integrati
 
 Four workers form the search pipeline: IndexDocWorker writes documents, SearchWorker executes queries against the index, AggregateWorker runs faceted analysis, and AnalyzeWorker produces analytical insights from the aggregation results.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **IndexDocWorker** | `els_index_doc` | Indexes a document in Elasticsearch. writes the document to the specified index and returns the document ID | Simulated, swap in Elasticsearch RestHighLevelClient.index() or the new Java API Client for production |
-| **SearchWorker** | `els_search` | Searches the index. executes the search query against the indexed documents and returns matching hits | Simulated, swap in Elasticsearch SearchRequest with your query DSL for production |
-| **AggregateWorker** | `els_aggregate` | Aggregates search results: runs aggregation queries (terms, histogram, stats) on the search hits to find patterns and distributions | Simulated, swap in Elasticsearch AggregationBuilders for production |
-| **AnalyzeWorker** | `els_analyze` | Analyzes aggregated results. produces analytical insights and summaries from the aggregation data | Simulated, swap in your analytics logic or visualization pipeline for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **IndexDocWorker** | `els_index_doc` | Indexes a document in Elasticsearch. writes the document to the specified index and returns the document ID |
+| **SearchWorker** | `els_search` | Searches the index. executes the search query against the indexed documents and returns matching hits |
+| **AggregateWorker** | `els_aggregate` | Aggregates search results: runs aggregation queries (terms, histogram, stats) on the search hits to find patterns and distributions |
+| **AnalyzeWorker** | `els_analyze` | Analyzes aggregated results. produces analytical insights and summaries from the aggregation data |
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
 

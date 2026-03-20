@@ -18,13 +18,13 @@ Each stage of the contract lifecycle is a simple, independent worker, a plain Ja
 
 Five workers cover the contract lifecycle: DraftWorker creates agreements, ReviewWorker handles legal review, ApproveWorker obtains signatory approval, ExecuteWorker captures digital signatures, and RenewWorker schedules renewals.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ApproveWorker** | `clf_approve` | Obtains budget and authority approval based on contract value and review notes. | Simulated |
-| **DraftWorker** | `clf_draft` | Creates a contract draft with vendor, type, value, and term details. | Simulated |
-| **ExecuteWorker** | `clf_execute` | Executes the approved contract with digital signatures. | Simulated |
-| **RenewWorker** | `clf_renew` | Schedules contract renewal based on the term length and expiry date. | Simulated |
-| **ReviewWorker** | `clf_review` | Routes the draft through legal review for risk and compliance assessment. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ApproveWorker** | `clf_approve` | Obtains budget and authority approval based on contract value and review notes. |
+| **DraftWorker** | `clf_draft` | Creates a contract draft with vendor, type, value, and term details. |
+| **ExecuteWorker** | `clf_execute` | Executes the approved contract with digital signatures. |
+| **RenewWorker** | `clf_renew` | Schedules contract renewal based on the term length and expiry date. |
+| **ReviewWorker** | `clf_review` | Routes the draft through legal review for risk and compliance assessment. |
 
 Workers simulate supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 

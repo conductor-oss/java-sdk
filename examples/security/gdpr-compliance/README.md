@@ -18,12 +18,12 @@ Each GDPR step is an independent worker: identity verification, data location, r
 
 Four workers handle GDPR requests end-to-end: VerifyIdentityWorker confirms the requester is who they claim, LocateDataWorker finds their personal data across all systems, ProcessRequestWorker executes the erasure or export, and ConfirmCompletionWorker notifies the subject within the 30-day deadline.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ConfirmCompletionWorker** | `gdpr_confirm_completion` | Sends a completion confirmation to the data subject within the 30-day deadline | Simulated |
-| **LocateDataWorker** | `gdpr_locate_data` | Locates the subject's personal data across all systems (e.g., CRM, billing, analytics, logs) | Simulated |
-| **ProcessRequestWorker** | `gdpr_process_request` | Executes the requested right (erasure, export, rectification) across all identified systems | Simulated |
-| **VerifyIdentityWorker** | `gdpr_verify_identity` | Verifies the identity of the data subject making the GDPR request | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ConfirmCompletionWorker** | `gdpr_confirm_completion` | Sends a completion confirmation to the data subject within the 30-day deadline |
+| **LocateDataWorker** | `gdpr_locate_data` | Locates the subject's personal data across all systems (e.g., CRM, billing, analytics, logs) |
+| **ProcessRequestWorker** | `gdpr_process_request` | Executes the requested right (erasure, export, rectification) across all identified systems |
+| **VerifyIdentityWorker** | `gdpr_verify_identity` | Verifies the identity of the data subject making the GDPR request |
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations, the workflow logic stays the same.
 

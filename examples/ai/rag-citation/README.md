@@ -18,12 +18,12 @@ Each stage is an independent worker. Document retrieval, cited answer generation
 
 Four workers form the citation lifecycle. Document retrieval, cited answer generation, citation extraction from the answer text, and cross-reference verification against the source documents.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **RetrieveDocsWorker** | `cr_retrieve_docs` | Retrieves 4 source documents with id, title, page number, text, and relevance score (0.83-0.95) from the knowledge base | Simulated. Swap in Pinecone, Weaviate, Qdrant, pgvector, or Elasticsearch |
-| **GenerateCitedWorker** | `cr_generate_cited` | Generates an answer with inline citation markers `[1]` `[2]` `[3]` `[4]` and produces a structured citations array mapping each marker to its source document id, page, confidence score, and the specific claim being cited | Live (OpenAI gpt-4o-mini) when `CONDUCTOR_OPENAI_API_KEY` is set; simulated otherwise |
-| **ExtractCitationsWorker** | `cr_extract_citations` | Parses the generated answer text for citation markers, checks whether each marker actually appears in the answer, and reports the count of citations found vs, claimed | Simulated. This is deterministic parsing logic, suitable for production as-is |
-| **VerifyCitationsWorker** | `cr_verify_citations` | Cross-references each citation's `docId` against the retrieved document set, flagging any citation that references a non-existent document; returns per-citation verification status and an `allVerified` boolean | Simulated. This is deterministic verification logic, suitable for production as-is |
+| Worker | Task | What It Does |
+|---|---|---|
+| **RetrieveDocsWorker** | `cr_retrieve_docs` | Retrieves 4 source documents with id, title, page number, text, and relevance score (0.83-0.95) from the knowledge base |
+| **GenerateCitedWorker** | `cr_generate_cited` | Generates an answer with inline citation markers `[1]` `[2]` `[3]` `[4]` and produces a structured citations array mapping each marker to its source document id, page, confidence score, and the specific claim being cited |
+| **ExtractCitationsWorker** | `cr_extract_citations` | Parses the generated answer text for citation markers, checks whether each marker actually appears in the answer, and reports the count of citations found vs, claimed |
+| **VerifyCitationsWorker** | `cr_verify_citations` | Cross-references each citation's `docId` against the retrieved document set, flagging any citation that references a non-existent document; returns per-citation verification status and an `allVerified` boolean |
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 

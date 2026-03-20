@@ -18,13 +18,13 @@ Each stage of the ETL pipeline is a simple, independent worker. The extractor re
 
 Five workers form the classic ETL pipeline: extracting records from a source, transforming them (trimming names, lowercasing emails, parsing amounts), validating output quality, loading into the destination, and confirming successful completion.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `ExtractDataWorker` | `el_extract_data` | Reads 4 customer records from the source, each with untrimmed names, uppercase emails, and string amounts | Simulated |
-| `TransformDataWorker` | `el_transform_data` | Cleans records: trims whitespace from names, lowercases emails, parses amount strings to doubles | Simulated |
-| `ValidateOutputWorker` | `el_validate_output` | Filters out records with empty name, empty email, or amount <= 0 (e.g., Charlie with amount 0.00) | Simulated |
-| `LoadDataWorker` | `el_load_data` | Writes the validated records to the destination and returns a loaded count | Simulated |
-| `ConfirmLoadWorker` | `el_confirm_load` | Confirms the load completed by returning status `ETL_COMPLETE` with the final loaded count | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `ExtractDataWorker` | `el_extract_data` | Reads 4 customer records from the source, each with untrimmed names, uppercase emails, and string amounts |
+| `TransformDataWorker` | `el_transform_data` | Cleans records: trims whitespace from names, lowercases emails, parses amount strings to doubles |
+| `ValidateOutputWorker` | `el_validate_output` | Filters out records with empty name, empty email, or amount <= 0 (e.g., Charlie with amount 0.00) |
+| `LoadDataWorker` | `el_load_data` | Writes the validated records to the destination and returns a loaded count |
+| `ConfirmLoadWorker` | `el_confirm_load` | Confirms the load completed by returning status `ETL_COMPLETE` with the final loaded count |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 

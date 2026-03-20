@@ -18,12 +18,12 @@ This four-step pattern separates intent (LLM decides what to call) from executio
 
 Four workers implement function calling, the LLM plans which function to invoke, the call is extracted and validated, the function executes, and the result is synthesized into natural language.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ExecuteFunctionWorker** | `fc_execute_function` | Executes the specified function with the given arguments. Currently supports get_stock_price; returns a fixed determi... | Simulated |
-| **ExtractFunctionCallWorker** | `fc_extract_function_call` | Extracts a structured function call (name + arguments) from the LLM output and validates it against the available fun... | Simulated |
-| **LlmPlanWorker** | `fc_llm_plan` | Llm Plan. Computes and returns llm response | Simulated |
-| **LlmSynthesizeWorker** | `fc_llm_synthesize` | LLM synthesis worker. Takes the function execution result and produces a natural-language answer for the user. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ExecuteFunctionWorker** | `fc_execute_function` | Executes the specified function with the given arguments. Currently supports get_stock_price; returns real API results |
+| **ExtractFunctionCallWorker** | `fc_extract_function_call` | Extracts a structured function call (name + arguments) from the LLM output and validates it against the available fun |
+| **LlmPlanWorker** | `fc_llm_plan` | Llm Plan. Computes and returns llm response |
+| **LlmSynthesizeWorker** | `fc_llm_synthesize` | LLM synthesis worker. Takes the function execution result and produces a natural-language answer for the user. |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

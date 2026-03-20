@@ -18,9 +18,9 @@ One worker, one task. Just enough to verify your entire SDK setup. If it passes,
 
 A minimal worker runs a round-trip through the SDK to confirm that your Maven dependencies, Java version, and Conductor connection are all configured correctly.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `SdkTestWorker` | `sdk_test_task` | Accepts a `check` string input (defaults to "default" if blank), returns a confirmation message that conductor-client 5.0.1 is working | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `SdkTestWorker` | `sdk_test_task` | Accepts a `check` string input (defaults to "default" if blank), returns a confirmation message that conductor-client 5.0.1 is working |
 
 Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
 

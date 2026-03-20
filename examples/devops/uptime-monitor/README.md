@@ -18,18 +18,18 @@ Each concern is a simple, independent worker, a plain Java class that does one t
 
 Eight workers cover the monitoring lifecycle, from parallel endpoint checks through result aggregation, multi-channel alerting, and escalation to on-call.
 
-| Worker | What It Does | Real / Simulated |
+| Worker | What It Does |
 |---|---|---|
-| **CheckEndpoint** | Performs real HTTP, DNS, and TLS health checks against a single endpoint | Real. Live network calls |
-| **AggregateResults** | Combines results from all checks, determines overall system status | Real. Pure logic |
-| **SendSlackAlert** | Sends Slack notification via webhook | Real if webhook configured via workflow input or `SLACK_WEBHOOK_URL` env var, otherwise simulated |
-| **SendEmailAlert** | Sends email alerts to the ops team | Simulated. Swap in SES/SendGrid/SMTP for production |
-| **UpdateStatusPage** | Updates the public status page with component statuses | Simulated. Swap in Statuspage.io/Cachet API for production |
-| **CheckEscalation** | Escalates when failing endpoints meet or exceed threshold | Real. Deterministic based on current failure count; swap in Redis/DynamoDB for cross-run history |
-| **SendSmsAlert** | Sends SMS alerts for critical escalations | Simulated. Swap in Twilio API for production |
-| **PageOncall** | Pages the on-call engineer | Simulated. Swap in PagerDuty/OpsGenie API for production |
-| **RecordHealthy** | Logs healthy status when all endpoints pass | Simulated. Swap in your metrics store for production |
-| **StoreMetrics** | Writes monitoring data points | Simulated. Swap in InfluxDB/Prometheus/Datadog for production |
+| **CheckEndpoint** | Performs real HTTP, DNS, and TLS health checks against a single endpoint |
+| **AggregateResults** | Combines results from all checks, determines overall system status |
+| **SendSlackAlert** | Sends Slack notification via webhook |
+| **SendEmailAlert** | Sends email alerts to the ops team |
+| **UpdateStatusPage** | Updates the public status page with component statuses |
+| **CheckEscalation** | Escalates when failing endpoints meet or exceed threshold |
+| **SendSmsAlert** | Sends SMS alerts for critical escalations |
+| **PageOncall** | Pages the on-call engineer |
+| **RecordHealthy** | Logs healthy status when all endpoints pass |
+| **StoreMetrics** | Writes monitoring data points |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 

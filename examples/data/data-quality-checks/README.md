@@ -18,13 +18,13 @@ Each quality check is a simple, independent worker. The completeness checker cou
 
 Five workers run the quality assessment: loading records, then checking completeness, accuracy, and consistency in parallel via FORK_JOIN, and finally generating a quality report with scores and an overall letter grade.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `LoadDataWorker` | `qc_load_data` | Accepts incoming records and passes them through with a count for downstream checks | Simulated |
-| `CheckCompletenessWorker` | `qc_check_completeness` | Checks four required fields (id, name, email, status) across all records; empty strings count as missing | Simulated |
-| `CheckAccuracyWorker` | `qc_check_accuracy` | Validates email format (must contain @ and .) and status values (must be active/inactive/pending) | Simulated |
-| `CheckConsistencyWorker` | `qc_check_consistency` | Detects duplicate IDs by comparing unique ID count to total ID count | Simulated |
-| `GenerateReportWorker` | `qc_generate_report` | Averages the three check scores and assigns a letter grade (A/B/C/D) | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `LoadDataWorker` | `qc_load_data` | Accepts incoming records and passes them through with a count for downstream checks |
+| `CheckCompletenessWorker` | `qc_check_completeness` | Checks four required fields (id, name, email, status) across all records; empty strings count as missing |
+| `CheckAccuracyWorker` | `qc_check_accuracy` | Validates email format (must contain @ and .) and status values (must be active/inactive/pending) |
+| `CheckConsistencyWorker` | `qc_check_consistency` | Detects duplicate IDs by comparing unique ID count to total ID count |
+| `GenerateReportWorker` | `qc_generate_report` | Averages the three check scores and assigns a letter grade (A/B/C/D) |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 

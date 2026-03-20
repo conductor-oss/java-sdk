@@ -28,13 +28,13 @@ Each forward step and its corresponding undo are simple, independent workers. St
 
 Three forward workers. CompStepAWorker, CompStepBWorker, and CompStepCWorker. Execute provisioning actions, while CompUndoBWorker and CompUndoAWorker reverse completed steps in reverse order when any forward step fails.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CompStepAWorker** | `comp_step_a` | Creates a resource. Always succeeds, returning `{result: "resource-A-created"}`. | Simulated |
-| **CompStepBWorker** | `comp_step_b` | Inserts a database record. Always succeeds, returning `{result: "record-B-inserted"}`. Receives Step A's result as `prevResult`. | Simulated |
-| **CompStepCWorker** | `comp_step_c` | Sends a notification. Fails if `failAtStep="C"` (simulating an external service outage), otherwise returns `{result: "notification-C-sent"}`. | Simulated |
-| **CompUndoAWorker** | `comp_undo_a` | Compensation: reverses Step A by deleting the created resource. Receives the `original` value from Step A's output. Returns `{undone: true}`. | Simulated |
-| **CompUndoBWorker** | `comp_undo_b` | Compensation: reverses Step B by removing the inserted record. Receives the `original` value from Step B's output. Returns `{undone: true}`. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CompStepAWorker** | `comp_step_a` | Creates a resource. Always succeeds, returning `{result: "resource-A-created"}`. |
+| **CompStepBWorker** | `comp_step_b` | Inserts a database record. Always succeeds, returning `{result: "record-B-inserted"}`. Receives Step A's result as `prevResult`. |
+| **CompStepCWorker** | `comp_step_c` | Sends a notification. Fails if `failAtStep="C"` (simulating an external service outage), otherwise returns `{result: "notification-C-sent"}`. |
+| **CompUndoAWorker** | `comp_undo_a` | Compensation: reverses Step A by deleting the created resource. Receives the `original` value from Step A's output. Returns `{undone: true}`. |
+| **CompUndoBWorker** | `comp_undo_b` | Compensation: reverses Step B by removing the inserted record. Receives the `original` value from Step B's output. Returns `{undone: true}`. |
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 

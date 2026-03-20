@@ -18,12 +18,12 @@ Without orchestration, you'd wire all of this together in a single monolithic cl
 
 Four workers manage service registration. Registering the instance, running health probes, updating routing tables, and notifying downstream consumers.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `RegisterWorker` | `sd_register` | Registers service instance in the discovery registry with a deterministic ID, endpoint, and version | Simulated |
-| `HealthCheckWorker` | `sd_health_check` | Probes the registered endpoint for readiness, records response time and health status | Simulated |
-| `UpdateRoutingWorker` | `sd_update_routing` | Updates load balancer and routing tables to include the new healthy instance | Simulated |
-| `NotifyConsumersWorker` | `sd_notify_consumers` | Notifies downstream consumers via webhook that a new service endpoint is available | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `RegisterWorker` | `sd_register` | Registers service instance in the discovery registry with a deterministic ID, endpoint, and version |
+| `HealthCheckWorker` | `sd_health_check` | Probes the registered endpoint for readiness, records response time and health status |
+| `UpdateRoutingWorker` | `sd_update_routing` | Updates load balancer and routing tables to include the new healthy instance |
+| `NotifyConsumersWorker` | `sd_notify_consumers` | Notifies downstream consumers via webhook that a new service endpoint is available |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 

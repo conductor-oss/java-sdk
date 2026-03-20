@@ -18,11 +18,11 @@ The WAIT task is the key pattern here. After submitting the request, the workflo
 
 EscSubmitWorker prepares the request for the analyst-manager-VP chain, and EscFinalizeWorker records which level made the final decision, the escalation logic between them lives outside the workers.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **EscSubmitWorker** | `esc_submit` | Submits the request for escalation-chain approval: validates the request ID, enriches with context, and marks it as ready for the first level (analyst) | Simulated, swap in your ticketing or request management system for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **EscSubmitWorker** | `esc_submit` | Submits the request for escalation-chain approval: validates the request ID, enriches with context, and marks it as ready for the first level (analyst) |
 | *WAIT task* | `esc_approval` | Pauses the workflow until someone in the escalation chain (analyst, manager, or VP) makes a final decision, completing it via `POST /tasks/{taskId}` with the decision and the level at which it was made | Built-in Conductor WAIT.; no worker needed |
-| **EscFinalizeWorker** | `esc_finalize` | Finalizes the escalation: records the decision, who made it, and at which level (analyst/manager/VP), then triggers downstream actions | Simulated, swap in your ticketing system status update and notification service for production |
+| **EscFinalizeWorker** | `esc_finalize` | Finalizes the escalation: records the decision, who made it, and at which level (analyst/manager/VP), then triggers downstream actions |
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 

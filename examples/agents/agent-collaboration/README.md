@@ -18,12 +18,12 @@ Each agent's output is the next agent's input, the strategist can't develop reco
 
 Four agents collaborate sequentially, the analyst produces findings, the strategist develops recommendations, the executor creates tasks, and the compiler assembles the plan.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AnalystWorker** | `ac_analyst` | Examines the business context and produces 4 structured insights with severity ratings (critical, high, medium) across retention, revenue, operations, and engagement categories. Returns a metrics summary with churn rate (15%), repeat purchase decline (22%), support response time (48h), and loyalty engagement (12%). | Simulated. Swap in Mixpanel/Amplitude data queries |
-| **StrategistWorker** | `ac_strategist` | Takes the analyst's insights and metrics, then formulates the "Stabilize & Retain" strategy with a thesis, 3 strategic pillars (Customer Experience Overhaul, Support Response Acceleration, Loyalty Program Revitalization), and 4 ranked priorities with effort/impact assessments. | Simulated. Swap in GPT-4/Claude for strategy generation |
-| **ExecutorWorker** | `ac_executor` | Translates the strategy into 6 concrete action items with owners (Marketing, Customer Support, Product, Data Science, Operations), deadlines (Week 2-8), and priority levels. Creates a 3-phase, 8-week timeline (Quick Wins, Foundation, Scale & Sustain). | Simulated. Swap in Jira/Linear API for task creation |
-| **CompilePlanWorker** | `ac_compile_plan` | Assembles insights, strategy, action items, and timeline into a consolidated plan summary. Reports counts (insights used, strategy pillars, action items) and timeline duration. Sets status to "ready_for_review". | Simulated. Swap in LLM for narrative plan generation |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AnalystWorker** | `ac_analyst` | Examines the business context and produces 4 structured insights with severity ratings (critical, high, medium) across retention, revenue, operations, and engagement categories. Returns a metrics summary with churn rate (15%), repeat purchase decline (22%), support response time (48h), and loyalty engagement (12%). |
+| **StrategistWorker** | `ac_strategist` | Takes the analyst's insights and metrics, then formulates the "Stabilize & Retain" strategy with a thesis, 3 strategic pillars (Customer Experience Overhaul, Support Response Acceleration, Loyalty Program Revitalization), and 4 ranked priorities with effort/impact assessments. |
+| **ExecutorWorker** | `ac_executor` | Translates the strategy into 6 concrete action items with owners (Marketing, Customer Support, Product, Data Science, Operations), deadlines (Week 2-8), and priority levels. Creates a 3-phase, 8-week timeline (Quick Wins, Foundation, Scale & Sustain). |
+| **CompilePlanWorker** | `ac_compile_plan` | Assembles insights, strategy, action items, and timeline into a consolidated plan summary. Reports counts (insights used, strategy pillars, action items) and timeline duration. Sets status to "ready_for_review". |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

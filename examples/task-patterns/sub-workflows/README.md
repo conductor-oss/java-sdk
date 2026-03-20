@@ -18,12 +18,12 @@ This example demonstrates Conductor's SUB_WORKFLOW task for composable workflow 
 
 Four workers span the parent and child workflows: CalcTotalWorker computes the order total in the parent, ValidatePaymentWorker and ChargePaymentWorker run inside the reusable payment sub-workflow, and ConfirmOrderWorker finalizes the order with the transaction ID returned from the child.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CalcTotalWorker** | `sub_calc_total` | Calculates the order total from a list of items. Each item has name, price, and qty. Returns total = sum of (price * qty) and itemCount. Returns 0.0/0 for null or empty items. | Simulated |
-| **ValidatePaymentWorker** | `sub_validate_payment` | Validates payment details: checks that paymentMethod is present and non-blank, and that amount is present and positive. Returns valid=true/false with a descriptive reason string. | Simulated |
-| **ChargePaymentWorker** | `sub_charge_payment` | Charges payment and returns a deterministic transactionId: "TXN-" + orderId. Returns charged=true and the amount. Defaults orderId to "UNKNOWN" if missing/blank. | Simulated |
-| **ConfirmOrderWorker** | `sub_confirm_order` | Confirms the order after payment: returns the orderId, transactionId, and confirmed=true. Defaults orderId to "UNKNOWN" and transactionId to "NONE" if missing/blank. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CalcTotalWorker** | `sub_calc_total` | Calculates the order total from a list of items. Each item has name, price, and qty. Returns total = sum of (price * qty) and itemCount. Returns 0.0/0 for null or empty items. |
+| **ValidatePaymentWorker** | `sub_validate_payment` | Validates payment details: checks that paymentMethod is present and non-blank, and that amount is present and positive. Returns valid=true/false with a descriptive reason string. |
+| **ChargePaymentWorker** | `sub_charge_payment` | Charges payment and returns a deterministic transactionId: "TXN-" + orderId. Returns charged=true and the amount. Defaults orderId to "UNKNOWN" if missing/blank. |
+| **ConfirmOrderWorker** | `sub_confirm_order` | Confirms the order after payment: returns the orderId, transactionId, and confirmed=true. Defaults orderId to "UNKNOWN" and transactionId to "NONE" if missing/blank. |
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 

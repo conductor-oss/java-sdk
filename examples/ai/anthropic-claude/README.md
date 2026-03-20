@@ -18,11 +18,11 @@ Without orchestration, prompt construction, API calling, error handling, and res
 
 Three workers isolate each phase of the Claude integration. Message construction with system prompts, API invocation with rate-limit handling, and content-block response processing with token tracking.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ClaudeBuildMessagesWorker** | `claude_build_messages` | Builds the Claude Messages API request body, including Claude's top-level `system` field plus the user message array. | Real (no API needed) |
-| **ClaudeCallApiWorker** | `claude_call_api` | Calls the Anthropic Claude Messages API. When `CONDUCTOR_ANTHROPIC_API_KEY` is set, makes a real HTTP call using `java.net.http.HttpClient`; otherwise returns a deterministic simulated response. | Live / Simulated |
-| **ClaudeProcessResponseWorker** | `claude_process_response` | Processes Claude's content-block response, filters `text` blocks, and returns the final analysis plus usage metadata. | Real (no API needed) |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ClaudeBuildMessagesWorker** | `claude_build_messages` | Builds the Claude Messages API request body, including Claude's top-level `system` field plus the user message array. |
+| **ClaudeCallApiWorker** | `claude_call_api` | Calls the Anthropic Claude Messages API. When `CONDUCTOR_ANTHROPIC_API_KEY` is set, makes a real HTTP call using `java.net.http.HttpClient`; otherwise returns a deterministic simulated response. |
+| **ClaudeProcessResponseWorker** | `claude_process_response` | Processes Claude's content-block response, filters `text` blocks, and returns the final analysis plus usage metadata. |
 
 **Live vs Simulated mode:** The `ClaudeCallApiWorker` auto-detects the `CONDUCTOR_ANTHROPIC_API_KEY` environment variable at startup. When the key is present and has access to the configured model (`ANTHROPIC_MODEL`, default `claude-sonnet-4-20250514`), it makes real HTTP calls to `https://api.anthropic.com/v1/messages` using `java.net.http.HttpClient` (built into Java 21) and parses the response with Jackson. When the key is absent, it returns a deterministic simulated response so the workflow runs end-to-end without credentials. Live-mode 4xx failures are surfaced immediately with the failed task name plus a truncated response body so you can diagnose model-access and request-shape issues quickly.
 

@@ -20,12 +20,12 @@ Each stage of the ingestion pipeline is an independent worker. PDF extraction, t
 
 Four workers form the ingestion pipeline. PDF text extraction, word-based chunking with configurable overlap, embedding generation, and vector database upsert, each stage feeding its output to the next.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **IngestChunkTextWorker** | `ingest_chunk_text` | Worker 2: Splits extracted text into overlapping chunks. Uses word-based chunking with configurable size and overlap. | Simulated |
-| **IngestEmbedChunksWorker** | `ingest_embed_chunks` | Worker 3: Generates embeddings for each text chunk. Uses fixed (deterministic) embeddings for reproducible tests. | Simulated |
-| **IngestExtractPdfWorker** | `ingest_extract_pdf` | Worker 1: Extracts text from a PDF document. Simulates PDF parsing by returning fixed text about vector databases. | Simulated |
-| **IngestStoreVectorsWorker** | `ingest_store_vectors` | Worker 4: Stores embedding vectors in a vector database collection. Simulates upserting vectors and returns the count... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **IngestChunkTextWorker** | `ingest_chunk_text` | Worker 2: Splits extracted text into overlapping chunks. Uses word-based chunking with configurable size and overlap. |
+| **IngestEmbedChunksWorker** | `ingest_embed_chunks` | Worker 3: Generates embeddings for each text chunk. Uses fixed (deterministic) embeddings for reproducible tests. |
+| **IngestExtractPdfWorker** | `ingest_extract_pdf` | Worker 1: Extracts text from a PDF document. Simulates PDF parsing by returning fixed text about vector databases. |
+| **IngestStoreVectorsWorker** | `ingest_store_vectors` | Worker 4: Stores embedding vectors in a vector database collection. Simulates upserting vectors and returns the count |
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 

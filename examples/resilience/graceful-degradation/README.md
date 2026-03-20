@@ -28,12 +28,12 @@ The core process worker runs first and always succeeds. Then Conductor's FORK/JO
 
 CoreProcessWorker handles the required order creation that must always succeed, EnrichWorker and AnalyticsWorker run in parallel via FORK/JOIN as optional enhancements, and FinalizeWorker checks which services responded and sets a degradation flag.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CoreProcessWorker** | `gd_core_process` | The required core processing step. Accepts `{data: "order-123"}`, returns `{result: "processed-order-123"}`. Always succeeds. Uses "default" when no data input is provided. | Simulated |
-| **EnrichWorker** | `gd_enrich` | Optional enrichment step. When `available=true` (or not specified), returns `{enriched: true}`. When `available=false`, returns `{enriched: false}` (simulating the enrichment service being down). | Simulated |
-| **AnalyticsWorker** | `gd_analytics` | Optional analytics tracking step. When `available=true` (or not specified), returns `{tracked: true}`. When `available=false`, returns `{tracked: false}` (simulating the analytics service being down). | Simulated |
-| **FinalizeWorker** | `gd_finalize` | Checks enrichment and analytics results. Sets `degraded=true` if either `enriched` or `analytics` is false. Returns `{enriched, analytics, degraded}`. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CoreProcessWorker** | `gd_core_process` | The required core processing step. Accepts `{data: "order-123"}`, returns `{result: "processed-order-123"}`. Always succeeds. Uses "default" when no data input is provided. |
+| **EnrichWorker** | `gd_enrich` | Optional enrichment step. When `available=true` (or not specified), returns `{enriched: true}`. When `available=false`, returns `{enriched: false}` (simulating the enrichment service being down). |
+| **AnalyticsWorker** | `gd_analytics` | Optional analytics tracking step. When `available=true` (or not specified), returns `{tracked: true}`. When `available=false`, returns `{tracked: false}` (simulating the analytics service being down). |
+| **FinalizeWorker** | `gd_finalize` | Checks enrichment and analytics results. Sets `degraded=true` if either `enriched` or `analytics` is false. Returns `{enriched, analytics, degraded}`. |
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 

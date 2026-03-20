@@ -18,14 +18,14 @@ Each category needs a different agent pipeline. Bugs need knowledge base search 
 
 Six workers handle support tickets. Classifying the category, routing to bug/feature/general handlers via SWITCH, and validating response quality before delivery.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ClassifyTicketWorker** | `cs_classify_ticket` | Classifies a support ticket by keyword matching in subject/description. Detects bug keywords (error, crash, bug, broken, fail), feature keywords (feature, request, enhance, add), or defaults to general. Returns category, severity (high/medium/low), matched keywords, and 0.94 confidence. | Real. Deterministic keyword classification |
-| **KnowledgeSearchWorker** | `cs_knowledge_search` | Searches the knowledge base for articles matching the ticket keywords. Returns 3 relevant KB articles (Troubleshooting Common Errors, System Recovery Procedures, Known Issues and Workarounds) with relevance scores (0.95, 0.87, 0.82) and search time. | Simulated. Swap in Zendesk Guide or RAG pipeline |
-| **SolutionProposeWorker** | `cs_solution_propose` | Proposes a solution based on knowledge base articles and ticket description. Returns a 5-step fix (clear cache, verify config, check resources, apply patch, escalate) with referenced KB article IDs and solution type ("known_fix"). | Simulated. Swap in LLM with retrieval-augmented generation |
-| **FeatureEvaluateWorker** | `cs_feature_evaluate` | Evaluates a feature request against the product roadmap. Returns a response acknowledging alignment with roadmap, priority level (high), ETA (Q2 2026), and roadmap tracking ID (FR-4521). Premium tier customers get expedited evaluation. | Simulated. Swap in product management API (Productboard, Aha!) |
-| **GeneralRespondWorker** | `cs_general_respond` | Handles general inquiries by providing a helpful response and suggesting relevant documentation (Getting Started Guide, FAQ, API Documentation). | Simulated. Swap in knowledge base API or LLM |
-| **QaValidateWorker** | `cs_qa_validate` | Validates the quality of the support response by running 4 checks: tone appropriate, includes greeting, includes next steps, no sensitive data exposed. Returns approved status, check results, and a formatted final response. | Simulated. Swap in LLM for semantic QA validation |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ClassifyTicketWorker** | `cs_classify_ticket` | Classifies a support ticket by keyword matching in subject/description. Detects bug keywords (error, crash, bug, broken, fail), feature keywords (feature, request, enhance, add), or defaults to general. Returns category, severity (high/medium/low), matched keywords, and 0.94 confidence. |
+| **KnowledgeSearchWorker** | `cs_knowledge_search` | Searches the knowledge base for articles matching the ticket keywords. Returns 3 relevant KB articles (Troubleshooting Common Errors, System Recovery Procedures, Known Issues and Workarounds) with relevance scores (0.95, 0.87, 0.82) and search time. |
+| **SolutionProposeWorker** | `cs_solution_propose` | Proposes a solution based on knowledge base articles and ticket description. Returns a 5-step fix (clear cache, verify config, check resources, apply patch, escalate) with referenced KB article IDs and solution type ("known_fix"). |
+| **FeatureEvaluateWorker** | `cs_feature_evaluate` | Evaluates a feature request against the product roadmap. Returns a response acknowledging alignment with roadmap, priority level (high), ETA (Q2 2026), and roadmap tracking ID (FR-4521). Premium tier customers get expedited evaluation. |
+| **GeneralRespondWorker** | `cs_general_respond` | Handles general inquiries by providing a helpful response and suggesting relevant documentation (Getting Started Guide, FAQ, API Documentation). |
+| **QaValidateWorker** | `cs_qa_validate` | Validates the quality of the support response by running 4 checks: tone appropriate, includes greeting, includes next steps, no sensitive data exposed. Returns approved status, check results, and a formatted final response. |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

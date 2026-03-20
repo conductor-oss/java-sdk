@@ -18,13 +18,13 @@ Running risk checks sequentially adds latency. unacceptable for real-time paymen
 
 Risk signal workers run in parallel. Rule checks, ML scoring, and velocity detection execute concurrently, feeding results into a single decisioning worker.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `AnalyzeTransactionWorker` | `frd_analyze_transaction` | Builds a customer profile and extracts a feature vector (amount deviation, merchant category, distance, new-merchant flag) from the transaction inputs | Simulated. Derives features from the input amount relative to a hardcoded average ($125.50) |
-| `RuleCheckWorker` | `frd_rule_check` | Evaluates fraud rules against the transaction amount: amount > $1000 threshold, new-merchant high-value (> $500), and round-amount detection. Returns overall `ruleResult` (`low_risk` / `medium_risk` / `high_risk`) and which rules fired | Simulated. Three deterministic rules evaluated against the actual amount input |
-| `MlScoreWorker` | `frd_ml_score` | Scores the transaction using a weighted feature model: amount deviation (0.35), distance from home (0.25), new merchant (0.20), time of day (0.10), merchant category (0.10). Returns `fraudScore` in [0, 1], model version, and confidence | Simulated. Weighted sum of feature values, clamped and rounded |
-| `VelocityCheckWorker` | `frd_velocity_check` | Checks transaction velocity patterns: rapid succession, unusual volume, and geographic anomaly flags. Returns overall `velocityResult` (`normal` / `elevated` / `suspicious`) and per-flag details | Simulated. Deterministic behavior based on customerId (contains "RISKY" or "WARN") |
-| `DecideWorker` | `frd_decide` | Combines rule result, ML fraud score, and velocity result into a final APPROVE / REVIEW / BLOCK decision with risk score and reason | Real logic. Deterministic thresholds documented below |
+| Worker | Task | What It Does |
+|---|---|---|
+| `AnalyzeTransactionWorker` | `frd_analyze_transaction` | Builds a customer profile and extracts a feature vector (amount deviation, merchant category, distance, new-merchant flag) from the transaction inputs |
+| `RuleCheckWorker` | `frd_rule_check` | Evaluates fraud rules against the transaction amount: amount > $1000 threshold, new-merchant high-value (> $500), and round-amount detection. Returns overall `ruleResult` (`low_risk` / `medium_risk` / `high_risk`) and which rules fired |
+| `MlScoreWorker` | `frd_ml_score` | Scores the transaction using a weighted feature model: amount deviation (0.35), distance from home (0.25), new merchant (0.20), time of day (0.10), merchant category (0.10). Returns `fraudScore` in [0, 1], model version, and confidence |
+| `VelocityCheckWorker` | `frd_velocity_check` | Checks transaction velocity patterns: rapid succession, unusual volume, and geographic anomaly flags. Returns overall `velocityResult` (`normal` / `elevated` / `suspicious`) and per-flag details |
+| `DecideWorker` | `frd_decide` | Combines rule result, ML fraud score, and velocity result into a final APPROVE / REVIEW / BLOCK decision with risk score and reason |
 
 Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 

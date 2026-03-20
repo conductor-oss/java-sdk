@@ -18,13 +18,13 @@ Each domain processor is a simple, independent worker, a plain Java class that d
 
 Five workers implement domain-based routing: ReceiveEventWorker ingests the event, ExtractTypeWorker parses the domain and sub-type, then UserProcessorWorker, OrderProcessorWorker, or SystemProcessorWorker handles it based on the extracted domain.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ExtractTypeWorker** | `eo_extract_type` | Splits the eventDomain string by "." to extract the domain (first part) and subType (remaining parts joined by "."). ... | Simulated |
-| **OrderProcessorWorker** | `eo_order_processor` | Processes order-domain events. Extracts the orderId from eventData and returns a fixed result indicating fulfillment ... | Simulated |
-| **ReceiveEventWorker** | `eo_receive_event` | Receives an incoming event and passes through its domain and data, stamping a receivedAt timestamp. | Simulated |
-| **SystemProcessorWorker** | `eo_system_processor` | Default processor for events that do not match user or order domains. Passes through the domain and marks the event a... | Simulated |
-| **UserProcessorWorker** | `eo_user_processor` | Processes user-domain events. Returns a fixed result indicating the user event was handled: profile updated, notifica... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ExtractTypeWorker** | `eo_extract_type` | Splits the eventDomain string by "." to extract the domain (first part) and subType (remaining parts joined by ".").  |
+| **OrderProcessorWorker** | `eo_order_processor` | Processes order-domain events. Extracts the orderId from eventData and returns a result indicating fulfillment  |
+| **ReceiveEventWorker** | `eo_receive_event` | Receives an incoming event and passes through its domain and data, stamping a receivedAt timestamp. |
+| **SystemProcessorWorker** | `eo_system_processor` | Default processor for events that do not match user or order domains. Passes through the domain and marks the event a |
+| **UserProcessorWorker** | `eo_user_processor` | Processes user-domain events. Returns a result indicating the user event was handled: profile updated, notifica |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 

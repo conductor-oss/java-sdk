@@ -18,13 +18,13 @@ Each enrichment source is a simple, independent worker. The geo lookup worker re
 
 Five workers handle multi-source enrichment: loading customer records, resolving geographic data from zip codes, looking up company firmographics from email domains, retrieving credit scores, and merging all layers into a unified output.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **LoadRecordsWorker** | `dr_load_records` | Loads incoming records for enrichment. | Simulated |
-| **LookupCompanyWorker** | `dr_lookup_company` | Enriches records with company data based on email domain lookup. | Simulated |
-| **LookupCreditWorker** | `dr_lookup_credit` | Enriches records with fixed credit score data. | Simulated |
-| **LookupGeoWorker** | `dr_lookup_geo` | Enriches records with geographic data based on zip code lookup. | Simulated |
-| **MergeEnrichedWorker** | `dr_merge_enriched` | Merges all enriched data and produces a summary. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **LoadRecordsWorker** | `dr_load_records` | Loads incoming records for enrichment. |
+| **LookupCompanyWorker** | `dr_lookup_company` | Enriches records with company data based on email domain lookup. |
+| **LookupCreditWorker** | `dr_lookup_credit` | Enriches records with fixed credit score data. |
+| **LookupGeoWorker** | `dr_lookup_geo` | Enriches records with geographic data based on zip code lookup. |
+| **MergeEnrichedWorker** | `dr_merge_enriched` | Merges all enriched data and produces a summary. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 

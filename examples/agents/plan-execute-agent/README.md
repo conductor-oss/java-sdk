@@ -18,13 +18,13 @@ The plan-execute pattern is the simplest multi-step agent architecture: create a
 
 Five workers implement plan-then-execute. Creating a structured plan, executing three steps in sequence, and compiling results into a final report.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreatePlanWorker** | `pe_create_plan` | Decomposes a high-level objective into three ordered steps ("Gather market data and competitor analysis", "Analyze trends and identify opportunities", "Generate strategic recommendations"). Returns the step list and total step count. | Simulated. Swap in an LLM to generate dynamic plans |
-| **ExecuteStep1Worker** | `pe_execute_step_1` | Executes step 1 of the plan: gathers market data and competitor analysis. Returns a summary of 5 competitors analyzed and a $4.2B market size estimate. | Simulated. Swap in web search or database queries |
-| **ExecuteStep2Worker** | `pe_execute_step_2` | Executes step 2: analyzes trends and identifies opportunities. Receives the step 1 result as context. Returns 3 growth opportunities (API platform, enterprise tier, international expansion). | Simulated. Swap in analytics APIs or LLM analysis |
-| **ExecuteStep3Worker** | `pe_execute_step_3` | Executes step 3: generates strategic recommendations. Receives the step 2 result as context. Returns prioritized recommendations with ROI estimates (API platform at capacity-planning%, enterprise tier at 210%). | Simulated. Swap in LLM synthesis or strategy frameworks |
-| **CompileResultsWorker** | `pe_compile_results` | Compiles all three step results into a single report string formatted as "Objective: .. | Step 1: .. | Step 2: .. | Step 3: ...". | Simulated. Swap in LLM to generate a coherent narrative report |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CreatePlanWorker** | `pe_create_plan` | Decomposes a high-level objective into three ordered steps ("Gather market data and competitor analysis", "Analyze trends and identify opportunities", "Generate strategic recommendations"). Returns the step list and total step count. |
+| **ExecuteStep1Worker** | `pe_execute_step_1` | Executes step 1 of the plan: gathers market data and competitor analysis. Returns a summary of 5 competitors analyzed and a $4.2B market size estimate. |
+| **ExecuteStep2Worker** | `pe_execute_step_2` | Executes step 2: analyzes trends and identifies opportunities. Receives the step 1 result as context. Returns 3 growth opportunities (API platform, enterprise tier, international expansion). |
+| **ExecuteStep3Worker** | `pe_execute_step_3` | Executes step 3: generates strategic recommendations. Receives the step 2 result as context. Returns prioritized recommendations with ROI estimates (API platform at capacity-planning%, enterprise tier at 210%). |
+| **CompileResultsWorker** | `pe_compile_results` | Compiles all three step results into a single report string formatted as "Objective: .. | Step 1: .. | Step 2: .. | Step 3: ...". |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

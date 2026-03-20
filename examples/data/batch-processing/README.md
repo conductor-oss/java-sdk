@@ -18,11 +18,11 @@ Each concern is a simple, independent worker. The batch preparation worker split
 
 Three workers divide batch processing into distinct responsibilities: splitting records into chunks, processing one chunk per loop iteration, and summarizing the results across all batches.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `PrepareBatchesWorker` | `bp_prepare_batches` | Splits input records into chunks based on `batchSize`, computing total records (10) and total batches (4) | Simulated |
-| `ProcessBatchWorker` | `bp_process_batch` | Processes one batch per DO_WHILE iteration. Computes record range (e.g., records 1-3) and returns count | Simulated |
-| `SummarizeWorker` | `bp_summarize` | Aggregates results across all batches into a summary like "10 records in 4 batches" | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `PrepareBatchesWorker` | `bp_prepare_batches` | Splits input records into chunks based on `batchSize`, computing total records (10) and total batches (4) |
+| `ProcessBatchWorker` | `bp_process_batch` | Processes one batch per DO_WHILE iteration. Computes record range (e.g., records 1-3) and returns count |
+| `SummarizeWorker` | `bp_summarize` | Aggregates results across all batches into a summary like "10 records in 4 batches" |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 

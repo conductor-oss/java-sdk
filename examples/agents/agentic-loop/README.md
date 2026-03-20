@@ -18,13 +18,13 @@ The think-act-observe loop gives the agent autonomy within guardrails: it decide
 
 Five workers drive the iterative loop. Setting the goal, then cycling through think-act-observe until completion, and summarizing the findings.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ActWorker** | `al_act` | Executes the action described by the plan and returns a result. Results are deterministically mapped from plan strings. | Simulated |
-| **ObserveWorker** | `al_observe` | Observes the outcome of the action and assesses goal progress. | Simulated |
-| **SetGoalWorker** | `al_set_goal` | Initializes the agentic loop by accepting a goal and marking it as active. | Simulated |
-| **SummarizeWorker** | `al_summarize` | Summarizes the agentic loop execution after all iterations are complete. | Simulated |
-| **ThinkWorker** | `al_think` | Plans the next action based on the goal and current iteration. Cycles through 3 fixed plan strings based on iteration... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ActWorker** | `al_act` | Executes the action described by the plan and returns a result. Results are deterministically mapped from plan strings. |
+| **ObserveWorker** | `al_observe` | Observes the outcome of the action and assesses goal progress. |
+| **SetGoalWorker** | `al_set_goal` | Initializes the agentic loop by accepting a goal and marking it as active. |
+| **SummarizeWorker** | `al_summarize` | Summarizes the agentic loop execution after all iterations are complete. |
+| **ThinkWorker** | `al_think` | Plans the next action based on the goal and current iteration. Cycles through 3 fixed plan strings based on iteration |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

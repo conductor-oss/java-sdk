@@ -18,13 +18,13 @@ Each anomaly detection step is an independent worker: data collection, baseline 
 
 Five workers form the detection pipeline: CollectDataWorker gathers historical metrics, ComputeBaselineWorker calculates statistical baselines, DetectWorker computes z-scores against the baseline, ClassifyWorker categorizes anomaly severity, and AlertWorker notifies the appropriate channel.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AlertWorker** | `anom_alert` | Sends an alert with severity and classification details to the configured channel (e.g., Slack) | Simulated |
-| **ClassifyWorker** | `anom_classify` | Classifies anomalies by z-score magnitude into normal/moderate/significant/spike categories with corresponding severity levels | Simulated |
-| **CollectDataWorker** | `anom_collect_data` | Collects historical metric data over a configurable lookback window and returns the latest value and data point count | Simulated |
-| **ComputeBaselineWorker** | `anom_compute_baseline` | Computes a statistical baseline (mean and standard deviation) from collected data points for anomaly comparison | Simulated |
-| **DetectWorker** | `anom_detect` | Calculates the z-score of the latest metric value against the baseline to determine if it is anomalous | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AlertWorker** | `anom_alert` | Sends an alert with severity and classification details to the configured channel (e.g., Slack) |
+| **ClassifyWorker** | `anom_classify` | Classifies anomalies by z-score magnitude into normal/moderate/significant/spike categories with corresponding severity levels |
+| **CollectDataWorker** | `anom_collect_data` | Collects historical metric data over a configurable lookback window and returns the latest value and data point count |
+| **ComputeBaselineWorker** | `anom_compute_baseline` | Computes a statistical baseline (mean and standard deviation) from collected data points for anomaly comparison |
+| **DetectWorker** | `anom_detect` | Calculates the z-score of the latest metric value against the baseline to determine if it is anomalous |
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 

@@ -18,11 +18,11 @@ This example demonstrates Conductor's FORK_JOIN_DYNAMIC task, runtime-determined
 
 Three workers implement the dynamic fanout: PrepareTasksWorker generates one task definition per URL at runtime, FetchUrlWorker fetches each URL independently in its own parallel branch, and AggregateWorker collects all results after the join.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AggregateWorker** | `df_aggregate` | Aggregates results from all dynamic fork branches. Takes the joinOutput map (keyed by taskReferenceName) produced by ... | Simulated |
-| **FetchUrlWorker** | `df_fetch_url` | Fetches a URL and returns metadata. In a real application, this would make an HTTP request. Here it returns determini... | Simulated |
-| **PrepareTasksWorker** | `df_prepare_tasks` | Prepares the dynamic task list and input map for FORK_JOIN_DYNAMIC. Takes a list of URLs and generates: - dynamicTask... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AggregateWorker** | `df_aggregate` | Aggregates results from all dynamic fork branches. Takes the joinOutput map (keyed by taskReferenceName) produced by  |
+| **FetchUrlWorker** | `df_fetch_url` | Fetches a URL and returns metadata. In a real application, this would make an HTTP request. Here it returns determini |
+| **PrepareTasksWorker** | `df_prepare_tasks` | Prepares the dynamic task list and input map for FORK_JOIN_DYNAMIC. Takes a list of URLs and generates: - dynamicTask |
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 

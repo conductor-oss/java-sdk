@@ -18,13 +18,13 @@ The scatter-gather pattern broadcasts the same query to all sources simultaneous
 
 Five workers implement the scatter-gather: query broadcasting, three parallel source gatherers (one per pricing API), and best-price aggregation, each source queried independently and in parallel.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **SgrAggregateWorker** | `sgr_aggregate` | Collects all price responses and selects the best (lowest) price across sources | Simulated |
-| **SgrBroadcastWorker** | `sgr_broadcast` | Broadcasts the price query to all source services in parallel | Simulated |
-| **SgrGather1Worker** | `sgr_gather_1` | Queries price service A and returns its price quote with currency | Simulated |
-| **SgrGather2Worker** | `sgr_gather_2` | Queries price service B and returns its price quote with currency | Simulated |
-| **SgrGather3Worker** | `sgr_gather_3` | Queries price service C and returns its price quote with currency | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **SgrAggregateWorker** | `sgr_aggregate` | Collects all price responses and selects the best (lowest) price across sources |
+| **SgrBroadcastWorker** | `sgr_broadcast` | Broadcasts the price query to all source services in parallel |
+| **SgrGather1Worker** | `sgr_gather_1` | Queries price service A and returns its price quote with currency |
+| **SgrGather2Worker** | `sgr_gather_2` | Queries price service B and returns its price quote with currency |
+| **SgrGather3Worker** | `sgr_gather_3` | Queries price service C and returns its price quote with currency |
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 

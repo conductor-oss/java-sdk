@@ -18,12 +18,12 @@ Four workers form the scoring pipeline. Signal collection, scoring, classificati
 
 CollectSignalsWorker gathers page visits and email engagement, ScoreWorker computes a weighted score, ClassifyWorker labels the lead as hot/warm/cold, and RouteWorker assigns them to a sales rep or nurture track.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ClassifyWorker** | `ls_classify` | Classifies a lead based on score into hot/warm/cold. | Simulated |
-| **CollectSignalsWorker** | `ls_collect_signals` | Collects behavioral signals for a lead. | Simulated |
-| **RouteWorker** | `ls_route` | Routes a lead to the appropriate sales rep based on classification. | Simulated |
-| **ScoreWorker** | `ls_score` | Calculates lead score from collected signals. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ClassifyWorker** | `ls_classify` | Classifies a lead based on score into hot/warm/cold. |
+| **CollectSignalsWorker** | `ls_collect_signals` | Collects behavioral signals for a lead. |
+| **RouteWorker** | `ls_route` | Routes a lead to the appropriate sales rep based on classification. |
+| **ScoreWorker** | `ls_score` | Calculates lead score from collected signals. |
 
 Workers simulate CRM operations: lead scoring, contact enrichment, deal updates, with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 

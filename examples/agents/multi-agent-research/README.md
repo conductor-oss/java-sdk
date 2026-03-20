@@ -18,14 +18,14 @@ The three search types are independent. Web search doesn't depend on paper searc
 
 Six workers conduct the research. Defining scope, searching web, papers, and databases in parallel, synthesizing findings, and writing the report.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **DefineResearchWorker** | `ra_define_research` | Defines the research scope. Takes a topic and depth, produces search queries, target domains, and database names to .. | Simulated |
-| **SearchDatabasesWorker** | `ra_search_databases` | Searches internal databases for proprietary findings. Takes queries and database names, returns findings with source.. | Simulated |
-| **SearchPapersWorker** | `ra_search_papers` | Searches academic papers for scholarly findings. Takes queries and academic domains, returns findings with citations.. | Simulated |
-| **SearchWebWorker** | `ra_search_web` | Searches the web for relevant findings. Takes queries and maxResults, returns a list of findings with source, title,.. | Simulated |
-| **SynthesizeWorker** | `ra_synthesize` | Synthesizes findings from all three search agents. Computes total sources, average credibility, produces a synthesis.. | Simulated |
-| **WriteReportWorker** | `ra_write_report` | Writes the final research report. Takes topic, synthesis, key insights, and source count, and produces a title, exec.. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **DefineResearchWorker** | `ra_define_research` | Defines the research scope. Takes a topic and depth, produces search queries, target domains, and database names to .. |
+| **SearchDatabasesWorker** | `ra_search_databases` | Searches internal databases for proprietary findings. Takes queries and database names, returns findings with source.. |
+| **SearchPapersWorker** | `ra_search_papers` | Searches academic papers for scholarly findings. Takes queries and academic domains, returns findings with citations.. |
+| **SearchWebWorker** | `ra_search_web` | Searches the web for relevant findings. Takes queries and maxResults, returns a list of findings with source, title,.. |
+| **SynthesizeWorker** | `ra_synthesize` | Synthesizes findings from all three search agents. Computes total sources, average credibility, produces a synthesis.. |
+| **WriteReportWorker** | `ra_write_report` | Writes the final research report. Takes topic, synthesis, key insights, and source count, and produces a title, exec.. |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

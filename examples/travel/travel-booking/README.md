@@ -18,13 +18,13 @@ Each worker handles one travel operation. Conductor manages the booking pipeline
 
 Five workers divide the booking flow. Search, compare, book, confirm, and itinerary delivery, so flight search logic stays separate from payment and ticketing.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `SearchWorker` | `tvb_search` | Queries available flights for the given origin/destination/date, returning 3 options (United $450, Delta $420, AA $480) | Simulated |
-| `CompareWorker` | `tvb_compare` | Evaluates search results and selects Delta flight DL-1234 at $420 as the best value | Simulated |
-| `BookWorker` | `tvb_book` | Reserves the selected flight for the traveler and returns booking ID `BK-travel-booking` with confirmation code | Simulated |
-| `ConfirmWorker` | `tvb_confirm` | Finalizes the reservation, issuing e-ticket `ET-travel-booking-2024` | Simulated |
-| `ItineraryWorker` | `tvb_itinerary` | Assembles and sends the complete itinerary (flight, booking ref, e-ticket) to the traveler | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| `SearchWorker` | `tvb_search` | Queries available flights for the given origin/destination/date, returning 3 options (United $450, Delta $420, AA $480) |
+| `CompareWorker` | `tvb_compare` | Evaluates search results and selects Delta flight DL-1234 at $420 as the best value |
+| `BookWorker` | `tvb_book` | Reserves the selected flight for the traveler and returns booking ID `BK-travel-booking` with confirmation code |
+| `ConfirmWorker` | `tvb_confirm` | Finalizes the reservation, issuing e-ticket `ET-travel-booking-2024` |
+| `ItineraryWorker` | `tvb_itinerary` | Assembles and sends the complete itinerary (flight, booking ref, e-ticket) to the traveler |
 
 Workers simulate travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 

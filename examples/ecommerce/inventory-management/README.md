@@ -18,12 +18,12 @@ Inventory operations must be atomic: if two orders for 8 units arrive simultaneo
 
 Stock checking, reservation, inventory updates, and reorder workers manage warehouse state through discrete, independently testable operations.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CheckStockWorker** | `inv_check_stock` | Performs the check stock operation | Simulated |
-| **ReorderWorker** | `inv_reorder` | Performs the reorder operation | Simulated |
-| **ReserveStockWorker** | `inv_reserve` | Performs the reserve stock operation | Simulated |
-| **UpdateInventoryWorker** | `inv_update` | Performs the update inventory operation | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CheckStockWorker** | `inv_check_stock` | Performs the check stock operation |
+| **ReorderWorker** | `inv_reorder` | Performs the reorder operation |
+| **ReserveStockWorker** | `inv_reserve` | Performs the reserve stock operation |
+| **UpdateInventoryWorker** | `inv_update` | Performs the update inventory operation |
 
 Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 

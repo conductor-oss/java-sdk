@@ -18,12 +18,12 @@ Vector search and keyword search are independent workers. Conductor's `FORK_JOIN
 
 Four workers implement hybrid search. Running vector similarity and BM25 keyword search in parallel via FORK_JOIN, merging results with Reciprocal Rank Fusion, and generating an answer from the fused context.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **GenerateAnswerWorker** | `hs_generate_answer` | Answer generation worker. Generates an answer from the fused context documents. | Live (OpenAI gpt-4o-mini) when `CONDUCTOR_OPENAI_API_KEY` is set; simulated otherwise |
-| **KeywordSearchWorker** | `hs_keyword_search` | Keyword (BM25) search worker. Simulates tokenizing the query and searching an inverted index. | Simulated |
-| **RrfMergeWorker** | `hs_rrf_merge` | Reciprocal Rank Fusion (RRF) merge worker. Deduplicates results from vector and keyword searches by document id, keep... | Simulated |
-| **VectorSearchWorker** | `hs_vector_search` | Vector similarity search worker. Simulates embedding the query and searching an HNSW index (cosine similarity). | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **GenerateAnswerWorker** | `hs_generate_answer` | Answer generation worker. Generates an answer from the fused context documents. |
+| **KeywordSearchWorker** | `hs_keyword_search` | Keyword (BM25) search worker. Simulates tokenizing the query and searching an inverted index. |
+| **RrfMergeWorker** | `hs_rrf_merge` | Reciprocal Rank Fusion (RRF) merge worker. Deduplicates results from vector and keyword searches by document id, keep |
+| **VectorSearchWorker** | `hs_vector_search` | Vector similarity search worker. Simulates embedding the query and searching an HNSW index (cosine similarity). |
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 

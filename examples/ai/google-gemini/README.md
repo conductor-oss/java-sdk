@@ -18,11 +18,11 @@ Each concern is an independent worker. Content preparation (building Gemini's pa
 
 Three workers handle the Gemini integration. Preparing parts-based content with safety settings, calling the Gemini API, and formatting the candidate response with token counts and finish reason.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **GeminiFormatOutputWorker** | `gemini_format_output` | Extracts the generated text from Gemini's candidate structure and returns it as formattedResult. | Real |
-| **GeminiGenerateWorker** | `gemini_generate` | Calls the Google Gemini generateContent REST API using the configured model (`GEMINI_MODEL`, default `gemini-2.5-flash`). Falls back to a simulated response when GOOGLE_API_KEY is not set. | Real + Simulated fallback |
-| **GeminiPrepareContentWorker** | `gemini_prepare_content` | Prepares a Gemini-style request body with parts-based content structure, generation config, and safety settings. | Real |
+| Worker | Task | What It Does |
+|---|---|---|
+| **GeminiFormatOutputWorker** | `gemini_format_output` | Extracts the generated text from Gemini's candidate structure and returns it as formattedResult. |
+| **GeminiGenerateWorker** | `gemini_generate` | Calls the Google Gemini generateContent REST API using the configured model (`GEMINI_MODEL`, default `gemini-2.5-flash`). Falls back to a simulated response when GOOGLE_API_KEY is not set. |
+| **GeminiPrepareContentWorker** | `gemini_prepare_content` | Prepares a Gemini-style request body with parts-based content structure, generation config, and safety settings. |
 
 When `GOOGLE_API_KEY` is set and has active billing/quota for the Gemini API, `GeminiGenerateWorker` makes a real HTTP call to the Gemini REST API using `java.net.http.HttpClient` (built into Java 21). The model comes from `GEMINI_MODEL` by default and can also be overridden via workflow input. If your API key lacks quota (HTTP 429), the worker fails fast with a clear terminal message and includes the `Retry-After` value when Google returns one. When the key is absent, it falls back to a simulated response (prefixed with ``) so the workflow runs end-to-end without credentials.
 

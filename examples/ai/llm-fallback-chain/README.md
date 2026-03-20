@@ -20,11 +20,11 @@ Each provider is an independent worker. GPT-4, Claude, Gemini, each returning a 
 
 Four workers implement the multi-provider fallback. One per LLM provider (GPT-4, Claude, Gemini) plus a formatter that reports which model served the request and how many failovers occurred.
 
-| Worker | Task | What It Does | Live / Simulated |
-|---|---|---|---|
-| **FbCallGpt4Worker** | `fb_call_gpt4` | Calls GPT-4 (the preferred model). In live mode, calls the OpenAI Chat Completions API. In simulated mode, returns a `503 Service Unavailable` failure to trigger the fallback chain | Live when `CONDUCTOR_OPENAI_API_KEY` is set; simulated otherwise |
-| **FbCallClaudeWorker** | `fb_call_claude` | Calls Claude (first fallback). In live mode, calls the Anthropic Messages API. In simulated mode, returns a `429 Too Many Requests` failure to trigger the next fallback | Live when `CONDUCTOR_ANTHROPIC_API_KEY` is set; simulated otherwise |
-| **FbCallGeminiWorker** | `fb_call_gemini` | Calls Gemini (last resort). In live mode, calls the Google Generative Language API. In simulated mode, returns a `` success response completing the fallback chain | Live when `GOOGLE_API_KEY` is set; simulated otherwise |
+| Worker | Task | What It Does |
+|---|---|---|
+| **FbCallGpt4Worker** | `fb_call_gpt4` | Calls GPT-4 (the preferred model). In live mode, calls the OpenAI Chat Completions API. In simulated mode, returns a `503 Service Unavailable` failure to trigger the fallback chain |
+| **FbCallClaudeWorker** | `fb_call_claude` | Calls Claude (first fallback). In live mode, calls the Anthropic Messages API. In simulated mode, returns a `429 Too Many Requests` failure to trigger the next fallback |
+| **FbCallGeminiWorker** | `fb_call_gemini` | Calls Gemini (last resort). In live mode, calls the Google Generative Language API. In simulated mode, returns a `` success response completing the fallback chain |
 | **FbFormatResultWorker** | `fb_format_result` | Inspects the status of each model's response, selects the first successful response, and reports which model was used and how many fallbacks were triggered (0 = GPT-4 succeeded, 1 = Claude, 2 = Gemini) | Always runs locally |
 
 Each worker auto-detects whether to make live API calls or return simulated responses based on the corresponding environment variable. No code changes are needed to switch between modes. Just set or unset the API key. All API calls use `java.net.http.HttpClient` (built into Java 21) with Jackson for JSON serialization.

@@ -18,12 +18,12 @@ Each worker represents a service boundary. Conductor manages cross-service orche
 
 Four workers drive the canary lifecycle: DeployCanaryWorker provisions the new version, ShiftTrafficWorker steers a percentage of requests, AnalyzeMetricsWorker evaluates error rates, and PromoteOrRollbackWorker makes the final call.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AnalyzeMetricsWorker** | `cd_analyze_metrics` | Collects and analyzes error rate and p99 latency from the canary during a monitoring window. | Simulated |
-| **DeployCanaryWorker** | `cd_deploy_canary` | Deploys the new service version as a canary instance alongside the stable version. | Simulated |
-| **PromoteOrRollbackWorker** | `cd_promote_or_rollback` | Compares the canary error rate against a threshold and decides whether to promote to full rollout or roll back. | Simulated |
-| **ShiftTrafficWorker** | `cd_shift_traffic` | Shifts a specified percentage of live traffic to the canary instances. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AnalyzeMetricsWorker** | `cd_analyze_metrics` | Collects and analyzes error rate and p99 latency from the canary during a monitoring window. |
+| **DeployCanaryWorker** | `cd_deploy_canary` | Deploys the new service version as a canary instance alongside the stable version. |
+| **PromoteOrRollbackWorker** | `cd_promote_or_rollback` | Compares the canary error rate against a threshold and decides whether to promote to full rollout or roll back. |
+| **ShiftTrafficWorker** | `cd_shift_traffic` | Shifts a specified percentage of live traffic to the canary instances. |
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 

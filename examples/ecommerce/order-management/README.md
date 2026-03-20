@@ -18,13 +18,13 @@ If the carrier API is down during the shipping step, the order is already packed
 
 Five workers track an order from creation through validation, fulfillment, shipping, and delivery, with each step owning its own state transitions.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreateOrderWorker** | `ord_create` | Performs the create order operation | Simulated |
-| **DeliverOrderWorker** | `ord_deliver` | Performs the deliver order operation | Simulated |
-| **FulfillOrderWorker** | `ord_fulfill` | Performs the fulfill order operation | Simulated |
-| **ShipOrderWorker** | `ord_ship` | Ships the order | Simulated |
-| **ValidateOrderWorker** | `ord_validate` | Performs the validate order operation | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CreateOrderWorker** | `ord_create` | Performs the create order operation |
+| **DeliverOrderWorker** | `ord_deliver` | Performs the deliver order operation |
+| **FulfillOrderWorker** | `ord_fulfill` | Performs the fulfill order operation |
+| **ShipOrderWorker** | `ord_ship` | Ships the order |
+| **ValidateOrderWorker** | `ord_validate` | Performs the validate order operation |
 
 Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 

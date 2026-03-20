@@ -18,13 +18,13 @@ Without a supervisor, these agents work independently with no shared plan and no
 
 A supervisor plans the work, three specialist agents (coder, tester, documenter) execute in parallel, and the supervisor reviews all outputs for quality.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **PlanWorker** | `sup_plan` | Creates a development plan for the requested feature. Returns a plan object with feature name, priority, 5 development phases (design, implementation, testing, documentation, review), a deadline, and task descriptions for each specialist agent. | Simulated. Swap in a project management API or LLM planner |
-| **CoderAgentWorker** | `sup_coder_agent` | Implements the feature. Returns implementation results: 3 files created (AuthController, AuthService, AuthRepository), 245 lines of Java, and implementation notes describing JWT token handling and role-based access control. | Simulated. Swap in GitHub API + Codex/Copilot for real code generation |
-| **TesterAgentWorker** | `sup_tester_agent` | Creates and runs test suites. Returns test execution results: 3 test suites, 18 total tests, 17 passed, 1 failed (testTokenExpirationEdgeCase), 82% coverage. Status is "needs_fix" due to the failing test. | Simulated. Swap in Maven Surefire + JaCoCo for real test execution |
-| **DocumenterAgentWorker** | `sup_documenter_agent` | Generates documentation. Returns 3 documents created (API_REFERENCE.md, SETUP_GUIDE.md, EXAMPLES.md), 5 sections (Overview, Authentication Flow, API Endpoints, Configuration, Troubleshooting), and 1200 words total. | Simulated. Swap in LLM + docs-as-code toolchain |
-| **ReviewWorker** | `sup_review` | Reviews all agent outputs against the plan. Determines overall status: APPROVED if all agents pass, NEEDS_REVISION if any agent has issues. Returns action items (fix failing test, increase coverage, add error handling docs) and metrics (lines of code, test count, documentation word count). | Simulated. Swap in an LLM cross-referencing code vs tests vs docs |
+| Worker | Task | What It Does |
+|---|---|---|
+| **PlanWorker** | `sup_plan` | Creates a development plan for the requested feature. Returns a plan object with feature name, priority, 5 development phases (design, implementation, testing, documentation, review), a deadline, and task descriptions for each specialist agent. |
+| **CoderAgentWorker** | `sup_coder_agent` | Implements the feature. Returns implementation results: 3 files created (AuthController, AuthService, AuthRepository), 245 lines of Java, and implementation notes describing JWT token handling and role-based access control. |
+| **TesterAgentWorker** | `sup_tester_agent` | Creates and runs test suites. Returns test execution results: 3 test suites, 18 total tests, 17 passed, 1 failed (testTokenExpirationEdgeCase), 82% coverage. Status is "needs_fix" due to the failing test. |
+| **DocumenterAgentWorker** | `sup_documenter_agent` | Generates documentation. Returns 3 documents created (API_REFERENCE.md, SETUP_GUIDE.md, EXAMPLES.md), 5 sections (Overview, Authentication Flow, API Endpoints, Configuration, Troubleshooting), and 1200 words total. |
+| **ReviewWorker** | `sup_review` | Reviews all agent outputs against the plan. Determines overall status: APPROVED if all agents pass, NEEDS_REVISION if any agent has issues. Returns action items (fix failing test, increase coverage, add error handling docs) and metrics (lines of code, test count, documentation word count). |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

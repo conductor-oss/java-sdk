@@ -16,11 +16,11 @@ Each worker handles one stage of the approval chain. Conductor manages task assi
 
 LcrExtractTermsWorker pulls key clauses and risk flags from contracts, and LcrFinalizeWorker records the lawyer's redline notes, the WAIT task between them holds state for days if needed.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **LcrExtractTermsWorker** | `lcr_extract_terms` | Uses AI to extract key contract terms (parties, payment terms, liability caps, IP clauses, termination conditions) and flag risk areas (unlimited liability, auto-renewal) | Simulated. Swap in your contract AI platform (Kira Systems, LawGeex, Ironclad, ContractPodAi) for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **LcrExtractTermsWorker** | `lcr_extract_terms` | Uses AI to extract key contract terms (parties, payment terms, liability caps, IP clauses, termination conditions) and flag risk areas (unlimited liability, auto-renewal) |
 | *WAIT task* | `lcr_legal_review` | Pauses with the extracted terms and risk flags until a lawyer reviews, verifies accuracy, and submits their assessment via `POST /tasks/{taskId}` | Built-in Conductor WAIT.; no worker needed |
-| **LcrFinalizeWorker** | `lcr_finalize` | Finalizes the contract review. records the lawyer's approval and any redline notes, updates the contract status in the CLM system | Simulated, swap in your contract lifecycle management system (Ironclad, DocuSign CLM, Agiloft) for production |
+| **LcrFinalizeWorker** | `lcr_finalize` | Finalizes the contract review. records the lawyer's approval and any redline notes, updates the contract status in the CLM system |
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 

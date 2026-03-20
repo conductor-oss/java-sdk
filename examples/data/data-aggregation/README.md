@@ -18,13 +18,13 @@ Each stage of the aggregation pipeline is a simple, independent worker. The load
 
 Five workers cover the full aggregation lifecycle: loading records, grouping by a configurable dimension, computing statistical aggregates (count, sum, average, min, max), formatting results, and emitting the final report.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ComputeAggregatesWorker** | `agg_compute_aggregates` | Computes aggregate statistics (count, sum, avg, min, max) for each group on a specified numeric field. | Simulated |
-| **EmitResultsWorker** | `agg_emit_results` | Emits the final aggregation summary. | Simulated |
-| **FormatReportWorker** | `agg_format_report` | Formats aggregate results into human-readable report lines. | Simulated |
-| **GroupByDimensionWorker** | `agg_group_by_dimension` | Groups records by a specified dimension field. | Simulated |
-| **LoadDataWorker** | `agg_load_data` | Loads input records and passes them through with a count. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ComputeAggregatesWorker** | `agg_compute_aggregates` | Computes aggregate statistics (count, sum, avg, min, max) for each group on a specified numeric field. |
+| **EmitResultsWorker** | `agg_emit_results` | Emits the final aggregation summary. |
+| **FormatReportWorker** | `agg_format_report` | Formats aggregate results into human-readable report lines. |
+| **GroupByDimensionWorker** | `agg_group_by_dimension` | Groups records by a specified dimension field. |
+| **LoadDataWorker** | `agg_load_data` | Loads input records and passes them through with a count. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 

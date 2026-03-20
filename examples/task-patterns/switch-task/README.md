@@ -18,13 +18,13 @@ This example demonstrates Conductor's SWITCH task with `value-param` evaluator f
 
 Five workers cover the priority-based ticket routing: AutoHandleWorker auto-resolves LOW tickets, TeamReviewWorker assigns MEDIUM tickets, EscalateWorker pages managers for HIGH tickets, UnknownPriorityWorker flags unrecognized values, and LogActionWorker records the audit trail after every branch.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AutoHandleWorker** | `sw_auto_handle` | Handles LOW priority tickets: returns handler="auto" and resolved=true, indicating the ticket was auto-resolved without human intervention. | Simulated |
-| **TeamReviewWorker** | `sw_team_review` | Handles MEDIUM priority tickets: returns handler="team" and assignedTo="support-team-1", indicating the ticket was routed to a support team for manual review. | Simulated |
-| **EscalateWorker** | `sw_escalate` | Handles HIGH priority tickets: returns handler="manager" and escalatedTo="manager@example.com", indicating immediate manager escalation. | Simulated |
-| **UnknownPriorityWorker** | `sw_unknown_priority` | Handles unrecognized priority values (default case): returns handler="default" and needsClassification=true, flagging the ticket for triage. | Simulated |
-| **LogActionWorker** | `sw_log_action` | Runs after every SWITCH branch. Logs the ticketId and priority, returns logged=true to confirm the audit trail entry was recorded. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AutoHandleWorker** | `sw_auto_handle` | Handles LOW priority tickets: returns handler="auto" and resolved=true, indicating the ticket was auto-resolved without human intervention. |
+| **TeamReviewWorker** | `sw_team_review` | Handles MEDIUM priority tickets: returns handler="team" and assignedTo="support-team-1", indicating the ticket was routed to a support team for manual review. |
+| **EscalateWorker** | `sw_escalate` | Handles HIGH priority tickets: returns handler="manager" and escalatedTo="manager@example.com", indicating immediate manager escalation. |
+| **UnknownPriorityWorker** | `sw_unknown_priority` | Handles unrecognized priority values (default case): returns handler="default" and needsClassification=true, flagging the ticket for triage. |
+| **LogActionWorker** | `sw_log_action` | Runs after every SWITCH branch. Logs the ticketId and priority, returns logged=true to confirm the audit trail entry was recorded. |
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 

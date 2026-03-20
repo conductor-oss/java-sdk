@@ -18,13 +18,13 @@ The generated SQL must be validated: no destructive operations (DROP, DELETE, TR
 
 Five workers form the text-to-SQL pipeline. Parsing the question, generating SQL, validating for safety, executing the query, and formatting results into natural language.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ExecuteQueryWorker** | `db_execute_query` | Simulates executing a validated SQL query against the database. Returns 5 department rows with department name, emplo... | Simulated |
-| **FormatWorker** | `db_format` | Formats the raw query results into a human-readable answer and summary. Produces a natural-language answer string alo... | Simulated |
-| **GenerateQueryWorker** | `db_generate_query` | Generates a SQL query from the parsed intent and entities. Produces a multi-line SELECT statement with JOIN, GROUP BY... | Simulated |
-| **ParseQuestionWorker** | `db_parse_question` | Parses a natural-language question against a database schema. Extracts the user's intent, relevant entities (metric, ... | Simulated |
-| **ValidateQueryWorker** | `db_validate_query` | Validates a generated SQL query for safety and correctness. Runs five validation checks (syntax, tables exist, no mut... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ExecuteQueryWorker** | `db_execute_query` | Executes a validated SQL query against the database. Returns 5 department rows with department name, emplo |
+| **FormatWorker** | `db_format` | Formats the raw query results into a human-readable answer and summary. Produces a natural-language answer string alo |
+| **GenerateQueryWorker** | `db_generate_query` | Generates a SQL query from the parsed intent and entities. Produces a multi-line SELECT statement with JOIN, GROUP BY |
+| **ParseQuestionWorker** | `db_parse_question` | Parses a natural-language question against a database schema. Extracts the user's intent, relevant entities (metric,  |
+| **ValidateQueryWorker** | `db_validate_query` | Validates a generated SQL query for safety and correctness. Runs five validation checks (syntax, tables exist, no mut |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

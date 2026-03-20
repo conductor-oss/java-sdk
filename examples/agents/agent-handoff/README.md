@@ -18,12 +18,12 @@ Triage requires understanding the message content (billing keyword detection, er
 
 The triage worker classifies incoming messages, and Conductor routes them to the appropriate specialist. Billing, technical, or general support.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **TriageWorker** | `ah_triage` | Classifies message by keyword matching against technical (api, error, timeout, crash, bug, 500, latency, outage) and billing (bill, charge, invoice, refund, payment, subscription, overcharged, credit) keyword sets. Returns category, confidence (0.6-0.95 based on match count), urgency, and matched keywords. | Real. Deterministic keyword classification |
-| **BillingWorker** | `ah_billing` | Routes billing issues by message content: refund requests get charge review and refund initiation; invoice requests get document retrieval; other billing inquiries get account review. Returns a deterministic ticket ID, resolution, and action list. High-urgency tickets are flagged for review. | Simulated. Swap in Stripe/PayPal API for production |
-| **TechWorker** | `ah_tech` | Performs root-cause analysis by message content: rate limiting gets quota increase, timeouts get connection pool restart, 500 errors get deployment rollback, unclassified issues get escalation to engineering. Returns diagnostics with latency, error rate, and root cause. High-urgency tickets get P1 priority. | Simulated. Swap in PagerDuty/Datadog API for production |
-| **GeneralWorker** | `ah_general` | Routes general inquiries by message content: plan/pricing questions get comparison details and upgrade recommendations, cancellation requests get retention callbacks, everything else gets a follow-up. | Simulated. Swap in CRM/knowledge base API for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **TriageWorker** | `ah_triage` | Classifies message by keyword matching against technical (api, error, timeout, crash, bug, 500, latency, outage) and billing (bill, charge, invoice, refund, payment, subscription, overcharged, credit) keyword sets. Returns category, confidence (0.6-0.95 based on match count), urgency, and matched keywords. |
+| **BillingWorker** | `ah_billing` | Routes billing issues by message content: refund requests get charge review and refund initiation; invoice requests get document retrieval; other billing inquiries get account review. Returns a deterministic ticket ID, resolution, and action list. High-urgency tickets are flagged for review. |
+| **TechWorker** | `ah_tech` | Performs root-cause analysis by message content: rate limiting gets quota increase, timeouts get connection pool restart, 500 errors get deployment rollback, unclassified issues get escalation to engineering. Returns diagnostics with latency, error rate, and root cause. High-urgency tickets get P1 priority. |
+| **GeneralWorker** | `ah_general` | Routes general inquiries by message content: plan/pricing questions get comparison details and upgrade recommendations, cancellation requests get retention callbacks, everything else gets a follow-up. |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

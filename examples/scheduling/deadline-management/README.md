@@ -18,12 +18,12 @@ A deadline checker worker evaluates the task's due date against current time. Co
 
 Workers handle each urgency level: CheckDeadlinesWorker evaluates how close a task is to its due date, then Conductor routes to HandleNormalWorker for on-track items, HandleUrgentWorker for approaching deadlines, or HandleOverdueWorker for past-due escalation.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CheckDeadlinesWorker** | `ded_check_deadlines` | Evaluates a task's due date, returning an urgency classification (normal/urgent/overdue) and hours remaining or overdue | Simulated |
-| **HandleNormalWorker** | `ded_handle_normal` | Handles on-track tasks by setting them to monitor status with a 24-hour check-in interval | Simulated |
-| **HandleOverdueWorker** | `ded_handle_overdue` | Escalates overdue tasks to management with P0 priority, reporting hours past deadline | Simulated |
-| **HandleUrgentWorker** | `ded_handle_urgent` | Escalates urgent tasks to the senior team with P1 priority, reporting remaining hours before deadline | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CheckDeadlinesWorker** | `ded_check_deadlines` | Evaluates a task's due date, returning an urgency classification (normal/urgent/overdue) and hours remaining or overdue |
+| **HandleNormalWorker** | `ded_handle_normal` | Handles on-track tasks by setting them to monitor status with a 24-hour check-in interval |
+| **HandleOverdueWorker** | `ded_handle_overdue` | Escalates overdue tasks to management with P0 priority, reporting hours past deadline |
+| **HandleUrgentWorker** | `ded_handle_urgent` | Escalates urgent tasks to the senior team with P1 priority, reporting remaining hours before deadline |
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 

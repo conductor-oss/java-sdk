@@ -18,12 +18,12 @@ Each cron job concern is an independent worker. Scheduling, execution, result lo
 
 Four workers manage each cron job run: ScheduleJobWorker registers the schedule, ExecuteJobWorker runs the command, LogResultWorker records stdout/stderr and exit codes, and CleanupWorker removes temporary files created during execution.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CleanupWorker** | `cj_cleanup` | Cleans up temporary files produced by a cron job. | Simulated |
-| **ExecuteJobWorker** | `cj_execute_job` | Executes a cron job command. | Simulated |
-| **LogResultWorker** | `cj_log_result` | Logs the result of a cron job execution. | Simulated |
-| **ScheduleJobWorker** | `cj_schedule_job` | Schedules a cron job with the given name and expression. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CleanupWorker** | `cj_cleanup` | Cleans up temporary files produced by a cron job. |
+| **ExecuteJobWorker** | `cj_execute_job` | Executes a cron job command. |
+| **LogResultWorker** | `cj_log_result` | Logs the result of a cron job execution. |
+| **ScheduleJobWorker** | `cj_schedule_job` | Schedules a cron job with the given name and expression. |
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 

@@ -16,13 +16,13 @@ Each worker handles one stage of the approval chain. Conductor manages task assi
 
 SubmitWorker prepares the request for dual review, and FinalizeWorker records both approvers' decisions, each runs independently within the FORK/JOIN approval structure.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **SubmitWorker** | `fep_submit` | Submits the request for dual approval. validates the request ID and marks it as ready for the parallel FORK/JOIN approval gates | Simulated, swap in your request management system for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **SubmitWorker** | `fep_submit` | Submits the request for dual approval. validates the request ID and marks it as ready for the parallel FORK/JOIN approval gates |
 | *FORK/JOIN* | `fork_approvers` | Launches two parallel WAIT tasks. One for each independent approver, and waits until both have responded | Built-in Conductor FORK/JOIN.; no worker needed |
 | *WAIT task* | `approver_1` | Pauses for the first approver's independent decision via `POST /tasks/{taskId}` with `{ "approval": true/false }` | Built-in Conductor WAIT.; no worker needed |
 | *WAIT task* | `approver_2` | Pauses for the second approver's independent decision, running in parallel with approver 1 | Built-in Conductor WAIT.; no worker needed |
-| **FinalizeWorker** | `fep_finalize` | Receives both approvers' decisions and finalizes: proceeds only if both approved, otherwise rejects and records which approver dissented | Simulated, swap in your compliance system and notification service for production |
+| **FinalizeWorker** | `fep_finalize` | Receives both approvers' decisions and finalizes: proceeds only if both approved, otherwise rejects and records which approver dissented |
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 

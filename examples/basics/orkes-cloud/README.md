@@ -18,9 +18,9 @@ A single greet worker polls the Orkes Cloud Conductor server, executes a task, a
 
 One verification worker confirms connectivity to your Orkes Cloud environment, validating credentials and endpoint configuration.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CloudGreetWorker** | `` | Worker that greets a user with a cloud/local indicator. In cloud mode, the task name is "cloud_greet" and the greetin... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CloudGreetWorker** | `` | Worker that greets a user with a cloud/local indicator. In cloud mode, the task name is "cloud_greet" and the greetin |
 
 Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
 

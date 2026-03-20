@@ -18,8 +18,8 @@ Building RAG as a single function means a retry in the embedding step re-runs th
 
 Three workers cover the full RAG pipeline: embedding the query, searching the vector store, and generating an answer, each independently testable and deployable.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
+| Worker | Task | What It Does |
+|---|---|---|
 | **EmbedQueryWorker** | `brag_embed_query` | Converts the user's question into a vector embedding using OpenAI (`OPENAI_EMBED_MODEL`, default `text-embedding-3-small`), returning the embedding array, model name, and dimensions | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; simulated (fixed 8-dim vector) otherwise |
 | **SearchVectorsWorker** | `brag_search_vectors` | Queries a vector database with the embedding to retrieve the top-k most relevant document chunks, each with id, text, and similarity score (0.85-0.94) | **Always simulated**.; no real vector DB. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples |
 | **GenerateAnswerWorker** | `brag_generate_answer` | Sends the original question plus retrieved context to OpenAI (`OPENAI_CHAT_MODEL`, default `gpt-4o-mini`), producing a grounded answer; returns the answer text and token count | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; simulated (fixed answer) otherwise |

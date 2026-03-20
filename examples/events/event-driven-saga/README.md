@@ -18,13 +18,13 @@ Each saga step is a simple, independent worker, a plain Java class that does one
 
 Five workers implement the saga: CreateOrderWorker starts the order, ProcessPaymentWorker charges the customer, ShipOrderWorker dispatches the shipment, while CancelOrderWorker and CompensatePaymentWorker handle rollback when payment fails.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CancelOrderWorker** | `ds_cancel_order` | Cancels an order as part of saga compensation. | Simulated |
-| **CompensatePaymentWorker** | `ds_compensate_payment` | Compensates (refunds) a payment when the saga needs to roll back. | Simulated |
-| **CreateOrderWorker** | `ds_create_order` | Creates an order in the saga. | Simulated |
-| **ProcessPaymentWorker** | `ds_process_payment` | Processes payment for an order. | Simulated |
-| **ShipOrderWorker** | `ds_ship_order` | Ships an order after successful payment. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CancelOrderWorker** | `ds_cancel_order` | Cancels an order as part of saga compensation. |
+| **CompensatePaymentWorker** | `ds_compensate_payment` | Compensates (refunds) a payment when the saga needs to roll back. |
+| **CreateOrderWorker** | `ds_create_order` | Creates an order in the saga. |
+| **ProcessPaymentWorker** | `ds_process_payment` | Processes payment for an order. |
+| **ShipOrderWorker** | `ds_ship_order` | Ships an order after successful payment. |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 

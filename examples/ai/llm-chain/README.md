@@ -18,9 +18,9 @@ Each stage of the chain is an independent worker. prompt construction (combining
 
 Four workers form a sequential processing chain: prompt construction from customer email context, LLM generation, structured response parsing, and output validation, each step refining the previous output.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ChainGenerateWorker** | `chain_generate` | LLM generation. Takes formattedPrompt, model, temperature, maxTokens. Calls OpenAI API in live mode, returns deterministic output in simulated mode. | Live (with `CONDUCTOR_OPENAI_API_KEY`) / Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ChainGenerateWorker** | `chain_generate` | LLM generation. Takes formattedPrompt, model, temperature, maxTokens. Calls OpenAI API in live mode, returns deterministic output in simulated mode. |
 | **ChainParseWorker** | `chain_parse` | Worker 3: Parses rawText JSON string into a Map. Returns FAILED status if parsing fails. | Processing only |
 | **ChainPromptWorker** | `chain_prompt` | Worker 1: Takes customerEmail and productCatalog, builds a structured prompt with few-shot examples and expected JSON format. | Processing only |
 | **ChainValidateWorker** | `chain_validate` | Worker 4: Validates parsedData against business rules. Runs 4 checks: valid_intent, valid_sentiment, products_in_catalog, reply_length. | Processing only |

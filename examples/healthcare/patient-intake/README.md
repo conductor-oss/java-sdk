@@ -18,12 +18,12 @@ Each step of the intake process is a simple, independent worker, a plain Java cl
 
 Four workers handle the intake process: RegisterWorker captures demographics and vitals, VerifyInsuranceWorker confirms coverage, TriageWorker assigns acuity level, and AssignWorker routes the patient to the right provider.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **RegisterWorker** | `pit_register` | Registers the patient with demographics, contact info, and initial vitals (BP, HR, temp, weight) | Simulated. Swap in your EHR registration API for production |
-| **VerifyInsuranceWorker** | `pit_verify_insurance` | Verifies active insurance coverage, benefit details, and patient financial responsibility (copay, deductible) | Simulated. Swap in your 270/271 eligibility API for production |
-| **TriageWorker** | `pit_triage` | Performs triage assessment based on chief complaint and vitals, assigns acuity level (ESI 1-5) | Simulated. Swap in your clinical triage decision support tool for production |
-| **AssignWorker** | `pit_assign` | Assigns the patient to an available provider based on triage acuity and provider panel capacity | Simulated. Swap in your provider scheduling and assignment system for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **RegisterWorker** | `pit_register` | Registers the patient with demographics, contact info, and initial vitals (BP, HR, temp, weight) |
+| **VerifyInsuranceWorker** | `pit_verify_insurance` | Verifies active insurance coverage, benefit details, and patient financial responsibility (copay, deductible) |
+| **TriageWorker** | `pit_triage` | Performs triage assessment based on chief complaint and vitals, assigns acuity level (ESI 1-5) |
+| **AssignWorker** | `pit_assign` | Assigns the patient to an available provider based on triage acuity and provider panel capacity |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
 

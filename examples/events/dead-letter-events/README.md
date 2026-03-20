@@ -18,13 +18,13 @@ Each dead-letter concern is a simple, independent worker, a plain Java class tha
 
 Five workers manage failed-event routing: DlReceiveEventWorker ingests the event, DlAttemptProcessWorker tries to handle it, DlRouteToDlqWorker moves failures to the dead-letter queue, DlSendAlertWorker notifies engineers, and DlFinalizeSuccessWorker stamps successful completions.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **DlAttemptProcessWorker** | `dl_attempt_process` | Attempts to process an event. If the payload contains a "requiredField" key, processing succeeds. Otherwise it fails ... | Simulated |
-| **DlFinalizeSuccessWorker** | `dl_finalize_success` | Finalizes a successfully processed event by stamping a finalized timestamp. | Simulated |
-| **DlReceiveEventWorker** | `dl_receive_event` | Receives an incoming event, normalizes retryCount to an integer, and stamps a receivedAt timestamp. | Simulated |
-| **DlRouteToDlqWorker** | `dl_route_to_dlq` | Routes a failed event to the dead letter queue, producing a DLQ entry with all relevant details. | Simulated |
-| **DlSendAlertWorker** | `dl_send_alert` | Sends an alert notification when an event is routed to the dead letter queue. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **DlAttemptProcessWorker** | `dl_attempt_process` | Attempts to process an event. If the payload contains a "requiredField" key, processing succeeds. Otherwise it fails  |
+| **DlFinalizeSuccessWorker** | `dl_finalize_success` | Finalizes a successfully processed event by stamping a finalized timestamp. |
+| **DlReceiveEventWorker** | `dl_receive_event` | Receives an incoming event, normalizes retryCount to an integer, and stamps a receivedAt timestamp. |
+| **DlRouteToDlqWorker** | `dl_route_to_dlq` | Routes a failed event to the dead letter queue, producing a DLQ entry with all relevant details. |
+| **DlSendAlertWorker** | `dl_send_alert` | Sends an alert notification when an event is routed to the dead letter queue. |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 

@@ -18,12 +18,12 @@ The tool-use pattern has four steps: understand what the user wants (intent extr
 
 Four workers implement the tool-use pattern. Analyzing the request, selecting the right tool, executing it, and formatting the result into natural language.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AnalyzeRequestWorker** | `tu_analyze_request` | Analyzes a user request to determine intent, entities, and complexity. Returns an analysis object with entities, inte... | Simulated |
-| **ExecuteToolWorker** | `tu_execute_tool` | Simulates executing the selected tool and returns its output. For weather_api, returns a deterministic weather report. | Simulated |
-| **FormatResultWorker** | `tu_format_result` | Formats tool execution results into a natural language answer. Builds a human-readable string based on the tool output. | Simulated |
-| **SelectToolWorker** | `tu_select_tool` | Selects the appropriate tool based on the analyzed intent. Maps intent to tool name, produces a description, and buil... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AnalyzeRequestWorker** | `tu_analyze_request` | Analyzes a user request to determine intent, entities, and complexity. Returns an analysis object with entities, inte |
+| **ExecuteToolWorker** | `tu_execute_tool` | Executes the selected tool and returns its output. For weather_api, returns a deterministic weather report. |
+| **FormatResultWorker** | `tu_format_result` | Formats tool execution results into a natural language answer. Builds a human-readable string based on the tool output. |
+| **SelectToolWorker** | `tu_select_tool` | Selects the appropriate tool based on the analyzed intent. Maps intent to tool name, produces a description, and buil |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

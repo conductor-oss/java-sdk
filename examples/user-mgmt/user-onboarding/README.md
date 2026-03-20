@@ -18,12 +18,12 @@ Each onboarding step: account creation, email verification, preference setup, we
 
 CreateAccountWorker generates a user ID, VerifyEmailWorker confirms ownership, SetPreferencesWorker initializes plan-appropriate defaults, and WelcomeWorker sends a personalized getting-started email.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreateAccountWorker** | `uo_create_account` | Generates a deterministic user ID (USR-{hex} derived from email), persists the account record with email, name, and plan | Simulated. Swap in your user database (PostgreSQL, DynamoDB) or identity provider (Auth0, Cognito) |
-| **VerifyEmailWorker** | `uo_verify_email` | Sends an email verification link to the new user's address and confirms delivery | Simulated. Swap in SendGrid, SES, or your SMTP service for production |
-| **SetPreferencesWorker** | `uo_set_preferences` | Initializes default user preferences: theme (light), language (en), notifications (on), timezone (UTC) | Simulated. Swap in your preferences API or user profile store (PostgreSQL, DynamoDB) |
-| **WelcomeWorker** | `uo_welcome` | Sends a personalized welcome email to the verified user with getting-started content | Simulated. Swap in your transactional email service (SendGrid, SES) for production |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CreateAccountWorker** | `uo_create_account` | Generates a deterministic user ID (USR-{hex} derived from email), persists the account record with email, name, and plan |
+| **VerifyEmailWorker** | `uo_verify_email` | Sends an email verification link to the new user's address and confirms delivery |
+| **SetPreferencesWorker** | `uo_set_preferences` | Initializes default user preferences: theme (light), language (en), notifications (on), timezone (UTC) |
+| **WelcomeWorker** | `uo_welcome` | Sends a personalized welcome email to the verified user with getting-started content |
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end with reproducible results. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 

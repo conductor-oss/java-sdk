@@ -18,13 +18,13 @@ The ReAct pattern interleaves reasoning (what should I do next?) with acting (ex
 
 Five workers drive the ReAct loop. Initializing the question, then iterating through reasoning, action execution, and observation until the answer is found.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ActWorker** | `rx_act` | Executes the action decided by the ReasonWorker. If the action is "search", returns a deterministic search result. Ot... | Simulated |
-| **FinalAnswerWorker** | `rx_final_answer` | Produces the final answer after all ReAct iterations are complete. Returns a deterministic answer with a confidence s... | Simulated |
-| **InitTaskWorker** | `rx_init_task` | Initializes the ReAct agent loop by capturing the question and creating an empty context list for subsequent iterations. | Simulated |
-| **ObserveWorker** | `rx_observe` | Observes the result of the action and determines whether the information is useful for answering the question. Always... | Simulated |
-| **ReasonWorker** | `rx_reason` | Reasons about the question and decides what action to take next. Produces a thought, an action type, and a query for ... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ActWorker** | `rx_act` | Executes the action decided by the ReasonWorker. If the action is "search", returns a deterministic search result. Ot |
+| **FinalAnswerWorker** | `rx_final_answer` | Produces the final answer after all ReAct iterations are complete. Returns a deterministic answer with a confidence s |
+| **InitTaskWorker** | `rx_init_task` | Initializes the ReAct agent loop by capturing the question and creating an empty context list for subsequent iterations. |
+| **ObserveWorker** | `rx_observe` | Observes the result of the action and determines whether the information is useful for answering the question. Always |
+| **ReasonWorker** | `rx_reason` | Reasons about the question and decides what action to take next. Produces a thought, an action type, and a query for  |
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 

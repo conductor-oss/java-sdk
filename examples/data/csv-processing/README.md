@@ -18,12 +18,12 @@ Each stage of the CSV pipeline is a simple, independent worker. The parser split
 
 Four workers handle the CSV lifecycle: parsing raw text into rows, validating names and emails, normalizing field casing and types, and producing clean output with summary statistics.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **GenerateOutputWorker** | `cv_generate_output` | Generates final output with summary statistics from transformed rows. | Simulated |
-| **ParseCsvWorker** | `cv_parse_csv` | Parses a CSV string into structured rows. | Simulated |
-| **TransformFieldsWorker** | `cv_transform_fields` | Transforms validated rows: normalizes names, lowercases emails, uppercases departments, parses salaries to doubles. | Simulated |
-| **ValidateRowsWorker** | `cv_validate_rows` | Validates parsed CSV rows: each row must have a non-empty name and an email containing "@". | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **GenerateOutputWorker** | `cv_generate_output` | Generates final output with summary statistics from transformed rows. |
+| **ParseCsvWorker** | `cv_parse_csv` | Parses a CSV string into structured rows. |
+| **TransformFieldsWorker** | `cv_transform_fields` | Transforms validated rows: normalizes names, lowercases emails, uppercases departments, parses salaries to doubles. |
+| **ValidateRowsWorker** | `cv_validate_rows` | Validates parsed CSV rows: each row must have a non-empty name and an email containing "@". |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 

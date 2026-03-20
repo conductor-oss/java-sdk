@@ -30,9 +30,9 @@ Conductor persists every workflow execution to durable storage. When the server 
 
 DurableTaskWorker processes batches while Conductor persists every execution to durable storage, ensuring workflows survive server restarts and resume from their last completed step without re-executing or losing progress.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **DurableTaskWorker** | `wr_durable_task` | Processes a batch by name. Accepts `{batch: "batch-001"}`, returns `{processed: true, batch: "batch-001"}`. Handles null/missing batch input gracefully by defaulting to empty string. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **DurableTaskWorker** | `wr_durable_task` | Processes a batch by name. Accepts `{batch: "batch-001"}`, returns `{processed: true, batch: "batch-001"}`. Handles null/missing batch input gracefully by defaulting to empty string. |
 
 The simulated worker produces a realistic output shape so the workflow runs end-to-end. To go to production, replace the simulation with the real batch processing logic, the worker interface stays the same, and no workflow changes are needed.
 

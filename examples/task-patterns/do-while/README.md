@@ -18,10 +18,10 @@ This example demonstrates Conductor's DO_WHILE loop task, a declarative iteratio
 
 Two workers handle the iterative batch: ProcessItemWorker processes one item per loop iteration and increments the counter, while SummarizeWorker aggregates results after all iterations complete.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ProcessItemWorker** | `dw_process_item` | Processes a single item within the loop. Takes the current iteration number, increments it, and returns itemProcessed=true, the new iteration count, and a result string like "Item-3 processed". Defaults iteration to 0 if missing. | Simulated |
-| **SummarizeWorker** | `dw_summarize` | Runs after the loop completes. Takes totalIterations and returns totalProcessed and a summary string like "Processed 5 items successfully". Defaults to 0 if totalIterations is missing. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ProcessItemWorker** | `dw_process_item` | Processes a single item within the loop. Takes the current iteration number, increments it, and returns itemProcessed=true, the new iteration count, and a result string like "Item-3 processed". Defaults iteration to 0 if missing. |
+| **SummarizeWorker** | `dw_summarize` | Runs after the loop completes. Takes totalIterations and returns totalProcessed and a summary string like "Processed 5 items successfully". Defaults to 0 if totalIterations is missing. |
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 

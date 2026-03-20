@@ -18,13 +18,13 @@ Each notification channel is a simple, independent worker, a plain Java class th
 
 Five workers deliver multi-channel notifications: ParseEventWorker extracts recipient and content, then SendEmailWorker, SendSmsWorker, and SendPushWorker deliver in parallel via FORK_JOIN, and RecordDeliveryWorker logs the outcome per channel.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ParseEventWorker** | `en_parse_event` | Parses an incoming event and prepares notification content for all channels. | Simulated |
-| **RecordDeliveryWorker** | `en_record_delivery` | Records the delivery status across all notification channels. | Simulated |
-| **SendEmailWorker** | `en_send_email` | Sends an email notification to a recipient. | Simulated |
-| **SendPushWorker** | `en_send_push` | Sends a push notification to a recipient. | Simulated |
-| **SendSmsWorker** | `en_send_sms` | Sends an SMS notification to a recipient. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ParseEventWorker** | `en_parse_event` | Parses an incoming event and prepares notification content for all channels. |
+| **RecordDeliveryWorker** | `en_record_delivery` | Records the delivery status across all notification channels. |
+| **SendEmailWorker** | `en_send_email` | Sends an email notification to a recipient. |
+| **SendPushWorker** | `en_send_push` | Sends a push notification to a recipient. |
+| **SendSmsWorker** | `en_send_sms` | Sends an SMS notification to a recipient. |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 

@@ -18,12 +18,12 @@ Each secrets concern is an independent worker. Secret creation, distribution to 
 
 Four workers handle the secrets lifecycle: CreateSecretWorker generates credentials, DistributeWorker pushes them to authorized consumers, VerifyAccessWorker confirms access policies, and ScheduleRotationWorker sets up automatic renewal.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreateSecretWorker** | `sm_create_secret` | Creates a new secret (API key, database credential, or certificate) and returns a secret ID | Simulated |
-| **DistributeWorker** | `sm_distribute` | Distributes the secret to authorized services and confirms delivery | Simulated |
-| **ScheduleRotationWorker** | `sm_schedule_rotation` | Schedules automatic rotation on a configurable interval (e.g., every 90 days) | Simulated |
-| **VerifyAccessWorker** | `sm_verify_access` | Verifies that access policies are correct and only authorized services can read the secret | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CreateSecretWorker** | `sm_create_secret` | Creates a new secret (API key, database credential, or certificate) and returns a secret ID |
+| **DistributeWorker** | `sm_distribute` | Distributes the secret to authorized services and confirms delivery |
+| **ScheduleRotationWorker** | `sm_schedule_rotation` | Schedules automatic rotation on a configurable interval (e.g., every 90 days) |
+| **VerifyAccessWorker** | `sm_verify_access` | Verifies that access policies are correct and only authorized services can read the secret |
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations, the workflow logic stays the same.
 

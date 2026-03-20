@@ -18,12 +18,12 @@ Each CDC concern is a simple, independent worker, a plain Java class that does o
 
 Four workers form the CDC pipeline: DetectChangesWorker polls a source table for inserts, updates, and deletes; TransformChangesWorker normalizes raw change records into structured events; PublishDownstreamWorker sends them to a topic; and ConfirmDeliveryWorker verifies all messages landed.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ConfirmDeliveryWorker** | `cd_confirm_delivery` | Confirms that all published CDC messages were successfully delivered. Returns a deterministic delivery report. | Simulated |
-| **DetectChangesWorker** | `cd_detect_changes` | Detects CDC changes from a source table since a given timestamp. Returns a fixed set of 4 change records: INSERT, UPD... | Simulated |
-| **PublishDownstreamWorker** | `cd_publish_downstream` | Publishes transformed CDC changes to a downstream topic. Returns fixed message IDs for deterministic behavior. | Simulated |
-| **TransformChangesWorker** | `cd_transform_changes` | Transforms raw CDC change records into structured event payloads with eventType, entityId, payload, previousPayload, ... | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ConfirmDeliveryWorker** | `cd_confirm_delivery` | Confirms that all published CDC messages were successfully delivered. Returns a deterministic delivery report. |
+| **DetectChangesWorker** | `cd_detect_changes` | Detects CDC changes from a source table since a given timestamp. Returns a set of 4 change records: INSERT, UPD |
+| **PublishDownstreamWorker** | `cd_publish_downstream` | Publishes transformed CDC changes to a downstream topic. Returns fixed message IDs for deterministic behavior. |
+| **TransformChangesWorker** | `cd_transform_changes` | Transforms raw CDC change records into structured event payloads with eventType, entityId, payload, previousPayload,  |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 

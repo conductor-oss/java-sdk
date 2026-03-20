@@ -18,13 +18,13 @@ Each invoice concern is a simple, independent worker, a plain Java class that do
 
 Five workers handle the invoice pipeline: ReceiveInvoiceWorker captures the document, OcrExtractWorker pulls key fields, MatchPoWorker validates against the purchase order, ApproveInvoiceWorker routes for approval, and ProcessPaymentWorker triggers payment.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ApproveInvoiceWorker** | `ivc_approve_invoice` | Approves the invoice | Simulated |
-| **MatchPoWorker** | `ivc_match_po` | Matches the po | Simulated |
-| **OcrExtractWorker** | `ivc_ocr_extract` | Extracting data from invoice | Simulated |
-| **ProcessPaymentWorker** | `ivc_process_payment` | Process Payment. Computes and returns payment status, payment id, scheduled date, payment method | Simulated |
-| **ReceiveInvoiceWorker** | `ivc_receive_invoice` | Receive Invoice. Computes and returns received at, document type, page count | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ApproveInvoiceWorker** | `ivc_approve_invoice` | Approves the invoice |
+| **MatchPoWorker** | `ivc_match_po` | Matches the po |
+| **OcrExtractWorker** | `ivc_ocr_extract` | Extracting data from invoice |
+| **ProcessPaymentWorker** | `ivc_process_payment` | Process Payment. Computes and returns payment status, payment id, scheduled date, payment method |
+| **ReceiveInvoiceWorker** | `ivc_receive_invoice` | Receive Invoice. Computes and returns received at, document type, page count |
 
 Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 

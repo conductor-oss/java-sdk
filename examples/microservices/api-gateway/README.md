@@ -18,12 +18,12 @@ Each worker represents a service boundary. Conductor manages cross-service orche
 
 The gateway pipeline breaks into four focused workers: authenticating API keys, routing to backends, transforming responses, and sending the final reply, each handling one hop in the request lifecycle.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **AgAuthenticateWorker** | `ag_authenticate` | Validates an API key and returns client info. | Simulated |
-| **RouteRequestWorker** | `ag_route_request` | Routes the API request to the appropriate backend service. | Simulated |
-| **SendResponseWorker** | `ag_send_response` | Sends the final API response to the client. | Simulated |
-| **TransformResponseWorker** | `ag_transform_response` | Transforms the raw backend response into a client-friendly format. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **AgAuthenticateWorker** | `ag_authenticate` | Validates an API key and returns client info. |
+| **RouteRequestWorker** | `ag_route_request` | Routes the API request to the appropriate backend service. |
+| **SendResponseWorker** | `ag_send_response` | Sends the final API response to the client. |
+| **TransformResponseWorker** | `ag_transform_response` | Transforms the raw backend response into a client-friendly format. |
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 

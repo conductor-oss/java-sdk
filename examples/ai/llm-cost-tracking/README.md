@@ -18,12 +18,12 @@ Each provider call is an independent worker. GPT-4, Claude, Gemini, each returni
 
 Four workers track costs across providers. Calling GPT-4, Claude, and Gemini sequentially with per-call token and cost tracking, then aggregating total spend, token usage, and per-model breakdowns in a final report.
 
-| Worker | Task | What It Does | Live / Simulated |
-|---|---|---|---|
+| Worker | Task | What It Does |
+|---|---|---|
 | **CallGpt4Worker** | `ct_call_gpt4` | Calls GPT-4 with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_OPENAI_API_KEY` is set (calls OpenAI API, extracts `usage.prompt_tokens` and `usage.completion_tokens`). **Simulated** otherwise (returns fixed tokens with `` prefix) |
 | **CallClaudeWorker** | `ct_call_claude` | Calls Claude with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_ANTHROPIC_API_KEY` is set (calls Anthropic API, extracts `usage.input_tokens` and `usage.output_tokens`). **Simulated** otherwise |
 | **CallGeminiWorker** | `ct_call_gemini` | Calls Gemini with the prompt and returns token usage alongside the response text | **Live** when `GOOGLE_API_KEY` is set (calls Gemini API, extracts `usageMetadata`). **Simulated** otherwise |
-| **AggregateCostsWorker** | `ct_aggregate_costs` | Aggregate Costs. Computes and returns breakdown, total cost, total tokens | Pricing-based aggregation of real or simulated token counts |
+| **AggregateCostsWorker** | `ct_aggregate_costs` | Aggregate Costs. Computes and returns breakdown, total cost, total tokens | Pricing-based aggregation of real or HMAC-signed JWT counts |
 
 Each worker auto-detects its API key from the environment. Set one, two, or all three keys to mix live and simulated providers in the same workflow run. Without any keys, everything runs in simulated mode with realistic output shapes.
 

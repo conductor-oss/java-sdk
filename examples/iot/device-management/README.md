@@ -18,13 +18,13 @@ Each lifecycle stage is a standalone worker that does one thing. Register, provi
 
 Five workers manage the device lifecycle: RegisterDeviceWorker adds the device to the fleet registry, ProvisionWorker issues TLS credentials, ConfigureWorker sets telemetry parameters, MonitorHealthWorker checks battery and signal strength, and PushUpdateWorker delivers firmware patches.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ConfigureWorker** | `dev_configure` | Configures device settings including reporting interval and telemetry topics. | Simulated |
-| **MonitorHealthWorker** | `dev_monitor_health` | Monitors device health status. | Simulated |
-| **ProvisionWorker** | `dev_provision` | Provisions credentials and connectivity for a device. | Simulated |
-| **PushUpdateWorker** | `dev_push_update` | Checks for and pushes firmware updates to a device. | Simulated |
-| **RegisterDeviceWorker** | `dev_register_device` | Registers a new IoT device in the device registry. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **ConfigureWorker** | `dev_configure` | Configures device settings including reporting interval and telemetry topics. |
+| **MonitorHealthWorker** | `dev_monitor_health` | Monitors device health status. |
+| **ProvisionWorker** | `dev_provision` | Provisions credentials and connectivity for a device. |
+| **PushUpdateWorker** | `dev_push_update` | Checks for and pushes firmware updates to a device. |
+| **RegisterDeviceWorker** | `dev_register_device` | Registers a new IoT device in the device registry. |
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
 
