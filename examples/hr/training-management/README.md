@@ -1,8 +1,6 @@
 # Training Management in Java with Conductor :  Course Assignment, Progress Tracking, Assessment, Certification, and Record Keeping
 
-A Java Conductor workflow example for employee training management .  assigning a course to an employee with a due date, tracking their progress through the learning material, administering the final assessment, issuing a certification if they pass, and recording the completed training in their permanent employee record. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for employee training management .  assigning a course to an employee with a due date, tracking their progress through the learning material, administering the final assessment, issuing a certification if they pass, and recording the completed training in their permanent employee record. Uses [Conductor](https://github.## The Problem
 
 You need to manage employee training from assignment through certification. An employee is assigned to a course .  whether mandatory compliance training (OSHA, HIPAA, anti-harassment), role-specific skills training, or professional development. The system must track the employee's progress through the course modules and verify completion. Upon finishing the material, the employee takes an assessment; a passing score (e.g., 80%+) earns a certification with an issue date and expiration. The certification must be recorded in the employee's permanent training record for audit purposes. Each step depends on the previous ,  you cannot assess without tracking completion, and you cannot certify without a passing assessment score. Missed compliance training exposes the organization to regulatory fines and liability.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage training through spreadsheets and LMS report
 
 **You just write the course assignment, progress tracking, assessment administration, certification, and record keeping logic. Conductor handles enrollment retries, progress tracking, and certification audit trails.**
 
-Each stage of training management is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of tracking progress only after assignment, assessing only after course completion, certifying only if the assessment score meets the passing threshold, recording the certification as the final step, retrying if the LMS or HRIS is temporarily unavailable, and maintaining a complete audit trail for compliance reporting. You get all of that for free, without writing a single line of orchestration code.
+Each stage of training management is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of tracking progress only after assignment, assessing only after course completion, certifying only if the assessment score meets the passing threshold, recording the certification as the final step, retrying if the LMS or HRIS is temporarily unavailable, and maintaining a complete audit trail for compliance reporting. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Course assignment, enrollment, progress tracking, and certification workers each
 | **RecordWorker** | `trm_record` | Records the completed certification in the employee's permanent training record in the HRIS for compliance audits |
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ trm_certify
     │
     ▼
 trm_record
-```
-
-## Example Output
-
-```
-=== Example 700: Training Management ===
-
-Step 1: Registering task definitions...
-  Registered: trm_assign, trm_track, trm_assess, trm_certify, trm_record
-
-Step 2: Registering workflow 'trm_training_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess] Assessment completed: score 92/100
-  [assign]
-  [certify] Certification issued to
-  [record] Certification
-  [track] Enrollment
-
-  Status: COMPLETED
-  Output: {score=..., passed=..., passingScore=..., enrollmentId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow trm_training_management \
   --version 1 \
-  --input '{"employeeId": "EMP-700", "EMP-700": "courseId", "courseId": "CRS-SEC-101", "CRS-SEC-101": "courseName", "courseName": "Security Awareness", "Security Awareness": "sample-Security Awareness"}'
+  --input '{"employeeId": "TEST-001", "courseId": "TEST-001", "courseName": "test"}'
 ```
 
 ### Check workflow status

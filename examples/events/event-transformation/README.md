@@ -1,8 +1,6 @@
 # Event Transformation in Java Using Conductor
 
-Event Transformation Pipeline .  parse raw events, enrich with context, map to CloudEvents schema, and deliver to target. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Transformation Pipeline .  parse raw events, enrich with context, map to CloudEvents schema, and deliver to target. Uses [Conductor](https://github.## The Problem
 
 You need to transform raw events from one format into another before delivering them downstream. The pipeline must parse raw events (JSON, XML, CSV), enrich them with contextual data (geo-IP lookup, user profile enrichment), map them to a target schema (CloudEvents, custom schema), and deliver the transformed events to the target system. Without a transformation pipeline, every downstream consumer must implement its own parsing and enrichment logic.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic transformer that parses, enriche
 
 **You just write the parse, enrich, schema-map, and delivery workers. Conductor handles sequential transformation stages, retry on enrichment API failures, and full before/after tracking for every event.**
 
-Each transformation stage is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the pipeline (parse, enrich, map, deliver), retrying if the enrichment API or target system is unavailable, tracking every event's transformation with full before/after details, and resuming from the last stage if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each transformation stage is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the pipeline (parse, enrich, map, deliver), retrying if the enrichment API or target system is unavailable, tracking every event's transformation with full before/after details, and resuming from the last stage if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the transformation pipeline: ParseEventWorker normalizes raw i
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ et_map_schema
     │
     ▼
 et_output_event
-```
-
-## Example Output
-
-```
-=== Event Transformation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: et_parse_event, et_enrich_event, et_map_schema, et_output_event
-
-Step 2: Registering workflow 'event_transformation_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [et_enrich_event] Enriching event of type:
-  [et_map_schema] Mapping event to format:
-  [et_output_event] Delivering event to format:
-  [et_parse_event] Parsing raw event from format:
-
-  Status: COMPLETED
-  Output: {department=..., role=..., location=..., actor=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_transformation_wf \
   --version 1 \
-  --input '{"rawEvent": {"key": "value"}}'
+  --input '{"rawEvent": "test-value", "sourceFormat": "test-value", "targetFormat": "test-value"}'
 ```
 
 ### Check workflow status

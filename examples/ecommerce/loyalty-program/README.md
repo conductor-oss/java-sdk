@@ -1,8 +1,6 @@
 # Loyalty Program in Java Using Conductor :  Earn Points, Check Tier, Upgrade, Reward
 
-Loyalty program: earn points, check tier, upgrade, deliver rewards. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Loyalty Programs Drive Repeat Purchases When They Work Right
+Loyalty program: earn points, check tier, upgrade, deliver rewards. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Loyalty Programs Drive Repeat Purchases When They Work Right
 
 A customer spends $85 and should earn 85 points (1 point per dollar). Their total reaches 950 points, putting them past the 900-point Gold tier threshold. They should be upgraded to Gold and receive the Gold welcome reward (10% off next purchase + free shipping for 30 days). Getting any of these steps wrong .  miscounted points, missed upgrade, wrong reward ,  erodes trust in the program.
 
@@ -27,15 +25,6 @@ Points calculation, tier evaluation, upgrade processing, and reward delivery wor
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ loy_upgrade_tier
     │
     ▼
 loy_reward
-```
-
-## Example Output
-
-```
-=== Example 466: Loyalty Program ===
-
-Step 1: Registering task definitions...
-  Registered: loy_earn_points, loy_check_tier, loy_upgrade_tier, loy_reward
-
-Step 2: Registering workflow 'loyalty_program_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tier] Points:
-  [earn] +
-  [reward]
-  [upgrade]
-
-  Status: COMPLETED
-  Output: {newTier=..., upgradeEligible=..., pointsToNext=..., pointsEarned=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow loyalty_program_workflow \
   --version 1 \
-  --input '{"customerId": "CUST-7712", "CUST-7712": "purchaseAmount", "purchaseAmount": 150, "Silver": "sample-Silver"}'
+  --input '{"customerId": "TEST-001", "purchaseAmount": 100, "currentTier": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Modify point multipliers or tier thresholds and the loyalty flow adjusts without
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

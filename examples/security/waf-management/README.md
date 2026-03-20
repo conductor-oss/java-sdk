@@ -12,7 +12,7 @@ Without orchestration, WAF management is reactive .  a security engineer manuall
 
 **You just write the traffic analysis and rule deployment logic. Conductor handles the rule update sequence, retries on CDN deployment failures, and a full change log of every rule modification and verification result.**
 
-Each WAF step is an independent worker .  traffic analysis, rule updates, deployment, and verification. Conductor runs them in sequence: analyze traffic for threats, update rules accordingly, deploy to the WAF, then verify protection. Every rule change is tracked with the threat that triggered it, the rule modification, and verification results. You get all of that for free, without writing a single line of orchestration code.
+Each WAF step is an independent worker .  traffic analysis, rule updates, deployment, and verification. Conductor runs them in sequence: analyze traffic for threats, update rules accordingly, deploy to the WAF, then verify protection. Every rule change is tracked with the threat that triggered it, the rule modification, and verification results. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ The WAF pipeline uses AnalyzeTrafficWorker to detect attack patterns, UpdateRule
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ waf_deploy_rules
     │
     ▼
 waf_verify_protection
-```
-
-## Example Output
-
-```
-=== Example 364: WAF Management ===
-
-Step 1: Registering task definitions...
-  Registered: waf_analyze_traffic, waf_update_rules, waf_deploy_rules, waf_verify_protection
-
-Step 2: Registering workflow 'waf_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] web-portal: detected SQL injection attempts from 3 IPs
-  [deploy] Rules deployed to CloudFront WAF
-  [rules] Updated WAF rules: 4 new blocking rules added
-  [verify] Attack simulation blocked .  protection confirmed
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow waf_management_workflow \
   --version 1 \
-  --input '{"application": "sample-application", "web-portal": "sample-web-portal", "threatType": "standard"}'
+  --input '{"application": "test-value", "threatType": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Switch Default Case in Java with Conductor
 
-Fallback routing for unmatched payment methods using SWITCH with defaultCase. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Fallback routing for unmatched payment methods using SWITCH with defaultCase. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to route payment processing based on the payment method .  credit card goes to Stripe, bank transfer goes to Plaid, crypto goes to Coinbase. But customers sometimes submit unrecognized payment methods (PayPal, Apple Pay, "cash") that don't match any configured processor. Those unmatched methods need a fallback path that flags them for manual review rather than silently failing or throwing an exception. After processing (or flagging), every payment attempt must be logged regardless of which branch was taken.
 
@@ -28,16 +26,6 @@ Five workers cover payment routing: ProcessCardWorker handles credit cards via S
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,35 +37,6 @@ SWITCH (route_ref)
     │
     ▼
 dc_log
-```
-
-## Example Output
-
-```
-=== SWITCH defaultCase: Fallback Routing for Unmatched Payment Methods ===
-
-Step 1: Registering task definitions...
-  Registered: dc_process_card, dc_process_bank, dc_process_crypto, dc_unknown_method, dc_log
-
-Step 2: Registering workflow 'default_case_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [log] Logged processing for payment method:
-  [process_bank] Payment method:
-  [process_card] Payment method:
-  [process_crypto] Payment method:
-  [unknown_method] Unrecognized method:
-
-  Status: COMPLETED
-  Output: {logged=..., handler=..., needsHuman=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow default_case_demo \
   --version 1 \
-  --input '{"paymentMethod": "POST"}'
+  --input '{"paymentMethod": "test-value"}'
 ```
 
 ### Check workflow status

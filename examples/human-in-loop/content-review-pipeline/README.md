@@ -1,8 +1,6 @@
 # Content Review Pipeline in Java Using Conductor :  AI Draft Generation, Human Review via WAIT, and Publishing
 
-A Java Conductor workflow example for AI-assisted content creation .  an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for AI-assisted content creation .  an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.## The Problem
 
 You need a content pipeline where AI generates first drafts and humans review them before publishing. An AI model produces content for a given topic and audience .  a blog post, marketing copy, product description, or documentation page. The draft includes the generated text, word count, and model used. A human editor must review the AI output for accuracy, tone, brand voice, and factual correctness. The editor may approve it as-is, edit it and approve the revised version, or reject it entirely. Only approved content should be published. Without a review step, AI hallucinations, off-brand tone, or factual errors reach your audience.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd call the AI API, store the draft in a database, ema
 
 **You just write the AI draft-generation and publishing workers. Conductor handles the durable pause for editorial review and the content lifecycle tracking.**
 
-The WAIT task is the key pattern here. After the AI generates the draft, the workflow pauses at the WAIT task. Conductor holds the draft content, word count, and model metadata until a human editor completes the review with an approved/rejected decision and optionally edited content. The publish worker only fires after the review is complete. Conductor takes care of holding the draft durably while the editor reviews (minutes, hours, or days), passing the editor's approved flag and edited content to the publish worker, tracking the complete content lifecycle from AI generation through review to publication, and providing metrics on review turnaround time and approval rates. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After the AI generates the draft, the workflow pauses at the WAIT task. Conductor holds the draft content, word count, and model metadata until a human editor completes the review with an approved/rejected decision and optionally edited content. The publish worker only fires after the review is complete. Conductor takes care of holding the draft durably while the editor reviews (minutes, hours, or days), passing the editor's approved flag and edited content to the publish worker, tracking the complete content lifecycle from AI generation through review to publication, and providing metrics on review turnaround time and approval rates. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +24,6 @@ CrpAiDraftWorker generates content for a topic and audience, and CrpPublishWorke
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,32 +34,6 @@ crp_human_review [WAIT]
     │
     ▼
 crp_publish
-```
-
-## Example Output
-
-```
-=== Content Review Pipeline: AI Draft -> Human Edit -> Publish ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'content_review_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [crp_ai_draft] Generated draft:
-  [crp_publish] Content published at https://example.com/articles/published
-
-  Status: COMPLETED
-  Output: {content=..., wordCount=..., model=..., published=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -99,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -142,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_review_pipeline \
   --version 1 \
-  --input '{"topic": "sample-topic", "AI in Healthcare": "sample-AI in Healthcare", "audience": "sample-audience"}'
+  --input '{"topic": "test-value", "audience": "test-value"}'
 ```
 
 ### Check workflow status

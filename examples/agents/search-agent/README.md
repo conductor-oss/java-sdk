@@ -1,8 +1,6 @@
 # Search Agent in Java Using Conductor :  Formulate Queries, Parallel Google/Wiki Search, Rank, Synthesize
 
-Search Agent .  formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Good Answers Need Multiple Search Sources
+Search Agent .  formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. Uses [Conductor](https://github.## Good Answers Need Multiple Search Sources
 
 A question like "What are the environmental impacts of lithium mining?" benefits from both web search (current news, industry reports, environmental assessments) and Wikipedia (background knowledge, historical context, established science). Searching either alone gives incomplete results. Searching both sequentially doubles the latency.
 
@@ -28,16 +26,6 @@ Five workers run the search pipeline. Formulating queries, searching Google and 
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -54,35 +42,6 @@ sa_rank_merge
     │
     ▼
 sa_synthesize
-```
-
-## Example Output
-
-```
-=== Search Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sa_formulate_queries, sa_search_google, sa_search_wiki, sa_rank_merge, sa_synthesize
-
-Step 2: Registering workflow 'search_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sa_formulate_queries] Formulating queries for:
-  [sa_rank_merge] Merging
-  [sa_search_google] Searching Google with
-  [sa_search_wiki] Searching Wikipedia with
-  [sa_synthesize] Synthesizing answer from
-
-  Status: COMPLETED
-  Output: {queries=..., intent=..., complexity=..., originalQuestion=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -111,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow search_agent \
   --version 1 \
-  --input '{"question": "sample-question", "What is the current state of quantum computing in 2026?": "sample-What is the current state of quantum computing in 2026?", "maxResults": "sample-maxResults"}'
+  --input '{"question": "test-value", "maxResults": "test-value"}'
 ```
 
 ### Check workflow status
@@ -178,7 +137,6 @@ Connect to real search engines and Wikipedia API; the parallel search pipeline p
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

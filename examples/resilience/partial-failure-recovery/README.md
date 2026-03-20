@@ -10,9 +10,7 @@ Without orchestration, partial failure recovery requires building custom checkpo
 
 ## The Solution
 
-**You just write the processing steps. Conductor handles checkpointing and resume-from-failure for free.**
-
-Each step is an independent worker. When step 2 fails, Conductor records which steps completed and which didn't. Calling Conductor's retry endpoint (`POST /workflow/{id}/retry`) resumes from exactly the failed step .  step 1 is skipped because it already succeeded. No checkpointing code needed. Every execution shows exactly which steps ran, which were skipped on retry, and what their results were. You get all of that for free, without writing a single line of orchestration code.
+Each step is an independent worker. When step 2 fails, Conductor records which steps completed and which didn't. Calling Conductor's retry endpoint (`POST /workflow/{id}/retry`) resumes from exactly the failed step .  step 1 is skipped because it already succeeded. No checkpointing code needed. Every execution shows exactly which steps ran, which were skipped on retry, and what their results were. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +24,6 @@ Step1Worker validates input, Step2Worker performs the main processing (which may
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ pfr_step2
     │
     ▼
 pfr_step3
-```
-
-## Example Output
-
-```
-=== Partial Failure Recovery Demo: Resume from Last Good State ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'partial_failure_recovery_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [pfr_step1] Processing data:
-  [pfr_step2] Attempt
-  [pfr_step3] Processing prev:
-
-  Status: COMPLETED
-  Output: {result=..., error=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow partial_failure_recovery_demo \
   --version 1 \
-  --input '{"data": "sample-data"}'
+  --input '{"data": "test-value"}'
 ```
 
 ### Check workflow status

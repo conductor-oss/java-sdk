@@ -1,8 +1,6 @@
 # Content Syndication Pipeline in Java Using Conductor :  Content Selection, Platform Formatting, Multi-Channel Distribution, and Performance Tracking
 
-A Java Conductor workflow example that orchestrates content syndication .  selecting content from your CMS with metadata and word counts, reformatting for each target platform's requirements (Medium, Dev.to, Hashnode character limits and markup), distributing to all platforms simultaneously, and setting up UTM-tagged tracking pixels for cross-platform performance measurement. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Content Syndication Needs Orchestration
+A Java Conductor workflow example that orchestrates content syndication .  selecting content from your CMS with metadata and word counts, reformatting for each target platform's requirements (Medium, Dev.to, Hashnode character limits and markup), distributing to all platforms simultaneously, and setting up UTM-tagged tracking pixels for cross-platform performance measurement. Uses [Conductor](https://github.## Why Content Syndication Needs Orchestration
 
 Syndicating content to multiple platforms requires adapting the same source content for each destination's format constraints. You select the content and extract its body, category, and word count. You reformat it for each platform. Medium requires specific HTML, Dev.to uses front matter with liquid tags, Hashnode has its own markdown flavor, each with different character limits. You distribute to all platforms and collect the published URLs. You set up tracking with UTM campaign parameters and pixel tags to measure which syndication channels drive the most traffic back to your site.
 
@@ -27,15 +25,6 @@ Four workers handle cross-platform syndication: SelectContentWorker picks articl
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ syn_distribute
     │
     ▼
 syn_track_performance
-```
-
-## Example Output
-
-```
-=== Example 523: Content Syndicatio ===
-
-Step 1: Registering task definitions...
-  Registered: syn_select_content, syn_format_per_platform, syn_distribute, syn_track_performance
-
-Step 2: Registering workflow 'content_syndication_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [distribute] Processing
-  [format] Processing
-  [select] Processing
-  [track] Processing
-
-  Status: COMPLETED
-  Output: {distributedPlatforms=..., distributedCount=..., urls=..., medium=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_syndication_workflow \
   --version 1 \
-  --input '{"contentId": "CNT-523-001", "CNT-523-001": "title", "title": "Workflow Orchestration Best Practices", "Workflow Orchestration Best Practices": "platforms", "platforms": ["item-1", "item-2", "item-3"], "2026-03-08": "sample-2026-03-08"}'
+  --input '{"contentId": "TEST-001", "title": "test-value", "platforms": "test-value", "publishDate": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

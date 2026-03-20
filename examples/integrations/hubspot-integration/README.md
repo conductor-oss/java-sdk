@@ -27,15 +27,6 @@ Four workers onboard CRM contacts: CreateContactWorker adds the lead, EnrichData
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ hs_assign_owner
     │
     ▼
 hs_nurture_sequence
-```
-
-## Example Output
-
-```
-=== Example 439: HubSpot Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: hs_create_contact, hs_enrich_data, hs_assign_owner, hs_nurture_sequence
-
-Step 2: Registering workflow 'hubspot_integration_439'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assign] Contact
-  [create] Contact
-  [enrich] Contact
-  [nurture] Enrolled contact
-
-  Status: COMPLETED
-  Output: {ownerId=..., ownerName=..., contactId=..., createdAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow hubspot_integration_439 \
   --version 1 \
-  --input '{"email": "user@example.com", "bob.smith@techcorp.io": "sample-bob.smith@techcorp.io", "firstName": "sample-name", "Bob": "sample-Bob", "lastName": "sample-name", "Smith": "sample-Smith", "company": "sample-company"}'
+  --input '{"email": "user@example.com", "firstName": "test", "lastName": "test", "company": "test-value"}'
 ```
 
 ### Check workflow status

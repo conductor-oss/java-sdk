@@ -1,8 +1,6 @@
 # Vendor Onboarding in Java with Conductor :  Application, Credential Verification, Evaluation, Approval, and System Activation
 
-A Java Conductor workflow example for vendor onboarding .  receiving a new vendor application with business details, verifying their credentials (business licenses, insurance, certifications), evaluating the vendor on financial stability and capability, approving or rejecting based on the evaluation score, and activating approved vendors in the procurement system so they can receive purchase orders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for vendor onboarding .  receiving a new vendor application with business details, verifying their credentials (business licenses, insurance, certifications), evaluating the vendor on financial stability and capability, approving or rejecting based on the evaluation score, and activating approved vendors in the procurement system so they can receive purchase orders. Uses [Conductor](https://github.## The Problem
 
 You need to onboard new vendors into your supply chain. A prospective vendor submits an application with their business details, category, and country of operation. Their credentials must be verified .  business registration, insurance coverage, industry certifications (ISO, SOC 2). The vendor must be evaluated on financial health (D&B rating, credit check) and operational capability. Based on the evaluation score, procurement approves or rejects the application. Approved vendors must be activated in the ERP vendor master so buyers can issue purchase orders to them.
 
@@ -28,15 +26,6 @@ Five workers manage vendor onboarding: ApplyWorker receives the application, Ver
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ von_approve
     │
     ▼
 von_activate
-```
-
-## Example Output
-
-```
-=== Example 653: Vendor Onboarding ===
-
-Step 1: Registering task definitions...
-  Registered: von_apply, von_verify, von_evaluate, von_approve, von_activate
-
-Step 2: Registering workflow 'von_vendor_onboarding'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [activate] Vendor
-  [apply] Vendor application:
-  [approve] Vendor
-  [evaluate] Vendor score:
-  [verify] Background check on
-
-  Status: COMPLETED
-  Output: {active=..., activatedAt=..., vendorId=..., approved=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow von_vendor_onboarding \
   --version 1 \
-  --input '{"vendorName": "sample-name", "TechParts Global": "sample-TechParts Global", "category": "sample-category", "electronics": "sample-electronics", "country": 5}'
+  --input '{"vendorName": "test", "category": "test-value", "country": 10}'
 ```
 
 ### Check workflow status

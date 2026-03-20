@@ -1,6 +1,6 @@
 # System Prompts in Java Using Conductor :  A/B Test Formal vs Casual Tone with Side-by-Side Comparison
 
-A Java Conductor workflow that runs the same user prompt through two different system prompts .  formal and casual ,  then compares the outputs side by side. This lets you evaluate how system prompt tone affects response quality, length, and style for your specific use case. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate prompt building, sequential LLM calls (formal then casual), and output comparison as independent workers ,  you write the prompt engineering and comparison logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that runs the same user prompt through two different system prompts .  formal and casual ,  then compares the outputs side by side. This lets you evaluate how system prompt tone affects response quality, length, and style for your specific use case. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate prompt building, sequential LLM calls (formal then casual), and output comparison as independent workers ,  you write the prompt engineering and comparison logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Testing System Prompt Variations
 
@@ -26,15 +26,6 @@ Three workers enable system prompt experimentation .  building the full prompt w
 
 **Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `SpCallLlmWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) with system prompt, few-shot examples, and user message. Without the key, it runs in simulated mode with style-based deterministic output prefixed with `[SIMULATED]`. Non-LLM workers (prompt building, comparison) always run their real logic.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -51,33 +42,6 @@ sp_call_llm
     │
     ▼
 sp_compare_outputs
-```
-
-## Example Output
-
-```
-=== System Prompts: Formal vs Casual LLM Responses ===
-
-Step 1: Registering task definitions...
-  Registered: sp_build_prompt, sp_call_llm, sp_compare_outputs
-
-Step 2: Registering workflow 'system_prompts_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sp_build_prompt] Built
-  [sp_call_llm] Generated
-  [sp_compare_outputs] Formal:
-
-  Status: COMPLETED
-  Output: {fullPrompt=..., style=..., error=..., response=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -150,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow system_prompts_workflow \
   --version 1 \
-  --input '{"userPrompt": "sample-userPrompt", "Explain Conductor": "sample-Explain Conductor", "model": "sample-model"}'
+  --input '{"userPrompt": "test-value", "model": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Queue Backpressure in Java Using Conductor :  Monitor Depth, Throttle Producers, Shed Load
 
-A Java Conductor workflow example for queue backpressure management .  monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## When Queues Overflow
+A Java Conductor workflow example for queue backpressure management .  monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.## When Queues Overflow
 
 A downstream service slows down, consumers fall behind, and your queue depth starts climbing. At 10,000 messages, latency creeps up. At 50,000, memory pressure kicks in. At 100,000, the broker starts rejecting publishes and upstream services cascade-fail. The difference between a minor slowdown and a full outage is whether you react to queue pressure before it becomes critical.
 
@@ -27,16 +25,6 @@ The backpressure response splits across four workers: queue monitoring, normal-f
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -48,34 +36,6 @@ SWITCH (bkp_switch_ref)
     ├── high: bkp_throttle
     ├── critical: bkp_shed_load
     └── default: bkp_handle_ok
-```
-
-## Example Output
-
-```
-=== Backpressure Demo ===
-
-Step 1: Registering task definitions...
-  Registered: bkp_monitor_queue, bkp_handle_ok, bkp_throttle, bkp_shed_load
-
-Step 2: Registering workflow 'bkp_backpressure'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ok] Processing
-  [monitor] Processing
-  [shed] Processing
-  [throttle] Processing
-
-  Status: COMPLETED
-  Output: {action=..., throttled=..., queueDepth=..., pressureLevel=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bkp_backpressure \
   --version 1 \
-  --input '{"queueName": "sample-name", "ingest_queue": "sample-ingest-queue", "thresholdHigh": "sample-thresholdHigh", "thresholdCritical": "sample-thresholdCritical"}'
+  --input '{"queueName": "test", "thresholdHigh": "test-value", "thresholdCritical": "test-value"}'
 ```
 
 ### Check workflow status

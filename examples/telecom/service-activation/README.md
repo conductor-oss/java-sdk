@@ -1,8 +1,6 @@
 # Service Activation in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service activation .  validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Service Activation Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom service activation .  validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.## Why Service Activation Needs Orchestration
 
 Activating a new telecom service requires a strict sequence where each step must succeed before proceeding. You validate the service order .  confirming the order exists, the customer's account is in good standing, and the requested service type is available at their location. You provision the network resources ,  creating subscriber profiles in the HLR/HSS, configuring access ports, and allocating bandwidth. You test the provisioned service by running automated checks to confirm connectivity and quality. You activate the service so the customer can start using it. Finally, you notify the customer with their service ID and activation details.
 
@@ -27,15 +25,6 @@ Order validation, resource allocation, configuration deployment, and service ver
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,35 +41,6 @@ sac_activate
     │
     ▼
 sac_notify
-```
-
-## Example Output
-
-```
-=== Example 814: Service Activatio ===
-
-Step 1: Registering task definitions...
-  Registered: sac_validate_order, sac_provision, sac_test, sac_activate, sac_notify
-
-Step 2: Registering workflow 'sac_service_activation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [activate] Processing
-  [notify] Processing
-  [provision] Processing
-  [test] Processing
-  [validate_order] Processing
-
-  Status: COMPLETED
-  Output: {activated=..., activatedAt=..., notified=..., serviceId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sac_service_activation \
   --version 1 \
-  --input '{"orderId": "ORD-814", "ORD-814": "customerId", "customerId": "CUST-814", "CUST-814": "serviceType", "serviceType": "VoIP", "VoIP": "sample-VoIP"}'
+  --input '{"orderId": "TEST-001", "customerId": "TEST-001", "serviceType": "test-value"}'
 ```
 
 ### Check workflow status

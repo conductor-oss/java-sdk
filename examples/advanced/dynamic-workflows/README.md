@@ -1,8 +1,6 @@
 # Dynamic Data Pipeline in Java Using Conductor :  Validate, Transform, Enrich, Publish
 
-A Java Conductor workflow example for dynamic data pipelines .  validating incoming payloads against configurable rules, transforming them into the target format (JSON, Avro, Parquet), enriching with data from external APIs, and publishing to an event bus. Each step is driven by its own JSON configuration, making the pipeline composable and reconfigurable without code changes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Configurable Pipelines Without Hard-Coded Steps
+A Java Conductor workflow example for dynamic data pipelines .  validating incoming payloads against configurable rules, transforming them into the target format (JSON, Avro, Parquet), enriching with data from external APIs, and publishing to an event bus. Each step is driven by its own JSON configuration, making the pipeline composable and reconfigurable without code changes. Uses [Conductor](https://github.## Configurable Pipelines Without Hard-Coded Steps
 
 Different data sources need different processing .  an API webhook payload needs schema validation and JSON normalization, a batch CSV upload needs field mapping and type coercion, and a Kafka event needs enrichment from a lookup table before publishing. Hard-coding each pipeline variant means duplicating orchestration logic, and adding a new step (e.g., deduplication, PII masking) means touching every pipeline.
 
@@ -27,15 +25,6 @@ Four config-driven workers form the data pipeline: validation, transformation, e
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ dw_enrich
     │
     ▼
 dw_publish
-```
-
-## Example Output
-
-```
-=== Dynamic Workflows Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dw_validate, dw_transform, dw_enrich, dw_publish
-
-Step 2: Registering workflow 'dynamic_workflow_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [enrich] Executing enrichment step (config:
-  [publish] Executing publish step (config:
-  [transform] Executing transformation step (config:
-  [validate] Executing validation step (config:
-
-  Status: COMPLETED
-  Output: {result=..., stepType=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow dynamic_workflow_demo \
   --version 1 \
-  --input '{"pipelineName": "sample-name", "dynamic_pipeline": "sample-dynamic-pipeline", "payload": "sample-payload", "data": "sample-data"}'
+  --input '{"pipelineName": "test", "payload": "test-value"}'
 ```
 
 ### Check workflow status

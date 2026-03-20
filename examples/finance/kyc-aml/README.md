@@ -1,8 +1,6 @@
 # KYC AML in Java with Conductor
 
-KYC/AML workflow that verifies customer identity, screens against watchlists, assesses risk, and makes a compliance decision. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+KYC/AML workflow that verifies customer identity, screens against watchlists, assesses risk, and makes a compliance decision. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to verify a customer's identity and screen them against anti-money-laundering watchlists before onboarding. The workflow verifies the customer's identity documents, screens their name against sanctions lists (OFAC, EU, UN), PEP lists, and adverse media, assesses the overall risk level, and makes a compliance decision (approve, enhanced due diligence, or reject). Onboarding a sanctioned individual exposes the institution to massive fines and criminal liability.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single compliance service that calls identi
 
 **You just write the compliance workers. Identity verification, watchlist screening, risk assessment, and approval/rejection decision. Conductor handles step sequencing, automatic retries when a watchlist provider is unavailable, and a tamper-evident compliance audit trail.**
 
-Each KYC/AML concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (verify identity, screen watchlists, assess risk, make decision), retrying if a watchlist provider is unavailable, maintaining a complete compliance audit trail, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each KYC/AML concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (verify identity, screen watchlists, assess risk, make decision), retrying if a watchlist provider is unavailable, maintaining a complete compliance audit trail, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the compliance pipeline: VerifyIdentityWorker checks identity 
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ kyc_assess_risk
     │
     ▼
 kyc_decide
-```
-
-## Example Output
-
-```
-=== Example 493: KYC/AML ===
-
-Step 1: Registering task definitions...
-  Registered: kyc_verify_identity, kyc_screen_watchlists, kyc_assess_risk, kyc_decide
-
-Step 2: Registering workflow 'kyc_aml_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [risk] Score:
-  [decide] Risk:
-  [screen] Screening
-  [identity] Verifying
-
-  Status: COMPLETED
-  Output: {riskScore=..., riskLevel=..., factors=..., decision=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow kyc_aml_workflow \
   --version 1 \
-  --input '{"customerId": "CUST-FIN-8801", "CUST-FIN-8801": "name", "name": "John Anderson", "John Anderson": "nationality", "nationality": "US", "US": "documentType", "documentType": "passport", "passport": "sample-passport"}'
+  --input '{"customerId": "TEST-001", "name": "test", "nationality": "test-value", "documentType": "test-value"}'
 ```
 
 ### Check workflow status

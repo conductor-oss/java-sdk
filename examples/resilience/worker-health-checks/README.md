@@ -10,9 +10,7 @@ Without orchestration, worker health monitoring requires custom infrastructure .
 
 ## The Solution
 
-**You just write the task processing logic. Conductor handles worker health tracking and monitoring for free.**
-
-Conductor tracks worker health automatically .  poll timestamps, task completion rates, and queue depths are all available via Conductor's APIs. The example demonstrates querying these APIs to build health dashboards and set up alerting. Every worker's polling behavior and task execution is recorded without any health-check code in the workers themselves. You get all of that for free, without writing a single line of orchestration code.
+Conductor tracks worker health automatically .  poll timestamps, task completion rates, and queue depths are all available via Conductor's APIs. The example demonstrates querying these APIs to build health dashboards and set up alerting. Every worker's polling behavior and task execution is recorded without any health-check code in the workers themselves. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,44 +22,10 @@ WhcWorker processes tasks while tracking health metrics (poll counts, completion
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 whc_task
-```
-
-## Example Output
-
-```
-=== Worker Health Checks Demo: Detect Unhealthy Workers ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'worker_health_checks_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [whc_task] Processing task (poll #
-
-  Status: COMPLETED
-  Output: {result=..., pollCount=..., completedCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow worker_health_checks_demo \
   --version 1 \
-  --input '{"data": "sample-data"}'
+  --input '{"data": "test-value"}'
 ```
 
 ### Check workflow status

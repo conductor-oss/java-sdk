@@ -1,8 +1,6 @@
 # Data Masking in Java Using Conductor :  PII Detection, SSN Masking, Email/Phone Obfuscation
 
-A Java Conductor workflow example for data masking: loading records, detecting PII fields (SSNs, emails, phone numbers), applying format-preserving masks (SSN `123-45-6789` becomes `***-**-6789`, email `alice@example.com` becomes `a***@example.com`, phone `555-123-4567` becomes `***-***-4567`), and emitting the masked dataset with a summary of what was protected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data masking: loading records, detecting PII fields (SSNs, emails, phone numbers), applying format-preserving masks (SSN `123-45-6789` becomes `***-**-6789`, email `alice@example.com` becomes `a***@example.com`, phone `555-123-4567` becomes `***-***-4567`), and emitting the masked dataset with a summary of what was protected. Uses [Conductor](https://github.## The Problem
 
 You need to share production data with developers, testers, or analytics teams; but it contains Social Security numbers, email addresses, and phone numbers that must never leave the production boundary unprotected. Unlike anonymization (which destroys data utility), masking preserves the format and partial values so the data remains useful for testing and analysis. SSNs need to show only the last four digits. Emails need to hide the username while preserving the domain. Phone numbers need the digits replaced while keeping the format. Each PII type requires a different masking strategy, and you need to track exactly how many fields were detected and masked.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single script that scans fields with regex,
 
 **You just write the PII detection, SSN masking, email/phone obfuscation, and emission workers. Conductor handles the detect-then-mask sequencing, a complete audit trail of how many PII fields were found and protected, and retries if any masking step fails.**
 
-Each masking concern is a simple, independent worker. The PII detector scans records to identify which fields contain SSNs, emails, and phone numbers based on the configured masking policy. The SSN masker replaces all but the last four digits with asterisks. The email/phone masker obfuscates usernames and digits while preserving format and domains. The emitter produces the final masked dataset with counts of how many fields were detected and masked per type. Conductor executes them in sequence, passes progressively masked records between steps, retries if a step fails, and provides a complete audit trail showing exactly what was detected and masked. You get all of that for free, without writing a single line of orchestration code.
+Each masking concern is a simple, independent worker. The PII detector scans records to identify which fields contain SSNs, emails, and phone numbers based on the configured masking policy. The SSN masker replaces all but the last four digits with asterisks. The email/phone masker obfuscates usernames and digits while preserving format and domains. The emitter produces the final masked dataset with counts of how many fields were detected and masked per type. Conductor executes them in sequence, passes progressively masked records between steps, retries if a step fails, and provides a complete audit trail showing exactly what was detected and masked. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers implement format-preserving masking: loading records, detecting PII
 | **MaskSsnWorker** | `mk_mask_ssn` | Masks SSN fields in records (e.g. "123-45-6789" -> "***-**-6789"). |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ mk_mask_email_phone
     │
     ▼
 mk_emit_masked
-```
-
-## Example Output
-
-```
-=== Data Masking Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mk_load_records, mk_detect_pii, mk_mask_ssn, mk_mask_email_phone, mk_emit_masked
-
-Step 2: Registering workflow 'data_masking'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect] Detected
-  [emit]
-  [load] Loaded
-  [mask-contact] Masked
-  [mask-ssn] Masked
-
-  Status: COMPLETED
-  Output: {records=..., piiFields=..., piiFieldCount=..., summary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_masking \
   --version 1 \
-  --input '{"records": "sample-records", "name": "sample-name", "Alice Smith": "sample-Alice Smith", "ssn": "sample-ssn", "123-45-6789": "sample-123-45-6789", "email": "user@example.com", "alice@example.com": "sample-alice@example.com", "phone": "sample-phone", "Bob Jones": "sample-Bob Jones", "987-65-4321": "sample-987-65-4321", "bob@company.com": "sample-bob@company.com", "Charlie Brown": "sample-Charlie Brown", "456-78-9012": "sample-456-78-9012", "charlie@test.org": "sample-charlie@test.org"}'
+  --input '{"records": "test-value", "maskingPolicy": "test-value"}'
 ```
 
 ### Check workflow status

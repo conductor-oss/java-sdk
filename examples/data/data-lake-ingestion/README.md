@@ -1,8 +1,6 @@
 # Data Lake Ingestion in Java Using Conductor :  Schema Validation, Date Partitioning, Format Conversion, and Catalog Registration
 
-A Java Conductor workflow example for data lake ingestion: validating incoming records against a schema, partitioning data by date for efficient querying, converting to an optimized storage format (Parquet, ORC, Avro), writing partitioned files to the lake path, and updating the data catalog so downstream consumers can discover the new data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data lake ingestion: validating incoming records against a schema, partitioning data by date for efficient querying, converting to an optimized storage format (Parquet, ORC, Avro), writing partitioned files to the lake path, and updating the data catalog so downstream consumers can discover the new data. Uses [Conductor](https://github.## The Problem
 
 You need to land data into your data lake in a way that's queryable, discoverable, and doesn't corrupt existing data. That means validating incoming records against the expected schema (rejecting malformed rows before they pollute the lake), partitioning records by date so queries only scan relevant partitions, converting from raw formats (JSON, CSV) into columnar formats (Parquet, ORC) for efficient analytics, writing the converted files to the correct lake path with atomic semantics, and updating the data catalog (Hive Metastore, AWS Glue, Apache Atlas) so tools like Athena, Presto, and Spark can find the new data.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a monolithic Spark job or script that does sc
 
 **You just write the schema validation, date partitioning, format conversion, lake writing, and catalog update workers. Conductor handles strict ordering so the catalog is updated only after successful writes, retries when lake storage is unavailable, and tracking of record counts across validate-partition-convert-write stages.**
 
-Each stage of the ingestion pipeline is a simple, independent worker. The schema validator checks incoming records and filters out malformed rows. The partitioner organizes valid records into date-based partition keys. The format converter transforms each partition into the target columnar format. The lake writer places the converted files at the correct paths with proper naming. The catalog updater registers the new partitions so query engines can access the data. Conductor executes them in strict sequence, ensures the catalog is only updated after a successful write, retries if the lake storage is temporarily unavailable, and tracks exactly how many records were validated, partitioned, and written. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the ingestion pipeline is a simple, independent worker. The schema validator checks incoming records and filters out malformed rows. The partitioner organizes valid records into date-based partition keys. The format converter transforms each partition into the target columnar format. The lake writer places the converted files at the correct paths with proper naming. The catalog updater registers the new partitions so query engines can access the data. Conductor executes them in strict sequence, ensures the catalog is only updated after a successful write, retries if the lake storage is temporarily unavailable, and tracks exactly how many records were validated, partitioned, and written. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers manage the data lake ingestion pipeline: validating records against
 | **WriteToLakeWorker** | `li_write_to_lake` | Write To Lake. Computes and returns files written, total bytes |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ li_write_to_lake
     │
     ▼
 li_update_catalog
-```
-
-## Example Output
-
-```
-=== Data Lake Ingestion Demo ===
-
-Step 1: Registering task definitions...
-  Registered: li_validate_schema, li_partition_by_date, li_convert_format, li_write_to_lake, li_update_catalog
-
-Step 2: Registering workflow 'data_lake_ingestion'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [convert] Converted
-  [partition] Created
-  [catalog]
-  [schema] Validated
-  [write] Wrote
-
-  Status: COMPLETED
-  Output: {path=..., format=..., recordCount=..., sizeBytes=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_lake_ingestion \
   --version 1 \
-  --input '{"records": ["item-1", "item-2", "item-3"]}'
+  --input '{"records": "test-value", "lakePath": "test-value", "format": "test-value"}'
 ```
 
 ### Check workflow status

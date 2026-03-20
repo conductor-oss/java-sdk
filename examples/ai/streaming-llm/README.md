@@ -1,6 +1,6 @@
 # Streaming LLM in Java Using Conductor :  Prepare, Collect Chunks, Post-Process
 
-A Java Conductor workflow that handles LLM streaming responses .  preparing the request, collecting server-sent event (SSE) chunks into a complete response, and post-processing the assembled output. While Conductor tasks are request-response based, this pattern lets you integrate streaming LLM APIs by collecting all chunks in a worker and producing the complete response as output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate stream preparation, chunk collection, and post-processing as independent workers ,  you write the streaming integration, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that handles LLM streaming responses .  preparing the request, collecting server-sent event (SSE) chunks into a complete response, and post-processing the assembled output. While Conductor tasks are request-response based, this pattern lets you integrate streaming LLM APIs by collecting all chunks in a worker and producing the complete response as output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate stream preparation, chunk collection, and post-processing as independent workers ,  you write the streaming integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## Integrating Streaming LLMs into Workflows
 
@@ -26,15 +26,6 @@ Three workers handle LLM streaming .  preparing the SSE connection parameters, c
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ stream_collect_chunks
     │
     ▼
 stream_post_process
-```
-
-## Example Output
-
-```
-=== Example 127: Streaming LLM Responses ===
-
-Step 1: Registering task definitions...
-  Registered: stream_prepare, stream_collect_chunks, stream_post_process
-
-Step 2: Registering workflow 'streaming_llm_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [stream_collect_chunks] Live mode: CONDUCTOR_OPENAI_API_KEY detected
-  [post]
-  [prepare] Formatted prompt for
-
-  Status: COMPLETED
-  Output: {model=..., messages=..., max_tokens=..., stream=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow streaming_llm_wf \
   --version 1 \
-  --input '{"prompt": "sample-prompt", "Describe Conductor in one sentence": "sample-Describe Conductor in one sentence", "model": "sample-model", "gpt-4": "sample-gpt-4", "maxTokens": "sample-maxTokens"}'
+  --input '{"prompt": "test-value", "model": "test-value", "maxTokens": "test-value"}'
 ```
 
 ### Check workflow status

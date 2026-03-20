@@ -12,7 +12,7 @@ Without orchestration, calendar sync is a fragile cron job that overwrites one c
 
 **You just write the calendar API calls and conflict resolution rules. Conductor handles the fetch-compare-sync-notify sequence, retries when calendar APIs are temporarily unavailable, and a complete record of every sync operation and conflict resolved.**
 
-Each sync concern is an independent worker .  event fetching, schedule comparison, change sync, and notification. Conductor runs them in sequence with retry logic, ensuring a temporary API failure doesn't cause permanent sync drift. Every sync operation is tracked ,  you can see what changed, what was synced, and who was notified. You get all of that for free, without writing a single line of orchestration code.
+Each sync concern is an independent worker .  event fetching, schedule comparison, change sync, and notification. Conductor runs them in sequence with retry logic, ensuring a temporary API failure doesn't cause permanent sync drift. Every sync operation is tracked ,  you can see what changed, what was synced, and who was notified. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers handle bidirectional sync: FetchEventsWorker pulls events from the 
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ cal_sync_changes
     │
     ▼
 cal_notify_stakeholders
-```
-
-## Example Output
-
-```
-=== Example 406: Calendar Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: cal_fetch_events, cal_compare_schedules, cal_sync_changes, cal_notify_stakeholders
-
-Step 2: Registering workflow 'calendar_integration_406'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [compare] Comparing
-  [fetch] Fetching events from calendar
-  [notify] Notifying stakeholders of
-  [sync] Syncing
-
-  Status: COMPLETED
-  Output: {additions=..., updates=..., deletions=..., conflicts=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow calendar_integration_406 \
   --version 1 \
-  --input '{"calendarId": "team-engineering@example.com", "team-engineering@example.com": "syncWindow", "syncWindow": "2026-03-08/2026-03-15", "2026-03-08/2026-03-15": "direction", "direction": "bidirectional", "bidirectional": "BIRECTIONAL-001"}'
+  --input '{"calendarId": "TEST-001", "syncWindow": "test-value", "direction": "test-value"}'
 ```
 
 ### Check workflow status

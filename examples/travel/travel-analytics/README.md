@@ -1,8 +1,6 @@
 # Travel Analytics in Java with Conductor
 
-Travel analytics: collect, aggregate, analyze, report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Travel analytics: collect, aggregate, analyze, report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to generate a travel analytics report for a department and time period. Collecting all booking, expense, and reimbursement data, aggregating spending across categories (flights, hotels, car rentals, meals), analyzing trends to identify cost-saving opportunities (preferred vendor compliance, advance booking rates, policy exception frequency), and producing a report for management. Each transformation depends on the previous one's output.
 
@@ -27,15 +25,6 @@ Data aggregation, spend analysis, trend identification, and report generation wo
 
 Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ tan_analyze
     │
     ▼
 tan_report
-```
-
-## Example Output
-
-```
-=== Example 550: Travel Analytics ===
-
-Step 1: Registering task definitions...
-  Registered: tan_collect, tan_aggregate, tan_analyze, tan_report
-
-Step 2: Registering workflow 'tan_travel_analytics'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Aggregated bookings across categories
-  [analyze] Identified 3 cost-saving opportunities
-  [collect] Gathering travel data for
-  [report] Analytics dashboard updated with new insights
-
-  Status: COMPLETED
-  Output: {aggregated=..., insights=..., rawData=..., reportId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tan_travel_analytics \
   --version 1 \
-  --input '{"period": "sample-period", "2024-Q1": "sample-2024-Q1", "department": "sample-department"}'
+  --input '{"period": "test-value", "department": "test-value"}'
 ```
 
 ### Check workflow status

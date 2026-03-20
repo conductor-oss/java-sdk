@@ -1,8 +1,6 @@
 # ML Data Pipeline in Java Using Conductor :  Data Collection, Cleaning, Train/Test Split, Model Training, and Evaluation
 
-A Java Conductor workflow example for an end-to-end ML training pipeline: collecting labeled data from a source, cleaning it (removing records with null features or invalid labels), splitting into train and test sets at a configurable ratio, training a model (e.g., random forest) on the training set, and evaluating accuracy and metrics against the held-out test set. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for an end-to-end ML training pipeline: collecting labeled data from a source, cleaning it (removing records with null features or invalid labels), splitting into train and test sets at a configurable ratio, training a model (e.g., random forest) on the training set, and evaluating accuracy and metrics against the held-out test set. Uses [Conductor](https://github.## The Problem
 
 Training a model requires a strict sequence of data preparation steps, and each depends on the output of the previous one. You collect labeled records from a data source, but some have null features or malformed labels that would corrupt training. You clean those out, but then you need to split the surviving records into train and test sets at a specific ratio (say, 80/20), and the split must happen after cleaning, not before, or your test set contains dirty data. You train the model (a random forest classifier, for example) on the training partition, but evaluation must use the held-out test partition from the same split. Not a different random sample. If training crashes after 30 minutes of GPU time, you don't want to re-collect and re-clean the data from scratch.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a Jupyter notebook or a monolithic training s
 
 **You just write the data collection, cleaning, train/test splitting, model training, and evaluation workers. Conductor handles strict sequencing so training uses only cleaned data, retries when data sources are unavailable, and record count tracking at every stage for experiment reproducibility.**
 
-Each stage of the ML pipeline is a simple, independent worker. The data collector fetches labeled records from the configured data source. The cleaner removes records with null features or invalid labels and reports how many survived. The splitter divides clean data into train and test partitions at the configured ratio (e.g., 0.8 for 80/20). The trainer fits the specified model type (random forest, logistic regression, gradient boosting) on the training partition, producing a trained model artifact and a training loss metric. The evaluator runs the trained model against the held-out test set and computes accuracy, precision, recall, and F1 scores. Conductor executes them in strict sequence, passes the evolving dataset between stages, retries if the data source is temporarily unavailable, and tracks record counts at every stage. So you can see exactly how many raw records became clean records became training samples became evaluation metrics. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the ML pipeline is a simple, independent worker. The data collector fetches labeled records from the configured data source. The cleaner removes records with null features or invalid labels and reports how many survived. The splitter divides clean data into train and test partitions at the configured ratio (e.g., 0.8 for 80/20). The trainer fits the specified model type (random forest, logistic regression, gradient boosting) on the training partition, producing a trained model artifact and a training loss metric. The evaluator runs the trained model against the held-out test set and computes accuracy, precision, recall, and F1 scores. Conductor executes them in strict sequence, passes the evolving dataset between stages, retries if the data source is temporarily unavailable, and tracks record counts at every stage. So you can see exactly how many raw records became clean records became training samples became evaluation metrics. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers implement the end-to-end ML training pipeline: collecting labeled d
 | **TrainModelWorker** | `ml_train_model` | Train Model. Computes and returns model, training loss |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ ml_train_model
     │
     ▼
 ml_evaluate_model
-```
-
-## Example Output
-
-```
-=== ML Data Pipeline Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ml_collect_data, ml_clean_data, ml_split_data, ml_train_model, ml_evaluate_model
-
-Step 2: Registering workflow 'ml_data_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [clean] Cleaned data:
-  [collect] Collected
-  [evaluate] Model accuracy: 94.5%, F1: 93.9% on
-  [split] Split
-  [train] Trained
-
-  Status: COMPLETED
-  Output: {cleanData=..., cleanCount=..., removedCount=..., features=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ml_data_pipeline \
   --version 1 \
-  --input '{"dataSource": "sample-dataSource", "name": "sample-name", "modelType": "standard", "random_forest": "sample-random-forest", "splitRatio": "sample-splitRatio"}'
+  --input '{"dataSource": "test-value", "modelType": "test-value", "splitRatio": "test-value"}'
 ```
 
 ### Check workflow status

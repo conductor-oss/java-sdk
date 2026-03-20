@@ -1,8 +1,6 @@
 # Litigation Hold in Java with Conductor
 
-A Java Conductor workflow example demonstrating Litigation Hold. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Litigation Hold. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A potential lawsuit triggers a legal hold. You need to identify custodians who may possess relevant evidence, notify them of their preservation obligations, collect and preserve electronic data from email, Slack, and cloud storage, and track acknowledgments until the hold is released. Missing a custodian or losing data can result in sanctions and adverse inferences at trial.
 
@@ -28,15 +26,6 @@ Custodian identification, hold notification, acknowledgment tracking, and releas
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ lth_preserve
     │
     ▼
 lth_track
-```
-
-## Example Output
-
-```
-=== Litigation Hold Demo ===
-
-Step 1: Registering task definitions...
-  Registered: lth_collect, lth_identify, lth_notify, lth_preserve, lth_track
-
-Step 2: Registering workflow 'litigation_hold'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Collecting data for case
-  [identify] Identifying custodians for case
-  [notify] Sending hold notices for case
-  [preserve] Preserving collected data
-  [track] Tracking hold for case
-
-  Status: COMPLETED
-  Output: {collectedData=..., totalItems=..., holdId=..., identifiedCustodians=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lth_litigation_hold \
   --version 1 \
-  --input '{"caseId": "CASE-2024-001", "CASE-2024-001": "custodians", "custodians": ["item-1", "item-2", "item-3"]}'
+  --input '{"caseId": "TEST-001", "custodians": "test-value"}'
 ```
 
 ### Check workflow status

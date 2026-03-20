@@ -1,8 +1,6 @@
 # Jq Transform Advanced in Java with Conductor
 
-Advanced JQ data transformations .  flatten orders, aggregate by customer, classify into tiers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Advanced JQ data transformations .  flatten orders, aggregate by customer, classify into tiers. Uses [Conductor](https://github.## The Problem
 
 You need to transform raw order data into customer analytics .  starting with nested order objects containing customer details and line items, flattening them into a uniform structure with computed line totals, grouping by customer to calculate total spend and average order value, and finally classifying each customer into gold/silver/bronze tiers based on their spending. These are pure data transformations with no external API calls ,  just reshaping, aggregating, and classifying JSON.
 
@@ -18,15 +16,6 @@ This example uses zero workers. Every task is a JSON_JQ_TRANSFORM .  a JQ expres
 
 This example uses Conductor system tasks (JSON_JQ_TRANSFORM) .  no custom workers needed. All three transformations are declarative JQ expressions that run on the Conductor server.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -37,49 +26,6 @@ jq_aggregate [JSON_JQ_TRANSFORM]
     │
     ▼
 jq_classify [JSON_JQ_TRANSFORM]
-```
-
-## Example Output
-
-```
-=== Advanced JQ Transform: Complex Data Transformations ===
-
-KEY CONCEPT: Chain multiple JSON_JQ_TRANSFORM system tasks to build
-a data transformation pipeline. No workers needed .  the Conductor
-server executes all JQ expressions directly.
-
-Step 1: Registering workflow 'jq_advanced_demo'...
-  (No task definitions needed. JSON_JQ_TRANSFORM is a system task)
-  Workflow registered.
-
-Step 2: Starting workflow with 4 orders...
-
-  Sample orders:
-    ORD-001 - Alice (2 items)
-    ORD-002 - Bob (2 items)
-    ORD-003 - Alice (2 items)
-    ORD-004 - Carol (3 items)
-
-  Workflow ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-
-Step 3: Waiting for completion...
-  Status: COMPLETED
-
-Step 4: Results
-
-  Flattened Orders: [{orderId=ORD-001, customerName=Alice, ...}, ...]
-
-  Customer Summary: [{customerName=Alice, orderCount=2, totalSpent=525, averageOrderValue=262.5, ...}, {customerName=Bob, orderCount=1, totalSpent=55, averageOrderValue=55, ...}, {customerName=Carol, orderCount=1, totalSpent=750, averageOrderValue=750, ...}]
-
-  Tiered Customers: {tieredCustomers=[...], tierBreakdown={gold=[Alice, Carol], silver=[], bronze=[Bob]}}
-
-=== Summary ===
-Pipeline: jq_flatten -> jq_aggregate -> jq_classify
-Tasks executed: 3 (all JSON_JQ_TRANSFORM system tasks)
-Workers used: 0
-Orders processed: 4
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow jq_advanced_demo \
   --version 1 \
-  --input '{"orders": [{"id": "ORD-001", "customer": {"name": "Alice", "email": "alice@example.com"}, "items": [{"name": "Widget", "price": 25, "qty": 4}, {"name": "Gadget", "price": 75, "qty": 2}]}, {"id": "ORD-002", "customer": {"name": "Bob", "email": "bob@example.com"}, "items": [{"name": "Widget", "price": 25, "qty": 1}, {"name": "Sprocket", "price": 10, "qty": 3}]}]}'
+  --input '{"orders": "test-value"}'
 ```
 
 ### Check workflow status

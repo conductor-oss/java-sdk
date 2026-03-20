@@ -1,8 +1,6 @@
 # Event Driven Microservices in Java with Conductor
 
-Event-driven microservices choreography via Conductor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event-driven microservices choreography via Conductor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 In an event-driven architecture, a domain event must be emitted, processed by business logic, used to update read-side projections, and fanned out to interested subscribers. Each step depends on the previous one. Subscribers cannot be notified until the event is processed, and the projection must reflect the latest state.
 
@@ -27,15 +25,6 @@ Four workers model the event lifecycle: EmitEventWorker publishes a domain event
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ edm_update_projection
     │
     ▼
 edm_notify_subscribers
-```
-
-## Example Output
-
-```
-=== Example 307: Event-Driven Microservices ===
-
-Step 1: Registering task definitions...
-  Registered: edm_emit_event, edm_process_event, edm_update_projection, edm_notify_subscribers
-
-Step 2: Registering workflow 'event_driven_microservices'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [emit]
-  [notify] Notified
-  [process] Handling
-  [projection] Updated read model with
-
-  Status: COMPLETED
-  Output: {eventId=..., timestamp=..., count=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_driven_microservices \
   --version 1 \
-  --input '{"eventType": "ORDER_PLACED", "ORDER_PLACED": "payload", "payload": {"key": "value"}, "order-service": "sample-order-service"}'
+  --input '{"eventType": "test-value", "payload": "test-value", "source": "test-value"}'
 ```
 
 ### Check workflow status

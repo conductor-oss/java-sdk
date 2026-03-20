@@ -1,8 +1,6 @@
 # Account Deletion in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Account Deletion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Account Deletion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to permanently delete a user's account. Verifying their identity and deletion reason, backing up their data for regulatory retention, purging records across all database tables and connected systems, and sending a final confirmation that the account is gone. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ VerifyDeletionWorker confirms identity and reason, BackupWorker exports data for
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ acd_delete
     │
     ▼
 acd_confirm
-```
-
-## Example Output
-
-```
-=== Example 609: Account Deletio ===
-
-Step 1: Registering task definitions...
-  Registered: acd_verify, acd_backup, acd_delete, acd_confirm
-
-Step 2: Registering workflow 'acd_account_deletion'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [backup] User data backed up ->
-  [confirm] Deletion confirmation sent
-  [delete] Account
-  [verify] Identity verified for deletion request .  user:
-
-  Status: COMPLETED
-  Output: {backupId=..., sizeBytes=..., retainDays=..., confirmationSent=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow acd_account_deletion \
   --version 1 \
-  --input '{"userId": "USR-DEL001", "USR-DEL001": "reason", "reason": "no_longer_needed", "no_longer_needed": "sample-no-longer-needed"}'
+  --input '{"userId": "TEST-001", "reason": "test-value"}'
 ```
 
 ### Check workflow status

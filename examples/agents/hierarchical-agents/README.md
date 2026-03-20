@@ -1,8 +1,6 @@
 # Hierarchical Agents in Java Using Conductor :  Manager, Team Leads, and Workers in a Development Org
 
-Hierarchical agents .  manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Software Projects Need Hierarchical Coordination
+Hierarchical agents .  manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.## Software Projects Need Hierarchical Coordination
 
 A real development team has a manager who plans the work, team leads who coordinate their teams, and individual contributors who write code. The backend lead assigns API and database tasks; the frontend lead assigns UI and styling tasks. Both teams work simultaneously. The manager reviews everything at the end.
 
@@ -31,16 +29,6 @@ Eight agents form a hierarchy, the manager plans, team leads delegate to fronten
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -54,38 +42,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 hier_manager_merge
-```
-
-## Example Output
-
-```
-=== Hierarchical Agents: Manager-Lead-Worker Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: hier_lead_backend, hier_lead_frontend, hier_manager_merge, hier_manager_plan, hier_worker_api, hier_worker_db, hier_worker_styling, hier_worker_ui
-
-Step 2: Registering workflow 'hierarchical_agents'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  8 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [hier_lead_backend] Breaking down:
-  [hier_lead_frontend] Breaking down:
-  [hier_manager_merge] Merging backend and frontend results
-  [hier_manager_plan] Planning project:
-  [hier_worker_api] Implementing
-  [hier_worker_db] Building
-  [hier_worker_styling] Applying design system:
-  [hier_worker_ui] Building
-
-  Status: COMPLETED
-  Output: {endpoints=..., auth=..., validation=..., tables=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -157,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow hierarchical_agents \
   --version 1 \
-  --input '{"project": "sample-project", "deadline": "sample-deadline"}'
+  --input '{"project": "test-value", "deadline": "test-value"}'
 ```
 
 ### Check workflow status
@@ -181,7 +137,6 @@ Swap in real code generation tools; the hierarchical pipeline maintains the same
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

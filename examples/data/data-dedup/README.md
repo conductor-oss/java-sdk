@@ -1,8 +1,6 @@
 # Data Deduplication in Java Using Conductor :  Key Computation, Duplicate Detection, and Record Merging
 
-A Java Conductor workflow example for data deduplication: loading records, computing dedup keys from configurable match fields (normalized and lowercased), grouping records by key to find duplicates, merging duplicate groups into a single canonical record, and emitting the clean, deduplicated dataset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data deduplication: loading records, computing dedup keys from configurable match fields (normalized and lowercased), grouping records by key to find duplicates, merging duplicate groups into a single canonical record, and emitting the clean, deduplicated dataset. Uses [Conductor](https://github.## The Problem
 
 Your dataset has duplicate records, the same customer entered twice with slightly different casing, the same order submitted by two systems, the same product listed with trailing whitespace in the name. You need to find and eliminate these duplicates before the data goes into your analytics pipeline, CRM, or data warehouse. That means computing dedup keys from configurable match fields (lowercased, trimmed for consistency), grouping records that share the same key, deciding which record to keep when duplicates are found (first seen, most complete, most recent), and emitting a clean dataset with a summary of how many duplicates were removed.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single method that loads records, builds a 
 
 **You just write the record loading, key computation, duplicate detection, group merging, and emission workers. Conductor handles the load-key-detect-merge-emit pipeline, per-step retries, and full tracking of how many duplicates were found and removed at each stage.**
 
-Each stage of the deduplication pipeline is a simple, independent worker. The loader reads records from the data source. The key computer generates a dedup key for each record by normalizing and concatenating the configured match fields. The duplicate finder groups records by key and identifies groups with more than one member. The merger selects a canonical record from each duplicate group. The emitter outputs the deduplicated dataset with a summary of original count, duplicates found, and final count. Conductor executes them in sequence, passes keyed records between steps, retries if a step fails, and tracks exactly how many duplicates were found and merged. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the deduplication pipeline is a simple, independent worker. The loader reads records from the data source. The key computer generates a dedup key for each record by normalizing and concatenating the configured match fields. The duplicate finder groups records by key and identifies groups with more than one member. The merger selects a canonical record from each duplicate group. The emitter outputs the deduplicated dataset with a summary of original count, duplicates found, and final count. Conductor executes them in sequence, passes keyed records between steps, retries if a step fails, and tracks exactly how many duplicates were found and merged. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers form the deduplication pipeline: loading records, computing normali
 | **MergeGroupsWorker** | `dp_merge_groups` | Merges duplicate groups by picking the first record from each group and removing dedupKey. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ dp_merge_groups
     │
     ▼
 dp_emit_deduped
-```
-
-## Example Output
-
-```
-=== Data Deduplication Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dp_load_records, dp_compute_keys, dp_find_duplicates, dp_merge_groups, dp_emit_deduped
-
-Step 2: Registering workflow 'data_dedup'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [dp_compute_keys] Computed dedup keys on fields:
-  [dp_emit_deduped]
-  [dp_find_duplicates] Found
-  [dp_load_records] Loaded
-  [dp_merge_groups] Merged
-
-  Status: COMPLETED
-  Output: {dedupKey=..., keyedRecords=..., dedupedCount=..., summary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_dedup \
   --version 1 \
-  --input '{"records": ["item-1", "item-2", "item-3"]}'
+  --input '{"records": "test-value", "matchFields": "test-value"}'
 ```
 
 ### Check workflow status

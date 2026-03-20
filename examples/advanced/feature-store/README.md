@@ -1,8 +1,6 @@
 # Feature Store Pipeline in Java Using Conductor :  Compute, Validate, Register, Serve
 
-A Java Conductor workflow example for feature store management .  computing features from a source table, validating them against quality constraints, registering the validated feature group in the feature registry, and enabling the features for online serving. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Features Rot Without a Pipeline
+A Java Conductor workflow example for feature store management .  computing features from a source table, validating them against quality constraints, registering the validated feature group in the feature registry, and enabling the features for online serving. Uses [Conductor](https://github.## Features Rot Without a Pipeline
 
 ML models depend on features .  user_lifetime_value, avg_session_duration, days_since_last_purchase ,  that are computed from raw data. When a data scientist computes features in a notebook, they work for that one training run. But serving those same features in production requires computing them on a schedule, validating that distributions haven't drifted, registering the new version in a catalog so models know where to find them, and enabling low-latency serving for real-time inference.
 
@@ -27,15 +25,6 @@ Four workers manage the feature lifecycle: computation from raw data, quality va
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ fst_register
     │
     ▼
 fst_serve
-```
-
-## Example Output
-
-```
-=== Feature Store Demo ===
-
-Step 1: Registering task definitions...
-  Registered: fst_compute_features, fst_validate, fst_register, fst_serve
-
-Step 2: Registering workflow 'feature_store_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [compute] Processing
-  [register] Processing
-  [serve] Processing
-  [validate] Processing
-
-  Status: COMPLETED
-  Output: {features=..., featureCount=..., stats=..., registryId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow feature_store_demo \
   --version 1 \
-  --input '{"featureGroupName": "sample-name", "user_behavior": "sample-user-behavior", "sourceTable": "sample-sourceTable", "events_raw": "sample-events-raw", "entityKey": "sample-entityKey"}'
+  --input '{"featureGroupName": "test", "sourceTable": "test-value", "entityKey": "test-value"}'
 ```
 
 ### Check workflow status

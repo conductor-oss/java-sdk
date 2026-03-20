@@ -1,8 +1,6 @@
 # Subscription Billing in Java Using Conductor :  Check Period, Generate Invoice, Charge, Activate
 
-A Java Conductor workflow example for recurring subscription billing .  determining the current billing period, generating an invoice for the subscriber's plan, charging their payment method, and activating the next billing cycle. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Subscription Billing Must Be Reliable and Retry-Safe
+A Java Conductor workflow example for recurring subscription billing .  determining the current billing period, generating an invoice for the subscriber's plan, charging their payment method, and activating the next billing cycle. Uses [Conductor](https://github.## Subscription Billing Must Be Reliable and Retry-Safe
 
 A customer on the $29/month Pro plan has their billing date today. The system must verify the billing period (not already billed, subscription is active, no pending cancellation), generate an invoice (pro-rated amounts for mid-cycle changes, usage-based add-ons, applicable taxes), charge the payment method (with retry logic for declined cards), and activate the next period (extending access, resetting usage counters).
 
@@ -27,15 +25,6 @@ Billing workers for metering, invoice generation, payment collection, and renewa
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ sub_charge
     │
     ▼
 sub_activate
-```
-
-## Example Output
-
-```
-=== Example 459: Subscription Billing ===
-
-Step 1: Registering task definitions...
-  Registered: sub_check_period, sub_generate_invoice, sub_charge, sub_activate
-
-Step 2: Registering workflow 'subscription_billing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [activate] Subscription
-  [charge] Invoice
-  [period] Subscription
-  [invoice]
-
-  Status: COMPLETED
-  Output: {active=..., nextPeriodStart=..., renewedAt=..., chargeId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow subscription_billing \
   --version 1 \
-  --input '{"subscriptionId": "sub-1001", "sub-1001": "customerId", "customerId": "cust-501", "cust-501": "plan", "plan": "professional", "professional": "billingCycle", "billingCycle": "monthly", "monthly": "sample-monthly"}'
+  --input '{"subscriptionId": "TEST-001", "customerId": "TEST-001", "plan": "test-value", "billingCycle": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Change metering granularity or payment processors and the billing cycle continue
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

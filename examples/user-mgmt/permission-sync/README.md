@@ -1,8 +1,6 @@
 # Permission Sync in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Permission Sync. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Permission Sync. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Your identity provider is the source of truth for user permissions, but roles and access levels have drifted out of sync with downstream systems. The operations team needs to scan the source system and all target systems to capture current permission states, diff the permissions to identify discrepancies (missing roles, extra grants), apply the corrections to bring targets into alignment, and verify that all systems now match the source of truth. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ ScanSystemsWorker captures permission states from source and targets, DiffWorker
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ pms_sync
     │
     ▼
 pms_verify
-```
-
-## Example Output
-
-```
-=== Example 614: Permission Sync ===
-
-Step 1: Registering task definitions...
-  Registered: pms_scan_systems, pms_diff, pms_sync, pms_verify
-
-Step 2: Registering workflow 'pms_permission_sync'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [diff] Found 6 permission differences
-  [scan] Scanned permissions from
-  [sync] Applied 6 permission changes to target systems
-  [verify] All permissions verified in sync
-
-  Status: COMPLETED
-  Output: {diffs=..., totalDiffs=..., sourcePermissions=..., targetPermissions=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pms_permission_sync \
   --version 1 \
-  --input '{"sourceSystem": "sample-sourceSystem", "ldap": "sample-ldap", "targetSystems": "sample-targetSystems", "api-gateway": "sample-api-gateway", "database": "sample-database"}'
+  --input '{"sourceSystem": "test-value", "targetSystems": "test-value"}'
 ```
 
 ### Check workflow status

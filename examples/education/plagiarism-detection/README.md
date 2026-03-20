@@ -1,8 +1,6 @@
 # Plagiarism Detection in Java with Conductor :  Submission, Scanning, Comparison, Verdict Routing, and Reporting
 
-A Java Conductor workflow example for academic plagiarism detection .  ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for academic plagiarism detection .  ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.## The Problem
 
 You need to check student submissions for plagiarism before grades are assigned. The document must be ingested, scanned to extract textual fingerprints and n-grams, compared against a database of published papers, web content, and prior student submissions, and then a similarity score determines the verdict. If the submission is clean, it proceeds to grading; if flagged, it must be routed to the academic integrity office for review. Either way, an originality report is generated for the instructor's records.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd chain document ingestion, text analysis, corpus com
 
 **You just write the document scanning, corpus comparison, clean/flagged verdict routing, and originality reporting logic. Conductor handles source comparison retries, similarity scoring, and detection audit trails.**
 
-Each plagiarism-check concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, scan, compare), then routing via a SWITCH task to the correct outcome (clean or flagged), and finally generating the report ,  retrying if the similarity engine times out, maintaining an audit trail for every submission, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each plagiarism-check concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, scan, compare), then routing via a SWITCH task to the correct outcome (clean or flagged), and finally generating the report ,  retrying if the similarity engine times out, maintaining an audit trail for every submission, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Document ingestion, source comparison, similarity scoring, and report generation
 | **ReportWorker** | `plg_report` | Generates an originality report for the instructor's records |
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -57,36 +45,6 @@ SWITCH (plg_switch_ref)
     │
     ▼
 plg_report
-```
-
-## Example Output
-
-```
-=== Example 678: Plagiarism Detectio ===
-
-Step 1: Registering task definitions...
-  Registered: plg_submit, plg_scan, plg_compare, plg_handle_clean, plg_handle_flagged, plg_report
-
-Step 2: Registering workflow 'plg_plagiarism_detection'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [compare] Similarity:
-  [clean]
-  [flagged]
-  [report] Plagiarism report for
-  [scan] Scanned
-  [submit]
-
-  Status: COMPLETED
-  Output: {similarityScore=..., verdict=..., action=..., notified=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -115,7 +73,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -158,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow plg_plagiarism_detection \
   --version 1 \
-  --input '{"studentId": "STU-2024-678", "STU-2024-678": "assignmentId", "assignmentId": "ESSAY-03", "ESSAY-03": "documentText", "documentText": "This is a simulated essay about data structures and their applications in modern computing systems.", "This is a simulated essay about data structures and their applications in modern computing systems.": "sample-This is a simulated essay about data structures and their applications in modern computing systems."}'
+  --input '{"studentId": "TEST-001", "assignmentId": "TEST-001", "documentText": "test-value"}'
 ```
 
 ### Check workflow status

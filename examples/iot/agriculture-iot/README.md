@@ -1,8 +1,6 @@
 # Agriculture IoT in Java with Conductor
 
-A Java Conductor workflow example that orchestrates precision agriculture .  reading soil moisture and pH from field sensors, fetching weather forecasts for rain probability and temperature, making irrigation decisions based on soil conditions, crop type, and weather outlook, and actuating irrigation valves across specific field zones for a calculated duration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Smart Irrigation Needs Orchestration
+A Java Conductor workflow example that orchestrates precision agriculture .  reading soil moisture and pH from field sensors, fetching weather forecasts for rain probability and temperature, making irrigation decisions based on soil conditions, crop type, and weather outlook, and actuating irrigation valves across specific field zones for a calculated duration. Uses [Conductor](https://github.## Why Smart Irrigation Needs Orchestration
 
 Deciding whether to irrigate a field requires data from multiple sources fed through a decision pipeline. You read soil sensors to get current moisture levels and pH for the crop type. You fetch weather data to check temperature and rain probability .  irrigating before a rainstorm wastes water and can damage crops. You feed soil and weather data into an irrigation decision engine that determines whether to irrigate, for how long, and which zones. Finally, you actuate the irrigation valves for the selected zones and duration.
 
@@ -27,15 +25,6 @@ Four workers manage precision irrigation: SoilSensorsWorker reads moisture and p
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ agr_irrigation_decision
     │
     ▼
 agr_actuate
-```
-
-## Example Output
-
-```
-=== Example 546: Agriculture IoT ===
-
-Step 1: Registering task definitions...
-  Registered: agr_soil_sensors, agr_weather_data, agr_irrigation_decision, agr_actuate
-
-Step 2: Registering workflow 'agriculture_iot_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [actuate] Processing task
-  [decision] Processing task
-  [soil] Processing task
-  [weather] Processing task
-
-  Status: COMPLETED
-  Output: {done=..., durationMinutes=..., zones=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agriculture_iot_demo \
   --version 1 \
-  --input '{"fieldId": "FIELD-7", "FIELD-7": "cropType", "cropType": "corn", "corn": "sample-corn"}'
+  --input '{"fieldId": "TEST-001", "cropType": "test-value"}'
 ```
 
 ### Check workflow status

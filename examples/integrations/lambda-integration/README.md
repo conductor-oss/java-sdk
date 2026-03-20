@@ -27,15 +27,6 @@ Four workers orchestrate Lambda invocations: PreparePayloadWorker validates and 
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ lam_process_response
     │
     ▼
 lam_log_result
-```
-
-## Example Output
-
-```
-=== Example 449: Lambda Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: lam_prepare_payload, lam_invoke, lam_process_response, lam_log_result
-
-Step 2: Registering workflow 'lambda_integration_449'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [invoke]
-  [log] Function:
-  [prepare] Payload for
-  [process] Status:
-
-  Status: COMPLETED
-  Output: {statusCode=..., responsePayload=..., duration=..., requestId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -150,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lambda_integration_449 \
   --version 1 \
-  --input '{"functionName": "sample-name", "process-orders": "sample-process-orders", "qualifier": "sample-qualifier", "$LATEST": "sample-$LATEST", "inputData": "sample-inputData", "action": "sample-action", "processNewOrders": "sample-processNewOrders", "region": "sample-region", "us-east-1": "sample-us-east-1", "batchSize": 5}'
+  --input '{"functionName": "test", "inputData": "test-value", "qualifier": "test-value"}'
 ```
 
 ### Check workflow status

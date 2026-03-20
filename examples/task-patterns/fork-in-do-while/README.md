@@ -1,8 +1,6 @@
 # Fork In Do While in Java with Conductor
 
-FORK inside DO_WHILE demo .  iterative parallel processing. Each iteration forks parallel batch-processing tasks, then a summary task reports after the loop. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+FORK inside DO_WHILE demo .  iterative parallel processing. Each iteration forks parallel batch-processing tasks, then a summary task reports after the loop. Uses [Conductor](https://github.## The Problem
 
 You need to process multiple batches iteratively, where each batch contains tasks that can run in parallel. For example, processing 5 batches of data imports where each batch involves parallel validation, transformation, and loading steps. The loop runs until all batches are complete (iteration >= totalBatches), and within each iteration, the parallel tasks must all finish before the next iteration begins. After all batches complete, a summary step aggregates the results across every iteration.
 
@@ -25,16 +23,6 @@ Two workers handle iterative parallel processing: ProcessBatchWorker runs within
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -44,32 +32,6 @@ DO_WHILE
     │
     ▼
 fl_summary
-```
-
-## Example Output
-
-```
-=== FORK inside DO_WHILE Demo: Iterative Parallel Processing ===
-
-Step 1: Registering task definitions...
-  Registered: fl_process_batch, fl_summary
-
-Step 2: Registering workflow 'fork_loop_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [fl_process_batch] Processing batch at iteration:
-  [fl_summary] Summarizing:
-
-  Status: COMPLETED
-  Output: {batchId=..., processed=..., summary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -98,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -141,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow fork_loop_demo \
   --version 1 \
-  --input '{"totalBatches": 250.0}'
+  --input '{"totalBatches": "test-value"}'
 ```
 
 ### Check workflow status

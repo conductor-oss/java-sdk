@@ -1,8 +1,6 @@
 # Cold Chain Monitoring in Java with Conductor :  Temperature Sensing, Threshold Checks, Alert Routing, and Corrective Action
 
-A Java Conductor workflow example for cold chain monitoring .  reading temperature sensor data for shipments of temperature-sensitive goods (e.g., frozen pharmaceuticals requiring 2-8C), checking readings against configured thresholds, routing to alert or OK handlers based on compliance status, and triggering corrective actions when excursions are detected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for cold chain monitoring .  reading temperature sensor data for shipments of temperature-sensitive goods (e.g., frozen pharmaceuticals requiring 2-8C), checking readings against configured thresholds, routing to alert or OK handlers based on compliance status, and triggering corrective actions when excursions are detected. Uses [Conductor](https://github.## The Problem
 
 You need to continuously monitor temperature conditions for cold chain shipments. Frozen pharmaceuticals, vaccines, and biologics must stay within a narrow temperature range (e.g., 2-8C) throughout transit. When a sensor reading breaches the threshold, the logistics team needs an immediate alert, and corrective action must be triggered .  rerouting to a backup refrigerated warehouse, dispatching a replacement shipment, or flagging the batch for quality review. Regulatory requirements (FDA 21 CFR Part 211, EU GDP) demand a documented chain of custody proving temperatures were maintained.
 
@@ -28,16 +26,6 @@ Five workers cover the cold chain pipeline: MonitorTempWorker reads sensor data,
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -53,35 +41,6 @@ SWITCH (cch_switch_ref)
     │
     ▼
 cch_act
-```
-
-## Example Output
-
-```
-=== Example 670: Cold Chain Monitoring ===
-
-Step 1: Registering task definitions...
-  Registered: cch_monitor_temp, cch_check_thresholds, cch_handle_ok, cch_handle_alert, cch_act
-
-Step 2: Registering workflow 'cch_cold_chain'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [act]
-  [check]
-  [alert]
-  [ok]
-  [monitor]
-
-  Status: COMPLETED
-  Output: {action=..., logged=..., notified=..., currentTemp=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cch_cold_chain \
   --version 1 \
-  --input '{"shipmentId": "COLD-670-001", "COLD-670-001": "product", "product": "Frozen Pharmaceuticals", "Frozen Pharmaceuticals": "minTemp", "minTemp": 2}'
+  --input '{"shipmentId": "TEST-001", "product": "test-value", "minTemp": "test-value", "maxTemp": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Translation Pipeline in Java Using Conductor :  Language Detection, Machine Translation, Human Review, and Locale Publishing
 
-A Java Conductor workflow example that orchestrates a content translation pipeline .  detecting the source language with confidence scores and alternative language candidates, performing machine translation with quality scoring, routing through human review for corrections and quality assurance, and publishing the approved translation to locale-specific URLs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Translation Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates a content translation pipeline .  detecting the source language with confidence scores and alternative language candidates, performing machine translation with quality scoring, routing through human review for corrections and quality assurance, and publishing the approved translation to locale-specific URLs. Uses [Conductor](https://github.## Why Translation Pipelines Need Orchestration
 
 Translating content for international audiences involves a pipeline where quality gates prevent bad translations from going live. You detect the source language .  sometimes user-submitted content is mislabeled or contains mixed languages, so automated detection with confidence scoring prevents translation from the wrong source. You run machine translation to produce a draft with word counts and quality scores. A human reviewer checks the machine output ,  correcting errors, improving fluency, and assigning a review score. Only after human approval does the translation get published to its locale-specific URL.
 
@@ -27,15 +25,6 @@ Four workers handle the translation flow: DetectLanguageWorker identifies the so
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ trn_review_translation
     │
     ▼
 trn_publish_translation
-```
-
-## Example Output
-
-```
-=== Example 517: Translation Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: trn_detect_language, trn_translate, trn_review_translation, trn_publish_translation
-
-Step 2: Registering workflow 'translation_pipeline_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect] Processing
-  [publish] Processing
-  [review] Processing
-  [translate] Processing
-
-  Status: COMPLETED
-  Output: {detectedLanguage=..., confidence=..., alternativeLanguages=..., score=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow translation_pipeline_workflow \
   --version 1 \
-  --input '{"contentId": "CNT-517-001", "CNT-517-001": "sourceText", "sourceText": "Automate your workflows with Conductor for efficient orchestration.", "Automate your workflows with Conductor for efficient orchestration.": "targetLanguage", "targetLanguage": "fr", "fr": "sample-fr"}'
+  --input '{"contentId": "TEST-001", "sourceText": "test-value", "targetLanguage": "test-value"}'
 ```
 
 ### Check workflow status

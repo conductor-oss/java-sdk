@@ -1,8 +1,6 @@
 # Complex Event Processing in Java Using Conductor
 
-Complex event processing workflow that ingests events, detects sequences, absences, and timing violations, then routes via SWITCH to trigger alerts or log normal activity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Complex event processing workflow that ingests events, detects sequences, absences, and timing violations, then routes via SWITCH to trigger alerts or log normal activity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to analyze streams of events for patterns that signal anomalies. This means ingesting a batch of events, checking whether expected sequences occurred (e.g., login before purchase), detecting the absence of required events (e.g., missing confirmation), and identifying timing violations where gaps between events exceed acceptable thresholds. When any pattern is anomalous, the system must trigger an alert; otherwise, it logs normal activity. Each detection pass depends on the ingested events, and the final routing depends on the combined results.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic event processor that reads from 
 
 **You just write the event-ingestion, sequence-detection, absence-detection, timing-detection, and alert workers. Conductor handles multi-detector sequencing, SWITCH-based alert routing, and a complete record of every analysis run.**
 
-Each detection concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (ingest, detect sequence, detect absence, detect timing), then routing via a SWITCH task to either trigger an alert or log normal activity ,  retrying if a detector fails, tracking every analysis run, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each detection concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (ingest, detect sequence, detect absence, detect timing), then routing via a SWITCH task to either trigger an alert or log normal activity ,  retrying if a detector fails, tracking every analysis run, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Six workers analyze event streams: IngestEventsWorker accepts a batch, DetectSeq
 | **TriggerAlertWorker** | `cp_trigger_alert` | Triggers an alert when anomalous patterns are detected. |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -57,36 +45,6 @@ cp_detect_timing
 SWITCH (switch_ref)
     ├── pattern_found: cp_trigger_alert
     └── default: cp_log_normal
-```
-
-## Example Output
-
-```
-=== Complex Event Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cp_ingest_events, cp_detect_sequence, cp_detect_absence, cp_detect_timing, cp_trigger_alert, cp_log_normal
-
-Step 2: Registering workflow 'complex_event_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cp_detect_absence] Rule \"" + rule + "\": confirmation
-  [cp_detect_sequence] Rule \"" + rule + "\":
-  [cp_detect_timing] Max gap check:
-  [cp_ingest_events] Ingested
-  [cp_log_normal]
-  [cp_trigger_alert] PATTERN ALERT. Seq:
-
-  Status: COMPLETED
-  Output: {detected=..., rule=..., violation=..., overallResult=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -115,7 +73,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -158,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow complex_event_processing \
   --version 1 \
-  --input '{"events": ["item-1", "item-2", "item-3"]}'
+  --input '{"events": "test-value", "patternRules": "test-value"}'
 ```
 
 ### Check workflow status
@@ -174,7 +132,7 @@ conductor workflow search -w complex_event_processing -s COMPLETED -c 5
 Wire each detector worker to your real event stream (Kafka, Kinesis) and alerting system (PagerDuty, OpsGenie), the ingest-detect-alert CEP workflow stays exactly the same.
 
 - **IngestEventsWorker** (`cp_ingest_events`): consume events from Kafka, Kinesis, or Pub/Sub instead of accepting them as workflow input
-- **DetectSequenceWorker** (`cp_detect_sequence`): implement configurable sequence rules using a CEP engine (Esper, Apache Flink CEP) for production-grade pattern matching
+- **DetectSequenceWorker** (`cp_detect_sequence`): implement configurable sequence rules using a CEP engine (Esper, Apache Flink CEP) for example-grade pattern matching
 - **DetectAbsenceWorker** (`cp_detect_absence`): check for missing events against configurable expected-event lists with time-window constraints
 - **DetectTimingWorker** (`cp_detect_timing`): enforce SLA-based timing constraints with configurable thresholds per event type
 - **TriggerAlertWorker** (`cp_trigger_alert`): send alerts via PagerDuty, OpsGenie, or Slack webhook based on anomaly severity

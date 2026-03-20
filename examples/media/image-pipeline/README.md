@@ -1,8 +1,6 @@
 # Image Processing Pipeline in Java Using Conductor :  Upload, Resize, Optimize, Watermark, and CDN Push
 
-A Java Conductor workflow example that orchestrates an image processing pipeline .  uploading original images with dimension and format detection, resizing to multiple responsive breakpoints, optimizing file sizes with quality-aware compression, applying watermarks for brand protection, and pushing final assets to CDN with cache invalidation and TTL configuration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Image Processing Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an image processing pipeline .  uploading original images with dimension and format detection, resizing to multiple responsive breakpoints, optimizing file sizes with quality-aware compression, applying watermarks for brand protection, and pushing final assets to CDN with cache invalidation and TTL configuration. Uses [Conductor](https://github.## Why Image Processing Pipelines Need Orchestration
 
 Processing images for web delivery requires a strict transformation chain. You upload the original and extract its dimensions, format, and file size. You resize it to multiple breakpoints (thumbnail, mobile, tablet, desktop, retina). You optimize each variant .  reducing file size by 40-60% while maintaining visual quality. You apply watermarks to protect intellectual property. Finally, you push all variants to the CDN with appropriate cache headers and TTLs.
 
@@ -28,15 +26,6 @@ Five workers process each image: UploadImageWorker handles ingestion with dimens
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ imp_watermark_image
     │
     ▼
 imp_push_cdn
-```
-
-## Example Output
-
-```
-=== Example 513: Image Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: imp_upload_image, imp_resize_image, imp_optimize_image, imp_watermark_image, imp_push_cdn
-
-Step 2: Registering workflow 'image_pipeline_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [optimize] Processing
-  [cdn] Processing
-  [resize] Processing
-  [upload] Processing
-  [watermark] Processing
-
-  Status: COMPLETED
-  Output: {optimizedPaths=..., savedPercent=..., averageQuality=..., cdnUrls=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow image_pipeline_workflow \
   --version 1 \
-  --input '{"imageId": "IMG-513-001", "IMG-513-001": "sourceUrl", "sourceUrl": "https://uploads.example.com/photos/513.jpg", "https://uploads.example.com/photos/513.jpg": "targetSizes", "targetSizes": ["item-1", "item-2", "item-3"], "Example Corp": "sample-Example Corp"}'
+  --input '{"imageId": "TEST-001", "sourceUrl": "https://example.com", "targetSizes": 10, "watermarkText": "test-value"}'
 ```
 
 ### Check workflow status

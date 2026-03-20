@@ -1,8 +1,6 @@
 # Care Coordination in Java Using Conductor :  Needs Assessment, Care Planning, Team Assembly, and Patient Monitoring
 
-A Java Conductor workflow example for care coordination .  assessing a patient's clinical needs based on condition and acuity, building a personalized care plan, assembling the right care team (PCP, specialist, social worker), and activating ongoing monitoring. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for care coordination .  assessing a patient's clinical needs based on condition and acuity, building a personalized care plan, assembling the right care team (PCP, specialist, social worker), and activating ongoing monitoring. Uses [Conductor](https://github.## The Problem
 
 You need to coordinate care for patients with chronic conditions or complex medical needs. When a patient is flagged for care coordination, their clinical condition and acuity must be assessed to determine what services they need. Based on that assessment, a care plan is created with specific goals, interventions, and timelines. The right care team must then be assembled .  a primary care physician, relevant specialists, a care manager, and potentially a social worker or behavioral health provider. Finally, the patient must be enrolled in ongoing monitoring so the care team can track progress against the plan.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic care management application that
 
 **You just write the care coordination workers. Needs assessment, care plan creation, team assembly, and patient monitoring activation. Conductor handles sequencing, automatic retries when an EHR endpoint is slow, and timestamped records for CMS quality reporting.**
 
-Each stage of care coordination is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of assessing needs before building the plan, assembling the team only after the plan defines what specialties are needed, activating monitoring with the assigned team members, and maintaining a complete audit trail for quality reporting. You get all of that for free, without writing a single line of orchestration code.
+Each stage of care coordination is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of assessing needs before building the plan, assembling the team only after the plan defines what specialties are needed, activating monitoring with the assigned team members, and maintaining a complete audit trail for quality reporting. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers handle the coordination lifecycle: AssessNeedsWorker evaluates clin
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ccr_assign_team
     │
     ▼
 ccr_monitor
-```
-
-## Example Output
-
-```
-=== Example 481: Care Coordinatio ===
-
-Step 1: Registering task definitions...
-  Registered: ccr_assess_needs, ccr_create_plan, ccr_assign_team, ccr_monitor
-
-Step 2: Registering workflow 'care_coordination_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess] Patient
-  [team] Assembling care team for acuity:
-  [plan] Creating care plan addressing
-  [monitor] Monitoring activated
-
-  Status: COMPLETED
-  Output: {needs=..., riskScore=..., complexCase=..., team=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow care_coordination_workflow \
   --version 1 \
-  --input '{"patientId": "PAT-10234", "PAT-10234": "condition", "condition": "Type 2 Diabetes with complications", "Type 2 Diabetes with complications": "acuity", "acuity": "high", "high": "sample-high"}'
+  --input '{"patientId": "TEST-001", "condition": "test-value", "acuity": "test-value"}'
 ```
 
 ### Check workflow status

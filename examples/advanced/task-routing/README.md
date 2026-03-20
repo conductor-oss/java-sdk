@@ -1,8 +1,6 @@
 # Task Routing in Java Using Conductor :  Analyze Requirements, Select Worker Pool, Dispatch, Verify
 
-A Java Conductor workflow example for intelligent task routing .  analyzing a task's resource requirements (CPU, GPU, memory) and region constraints, selecting the optimal worker pool to handle it, dispatching the task to that pool, and verifying successful execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Tasks Have Different Resource Needs :  Send Them to the Right Pool
+A Java Conductor workflow example for intelligent task routing .  analyzing a task's resource requirements (CPU, GPU, memory) and region constraints, selecting the optimal worker pool to handle it, dispatching the task to that pool, and verifying successful execution. Uses [Conductor](https://github.## Tasks Have Different Resource Needs :  Send Them to the Right Pool
 
 An ML inference task needs a GPU-equipped worker in us-east-1. A data transformation task needs a high-memory worker in any region. A simple validation task can run on any small worker anywhere. Sending all tasks to the same pool wastes GPU resources on validation and starves inference tasks when the general pool is full.
 
@@ -27,15 +25,6 @@ Four workers manage intelligent dispatch: requirements analysis, pool selection 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ trt_dispatch
     │
     ▼
 trt_verify
-```
-
-## Example Output
-
-```
-=== Task Routing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: trt_analyze_requirements, trt_select_pool, trt_dispatch, trt_verify
-
-Step 2: Registering workflow 'trt_task_routing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Processing
-  [dispatch] Processing
-  [select] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {requirements=..., availablePools=..., dispatchId=..., pool=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow trt_task_routing \
   --version 1 \
-  --input '{"taskType": "standard", "ml_inference": "sample-ml-inference", "region": "sample-region"}'
+  --input '{"taskType": "test-value", "resourceNeeds": "test-value", "region": "test-value"}'
 ```
 
 ### Check workflow status

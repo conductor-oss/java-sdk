@@ -1,8 +1,6 @@
 # Data Format Normalizer in Java Using Conductor :  Detect Format, Convert JSON/XML/CSV, Output Canonical Form
 
-A Java Conductor workflow example for data normalization .  detecting the input format of incoming data (JSON, XML, or CSV), routing to the appropriate format-specific converter via a `SWITCH` task, and producing a canonical output regardless of the source format. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Every Source System Speaks a Different Format
+A Java Conductor workflow example for data normalization .  detecting the input format of incoming data (JSON, XML, or CSV), routing to the appropriate format-specific converter via a `SWITCH` task, and producing a canonical output regardless of the source format. Uses [Conductor](https://github.## Every Source System Speaks a Different Format
 
 Your ERP sends XML, your CRM sends JSON, and your partner's FTP drop is CSV. Downstream analytics expects a single canonical format. Each integration point needs its own parser, and when a new source system joins with YAML or fixed-width files, you add another branch to a growing if/else chain.
 
@@ -28,16 +26,6 @@ Five workers cover the normalization pipeline: format detection, and three forma
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ SWITCH (nrm_switch_ref)
     │
     ▼
 nrm_output
-```
-
-## Example Output
-
-```
-=== Normalizer Demo ===
-
-Step 1: Registering task definitions...
-  Registered: nrm_detect_format, nrm_convert_json, nrm_convert_xml, nrm_convert_csv, nrm_output
-
-Step 2: Registering workflow 'nrm_normalizer'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [convert-csv] Processing
-  [convert-json] Processing
-  [convert-xml] Processing
-  [detect] Processing
-  [output] Processing
-
-  Status: COMPLETED
-  Output: {canonical=..., detectedFormat=..., normalized=..., originalFormat=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nrm_normalizer \
   --version 1 \
-  --input '{"rawInput": {"key": "value"}, "partner_api": "sample-partner-api"}'
+  --input '{"rawInput": "test-value", "sourceSystem": "test-value"}'
 ```
 
 ### Check workflow status

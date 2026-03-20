@@ -1,8 +1,6 @@
 # Purchase Order Lifecycle in Java with Conductor :  PO Creation, Approval, Vendor Transmission, Order Tracking, and Goods Receipt
 
-A Java Conductor workflow example for purchase order lifecycle management .  creating a PO with line items and vendor details, obtaining budget/authority approval, transmitting the order to the vendor, tracking fulfillment status, and confirming goods receipt at the warehouse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for purchase order lifecycle management .  creating a PO with line items and vendor details, obtaining budget/authority approval, transmitting the order to the vendor, tracking fulfillment status, and confirming goods receipt at the warehouse. Uses [Conductor](https://github.## The Problem
 
 You need to manage purchase orders from creation through delivery. A PO must be created with vendor, items, quantities, and pricing. It requires approval based on the total amount and the requester's authority level. The approved PO must be transmitted to the vendor (via EDI, email, or supplier portal). The order must be tracked for fulfillment status (acknowledged, shipped, partial delivery). Finally, goods receipt must be confirmed against the original PO line items.
 
@@ -28,15 +26,6 @@ Five workers manage PO lifecycle: CreateWorker drafts the order, ApproveWorker c
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ po_track
     │
     ▼
 po_receive
-```
-
-## Example Output
-
-```
-=== Example 654: Purchase Order ===
-
-Step 1: Registering task definitions...
-  Registered: po_create, po_approve, po_send, po_track, po_receive
-
-Step 2: Registering workflow 'po_purchase_order'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve]
-  [create] PO for
-  [receive] Goods for
-  [send]
-  [track]
-
-  Status: COMPLETED
-  Output: {approved=..., approver=..., poNumber=..., received=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow po_purchase_order \
   --version 1 \
-  --input '{"vendor": "sample-vendor", "Acme Supplies Inc": "sample-Acme Supplies Inc", "items": "sample-items", "sku": "sample-sku", "BOLT-M10": "sample-BOLT-M10", "qty": "sample-qty", "NUT-M10": "sample-NUT-M10"}'
+  --input '{"vendor": "test-value", "items": "test-value", "totalAmount": 100}'
 ```
 
 ### Check workflow status

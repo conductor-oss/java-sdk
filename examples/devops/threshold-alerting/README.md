@@ -1,8 +1,6 @@
 # Threshold Alerting in Java with Conductor :  Check Metric, Route by Severity via SWITCH
 
-Automates threshold-based alerting using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks a metric value against warning and critical thresholds, then routes to the appropriate action: logging for normal values, sending a Slack warning for elevated values, or paging the on-call engineer for critical breaches. You write the alerting logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Right Alert to the Right Person
+Automates threshold-based alerting using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks a metric value against warning and critical thresholds, then routes to the appropriate action: logging for normal values, sending a Slack warning for elevated values, or paging the on-call engineer for critical breaches.## The Right Alert to the Right Person
 
 CPU usage is at 87%. Is that a problem? It depends on the thresholds. Below 70% is fine: just log it. Between 70% and 90% is a warning, send a Slack message so the team is aware. Above 90% is critical, page the on-call engineer immediately. Each severity level needs a different response, and the check needs to happen reliably every time, with the right routing for each outcome.
 
@@ -27,47 +25,10 @@ Four workers handle threshold alerting. Checking the metric value, then routing 
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> CheckMetric -> LogOk -> PageOncall -> SendWarning -> Output
-```
-
-## Example Output
-
-```
-=== Example 423: Threshold Alerting ===
-
-Step 1: Registering task definitions...
-  Registered: th_check_metric, th_log_ok, th_page_oncall, th_send_warning
-
-Step 2: Registering workflow 'threshold_alerting_423'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [th_check_metric]
-  [th_log_ok]
-  [th_page_oncall] CRITICAL: Paging on-call for
-  [th_send_warning] WARNING: Sending alert for
-
-  Status: COMPLETED
-  Output: {severity=..., value=..., warningThreshold=..., criticalThreshold=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

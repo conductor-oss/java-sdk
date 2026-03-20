@@ -1,8 +1,6 @@
 # Risk Assessment in Java with Conductor
 
-Risk assessment workflow with parallel market, credit, and operational risk analysis via FORK_JOIN. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Risk assessment workflow with parallel market, credit, and operational risk analysis via FORK_JOIN. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to assess the total risk exposure of a portfolio across multiple risk dimensions simultaneously. Market risk (price volatility, interest rate sensitivity), credit risk (counterparty default probability), and operational risk (process failures, fraud) must all be analyzed in parallel since they are independent calculations. The combined results provide a holistic view of the portfolio's risk profile. Running these assessments sequentially wastes time when each can take minutes to compute.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd spawn threads for each risk model, synchronize comp
 
 **You just write the risk analysis workers. Factor collection and parallel market, credit, and operational risk scoring, plus aggregation. Conductor handles parallel FORK_JOIN execution of market, credit, and operational risk analyses, automatic retries on any failed dimension, and complete assessment tracking.**
 
-Each risk dimension is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running market, credit, and operational risk analyses in parallel via FORK_JOIN, waiting for all to complete, aggregating the combined risk profile, retrying any failed analysis independently, and tracking every assessment. You get all of that for free, without writing a single line of orchestration code.
+Each risk dimension is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running market, credit, and operational risk analyses in parallel via FORK_JOIN, waiting for all to complete, aggregating the combined risk profile, retrying any failed analysis independently, and tracking every assessment. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Five workers span the risk assessment: CollectFactorsWorker gathers portfolio ri
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 rsk_aggregate
-```
-
-## Example Output
-
-```
-=== Example 495: Risk Assessment ===
-
-Step 1: Registering task definitions...
-  Registered: rsk_collect_factors, rsk_market_risk, rsk_credit_risk, rsk_operational_risk, rsk_aggregate
-
-Step 2: Registering workflow 'risk_assessment_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Market:
-  [collect] Gathering risk factors for portfolio
-  [credit] Avg rating:
-  [market] Volatility:
-  [ops] Incidents:
-
-  Status: COMPLETED
-  Output: {overallRisk=..., riskCategory=..., var95=..., capitalAdequate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow risk_assessment_workflow \
   --version 1 \
-  --input '{"portfolioId": "PORT-INST-001", "PORT-INST-001": "assessmentDate", "assessmentDate": "2024-03-15", "2024-03-15": "sample-2024-03-15"}'
+  --input '{"portfolioId": "TEST-001", "assessmentDate": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

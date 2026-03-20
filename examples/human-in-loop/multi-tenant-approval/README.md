@@ -1,8 +1,6 @@
 # Multi-Tenant Approval in Java Using Conductor :  Tenant Config Loading, Amount-Based SWITCH to Manager or Manager+Executive WAIT Chains, and Tenant-Scoped Finalization
 
-A Java Conductor workflow example for multi-tenant SaaS approval routing .  loading each tenant's approval configuration (auto-approve limits, required approval levels), using a SWITCH to route requests to the correct WAIT chain based on the tenant's rules (manager-only for single-level tenants, manager-then-executive for enterprise tenants, auto-approve for tenants below threshold), and finalizing with tenant-scoped post-approval logic. Each tenant (startup-co, enterprise-corp, small-biz) has its own auto-approve limit and approval chain depth, so the same workflow handles all tenants without per-tenant workflow definitions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Different Tenants Have Different Approval Rules and Thresholds
+A Java Conductor workflow example for multi-tenant SaaS approval routing .  loading each tenant's approval configuration (auto-approve limits, required approval levels), using a SWITCH to route requests to the correct WAIT chain based on the tenant's rules (manager-only for single-level tenants, manager-then-executive for enterprise tenants, auto-approve for tenants below threshold), and finalizing with tenant-scoped post-approval logic. Each tenant (startup-co, enterprise-corp, small-biz) has its own auto-approve limit and approval chain depth, so the same workflow handles all tenants without per-tenant workflow definitions. Uses [Conductor](https://github.## Different Tenants Have Different Approval Rules and Thresholds
 
 In a multi-tenant SaaS application, each tenant has its own approval configuration. Different amount thresholds, different required approval levels, different approver roles. The workflow loads the tenant's configuration, determines the required approval level based on the amount, routes to the appropriate approval chain, then finalizes. If the config loading step uses stale data, you can re-run just that step.
 
@@ -25,16 +23,6 @@ MtaLoadConfigWorker loads each tenant's approval thresholds and required levels,
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -47,32 +35,6 @@ SWITCH (approval_switch_ref)
     │
     ▼
 mta_finalize
-```
-
-## Example Output
-
-```
-=== Multi-Tenant Approval Demo: Tenant-Specific Approval Rules ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'multi_tenant_approval_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mta_finalize] Finalizing for tenant=
-  [mta_load_config] Loading config for tenant=
-
-  Status: COMPLETED
-  Output: {processed=..., approvalLevel=..., tenantId=..., amount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -101,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_tenant_approval_demo \
   --version 1 \
-  --input '{"tenantId": "small-biz", "small-biz": "amount", "amount": 5000}'
+  --input '{"tenantId": "TEST-001", "amount": 100}'
 ```
 
 ### Check workflow status

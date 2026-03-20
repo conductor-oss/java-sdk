@@ -1,8 +1,6 @@
 # Event Versioning in Java Using Conductor
 
-Event versioning workflow that detects event schema version, transforms older versions to the latest format via a SWITCH task, and processes the event uniformly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event versioning workflow that detects event schema version, transforms older versions to the latest format via a SWITCH task, and processes the event uniformly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to handle events with different schema versions in the same processing pipeline. As your event schema evolves (adding fields, changing types, renaming properties), older producers may still emit events in v1 format while newer ones emit v2. The workflow must detect the event's schema version, transform older versions to the latest format, and then process all events uniformly regardless of their original version. Without version handling, schema changes break consumers.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd embed version detection and transformation logic in
 
 **You just write the version-detection, schema-transform, and event-processing workers. Conductor handles version-based SWITCH routing, per-version transformation retries, and full version lineage tracking for every event.**
 
-Each versioning concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of detecting the event version, routing via a SWITCH task to the appropriate version transformer, processing the event in its canonical format, and tracking every event's version and transformation. You get all of that for free, without writing a single line of orchestration code.
+Each versioning concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of detecting the event version, routing via a SWITCH task to the appropriate version transformer, processing the event in its canonical format, and tracking every event's version and transformation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Five workers handle schema evolution: DetectVersionWorker identifies the event's
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -51,35 +39,6 @@ SWITCH (switch_ref)
     │
     ▼
 vr_process_event
-```
-
-## Example Output
-
-```
-=== Event Versioning Demo ===
-
-Step 1: Registering task definitions...
-  Registered: vr_detect_version, vr_transform_v1, vr_transform_v2, vr_pass_through, vr_process_event
-
-Step 2: Registering workflow 'event_versioning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [vr_detect_version] Event version:
-  [vr_pass_through] Event already at latest version
-  [vr_process_event] Processing event (original version:
-  [vr_transform_v1] Converting v1 event to v3 format
-  [vr_transform_v2] Converting v2 event to v3 format
-
-  Status: COMPLETED
-  Output: {version=..., transformed=..., processed=..., originalVersion=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +67,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +110,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_versioning \
   --version 1 \
-  --input '{"event": "sample-event", "version": "sample-version", "v1": "sample-v1", "type": "standard", "user.created": "sample-user.created", "name": "sample-name", "John": "sample-John", "email": "user@example.com"}'
+  --input '{"event": "test-value"}'
 ```
 
 ### Check workflow status

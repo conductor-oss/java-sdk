@@ -1,6 +1,6 @@
 # AI Prompt Engineering in Java Using Conductor :  Define Task, Generate Variants, Test, Evaluate, Select Best
 
-A Java Conductor workflow that automates prompt optimization .  defining the task and evaluation criteria, generating multiple prompt variants, testing each variant against a benchmark, evaluating results against criteria, and selecting the best-performing prompt. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage prompt engineering pipeline as independent workers ,  you write the prompt generation and evaluation logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that automates prompt optimization .  defining the task and evaluation criteria, generating multiple prompt variants, testing each variant against a benchmark, evaluating results against criteria, and selecting the best-performing prompt. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage prompt engineering pipeline as independent workers ,  you write the prompt generation and evaluation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Finding the Best Prompt Through Systematic Testing
 
@@ -27,15 +27,6 @@ Workers for variant generation, benchmark testing, and scoring operate independe
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,35 +43,6 @@ ape_evaluate
     │
     ▼
 ape_select_best
-```
-
-## Example Output
-
-```
-=== Example 806: AI Prompt Engineering. Define Task, Generate Prompts, Test Variants, Evaluate, Select Best ===
-
-Step 1: Registering task definitions...
-  Registered: ape_define_task, ape_generate_prompts, ape_test_variants, ape_evaluate, ape_select_best
-
-Step 2: Registering workflow 'ape_prompt_engineering'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [define] Response from OpenAI (LIVE)
-  [evaluate] Response from OpenAI (LIVE)
-  [generate] Response from OpenAI (LIVE)
-  [select] Response from OpenAI (LIVE)
-  [test] Response from OpenAI (LIVE)
-
-  Status: COMPLETED
-  Output: {taskSpec=..., rankings=..., prompts=..., count=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +115,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ape_prompt_engineering \
   --version 1 \
-  --input '{"taskDescription": "Summarize technical articles", "Summarize technical articles": "modelId", "modelId": "gpt-4", "gpt-4": "evaluationCriteria", "evaluationCriteria": "ROUGE-L", "ROUGE-L": "sample-ROUGE-L"}'
+  --input '{"taskDescription": "test-value", "modelId": "TEST-001", "evaluationCriteria": "test-value"}'
 ```
 
 ### Check workflow status
@@ -185,7 +147,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

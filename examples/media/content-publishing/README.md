@@ -1,8 +1,6 @@
 # Content Publishing Pipeline in Java Using Conductor :  Drafting, Editorial Review, Approval, Formatting, Publishing, and Multi-Channel Distribution
 
-A Java Conductor workflow example that orchestrates a content publishing pipeline .  creating drafts with word counts and SEO slugs, routing through editorial review with quality scores, obtaining editorial approval, formatting content with SEO metadata for multiple output formats, publishing to the website with CDN cache invalidation, and distributing to social and newsletter channels on a schedule. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Content Publishing Needs Orchestration
+A Java Conductor workflow example that orchestrates a content publishing pipeline .  creating drafts with word counts and SEO slugs, routing through editorial review with quality scores, obtaining editorial approval, formatting content with SEO metadata for multiple output formats, publishing to the website with CDN cache invalidation, and distributing to social and newsletter channels on a schedule. Uses [Conductor](https://github.## Why Content Publishing Needs Orchestration
 
 Publishing content involves a strict editorial pipeline where each stage gates the next. A draft must be reviewed before it can be approved. Approved content must be formatted with SEO metadata before publishing. Publishing must invalidate CDN caches. Distribution to social channels and newsletters must happen only after the content is live. If a reviewer rejects the draft, it should loop back to editing .  not proceed to publishing.
 
@@ -29,15 +27,6 @@ Six workers manage the editorial pipeline: DraftContentWorker creates articles, 
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -57,36 +46,6 @@ pub_publish_content
     │
     ▼
 pub_distribute_content
-```
-
-## Example Output
-
-```
-=== Example 511: Content Publishing ===
-
-Step 1: Registering task definitions...
-  Registered: pub_draft_content, pub_review_content, pub_approve_content, pub_format_content, pub_publish_content, pub_distribute_content
-
-Step 2: Registering workflow 'content_publishing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Review score:
-  [distribute] Distributing \"" + title + "\" to channels
-  [draft] Creating draft: \"" + title + "\" by
-  [format] Formatting
-  [publish] Publishing to production
-  [review] Reviewing draft v
-
-  Status: COMPLETED
-  Output: {approved=..., approver=..., approvedAt=..., channels=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -115,7 +74,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -158,7 +117,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_publishing_workflow \
   --version 1 \
-  --input '{"contentId": "CNT-511-001", "CNT-511-001": "authorId", "authorId": "AUTH-220", "AUTH-220": "contentType", "contentType": "blog_post", "blog_post": "title", "title": "Optimizing Cloud Costs in 2026", "Optimizing Cloud Costs in 2026": "sample-Optimizing Cloud Costs in 2026"}'
+  --input '{"contentId": "TEST-001", "authorId": "TEST-001", "contentType": "test-value", "title": "test-value"}'
 ```
 
 ### Check workflow status

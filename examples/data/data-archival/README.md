@@ -1,8 +1,6 @@
 # Data Archival in Java Using Conductor :  Stale Record Detection, Cold Storage Transfer, and Verified Purge
 
-A Java Conductor workflow example for data archival. identifying records that exceed a configurable retention period, snapshotting them, transferring the snapshot to cold storage, verifying archive integrity via checksum, and purging the stale records from hot storage only after verification passes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data archival. identifying records that exceed a configurable retention period, snapshotting them, transferring the snapshot to cold storage, verifying archive integrity via checksum, and purging the stale records from hot storage only after verification passes. Uses [Conductor](https://github.## The Problem
 
 Your hot storage (production database, Elasticsearch cluster, fast SSD-backed store) is growing without bound. Old records that haven't been accessed in months are consuming expensive resources and slowing down queries. You need to move stale data to cheaper cold storage while guaranteeing nothing is lost. That means identifying which records exceed your retention policy, creating a consistent snapshot, transferring the snapshot to cold storage (S3 Glacier, Azure Archive, tape), verifying the archive is intact by comparing checksums and record counts, and only then purging the originals from hot storage. The order is critical: if you purge before verifying the archive, data is gone forever.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a cron job that queries for old records, copi
 
 **You just write the stale-record detection, snapshot, cold-storage transfer, verification, and purge workers. Conductor handles strict ordering so purges never run before verification, retries when cold storage transfers time out, and a full audit trail of every archival step.**
 
-Each stage of the archival pipeline is a simple, independent worker. The stale record identifier queries for records older than the configured retention period. The snapshot worker creates a consistent point-in-time copy of those records. The transfer worker moves the snapshot to the configured cold storage path with checksumming. The verifier confirms the archive is intact by comparing record counts and checksums. The purge worker deletes stale records from hot storage; but only if verification passed. Conductor executes them in strict sequence, ensures the purge never runs before verification, retries if a cold storage transfer times out, and resumes from the exact step where it left off if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the archival pipeline is a simple, independent worker. The stale record identifier queries for records older than the configured retention period. The snapshot worker creates a consistent point-in-time copy of those records. The transfer worker moves the snapshot to the configured cold storage path with checksumming. The verifier confirms the archive is intact by comparing record counts and checksums. The purge worker deletes stale records from hot storage; but only if verification passed. Conductor executes them in strict sequence, ensures the purge never runs before verification, retries if a cold storage transfer times out, and resumes from the exact step where it left off if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers implement the archival safety chain: identifying stale records, cre
 | **VerifyArchiveWorker** | `arc_verify_archive` | Verifies the archive integrity. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ arc_verify_archive
     │
     ▼
 arc_purge_hot
-```
-
-## Example Output
-
-```
-=== Data Archival Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: arc_identify_stale, arc_snapshot_records, arc_transfer_to_cold, arc_verify_archive, arc_purge_hot
-
-Step 2: Registering workflow 'data_archival'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [identify]
-  [purge] Purged
-  [snapshot] Created snapshot:
-  [transfer] Transferred
-  [verify] Archive at \"" + archivePath + "\":
-
-  Status: COMPLETED
-  Output: {staleRecords=..., staleIds=..., staleCount=..., totalCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_archival \
   --version 1 \
-  --input '{"records": ["item-1", "item-2", "item-3"]}'
+  --input '{"records": "test-value", "retentionDays": "test-value", "coldStoragePath": "test-value"}'
 ```
 
 ### Check workflow status

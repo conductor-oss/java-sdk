@@ -1,8 +1,6 @@
 # Competing Consumers in Java Using Conductor :  Publish, Compete, Process, Acknowledge
 
-A Java Conductor workflow example for the competing consumers pattern .  publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Scaling Throughput with Multiple Consumers
+A Java Conductor workflow example for the competing consumers pattern .  publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.## Scaling Throughput with Multiple Consumers
 
 When a single consumer can't keep up with the message rate on a queue, you add more consumers. But multiple consumers reading from the same queue introduces coordination problems: two consumers might grab the same message, a consumer might crash after claiming a message but before processing it, and you need to know which consumer actually handled each task for debugging and audit.
 
@@ -27,15 +25,6 @@ Four workers handle the compete-and-process lifecycle. Publishing to a shared qu
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ccs_process
     │
     ▼
 ccs_acknowledge
-```
-
-## Example Output
-
-```
-=== Competing Consumers Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ccs_publish, ccs_compete, ccs_process, ccs_acknowledge
-
-Step 2: Registering workflow 'ccs_competing_consumers'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ack] Processing
-  [compete] Processing
-  [process] Processing
-  [publish] Processing
-
-  Status: COMPLETED
-  Output: {acknowledged=..., removedFromQueue=..., winner=..., competitors=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ccs_competing_consumers \
   --version 1 \
-  --input '{"taskPayload": "sample-taskPayload", "image_resize": 5, "queueName": "sample-name", "image_processing": "sample-image-processing", "consumerCount": 5}'
+  --input '{"taskPayload": "test-value", "queueName": "test", "consumerCount": 10}'
 ```
 
 ### Check workflow status

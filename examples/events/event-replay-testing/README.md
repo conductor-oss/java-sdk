@@ -1,8 +1,6 @@
 # Event Replay Testing in Java Using Conductor
 
-Event Replay Testing .  loads recorded events, sets up a sandbox environment, replays each event in a DO_WHILE loop comparing results, then generates a test report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Replay Testing .  loads recorded events, sets up a sandbox environment, replays each event in a DO_WHILE loop comparing results, then generates a test report. Uses [Conductor](https://github.## The Problem
 
 You need to test your event processing logic by replaying recorded production events in a sandbox environment. The workflow loads a set of recorded events, sets up an isolated test environment, replays each event through the processing pipeline while comparing actual results to expected results, and generates a test report summarizing pass/fail outcomes. Without replay testing, you only discover processing bugs when they corrupt production data.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a custom test harness that loads event fixtur
 
 **You just write the event-load, sandbox-setup, replay, and result-comparison workers. Conductor handles DO_WHILE test iteration, sandbox lifecycle management, and a durable record of every replay test run.**
 
-Each replay-testing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of loading events, setting up the sandbox, replaying each event in a DO_WHILE loop with result comparison, and generating the test report ,  retrying flaky tests and tracking every replay run. You get all of that for free, without writing a single line of orchestration code.
+Each replay-testing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of loading events, setting up the sandbox, replaying each event in a DO_WHILE loop with result comparison, and generating the test report ,  retrying flaky tests and tracking every replay run. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,16 +24,6 @@ Four workers drive replay testing: LoadEventsWorker reads recorded production ev
 | **SetupSandboxWorker** | `rt_setup_sandbox` | Sets up an isolated sandbox environment for replay testing. |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
 
 ### The Workflow
 
@@ -52,35 +40,6 @@ DO_WHILE
     │
     ▼
 rt_test_report
-```
-
-## Example Output
-
-```
-=== Event Replay Testing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rt_load_events, rt_setup_sandbox, rt_replay_event, rt_compare_result, rt_test_report
-
-Step 2: Registering workflow 'event_replay_testing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [rt_compare_result] Iteration
-  [rt_load_events] Loading events for suite:
-  [rt_replay_event] Replaying event
-  [rt_setup_sandbox] Setting up sandbox for suite:
-  [rt_test_report] Generating report for suite:
-
-  Status: COMPLETED
-  Output: {match=..., actual=..., expected=..., events=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_replay_testing \
   --version 1 \
-  --input '{"testSuiteId": "suite-fixed-001", "suite-fixed-001": "eventSource", "eventSource": "recorded-events-db", "recorded-events-db": "sample-recorded-events-db"}'
+  --input '{"testSuiteId": "TEST-001", "eventSource": "test-value"}'
 ```
 
 ### Check workflow status

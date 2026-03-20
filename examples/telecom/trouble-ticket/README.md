@@ -1,8 +1,6 @@
 # Trouble Ticket in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates the telecom trouble ticket lifecycle .  opening a ticket when a customer reports a service issue, diagnosing the problem to determine its category, assigning the ticket to the appropriate technician based on the diagnosis, resolving the issue, and closing the ticket with the resolution details. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Trouble Ticket Management Needs Orchestration
+A Java Conductor workflow example that orchestrates the telecom trouble ticket lifecycle .  opening a ticket when a customer reports a service issue, diagnosing the problem to determine its category, assigning the ticket to the appropriate technician based on the diagnosis, resolving the issue, and closing the ticket with the resolution details. Uses [Conductor](https://github.## Why Trouble Ticket Management Needs Orchestration
 
 Handling a customer trouble ticket requires a structured progression where each step depends on the outcome of the previous one. You open a ticket with the customer's ID, issue type, and description. You diagnose the reported issue to categorize it (network fault, equipment failure, billing dispute, provisioning error). You assign the ticket to a technician with the right skills for that category. The assigned technician resolves the issue and records the resolution. Finally, you close the ticket with the resolution details and timestamp.
 
@@ -28,15 +26,6 @@ Ticket creation, diagnostic routing, technician dispatch, and resolution trackin
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ tbt_resolve
     │
     ▼
 tbt_close
-```
-
-## Example Output
-
-```
-=== Example 767: Trouble Ticket ===
-
-Step 1: Registering task definitions...
-  Registered: tbt_open, tbt_diagnose, tbt_assign, tbt_resolve, tbt_close
-
-Step 2: Registering workflow 'tbt_trouble_ticket'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assign] Processing
-  [close] Processing
-  [diagnose] Line fault detected
-  [open] Processing
-  [resolve] Cable replaced
-
-  Status: COMPLETED
-  Output: {assignee=..., eta=..., closedAt=..., satisfactionSurvey=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tbt_trouble_ticket \
   --version 1 \
-  --input '{"customerId": "CUST-767", "CUST-767": "issueType", "issueType": "no-service", "no-service": "description", "description": "Internet down since yesterday", "Internet down since yesterday": "sample-Internet down since yesterday"}'
+  --input '{"customerId": "TEST-001", "issueType": "test-value", "description": "test-value"}'
 ```
 
 ### Check workflow status

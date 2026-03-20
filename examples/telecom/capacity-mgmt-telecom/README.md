@@ -1,8 +1,6 @@
 # Capacity Mgmt Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom network capacity management .  monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Capacity Management Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom network capacity management .  monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.## Why Capacity Management Needs Orchestration
 
 Managing network capacity requires a proactive pipeline from measurement through expansion. You monitor current utilization and subscriber growth rates for a region's network type (RAN, transport, core). You forecast when existing capacity will be exhausted based on current utilization and growth trends. You plan the expansion .  determining what equipment, spectrum, or backhaul capacity to add and where. You provision the planned resources by deploying and configuring new network elements. Finally, you verify the provisioned capacity is live and the region's utilization has dropped to acceptable levels.
 
@@ -28,15 +26,6 @@ Demand forecasting, capacity analysis, upgrade planning, and implementation trac
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ cmt_provision
     │
     ▼
 cmt_verify
-```
-
-## Example Output
-
-```
-=== Example 817: Capacity Management (Telecom) ===
-
-Step 1: Registering task definitions...
-  Registered: cmt_monitor, cmt_forecast, cmt_plan, cmt_provision, cmt_verify
-
-Step 2: Registering workflow 'cmt_capacity_mgmt_telecom'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [forecast] Capacity threshold reached in 3 months
-  [monitor] Processing
-  [plan] Processing
-  [provision] 2 cell towers provisioned and configured
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {forecast=..., utilization=..., growthRate=..., peakHours=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cmt_capacity_mgmt_telecom \
   --version 1 \
-  --input '{"region": "sample-region", "METRO-NE-3": "sample-METRO-NE-3", "networkType": "standard"}'
+  --input '{"region": "test-value", "networkType": "test-value"}'
 ```
 
 ### Check workflow status

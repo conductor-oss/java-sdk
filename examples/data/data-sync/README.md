@@ -1,8 +1,6 @@
 # Data Sync in Java Using Conductor :  Bidirectional Change Detection, Conflict Resolution, and Consistency Verification
 
-A Java Conductor workflow example for bidirectional data synchronization: detecting changes in two systems since last sync, resolving conflicts when both systems modified the same record (using configurable strategies like "latest wins"), applying the resolved updates to both systems, and verifying that the two systems are consistent after sync. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for bidirectional data synchronization: detecting changes in two systems since last sync, resolving conflicts when both systems modified the same record (using configurable strategies like "latest wins"), applying the resolved updates to both systems, and verifying that the two systems are consistent after sync. Uses [Conductor](https://github.## The Problem
 
 You have data in two systems that need to stay in sync: a CRM and an ERP, a mobile app's local database and the cloud backend, a primary database and a partner system. Changes happen on both sides between sync cycles. You need to detect what changed in each system, identify conflicts where both systems modified the same record, resolve those conflicts using a configurable strategy (latest timestamp wins, source-of-truth priority, manual review), apply the merged updates to both systems, and verify consistency after the sync completes. If the apply step fails after updating system A but before updating system B, the systems are now out of sync, worse than before.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a sync script that queries both systems, diff
 
 **You just write the change detection, conflict resolution, update application, and consistency verification workers. Conductor handles strict detect-resolve-apply-verify ordering, retries when either system is temporarily unavailable, and a full audit trail of changes detected, conflicts resolved, and updates applied.**
 
-Each stage of the sync pipeline is a simple, independent worker. The change detector queries both systems and identifies inserts, updates, and deletes since last sync, flagging records modified in both as conflicts. The conflict resolver applies the configured strategy (latest_wins, system_a_priority, merge) to produce a unified set of updates. The applier writes the resolved changes to both systems. The consistency verifier confirms both systems match after sync. Conductor executes them in strict sequence, ensures updates only apply after conflict resolution, retries if a system is temporarily unavailable, and provides a complete audit trail of changes detected, conflicts resolved, and updates applied. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the sync pipeline is a simple, independent worker. The change detector queries both systems and identifies inserts, updates, and deletes since last sync, flagging records modified in both as conflicts. The conflict resolver applies the configured strategy (latest_wins, system_a_priority, merge) to produce a unified set of updates. The applier writes the resolved changes to both systems. The consistency verifier confirms both systems match after sync. Conductor executes them in strict sequence, ensures updates only apply after conflict resolution, retries if a system is temporarily unavailable, and provides a complete audit trail of changes detected, conflicts resolved, and updates applied. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers manage bidirectional sync: detecting changes in both systems since 
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ sy_apply_updates
     │
     ▼
 sy_verify_consistency
-```
-
-## Example Output
-
-```
-=== Data Sync Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sy_detect_changes, sy_resolve_conflicts, sy_apply_updates, sy_verify_consistency
-
-Step 2: Registering workflow 'data_sync'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Applied
-  [detect] Changes:
-  [resolve] Resolved
-  [verify]
-
-  Status: COMPLETED
-  Output: {appliedToA=..., appliedToB=..., totalApplied=..., changesInA=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_sync \
   --version 1 \
-  --input '{"systemA": {"key": "value"}, "bidirectional": "conflictStrategy", "conflictStrategy": "latest_wins", "latest_wins": "sample-latest-wins"}'
+  --input '{"systemA": "test-value", "systemB": "test-value", "syncMode": "test-value", "conflictStrategy": "test-value"}'
 ```
 
 ### Check workflow status

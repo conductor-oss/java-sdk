@@ -1,8 +1,6 @@
 # GPU Job Orchestration in Java Using Conductor :  Check, Allocate, Submit, Collect, Release
 
-A Java Conductor workflow example for GPU resource orchestration .  checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## GPUs Are Expensive and Scarce
+A Java Conductor workflow example for GPU resource orchestration .  checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.## GPUs Are Expensive and Scarce
 
 A team of ML engineers shares a cluster of 8 A100 GPUs. Without resource management, jobs compete for the same GPU, one engineer's runaway training job holds a GPU for 12 hours while others wait, and when a job crashes the GPU isn't released .  it sits idle until someone manually frees it. At $30+/hour per GPU, wasted allocation is real money.
 
@@ -28,15 +26,6 @@ Five workers manage the GPU resource lifecycle: availability check, allocation, 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ gpu_collect_results
     │
     ▼
 gpu_release
-```
-
-## Example Output
-
-```
-=== GPU Orchestration Demo ===
-
-Step 1: Registering task definitions...
-  Registered: gpu_check_availability, gpu_allocate, gpu_submit_job, gpu_collect_results, gpu_release
-
-Step 2: Registering workflow 'gpu_orchestration_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [allocate] Processing
-  [check] Processing
-  [collect] Processing
-  [release] Processing
-  [submit] Processing
-
-  Status: COMPLETED
-  Output: {gpuId=..., allocated=..., memoryGb=..., available=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gpu_orchestration_demo \
   --version 1 \
-  --input '{"jobId": "TRAIN-001", "TRAIN-001": "gpuType", "gpuType": "A100", "A100": "modelPath", "modelPath": "/models/resnet50", "/models/resnet50": "sample-/models/resnet50"}'
+  --input '{"jobId": "TEST-001", "gpuType": "test-value", "modelPath": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,6 +1,6 @@
 # Incremental RAG in Java Using Conductor :  Sync Only Changed Documents to Your Vector Store
 
-A Java Conductor workflow that keeps a vector store in sync with a source document collection by detecting changes since the last sync, filtering new vs: updated documents, embedding only the changed ones, upserting vectors, and verifying the index is consistent. Instead of re-embedding your entire corpus on every update, this pipeline processes only what changed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the incremental sync pipeline as independent workers .  you write the change detection, embedding, and upsert logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that keeps a vector store in sync with a source document collection by detecting changes since the last sync, filtering new vs: updated documents, embedding only the changed ones, upserting vectors, and verifying the index is consistent. Instead of re-embedding your entire corpus on every update, this pipeline processes only what changed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the incremental sync pipeline as independent workers .  you write the change detection, embedding, and upsert logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## The Cost of Full Re-Indexing
 
@@ -30,15 +30,6 @@ Five workers handle incremental index maintenance .  detecting document changes,
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -55,35 +46,6 @@ ir_upsert_vectors
     │
     ▼
 ir_verify_index
-```
-
-## Example Output
-
-```
-=== Example 161: Incremental RAG ===
-
-Step 1: Registering task definitions...
-  Registered: ir_detect_changes, ir_filter_new_docs, ir_embed_incremental, ir_upsert_vectors, ir_verify_index
-
-Step 2: Registering workflow 'incremental_rag'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect_changes] [SIMULATED] Source:
-  [embed_incremental] Calling OpenAI to embed
-  [filter_new_docs] New:
-  [upsert_vectors] [SIMULATED] Upserted
-  [verify_index] [SIMULATED] Verifying
-
-  Status: COMPLETED
-  Output: {doc-101=..., doc-205=..., doc-307=..., doc-412=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -112,7 +74,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -162,7 +124,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow incremental_rag \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

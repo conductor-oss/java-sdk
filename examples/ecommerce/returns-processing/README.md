@@ -1,8 +1,6 @@
 # Returns Processing in Java Using Conductor :  Receive, Inspect, Route Decision via SWITCH
 
-A Java Conductor workflow example for e-commerce returns .  receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Return Outcomes Depend on Product Condition and Policy
+A Java Conductor workflow example for e-commerce returns .  receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.## Return Outcomes Depend on Product Condition and Policy
 
 A customer returns a pair of shoes they bought 10 days ago. The outcome depends on several factors: Is it within the 30-day return window? What's the product condition .  unworn with tags (full refund eligible), worn but undamaged (store credit only), or damaged (rejection)? Is the return reason covered by policy (wrong size vs, changed mind vs, defective)?
 
@@ -28,16 +26,6 @@ Return authorization, inspection, refund processing, and restocking workers hand
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -51,35 +39,6 @@ SWITCH (switch_ref)
     ├── refund: ret_refund
     ├── exchange: ret_exchange
     ├── reject: ret_reject
-```
-
-## Example Output
-
-```
-=== Example 458: Returns Processing ===
-
-Step 1: Registering task definitions...
-  Registered: ret_receive, ret_inspect, ret_refund, ret_exchange, ret_reject
-
-Step 2: Registering workflow 'returns_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [exchange] Return
-  [inspect] Return
-  [receive] Return
-  [refund] Return
-  [reject] Return
-
-  Status: COMPLETED
-  Output: {exchangeOrderId=..., exchanged=..., condition=..., decision=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +67,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +110,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow returns_processing \
   --version 1 \
-  --input '{"orderId": "ORD-8801", "ORD-8801": "returnReason", "returnReason": "Item did not match description", "Item did not match description": "items", "items": [{"name": "Widget A", "quantity": 2}, {"name": "Widget B", "quantity": 1}]}'
+  --input '{"orderId": "TEST-001", "returnReason": "test-value", "items": "test-value", "customerId": "TEST-001"}'
 ```
 
 ### Check workflow status
@@ -175,7 +134,6 @@ Update your refund policies or restocking rules and the returns pipeline handles
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

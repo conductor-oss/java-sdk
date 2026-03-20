@@ -1,8 +1,6 @@
 # Benefits Enrollment in Java with Conductor :  Plan Presentation, Selection, Validation, Enrollment, and Confirmation
 
-A Java Conductor workflow example for employee benefits enrollment .  presenting available medical, dental, and vision plan options based on the employee's eligibility, capturing their selections, validating choices against plan rules and dependent eligibility, enrolling in the carrier systems, and sending confirmation with effective dates and premium costs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for employee benefits enrollment .  presenting available medical, dental, and vision plan options based on the employee's eligibility, capturing their selections, validating choices against plan rules and dependent eligibility, enrolling in the carrier systems, and sending confirmation with effective dates and premium costs. Uses [Conductor](https://github.## The Problem
 
 You need to manage open enrollment for employee benefits. During the enrollment period, each employee must see their eligible plan options .  medical (PPO, HMO, HDHP), dental (basic, premium), and vision (standard). The employee makes selections for themselves and their dependents. Those selections must be validated ,  checking that chosen plans are available in the employee's region, dependents meet age and relationship eligibility rules, and HSA elections are only paired with HDHP medical plans. Validated selections are enrolled with each insurance carrier, generating a monthly premium total and an effective date. Finally, the employee receives confirmation with their benefit summary, ID card information, and payroll deduction details. If enrollment happens out of order ,  selecting before seeing options, or enrolling without validating ,  employees end up with ineligible plan combinations or missed coverage.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic enrollment portal that queries p
 
 **You just write the plan presentation, selection capture, eligibility validation, carrier enrollment, and confirmation logic. Conductor handles enrollment retries, plan selection routing, and benefits audit trails.**
 
-Each stage of the enrollment process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of presenting options before selection, validating before enrollment, enrolling with carriers only after validation passes, confirming only after all carriers acknowledge, retrying if a carrier API is temporarily unavailable during peak enrollment periods, and maintaining a complete audit trail for ERISA compliance. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the enrollment process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of presenting options before selection, validating before enrollment, enrolling with carriers only after validation passes, confirming only after all carriers acknowledge, retrying if a carrier API is temporarily unavailable during peak enrollment periods, and maintaining a complete audit trail for ERISA compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Eligibility check, plan comparison, enrollment processing, and confirmation work
 | **ConfirmWorker** | `ben_confirm` | Sends the employee a benefits confirmation with plan summaries, ID card details, payroll deduction amounts, and carrier contact information |
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ ben_enroll
     │
     ▼
 ben_confirm
-```
-
-## Example Output
-
-```
-=== Example 607: Benefits Enrollment ===
-
-Step 1: Registering task definitions...
-  Registered: ben_present, ben_select, ben_validate, ben_enroll, ben_confirm
-
-Step 2: Registering workflow 'ben_benefits_enrollment'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [confirm] Confirmation sent for enrollment
-  [enroll]
-  [present] Presenting benefit options to
-  [select] Employee selected: PPO medical, premium dental, standard vision
-  [validate] All selections valid and within eligibility
-
-  Status: COMPLETED
-  Output: {confirmed=..., cardsMailed=..., enrollmentId=..., monthlyPremium=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ben_benefits_enrollment \
   --version 1 \
-  --input '{"employeeId": "EMP-600", "EMP-600": "enrollmentPeriod", "enrollmentPeriod": "2024-open-enrollment", "2024-open-enrollment": "sample-2024-open-enrollment"}'
+  --input '{"employeeId": "TEST-001", "enrollmentPeriod": "test-value"}'
 ```
 
 ### Check workflow status

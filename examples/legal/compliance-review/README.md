@@ -1,8 +1,6 @@
 # Compliance Review in Java with Conductor
 
-A Java Conductor workflow example demonstrating Compliance Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Compliance Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A regulatory audit is approaching. You need to identify the applicable compliance requirements (e.g., 45 controls), assess your organization's current posture against each one, perform a gap analysis to find the 7 unmet controls (like missing encryption), and create a remediation plan to close those gaps before the deadline. Failing to identify a critical gap can result in regulatory fines, consent orders, or loss of operating licenses.
 
@@ -27,15 +25,6 @@ Regulatory identification, compliance assessment, gap analysis, and remediation 
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cmr_gap_analysis
     │
     ▼
 cmr_remediate
-```
-
-## Example Output
-
-```
-=== Example 695: Compliance Review ===
-
-Step 1: Registering task definitions...
-  Registered: cmr_identify, cmr_assess, cmr_gap_analysis, cmr_remediate
-
-Step 2: Registering workflow 'cmr_compliance_review'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cmr_assess] Executing
-  [cmr_gap_analysis] Executing
-  [cmr_identify] Executing
-  [cmr_remediate] Executing
-
-  Status: COMPLETED
-  Output: {assessment=..., requirements=..., gaps=..., gapCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cmr_compliance_review \
   --version 1 \
-  --input '{"regulationType": "SOC2", "SOC2": "entityId", "entityId": "ORG-500", "ORG-500": "sample-ORG-500"}'
+  --input '{"regulationType": "test-value", "entityId": "TEST-001"}'
 ```
 
 ### Check workflow status

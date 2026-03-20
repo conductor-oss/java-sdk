@@ -1,8 +1,6 @@
 # Request-Reply in Java Using Conductor :  Send Request, Wait for Response, Correlate, Deliver
 
-A Java Conductor workflow example for the request-reply pattern .  sending an asynchronous request to a target service, waiting for the response with a configurable timeout, correlating the response back to the original request, and delivering the result to the caller. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Asynchronous Request-Reply Needs Correlation and Timeout Handling
+A Java Conductor workflow example for the request-reply pattern .  sending an asynchronous request to a target service, waiting for the response with a configurable timeout, correlating the response back to the original request, and delivering the result to the caller. Uses [Conductor](https://github.## Asynchronous Request-Reply Needs Correlation and Timeout Handling
 
 You send a credit check request to an external bureau, but the response comes back asynchronously .  minutes later, on a different channel (a callback webhook or a reply queue). Your system needs to hold the request context, wait for the response within a timeout window, match the response to the original request using a correlation ID, and deliver the result. If the response never arrives, you need to handle the timeout gracefully rather than waiting forever.
 
@@ -27,15 +25,6 @@ Four workers manage the request-response lifecycle: sending with a correlation I
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ rqr_correlate
     │
     ▼
 rqr_deliver
-```
-
-## Example Output
-
-```
-=== Request-Reply Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rqr_send_request, rqr_wait_response, rqr_correlate, rqr_deliver
-
-Step 2: Registering workflow 'rqr_request_reply'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [correlate] Processing
-  [deliver] Processing
-  [send] Processing
-  [wait] Processing
-
-  Status: COMPLETED
-  Output: {matched=..., correlatedResponse=..., delivered=..., correlationId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rqr_request_reply \
   --version 1 \
-  --input '{"requestPayload": "sample-requestPayload", "action": "sample-action", "targetService": "sample-targetService", "inventory_service": "sample-inventory-service", "timeoutMs": "2025-01-15T10:00:00Z"}'
+  --input '{"requestPayload": "test-value", "targetService": "test-value", "timeoutMs": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

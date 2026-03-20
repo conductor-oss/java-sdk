@@ -1,8 +1,6 @@
 # Lesson Planning in Java with Conductor :  Learning Objectives, Content Creation, Review, and Publishing
 
-A Java Conductor workflow example for building lesson plans .  defining learning objectives for a course topic, creating instructional content aligned to those objectives, reviewing the lesson plan for quality and curriculum alignment, and publishing it to the course schedule for a given week. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for building lesson plans .  defining learning objectives for a course topic, creating instructional content aligned to those objectives, reviewing the lesson plan for quality and curriculum alignment, and publishing it to the course schedule for a given week. Uses [Conductor](https://github.## The Problem
 
 You need to prepare lesson plans for each week of a course. This means defining measurable learning objectives for the lesson topic, creating instructional content (lecture materials, activities, readings) that aligns with those objectives, having the plan reviewed for pedagogical quality and curriculum fit, and publishing it to the course so students and co-instructors can see the upcoming schedule. Creating content without clear objectives leads to unfocused lessons; publishing without review risks distributing incomplete or misaligned materials.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single lesson-builder tool that mixes objec
 
 **You just write the learning objectives definition, content creation, pedagogical review, and course publishing logic. Conductor handles content selection retries, plan assembly sequencing, and lesson version tracking.**
 
-Each lesson planning concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (define objectives, create content, review, publish), retrying if the LMS publishing API times out, tracking every lesson plan from initial objectives to published materials, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each lesson planning concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (define objectives, create content, review, publish), retrying if the LMS publishing API times out, tracking every lesson plan from initial objectives to published materials, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Objective setting, content selection, activity design, and plan assembly workers
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ lpl_review
     │
     ▼
 lpl_publish
-```
-
-## Example Output
-
-```
-=== Example 676: Lesson Planning ===
-
-Step 1: Registering task definitions...
-  Registered: lpl_define_objectives, lpl_create_content, lpl_review, lpl_publish
-
-Step 2: Registering workflow 'lpl_lesson_planning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [content] Created
-  [objectives] Defined
-  [publish] Lesson published for
-  [review] Lesson plan reviewed and approved by department
-
-  Status: COMPLETED
-  Output: {lessonPlan=..., sectionCount=..., objectives=..., objectiveCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lpl_lesson_planning \
   --version 1 \
-  --input '{"courseId": "CS-201", "CS-201": "lessonTitle", "lessonTitle": "Binary Search Trees", "Binary Search Trees": "week", "week": 6}'
+  --input '{"courseId": "TEST-001", "lessonTitle": "test-value", "week": "test-value"}'
 ```
 
 ### Check workflow status

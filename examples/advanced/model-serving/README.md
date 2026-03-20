@@ -1,8 +1,6 @@
 # Model Serving Pipeline in Java Using Conductor :  Load, Validate, Deploy, Test, Promote
 
-A Java Conductor workflow example for deploying ML models to production serving .  loading a model from storage, validating it against test inputs, deploying to a staging endpoint, running smoke tests, and promoting to production. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Deploying Models to Production Is Not Just Copying a File
+A Java Conductor workflow example for deploying ML models to production serving .  loading a model from storage, validating it against test inputs, deploying to a staging endpoint, running smoke tests, and promoting to production. Uses [Conductor](https://github.## Deploying Models to Production Is Not Just Copying a File
 
 A data scientist trains a model and hands off a `.pt` file. Getting that file into production serving means loading it into the inference framework, validating that it produces expected outputs for known inputs (no NaN predictions, correct tensor shapes), deploying it to a staging endpoint, running smoke tests against real traffic patterns, and only then promoting it to handle production traffic. Skip any step and you risk serving garbage predictions.
 
@@ -27,15 +25,6 @@ Four workers manage the serving rollout: model loading, validation against test 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,35 +41,6 @@ msv_test
     │
     ▼
 msv_promote
-```
-
-## Example Output
-
-```
-=== Model Serving Demo ===
-
-Step 1: Registering task definitions...
-  Registered: msv_load_model, msv_validate, msv_deploy, msv_test, msv_promote
-
-Step 2: Registering workflow 'model_serving_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [deploy] Processing
-  [load] Processing
-  [promote] Processing
-  [test] Processing
-  [validate] Processing
-
-  Status: COMPLETED
-  Output: {endpointUrl=..., replicas=..., loaded=..., signature=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow model_serving_demo \
   --version 1 \
-  --input '{"modelName": "sample-name", "image-classifier": "sample-image-classifier", "modelVersion": "sample-modelVersion", "3.2": "sample-3.2", "modelPath": "/api/v1/resource"}'
+  --input '{"modelName": "test", "modelVersion": "test-value", "modelPath": "test-value"}'
 ```
 
 ### Check workflow status

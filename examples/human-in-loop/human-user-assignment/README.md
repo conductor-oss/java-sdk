@@ -1,8 +1,6 @@
 # User-Assigned Human Task in Java Using Conductor :  Document Preparation, WAIT Assigned to Specific Reviewer, and Post-Review Finalization
 
-A Java Conductor workflow example demonstrating user-specific task assignment .  preparing a document, pausing at a WAIT task assigned to a designated reviewer (not a group), and finalizing the document after the assigned person completes their review. Unlike group claims where anyone can pick up the task, this pattern ensures only the specified user can act. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Review Tasks Need to Be Assigned to a Specific Person
+A Java Conductor workflow example demonstrating user-specific task assignment .  preparing a document, pausing at a WAIT task assigned to a designated reviewer (not a group), and finalizing the document after the assigned person completes their review. Unlike group claims where anyone can pick up the task, this pattern ensures only the specified user can act. Uses [Conductor](https://github.## Review Tasks Need to Be Assigned to a Specific Person
 
 Unlike group assignments, some tasks must go to a specific user, the document's author, a designated reviewer, or a subject-matter expert. The workflow prepares the document, pauses at a WAIT task assigned to the specific user, and after they complete their review, a post-review step finalizes the document. If finalization fails, you need to retry it without re-assigning the review.
 
@@ -24,15 +22,6 @@ HuaPrepareWorker identifies the designated reviewer from document metadata, and 
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,32 +32,6 @@ assigned_review [WAIT]
     │
     ▼
 hua_post_review
-```
-
-## Example Output
-
-```
-=== HUMAN Task with User Assignment Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'human_user_assignment_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [hua_post_review] Finalizing document after review...
-  [hua_prepare] Preparing document for review...
-
-  Status: COMPLETED
-  Output: {finalized=..., prepared=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow human_user_assignment_demo \
   --version 1 \
-  --input '{"documentId": "DOC-12345", "DOC-12345": "assignedTo", "assignedTo": "reviewer@example.com", "reviewer@example.com": "sample-reviewer@example.com"}'
+  --input '{"documentId": "TEST-001", "assignedTo": "test-value"}'
 ```
 
 ### Check workflow status

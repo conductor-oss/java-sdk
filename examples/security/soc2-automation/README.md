@@ -12,7 +12,7 @@ Without orchestration, SOC2 compliance is a frantic evidence-gathering exercise 
 
 **You just write the control checks and evidence collection logic. Conductor handles the ordered collection-to-evidence pipeline, retries when config APIs time out, and a continuous compliance record rather than a point-in-time snapshot.**
 
-Each SOC2 step is an independent worker .  control collection, effectiveness testing, exception identification, and evidence generation. Conductor runs them in sequence: collect controls, test effectiveness, identify exceptions, then generate evidence. Every compliance cycle is tracked, building a continuous compliance record rather than a point-in-time snapshot. You get all of that for free, without writing a single line of orchestration code.
+Each SOC2 step is an independent worker .  control collection, effectiveness testing, exception identification, and evidence generation. Conductor runs them in sequence: collect controls, test effectiveness, identify exceptions, then generate evidence. Every compliance cycle is tracked, building a continuous compliance record rather than a point-in-time snapshot. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +25,6 @@ Three workers automate the SOC2 cycle: CollectControlsWorker gathers control imp
 | **IdentifyExceptionsWorker** | `soc2_identify_exceptions` | Identifies control exceptions (e.g., MFA enforcement gap, backup testing overdue) |
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -48,33 +39,6 @@ soc2_identify_exceptions
     │
     ▼
 soc2_generate_evidence
-```
-
-## Example Output
-
-```
-=== Example 361: SOC2 Automatio ===
-
-Step 1: Registering task definitions...
-  Registered: soc2_collect_controls, soc2_test_effectiveness, soc2_identify_exceptions, soc2_generate_evidence
-
-Step 2: Registering workflow 'soc2_automation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [controls] Collected 48 controls for security
-  [evidence] Evidence package generated for auditor
-  [exceptions] 2 exceptions: MFA enforcement gap, backup testing overdue
-  [test] 46/48 controls operating effectively
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +67,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +110,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow soc2_automation_workflow \
   --version 1 \
-  --input '{"trustServiceCriteria": "sample-trustServiceCriteria", "security": "sample-security", "period": "sample-period"}'
+  --input '{"trustServiceCriteria": "test-value", "period": "test-value"}'
 ```
 
 ### Check workflow status

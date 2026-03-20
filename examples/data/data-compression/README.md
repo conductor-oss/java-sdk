@@ -1,8 +1,6 @@
 # Data Compression in Java Using Conductor :  Algorithm Selection, Compression, Integrity Verification, and Savings Report
 
-A Java Conductor workflow example for intelligent data compression. analyzing data characteristics to determine size and structure, selecting the optimal compression algorithm based on data profile and target format, compressing the data, verifying integrity via checksums, and reporting the compression ratio and storage savings. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for intelligent data compression. analyzing data characteristics to determine size and structure, selecting the optimal compression algorithm based on data profile and target format, compressing the data, verifying integrity via checksums, and reporting the compression ratio and storage savings. Uses [Conductor](https://github.## The Problem
 
 You need to compress datasets before archival, transfer, or storage; but not all data compresses the same way. Text-heavy records compress well with gzip, columnar data benefits from Snappy or LZ4, and already-compressed media gains little from further compression. You need to analyze the data to understand its size and structure, choose the right algorithm (gzip, LZ4, Snappy, zstd) based on the data profile, compress the data, verify that the compressed output is intact and decompressible, and report the actual compression ratio and bytes saved. If you compress corrupted data or skip verification, you might discover the archive is unrecoverable months later.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd hardcode a single compression algorithm, skip the a
 
 **You just write the data analysis, algorithm selection, compression, integrity verification, and savings reporting workers. Conductor handles the analyze-select-compress-verify-report sequence, retries when compression fails on large datasets, and crash recovery that resumes from the exact step that failed.**
 
-Each stage of the compression pipeline is a simple, independent worker. The analyzer profiles the input data to measure size, record count, and data characteristics. The algorithm selector chooses the best compression method based on the analysis results and the target format. The compressor applies the selected algorithm and computes a checksum. The verifier confirms the compressed output's integrity by validating the checksum and record count. The reporter calculates the compression ratio and storage savings. Conductor executes them in sequence, passes analysis results to the algorithm selector and compression output to the verifier, retries if compression fails on a large dataset, and resumes from the exact step where it left off. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the compression pipeline is a simple, independent worker. The analyzer profiles the input data to measure size, record count, and data characteristics. The algorithm selector chooses the best compression method based on the analysis results and the target format. The compressor applies the selected algorithm and computes a checksum. The verifier confirms the compressed output's integrity by validating the checksum and record count. The reporter calculates the compression ratio and storage savings. Conductor executes them in sequence, passes analysis results to the algorithm selector and compression output to the verifier, retries if compression fails on a large dataset, and resumes from the exact step where it left off. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers cover the intelligent compression pipeline: profiling data characte
 | **VerifyIntegrityWorker** | `cmp_verify_integrity` | Verifies the integrity of compressed data. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ cmp_verify_integrity
     │
     ▼
 cmp_report_savings
-```
-
-## Example Output
-
-```
-=== Data Compression Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cmp_analyze_data, cmp_choose_algorithm, cmp_compress_data, cmp_verify_integrity, cmp_report_savings
-
-Step 2: Registering workflow 'data_compression'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze]
-  [algorithm] Selected \"" + algorithm + "\" for
-  [compress]
-  [report]
-  [verify] Integrity check: checksum=
-
-  Status: COMPLETED
-  Output: {records=..., recordCount=..., sizeBytes=..., algorithm=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_compression \
   --version 1 \
-  --input '{"records": ["item-1", "item-2", "item-3"]}'
+  --input '{"records": "test-value", "targetFormat": "test-value"}'
 ```
 
 ### Check workflow status

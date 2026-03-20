@@ -1,8 +1,6 @@
 # Observability Pipeline in Java with Conductor
 
-Orchestrates a full observability pipeline using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects metrics from a service, correlates distributed traces across microservices, detects anomalies (latency spikes, error rate increases), and either fires alerts or stores the data for dashboarding. You write the observability logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Seeing Through the Noise
+Orchestrates a full observability pipeline using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects metrics from a service, correlates distributed traces across microservices, detects anomalies (latency spikes, error rate increases), and either fires alerts or stores the data for dashboarding.## Seeing Through the Noise
 
 Your checkout-service generated 15,000 metrics and 3,200 traces in the last hour. Somewhere in that data, there is a latency spike and an error rate increase. Finding the signal in the noise requires collecting metrics, correlating traces to understand request flow, detecting anomalies, and deciding whether to page someone or just store it for later analysis. Doing this manually means staring at Grafana dashboards hoping to spot the pattern.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd run a cron job that scrapes Prometheus, pipe the ou
 
 **You write the metrics collection and anomaly detection logic. Conductor handles the telemetry-to-alert pipeline, correlation sequencing, and execution history.**
 
-Each stage of the observability pipeline is a simple, independent worker. The metrics collector gathers CPU, memory, request rate, and error rate from the target service over the specified time window. The trace correlator links distributed traces across microservices to build end-to-end request flow maps, connecting a slow checkout response to a database query three services deep. The anomaly detector identifies latency spikes and error rate increases by comparing current metrics against baseline thresholds. The alert-or-store worker routes anomalies to PagerDuty or Slack, and stores clean metrics in the time-series database for dashboarding. Conductor executes them in strict sequence, ensures anomaly detection only runs after traces are correlated with metrics, retries if the metrics endpoint is temporarily unreachable, and tracks every pipeline execution with full input/output history. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the observability pipeline is a simple, independent worker. The metrics collector gathers CPU, memory, request rate, and error rate from the target service over the specified time window. The trace correlator links distributed traces across microservices to build end-to-end request flow maps, connecting a slow checkout response to a database query three services deep. The anomaly detector identifies latency spikes and error rate increases by comparing current metrics against baseline thresholds. The alert-or-store worker routes anomalies to PagerDuty or Slack, and stores clean metrics in the time-series database for dashboarding. Conductor executes them in strict sequence, ensures anomaly detection only runs after traces are correlated with metrics, retries if the metrics endpoint is temporarily unreachable, and tracks every pipeline execution with full input/output history. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers build the observability pipeline. Collecting metrics, correlating t
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ op_detect_anomalies
     │
     ▼
 op_alert_or_store
-```
-
-## Example Output
-
-```
-=== Example 365: Observability Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: op_collect_metrics, op_correlate_traces, op_detect_anomalies, op_alert_or_store
-
-Step 2: Registering workflow 'observability_pipeline_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [alert] Alerts sent for 2 anomalies, metrics stored in Grafana
-  [collect] Collected 15,000 metrics from checkout-service
-  [correlate] Correlated 3,200 distributed traces
-  [anomaly] Detected 2 anomalies: latency spike, error rate increase
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow observability_pipeline_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "checkout-service": "sample-checkout-service", "timeWindow": "2025-01-15T10:00:00Z"}'
+  --input '{"service": "test-value", "timeWindow": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

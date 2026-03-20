@@ -10,9 +10,7 @@ Without orchestration, exponential backoff means Thread.sleep() calls with manua
 
 ## The Solution
 
-**You just write the API call logic. Conductor handles the exponential backoff timing and retry tracking for free.**
-
-The worker makes the API call and returns success or failure. Conductor handles the exponential backoff automatically .  configured via retryDelaySeconds and backoffRate in the task definition. Every retry attempt is recorded with the exact delay applied, so you can see the backoff progression. Changing the backoff rate or max retries is a config change, not a code change. You get all of that for free, without writing a single line of orchestration code.
+The worker makes the API call and returns success or failure. Conductor handles the exponential backoff automatically .  configured via retryDelaySeconds and backoffRate in the task definition. Every retry attempt is recorded with the exact delay applied, so you can see the backoff progression. Changing the backoff rate or max retries is a config change, not a code change. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,44 +22,10 @@ RetryExpoTaskWorker makes the API call and reports success or failure, while Con
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 retry_expo_task
-```
-
-## Example Output
-
-```
-=== Retry Exponential Backoff Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'retry_expo_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [retry_expo_task] Attempt
-
-  Status: COMPLETED
-  Output: {attempts=..., error=..., data=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow retry_expo_demo \
   --version 1 \
-  --input '{"apiUrl": "https://api.example.com/resource"}'
+  --input '{"apiUrl": "https://example.com"}'
 ```
 
 ### Check workflow status

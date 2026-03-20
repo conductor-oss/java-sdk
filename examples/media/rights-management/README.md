@@ -1,8 +1,6 @@
 # Media Rights Management in Java Using Conductor :  License Validation, Usage Verification, Royalty Tracking, and Compliance Reporting
 
-A Java Conductor workflow example that orchestrates media rights management .  checking license validity (expiration dates, allowed usages, license types, royalty rates), verifying territorial usage restrictions against the content's distribution region, calculating royalty payments due to rights holders, and generating compliance reports for rights audits. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Rights Management Needs Orchestration
+A Java Conductor workflow example that orchestrates media rights management .  checking license validity (expiration dates, allowed usages, license types, royalty rates), verifying territorial usage restrictions against the content's distribution region, calculating royalty payments due to rights holders, and generating compliance reports for rights audits. Uses [Conductor](https://github.## Why Rights Management Needs Orchestration
 
 Using licensed media content requires a compliance pipeline where each step validates a different aspect of the rights agreement. You check the license .  verifying it has not expired, the intended usage (streaming, download, broadcast) is permitted, and noting the royalty rate. You verify that the content distribution region complies with territorial restrictions in the license agreement. You calculate royalty payments owed to the rights holder based on usage volume and the contractual rate. Finally, you generate a compliance report documenting every license check, usage verification, and royalty calculation for legal audit.
 
@@ -27,15 +25,6 @@ Four workers enforce the rights pipeline: CheckLicenseWorker validates expiratio
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ rts_track_royalties
     │
     ▼
 rts_generate_report
-```
-
-## Example Output
-
-```
-=== Example 529: Rights Management ===
-
-Step 1: Registering task definitions...
-  Registered: rts_check_license, rts_verify_usage, rts_track_royalties, rts_generate_report
-
-Step 2: Registering workflow 'rights_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [license] Processing
-  [report] Processing
-  [royalties] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {valid=..., expirationDate=..., allowedUsages=..., royaltyRate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rights_management_workflow \
   --version 1 \
-  --input '{"assetId": "SONG-529-001", "SONG-529-001": "licenseId", "licenseId": "LIC-MUS-2026-450", "LIC-MUS-2026-450": "usageType", "usageType": "streaming", "streaming": "territory", "territory": "US", "US": "sample-US"}'
+  --input '{"assetId": "TEST-001", "licenseId": "TEST-001", "usageType": "test-value", "territory": "test-value"}'
 ```
 
 ### Check workflow status

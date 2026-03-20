@@ -1,8 +1,6 @@
 # Health Insurance Claims in Java Using Conductor :  Submission, Verification, Adjudication, Payment, and Closure
 
-A Java Conductor workflow example for health insurance claims processing .  submitting claims with procedure codes and amounts, verifying member eligibility and provider credentials, adjudicating the claim against policy rules, issuing payment to the provider, and closing the claim with a final status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for health insurance claims processing .  submitting claims with procedure codes and amounts, verifying member eligibility and provider credentials, adjudicating the claim against policy rules, issuing payment to the provider, and closing the claim with a final status. Uses [Conductor](https://github.## The Problem
 
 You need to process health insurance claims from submission through payment. A provider submits a claim with the patient ID, procedure code, and billed amount. The claim must be verified .  confirming the member's active coverage, the provider's network status, and that the procedure is a covered benefit. The verified claim is then adjudicated against the policy's benefit rules, applying deductibles, copays, coinsurance, and out-of-pocket maximums to determine the allowed amount. Payment is issued to the provider for the approved amount. Finally, the claim is closed with an explanation of benefits (EOB). Each step depends on the previous one ,  you cannot adjudicate without verifying eligibility, and you cannot pay without adjudication.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic claims engine that receives the 
 
 **You just write the claims workers. Submission intake, eligibility verification, adjudication, payment, and EOB closure. Conductor handles strict step ordering, automatic retries when the eligibility system is temporarily unavailable, and a complete regulatory audit trail from submission to closure.**
 
-Each stage of claims processing is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of verifying before adjudicating, paying only after adjudication approves the claim, retrying if the eligibility system is temporarily unavailable, and maintaining a complete regulatory audit trail from submission to closure. You get all of that for free, without writing a single line of orchestration code.
+Each stage of claims processing is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of verifying before adjudicating, paying only after adjudication approves the claim, retrying if the eligibility system is temporarily unavailable, and maintaining a complete regulatory audit trail from submission to closure. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers manage the claims lifecycle: SubmitClaimWorker intakes the claim, V
 | **CloseClaimWorker** | `clm_close` | Closes the claim, generates the Explanation of Benefits (EOB), and archives the record |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ clm_pay
     │
     ▼
 clm_close
-```
-
-## Example Output
-
-```
-=== Example 475: Insurance Claims ===
-
-Step 1: Registering task definitions...
-  Registered: clm_submit, clm_verify, clm_adjudicate, clm_pay, clm_close
-
-Step 2: Registering workflow 'insurance_claims_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [adjudicate] Processing
-  [close] Claim
-  [pay] Processing
-  [submit] Claim
-  [verify] Checking eligibility for patient
-
-  Status: COMPLETED
-  Output: {approvedAmount=..., patientResponsibility=..., decision=..., claimStatus=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow insurance_claims_workflow \
   --version 1 \
-  --input '{"claimId": "CLM-2024-0891", "CLM-2024-0891": "patientId", "patientId": "PAT-10234", "PAT-10234": "providerId", "providerId": "PROV-5501", "PROV-5501": "amount", "amount": 1250.0, "99213": "sample-99213"}'
+  --input '{"claimId": "TEST-001", "patientId": "TEST-001", "providerId": "TEST-001", "amount": 100, "procedureCode": "test-value"}'
 ```
 
 ### Check workflow status

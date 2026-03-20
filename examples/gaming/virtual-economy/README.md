@@ -1,8 +1,6 @@
 # Virtual Economy in Java Using Conductor
 
-Processes virtual economy transactions: recording the transaction, validating balance and ownership, updating player balances, creating an audit trail for fraud detection, and generating a settlement report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Processes virtual economy transactions: recording the transaction, validating balance and ownership, updating player balances, creating an audit trail for fraud detection, and generating a settlement report. Uses [Conductor](https://github.## The Problem
 
 You need to process a virtual economy transaction in your game .  a purchase, sale, trade, or currency conversion. The transaction must be recorded, validated for sufficient balance and item ownership, the sender and receiver balances updated atomically, an audit record created for fraud detection, and a transaction report generated. Processing transactions without validation enables item duplication and currency exploits; missing audit records makes fraud investigation impossible.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd handle transactions in a single database transactio
 
 **You just write the transaction recording, balance validation, currency transfer, audit logging, and settlement reporting logic. Conductor handles transaction validation retries, balance reconciliation, and economy audit trails.**
 
-Each economy concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (transaction, validate, update balance, audit, report), retrying if the database is temporarily unavailable, tracking every transaction with full audit trail, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each economy concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (transaction, validate, update balance, audit, report), retrying if the database is temporarily unavailable, tracking every transaction with full audit trail, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Currency minting, transaction validation, balance updates, and audit logging wor
 | **ValidateWorker** | `vec_validate` | Validates the transaction by checking rate limits and value limits for the currency |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ vec_audit
     │
     ▼
 vec_report
-```
-
-## Example Output
-
-```
-=== Example 750: Virtual Economy ===
-
-Step 1: Registering task definitions...
-  Registered: vec_transaction, vec_validate, vec_update_balance, vec_audit, vec_report
-
-Step 2: Registering workflow 'virtual_economy_750'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [audit] Audit log: txn=
-  [report] Economy report for
-  [txn]
-  [balance] Updating balance: +
-  [validate] Validating transaction in
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow virtual_economy_750 \
   --version 1 \
-  --input '{"playerId": "P-042", "P-042": "type", "type": "earn", "earn": "amount", "amount": 500, "gold_coins": "sample-gold-coins"}'
+  --input '{"playerId": "TEST-001", "type": "test-value", "amount": 100, "currency": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Event Priority in Java Using Conductor
 
-Event priority workflow that classifies events by priority and routes to the appropriate processing lane via a SWITCH task, then records the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event priority workflow that classifies events by priority and routes to the appropriate processing lane via a SWITCH task, then records the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to classify incoming events by priority and route each to the appropriate processing lane. Critical events require immediate processing, normal events go through standard pipelines, and low-priority events are handled in batch. The result of each processing lane must be recorded for auditing. Without priority-based routing, critical system alerts wait behind thousands of routine telemetry events.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a priority classifier with a switch statement
 
 **You just write the priority-classification, per-lane processing, and result-recording workers. Conductor handles SWITCH-based priority routing, per-lane processing guarantees, and a complete audit of every priority decision.**
 
-Each priority lane is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of classifying the event, routing via a SWITCH task to the appropriate lane (critical, normal, low), processing the event, recording the result, and retrying if processing fails. You get all of that for free, without writing a single line of orchestration code.
+Each priority lane is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of classifying the event, routing via a SWITCH task to the appropriate lane (critical, normal, low), processing the event, recording the result, and retrying if processing fails. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Five workers implement priority lanes: ClassifyPriorityWorker assigns a level, t
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -51,35 +39,6 @@ SWITCH (priority_switch_ref)
     │
     ▼
 pr_record_processing
-```
-
-## Example Output
-
-```
-=== Event Priority Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pr_classify_priority, pr_process_urgent, pr_process_normal, pr_process_batch, pr_record_processing
-
-Step 2: Registering workflow 'event_priority_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [pr_classify_priority] Classifying event type:
-  [pr_process_batch] Processing event
-  [pr_process_normal] Processing event
-  [pr_process_urgent] Processing event
-  [pr_record_processing] Recording event
-
-  Status: COMPLETED
-  Output: {priority=..., eventType=..., processed=..., lane=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +67,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +110,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_priority_wf \
   --version 1 \
-  --input '{"eventId": "evt-fixed-001", "evt-fixed-001": "eventType", "eventType": "payment.failed", "payment.failed": false}'
+  --input '{"eventId": "TEST-001", "eventType": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,6 +1,6 @@
 # RAG Embedding Selection in Java Using Conductor :  Benchmark OpenAI, Cohere, and Local Models in Parallel
 
-A Java Conductor workflow that benchmarks three embedding providers (OpenAI, Cohere, and a local model) against the same test data in parallel, evaluates each on quality and latency metrics, and selects the best model for your use case. Conductor's `FORK_JOIN` runs all three embeddings simultaneously so the benchmark completes in the time of the slowest provider, not the sum. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel benchmarking, evaluation, and selection as independent workers .  you write the embedding and evaluation logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that benchmarks three embedding providers (OpenAI, Cohere, and a local model) against the same test data in parallel, evaluates each on quality and latency metrics, and selects the best model for your use case. Conductor's `FORK_JOIN` runs all three embeddings simultaneously so the benchmark completes in the time of the slowest provider, not the sum. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel benchmarking, evaluation, and selection as independent workers .  you write the embedding and evaluation logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Choosing the Right Embedding Model
 
@@ -29,16 +29,6 @@ Six workers benchmark embedding providers .  preparing test data, running OpenAI
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -56,36 +46,6 @@ es_evaluate_embeddings
     │
     ▼
 es_select_best
-```
-
-## Example Output
-
-```
-=== Example 160: RAG Embedding Selectio ===
-
-Step 1: Registering task definitions...
-  Registered: es_prepare_benchmark, es_embed_openai, es_embed_cohere, es_embed_local, es_evaluate_embeddings, es_select_best
-
-Step 2: Registering workflow 'rag_embedding_selection'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cohere] Evaluated cohere/embed-english-v3.0: ndcg=0.88, latency=95ms
-  [local] Evaluated local/all-MiniLM-L6-v2: ndcg=0.80, latency=15ms
-  [embed] Generated embedding via OpenAI (LIVE):
-  [evaluate] Rankings:
-  [benchmark] Prepared
-  [select]
-
-  Status: COMPLETED
-  Output: {metrics=..., model=..., dimensions=..., precisionAt1=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +74,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -158,7 +118,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_embedding_selection \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

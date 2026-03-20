@@ -1,8 +1,6 @@
 # Exception-Based Routing in Java Using Conductor :  Risk Analysis, SWITCH for Auto-Process vs. Human Review, and Finalization
 
-A Java Conductor workflow example demonstrating exception-based human-in-the-loop routing .  analyzing an item's risk score, using SWITCH to route low-risk items to automatic processing or high-risk items (risk > 7) to a WAIT task for human review, and finalizing the result regardless of which path was taken. Demonstrates the pattern where automation handles the happy path and humans intervene only for exceptions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating exception-based human-in-the-loop routing .  analyzing an item's risk score, using SWITCH to route low-risk items to automatic processing or high-risk items (risk > 7) to a WAIT task for human review, and finalizing the result regardless of which path was taken. Demonstrates the pattern where automation handles the happy path and humans intervene only for exceptions. Uses [Conductor](https://github.## The Problem
 
 Not every item needs human attention .  most can be auto-processed, but high-risk exceptions must be escalated to a person. The workflow analyzes the item's risk score (1-10) and routes accordingly: items scoring 7 or below go to automatic processing, while items above 7 pause at a WAIT task for human review. The human reviewer examines the flagged item and makes a decision. After either path completes (auto-processed or human-reviewed), a finalization step wraps up. Without this routing, you either manually review everything (expensive and slow) or auto-process everything (dangerous for high-risk items).
 
@@ -26,16 +24,6 @@ AnalyzeWorker scores risk on a 1-10 scale, AutoProcessWorker handles low-risk it
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -48,33 +36,6 @@ SWITCH (route_switch)
     │
     ▼
 eh_finalize
-```
-
-## Example Output
-
-```
-=== Exception Handling Demo: Auto-Process or Human Review ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'exception_handling_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [eh_analyze] risk=
-  [eh_auto_process] Auto-processing item...
-  [eh_finalize] Finalizing...
-
-  Status: COMPLETED
-  Output: {route=..., risk=..., processed=..., finalized=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow exception_handling_demo \
   --version 1 \
-  --input '{"risk": "sample-risk"}'
+  --input '{"risk": "test-value"}'
 ```
 
 ### Check workflow status

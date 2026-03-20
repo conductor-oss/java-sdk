@@ -10,9 +10,7 @@ Without orchestration, network partition handling means custom reconnection logi
 
 ## The Solution
 
-**You just write the task processing logic. Conductor handles reconnection, partition tolerance, and task resumption for free.**
-
-The worker tracks connection attempts and handles reconnection state. Conductor's polling model is inherently partition-tolerant .  when the network heals, the worker simply resumes polling. Tasks that timed out during the partition are retried automatically. The full history of connection attempts and task executions is preserved. You get all of that for free, without writing a single line of orchestration code.
+The worker tracks connection attempts and handles reconnection state. Conductor's polling model is inherently partition-tolerant .  when the network heals, the worker simply resumes polling. Tasks that timed out during the partition are retried automatically. The full history of connection attempts and task executions is preserved. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,44 +22,10 @@ NetworkPartitionWorker tracks connection attempts and processes tasks resilientl
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 np_resilient_task
-```
-
-## Example Output
-
-```
-=== Network Partitions Demo: Handling Network Partitions ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'network_partitions_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [np_resilient_task] Processing attempt
-
-  Status: COMPLETED
-  Output: {result=..., attempt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow network_partitions_demo \
   --version 1 \
-  --input '{"data": "sample-data"}'
+  --input '{"data": "test-value"}'
 ```
 
 ### Check workflow status

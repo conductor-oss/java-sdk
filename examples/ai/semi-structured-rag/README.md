@@ -1,6 +1,6 @@
 # Semi-Structured RAG in Java Using Conductor :  Parallel Structured and Unstructured Search with Classification
 
-A Java Conductor workflow that classifies a question's data needs (structured, unstructured, or both), searches structured sources (databases, APIs) and unstructured sources (document stores, vector databases) in parallel, merges the results, and generates a unified answer. Questions like "What's the average revenue for companies mentioned in our research reports?" need both SQL query results (structured) and document context (unstructured). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate classification, parallel search, merging, and generation as independent workers .  you write the search logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that classifies a question's data needs (structured, unstructured, or both), searches structured sources (databases, APIs) and unstructured sources (document stores, vector databases) in parallel, merges the results, and generates a unified answer. Questions like "What's the average revenue for companies mentioned in our research reports?" need both SQL query results (structured) and document context (unstructured). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate classification, parallel search, merging, and generation as independent workers .  you write the search logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## When Answers Live in Both Tables and Documents
 
@@ -28,16 +28,6 @@ Five workers handle dual-source retrieval .  classifying the question's data nee
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -54,35 +44,6 @@ ss_merge_results
     │
     ▼
 ss_generate
-```
-
-## Example Output
-
-```
-=== Example 158: Semi-Structured RAG ===
-
-Step 1: Registering task definitions...
-  Registered: ss_classify_data, ss_search_structured, ss_search_unstructured, ss_merge_results, ss_generate
-
-Step 2: Registering workflow 'semi_structured_rag_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify] Classifying data for question:
-  [generate] Generating answer for:
-  [merge] Merging
-  [search-structured] Querying
-  [search-unstructured] Searching
-
-  Status: COMPLETED
-  Output: {structuredFields=..., textChunks=..., dataTypes=..., answer=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -111,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -155,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow semi_structured_rag_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "What were the Q3 revenue figures and growth drivers?": "sample-What were the Q3 revenue figures and growth drivers?", "dataContext": "Sample dataContext"}'
+  --input '{"question": "test-value", "dataContext": "test-value"}'
 ```
 
 ### Check workflow status

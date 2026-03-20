@@ -1,8 +1,6 @@
 # Exclusive Join in Java with Conductor
 
-EXCLUSIVE_JOIN demo .  query three vendors in parallel, wait for all responses, then select the best offer by lowest price and fastest response time. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+EXCLUSIVE_JOIN demo .  query three vendors in parallel, wait for all responses, then select the best offer by lowest price and fastest response time. Uses [Conductor](https://github.## The Problem
 
 You need to get price quotes from multiple vendors simultaneously and pick the best offer. A product query goes out to Vendor A, Vendor B, and Vendor C at the same time. Each vendor responds with a price and response time. After all three respond, you need to compare their offers and select the winner .  lowest price wins, with fastest response time as the tiebreaker. The entire comparison must happen only after every vendor has replied, not as responses trickle in.
 
@@ -27,16 +25,6 @@ Four workers implement the competitive quoting pattern: three vendor workers (A,
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,34 +36,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 ej_select_best
-```
-
-## Example Output
-
-```
-=== EXCLUSIVE_JOIN Demo: Vendor Racing / First-Response-Wins ===
-
-Step 1: Registering task definitions...
-  Registered: ej_vendor_a, ej_vendor_b, ej_vendor_c, ej_select_best
-
-Step 2: Registering workflow 'exclusive_join_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ej_select_best] Comparing vendor responses:
-  [ej_vendor_a] Vendor A responding to query:
-  [ej_vendor_b] Vendor B responding to query:
-  [ej_vendor_c] Vendor C responding to query:
-
-  Status: COMPLETED
-  Output: {winner=..., price=..., responseTime=..., bestVendor=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow exclusive_join_demo \
   --version 1 \
-  --input '{"query": "sample-query"}'
+  --input '{"query": "test-value"}'
 ```
 
 ### Check workflow status

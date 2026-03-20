@@ -1,0 +1,20 @@
+{
+  "name": "dai_deployment_ai",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "version", "environment"],
+  "tasks": [
+    { "name": "dai_analyze_changes", "taskReferenceName": "dai_analyze_ref", "type": "SIMPLE", "inputParameters": { "serviceName": "${workflow.input.serviceName}", "version": "${workflow.input.version}" } },
+    { "name": "dai_predict_risk", "taskReferenceName": "dai_risk_ref", "type": "SIMPLE", "inputParameters": { "changeAnalysis": "${dai_analyze_ref.output.changeAnalysis}" } },
+    { "name": "dai_recommend_strategy", "taskReferenceName": "dai_strategy_ref", "type": "SIMPLE", "inputParameters": { "riskLevel": "${dai_risk_ref.output.riskLevel}", "environment": "${workflow.input.environment}" } },
+    { "name": "dai_execute_deploy", "taskReferenceName": "dai_deploy_ref", "type": "SIMPLE", "inputParameters": { "strategy": "${dai_strategy_ref.output.strategy}", "serviceName": "${workflow.input.serviceName}", "version": "${workflow.input.version}", "environment": "${workflow.input.environment}" } }
+  ],
+  "outputParameters": {
+    "changesDetected": "${dai_analyze_ref.output.changeCount}",
+    "riskLevel": "${dai_risk_ref.output.riskLevel}",
+    "strategy": "${dai_strategy_ref.output.strategy}",
+    "deployStatus": "${dai_deploy_ref.output.deployStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

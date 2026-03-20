@@ -1,6 +1,6 @@
 # Web Scraping RAG in Java Using Conductor :  Scrape Pages, Index Content, Answer Questions
 
-A Java Conductor workflow that scrapes web pages from a list of URLs, chunks the extracted content, embeds and stores the vectors, then runs a RAG query against the freshly scraped content. This is a complete pipeline from raw web pages to answered questions .  ingestion and retrieval in a single workflow. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate scraping, chunking, embedding/storage, querying, and generation as independent workers ,  you write the scraping and RAG logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that scrapes web pages from a list of URLs, chunks the extracted content, embeds and stores the vectors, then runs a RAG query against the freshly scraped content. This is a complete pipeline from raw web pages to answered questions .  ingestion and retrieval in a single workflow. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate scraping, chunking, embedding/storage, querying, and generation as independent workers ,  you write the scraping and RAG logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG Over Live Web Content
 
@@ -28,15 +28,6 @@ Five workers form the scrape-to-answer pipeline .  fetching web pages, chunking 
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ wsrag_query
     │
     ▼
 wsrag_generate
-```
-
-## Example Output
-
-```
-=== Example 142: Web Scraping to RAG ===
-
-Step 1: Registering task definitions...
-  Registered: wsrag_scrape, wsrag_chunk, wsrag_embed_store, wsrag_query, wsrag_generate
-
-Step 2: Registering workflow 'web_scraping_rag_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [chunk] Created
-  [embed] Generated
-  [generate] Response from OpenAI (LIVE)
-  [query] Searching for: \"" + question + "\"
-  [scrape] Fetching
-
-  Status: COMPLETED
-  Output: {chunks=..., chunkCount=..., storedIds=..., count=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow web_scraping_rag_workflow \
   --version 1 \
-  --input '{"urls": "https://api.example.com/resource", "https://docs.example.com/overview": "sample-https://docs.example.com/overview", "question": "sample-question"}'
+  --input '{"urls": "https://example.com", "question": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,6 +1,6 @@
 services:
   conductor:
-    image: orkesio/orkes-conductor-standalone:latest
+    image: orkesio/orkes-conductor-standalone:1.2.3
     ports:
       - "${CONDUCTOR_PORT:-8080}:8080"
       - "${CONDUCTOR_UI_PORT:-1234}:5000"

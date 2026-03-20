@@ -1,8 +1,6 @@
 # Wire Transfer in Java with Conductor
 
-Wire transfer workflow: validate, verify sender, compliance check, execute, and confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Wire transfer workflow: validate, verify sender, compliance check, execute, and confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to execute a wire transfer between bank accounts. The workflow validates the transfer details (amount, currency, account numbers), verifies the sender's identity and account balance, runs compliance checks (sanctions screening, transaction monitoring), executes the wire through the payment network, and confirms completion. Executing a wire without compliance checks exposes the bank to regulatory penalties; insufficient balance checks result in overdrafts.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single wire service that validates, authent
 
 **You just write the wire transfer workers. Detail validation, sender verification, sanctions screening, network execution, and confirmation. Conductor handles sequential execution, automatic retries when the payment network is temporarily unavailable, and a complete audit trail for BSA/AML compliance.**
 
-Each wire transfer concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (validate, verify sender, compliance check, execute, confirm), retrying if the payment network is temporarily unavailable, tracking every wire with complete audit trail for regulatory compliance, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each wire transfer concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (validate, verify sender, compliance check, execute, confirm), retrying if the payment network is temporarily unavailable, tracking every wire with complete audit trail for regulatory compliance, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers handle the wire lifecycle: ValidateWorker checks transfer details a
 | **VerifySenderWorker** | `wir_verify_sender` | Verifying account |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ wir_execute
     │
     ▼
 wir_confirm
-```
-
-## Example Output
-
-```
-=== Example 498: Wire Transfer ===
-
-Step 1: Registering task definitions...
-  Registered: wir_validate, wir_verify_sender, wir_compliance_check, wir_execute, wir_confirm
-
-Step 2: Registering workflow 'wire_transfer_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [compliance] AML/CTR check .  amount: $
-  [confirm] Wire
-  [execute] Transferring $
-  [validate] Wire
-  [sender] Verifying account
-
-  Status: COMPLETED
-  Output: {cleared=..., ctrRequired=..., sanctionsCleared=..., riskScore=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wire_transfer_workflow \
   --version 1 \
-  --input '{"transferId": "WIRE-2024-0891", "WIRE-2024-0891": "senderAccount", "senderAccount": "ACCT-1001-USD", "ACCT-1001-USD": "recipientAccount", "recipientAccount": "ACCT-EXT-5501-USD", "ACCT-EXT-5501-USD": "amount", "amount": 75000, "USD": "sample-USD"}'
+  --input '{"transferId": "TEST-001", "senderAccount": 10, "recipientAccount": 10, "amount": 100, "currency": "test-value"}'
 ```
 
 ### Check workflow status

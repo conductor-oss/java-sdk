@@ -1,8 +1,6 @@
 # Expense Reporting in Java with Conductor
 
-Expense reporting: collect, categorize, submit, approve, reimburse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Expense reporting: collect, categorize, submit, approve, reimburse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to process a travel expense report from receipt collection through reimbursement. An employee returns from a trip with receipts for flights, hotels, meals, and transportation. You collect all receipts and line items. You categorize each expense (airfare, lodging, meals, ground transport, miscellaneous). You submit the categorized report for approval. The manager reviews and approves or rejects it. Finally, approved expenses are reimbursed to the employee's payroll or bank account.
 
@@ -28,15 +26,6 @@ Receipt capture, categorization, policy validation, and reimbursement workers ea
 
 Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ exr_approve
     │
     ▼
 exr_reimburse
-```
-
-## Example Output
-
-```
-=== Example 543: Expense Reporting ===
-
-Step 1: Registering task definitions...
-  Registered: exr_collect, exr_categorize, exr_submit, exr_approve, exr_reimburse
-
-Step 2: Registering workflow 'exr_expense_reporting'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Processing expense reporting step
-  [categorize] Processing expense reporting step
-  [collect] Processing expense reporting step
-  [reimburse] Processing expense reporting step
-  [submit] Processing expense reporting step
-
-  Status: COMPLETED
-  Output: {approved=..., approvedBy=..., categorized=..., total=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow exr_expense_reporting \
   --version 1 \
-  --input '{"employeeId": "EMP-900", "EMP-900": "tripId", "tripId": "TRIP-NYC-2024", "TRIP-NYC-2024": "sample-TRIP-NYC-2024"}'
+  --input '{"employeeId": "TEST-001", "tripId": "TEST-001"}'
 ```
 
 ### Check workflow status

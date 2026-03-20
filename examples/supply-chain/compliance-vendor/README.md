@@ -1,8 +1,6 @@
 # Vendor Compliance Management in Java with Conductor :  Assessment, Audit, Certification, and Ongoing Monitoring
 
-A Java Conductor workflow example for vendor compliance management .  assessing a vendor's adherence to standards like ISO 27001, conducting formal audits of their controls and practices, issuing or renewing compliance certifications, and setting up ongoing monitoring for compliance drift. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for vendor compliance management .  assessing a vendor's adherence to standards like ISO 27001, conducting formal audits of their controls and practices, issuing or renewing compliance certifications, and setting up ongoing monitoring for compliance drift. Uses [Conductor](https://github.## The Problem
 
 You need to verify that your supply chain vendors meet required compliance standards. For a vendor like SecureData Partners, you must assess their current posture against ISO 27001 controls, conduct a formal audit covering data handling, access management, and incident response processes, issue a certification if they pass (or document gaps if they don't), and establish continuous monitoring to catch compliance drift before the next audit cycle. Procurement cannot issue new purchase orders to non-compliant vendors.
 
@@ -27,15 +25,6 @@ Four workers manage the vendor compliance lifecycle: AssessWorker evaluates post
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ vcm_certify
     │
     ▼
 vcm_monitor
-```
-
-## Example Output
-
-```
-=== Example 665: Vendor Compliance ===
-
-Step 1: Registering task definitions...
-  Registered: vcm_assess, vcm_audit, vcm_certify, vcm_monitor
-
-Step 2: Registering workflow 'vcm_vendor_compliance'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess]
-  [audit] Audit
-  [certify]
-  [monitor] Continuous monitoring enabled for
-
-  Status: COMPLETED
-  Output: {assessmentResult=..., score=..., passed=..., findings=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow vcm_vendor_compliance \
   --version 1 \
-  --input '{"vendorId": "VND-665-001", "VND-665-001": "vendorName", "vendorName": "SecureData Partners", "SecureData Partners": "complianceStandard", "complianceStandard": "ISO-27001", "ISO-27001": "sample-ISO-27001"}'
+  --input '{"vendorId": "TEST-001", "vendorName": "test", "complianceStandard": "test-value"}'
 ```
 
 ### Check workflow status

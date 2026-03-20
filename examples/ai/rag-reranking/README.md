@@ -1,6 +1,6 @@
 # RAG Reranking in Java Using Conductor :  Cross-Encoder Reranking Between Retrieval and Generation
 
-A Java Conductor workflow that adds a cross-encoder reranking step between retrieval and generation .  retrieving a broad set of candidate documents (e.g., top-K=20), scoring each document-question pair with a cross-encoder model that sees both the question and document together, selecting the top-N most relevant, and generating from the reranked subset. Cross-encoders are more accurate than bi-encoder embeddings but too slow for initial retrieval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, broad retrieval, cross-encoder reranking, and generation as independent workers ,  you write the reranking logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that adds a cross-encoder reranking step between retrieval and generation .  retrieving a broad set of candidate documents (e.g., top-K=20), scoring each document-question pair with a cross-encoder model that sees both the question and document together, selecting the top-N most relevant, and generating from the reranked subset. Cross-encoders are more accurate than bi-encoder embeddings but too slow for initial retrieval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, broad retrieval, cross-encoder reranking, and generation as independent workers ,  you write the reranking logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Why Retrieve More, Then Rerank
 
@@ -27,15 +27,6 @@ Four workers implement the reranking pattern .  embedding the query, retrieving 
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ rerank_crossencoder
     │
     ▼
 rerank_generate
-```
-
-## Example Output
-
-```
-=== Example 145: RAG with Re-Ranking ===
-
-Step 1: Registering task definitions...
-  Registered: rerank_embed, rerank_retrieve, rerank_crossencoder, rerank_generate
-
-Step 2: Registering workflow 'rag_reranking_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [rerank] [SIMULATED] Scoring
-  [embed] Query (live OpenAI): \"" + question + "\" ->
-  [generate] Answer (live OpenAI) from
-  [retrieve] [SIMULATED] Fetching top-
-
-  Status: COMPLETED
-  Output: {crossEncoderScore=..., reranked=..., rerankedCount=..., model=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_reranking_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "How does re-ranking improve RAG accuracy?": "sample-How does re-ranking improve RAG accuracy?", "retrieveK": "sample-retrieveK", "6": "sample-6", "rerankTopN": "sample-rerankTopN"}'
+  --input '{"question": "test-value", "retrieveK": "test-value", "rerankTopN": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # User Survey in Java Using Conductor :  Creation, Distribution, Collection, Analysis, and Reporting
 
-A Java Conductor workflow example for running user satisfaction surveys end-to-end .  creating a survey with custom questions, distributing it to a target audience, collecting responses, analyzing results (average satisfaction, top themes, sentiment breakdown), and generating a summary report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for running user satisfaction surveys end-to-end .  creating a survey with custom questions, distributing it to a target audience, collecting responses, analyzing results (average satisfaction, top themes, sentiment breakdown), and generating a summary report. Uses [Conductor](https://github.## The Problem
 
 You need to gather structured feedback from users through surveys. That means creating a survey with a title and question set, sending it to a specific audience segment, collecting the responses, running analysis to extract satisfaction scores, recurring themes (ease of use, performance, pricing), and sentiment distribution (positive/neutral/negative), and finally producing a report that stakeholders can act on. Each step depends on the previous one .  you can't distribute a survey before it's created, you can't analyze responses before they're collected, and the report needs both the survey ID and the analysis results.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic survey service that handles crea
 
 **You just write the survey-creation, distribution, collection, analysis, and reporting workers. Conductor handles the survey lifecycle and response data flow.**
 
-Each survey lifecycle phase .  creation, distribution, collection, analysis, reporting ,  is a simple, independent worker. Conductor runs them in sequence, threads the generated survey ID from creation through every downstream step, feeds collected responses into the analyzer, and passes the analysis output into the report generator. If distribution times out or the analysis service fails, Conductor retries automatically and resumes from exactly where it left off. You get all of that for free, without writing a single line of orchestration code.
+Each survey lifecycle phase .  creation, distribution, collection, analysis, reporting ,  is a simple, independent worker. Conductor runs them in sequence, threads the generated survey ID from creation through every downstream step, feeds collected responses into the analyzer, and passes the analysis output into the report generator. If distribution times out or the analysis service fails, Conductor retries automatically and resumes from exactly where it left off. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ CreateSurveyWorker generates a survey ID, DistributeSurveyWorker sends it to the
 | **SurveyReportWorker** | `usv_report` | Generates a summary report from the analysis results, tied to the survey ID |
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ usv_analyze
     │
     ▼
 usv_report
-```
-
-## Example Output
-
-```
-=== Example 619: User Survey ===
-
-Step 1: Registering task definitions...
-  Registered: usv_create, usv_distribute, usv_collect, usv_analyze, usv_report
-
-Step 2: Registering workflow 'usv_user_survey'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Survey analysis complete
-  [collect] Collected 847 responses (33.9% response rate)
-  [create] Survey \"" + title + "\" created ->
-  [distribute] Survey sent to
-  [report] Survey report generated
-
-  Status: COMPLETED
-  Output: {analysis=..., responses=..., responseCount=..., responseRate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow usv_user_survey \
   --version 1 \
-  --input '{"surveyTitle": "sample-surveyTitle", "Q4 Product Satisfaction": "sample-Q4 Product Satisfaction", "questions": "sample-questions", "Overall satisfaction?": "sample-Overall satisfaction?", "Feature most valued?": "sample-Feature most valued?", "targetAudience": "sample-targetAudience"}'
+  --input '{"surveyTitle": "test-value", "questions": "test-value", "targetAudience": "test-value"}'
 ```
 
 ### Check workflow status

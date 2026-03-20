@@ -1,8 +1,6 @@
 # Inspection Workflow in Java with Conductor
 
-Conducts a government property inspection: scheduling the visit, performing the on-site assessment, documenting findings, and recording pass or fail via a SWITCH task with code violations cited. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Conducts a government property inspection: scheduling the visit, performing the on-site assessment, documenting findings, and recording pass or fail via a SWITCH task with code violations cited. Uses [Conductor](https://github.## The Problem
 
 You need to conduct a government property inspection (building code, fire safety, health, environmental). The inspection is scheduled, the inspector visits the property and conducts the assessment, findings are documented with photos and notes, and the result is recorded as pass or fail with specific code violations cited. Passing a property without thorough inspection creates safety risks; failing without documented evidence invites legal challenges.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage inspections with paper checklists, phone-sch
 
 **You just write the scheduling, on-site assessment, findings documentation, and pass/fail determination logic. Conductor handles scheduling retries, findings routing, and inspection audit trails.**
 
-Each inspection concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, inspect, document, record pass/fail), routing via a SWITCH task based on the inspection result, tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each inspection concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, inspect, document, record pass/fail), routing via a SWITCH task based on the inspection result, tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Scheduling, on-site inspection, findings recording, and compliance determination
 | **ScheduleWorker** | `inw_schedule` | Schedules the inspection for the property, assigning a date and inspector |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -53,35 +41,6 @@ inw_document
 SWITCH (inw_switch_ref)
     ├── pass: inw_record_pass
     ├── fail: inw_record_fail
-```
-
-## Example Output
-
-```
-=== Example 526: Inspection Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: inw_schedule, inw_inspect, inw_document, inw_record_pass, inw_record_fail
-
-Step 2: Registering workflow 'inw_inspection_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [document] Findings documented .  all systems pass
-  [inspect] Processing
-  [record_fail] Processing
-  [record_pass] Processing
-  [schedule] Processing
-
-  Status: COMPLETED
-  Output: {result=..., violations=..., findings=..., reinspectionRequired=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow inw_inspection_workflow \
   --version 1 \
-  --input '{"propertyId": "PROP-500", "PROP-500": "inspectionType", "inspectionType": "building-safety", "building-safety": "sample-building-safety"}'
+  --input '{"propertyId": "TEST-001", "inspectionType": "test-value"}'
 ```
 
 ### Check workflow status

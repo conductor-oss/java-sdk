@@ -1,8 +1,6 @@
 # Canary Release in Java with Conductor
 
-Canary release with progressive traffic increase. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Canary release with progressive traffic increase. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A canary release progressively increases traffic to a new version in stages (e.g., 5% -> 50% -> 100%), monitoring health at each stage before proceeding. If anomalies are detected at any stage, the release is halted and traffic stays on the stable version.
 
@@ -27,15 +25,6 @@ This progressive release uses four workers: DeployCanaryWorker starts the canary
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,34 +41,6 @@ cy_monitor_canary
     │
     ▼
 cy_full_rollout
-```
-
-## Example Output
-
-```
-=== Example 297: Canary Release ===
-
-Step 1: Registering task definitions...
-  Registered: cy_deploy_canary, cy_monitor_canary, cy_increase_traffic, cy_full_rollout
-
-Step 2: Registering workflow 'canary_release_297'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [deploy] Deploying
-  [rollout] Full rollout of
-  [increase] Increasing traffic to
-  [monitor] Monitoring at
-
-  Status: COMPLETED
-  Output: {canaryInstances=..., trafficPercent=..., deployedAt=..., complete=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow canary_release_297 \
   --version 1 \
-  --input '{"appName": "sample-name", "user-service": "sample-user-service", "newVersion": "sample-newVersion"}'
+  --input '{"appName": "test", "newVersion": "test-value"}'
 ```
 
 ### Check workflow status

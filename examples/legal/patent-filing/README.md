@@ -1,8 +1,6 @@
 # Patent Filing in Java with Conductor
 
-A Java Conductor workflow example demonstrating Patent Filing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Patent Filing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 An inventor submits a new invention disclosure. You need to draft a patent application with claims (typically 12+), conduct a prior art search to check for novelty, have a patent attorney review the draft for quality and completeness, file the application with the USPTO, and track its status through examination. Missing a filing deadline or overlooking prior art can forfeit patent rights entirely.
 
@@ -28,15 +26,6 @@ Prior art search, claim drafting, filing preparation, and submission workers eac
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ ptf_file
     │
     ▼
 ptf_track
-```
-
-## Example Output
-
-```
-=== Patent Filing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ptf_draft, ptf_file, ptf_prior_art, ptf_review, ptf_track
-
-Step 2: Registering workflow 'patent_filing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [draft] Drafting patent application for:
-  [file] Filing patent application for draft
-  [prior-art] Searching prior art for:
-  [review] Reviewing draft
-  [track] Tracking application
-
-  Status: COMPLETED
-  Output: {draftId=..., claims=..., applicationNumber=..., filingDate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ptf_patent_filing \
   --version 1 \
-  --input '{"inventionTitle": "Novel Widget Mechanism", "Novel Widget Mechanism": "inventors", "inventors": ["item-1", "item-2", "item-3"], "A new mechanism for widget assembly": "A NEW MECHANISM FOR WGET ASSEMBLY-001"}'
+  --input '{"inventionTitle": "test-value", "inventors": "test-value", "description": "test-value"}'
 ```
 
 ### Check workflow status

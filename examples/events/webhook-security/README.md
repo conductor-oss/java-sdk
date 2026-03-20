@@ -1,8 +1,6 @@
 # Webhook Security in Java Using Conductor
 
-Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to verify the authenticity of incoming webhooks using HMAC signatures. The workflow computes an HMAC hash of the payload using the shared secret, compares it to the signature provided by the sender, and routes to processing (if valid) or rejection (if forged). Without signature verification, an attacker can send forged webhooks that trigger unauthorized actions in your system.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd embed HMAC verification in middleware, manually com
 
 **You just write the HMAC-compute, signature-verify, process, and reject workers. Conductor handles SWITCH-based accept/reject routing, guaranteed verification before processing, and a security audit trail for every webhook.**
 
-Each security concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of computing the HMAC, verifying the signature, routing via a SWITCH task to process (valid) or reject (invalid), and tracking every webhook's verification result for security audit. You get all of that for free, without writing a single line of orchestration code.
+Each security concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of computing the HMAC, verifying the signature, routing via a SWITCH task to process (valid) or reject (invalid), and tracking every webhook's verification result for security audit. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Four workers verify webhook authenticity: ComputeHmacWorker generates the expect
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ ws_verify_signature
 SWITCH (validity_switch_ref)
     ├── valid: ws_process_webhook
     ├── invalid: ws_reject_webhook
-```
-
-## Example Output
-
-```
-=== Webhook Security Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ws_compute_hmac, ws_verify_signature, ws_process_webhook, ws_reject_webhook
-
-Step 2: Registering workflow 'webhook_security_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ws_compute_hmac] Computing HMAC for payload length:
-  [ws_process_webhook] Processing verified webhook payload...
-  [ws_reject_webhook] Rejecting webhook:
-  [ws_verify_signature] Comparing signatures...
-
-  Status: COMPLETED
-  Output: {computedSignature=..., algorithm=..., processed=..., rejected=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow webhook_security_wf \
   --version 1 \
-  --input '{"payload": "{\"event\":\"push\",\"repo\":\"my-repo\"}", "secret": "webhook-secret-key", "providedSignature": "hmac_sha256_fixedvalue"}'
+  --input '{"payload": "test-value", "secret": "test-value", "providedSignature": "TEST-001"}'
 ```
 
 ### Check workflow status

@@ -12,7 +12,7 @@ Without orchestration, alerting logic is scattered .  threshold checks in one sc
 
 **You just write the threshold evaluation and notification dispatch logic. Conductor handles sequential evaluation with conditional routing, retries on notification delivery failures, and a full record of every alert evaluated, suppressed, or dispatched.**
 
-Each alerting concern is an independent worker .  rule evaluation, anomaly detection, suppression checking, and alert dispatch. Conductor runs them in sequence, ensuring suppression is checked before any alert is sent. Every alert evaluation is tracked with full context ,  you can see which metrics triggered, which were suppressed, and which actually fired. You get all of that for free, without writing a single line of orchestration code.
+Each alerting concern is an independent worker .  rule evaluation, anomaly detection, suppression checking, and alert dispatch. Conductor runs them in sequence, ensuring suppression is checked before any alert is sent. Every alert evaluation is tracked with full context ,  you can see which metrics triggered, which were suppressed, and which actually fired. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +27,6 @@ The alerting pipeline chains DetectAnomalyWorker to flag metric deviations, Eval
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,34 +39,6 @@ alt_evaluate_rules
 SWITCH (alt_switch_ref)
     ├── fire: alt_send_alert
     └── default: alt_suppress_alert
-```
-
-## Example Output
-
-```
-=== Example 413: Alerting Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: alt_detect_anomaly, alt_evaluate_rules, alt_send_alert, alt_suppress_alert
-
-Step 2: Registering workflow 'alerting_pipeline_413'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect]
-  [evaluate] Evaluating rules for
-  [alert] Firing
-  [suppress] Suppressing alert for
-
-  Status: COMPLETED
-  Output: {isAnomaly=..., severity=..., anomalyScore=..., deviation=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +67,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +110,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow alerting_pipeline_413 \
   --version 1 \
-  --input '{"metricName": "sample-name", "cpu_usage_percent": "sample-cpu-usage-percent", "currentValue": "sample-currentValue", "threshold": "sample-threshold"}'
+  --input '{"metricName": "test", "currentValue": "test-value", "threshold": "test-value"}'
 ```
 
 ### Check workflow status

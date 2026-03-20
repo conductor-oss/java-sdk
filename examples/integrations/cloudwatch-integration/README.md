@@ -27,15 +27,6 @@ Four workers build the monitoring pipeline: PutMetricWorker publishes data point
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ cw_check_status
     │
     ▼
 cw_notify
-```
-
-## Example Output
-
-```
-=== Example 450: CloudWatch Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: cw_put_metric, cw_create_alarm, cw_check_status, cw_notify
-
-Step 2: Registering workflow 'cloudwatch_integration_450'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [check] Alarm \"" + alarmName + "\": value=
-  [alarm] Created alarm \"" + alarmName + "\" (threshold:
-  [notify] Alarm \"" + alarmName + "\" is
-  [metric] Published
-
-  Status: COMPLETED
-  Output: {state=..., stateReason=..., alarmName=..., alarmArn=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -150,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cloudwatch_integration_450 \
   --version 1 \
-  --input '{"namespace": "sample-name", "Custom/AppMetrics": "sample-Custom/AppMetrics", "metricName": "sample-name", "CPUUtilization": "sample-CPUUtilization", "value": "sample-value", "threshold": "sample-threshold", "notifyEmail": "user@example.com"}'
+  --input '{"namespace": "test", "metricName": "test", "value": "test-value", "threshold": "test-value", "notifyEmail": "user@example.com"}'
 ```
 
 ### Check workflow status

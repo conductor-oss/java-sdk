@@ -1,8 +1,6 @@
 # Event Monitoring in Java Using Conductor
 
-Sequential event monitoring workflow that collects metrics, analyzes throughput, latency, and errors, then generates a report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Sequential event monitoring workflow that collects metrics, analyzes throughput, latency, and errors, then generates a report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to monitor the health of your event processing pipeline. This means collecting throughput, latency, and error rate metrics over a specified time range, analyzing those metrics for anomalies (throughput drops, latency spikes, error rate increases), and generating a monitoring report. Without monitoring, you only learn about pipeline problems when downstream systems start failing.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monitoring script that queries multiple met
 
 **You just write the metrics-collection, throughput/latency/error analysis, and report-generation workers. Conductor handles sequential metric analysis, retry on metrics API timeouts, and a historical record of every monitoring run.**
 
-Each monitoring concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting metrics, analyzing them for anomalies, and generating the report ,  retrying if a metrics API times out, tracking every monitoring run, and providing a complete history of pipeline health assessments. You get all of that for free, without writing a single line of orchestration code.
+Each monitoring concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting metrics, analyzing them for anomalies, and generating the report ,  retrying if a metrics API times out, tracking every monitoring run, and providing a complete history of pipeline health assessments. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers power the monitoring pipeline: CollectMetricsWorker gathers raw dat
 | **GenerateReportWorker** | `em_generate_report` | Generates a monitoring report from throughput, latency, and error analysis. |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ em_analyze_errors
     │
     ▼
 em_generate_report
-```
-
-## Example Output
-
-```
-=== Event Monitoring Demo ===
-
-Step 1: Registering task definitions...
-  Registered: em_collect_metrics, em_analyze_throughput, em_analyze_latency, em_analyze_errors, em_generate_report
-
-Step 2: Registering workflow 'event_monitoring_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [em_analyze_errors] Error rate:
-  [em_analyze_latency] Latency avg=
-  [em_analyze_throughput] Analyzing throughput for
-  [em_collect_metrics] Collecting metrics for pipeline:
-  [em_generate_report] Report for pipeline '
-
-  Status: COMPLETED
-  Output: {errorRate=..., latency=..., throughput=..., rawMetrics=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_monitoring_wf \
   --version 1 \
-  --input '{"pipelineName": "sample-name", "order-events-pipeline": "sample-order-events-pipeline", "timeRange": "2025-01-15T10:00:00Z"}'
+  --input '{"pipelineName": "test", "timeRange": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

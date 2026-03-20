@@ -1,8 +1,6 @@
 # Workflow Versioning in Java with Conductor
 
-Run multiple versions of the same workflow side by side .  version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Run multiple versions of the same workflow side by side .  version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.## The Problem
 
 You need to evolve a workflow without breaking existing executions. Version 1 does a calculation (value * 2) then an audit. Version 2 adds a bonus step (+10) between calculation and audit. Both versions must coexist. In-flight v1 executions continue on v1, while new executions can use v2. You need to start workflows against a specific version and compare their outputs.
 
@@ -26,46 +24,10 @@ Three workers support side-by-side workflow versioning: VerCalcWorker performs a
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> VerAuditWorker -> VerBonusWorker -> VerCalcWorker -> Output
-```
-
-## Example Output
-
-```
-=== Workflow Versioning: Run Multiple Versions Simultaneously ===
-
-Step 1: Registering task definitions...
-  Registered: ver_calc, ver_bonus, ver_audit
-
-Step 2: Registering workflow 'versioned_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ver_audit] Auditing result:
-  [ver_bonus] Adding bonus:
-  [ver_calc] Calculating:
-
-  Status: COMPLETED
-  Output: {result=..., audited=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -94,7 +56,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

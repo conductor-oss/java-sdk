@@ -1,8 +1,6 @@
 # Predictive Maintenance in Java with Conductor :  Sensor Data Collection, Trend Analysis, Failure Prediction, and Maintenance Scheduling
 
-A Java Conductor workflow example that orchestrates predictive maintenance for industrial assets .  collecting operational data (temperature, vibration, operating hours), analyzing degradation trends over time, predicting failure dates with confidence scores and recommended actions, and automatically scheduling maintenance work orders with cost estimates and parts procurement. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Predictive Maintenance Needs Orchestration
+A Java Conductor workflow example that orchestrates predictive maintenance for industrial assets .  collecting operational data (temperature, vibration, operating hours), analyzing degradation trends over time, predicting failure dates with confidence scores and recommended actions, and automatically scheduling maintenance work orders with cost estimates and parts procurement. Uses [Conductor](https://github.## Why Predictive Maintenance Needs Orchestration
 
 Preventing unplanned downtime requires turning raw sensor data into maintenance decisions. You collect current operational data .  bearing temperature at 178F, vibration at 3.8 mm/s, 18,500 operating hours since install, 2,500 hours since last maintenance. You analyze trends by computing temperature and vibration slopes over time to derive an overall health score. You feed those trends into a failure prediction model that estimates when the asset will fail (e.g., "May 25, compressor valve, 82% confidence, medium risk"). If maintenance is warranted, you schedule a work order two weeks before the predicted failure date, order the replacement parts (compressor valve CV-300), and estimate the cost.
 
@@ -27,15 +25,6 @@ Four workers drive the maintenance cycle: CollectDataWorker gathers sensor readi
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ pmn_predict_failure
     │
     ▼
 pmn_schedule_maintenance
-```
-
-## Example Output
-
-```
-=== Example 538: Predictive Maintenance ===
-
-Step 1: Registering task definitions...
-  Registered: pmn_collect_data, pmn_analyze_trends, pmn_predict_failure, pmn_schedule_maintenance
-
-Step 2: Registering workflow 'predictive_maintenance_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [trends] Processing
-  [collect] Processing
-  [predict] Processing
-  [schedule] Processing
-
-  Status: COMPLETED
-  Output: {trendAnalysis=..., temperatureSlope=..., vibrationSlope=..., overallHealth=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow predictive_maintenance_workflow \
   --version 1 \
-  --input '{"assetId": "PUMP-538-A", "PUMP-538-A": "assetType", "assetType": "hydraulic_pump", "hydraulic_pump": "siteId", "siteId": "SITE-FACTORY-02", "SITE-FACTORY-02": "sample-SITE-FACTORY-02"}'
+  --input '{"assetId": "TEST-001", "assetType": "test-value", "siteId": "TEST-001"}'
 ```
 
 ### Check workflow status

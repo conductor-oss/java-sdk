@@ -1,8 +1,6 @@
 # Blue Green Deployment in Java with Conductor
 
-Orchestrates blue-green deployment: deploy to green, validate, switch traffic, and monitor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Orchestrates blue-green deployment: deploy to green, validate, switch traffic, and monitor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A zero-downtime deployment requires deploying the new version to a standby environment, validating it with health checks, switching traffic, and monitoring the new version under real load. Each step depends on the previous one, and a failure at any stage must be caught before live traffic is affected.
 
@@ -27,15 +25,6 @@ Four workers manage the rollout lifecycle: DeployGreenWorker provisions the new 
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ bg_switch_traffic
     │
     ▼
 bg_monitor_green
-```
-
-## Example Output
-
-```
-=== Blue-Green Deployment Demo ===
-
-Step 1: Registering task definitions...
-  Registered: bg_deploy_green, bg_validate_green, bg_switch_traffic, bg_monitor_green
-
-Step 2: Registering workflow 'blue_green_deployment'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [deploy] Deploying
-  [monitor] Green running
-  [switch] Traffic shifted:
-  [validate]
-
-  Status: COMPLETED
-  Output: {deployed=..., environment=..., serviceName=..., imageTag=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow blue_green_deployment \
   --version 1 \
-  --input '{"serviceName": "sample-name", "api-gateway": "sample-api-gateway", "newVersion": "sample-newVersion", "3.2.0": "sample-3.2.0", "imageTag": "sample-imageTag"}'
+  --input '{"serviceName": "test", "newVersion": "test-value", "imageTag": "test-value"}'
 ```
 
 ### Check workflow status

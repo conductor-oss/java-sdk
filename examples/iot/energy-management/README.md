@@ -1,8 +1,6 @@
 # Building Energy Management in Java with Conductor :  Consumption Monitoring, Pattern Analysis, and Optimization
 
-A Java Conductor workflow example that orchestrates building energy management .  collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Energy Optimization Needs Orchestration
+A Java Conductor workflow example that orchestrates building energy management .  collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.## Why Energy Optimization Needs Orchestration
 
 Managing energy consumption in a building involves a pipeline where each step depends on what came before. You pull meter readings over a time period to get per-hour kW consumption and total kWh. You feed those readings into pattern analysis to identify when demand spikes .  midday HVAC peaks, overnight baseline loads, equipment-dominant periods. Those patterns drive optimization recommendations: shift HVAC schedules, reduce lighting during low-occupancy hours, project dollar savings. Finally, you compile everything into a report for facilities management.
 
@@ -27,15 +25,6 @@ Four workers analyze building energy: MonitorConsumptionWorker reads kWh meter d
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ erg_optimize
     │
     ▼
 erg_report
-```
-
-## Example Output
-
-```
-=== Energy Management Demo ===
-
-Step 1: Registering task definitions...
-  Registered: erg_monitor_consumption, erg_analyze_patterns, erg_optimize, erg_report
-
-Step 2: Registering workflow 'energy_management_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Identifying usage patterns for
-  [monitor] Building
-  [optimize] Generating optimization plan for
-  [report] Generated report
-
-  Status: COMPLETED
-  Output: {patterns=..., peakHours=..., baselineKw=..., consumption=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow energy_management_demo \
   --version 1 \
-  --input '{"buildingId": "BLDG-A1", "BLDG-A1": "period", "period": "2024-01", "2024-01": "sample-2024-01"}'
+  --input '{"buildingId": "TEST-001", "period": "test-value"}'
 ```
 
 ### Check workflow status

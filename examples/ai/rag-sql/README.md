@@ -1,6 +1,6 @@
 # SQL RAG in Java Using Conductor :  Natural Language to SQL Query Execution
 
-A Java Conductor workflow that turns natural language questions into SQL .  parsing the question to extract intent and entities, generating a SQL query from the question and database schema, validating the SQL for safety and correctness, executing it against the database, and formatting the results into a human-readable answer. This is text-to-SQL RAG where the "retrieval" is a SQL query instead of a vector search. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate NL parsing, SQL generation, validation, execution, and formatting as independent workers ,  you write the SQL generation and validation logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that turns natural language questions into SQL .  parsing the question to extract intent and entities, generating a SQL query from the question and database schema, validating the SQL for safety and correctness, executing it against the database, and formatting the results into a human-readable answer. This is text-to-SQL RAG where the "retrieval" is a SQL query instead of a vector search. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate NL parsing, SQL generation, validation, execution, and formatting as independent workers ,  you write the SQL generation and validation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Querying Databases with Natural Language
 
@@ -28,15 +28,6 @@ Five workers implement natural language to SQL .  parsing the question for inten
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ sq_execute_sql
     │
     ▼
 sq_format_results
-```
-
-## Example Output
-
-```
-=== Example 154: SQL RAG ===
-
-Step 1: Registering task definitions...
-  Registered: sq_parse_nl, sq_generate_sql, sq_validate_sql, sq_execute_sql, sq_format_results
-
-Step 2: Registering workflow 'sql_rag_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [execute_sql] [SIMULATED] Executing SQL:
-  [format_results] [SIMULATED] Formatting
-  [generate_sql] SQL (live OpenAI) for intent \"" + intent + "\":
-  [parse_nl] Parsed (live OpenAI) question: \"" + question + "\"
-  [validate_sql] [SIMULATED] Validating SQL:
-
-  Status: COMPLETED
-  Output: {rows=..., rowCount=..., workflow_name=..., execution_count=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sql_rag_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "What are the most executed workflows in the last 7 days?": "sample-What are the most executed workflows in the last 7 days?", "dbSchema": "sample-dbSchema"}'
+  --input '{"question": "test-value", "dbSchema": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Workflow Variables in Java with Conductor
 
-Shows how variables and expressions work across tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Shows how variables and expressions work across tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to accumulate state across multiple tasks in an order pricing pipeline. Calculate the subtotal from items, apply a tier-based discount, compute shipping costs, and build a final summary. Each task depends on results from earlier tasks and the original workflow input. Workflow variables and expressions let you reference any task's output from any subsequent task using `${task_ref.output.field}` syntax.
 
@@ -26,15 +24,6 @@ Three workers form an order pricing pipeline connected by variable expressions: 
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -48,33 +37,6 @@ wv_calc_shipping
     │
     ▼
 wv_build_summary
-```
-
-## Example Output
-
-```
-=== Workflow Variables: Persisting State Across Tasks ===
-
-Step 1: Registering task definitions...
-  Registered: wv_calc_price, wv_calc_shipping, wv_build_summary
-
-Step 2: Registering workflow 'workflow_variables_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [summary]
-  [price]
-  [shipping]
-
-  Status: COMPLETED
-  Output: {summary=..., subtotal=..., itemCount=..., shippingCost=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow workflow_variables_demo \
   --version 1 \
-  --input '{"orderId": "ORD-5001", "ORD-5001": "customerTier", "customerTier": "gold", "gold": "items", "items": [{"name": "Widget A", "quantity": 2}, {"name": "Widget B", "quantity": 1}]}'
+  --input '{"orderId": "TEST-001", "items": "test-value", "customerTier": "test-value"}'
 ```
 
 ### Check workflow status

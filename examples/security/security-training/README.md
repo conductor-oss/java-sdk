@@ -1,8 +1,6 @@
 # Implementing Security Awareness Training in Java with Conductor :  Module Assignment, Phishing Simulation, Evaluation, and Compliance Reporting
 
-A Java Conductor workflow example for automated security awareness campaigns .  assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for automated security awareness campaigns .  assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.## The Problem
 
 You need to run security awareness campaigns across your organization. Each campaign involves assigning training modules to a department's employees, sending simulated phishing emails to test their real-world response, evaluating who completed the training and who clicked the phishing link, and generating a compliance report showing pass/fail rates. Regulatory frameworks like SOC 2 and ISO 27001 require documented evidence that these campaigns ran and that results were recorded.
 
@@ -27,47 +25,10 @@ Four workers run the awareness campaign: StAssignTrainingWorker assigns modules 
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> StAssignTrainingWorker -> StEvaluateResultsWorker -> StReportComplianceWorker -> StSendPhishingSimWorker -> Output
-```
-
-## Example Output
-
-```
-=== Example 393: Security Training ===
-
-Step 1: Registering task definitions...
-  Registered: st_assign_training, st_send_phishing_sim, st_evaluate_results, st_report_compliance
-
-Step 2: Registering workflow 'security_training_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assign]
-  [evaluate] 42/45 completed training, 8% phishing susceptibility
-  [report] Training compliance report generated
-  [phishing] Phishing simulation sent: 8% click rate
-
-  Status: COMPLETED
-  Output: {assign_trainingId=..., success=..., evaluate_results=..., processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

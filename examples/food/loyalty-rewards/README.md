@@ -1,8 +1,6 @@
 # Loyalty Rewards in Java with Conductor
 
-Processes restaurant loyalty rewards: calculating points earned, evaluating tier status, applying redemptions, and updating the customer's loyalty account. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Processes restaurant loyalty rewards: calculating points earned, evaluating tier status, applying redemptions, and updating the customer's loyalty account. Uses [Conductor](https://github.## The Problem
 
 You need to process loyalty rewards for a restaurant customer. The workflow calculates points earned from the current order, checks the customer's loyalty tier (bronze, silver, gold, platinum), processes any point redemptions the customer wants to apply, and updates their loyalty account. Earning points without checking the tier means missing tier-specific bonuses; redeeming without validating the balance allows overdrafts.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd embed loyalty logic in the checkout flow .  manuall
 
 **You just write the points calculation, tier evaluation, redemption processing, and account update logic. Conductor handles points calculation retries, tier evaluation, and reward redemption audit trails.**
 
-Each loyalty concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (earn points, check tier, redeem, track), retrying if the loyalty database is unavailable, tracking every loyalty transaction, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each loyalty concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (earn points, check tier, redeem, track), retrying if the loyalty database is unavailable, tracking every loyalty transaction, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Purchase tracking, points calculation, tier evaluation, and reward redemption wo
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ lyr_redeem
     │
     ▼
 lyr_track
-```
-
-## Example Output
-
-```
-=== Example 737: Loyalty Rewards ===
-
-Step 1: Registering task definitions...
-  Registered: lyr_earn_points, lyr_check_tier, lyr_redeem, lyr_track
-
-Step 2: Registering workflow 'loyalty_rewards_737'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tier] Customer tier:
-  [earn] Customer
-  [redeem] Redeeming
-  [track] Loyalty updated: earned=
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow loyalty_rewards_737 \
   --version 1 \
-  --input '{"customerId": "CUST-42", "CUST-42": "orderTotal", "orderTotal": 65}'
+  --input '{"customerId": "TEST-001", "orderTotal": "test-value", "redeemPoints": "test-value"}'
 ```
 
 ### Check workflow status

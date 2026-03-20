@@ -1,8 +1,6 @@
 # Claim Check Pattern in Java Using Conductor :  Offload Large Payloads, Pass by Reference
 
-A Java Conductor workflow example for the claim check pattern .  storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Keeping Large Payloads Out of Your Message Bus
+A Java Conductor workflow example for the claim check pattern .  storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.## Keeping Large Payloads Out of Your Message Bus
 
 Workflow tasks exchange data through their inputs and outputs, but passing a 50 MB medical image or a 200 MB CSV dataset directly between tasks bloats every message, slows serialization, and can hit broker size limits. The claim check pattern solves this: store the large payload in blob storage, pass a small reference ID (the "claim check") through the pipeline, and retrieve the full data only in the task that actually needs it.
 
@@ -27,15 +25,6 @@ Four workers manage the store-reference-retrieve lifecycle: payload storage, ref
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ clc_retrieve
     │
     ▼
 clc_process
-```
-
-## Example Output
-
-```
-=== Example 591: Claim Check ===
-
-Step 1: Registering task definitions...
-  Registered: clc_store_payload, clc_pass_reference, clc_retrieve, clc_process
-
-Step 2: Registering workflow 'clc_claim_check'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [reference] Passing lightweight reference:
-  [process] Processing retrieved payload
-  [retrieve] Retrieving payload from
-  [store] Stored payload (
-
-  Status: COMPLETED
-  Output: {claimCheckId=..., storageLocation=..., referenceSizeBytes=..., processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow clc_claim_check \
   --version 1 \
-  --input '{"payload": {"key": "value"}}'
+  --input '{"payload": "test-value", "storageType": "test-value"}'
 ```
 
 ### Check workflow status

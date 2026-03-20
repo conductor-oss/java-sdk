@@ -1,8 +1,6 @@
 # APM Workflow in Java with Conductor :  Analyze Latency, Report Metrics, Collect Traces, Detect Bottlenecks
 
-Automates Application Performance Monitoring (APM) analysis using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects distributed traces for a service, analyzes latency percentiles (p50/p95/p99), detects performance bottlenecks like N+1 queries and large payload serialization, and generates an APM report with actionable recommendations. You write the performance analysis logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Finding the Slow Endpoints
+Automates Application Performance Monitoring (APM) analysis using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects distributed traces for a service, analyzes latency percentiles (p50/p95/p99), detects performance bottlenecks like N+1 queries and large payload serialization, and generates an APM report with actionable recommendations.## Finding the Slow Endpoints
 
 Your checkout service handled 25,000 requests in the last hour. Most responded in 45ms, but the p99 is 520ms. Something is dragging the tail. Two endpoints are suspiciously slow: `/api/search` has an N+1 query problem, and `/api/export` is choking on large payload serialization. You need to collect the traces, crunch the latency numbers, pinpoint the bottlenecks, and produce a report the team can act on.
 
@@ -27,47 +25,10 @@ Four workers handle APM analysis. Collecting distributed traces, analyzing laten
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> AnalyzeLatency -> ApmReport -> CollectTraces -> DetectBottlenecks -> Output
-```
-
-## Example Output
-
-```
-=== Example 421: APM Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: apm_analyze_latency, apm_report, apm_collect_traces, apm_detect_bottlenecks
-
-Step 2: Registering workflow 'apm_workflow_421'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apm_analyze_latency] Analyzing latency from
-  [apm_report] Generating APM report for
-  [apm_collect_traces] Collecting traces for
-  [apm_detect_bottlenecks] Detecting bottlenecks (p99:
-
-  Status: COMPLETED
-  Output: {p50Latency=..., p95Latency=..., p99Latency=..., meanLatency=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

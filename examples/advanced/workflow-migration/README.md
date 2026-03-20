@@ -1,8 +1,6 @@
 # Workflow Migration in Java Using Conductor :  Export from Legacy, Transform, Import to New, Verify
 
-A Java Conductor workflow example for workflow migration .  exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Migrating from Legacy Orchestration Without Losing History
+A Java Conductor workflow example for workflow migration .  exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.## Migrating from Legacy Orchestration Without Losing History
 
 You're moving from Airflow to Conductor (or Jenkins to Conductor, or a custom cron-based system). The legacy system has 200 workflow definitions, execution history that auditors need, and active runs that can't be interrupted. Migration means exporting the old definitions and history, transforming them into the target format (different task naming, different input/output schemas), importing them into the new system, and verifying that the migrated workflows produce identical results.
 
@@ -27,15 +25,6 @@ Four workers handle the migration pipeline: legacy system export, schema transfo
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ wm_import_new
     │
     ▼
 wm_verify
-```
-
-## Example Output
-
-```
-=== Workflow Migration Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wm_export_old, wm_transform, wm_import_new, wm_verify
-
-Step 2: Registering workflow 'workflow_migration_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [export] Processing
-  [import] Processing
-  [transform] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {exported=..., definition=..., format=..., taskCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow workflow_migration_demo \
   --version 1 \
-  --input '{"sourceSystem": "sample-sourceSystem", "legacy-bpm": "sample-legacy-bpm", "targetSystem": "sample-targetSystem", "conductor-oss": "sample-conductor-oss", "workflowName": "sample-name"}'
+  --input '{"sourceSystem": "test-value", "targetSystem": "test-value", "workflowName": "test"}'
 ```
 
 ### Check workflow status

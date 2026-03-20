@@ -1,8 +1,6 @@
 # Ordered Message Processing in Java Using Conductor :  Receive, Sort by Sequence, Process in Order, Verify
 
-A Java Conductor workflow example for ordered message processing .  receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Messages Arrive Out of Order, but Must Be Processed Sequentially
+A Java Conductor workflow example for ordered message processing .  receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.## Messages Arrive Out of Order, but Must Be Processed Sequentially
 
 A financial trading system emits order updates .  placed, partially filled, fully filled, cancelled. These events arrive over a message queue that doesn't guarantee ordering. Processing a cancellation before the placement, or a fill before the partial fill, produces incorrect portfolio state. The sequence numbers are embedded in the messages, but reconstructing order from a shuffled batch requires buffering, sorting, and then processing each message one at a time.
 
@@ -27,15 +25,6 @@ Four workers enforce sequential processing: message reception, sequence-number s
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ opr_process_in_order
     │
     ▼
 opr_verify_order
-```
-
-## Example Output
-
-```
-=== Ordered Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: opr_receive, opr_sort_by_sequence, opr_process_in_order, opr_verify_order
-
-Step 2: Registering workflow 'opr_ordered_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [process] Processing
-  [receive] Processing
-  [sort] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {processedOrder=..., processedCount=..., receivedMessages=..., count=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow opr_ordered_processing \
   --version 1 \
-  --input '{"messages": "Sample messages", "seq": "sample-seq", "data": "sample-data"}'
+  --input '{"messages": "test-value", "partitionKey": "test-value"}'
 ```
 
 ### Check workflow status

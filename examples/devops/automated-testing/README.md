@@ -1,8 +1,6 @@
 # Automated Testing Pipeline in Java with Conductor :  Setup Environment, Parallel Test Suites, Aggregate Results
 
-Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Parallel Testing Cuts Pipeline Time by 3x
+Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Parallel Testing Cuts Pipeline Time by 3x
 
 A test suite takes 30 minutes to run sequentially: 10 minutes for unit tests, 15 minutes for integration tests, 5 minutes for performance tests. Running all three in parallel brings it down to 15 minutes (the slowest suite). But parallel execution requires a shared environment setup, independent test runners, and a final aggregation step that merges results from all three suites.
 
@@ -28,16 +26,6 @@ Five workers run the test pipeline. Setting up the environment, executing unit/i
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 at_aggregate_results
-```
-
-## Example Output
-
-```
-=== Automated Testing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: at_aggregate_results, at_run_e2e, at_run_integration, at_run_unit, at_setup_env
-
-Step 2: Registering workflow 'automated_testing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [at_aggregate_results] All tests passed
-  [at_run_e2e] 12 tests passed
-  [at_run_integration] 18 tests passed
-  [at_run_unit] 247 tests passed
-  [at_setup_env] Test environment ready
-
-  Status: COMPLETED
-  Output: {totalPassed=..., totalFailed=..., coverage=..., passed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow automated_testing_workflow \
   --version 1 \
-  --input '{"suite": "integration", "branch": "main"}'
+  --input '{"suite": "test-value", "branch": "test-value"}'
 ```
 
 ### Check workflow status

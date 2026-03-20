@@ -1,8 +1,6 @@
 # Sync Execution in Java with Conductor
 
-Simple workflow for demonstrating sync vs async execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Simple workflow for demonstrating sync vs async execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to execute a workflow and get the result back immediately in the same API call .  like a synchronous function call that happens to be a full workflow under the hood. For example, adding two numbers and returning the sum to the caller without them needing to poll for the result. The caller sends `{a: 5, b: 3}` and gets `{sum: 8}` back in the HTTP response, even though the computation ran through the full Conductor workflow engine with retries, durability, and tracking.
 
@@ -24,44 +22,10 @@ A single worker demonstrates the synchronous execution pattern: AddWorker takes 
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 sync_add
-```
-
-## Example Output
-
-```
-=== Example 45: Synchronous Workflow Executio ===
-
-Step 1: Registering task definitions...
-  Registered: sync_add
-
-Step 2: Registering workflow 'sync_exec_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [WORKER] sync_add:
-
-  Status: COMPLETED
-  Output: {sum=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sync_exec_demo \
   --version 1 \
-  --input '{"a": 7}'
+  --input '{"a": "test-value", "b": "test-value"}'
 ```
 
 ### Check workflow status

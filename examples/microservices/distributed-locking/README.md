@@ -1,8 +1,6 @@
 # Distributed Locking in Java with Conductor
 
-Distributed locking for concurrency control. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Distributed locking for concurrency control. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 When multiple service instances process the same resource concurrently, you need a distributed lock to prevent race conditions. The workflow acquires a lock with a TTL on a named resource, executes the critical-section operation while holding the lock, and then releases it. If the process crashes, the TTL ensures the lock is eventually released.
 
@@ -26,15 +24,6 @@ Three workers enforce mutual exclusion: AcquireLockWorker obtains a distributed 
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ dl_execute_critical
     │
     ▼
 dl_release_lock
-```
-
-## Example Output
-
-```
-=== Example 326: Distributed Locking ===
-
-Step 1: Registering task definitions...
-  Registered: dl_acquire_lock, dl_execute_critical, dl_release_lock
-
-Step 2: Registering workflow 'distributed_locking_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [lock] Acquired lock on
-  [critical] Executing
-  [unlock] Released lock
-
-  Status: COMPLETED
-  Output: {lockToken=..., acquired=..., result=..., version=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow distributed_locking_workflow \
   --version 1 \
-  --input '{"resourceId": "inventory-item-500", "inventory-item-500": "operation", "operation": "decrement-stock", "decrement-stock": "ttlSeconds", "ttlSeconds": 30}'
+  --input '{"resourceId": "TEST-001", "operation": "test-value", "ttlSeconds": "test-value"}'
 ```
 
 ### Check workflow status

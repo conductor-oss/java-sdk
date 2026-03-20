@@ -1,8 +1,6 @@
 # IoT Security in Java with Conductor :  Network Scanning, Vulnerability Detection, Automated Patching, and Verification
 
-A Java Conductor workflow example that orchestrates IoT security operations .  scanning the device network to discover connected devices, detecting vulnerabilities on each device (expired certificates, default credentials, known CVEs), pushing security patches to affected devices, and verifying all devices pass a post-patch security check. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why IoT Security Workflows Need Orchestration
+A Java Conductor workflow example that orchestrates IoT security operations .  scanning the device network to discover connected devices, detecting vulnerabilities on each device (expired certificates, default credentials, known CVEs), pushing security patches to affected devices, and verifying all devices pass a post-patch security check. Uses [Conductor](https://github.## Why IoT Security Workflows Need Orchestration
 
 Securing an IoT network is a strict pipeline where skipping a step or executing out of order creates real risk. You scan the network to discover all connected devices .  cameras, sensors, gateways. You run vulnerability detection against the inventory to find devices with expired TLS certificates, default passwords, or firmware versions affected by known CVEs. You push security patches to the specific affected devices. After patching, you re-verify that every device on the network passes the security check.
 
@@ -27,15 +25,6 @@ Four workers secure the IoT network: ScanDevicesWorker discovers connected devic
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ios_patch
     │
     ▼
 ios_verify
-```
-
-## Example Output
-
-```
-=== Example 550: IoT Security ===
-
-Step 1: Registering task definitions...
-  Registered: ios_scan_devices, ios_detect_vulnerabilities, ios_patch, ios_verify
-
-Step 2: Registering workflow 'iot_security_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [vulnerabilities] Processing task
-  [patch] Processing task
-  [scan] Processing task
-  [verify] Processing task
-
-  Status: COMPLETED
-  Output: {vulnerabilities=..., vulnCount=..., affectedDevices=..., patchedDevices=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow iot_security_demo \
   --version 1 \
-  --input '{"networkId": "NET-OFFICE-1", "NET-OFFICE-1": "scanDepth", "scanDepth": "full", "full": "sample-full"}'
+  --input '{"networkId": "TEST-001", "scanDepth": "test-value"}'
 ```
 
 ### Check workflow status

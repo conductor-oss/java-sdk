@@ -1,8 +1,6 @@
 # ETL Workflow Templating in Java Using Conductor :  Extract, Transform, Load, Verify
 
-A Java Conductor workflow example for ETL workflow templating .  extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job ,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Every ETL Job Is Extract-Transform-Load, but the Details Differ
+A Java Conductor workflow example for ETL workflow templating .  extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job ,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.## Every ETL Job Is Extract-Transform-Load, but the Details Differ
 
 Your company runs 50 ETL jobs. Each extracts from a different source (PostgreSQL, Salesforce API, S3 CSV files), transforms differently (currency conversion, deduplication, schema mapping), and loads to a different destination (Snowflake, Redshift, BigQuery). But the structure is always the same: extract, transform, load, verify. Without a template, each ETL job is built from scratch, duplicating retry logic, error handling, and verification.
 
@@ -27,15 +25,6 @@ Four workers implement the reusable ETL template: source extraction, rule-based 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ wtm_load
     │
     ▼
 wtm_verify
-```
-
-## Example Output
-
-```
-=== Workflow Templating Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wtm_extract, wtm_transform, wtm_load, wtm_verify
-
-Step 2: Registering workflow 'wtm_etl_postgres_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [extract] Processing
-  [load] Processing
-  [transform] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {records=..., recordCount=..., loadedCount=..., destination=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wtm_etl_postgres_demo \
   --version 1 \
-  --input '{"batchId": "BATCH-POSTGRES", "BATCH-POSTGRES": "sample-BATCH-POSTGRES"}'
+  --input '{"batchId": "TEST-001", "options": "test-value"}'
 ```
 
 ### Check workflow status

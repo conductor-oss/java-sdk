@@ -1,8 +1,6 @@
 # File Processing Agent in Java Using Conductor :  Detect Type, Extract Content, Analyze, Summarize
 
-File Processing Agent .  detect file type, extract content, analyze, and generate summary through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Different File Types Need Different Processing
+File Processing Agent .  detect file type, extract content, analyze, and generate summary through a sequential pipeline. Uses [Conductor](https://github.## Different File Types Need Different Processing
 
 A user uploads a file. Is it a PDF contract that needs text extraction and clause identification? A CSV dataset that needs column analysis and statistical summaries? A JSON config file that needs schema validation? An image that needs OCR or object detection? The processing pipeline must adapt to the file type.
 
@@ -27,15 +25,6 @@ Four workers process uploaded files. Detecting the type, extracting content with
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ fp_analyze_content
     │
     ▼
 fp_generate_summary
-```
-
-## Example Output
-
-```
-=== File Processing Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: fp_detect_file_type, fp_extract_content, fp_analyze_content, fp_generate_summary
-
-Step 2: Registering workflow 'file_processing_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [fp_analyze_content] Analyzing content of type:
-  [fp_detect_file_type] Detecting file type for:
-  [fp_extract_content] Extracting content from:
-  [fp_generate_summary] Generating summary for:
-
-  Status: COMPLETED
-  Output: {analysis=..., keyFindings=..., fileType=..., extractionMethod=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow file_processing_agent \
   --version 1 \
-  --input '{"fileName": "sample-name", "acme_q4_2025_financial_report.pdf": "sample-acme-q4-2025-financial-report.pdf", "fileSize": 5, "mimeType": "standard"}'
+  --input '{"fileName": "test", "fileSize": 10, "mimeType": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Swap in real PDF/CSV parsers and NLP analysis; the file processing pipeline main
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -12,7 +12,7 @@ Without orchestration, optional tasks are implemented with try/catch blocks that
 
 **You just write the core processing and optional enrichment logic. Conductor handles marking tasks as optional, continuing the pipeline when optional tasks fail, and clear tracking of whether enrichment succeeded or was skipped for every execution.**
 
-The required worker runs first. The optional enrichment worker is configured to continue on failure. Conductor marks it as optional. The summarize worker checks whether enrichment data is present and adapts its output accordingly. Every execution shows clearly whether enrichment succeeded or was skipped, and why. You get all of that for free, without writing a single line of orchestration code.
+The required worker runs first. The optional enrichment worker is configured to continue on failure. Conductor marks it as optional. The summarize worker checks whether enrichment data is present and adapts its output accordingly. Every execution shows clearly whether enrichment succeeded or was skipped, and why. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,6 @@ RequiredWorker handles the core processing that must succeed, OptionalEnrichWork
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ opt_optional_enrich
     │
     ▼
 opt_summarize
-```
-
-## Example Output
-
-```
-=== Optional Task Demo: Task-Level Error Handling ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'optional_tasks_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [opt_optional_enrich] Enriching data...
-  [opt_required] Processing data:
-  [opt_summarize] processedData=
-
-  Status: COMPLETED
-  Output: {enriched=..., result=..., summary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow optional_tasks_demo \
   --version 1 \
-  --input '{"data": "sample-data"}'
+  --input '{"data": "test-value"}'
 ```
 
 ### Check workflow status

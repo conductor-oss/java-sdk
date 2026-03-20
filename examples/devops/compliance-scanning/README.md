@@ -1,8 +1,6 @@
 # Compliance Scanning in Java with Conductor :  Resource Discovery, Policy Scanning, Report Generation, and Auto-Remediation
 
-Orchestrates infrastructure compliance scanning using [Conductor](https://github.com/conductor-oss/conductor). This workflow discovers all resources in a target environment, scans them against a compliance framework's policies (SOC 2, HIPAA, PCI-DSS, CIS benchmarks), generates an audit-ready compliance report with pass/fail results per policy, and auto-remediates fixable violations like open security groups or unencrypted storage. You write the compliance logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Staying Compliant at Scale
+Orchestrates infrastructure compliance scanning using [Conductor](https://github.com/conductor-oss/conductor). This workflow discovers all resources in a target environment, scans them against a compliance framework's policies (SOC 2, HIPAA, PCI-DSS, CIS benchmarks), generates an audit-ready compliance report with pass/fail results per policy, and auto-remediates fixable violations like open security groups or unencrypted storage.## Staying Compliant at Scale
 
 Your auditor asks for evidence that every S3 bucket has encryption enabled, every security group restricts SSH access, and every database has automated backups configured. You have 200 resources across three AWS accounts. Manually checking each one takes days, and by the time you finish, someone has already created a new unencrypted bucket. You need automated discovery of all resources in the environment, policy scanning against the specified compliance framework, a report that the auditor can read, and automatic remediation of the violations you can fix without human intervention.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single compliance script that inventories r
 
 **You write the compliance checks and remediation logic. Conductor handles scan-to-report sequencing, remediation gating, and audit trail generation.**
 
-Each stage of the compliance pipeline is a simple, independent worker. The resource discoverer inventories all infrastructure resources in the target environment. EC2 instances, S3 buckets, RDS databases, security groups, IAM roles. The policy scanner checks each discovered resource against the specified compliance framework's rules and flags violations. The report generator produces an audit-ready compliance report with pass/fail results, violation details, and remediation recommendations. The remediator auto-fixes violations that have safe automated remediation paths (enabling encryption, restricting overly-permissive security groups, enabling logging). Conductor executes them in strict sequence, ensures remediation only runs after the report is generated, retries if the cloud API is rate-limited, and tracks resource counts and violation counts at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the compliance pipeline is a simple, independent worker. The resource discoverer inventories all infrastructure resources in the target environment. EC2 instances, S3 buckets, RDS databases, security groups, IAM roles. The policy scanner checks each discovered resource against the specified compliance framework's rules and flags violations. The report generator produces an audit-ready compliance report with pass/fail results, violation details, and remediation recommendations. The remediator auto-fixes violations that have safe automated remediation paths (enabling encryption, restricting overly-permissive security groups, enabling logging). Conductor executes them in strict sequence, ensures remediation only runs after the report is generated, retries if the cloud API is rate-limited, and tracks resource counts and violation counts at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers execute the compliance pipeline. Discovering cloud resources, scann
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ cs_generate_report
     │
     ▼
 cs_remediate
-```
-
-## Example Output
-
-```
-=== Example 480: Compliance Scanning ===
-
-Step 1: Registering task definitions...
-  Registered: cs_discover_resources, cs_scan_policies, cs_generate_report, cs_remediate
-
-Step 2: Registering workflow 'compliance_scanning_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [discover] Found 156 resources in production
-  [report] Compliance report generated
-  [remediate] Auto-remediated 2 critical findings
-  [scan] Scanned against CIS-AWS framework
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow compliance_scanning_workflow \
   --version 1 \
-  --input '{"environment": "sample-environment", "production": "sample-production", "framework": "sample-framework"}'
+  --input '{"environment": "test-value", "framework": "test-value"}'
 ```
 
 ### Check workflow status

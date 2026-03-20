@@ -1,8 +1,6 @@
 # Gaming Matchmaking in Java Using Conductor
 
-Matches players into a fair, balanced game session: searching the player pool, rating skill levels, creating a balanced match, provisioning a lobby, and starting the game. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Matches players into a fair, balanced game session: searching the player pool, rating skill levels, creating a balanced match, provisioning a lobby, and starting the game. Uses [Conductor](https://github.## The Problem
 
 You need to match players into a fair, balanced game session. The workflow searches for players queuing in the same game mode and region, evaluates each player's skill rating (ELO, MMR, Glicko), finds a balanced match that minimizes skill disparity, creates a game lobby with the matched players, and starts the session. Unbalanced matches frustrate both sides .  skilled players get bored, new players get destroyed.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a matchmaking service with a queue poller, sk
 
 **You just write the player search, skill rating, match balancing, lobby creation, and game start logic. Conductor handles queue retries, match formation timing, and matchmaking audit trails.**
 
-Each matchmaking concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (search players, rate skill, match, create lobby, start), retrying if the player database is slow, tracking every matchmaking operation, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each matchmaking concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (search players, rate skill, match, create lobby, start), retrying if the player database is slow, tracking every matchmaking operation, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Player profiling, queue management, match formation, and lobby creation workers 
 | **StartWorker** | `gmm_start` | Starts the game session in the lobby and assigns the map |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ gmm_create_lobby
     │
     ▼
 gmm_start
-```
-
-## Example Output
-
-```
-=== Example 741: Gaming Matchmaking ===
-
-Step 1: Registering task definitions...
-  Registered: gmm_search_players, gmm_rate_skill, gmm_match, gmm_create_lobby, gmm_start
-
-Step 2: Registering workflow 'gaming_matchmaking_741'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [lobby] Creating lobby for match
-  [match] Creating balanced match for player
-  [skill] Rating players by skill
-  [search] Searching
-  [start] Game started in lobby
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gaming_matchmaking_741 \
   --version 1 \
-  --input '{"playerId": "P-042", "P-042": "gameMode", "gameMode": "ranked", "ranked": "region", "region": "NA", "NA": "sample-NA"}'
+  --input '{"playerId": "TEST-001", "gameMode": "test-value", "region": "test-value"}'
 ```
 
 ### Check workflow status

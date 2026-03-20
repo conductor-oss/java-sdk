@@ -1,8 +1,6 @@
 # Dependency Update in Java with Conductor :  Outdated Scanning, Version Bumping, Test Verification, and PR Creation
 
-Orchestrates automated dependency updates using [Conductor](https://github.com/conductor-oss/conductor). This workflow scans a repository for outdated dependencies, updates them to the latest compatible versions (patch, minor, or major depending on the update type), runs the test suite to verify nothing breaks, and creates a pull request with the changes. You write the update logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Stale Dependency Problem
+Orchestrates automated dependency updates using [Conductor](https://github.com/conductor-oss/conductor). This workflow scans a repository for outdated dependencies, updates them to the latest compatible versions (patch, minor, or major depending on the update type), runs the test suite to verify nothing breaks, and creates a pull request with the changes.## The Stale Dependency Problem
 
 Your project has 47 dependencies, and 12 of them are behind by at least one minor version. Three have known CVEs. Updating them manually means editing pom.xml or package.json, running tests, finding that one update broke something, reverting it, trying the next one, and eventually giving up because it's Friday. The dependencies stay stale until a security scanner flags them as critical, by which point you're four versions behind and the upgrade path involves breaking changes.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd run `mvn versions:display-dependency-updates`, manu
 
 **You write the scanning and update logic. Conductor handles the scan-test-PR pipeline and ensures PRs only open after tests pass.**
 
-Each stage of the dependency update pipeline is a simple, independent worker. The scanner checks the repository for outdated dependencies and identifies available updates based on the configured update type (patch-only for safety, minor for features, major for everything). The updater modifies the dependency manifest files to the target versions. The test runner executes the full test suite against the updated dependencies to catch regressions before anything gets merged. The PR creator opens a pull request with the dependency changes, a summary of what was updated and from/to versions, and the test results. Conductor executes them in strict sequence, ensures the PR is only created if tests pass, retries if the package registry is temporarily unavailable, and tracks how many dependencies were scanned, updated, and verified. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the dependency update pipeline is a simple, independent worker. The scanner checks the repository for outdated dependencies and identifies available updates based on the configured update type (patch-only for safety, minor for features, major for everything). The updater modifies the dependency manifest files to the target versions. The test runner executes the full test suite against the updated dependencies to catch regressions before anything gets merged. The PR creator opens a pull request with the dependency changes, a summary of what was updated and from/to versions, and the test results. Conductor executes them in strict sequence, ensures the PR is only created if tests pass, retries if the package registry is temporarily unavailable, and tracks how many dependencies were scanned, updated, and verified. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +23,6 @@ Three workers automate the dependency update cycle. Scanning for outdated packag
 | **UpdateDepsWorker** | `du_update_deps` | Updates dependency manifest files to the target versions (2 major, 3 minor, 3 patch) |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -48,33 +37,6 @@ du_run_tests
     │
     ▼
 du_create_pr
-```
-
-## Example Output
-
-```
-=== Example 334: Dependency Update ===
-
-Step 1: Registering task definitions...
-  Registered: du_scan_outdated, du_update_deps, du_run_tests, du_create_pr
-
-Step 2: Registering workflow 'dependency_update_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [pr] Pull request created with dependency diff
-  [test] All 142 tests passed after update
-  [scan] auth-service: 8 outdated dependencies
-  [update] Updated 8 dependencies: 2 major, 3 minor, 3 patch
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow dependency_update_workflow \
   --version 1 \
-  --input '{"repository": "sample-repository", "auth-service": "sample-auth-service", "updateType": "standard"}'
+  --input '{"repository": "test-value", "updateType": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

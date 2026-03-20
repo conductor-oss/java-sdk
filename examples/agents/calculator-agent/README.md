@@ -1,8 +1,6 @@
 # Calculator Agent in Java Using Conductor :  Parse Expressions, Compute Steps, Explain Results
 
-Calculator Agent .  parse a math expression, compute step-by-step following PEMDAS, and explain the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Math Agents Need to Show Their Work
+Calculator Agent .  parse a math expression, compute step-by-step following PEMDAS, and explain the result. Uses [Conductor](https://github.## Math Agents Need to Show Their Work
 
 An LLM asked to compute "(15.7 + 3.3) * 2.5 / (1 + 0.1)" will often get the wrong answer .  large language models are unreliable at arithmetic. A calculator agent separates understanding from computation: first parse the expression into structured operations (identify operands, operators, and precedence), then compute each step with proper floating-point precision, then explain the solution process so the user understands the reasoning.
 
@@ -26,15 +24,6 @@ Three workers separate math reasoning from computation. Parsing the expression, 
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ ca_compute_steps
     │
     ▼
 ca_explain_result
-```
-
-## Example Output
-
-```
-=== Calculator Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ca_parse_expression, ca_compute_steps, ca_explain_result
-
-Step 2: Registering workflow 'calculator_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ca_compute_steps] Computing with precision:
-  [ca_explain_result] Explaining result for:
-  [ca_parse_expression] Parsing expression:
-
-  Status: COMPLETED
-  Output: {steps=..., finalResult=..., precision=..., explanation=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow calculator_agent \
   --version 1 \
-  --input '{"expression": "sample-expression", "15 * (8 + 4) - 12 / 3": "sample-15 * (8 + 4) - 12 / 3", "precision": "sample-precision"}'
+  --input '{"expression": "test-value", "precision": "test-value"}'
 ```
 
 ### Check workflow status
@@ -167,7 +129,6 @@ Swap in a real math library or LLM parser; the parse-compute-explain pipeline ma
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

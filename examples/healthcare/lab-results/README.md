@@ -1,8 +1,6 @@
 # Lab Results Processing in Java Using Conductor :  Sample Collection, Processing, Analysis, Reporting, and Physician Notification
 
-A Java Conductor workflow example for laboratory results processing .  collecting patient samples, processing specimens through the lab, running analyses to produce test results, generating the lab report with reference ranges and interpretations, and notifying the ordering physician. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for laboratory results processing .  collecting patient samples, processing specimens through the lab, running analyses to produce test results, generating the lab report with reference ranges and interpretations, and notifying the ordering physician. Uses [Conductor](https://github.## The Problem
 
 You need to manage the lifecycle of a lab order from sample collection through physician notification. A lab order comes in with a patient ID, order ID, and test type (CBC, BMP, lipid panel, etc.). The sample must be collected and accessioned with a barcode linking it to the order. The specimen is processed (centrifuged, aliquoted, loaded onto the analyzer). The analyzer runs the test and produces raw values. Those results must be formatted into a report with reference ranges, abnormal flags, and critical value alerts. Finally, the ordering physician must be notified .  immediately for critical values, routinely for normal results. A lost sample or unreported critical value can delay diagnosis or endanger the patient.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic LIS (Laboratory Information Syst
 
 **You just write the lab pipeline workers. Sample accessioning, specimen processing, test analysis, report generation, and physician notification. Conductor handles pipeline sequencing, automatic retries when an analyzer interface is temporarily offline, and a complete chain of custody for CAP/CLIA compliance.**
 
-Each stage of the lab pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of processing only after collection, analyzing only after processing, generating the report only after analysis completes, notifying the physician after the report is finalized, and maintaining a complete chain of custody for CAP/CLIA compliance. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the lab pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of processing only after collection, analyzing only after processing, generating the report only after analysis completes, notifying the physician after the report is finalized, and maintaining a complete chain of custody for CAP/CLIA compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers cover the lab pipeline: CollectSampleWorker accessions specimens, P
 | **LabNotifyWorker** | `lab_notify` | Sends the results to the ordering physician .  immediate notification for critical values, routine for normal |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ lab_report
     │
     ▼
 lab_notify
-```
-
-## Example Output
-
-```
-=== Example 474: Lab Results ===
-
-Step 1: Registering task definitions...
-  Registered: lab_collect_sample, lab_process, lab_analyze, lab_report, lab_notify
-
-Step 2: Registering workflow 'lab_results_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzing sample
-  [collect] Sample collected for
-  [notify] Physician notified via
-  [report] Generated report - abnormal results detected
-  [process] Processing sample
-
-  Status: COMPLETED
-  Output: {results=..., critical=..., sampleId=..., collectedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lab_results_workflow \
   --version 1 \
-  --input '{"orderId": "LAB-ORD-5501", "LAB-ORD-5501": "patientId", "patientId": "PAT-10234", "PAT-10234": "testType", "testType": "comprehensive_metabolic_panel", "comprehensive_metabolic_panel": "sample-comprehensive-metabolic-panel"}'
+  --input '{"orderId": "TEST-001", "patientId": "TEST-001", "testType": "test-value"}'
 ```
 
 ### Check workflow status

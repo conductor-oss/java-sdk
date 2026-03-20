@@ -1,8 +1,6 @@
 # Shared Nothing Architecture in Java with Conductor
 
-Shared nothing architecture with fully independent services. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Shared nothing architecture with fully independent services. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 In a shared-nothing architecture, each service owns its data and shares nothing with other services. No shared database, no shared file system, no shared memory. Services communicate only through explicit message passing. This workflow chains three independent services where each receives only the output of the previous one, and a final aggregation step combines all results.
 
@@ -27,15 +25,6 @@ Four workers demonstrate complete data isolation: ServiceAWorker, ServiceBWorker
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ sn_service_c
     │
     ▼
 sn_aggregate
-```
-
-## Example Output
-
-```
-=== Example 315: Shared Nothing Architecture ===
-
-Step 1: Registering task definitions...
-  Registered: sn_service_a, sn_service_b, sn_service_c, sn_aggregate
-
-Step 2: Registering workflow 'shared_nothing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Combining all results
-  [service-a] Processing independently (no shared state)
-  [service-b] Processing with a's output only
-  [service-c] Processing with b's output only
-
-  Status: COMPLETED
-  Output: {aggregated=..., result=..., instanceId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow shared_nothing_workflow \
   --version 1 \
-  --input '{"requestId": "REQ-700", "REQ-700": "data", "data": {"key": "value"}}'
+  --input '{"requestId": "TEST-001", "data": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Document Verification in Java Using Conductor :  AI Data Extraction, Human Verification via WAIT, and Verified Data Storage
 
-A Java Conductor workflow example for document verification .  using AI/OCR to extract structured data from a document (name, date, amount, ID numbers), pausing at a WAIT task for a human to verify and correct the extracted data against the original document, and then storing the human-verified data as the authoritative record. Demonstrates the AI-extracts-human-verifies pattern for intelligent document processing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for document verification .  using AI/OCR to extract structured data from a document (name, date, amount, ID numbers), pausing at a WAIT task for a human to verify and correct the extracted data against the original document, and then storing the human-verified data as the authoritative record. Demonstrates the AI-extracts-human-verifies pattern for intelligent document processing. Uses [Conductor](https://github.## The Problem
 
 You need to process documents .  invoices, contracts, tax forms, identity documents ,  by extracting structured data from unstructured images or PDFs. AI/OCR models extract fields like names, dates, amounts, and document numbers, along with a confidence score for each extraction. But AI extraction is not perfect ,  handwriting misreads, low-quality scans, and unusual layouts cause errors. A human must verify the extracted data against the original document, correcting any mistakes before the data enters your system of record. Without verification, OCR errors propagate into your database ,  wrong amounts on invoices, misspelled names on contracts, incorrect tax IDs.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd call the OCR API, store the raw extraction in a dat
 
 **You just write the AI/OCR extraction and verified-data storage workers. Conductor handles the pause for human verification and the confidence-tracking pipeline.**
 
-The WAIT task is the key pattern here. After the AI extracts data with confidence scores, the workflow pauses at the WAIT task. Conductor presents the extracted fields and confidence to the human verifier, who corrects any errors and submits the verified data via the API. The store worker then persists the human-verified data as the authoritative record. Conductor takes care of holding the extracted data while a reviewer verifies it, passing the reviewer's corrected data to storage, tracking extraction confidence versus human corrections (useful for retraining the AI model), and maintaining a complete audit trail from raw document through AI extraction to human-verified output. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After the AI extracts data with confidence scores, the workflow pauses at the WAIT task. Conductor presents the extracted fields and confidence to the human verifier, who corrects any errors and submits the verified data via the API. The store worker then persists the human-verified data as the authoritative record. Conductor takes care of holding the extracted data while a reviewer verifies it, passing the reviewer's corrected data to storage, tracking extraction confidence versus human corrections (useful for retraining the AI model), and maintaining a complete audit trail from raw document through AI extraction to human-verified output. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +24,6 @@ AiExtractWorker runs OCR to pull structured fields with confidence scores, and S
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,32 +34,6 @@ dv_human_verify [WAIT]
     │
     ▼
 dv_store_verified
-```
-
-## Example Output
-
-```
-=== Document Verification Demo: AI Extract + Human Verify ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'document_verification_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [dv_ai_extract] Extracting data from document...
-  [dv_store_verified] Storing verified document data...
-
-  Status: COMPLETED
-  Output: {name=..., dateOfBirth=..., documentNumber=..., expiryDate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -99,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -142,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow document_verification_demo \
   --version 1 \
-  --input '{"documentId": "DOC-001", "DOC-001": "sample-DOC-001"}'
+  --input '{"documentId": "TEST-001"}'
 ```
 
 ### Check workflow status

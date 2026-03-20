@@ -1,8 +1,6 @@
 # Nonprofit Donation in Java with Conductor
 
-A Java Conductor workflow example demonstrating Nonprofit Donation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Nonprofit Donation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A donor submits a donation through your nonprofit's website. The donation processing team needs to receive and validate the donation details, process the payment and obtain a transaction ID, generate a tax-deductible receipt, send a personalized thank-you message tied to the campaign, and record the completed donation in the donor database. Each step depends on the previous one's output.
 
@@ -28,15 +26,6 @@ Gift intake, payment processing, receipt generation, and donor acknowledgment wo
 
 Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,34 +42,6 @@ don_thank_you
     │
     ▼
 don_record
-```
-
-## Example Output
-
-```
-=== Example 751: Nonprofit Donatio ===
-
-Step 1: Registering task definitions...
-  Registered: don_receive, don_process_payment, don_receipt, don_thank_you, don_record
-
-Step 2: Registering workflow 'nonprofit_donation_751'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [payment] Processing $
-  [receipt] Tax receipt sent to
-  [receive] Donation received from
-  [record] Donation recorded:
-  [thanks] Thank you sent to
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nonprofit_donation_751 \
   --version 1 \
-  --input '{"donorName": "sample-name", "Jane Smith": "sample-Jane Smith", "amount": 250.0, "campaign": "sample-campaign"}'
+  --input '{"donorName": "test", "amount": 100, "campaign": "test-value"}'
 ```
 
 ### Check workflow status

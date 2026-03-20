@@ -1,8 +1,6 @@
 # Anti Cheat in Java Using Conductor
 
-Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task. Uses [Conductor](https://github.## The Problem
 
 You need to detect and act on cheating in an online game. The workflow monitors a player's in-game behavior during a match, runs anomaly detection algorithms on metrics like aim accuracy, movement speed, and reaction time, and routes to one of three outcomes: clean (no action), suspect (flag for manual review), or confirmed cheat (ban or penalty). Failing to detect cheats ruins the experience for honest players; false positives unfairly punish legitimate players.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single anti-cheat service that collects tel
 
 **You just write the behavior monitoring, anomaly detection, and clean/suspect/cheat response logic. Conductor handles detection retries, verdict routing, and enforcement audit trails for every flagged session.**
 
-Each anti-cheat concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of monitoring behavior, running anomaly detection, routing via a SWITCH task to the correct outcome (clean, suspect, cheat), applying the action, and tracking every detection decision with full evidence. You get all of that for free, without writing a single line of orchestration code.
+Each anti-cheat concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of monitoring behavior, running anomaly detection, routing via a SWITCH task to the correct outcome (clean, suspect, cheat), applying the action, and tracking every detection decision with full evidence. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Telemetry collection, anomaly detection, cheat confirmation, and enforcement wor
 | **SuspectWorker** | `ach_suspect` | Flags a player for manual review by the trust and safety team |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -55,35 +43,6 @@ SWITCH (switch_ref)
     │
     ▼
 ach_act
-```
-
-## Example Output
-
-```
-=== Example 746: Anti-Cheat ===
-
-Step 1: Registering task definitions...
-  Registered: ach_monitor, ach_detect_anomaly, ach_clean, ach_suspect, ach_cheat, ach_act
-
-Step 2: Registering workflow 'anti_cheat_746'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [act] Final action for
-  [cheat] Player
-  [clean] Player
-  [detect] Analysis complete - verdict:
-  [monitor] Monitoring player
-  [suspect] Player
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -112,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -155,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow anti_cheat_746 \
   --version 1 \
-  --input '{"playerId": "P-042", "P-042": "matchId", "matchId": "MATCH-999", "MATCH-999": "sample-MATCH-999"}'
+  --input '{"playerId": "TEST-001", "matchId": "TEST-001"}'
 ```
 
 ### Check workflow status

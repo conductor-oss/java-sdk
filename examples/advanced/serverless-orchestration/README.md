@@ -1,8 +1,6 @@
 # Serverless Function Chain in Java Using Conductor :  Parse, Enrich, Score, Aggregate
 
-A Java Conductor workflow example for serverless function orchestration .  invoking a parse function to extract structured data from an event, enriching it with external context, scoring the enriched data, and aggregating the final results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Chaining Lambda Functions Without Losing Control
+A Java Conductor workflow example for serverless function orchestration .  invoking a parse function to extract structured data from an event, enriching it with external context, scoring the enriched data, and aggregating the final results. Uses [Conductor](https://github.## Chaining Lambda Functions Without Losing Control
 
 You have four Lambda functions that need to run in sequence: one parses raw event payloads into structured data, one enriches the parsed data with external API lookups, one scores the enriched records (fraud score, relevance score, risk score), and one aggregates the scored results into a summary. Each function's output is the next function's input.
 
@@ -27,15 +25,6 @@ Four workers chain serverless invocations: event parsing, external enrichment, s
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ svl_invoke_score
     │
     ▼
 svl_aggregate
-```
-
-## Example Output
-
-```
-=== Example 561: Serverless Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: svl_invoke_parse, svl_invoke_enrich, svl_invoke_score, svl_aggregate
-
-Step 2: Registering workflow 'serverless_orchestration_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Event
-  [lambda:enrich] Enriching parsed data with user context
-  [lambda:parse] Invoking for event
-  [lambda:score] Computing engagement score
-
-  Status: COMPLETED
-  Output: {aggregated=..., stored=..., enriched=..., billedMs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow serverless_orchestration_demo \
   --version 1 \
-  --input '{"eventId": "EVT-99001", "EVT-99001": "payload", "payload": {"key": "value"}}'
+  --input '{"eventId": "TEST-001", "payload": "test-value"}'
 ```
 
 ### Check workflow status

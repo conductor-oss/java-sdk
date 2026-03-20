@@ -1,8 +1,6 @@
 # Education Enrollment in Java with Conductor :  Application, Review, Admission, Registration, and Orientation
 
-A Java Conductor workflow example for student enrollment .  accepting an application, reviewing academic qualifications (GPA-based scoring), making an admission decision, registering the admitted student in their program, and scheduling their orientation session. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for student enrollment .  accepting an application, reviewing academic qualifications (GPA-based scoring), making an admission decision, registering the admitted student in their program, and scheduling their orientation session. Uses [Conductor](https://github.## The Problem
 
 You need to process new student enrollments from application to orientation. A prospective student submits an application for a program, the admissions office reviews their academic record and assigns a score based on GPA and other criteria, an admission decision is made, the admitted student is registered in the program, and finally an orientation session is scheduled. Each step depends on the previous .  you cannot admit without a review score, and you cannot enroll without an admission decision.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single enrollment service that receives app
 
 **You just write the application intake, academic review, admission decision, registration, and orientation scheduling logic. Conductor handles eligibility retries, seat assignment sequencing, and enrollment audit trails.**
 
-Each enrollment concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (apply, review, admit, enroll, orient), retrying if the student information system times out, tracking every application's full journey from submission to orientation, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each enrollment concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (apply, review, admit, enroll, orient), retrying if the student information system times out, tracking every application's full journey from submission to orientation, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Application intake, eligibility check, seat assignment, and confirmation workers
 | **OrientWorker** | `edu_orient` | Schedules an orientation session for the newly enrolled student |
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ edu_enroll
     │
     ▼
 edu_orient
-```
-
-## Example Output
-
-```
-=== Example 671: Education Enrollment ===
-
-Step 1: Registering task definitions...
-  Registered: edu_apply, edu_review, edu_admit, edu_enroll, edu_orient
-
-Step 2: Registering workflow 'edu_enrollment'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [admit]
-  [apply] Application from
-  [enroll]
-  [orient] Orientation scheduled for
-  [review]
-
-  Status: COMPLETED
-  Output: {admitted=..., studentId=..., applicationId=..., enrolled=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edu_enrollment \
   --version 1 \
-  --input '{"studentName": "sample-name", "Jane Smith": "sample-Jane Smith", "program": "sample-program", "Computer Science": "sample-Computer Science", "gpa": "sample-gpa"}'
+  --input '{"studentName": "test", "program": "test-value", "gpa": "test-value"}'
 ```
 
 ### Check workflow status

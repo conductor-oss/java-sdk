@@ -1,8 +1,6 @@
 # Data Export Request in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Data Export Request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Data Export Request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to fulfill a user's data export request. Validating the request parameters and user identity, collecting their data across multiple categories (profile, activity, preferences, uploaded content), packaging everything into the requested format (JSON, CSV, ZIP), and delivering a secure download link to the user. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ ValidateExportWorker verifies identity and format, CollectDataWorker aggregates 
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ der_package
     │
     ▼
 der_deliver
-```
-
-## Example Output
-
-```
-=== Example 608: Data Export Request ===
-
-Step 1: Registering task definitions...
-  Registered: der_validate, der_collect, der_package, der_deliver
-
-Step 2: Registering workflow 'der_data_export'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Collected data from
-  [deliver] Export download link sent to user
-  [package] Data packaged as
-  [validate] Export request validated for
-
-  Status: COMPLETED
-  Output: {collectedData=..., totalRecords=..., delivered=..., expiresAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow der_data_export \
   --version 1 \
-  --input '{"userId": "USR-EXP001", "USR-EXP001": "exportFormat", "exportFormat": "json", "json": "dataCategories", "dataCategories": ["item-1", "item-2", "item-3"]}'
+  --input '{"userId": "TEST-001", "exportFormat": "test-value", "dataCategories": "test-value"}'
 ```
 
 ### Check workflow status

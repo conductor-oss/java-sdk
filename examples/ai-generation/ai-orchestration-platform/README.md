@@ -1,6 +1,6 @@
 # AI Orchestration Platform in Java Using Conductor :  Receive, Route to Model, Execute, Validate, Respond
 
-A Java Conductor workflow that acts as an AI request gateway .  receiving incoming AI requests, routing each to the appropriate model based on request type and priority, executing the model inference, validating the response quality, and returning the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request routing, model execution, and validation as independent workers ,  you write the routing and model integration logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that acts as an AI request gateway .  receiving incoming AI requests, routing each to the appropriate model based on request type and priority, executing the model inference, validating the response quality, and returning the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request routing, model execution, and validation as independent workers ,  you write the routing and model integration logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Routing AI Requests to the Right Model
 
@@ -28,15 +28,6 @@ Request routing, model execution, and response validation each run as isolated w
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ aop_validate
     │
     ▼
 aop_respond
-```
-
-## Example Output
-
-```
-=== Example 800: AI Orchestration Platform. Receive Request, Route Model, Execute, Validate, Respond ===
-
-Step 1: Registering task definitions...
-  Registered: aop_receive_request, aop_route_model, aop_execute, aop_validate, aop_respond
-
-Step 2: Registering workflow 'aop_ai_orchestration_platform'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [execute] Response from OpenAI (LIVE)
-  [receive_request] Processing
-  [respond] Processing
-  [route_model] Processing
-  [validate] Response from OpenAI (LIVE)
-
-  Status: COMPLETED
-  Output: {result=..., latencyMs=..., tokensUsed=..., requestId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow aop_ai_orchestration_platform \
   --version 1 \
-  --input '{"requestType": "standard", "summarization": "sample-summarization", "payload": "sample-payload", "A long article about renewable energy...": "sample-A long article about renewable energy...", "priority": "sample-priority"}'
+  --input '{"requestType": "test-value", "payload": "test-value", "priority": "test-value"}'
 ```
 
 ### Check workflow status
@@ -186,7 +148,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

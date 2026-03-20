@@ -1,8 +1,6 @@
 # ML Experiment Tracking in Java Using Conductor :  Define, Run, Log Metrics, Compare, Decide
 
-A Java Conductor workflow example for ML experiment tracking .  defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Experiments Without Reproducibility Are Guesswork
+A Java Conductor workflow example for ML experiment tracking .  defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.## Experiments Without Reproducibility Are Guesswork
 
 You tuned a hyperparameter, retrained the model, and accuracy went up 2%. Was it the hyperparameter change, or did the training data shift? Without a structured experiment record .  hypothesis, configuration, metrics, baseline comparison ,  you can't answer that question. Teams run dozens of experiments a week, and without systematic tracking, knowledge about what was tried and what worked lives in Slack threads and Jupyter notebooks that nobody can find six months later.
 
@@ -28,15 +26,6 @@ Five workers cover the experiment lifecycle: definition, training execution, met
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ ext_compare
     │
     ▼
 ext_decide
-```
-
-## Example Output
-
-```
-=== Experiment Tracking Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ext_define_experiment, ext_run_experiment, ext_log_metrics, ext_compare, ext_decide
-
-Step 2: Registering workflow 'experiment_tracking_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [compare] Processing
-  [decide] Processing
-  [define] Processing
-  [log] Processing
-  [run] Processing
-
-  Status: COMPLETED
-  Output: {improvement=..., statSignificant=..., decision=..., experimentId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow experiment_tracking_demo \
   --version 1 \
-  --input '{"experimentName": "sample-name", "new-embedding-layer": "sample-new-embedding-layer", "hypothesis": "sample-hypothesis", "Adding attention layer improves accuracy": "sample-Adding attention layer improves accuracy", "baselineMetric": "sample-baselineMetric"}'
+  --input '{"experimentName": "test", "hypothesis": "test-value", "baselineMetric": "test-value"}'
 ```
 
 ### Check workflow status

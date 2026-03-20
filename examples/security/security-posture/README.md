@@ -12,7 +12,7 @@ Without orchestration, security posture is measured in silos .  the infrastructu
 
 **You just write the domain-specific security assessments. Conductor handles parallel assessment execution, score aggregation across domains, and trend tracking of posture scores over time.**
 
-Conductor's FORK/JOIN evaluates infrastructure, application, and compliance security in parallel. A scoring worker combines all three assessments into a unified security posture score with breakdown by domain. Every assessment is tracked with detailed findings per domain and trend data over time. You get all of that for free, without writing a single line of orchestration code.
+Conductor's FORK/JOIN evaluates infrastructure, application, and compliance security in parallel. A scoring worker combines all three assessments into a unified security posture score with breakdown by domain. Every assessment is tracked with detailed findings per domain and trend data over time. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four domain-specific assessors run in parallel: AssessInfrastructureWorker evalu
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ sp_assess_compliance
     │
     ▼
 sp_calculate_score
-```
-
-## Example Output
-
-```
-=== Example 400: Security Posture ===
-
-Step 1: Registering task definitions...
-  Registered: sp_assess_infrastructure, sp_assess_application, sp_assess_compliance, sp_calculate_score
-
-Step 2: Registering workflow 'security_posture_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [app] 78/100 .  2 critical vulnerabilities in production
-  [compliance] 92/100 .  access review overdue for 1 department
-  [infra] acme-corp: 85/100 .  patching gaps found
-  [score] Overall security posture: B, 85/100
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow security_posture_workflow \
   --version 1 \
-  --input '{"organization": "sample-organization", "acme-corp": "sample-acme-corp", "assessmentScope": "sample-assessmentScope"}'
+  --input '{"organization": "test-value", "assessmentScope": "test-value"}'
 ```
 
 ### Check workflow status

@@ -10,9 +10,7 @@ Without orchestration, detecting absent workers requires custom health check inf
 
 ## The Solution
 
-**You just write the task logic and set poll timeout thresholds. Conductor handles absent-worker detection for free.**
-
-The task definition includes `pollTimeoutSeconds` .  if no worker picks up the task within that window, Conductor automatically marks it as timed out. This triggers retry logic or failure handling as configured. Every poll timeout event is recorded, so you can see exactly when and why a task was not picked up. You get all of that for free, without writing a single line of orchestration code.
+The task definition includes `pollTimeoutSeconds` .  if no worker picks up the task within that window, Conductor automatically marks it as timed out. This triggers retry logic or failure handling as configured. Every poll timeout event is recorded, so you can see exactly when and why a task was not picked up. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,44 +22,10 @@ PollNormalTaskWorker processes tasks normally, while Conductor's pollTimeoutSeco
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 poll_normal_task
-```
-
-## Example Output
-
-```
-=== Poll Timeout Demo: Handle Missing Workers ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'poll_timeout_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [poll_normal_task] Processing with mode:
-
-  Status: COMPLETED
-  Output: {result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow poll_timeout_demo \
   --version 1 \
-  --input '{"mode": "sample-mode"}'
+  --input '{"mode": "test-value"}'
 ```
 
 ### Check workflow status

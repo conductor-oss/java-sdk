@@ -1,8 +1,6 @@
 # Endorsement Processing in Java with Conductor :  Request Change, Assess Impact, Price, Approve, Apply
 
-A Java Conductor workflow example for mid-term policy endorsement processing .  receiving a change request (adding a driver, changing coverage limits, updating a vehicle), assessing the impact on the policy, repricing the premium adjustment (+$150/year), approving the endorsement, and applying the amendment to the active policy. Each step depends on the previous: the impact assessment feeds into repricing, the premium change feeds into approval, and the endorsement is only applied after approval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Mid-Term Policy Changes Require Impact Assessment, Repricing, and Approval Before Amendment
+A Java Conductor workflow example for mid-term policy endorsement processing .  receiving a change request (adding a driver, changing coverage limits, updating a vehicle), assessing the impact on the policy, repricing the premium adjustment (+$150/year), approving the endorsement, and applying the amendment to the active policy. Each step depends on the previous: the impact assessment feeds into repricing, the premium change feeds into approval, and the endorsement is only applied after approval. Uses [Conductor](https://github.## Mid-Term Policy Changes Require Impact Assessment, Repricing, and Approval Before Amendment
 
 When a policyholder requests a mid-term change (adding a driver, increasing coverage, changing a deductible), the insurer must assess the coverage impact, calculate the premium adjustment, obtain approval for the change, and apply the endorsement to the active policy. The premium adjustment depends on the impact assessment, and the endorsement is only applied after approval. If the pricing step fails, you need to retry it without re-assessing the impact.
 
@@ -26,15 +24,6 @@ Change request intake, coverage evaluation, premium adjustment, and policy amend
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -51,35 +40,6 @@ edp_approve
     │
     ▼
 edp_apply
-```
-
-## Example Output
-
-```
-=== Example 704: Endorsement Processing ===
-
-Step 1: Registering task definitions...
-  Registered: edp_request_change, edp_assess, edp_price, edp_approve, edp_apply
-
-Step 2: Registering workflow 'edp_endorsement_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Processing
-  [approve] Endorsement approved
-  [assess] Change impact assessed
-  [price] Premium adjustment: +$150/year
-  [request_change] Processing
-
-  Status: COMPLETED
-  Output: {applied=..., effectiveDate=..., approved=..., impact=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edp_endorsement_processing \
   --version 1 \
-  --input '{"policyId": "POL-704", "POL-704": "changeType", "changeType": "add-vehicle", "add-vehicle": "details", "details": "2024 Honda Civic", "2024 Honda Civic": "sample-2024 Honda Civic"}'
+  --input '{"policyId": "TEST-001", "changeType": "test-value", "details": "test-value"}'
 ```
 
 ### Check workflow status
@@ -175,7 +135,6 @@ Change coverage evaluation rules or premium adjustment formulas and the endorsem
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -1,8 +1,6 @@
 # Budget Approval in Java with Conductor
 
-Budget approval with SWITCH for approve/revise/reject decisions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Budget approval with SWITCH for approve/revise/reject decisions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to route budget requests through an approval workflow. A department submits a budget request with amount and justification, a reviewer evaluates it, and the outcome is one of three paths: approve (release funds), revise (send back with feedback), or reject (deny with explanation). The routing decision depends on the reviewer's assessment of the amount, justification quality, and department priority.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build an approval service with if/else routing for 
 
 **You just write the budget workers. Request submission, review, and three-way routing for approve, revise, or reject decisions. Conductor handles three-way SWITCH routing for approve, revise, and reject decisions, automatic retries, and a complete audit trail for budget governance.**
 
-Each approval concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of submitting the request, routing via a SWITCH task to the correct outcome (approve, revise, reject), retrying if the review system is unavailable, and tracking every budget request's lifecycle with full audit trail. You get all of that for free, without writing a single line of orchestration code.
+Each approval concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of submitting the request, routing via a SWITCH task to the correct outcome (approve, revise, reject), retrying if the review system is unavailable, and tracking every budget request's lifecycle with full audit trail. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Six workers manage the approval lifecycle: SubmitBudgetWorker captures the reque
 | **SubmitBudgetWorker** | `bgt_submit_budget` | Handles submit budget |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -55,36 +43,6 @@ SWITCH (bgt_switch_ref)
     │
     ▼
 bgt_allocate_funds
-```
-
-## Example Output
-
-```
-=== Example 504: Budget Approval ===
-
-Step 1: Registering task definitions...
-  Registered: bgt_submit_budget, bgt_review_budget, bgt_approve_budget, bgt_revise_budget, bgt_reject_budget, bgt_allocate_funds
-
-Step 2: Registering workflow 'budget_approval_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [allocate] Department
-  [approve] Budget
-  [reject] Budget
-  [review] Budget $
-  [revise] Budget
-  [submit] Budget
-
-  Status: COMPLETED
-  Output: {allocationStatus=..., approved=..., approvalId=..., rejected=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow budget_approval_workflow \
   --version 1 \
-  --input '{"budgetId": "BDG-2026-Q2-ENG", "BDG-2026-Q2-ENG": "department", "department": "engineering", "engineering": "amount", "amount": 45000, "Cloud infrastructure expansion": "sample-Cloud infrastructure expansion"}'
+  --input '{"budgetId": "TEST-001", "department": "test-value", "amount": 100, "justification": "test-value"}'
 ```
 
 ### Check workflow status

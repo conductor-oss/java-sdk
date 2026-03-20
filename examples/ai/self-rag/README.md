@@ -1,6 +1,6 @@
 # Self-RAG in Java Using Conductor :  Self-Reflective Retrieval with Hallucination and Usefulness Grading
 
-A Java Conductor workflow that implements Self-RAG .  a pipeline that retrieves documents, grades them for relevance, generates an answer, then self-reflects by grading the answer for hallucination (is it supported by the context?) and usefulness (does it address the question?). If the answer fails either quality check, the workflow routes to a refinement step instead of serving the answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate retrieval, document grading, generation, self-reflection grading, and conditional routing as independent workers ,  you write the grading logic, Conductor handles the quality-gated routing, retries, durability, and observability for free.
+A Java Conductor workflow that implements Self-RAG .  a pipeline that retrieves documents, grades them for relevance, generates an answer, then self-reflects by grading the answer for hallucination (is it supported by the context?) and usefulness (does it address the question?). If the answer fails either quality check, the workflow routes to a refinement step instead of serving the answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate retrieval, document grading, generation, self-reflection grading, and conditional routing as independent workers ,  you write the grading logic, Conductor handles the quality-gated routing, retries, durability, and observability.
 
 ## A RAG Pipeline That Checks Its Own Work
 
@@ -30,16 +30,6 @@ Seven workers implement the self-reflective pipeline .  retrieval, document grad
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -61,37 +51,6 @@ sr_grade_usefulness
 SWITCH (switch_ref)
     ├── pass: sr_format_output
     └── default: sr_refine_retry
-```
-
-## Example Output
-
-```
-=== Example 149: Self-RAG ===
-
-Step 1: Registering task definitions...
-  Registered: sr_retrieve, sr_grade_docs, sr_generate, sr_grade_hallucination, sr_grade_usefulness, sr_format_output, sr_refine_retry
-
-Step 2: Registering workflow 'self_rag'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  7 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [format] Packaging final response...
-  [generate] Calling OpenAI to produce answer from
-  [grade-docs]
-  [grade-hallucination] Checking answer against source docs...
-  [grade-usefulness] Score:
-  [retry] Quality too low - would re-retrieve with refined query
-  [retrieve] [SIMULATED] Searching for: \"" + question + "\"
-
-  Status: COMPLETED
-  Output: {answer=..., sourceCount=..., mode=..., errorBody=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -120,7 +79,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -170,7 +129,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow self_rag \
   --version 1 \
-  --input '{"question": "sample-question"}'
+  --input '{"question": "test-value"}'
 ```
 
 ### Check workflow status

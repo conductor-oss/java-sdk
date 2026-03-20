@@ -1,8 +1,6 @@
 # Data Catalog in Java Using Conductor :  Asset Discovery, Classification, Tagging, and Search Indexing
 
-A Java Conductor workflow example for building a data catalog. discovering data assets across schemas and data sources, classifying them by content type and PII sensitivity, applying metadata tags, and indexing everything for searchable catalog lookups. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for building a data catalog. discovering data assets across schemas and data sources, classifying them by content type and PII sensitivity, applying metadata tags, and indexing everything for searchable catalog lookups. Uses [Conductor](https://github.## The Problem
 
 Your organization has data scattered across databases, data lakes, APIs, and file stores. Nobody knows what data exists, where it lives, whether it contains PII, or who owns it. You need to build a catalog that answers these questions. That means crawling data sources to discover tables, columns, and datasets at a configurable scan depth, classifying each asset by category and PII sensitivity (using rule-based patterns for emails, SSNs, phone numbers), tagging assets with metadata labels (owner, domain, freshness, quality tier), and indexing everything into a searchable catalog so analysts and engineers can find what they need.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a monolithic crawler that connects to every d
 
 **You just write the asset discovery, classification, metadata tagging, and catalog indexing workers. Conductor handles the discovery-to-index pipeline sequencing, retries when data source connections time out, and tracking of how many assets were discovered, classified, and indexed.**
 
-Each stage of catalog building is a simple, independent worker. The discovery worker crawls the configured data source at the requested scan depth and returns a list of assets (tables, columns, datasets). The classifier applies rules to determine each asset's category and PII sensitivity level. The tagger generates metadata labels based on classification results (data domain, owner, sensitivity tier). The indexer writes the fully tagged assets into a searchable catalog index. Conductor executes them in sequence, passes the evolving asset list between steps, retries if a data source connection times out, and tracks exactly how many assets were discovered, classified, tagged, and indexed. You get all of that for free, without writing a single line of orchestration code.
+Each stage of catalog building is a simple, independent worker. The discovery worker crawls the configured data source at the requested scan depth and returns a list of assets (tables, columns, datasets). The classifier applies rules to determine each asset's category and PII sensitivity level. The tagger generates metadata labels based on classification results (data domain, owner, sensitivity tier). The indexer writes the fully tagged assets into a searchable catalog index. Conductor executes them in sequence, passes the evolving asset list between steps, retries if a data source connection times out, and tracks exactly how many assets were discovered, classified, tagged, and indexed. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers build the catalog end-to-end: discovering data assets across schema
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cg_tag_metadata
     │
     ▼
 cg_index_catalog
-```
-
-## Example Output
-
-```
-=== Data Catalog Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cg_discover_assets, cg_classify_data, cg_tag_metadata, cg_index_catalog
-
-Step 2: Registering workflow 'data_catalog'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify] Classified
-  [discover] Found
-  [index] Indexed
-  [tag] Applied
-
-  Status: COMPLETED
-  Output: {hasPII=..., category=..., sensitivity=..., operational=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_catalog \
   --version 1 \
-  --input '{"dataSource": "sample-dataSource", "host": "sample-host", "db.internal": "sample-db.internal", "database": "sample-database", "scanDepth": "sample-scanDepth", "full": "sample-full", "classificationRules": "sample-classificationRules", "pii_detection": "sample-pii-detection"}'
+  --input '{"dataSource": "test-value", "scanDepth": "test-value", "classificationRules": "test-value"}'
 ```
 
 ### Check workflow status

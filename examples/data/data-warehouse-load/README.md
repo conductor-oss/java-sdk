@@ -1,8 +1,6 @@
 # Data Warehouse Load in Java Using Conductor :  Staging, Pre-Load Checks, Upsert, Post-Load Validation, and Metadata Update
 
-A Java Conductor workflow example for data warehouse loading: staging incoming records to a temporary table, running pre-load quality checks against the schema, upserting validated records into the target table, running post-load validation to confirm the data landed correctly, and updating warehouse metadata with load statistics. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data warehouse loading: staging incoming records to a temporary table, running pre-load quality checks against the schema, upserting validated records into the target table, running post-load validation to confirm the data landed correctly, and updating warehouse metadata with load statistics. Uses [Conductor](https://github.## The Problem
 
 Loading data into a warehouse is not just an INSERT statement. You need to stage records in a temporary table so the target table isn't locked during quality checks. You need to run pre-load validation (schema compliance, null checks, referential integrity) before touching production tables. You need to upsert. Inserting new records and updating existing ones based on a key. After loading, you need to verify the target table has the expected record count and the data is queryable. Finally, you need to update warehouse metadata (last load time, row counts, freshness) so downstream dashboards and dbt models know the data is current.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a stored procedure or script that does stagin
 
 **You just write the staging, pre-load checks, upsert, post-load validation, and metadata update workers. Conductor handles strict stage-check-upsert-verify-update ordering, retries when the warehouse is temporarily unavailable, and precise record count tracking across every loading phase.**
 
-Each stage of the warehouse load is a simple, independent worker. The stager writes records to a temporary staging table. The pre-load checker validates staged records against the target schema. The upserter performs INSERT ... ON CONFLICT UPDATE against the target table. The post-load validator confirms the target table has the expected record count. The metadata updater records the load timestamp, row count, and validation status. Conductor executes them in strict sequence, ensures the upsert only runs after pre-load checks pass, retries if the warehouse is temporarily unavailable, and tracks exactly how many records were staged, validated, upserted, and confirmed. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the warehouse load is a simple, independent worker. The stager writes records to a temporary staging table. The pre-load checker validates staged records against the target schema. The upserter performs INSERT ... ON CONFLICT UPDATE against the target table. The post-load validator confirms the target table has the expected record count. The metadata updater records the load timestamp, row count, and validation status. Conductor executes them in strict sequence, ensures the upsert only runs after pre-load checks pass, retries if the warehouse is temporarily unavailable, and tracks exactly how many records were staged, validated, upserted, and confirmed. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers handle the warehouse loading pipeline: staging records to a tempora
 | **UpsertTargetWorker** | `wh_upsert_target` | Upserts records from staging into the target table. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ wh_post_load_validation
     │
     ▼
 wh_update_metadata
-```
-
-## Example Output
-
-```
-=== Data Warehouse Load Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wh_stage_data, wh_pre_load_checks, wh_upsert_target, wh_post_load_validation, wh_update_metadata
-
-Step 2: Registering workflow 'data_warehouse_load'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [post-check] Validated
-  [pre-check] Ran pre-load checks on
-  [stage] Staged
-  [metadata]
-  [upsert] Loaded into \"" + targetTable + "\":
-
-  Status: COMPLETED
-  Output: {passed=..., rowCountMatch=..., expectedCount=..., validCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_warehouse_load \
   --version 1 \
-  --input '{"records": ["item-1", "item-2", "item-3"]}'
+  --input '{"records": "test-value", "targetTable": "test-value", "schema": "test-value"}'
 ```
 
 ### Check workflow status

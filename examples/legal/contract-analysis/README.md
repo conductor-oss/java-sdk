@@ -1,8 +1,6 @@
 # Contract Analysis in Java with Conductor
 
-A Java Conductor workflow example demonstrating Contract Analysis. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Contract Analysis. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A new vendor contract lands on the legal team's desk. You need to parse the document, extract key clauses (termination terms, liability caps, non-compete provisions), assess risk levels across each clause, and produce a consolidated summary for the business team to review before signing. Doing this manually across dozens of contracts per quarter leads to missed risk clauses and inconsistent analysis.
 
@@ -27,15 +25,6 @@ Clause extraction, risk identification, obligation mapping, and summary generati
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cna_analyze
     │
     ▼
 cna_summarize
-```
-
-## Example Output
-
-```
-=== Example 694: Contract Analysis ===
-
-Step 1: Registering task definitions...
-  Registered: cna_parse, cna_extract, cna_analyze, cna_summarize
-
-Step 2: Registering workflow 'cna_contract_analysis'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cna_analyze] Executing
-  [cna_extract] Executing
-  [cna_parse] Executing
-  [cna_summarize] Executing
-
-  Status: COMPLETED
-  Output: {overallRisk=..., parsed=..., clauses=..., risks=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cna_contract_analysis \
   --version 1 \
-  --input '{"contractId": "CTR-400", "CTR-400": "contractType", "contractType": "vendor-agreement", "vendor-agreement": "sample-vendor-agreement"}'
+  --input '{"contractId": "TEST-001", "contractType": "test-value"}'
 ```
 
 ### Check workflow status

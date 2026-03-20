@@ -1,8 +1,6 @@
 # Log Processing in Java Using Conductor :  Ingestion, Structured Parsing, Pattern Extraction, and Metric Aggregation
 
-A Java Conductor workflow example for log processing. ingesting raw log entries from a source within a time range, parsing each entry into structured fields (timestamp, level, service, message, isError flag), extracting recurring patterns to identify the most common log signatures, and aggregating metrics like error counts, warning counts, and per-service breakdowns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for log processing. ingesting raw log entries from a source within a time range, parsing each entry into structured fields (timestamp, level, service, message, isError flag), extracting recurring patterns to identify the most common log signatures, and aggregating metrics like error counts, warning counts, and per-service breakdowns. Uses [Conductor](https://github.## The Problem
 
 Your services generate thousands of log entries per minute, each with a raw timestamp, severity level, service name, and message. Before you can answer questions like "which service is producing the most errors?" or "is there a recurring NullPointerException pattern?", you need to ingest the logs from the source for a specific time range, parse each raw entry into structured fields (normalizing `ts` to `timestamp`, `msg` to `message`, flagging ERROR-level entries), extract recurring patterns to identify the most frequent log signatures (repeated exceptions, timeout messages, connection errors), and aggregate metrics (total entries, error count, warning count, top patterns by frequency). Each step depends on the previous one: you can't extract patterns from unparsed logs, and you can't aggregate metrics without knowing which entries are errors.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single log analysis method that reads, pars
 
 **You just write the log ingestion, structured parsing, pattern extraction, and metric aggregation workers. Conductor handles sequential log processing, retries when log source connections time out, and entry count tracking at every stage to detect silent parsing failures.**
 
-Each stage of the log pipeline is a simple, independent worker. The ingester reads raw log entries from the specified source within the configured time range, applying any input filters. The parser normalizes each raw entry into a structured format: mapping `ts` to `timestamp`, `level` to severity, `msg` to `message`, and computing derived fields like `isError` for quick filtering, then counts errors and warnings. The pattern extractor scans parsed entries to identify recurring log signatures, ranking them by frequency to surface the top patterns. The metric aggregator combines parsed entries and extracted patterns into a summary: total entries, error and warning counts, and the most common patterns. Conductor executes them in sequence, passes the growing result set between stages, retries if ingestion fails due to a log source timeout, and tracks entry counts at every stage so you can see how many raw logs became structured entries became actionable patterns. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the log pipeline is a simple, independent worker. The ingester reads raw log entries from the specified source within the configured time range, applying any input filters. The parser normalizes each raw entry into a structured format: mapping `ts` to `timestamp`, `level` to severity, `msg` to `message`, and computing derived fields like `isError` for quick filtering, then counts errors and warnings. The pattern extractor scans parsed entries to identify recurring log signatures, ranking them by frequency to surface the top patterns. The metric aggregator combines parsed entries and extracted patterns into a summary: total entries, error and warning counts, and the most common patterns. Conductor executes them in sequence, passes the growing result set between stages, retries if ingestion fails due to a log source timeout, and tracks entry counts at every stage so you can see how many raw logs became structured entries became actionable patterns. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the log analysis pipeline: ingesting raw entries from a source
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ lp_extract_patterns
     │
     ▼
 lp_aggregate_metrics
-```
-
-## Example Output
-
-```
-=== Log Processing Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: lp_ingest_logs, lp_parse_entries, lp_extract_patterns, lp_aggregate_metrics
-
-Step 2: Registering workflow 'log_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [metrics] Error rate:
-  [patterns] Found
-  [ingest] Ingested
-  [parse] Parsed
-
-  Status: COMPLETED
-  Output: {total=..., errors=..., totalEntries=..., errorRate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow log_processing \
   --version 1 \
-  --input '{"logSource": "sample-logSource", "prod-cluster-east": "sample-prod-cluster-east", "timeRange": "2025-01-15T10:00:00Z", "start": "sample-start", "2024-03-15T10:00:00Z": "sample-2024-03-15T10:00:00Z", "end": "sample-end", "filters": "sample-filters", "minLevel": "sample-minLevel"}'
+  --input '{"logSource": "test-value", "timeRange": "2026-01-01T00:00:00Z", "filters": "test-value"}'
 ```
 
 ### Check workflow status

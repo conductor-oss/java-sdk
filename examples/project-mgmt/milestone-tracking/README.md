@@ -1,8 +1,6 @@
 # Milestone Tracking in Java with Conductor :  Progress Checking, Health Evaluation, Conditional Routing (On-Track / At-Risk / Delayed), and Action Execution
 
-A Java Conductor workflow example that automates milestone tracking .  checking progress by counting completed vs: total deliverables, evaluating milestone health to classify as on-track, at-risk, or delayed, routing to different response handlers based on the health status using a SWITCH task, and executing the appropriate action (continue as planned, escalate to the project lead, or trigger recovery). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Milestone Tracking Needs Orchestration
+A Java Conductor workflow example that automates milestone tracking .  checking progress by counting completed vs: total deliverables, evaluating milestone health to classify as on-track, at-risk, or delayed, routing to different response handlers based on the health status using a SWITCH task, and executing the appropriate action (continue as planned, escalate to the project lead, or trigger recovery). Uses [Conductor](https://github.## Why Milestone Tracking Needs Orchestration
 
 Tracking milestones requires more than checking a percentage .  you need to evaluate progress against the deadline and take different actions depending on how healthy the milestone looks. You check progress by counting completed deliverables against the total (e.g., 7 of 10 done, 70% complete). You evaluate that progress against the timeline ,  70% complete at 80% of the timeline elapsed means the milestone is at risk, not on track. Based on the health status, you take fundamentally different actions: on-track milestones continue as planned, at-risk milestones get escalated to the project lead for attention, and delayed milestones trigger recovery plans with scope re-negotiation or deadline extension.
 
@@ -29,16 +27,6 @@ Progress collection, milestone evaluation, risk flagging, and status reporting w
 
 Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -55,36 +43,6 @@ SWITCH (switch_ref)
     │
     ▼
 mst_act
-```
-
-## Example Output
-
-```
-=== Example milestone-tracking: Milestone Tracking ===
-
-Step 1: Registering task definitions...
-  Registered: mst_check_progress, mst_evaluate, mst_on_track, mst_at_risk, mst_delayed, mst_act
-
-Step 2: Registering workflow 'milestone_tracking_milestone-tracking'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [act] Taking action for milestone
-  [at_risk] Milestone
-  [progress] Checking milestone
-  [delayed] Milestone
-  [evaluate] 70% done ->
-  [on_track] Milestone
-
-  Status: COMPLETED
-  Output: {action=..., progress=..., pctDone=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

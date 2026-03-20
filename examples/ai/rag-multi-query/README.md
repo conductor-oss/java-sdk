@@ -1,6 +1,6 @@
 # RAG Multi-Query in Java Using Conductor :  Expand, Search in Parallel, Deduplicate, Generate
 
-A Java Conductor workflow that expands a single user question into multiple query variants (paraphrases, sub-questions, alternative phrasings), searches the vector store with each variant in parallel, deduplicates the combined results, and generates an answer from the enriched context. Multiple queries cast a wider retrieval net than a single query. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query expansion, parallel search, deduplication, and generation as independent workers .  you write the expansion and search logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that expands a single user question into multiple query variants (paraphrases, sub-questions, alternative phrasings), searches the vector store with each variant in parallel, deduplicates the combined results, and generates an answer from the enriched context. Multiple queries cast a wider retrieval net than a single query. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query expansion, parallel search, deduplication, and generation as independent workers .  you write the expansion and search logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## One Question, Multiple Search Angles
 
@@ -27,16 +27,6 @@ Six workers implement multi-query retrieval .  expanding the original question i
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -54,36 +44,6 @@ mq_dedup_results
     │
     ▼
 mq_generate_answer
-```
-
-## Example Output
-
-```
-=== Example 147: RAG with Multi-Query ===
-
-Step 1: Registering task definitions...
-  Registered: mq_expand_queries, mq_search_q1, mq_search_q2, mq_search_q3, mq_dedup_results, mq_generate_answer
-
-Step 2: Registering workflow 'rag_multi_query'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [dedup] [SIMULATED]
-  [expand] Rephrasing (live OpenAI): \"" + question + "\"
-  [llm] Answer (live OpenAI) from
-  [search-1] [SIMULATED] \"" + query + "\"
-  [search-2] [SIMULATED] \"" + query + "\"
-  [search-3] [SIMULATED] \"" + query + "\"
-
-  Status: COMPLETED
-  Output: {uniqueDocs=..., uniqueCount=..., totalRetrieved=..., queries=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -112,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_multi_query \
   --version 1 \
-  --input '{"question": "sample-question"}'
+  --input '{"question": "test-value"}'
 ```
 
 ### Check workflow status

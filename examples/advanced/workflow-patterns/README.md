@@ -1,8 +1,6 @@
 # Workflow Patterns Showcase in Java Using Conductor :  Chain, Fork-Join, and Loop in One Workflow
 
-A Java Conductor workflow example showcasing multiple workflow patterns in a single definition .  a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Real Workflows Combine Multiple Patterns
+A Java Conductor workflow example showcasing multiple workflow patterns in a single definition .  a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.## Real Workflows Combine Multiple Patterns
 
 Real-world processes don't fit a single pattern. An ETL pipeline starts with a sequential validation step (chain), then splits data processing across multiple workers (fork-join), then iterates over remaining unprocessed records until the batch is complete (loop). Most workflow tutorials show one pattern at a time, but production workflows combine sequential steps, parallel fan-out, and iterative loops in the same definition.
 
@@ -28,17 +26,6 @@ Five workers demonstrate three patterns in one workflow: a chain step, two paral
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -56,35 +43,6 @@ wp_merge_results
     ▼
 DO_WHILE
     └── wp_loop_iteration
-```
-
-## Example Output
-
-```
-=== Workflow Patterns Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wp_chain_step, wp_split_a, wp_split_b, wp_merge_results, wp_loop_iteration
-
-Step 2: Registering workflow 'workflow_patterns_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [chain] Processing:
-  [loop] Iteration
-  [merge] Combining:
-  [split-A] Branch A processing (from
-  [split-B] Branch B processing (from
-
-  Status: COMPLETED
-  Output: {result=..., iteration=..., processed=..., combined=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow workflow_patterns_demo \
   --version 1 \
-  --input '{"inputData": "sample-inputData", "sample_payload": "sample-sample-payload", "iterations": "sample-iterations"}'
+  --input '{"inputData": "test-value", "iterations": "test-value"}'
 ```
 
 ### Check workflow status

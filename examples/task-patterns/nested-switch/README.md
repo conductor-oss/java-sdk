@@ -1,8 +1,6 @@
 # Nested Switch in Java with Conductor
 
-Multi-level decision tree using nested SWITCH tasks with value-param. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Multi-level decision tree using nested SWITCH tasks with value-param. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to route a request through a multi-level decision tree based on region and subscription tier. A US premium customer gets different processing than an EU standard customer or a customer from an unlisted region. The first level routes by region (US, EU, or other), and within each region, a second level routes by tier (premium or standard/default). Each combination. US/premium, US/standard, EU/premium, EU/standard, other/any .  runs completely different processing logic. After the region-and-tier-specific processing completes, a final completion step runs regardless of which branch was taken.
 
@@ -29,16 +27,6 @@ Six workers handle the multi-level decision tree: region-and-tier-specific worke
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,36 +37,6 @@ SWITCH (region_switch_ref)
     │
     ▼
 ns_complete
-```
-
-## Example Output
-
-```
-=== Nested SWITCH: Multi-level Decision Trees ===
-
-Step 1: Registering task definitions...
-  Registered: ns_us_premium, ns_us_standard, ns_eu_premium, ns_eu_standard, ns_other_region, ns_complete
-
-Step 2: Registering workflow 'nested_switch_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ns_complete] region=
-  [ns_eu_premium] region=
-  [ns_eu_standard] region=
-  [ns_other_region] region=
-  [ns_us_premium] region=
-  [ns_us_standard] region=
-
-  Status: COMPLETED
-  Output: {handler=..., done=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -107,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -150,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nested_switch_demo \
   --version 1 \
-  --input '{"region": "sample-region", "US": "sample-US", "tier": "sample-tier", "premium": "sample-premium", "amount": 250.0}'
+  --input '{"region": "test-value", "tier": "test-value", "amount": 100}'
 ```
 
 ### Check workflow status

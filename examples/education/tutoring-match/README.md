@@ -1,8 +1,6 @@
 # Tutoring Match in Java with Conductor :  Request Intake, Tutor Matching, Session Scheduling, and Confirmation
 
-A Java Conductor workflow example for matching students with tutors .  receiving a tutoring request with subject and time preferences, finding an available tutor qualified in that subject, scheduling a session at the preferred time, and confirming the booking with both student and tutor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for matching students with tutors .  receiving a tutoring request with subject and time preferences, finding an available tutor qualified in that subject, scheduling a session at the preferred time, and confirming the booking with both student and tutor. Uses [Conductor](https://github.## The Problem
 
 You need to connect students who need help with qualified tutors. A student requests tutoring in a specific subject at a preferred time, the system must find a tutor who is both qualified in that subject and available during that time slot, a session is scheduled, and both parties need confirmation with the session details. Matching a student with a tutor who is unavailable wastes everyone's time; scheduling without confirming availability leads to no-shows.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single matching service that queries the tu
 
 **You just write the request intake, tutor matching, session scheduling, and booking confirmation logic. Conductor handles availability retries, match scoring, and session scheduling audit trails.**
 
-Each tutoring-match concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (request, match, schedule, confirm), retrying if the calendar service is temporarily unavailable, tracking every tutoring request from intake to confirmed session, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each tutoring-match concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (request, match, schedule, confirm), retrying if the calendar service is temporarily unavailable, tracking every tutoring request from intake to confirmed session, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Student profiling, tutor availability checking, compatibility scoring, and sessi
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ tut_schedule
     │
     ▼
 tut_confirm
-```
-
-## Example Output
-
-```
-=== Example 679: Tutoring Match ===
-
-Step 1: Registering task definitions...
-  Registered: tut_student_request, tut_match_tutor, tut_schedule, tut_confirm
-
-Step 2: Registering workflow 'tut_tutoring_match'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [confirm] Session
-  [match] Best match for
-  [schedule] Session scheduled:
-  [request]
-
-  Status: COMPLETED
-  Output: {confirmed=..., reminderSet=..., tutorId=..., tutorName=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tut_tutoring_match \
   --version 1 \
-  --input '{"studentId": "STU-2024-679", "STU-2024-679": "subject", "subject": "Calculus II", "Calculus II": "preferredTime", "preferredTime": "Tuesday 3:00 PM", "Tuesday 3:00 PM": "sample-Tuesday 3:00 PM"}'
+  --input '{"studentId": "TEST-001", "subject": "test-value", "preferredTime": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

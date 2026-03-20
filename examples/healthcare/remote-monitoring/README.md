@@ -1,8 +1,6 @@
 # Remote Patient Monitoring in Java Using Conductor :  Vital Signs Collection, Trend Analysis, Alert Routing, and Clinical Action
 
-A Java Conductor workflow example for remote patient monitoring (RPM) .  collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for remote patient monitoring (RPM) .  collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.## The Problem
 
 You need to monitor patients remotely using connected medical devices. Vital signs .  blood pressure, heart rate, blood glucose, weight, oxygen saturation ,  are transmitted from the patient's home device. Those readings must be analyzed against the patient's individual baseline and clinical thresholds to detect concerning trends (rising blood pressure over 3 days, weight gain suggesting fluid retention in CHF patients, glucose spikes in diabetics). Based on the analysis, the system must route to different clinical actions ,  log the reading as normal, or trigger an alert that notifies the care team and may schedule an intervention. A missed alert on a deteriorating trend can result in an avoidable hospitalization or emergency visit.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic monitoring service that polls de
 
 **You just write the RPM workers. Vital signs collection, trend analysis, and conditional routing to normal logging or clinical alert actions. Conductor handles conditional SWITCH routing between normal and alert paths, automatic retries when the device platform is down, and complete monitoring records for RPM billing.**
 
-Each stage of the monitoring cycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting vitals before analyzing trends, routing to the correct clinical action (normal or alert) via SWITCH based on trend analysis, retrying if the device platform is temporarily unavailable, and maintaining a complete record of every monitoring cycle for RPM billing and clinical documentation. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the monitoring cycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting vitals before analyzing trends, routing to the correct clinical action (normal or alert) via SWITCH based on trend analysis, retrying if the device platform is temporarily unavailable, and maintaining a complete record of every monitoring cycle for RPM billing and clinical documentation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Four workers form the RPM cycle: CollectVitalsWorker retrieves device readings, 
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -50,34 +38,6 @@ SWITCH (rpm_switch_ref)
     ├── normal: rpm_normal_action
     ├── alert: rpm_alert_action
     └── default: rpm_alert_action
-```
-
-## Example Output
-
-```
-=== Remote Patient Monitoring Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: rpm_collect_vitals, rpm_analyze_trends, rpm_normal_action, rpm_alert_action
-
-Step 2: Registering workflow 'remote_monitoring_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ALERT]
-  [analyze] Status:
-  [collect] Reading vitals from device
-  [normal] All vitals within range for
-
-  Status: COMPLETED
-  Output: {action=..., urgency=..., notifiedProvider=..., notifiedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow remote_monitoring_workflow \
   --version 1 \
-  --input '{"patientId": "PAT-10234", "PAT-10234": "deviceId", "deviceId": "RPM-DEV-5501", "RPM-DEV-5501": "sample-RPM-DEV-5501"}'
+  --input '{"patientId": "TEST-001", "deviceId": "TEST-001"}'
 ```
 
 ### Check workflow status

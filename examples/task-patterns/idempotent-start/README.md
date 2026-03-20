@@ -1,8 +1,6 @@
 # Idempotent Start in Java with Conductor
 
-Idempotent start demo .  demonstrates correlationId-based dedup and search-based idempotency. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Idempotent start demo .  demonstrates correlationId-based dedup and search-based idempotency. Uses [Conductor](https://github.## The Problem
 
 You need to ensure that processing the same order twice does not charge the customer twice. When a webhook fires or a message is redelivered, the same orderId and amount can arrive multiple times. Starting a new workflow for each duplicate request means the order gets processed repeatedly .  double charges, duplicate shipments, or inconsistent state. You need a way to guarantee that the second (and third, and fourth) request for the same order is recognized as a duplicate and returns the existing result instead of processing again.
 
@@ -24,44 +22,10 @@ A single IdemProcessWorker handles order processing, taking an orderId and amoun
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 idem_process
-```
-
-## Example Output
-
-```
-=== Idempotent Start Demo: correlationId-Based Dedup ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'idempotent_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [idem_process] Processing order:
-
-  Status: COMPLETED
-  Output: {orderId=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow idempotent_demo \
   --version 1 \
-  --input '{"orderId": "12345", "12345": "amount", "amount": 99.95}'
+  --input '{"orderId": "TEST-001", "amount": 100}'
 ```
 
 ### Check workflow status

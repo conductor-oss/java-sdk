@@ -1,6 +1,6 @@
 # AI Fine-Tuning Pipeline in Java Using Conductor :  Prepare Dataset, Configure, Train, Evaluate, Deploy
 
-A Java Conductor workflow that orchestrates model fine-tuning end-to-end .  preparing the training dataset (formatting, splitting, validation), configuring hyperparameters, running the training job, evaluating the fine-tuned model against the base model, and deploying if the evaluation passes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage fine-tuning pipeline as independent workers ,  you write the ML pipeline logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that orchestrates model fine-tuning end-to-end .  preparing the training dataset (formatting, splitting, validation), configuring hyperparameters, running the training job, evaluating the fine-tuned model against the base model, and deploying if the evaluation passes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage fine-tuning pipeline as independent workers ,  you write the ML pipeline logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Fine-Tuning Is a Pipeline, Not a Single Step
 
@@ -28,15 +28,6 @@ The fine-tuning pipeline uses separate workers for dataset prep, hyperparameter 
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ aft_evaluate
     │
     ▼
 aft_deploy
-```
-
-## Example Output
-
-```
-=== Example 804: AI Fine-Tuning. Prepare Dataset, Configure, Train, Evaluate, Deploy ===
-
-Step 1: Registering task definitions...
-  Registered: aft_prepare_dataset, aft_configure, aft_train, aft_evaluate, aft_deploy
-
-Step 2: Registering workflow 'aft_fine_tuning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [configure] Processing
-  [deploy] Processing
-  [evaluate] Response from OpenAI (LIVE)
-  [prepare_dataset] Processing
-  [train] [SIMULATED] Training complete .  3 epochs, final loss: 0.142
-
-  Status: COMPLETED
-  Output: {config=..., learningRate=..., epochs=..., endpoint=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow aft_fine_tuning \
   --version 1 \
-  --input '{"baseModel": "llama-3-8b", "llama-3-8b": "datasetId", "datasetId": "DS-804", "DS-804": "taskType", "taskType": "sentiment-analysis", "sentiment-analysis": "sample-sentiment-analysis"}'
+  --input '{"baseModel": "test-value", "datasetId": "TEST-001", "taskType": "test-value"}'
 ```
 
 ### Check workflow status
@@ -186,7 +148,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

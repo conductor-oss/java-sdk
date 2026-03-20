@@ -12,7 +12,7 @@ Without orchestration, APM analysis is either a real-time system (expensive, com
 
 **You just write the trace collection and latency analysis logic. Conductor handles the sequential trace-to-report pipeline, retries when tracing backends are slow, and timing data for every analysis step.**
 
-Each APM concern is an independent worker .  trace collection, latency analysis, bottleneck detection, and report generation. Conductor runs them in sequence, ensuring each step has the complete data from the previous one. Every APM run is tracked with timing ,  you can measure the pipeline itself. You get all of that for free, without writing a single line of orchestration code.
+Each APM concern is an independent worker .  trace collection, latency analysis, bottleneck detection, and report generation. Conductor runs them in sequence, ensuring each step has the complete data from the previous one. Every APM run is tracked with timing ,  you can measure the pipeline itself. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers handle the APM cycle: CollectTracesWorker gathers distributed trace
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ apm_detect_bottlenecks
     │
     ▼
 apm_report
-```
-
-## Example Output
-
-```
-=== Example 421: APM Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: apm_collect_traces, apm_analyze_latency, apm_detect_bottlenecks, apm_report
-
-Step 2: Registering workflow 'apm_workflow_421'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [latency] Analyzing latency
-  [report] Generating APM report
-  [collect] Collecting traces for
-  [bottleneck] Detecting bottlenecks
-
-  Status: COMPLETED
-  Output: {p50Latency=..., p95Latency=..., p99Latency=..., reportGenerated=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow apm_workflow_421 \
   --version 1 \
-  --input '{"serviceName": "sample-name", "checkout-service": "sample-checkout-service", "timeRange": "2025-01-15T10:00:00Z", "last-24h": "sample-last-24h", "percentile": "sample-percentile"}'
+  --input '{"serviceName": "test", "timeRange": "2026-01-01T00:00:00Z", "percentile": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Dashboard Data in Java Using Conductor :  Metric Aggregation, KPI Computation, Widget Assembly, and Caching
 
-A Java Conductor workflow example for dashboard data preparation: aggregating raw metrics over a time range, computing KPIs like conversion rates and growth percentages, assembling widget configurations for charts and gauges, and caching the assembled dashboard for fast retrieval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for dashboard data preparation: aggregating raw metrics over a time range, computing KPIs like conversion rates and growth percentages, assembling widget configurations for charts and gauges, and caching the assembled dashboard for fast retrieval. Uses [Conductor](https://github.## The Problem
 
 You need to power a real-time dashboard that shows business metrics. Revenue trends, user activity, conversion rates, error counts. That means querying multiple data sources to aggregate raw metrics over a configurable time range, computing derived KPIs (growth rates, percentages, comparisons to previous periods), building widget configurations that map KPIs to specific chart types (line graphs, bar charts, gauges), and caching the assembled dashboard with a TTL so the frontend loads instantly. Each step depends on the one before it: KPIs require aggregated metrics, widgets require computed KPIs, and caching requires fully assembled widgets.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic dashboard backend that queries a
 
 **You just write the metric aggregation, KPI computation, widget assembly, and cache workers. Conductor handles the metric-to-cache pipeline sequencing, retries when database queries time out, and per-step observability for diagnosing slow dashboard refreshes.**
 
-Each stage of dashboard preparation is a simple, independent worker. The aggregation worker queries data sources and rolls up raw metrics for the requested time range and dashboard ID. The KPI worker computes derived values. Conversion rates, period-over-period growth, averages. The widget builder maps KPIs and metrics to chart configurations (type, labels, data series). The cache worker stores the assembled dashboard in a cache layer with a configurable TTL. Conductor executes them in sequence, passes metric data between steps, retries if a database query times out, and resumes from exactly where it left off if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each stage of dashboard preparation is a simple, independent worker. The aggregation worker queries data sources and rolls up raw metrics for the requested time range and dashboard ID. The KPI worker computes derived values. Conversion rates, period-over-period growth, averages. The widget builder maps KPIs and metrics to chart configurations (type, labels, data series). The cache worker stores the assembled dashboard in a cache layer with a configurable TTL. Conductor executes them in sequence, passes metric data between steps, retries if a database query times out, and resumes from exactly where it left off if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers power the dashboard pipeline: aggregating raw metrics from data sou
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ dh_build_widgets
     │
     ▼
 dh_cache_dashboard
-```
-
-## Example Output
-
-```
-=== Dashboard Data Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dh_aggregate_metrics, dh_compute_kpis, dh_build_widgets, dh_cache_dashboard
-
-Step 2: Registering workflow 'dashboard_data'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Aggregated
-  [widgets] Built
-  [cache] Cached
-  [kpis] Computed
-
-  Status: COMPLETED
-  Output: {activeUsers=..., pageViews=..., avgResponseTime=..., errorRate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow dashboard_data \
   --version 1 \
-  --input '{"dashboardId": "exec-dashboard-001", "exec-dashboard-001": "timeRange", "timeRange": {"key": "value"}}'
+  --input '{"dashboardId": "TEST-001", "timeRange": "2026-01-01T00:00:00Z", "refreshInterval": "test-value"}'
 ```
 
 ### Check workflow status

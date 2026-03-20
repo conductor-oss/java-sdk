@@ -1,6 +1,6 @@
 # RAG with Pinecone in Java Using Conductor :  Embed, Query Vectors with Namespace and Metadata Filtering, Generate
 
-A Java Conductor workflow that implements RAG using Pinecone .  embedding the question, querying a Pinecone index with namespace isolation, topK control, and metadata filtering, and generating an answer from the matched vectors. Pinecone is a fully managed vector database with built-in namespacing for multi-tenancy and metadata filtering for scoped queries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Pinecone querying, and generation as independent workers ,  you write the Pinecone integration, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that implements RAG using Pinecone .  embedding the question, querying a Pinecone index with namespace isolation, topK control, and metadata filtering, and generating an answer from the matched vectors. Pinecone is a fully managed vector database with built-in namespacing for multi-tenancy and metadata filtering for scoped queries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Pinecone querying, and generation as independent workers ,  you write the Pinecone integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG with Pinecone's Managed Vector Infrastructure
 
@@ -26,15 +26,6 @@ Three workers integrate Pinecone into the RAG pipeline .  embedding the query, q
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ pine_query
     │
     ▼
 pine_generate
-```
-
-## Example Output
-
-```
-=== RAG with Pinecone: Retrieval-Augmented Generatio ===
-
-Step 1: Registering task definitions...
-  Registered: pine_embed, pine_query, pine_generate
-
-Step 2: Registering workflow 'rag_pinecone_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [embed] Generated embedding via OpenAI API (LIVE):
-  [generate] Response from OpenAI API (LIVE)
-  [pine_query worker] Querying namespace '
-
-  Status: COMPLETED
-  Output: {embedding=..., dimension=..., model=..., answer=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_pinecone_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "What is Pinecone?": "sample-What is Pinecone?", "namespace": "sample-name", "default": "sample-default", "topK": "sample-topK", "filter": "sample-filter", "category": "sample-category"}'
+  --input '{"question": "test-value", "namespace": "test", "topK": "test-value", "filter": "test-value"}'
 ```
 
 ### Check workflow status

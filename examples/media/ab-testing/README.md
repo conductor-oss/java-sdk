@@ -1,8 +1,6 @@
 # A/B Testing Pipeline in Java Using Conductor :  Variant Definition, User Assignment, Metric Collection, and Statistical Analysis
 
-A Java Conductor workflow example that orchestrates an end-to-end A/B test .  defining experiment variants with traffic splits, assigning users to control and treatment groups via random hashing, collecting engagement metrics (clicks, impressions, conversion rates), running statistical significance analysis (p-value, uplift, confidence intervals, effect size), and deciding a winner with a rollout recommendation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why A/B Test Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an end-to-end A/B test .  defining experiment variants with traffic splits, assigning users to control and treatment groups via random hashing, collecting engagement metrics (clicks, impressions, conversion rates), running statistical significance analysis (p-value, uplift, confidence intervals, effect size), and deciding a winner with a rollout recommendation. Uses [Conductor](https://github.## Why A/B Test Pipelines Need Orchestration
 
 Running a rigorous A/B test involves a strict sequence where each stage depends on the previous one. You define the variants (control vs. treatment) and traffic split percentages. You assign users to groups using deterministic hashing so the same user always sees the same variant. You collect behavioral metrics .  clicks, impressions, conversion rates ,  for each group over the experiment window. You run statistical analysis to compute p-values, measure uplift, and determine whether results are statistically significant at your target confidence level. Finally, you decide a winner and generate a rollout recommendation.
 
@@ -28,15 +26,6 @@ Five workers drive the experiment lifecycle: DefineVariantsWorker sets up contro
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ abt_analyze_results
     │
     ▼
 abt_decide_winner
-```
-
-## Example Output
-
-```
-=== Example 518: A/B Testing ===
-
-Step 1: Registering task definitions...
-  Registered: abt_define_variants, abt_assign_users, abt_collect_data, abt_analyze_results, abt_decide_winner
-
-Step 2: Registering workflow 'ab_testing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Processing
-  [assign] Processing
-  [collect] Processing
-  [decide] Processing
-  [define] Processing
-
-  Status: COMPLETED
-  Output: {pValue=..., uplift=..., confidence=..., statisticallySignificant=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ab_testing_workflow \
   --version 1 \
-  --input '{"testId": "ABT-518-001", "ABT-518-001": "testName", "testName": "Checkout Button Color", "Checkout Button Color": "variantA", "variantA": "Blue Button", "Blue Button": "variantB", "variantB": "Green Button", "Green Button": "sampleSize", "sampleSize": 10000}'
+  --input '{"testId": "TEST-001", "testName": "test", "variantA": "test-value", "variantB": "test-value", "sampleSize": 10}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Implementing Data Masking in Java with Conductor :  Field Identification, Strategy Selection, Masking Application, and Output Validation
 
-A Java Conductor workflow example automating data masking .  scanning a data source to identify sensitive fields (SSNs, emails, credit card numbers), selecting the appropriate masking strategy (tokenization, redaction, format-preserving encryption, pseudonymization) based on the data's intended purpose, applying the masks to every sensitive field, and validating that no PII remains in the output while referential integrity is preserved. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example automating data masking .  scanning a data source to identify sensitive fields (SSNs, emails, credit card numbers), selecting the appropriate masking strategy (tokenization, redaction, format-preserving encryption, pseudonymization) based on the data's intended purpose, applying the masks to every sensitive field, and validating that no PII remains in the output while referential integrity is preserved. Uses [Conductor](https://github.## The Problem
 
 You need to share production-like data with development teams, analytics pipelines, or third-party vendors; but the data contains Social Security numbers, email addresses, credit card numbers, health records, and other regulated PII that cannot be exposed. Each field type requires a different masking approach: SSNs should be redacted or tokenized, emails need format-preserving pseudonymization so downstream systems still process them correctly, credit card numbers must preserve the BIN prefix for payment testing. After masking, you must verify that no PII leaked through (partial masks, edge cases, NULL handling) and that referential integrity is maintained (the same customer ID maps to the same masked ID across all tables).
 
@@ -12,7 +10,7 @@ Without orchestration, data masking is a brittle script that somebody wrote once
 
 **You just write the field detection and masking transformations. Conductor handles the strict field-identification-to-validation sequence, retries when data source connections drop, and a complete audit proving exactly which fields were masked, how, and whether validation passed.**
 
-Each masking step is a simple, independent worker .  one scans the data source to identify all sensitive fields, one selects the right masking strategy (tokenization for IDs, redaction for SSNs, format-preserving encryption for emails) based on the data's purpose, one applies the masks across all identified fields, one validates that the output contains no residual PII and that referential integrity is preserved across related tables. Conductor takes care of executing them in strict order so no data is released without validation, retrying if the data source connection drops mid-scan, and maintaining a complete audit trail proving exactly which fields were identified, what strategy was applied, and whether the validation passed ,  essential for demonstrating compliance with GDPR, CCPA, and HIPAA data minimization requirements. You get all of that for free, without writing a single line of orchestration code.
+Each masking step is a simple, independent worker .  one scans the data source to identify all sensitive fields, one selects the right masking strategy (tokenization for IDs, redaction for SSNs, format-preserving encryption for emails) based on the data's purpose, one applies the masks across all identified fields, one validates that the output contains no residual PII and that referential integrity is preserved across related tables. Conductor takes care of executing them in strict order so no data is released without validation, retrying if the data source connection drops mid-scan, and maintaining a complete audit trail proving exactly which fields were identified, what strategy was applied, and whether the validation passed ,  essential for demonstrating compliance with GDPR, CCPA, and HIPAA data minimization requirements. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ The masking pipeline chains DmIdentifyFieldsWorker to discover sensitive fields,
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ dm_apply_masking
     │
     ▼
 dm_validate_output
-```
-
-## Example Output
-
-```
-=== Example 392: Data Masking ===
-
-Step 1: Registering task definitions...
-  Registered: dm_identify_fields, dm_select_strategy, dm_apply_masking, dm_validate_output
-
-Step 2: Registering workflow 'data_masking_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mask] 18 fields masked: emails tokenized, SSNs redacted
-  [identify]
-  [strategy] Masking strategy for
-  [validate] No PII found in masked output, referential integrity maintained
-
-  Status: COMPLETED
-  Output: {apply_masking=..., processed=..., identify_fieldsId=..., success=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

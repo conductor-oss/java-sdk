@@ -1,8 +1,6 @@
 # Catering Management in Java with Conductor
 
-Orchestrates a catering order from client inquiry through menu planning, event execution, and invoicing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Orchestrates a catering order from client inquiry through menu planning, event execution, and invoicing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to manage a catering order from initial inquiry to final invoice. A client reaches out with event details (date, guest count), a customized quote is prepared, the menu is planned based on dietary requirements and budget, the catering event is executed, and the final invoice is sent. Providing a quote without understanding guest count leads to cost overruns; executing without a planned menu results in food shortages or waste.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage catering through spreadsheets and email .  m
 
 **You just write the client inquiry, menu planning, event execution, and invoicing logic. Conductor handles quote retries, event coordination sequencing, and catering engagement audit trails.**
 
-Each catering concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (inquiry, quote, plan menu, execute, invoice), retrying if an external service fails, tracking every catering order's lifecycle, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each catering concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (inquiry, quote, plan menu, execute, invoice), retrying if an external service fails, tracking every catering order's lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Inquiry intake, menu planning, quoting, execution, and invoicing workers each ma
 | **QuoteWorker** | `cat_quote` | Calculates a price quote at $45 per guest based on guest count and returns the total and per-guest rate |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ cat_execute
     │
     ▼
 cat_invoice
-```
-
-## Example Output
-
-```
-=== Example 740: Catering Management ===
-
-Step 1: Registering task definitions...
-  Registered: cat_inquiry, cat_quote, cat_plan_menu, cat_execute, cat_invoice
-
-Step 2: Registering workflow 'catering_management_740'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [execute] Executing catering for
-  [inquiry] Catering inquiry from
-  [invoice] Invoicing
-  [menu] Planning menu for
-  [quote] Quote: $
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow catering_management_740 \
   --version 1 \
-  --input '{"clientName": "sample-name", "Acme Corp": "sample-Acme Corp", "eventDate": "2025-01-15T10:00:00Z", "2026-04-15": "sample-2026-04-15", "guestCount": 5}'
+  --input '{"clientName": "test", "eventDate": "2026-01-01T00:00:00Z", "guestCount": 10}'
 ```
 
 ### Check workflow status

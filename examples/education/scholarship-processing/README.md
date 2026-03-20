@@ -1,8 +1,6 @@
 # Scholarship Processing in Java with Conductor :  Application, Evaluation, Ranking, Award, and Notification
 
-A Java Conductor workflow example for scholarship processing .  accepting student applications, evaluating them based on GPA and financial need, ranking applicants competitively, awarding the scholarship to qualified recipients, and notifying students of the outcome. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for scholarship processing .  accepting student applications, evaluating them based on GPA and financial need, ranking applicants competitively, awarding the scholarship to qualified recipients, and notifying students of the outcome. Uses [Conductor](https://github.## The Problem
 
 You need to process scholarship applications from submission to award. A student applies for a specific scholarship, the financial aid office evaluates their eligibility based on GPA and demonstrated financial need, applicants are ranked against the competition, an award decision is made based on ranking and available funds, and the student is notified whether they received the scholarship and for how much. Awarding without proper evaluation risks compliance violations; ranking without consistent criteria leads to unfair outcomes.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single batch-processing script that pulls a
 
 **You just write the application intake, eligibility evaluation, competitive ranking, award decision, and student notification logic. Conductor handles financial analysis retries, award routing, and application audit trails.**
 
-Each scholarship concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (apply, evaluate, rank, award, notify), retrying if the financial aid system is temporarily unavailable, maintaining a complete audit trail of every application's journey from submission to decision, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each scholarship concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (apply, evaluate, rank, award, notify), retrying if the financial aid system is temporarily unavailable, maintaining a complete audit trail of every application's journey from submission to decision, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Application review, financial analysis, award determination, and disbursement wo
 | **NotifyWorker** | `scp_notify` | Notifies the student of the award decision and amount |
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ scp_award
     │
     ▼
 scp_notify
-```
-
-## Example Output
-
-```
-=== Example 680: Scholarship Processing ===
-
-Step 1: Registering task definitions...
-  Registered: scp_apply, scp_evaluate, scp_rank, scp_award, scp_notify
-
-Step 2: Registering workflow 'scp_scholarship_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply]
-  [award]
-  [evaluate]
-  [notify]
-  [rank]
-
-  Status: COMPLETED
-  Output: {applicationId=..., awarded=..., amount=..., score=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow scp_scholarship_processing \
   --version 1 \
-  --input '{"studentId": "STU-2024-680", "STU-2024-680": "scholarshipId", "scholarshipId": "MERIT-2024", "MERIT-2024": "gpa", "gpa": 3.9, "high": "sample-high"}'
+  --input '{"studentId": "TEST-001", "scholarshipId": "TEST-001", "gpa": "test-value", "financialNeed": "test-value"}'
 ```
 
 ### Check workflow status

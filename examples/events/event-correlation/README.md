@@ -1,8 +1,6 @@
 # Event Correlation in Java Using Conductor
 
-Event Correlation .  init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Correlation .  init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process. Uses [Conductor](https://github.## The Problem
 
 You need to correlate related events that arrive independently from different sources. An order event, a payment event, and a shipping event may arrive at different times from different services, but they all belong to the same business transaction. The workflow must initialize a correlation session, receive all expected events (potentially in parallel), correlate them by matching fields, and process the fully correlated result.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a stateful correlation engine with in-memory 
 
 **You just write the correlation-init, event-receiver, event-correlation, and processing workers. Conductor handles parallel event reception, durable session state, and automatic join before correlation.**
 
-Each correlation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of initializing the session, receiving events in parallel via FORK_JOIN, correlating them after all arrive, and processing the result ,  with durable state that survives restarts and full visibility into which events have arrived. You get all of that for free, without writing a single line of orchestration code.
+Each correlation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of initializing the session, receiving events in parallel via FORK_JOIN, correlating them after all arrive, and processing the result ,  with durable state that survives restarts and full visibility into which events have arrived. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Six workers correlate cross-service events: InitCorrelationWorker opens a sessio
 | **ReceiveShippingWorker** | `ec_receive_shipping` | Simulates receiving a shipping event for event correlation. Returns deterministic, fixed shipping data. |
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
 ### The Workflow
 
@@ -56,36 +44,6 @@ ec_correlate_events
     │
     ▼
 ec_process_correlated
-```
-
-## Example Output
-
-```
-=== Event Correlation Demo: FORK_JOIN Patter ===
-
-Step 1: Registering task definitions...
-  Registered: ec_init_correlation, ec_receive_order, ec_receive_payment, ec_receive_shipping, ec_correlate_events, ec_process_correlated
-
-Step 2: Registering workflow 'event_correlation_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ec_correlate_events] Correlating events for:
-  [ec_init_correlation] Initializing correlation session:
-  [ec_process_correlated] Processing correlated data for:
-  [ec_receive_order] Receiving order event for correlation:
-  [ec_receive_payment] Receiving payment event for correlation:
-  [ec_receive_shipping] Receiving shipping event for correlation:
-
-  Status: COMPLETED
-  Output: {orderId=..., customerId=..., orderAmount=..., paymentAmount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -157,7 +115,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_correlation_wf \
   --version 1 \
-  --input '{"correlationId": "corr-fixed-001", "corr-fixed-001": "expectedEvents", "expectedEvents": 3}'
+  --input '{"correlationId": "TEST-001", "expectedEvents": "test-value"}'
 ```
 
 ### Check workflow status

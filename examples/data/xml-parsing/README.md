@@ -1,8 +1,6 @@
 # XML Parsing in Java Using Conductor :  XML Reception, Tag Parsing, Field Extraction, JSON Conversion, and Record Emission
 
-A Java Conductor workflow example for XML-to-JSON transformation. receiving raw XML content with a configurable root element, parsing the XML tags into structured elements, extracting typed fields from each element (id, name, price as double, category), converting the extracted data to JSON records with source metadata and timestamps, and emitting the final records for downstream consumption. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for XML-to-JSON transformation. receiving raw XML content with a configurable root element, parsing the XML tags into structured elements, extracting typed fields from each element (id, name, price as double, category), converting the extracted data to JSON records with source metadata and timestamps, and emitting the final records for downstream consumption. Uses [Conductor](https://github.## The Problem
 
 Your partners send product catalog updates as XML files. Each file contains nested elements under a configurable root tag, and each element has fields like `id`, `name`, `price`, and `category` buried inside XML tags. Your downstream systems: the product database, the search index, the pricing engine, all consume JSON. You need to receive the XML, parse it into its constituent elements under the root tag, extract typed fields from each element (treating `price` as a double, not a string), convert the extracted data to JSON records with metadata (source, parsedAt timestamp), and emit the records for downstream consumers. Each step depends on the previous one: you can't extract fields from unparsed XML, and you can't convert to JSON without typed field values.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single JAXB or DOM parser method that reads
 
 **You just write the XML reception, tag parsing, field extraction, JSON conversion, and record emission workers. Conductor handles the multi-stage XML pipeline, retries when parsing fails on unexpected structures, and element-by-element count tracking across every stage.**
 
-Each stage of the XML pipeline is a simple, independent worker. The receiver accepts the raw XML content and the root element name, validating that the XML is well-formed. The tag parser walks the XML structure and extracts elements under the specified root tag, producing a list of parsed elements. The field extractor pulls typed values from each element: strings for `id`, `name`, and `category`, doubles for `price`, producing clean records. The JSON converter transforms the extracted records into JSON format, adding metadata like source identifier and `parsedAt` timestamp to each record. The emitter produces the final record set with a completion status and record count. Conductor executes them in strict sequence, passes the evolving data representation between stages, retries if any step fails, and tracks element counts and record counts at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the XML pipeline is a simple, independent worker. The receiver accepts the raw XML content and the root element name, validating that the XML is well-formed. The tag parser walks the XML structure and extracts elements under the specified root tag, producing a list of parsed elements. The field extractor pulls typed values from each element: strings for `id`, `name`, and `category`, doubles for `price`, producing clean records. The JSON converter transforms the extracted records into JSON format, adding metadata like source identifier and `parsedAt` timestamp to each record. The emitter produces the final record set with a completion status and record count. Conductor executes them in strict sequence, passes the evolving data representation between stages, retries if any step fails, and tracks element counts and record counts at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers handle XML-to-JSON transformation: receiving raw XML content, parsi
 | **ReceiveXmlWorker** | `xp_receive_xml` | Receives raw XML content and passes it along with metadata. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ xp_convert_to_json
     │
     ▼
 xp_emit_records
-```
-
-## Example Output
-
-```
-=== XML Parsing Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: xp_receive_xml, xp_parse_tags, xp_extract_fields, xp_convert_to_json, xp_emit_records
-
-Step 2: Registering workflow 'xml_parsing_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [xp_convert_to_json] Converting
-  [xp_emit_records] Emitting
-  [xp_extract_fields] Extracting fields from
-  [xp_parse_tags] Parsing tags from root:
-  [xp_receive_xml] Received XML with root:
-
-  Status: COMPLETED
-  Output: {source=..., parsedAt=..., jsonRecords=..., count=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow xml_parsing_wf \
   --version 1 \
-  --input '{"xmlContent": "Sample xmlContent", "><name>Laptop</name></product></products>": "sample-name", "rootElement": "sample-rootElement"}'
+  --input '{"xmlContent": "test-value", "rootElement": "test-value"}'
 ```
 
 ### Check workflow status

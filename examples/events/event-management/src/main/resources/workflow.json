@@ -1,0 +1,20 @@
+{
+  "name": "evt_event_management",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["eventName", "date", "capacity"],
+  "tasks": [
+    { "name": "evt_plan", "taskReferenceName": "evt_plan_ref", "type": "SIMPLE", "inputParameters": { "eventName": "${workflow.input.eventName}", "date": "${workflow.input.date}", "capacity": "${workflow.input.capacity}" } },
+    { "name": "evt_register", "taskReferenceName": "evt_register_ref", "type": "SIMPLE", "inputParameters": { "eventId": "${evt_plan_ref.output.eventId}", "capacity": "${workflow.input.capacity}" } },
+    { "name": "evt_execute", "taskReferenceName": "evt_execute_ref", "type": "SIMPLE", "inputParameters": { "eventId": "${evt_plan_ref.output.eventId}", "attendees": "${evt_register_ref.output.registeredCount}" } },
+    { "name": "evt_followup", "taskReferenceName": "evt_followup_ref", "type": "SIMPLE", "inputParameters": { "eventId": "${evt_plan_ref.output.eventId}", "attendees": "${evt_execute_ref.output.actualAttendees}" } }
+  ],
+  "outputParameters": {
+    "eventId": "${evt_plan_ref.output.eventId}",
+    "registered": "${evt_register_ref.output.registeredCount}",
+    "attended": "${evt_execute_ref.output.actualAttendees}",
+    "satisfactionScore": "${evt_followup_ref.output.satisfaction}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

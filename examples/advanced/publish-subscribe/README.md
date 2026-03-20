@@ -1,8 +1,6 @@
 # Publish-Subscribe in Java Using Conductor :  Publish Event, Fan Out to Subscribers in Parallel, Confirm
 
-A Java Conductor workflow example for publish-subscribe .  publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## One Event, Multiple Subscribers, All Must Succeed
+A Java Conductor workflow example for publish-subscribe .  publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.## One Event, Multiple Subscribers, All Must Succeed
 
 A user signs up and three things need to happen: the welcome email service sends an onboarding email, the analytics service records the signup event, and the provisioning service creates the user's workspace. These are independent subscribers .  none depends on the others; but all three must eventually succeed. If the email service is down, the signup shouldn't block provisioning, and you need to know which subscribers processed the event and which didn't.
 
@@ -28,16 +26,6 @@ Five workers implement the pub-sub fan-out: event publishing, three parallel sub
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 pbs_confirm
-```
-
-## Example Output
-
-```
-=== Publish-Subscribe Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pbs_publish, pbs_subscriber_1, pbs_subscriber_2, pbs_subscriber_3, pbs_confirm
-
-Step 2: Registering workflow 'pbs_publish_subscribe'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [confirm] Processing
-  [publish] Processing
-  [sub-1] Processing
-  [sub-2] Processing
-  [sub-3] Processing
-
-  Status: COMPLETED
-  Output: {subscribersNotified=..., allDelivered=..., eventId=..., published=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pbs_publish_subscribe \
   --version 1 \
-  --input '{"event": {"key": "value"}, "order_events": "sample-order-events"}'
+  --input '{"event": "test-value", "topic": "test-value"}'
 ```
 
 ### Check workflow status

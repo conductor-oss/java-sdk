@@ -1,6 +1,6 @@
 # RAG Fusion in Java Using Conductor :  Multi-Query Parallel Search with Reciprocal Rank Fusion
 
-A Java Conductor workflow that implements RAG Fusion .  rewriting the user's question into multiple search queries (different phrasings, perspectives, and specificity levels), searching the vector store with each query in parallel, and fusing the results using reciprocal rank fusion (RRF) to produce a better-ranked document set than any single query would yield. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query rewriting, parallel search, result fusion, and generation as independent workers ,  you write the rewriting and fusion logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that implements RAG Fusion .  rewriting the user's question into multiple search queries (different phrasings, perspectives, and specificity levels), searching the vector store with each query in parallel, and fusing the results using reciprocal rank fusion (RRF) to produce a better-ranked document set than any single query would yield. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query rewriting, parallel search, result fusion, and generation as independent workers ,  you write the rewriting and fusion logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Why One Query Is Not Enough
 
@@ -29,16 +29,6 @@ Six workers implement RAG fusion .  rewriting the original query into multiple v
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -56,36 +46,6 @@ rf_fuse_results
     │
     ▼
 rf_generate_answer
-```
-
-## Example Output
-
-```
-=== Example 151: RAG Fusio ===
-
-Step 1: Registering task definitions...
-  Registered: rf_rewrite_queries, rf_search_v1, rf_search_v2, rf_search_v3, rf_fuse_results, rf_generate_answer
-
-Step 2: Registering workflow 'rag_fusion_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [fuse] [SIMULATED] Fused
-  [generate] Answer (live OpenAI) using
-  [rewrite] Generated
-  [search_v1] [SIMULATED] Returned
-  [search_v2] [SIMULATED] Returned
-  [search_v3] [SIMULATED] Returned
-
-  Status: COMPLETED
-  Output: {id=..., text=..., rrfScore=..., fusedDocs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +74,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -158,7 +118,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_fusion_workflow \
   --version 1 \
-  --input '{"question": "sample-question"}'
+  --input '{"question": "test-value"}'
 ```
 
 ### Check workflow status

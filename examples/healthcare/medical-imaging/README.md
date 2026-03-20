@@ -1,8 +1,6 @@
 # Medical Imaging in Java Using Conductor :  Acquisition, Processing, AI Analysis, Radiology Reporting, and PACS Storage
 
-A Java Conductor workflow example for medical imaging .  acquiring DICOM images from modalities (CT, MRI, X-ray), processing raw images (windowing, reconstruction, de-identification), running AI-assisted analysis for findings detection, generating the radiology report, and archiving to PACS. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for medical imaging .  acquiring DICOM images from modalities (CT, MRI, X-ray), processing raw images (windowing, reconstruction, de-identification), running AI-assisted analysis for findings detection, generating the radiology report, and archiving to PACS. Uses [Conductor](https://github.## The Problem
 
 You need to manage the lifecycle of a medical imaging study from acquisition through archival. An imaging modality (CT scanner, MRI, X-ray) produces DICOM images for a study. The raw images must be processed .  applying window/level adjustments, multi-planar reconstructions, and de-identification for research use. Processed images are then analyzed, potentially with AI-assisted detection (lung nodules, fractures, hemorrhage). A radiologist report must be generated with structured findings, impressions, and follow-up recommendations. Finally, the study and report must be archived to the PACS (Picture Archiving and Communication System) for long-term storage and retrieval. Each step depends on the previous one ,  you cannot analyze unprocessed images, and you cannot archive without a finalized report.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic RIS/PACS integration that polls 
 
 **You just write the imaging workers. DICOM acquisition, image processing, AI-assisted analysis, radiology reporting, and PACS archival. Conductor handles stage sequencing, automatic retries when the AI analysis service is temporarily unavailable, and a complete audit trail for ACR accreditation and HIPAA.**
 
-Each stage of the imaging pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of processing only after acquisition, analyzing only after processing, generating the report only after analysis, archiving to PACS as the final step, and maintaining a complete audit trail for ACR accreditation and HIPAA compliance. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the imaging pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of processing only after acquisition, analyzing only after processing, generating the report only after analysis, archiving to PACS as the final step, and maintaining a complete audit trail for ACR accreditation and HIPAA compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers form the imaging pipeline: AcquireWorker receives DICOM images from
 | **StoreWorker** | `img_store` | Archives the study images and finalized report to the PACS for long-term storage |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ img_report
     │
     ▼
 img_store
-```
-
-## Example Output
-
-```
-=== Medical Imaging Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: img_acquire, img_process, img_analyze, img_report, img_store
-
-Step 2: Registering workflow 'medical_imaging_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [acquire]
-  [analyze] AI analysis of
-  [process] Enhancing image
-  [report] Radiology report generated
-  [store] Archiving study
-
-  Status: COMPLETED
-  Output: {imageId=..., format=..., slices=..., resolution=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow medical_imaging_workflow \
   --version 1 \
-  --input '{"studyId": "STD-2024-0301", "STD-2024-0301": "patientId", "patientId": "PAT-10234", "PAT-10234": "modality", "modality": "CT", "CT": "bodyPart", "bodyPart": "chest", "chest": "sample-chest"}'
+  --input '{"studyId": "TEST-001", "patientId": "TEST-001", "modality": "test-value", "bodyPart": "test-value"}'
 ```
 
 ### Check workflow status

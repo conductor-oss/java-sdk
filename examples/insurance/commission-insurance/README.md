@@ -1,8 +1,6 @@
 # Insurance Commission Processing in Java with Conductor :  Calculate, Validate, Deduct Advances, Pay, Report
 
-A Java Conductor workflow example demonstrating commission-insurance Commission Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Agent Commissions Have Advances, Tiers, and Clawbacks
+A Java Conductor workflow example demonstrating commission-insurance Commission Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Agent Commissions Have Advances, Tiers, and Clawbacks
 
 An agent writes a $2,000 annual premium policy with a 15% new business commission rate ($300). But the agent received a $200 advance against future commissions last month. And if the policy cancels within 6 months, the commission must be clawed back. The commission calculation must apply the correct rate (new business vs: renewal, product-specific tiers), deduct any outstanding advances, process the net payment, and track the potential clawback liability.
 
@@ -28,15 +26,6 @@ Policy matching, rate calculation, split allocation, and payment processing work
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ cin_pay
     │
     ▼
 cin_report
-```
-
-## Example Output
-
-```
-=== Example 789: Commission (Insurance) ===
-
-Step 1: Registering task definitions...
-  Registered: cin_calculate, cin_validate, cin_deduct_advances, cin_pay, cin_report
-
-Step 2: Registering workflow 'cin_commission_insurance'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [calculate] Commission calculated at 15%%
-  [deduct] Advance deduction applied
-  [pay] Processing
-  [report] Processing
-  [validate] Processing
-
-  Status: COMPLETED
-  Output: {commission=..., rate=..., netCommission=..., advanceDeducted=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cin_commission_insurance \
   --version 1 \
-  --input '{"agentId": "AGT-789", "AGT-789": "policyId", "policyId": "POL-789", "POL-789": "premiumAmount", "premiumAmount": 3200}'
+  --input '{"agentId": "TEST-001", "policyId": "TEST-001", "premiumAmount": 100}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Modify rate schedules or split formulas and the commission pipeline handles them
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

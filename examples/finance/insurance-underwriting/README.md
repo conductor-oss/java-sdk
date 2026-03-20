@@ -1,8 +1,6 @@
 # Insurance Underwriting in Java with Conductor
 
-Insurance underwriting with SWITCH decision routing for accept/decline/refer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Insurance underwriting with SWITCH decision routing for accept/decline/refer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to underwrite an insurance application. The workflow collects applicant information and coverage requirements, assesses the risk based on applicant profile and coverage type, makes an underwriting decision (accept at standard rates, accept with modified terms, decline, or refer for manual review), and communicates the decision. Accepting high-risk applicants at standard rates leads to adverse selection; declining without proper assessment loses good business.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single underwriting engine that collects da
 
 **You just write the underwriting workers. Application collection, risk assessment, accept/decline/refer routing, quote generation, and policy binding. Conductor handles conditional SWITCH routing for accept, decline, and refer decisions, automatic retries when the risk model is unavailable, and full application tracking for insurance commissioner audits.**
 
-Each underwriting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting information, assessing risk, routing via a SWITCH task to the correct decision (accept, decline, refer), and communicating the outcome ,  retrying if the risk model service is unavailable, tracking every application's underwriting journey, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each underwriting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting information, assessing risk, routing via a SWITCH task to the correct decision (accept, decline, refer), and communicating the outcome ,  retrying if the risk model service is unavailable, tracking every application's underwriting journey, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -29,16 +27,6 @@ Seven workers manage the underwriting process: CollectAppWorker gathers applican
 | **ReferWorker** | `uw_refer` | Routes the application for senior underwriter review with the referral reason and assigns a reviewer |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -60,37 +48,6 @@ SWITCH (uw_switch_ref)
     │
     ▼
 uw_bind
-```
-
-## Example Output
-
-```
-=== Example 500: Insurance Underwriting ===
-
-Step 1: Registering task definitions...
-  Registered: uw_collect_app, uw_assess_risk, uw_quote, uw_accept, uw_decline, uw_refer, uw_bind
-
-Step 2: Registering workflow 'insurance_underwriting_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  7 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [accept] Application
-  [risk] Class:
-  [bind] Policy
-  [collect] Application
-  [decline] Application
-  [quote] Coverage: $
-  [refer] Application
-
-  Status: COMPLETED
-  Output: {accepted=..., acceptedAt=..., riskClass=..., decision=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -119,7 +76,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -162,7 +119,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow insurance_underwriting_workflow \
   --version 1 \
-  --input '{"applicationId": "INSAPP-2024-001", "INSAPP-2024-001": "applicantName", "applicantName": "Michael Chen", "Michael Chen": "coverageType", "coverageType": "term_life", "term_life": "coverageAmount", "coverageAmount": 500000}'
+  --input '{"applicationId": "TEST-001", "applicantName": "test", "coverageType": "test-value", "coverageAmount": 100}'
 ```
 
 ### Check workflow status

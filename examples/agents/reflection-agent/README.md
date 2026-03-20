@@ -1,8 +1,6 @@
 # Reflection Agent in Java Using Conductor :  Generate, Reflect, Improve in Iterative Refinement Loop
 
-Reflection Agent .  generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## First Drafts Are Never Good Enough
+Reflection Agent .  generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output. Uses [Conductor](https://github.## First Drafts Are Never Good Enough
 
 An LLM's first response to "Write an essay about climate change solutions" is serviceable but rarely excellent. It might lack specific examples, have a weak conclusion, or miss an important perspective. A reflection agent catches these weaknesses: after generating the initial draft, a separate reflection step identifies specific issues ("Paragraph 3 lacks a concrete example", "The economic analysis is superficial"), and an improvement step addresses each issue.
 
@@ -27,16 +25,6 @@ Four workers power iterative refinement. Generating an initial draft, reflecting
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ DO_WHILE
     │
     ▼
 rn_final_output
-```
-
-## Example Output
-
-```
-=== Reflection Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rn_initial_generation, rn_reflect, rn_improve, rn_final_output
-
-Step 2: Registering workflow 'reflection_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [rn_final_output] Producing final output on:
-  [rn_improve] Improving draft (iteration
-  [rn_initial_generation] Generating initial draft on:
-  [rn_reflect] Reflecting on draft (iteration
-
-  Status: COMPLETED
-  Output: {content=..., qualityScore=..., applied=..., feedback=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow reflection_agent \
   --version 1 \
-  --input '{"topic": "sample-topic"}'
+  --input '{"topic": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +132,6 @@ Plug in real LLM generation and critique; the reflection loop maintains the same
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

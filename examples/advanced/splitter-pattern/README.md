@@ -1,8 +1,6 @@
 # Splitter Pattern in Java Using Conductor :  Receive Composite Message, Split, Process Parts in Parallel, Combine
 
-A Java Conductor workflow example for the splitter pattern .  receiving a composite message containing multiple items, splitting it into individual parts, processing each part independently and in parallel via `FORK_JOIN`, and combining the per-part results into a single unified response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Composite Messages Contain Independent Items That Can Be Processed in Parallel
+A Java Conductor workflow example for the splitter pattern .  receiving a composite message containing multiple items, splitting it into individual parts, processing each part independently and in parallel via `FORK_JOIN`, and combining the per-part results into a single unified response. Uses [Conductor](https://github.## Composite Messages Contain Independent Items That Can Be Processed in Parallel
 
 An order arrives with three line items .  a laptop, a monitor, and a keyboard. Each item needs independent processing: inventory check, pricing lookup, tax calculation. Processing them sequentially triples the latency. Processing them in parallel requires splitting the order into individual items, dispatching each to its own processing pipeline, waiting for all three to complete, and reassembling the results into a single order response.
 
@@ -29,16 +27,6 @@ Six workers implement the split-and-recombine pattern: composite message recepti
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -56,36 +44,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 spl_combine
-```
-
-## Example Output
-
-```
-=== Splitter Pattern Demo ===
-
-Step 1: Registering task definitions...
-  Registered: spl_receive_composite, spl_split, spl_process_part_1, spl_process_part_2, spl_process_part_3, spl_combine
-
-Step 2: Registering workflow 'spl_splitter_pattern'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [combine] Processing
-  [part-1] Processing
-  [part-2] Processing
-  [part-3] Processing
-  [receive] Processing
-  [split] Processing
-
-  Status: COMPLETED
-  Output: {combinedResult=..., allPartsProcessed=..., result=..., compositeMessage=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -157,7 +115,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow spl_splitter_pattern \
   --version 1 \
-  --input '{"compositeMessage": {"key": "value"}}'
+  --input '{"compositeMessage": "test-value"}'
 ```
 
 ### Check workflow status

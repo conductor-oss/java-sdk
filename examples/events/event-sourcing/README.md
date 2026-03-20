@@ -1,8 +1,6 @@
 # Event Sourcing in Java Using Conductor
 
-Event Sourcing .  load event log, append new event, rebuild aggregate state, and snapshot for a bank account aggregate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Sourcing .  load event log, append new event, rebuild aggregate state, and snapshot for a bank account aggregate. Uses [Conductor](https://github.## The Problem
 
 You need to implement event sourcing for a domain aggregate (e.g., a bank account). Instead of storing current state, you store a log of all events that led to the current state. The workflow loads the existing event log for an aggregate, appends a new event, rebuilds the current state by replaying all events in order, and snapshots the rebuilt state for fast future lookups. Without event sourcing, you lose the history of how state was derived and cannot audit or debug state transitions.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build an event store with append-only writes, imple
 
 **You just write the event-log load, append, state-rebuild, and snapshot workers. Conductor handles append ordering, crash-safe state rebuild, and a durable record of every event-sourcing lifecycle.**
 
-Each event-sourcing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of loading the event log, appending the new event, rebuilding the aggregate state, and snapshotting ,  retrying if the event store is unavailable, tracking every state rebuild, and resuming if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each event-sourcing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of loading the event log, appending the new event, rebuilding the aggregate state, and snapshotting ,  retrying if the event store is unavailable, tracking every state rebuild, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers manage the event-sourced aggregate: LoadEventLogWorker reads the ex
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ev_rebuild_state
     │
     ▼
 ev_snapshot_state
-```
-
-## Example Output
-
-```
-=== Event Sourcing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ev_load_event_log, ev_append_new_event, ev_rebuild_state, ev_snapshot_state
-
-Step 2: Registering workflow 'event_sourcing_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ev_append_new_event] Appending event seq
-  [ev_load_event_log] Loading event log for
-  [ev_rebuild_state] Rebuilding
-  [ev_snapshot_state] Snapshotting
-
-  Status: COMPLETED
-  Output: {sequence=..., type=..., timestamp=..., data=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_sourcing_wf \
   --version 1 \
-  --input '{"aggregateId": "acct-1001", "acct-1001": "aggregateType", "aggregateType": "BankAccount", "BankAccount": "newEvent", "newEvent": {"key": "value"}}'
+  --input '{"aggregateId": "TEST-001", "aggregateType": "test-value", "newEvent": "test-value"}'
 ```
 
 ### Check workflow status

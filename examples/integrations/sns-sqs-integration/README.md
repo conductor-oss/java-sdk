@@ -27,15 +27,6 @@ Four workers run the messaging pipeline: SnsPublishWorker sends to an SNS topic,
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ sns_receive_message
     │
     ▼
 sns_process_message
-```
-
-## Example Output
-
-```
-=== Example 448: SNS + SQS Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: sns_publish, sns_subscribe_queue, sns_receive_message, sns_process_message
-
-Step 2: Registering workflow 'sns_sqs_integration_448'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [process] Processed message:
-  [receive] Message
-  [publish] Published
-  [subscribe] Queue
-
-  Status: COMPLETED
-  Output: {processed=..., deletedFromQueue=..., processedAt=..., body=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -150,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sns_sqs_integration_448 \
   --version 1 \
-  --input '{"topicArn": "sample-topicArn", "arn:aws:sns:us-east-1:123456789:order-events": "sample-arn:aws:sns:us-east-1:123456789:order-events", "queueUrl": "https://api.example.com/resource", "https://sqs.us-east-1.amazonaws.com/123456789/order-processing": "sample-https://sqs.us-east-1.amazonaws.com/123456789/order-processing", "messageBody": "Sample messageBody"}'
+  --input '{"topicArn": "test-value", "queueUrl": "https://example.com", "messageBody": "test-value"}'
 ```
 
 ### Check workflow status

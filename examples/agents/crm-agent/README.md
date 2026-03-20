@@ -1,8 +1,6 @@
 # CRM Agent in Java Using Conductor :  Customer Lookup, History Check, Record Update, Response Generation
 
-CRM Agent .  lookup customer, check history, update record, and generate response through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Personalized Responses Require Full Customer Context
+CRM Agent .  lookup customer, check history, update record, and generate response through a sequential pipeline. Uses [Conductor](https://github.## Personalized Responses Require Full Customer Context
 
 A customer contacts support saying "My order hasn't arrived." A generic response helps nobody. A good response requires knowing who they are (gold tier member, customer since 2019), what their history looks like (three prior shipping issues, last contacted two weeks ago about a different order), updating the CRM with this new interaction, and generating a response that acknowledges their loyalty and history.
 
@@ -27,15 +25,6 @@ Four workers handle the CRM interaction. Looking up the customer profile, checki
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cm_update_record
     │
     ▼
 cm_generate_response
-```
-
-## Example Output
-
-```
-=== CRM Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cm_lookup_customer, cm_check_history, cm_update_record, cm_generate_response
-
-Step 2: Registering workflow 'crm_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cm_check_history] Checking history for:
-  [cm_generate_response] Generating response for:
-  [cm_lookup_customer] Looking up customer:
-  [cm_update_record] Updating record for:
-
-  Status: COMPLETED
-  Output: {recentIssues=..., totalInteractions=..., avgSatisfaction=..., sentiment=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crm_agent \
   --version 1 \
-  --input '{"customerId": "CUST-4821", "CUST-4821": "inquiry", "inquiry": "Our API integration has been experiencing intermittent timeout errors since the last platform update. Can you investigate and provide a resolution timeline?", "Our API integration has been experiencing intermittent timeout errors since the last platform update. Can you investigate and provide a resolution timeline?": "channel", "channel": "email", "email": "jane.doe@example.com"}'
+  --input '{"customerId": "TEST-001", "inquiry": "test-value", "channel": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Connect to Salesforce or HubSpot for real customer data; the CRM pipeline keeps 
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

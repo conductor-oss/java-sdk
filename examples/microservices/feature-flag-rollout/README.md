@@ -1,8 +1,6 @@
 # Feature Flag Rollout in Java with Conductor
 
-Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or rollback. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or rollback. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Rolling out a feature flag involves creating the flag, enabling it for a target user segment at a specified percentage, monitoring its impact on key metrics (conversion rate, error rate), and then deciding whether to fully activate or roll back. Each step depends on the previous one. You cannot monitor impact until the flag is enabled for a segment.
 
@@ -27,15 +25,6 @@ Four workers manage the flag lifecycle: CreateFlagWorker provisions the flag, En
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ff_monitor_impact
     │
     ▼
 ff_full_rollout
-```
-
-## Example Output
-
-```
-=== Feature Flag Rollout Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ff_create_flag, ff_enable_segment, ff_monitor_impact, ff_full_rollout
-
-Step 2: Registering workflow 'feature_flag_rollout'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [flag] Created:
-  [segment] Enabled for
-  [rollout] Full rollout:
-  [monitor] Impact: conversion +2.3%, errors stable (duration=
-
-  Status: COMPLETED
-  Output: {flagId=..., created=..., flagName=..., enabled=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow feature_flag_rollout \
   --version 1 \
-  --input '{"flagName": "sample-name", "new-checkout-flow": "sample-new-checkout-flow", "targetSegment": "sample-targetSegment", "beta-users": "sample-beta-users", "rolloutPercentage": "sample-rolloutPercentage"}'
+  --input '{"flagName": "test", "targetSegment": "test-value", "rolloutPercentage": "test-value"}'
 ```
 
 ### Check workflow status

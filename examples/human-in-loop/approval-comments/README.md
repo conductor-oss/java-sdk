@@ -1,8 +1,6 @@
 # Approval with Comments and Attachments in Java Using Conductor :  Document Preparation, Human Review via WAIT, and Feedback Application
 
-Human-in-the-loop approval with rich feedback .  prepares a document for review, pauses the workflow with a WAIT task until a human reviewer submits their decision along with comments, attachments, ratings, and tags, then applies that feedback to the document. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Human-in-the-loop approval with rich feedback .  prepares a document for review, pauses the workflow with a WAIT task until a human reviewer submits their decision along with comments, attachments, ratings, and tags, then applies that feedback to the document. Uses [Conductor](https://github.## The Problem
 
 You need approvals that go beyond a simple approve/reject button. A reviewer needs to provide structured feedback .  a decision (approve, reject, revise), free-text comments explaining their reasoning, file attachments (annotated screenshots, supporting documents, redlined versions), a quality rating, and classification tags. The workflow must pause and wait for this human input, then pass every piece of that feedback to downstream processing. Without a WAIT mechanism, you'd poll a database or queue for the reviewer's response, building your own timeout and notification logic.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a custom review portal backed by a polling lo
 
 **You just write the document-preparation and feedback-application workers. Conductor handles the durable pause for rich reviewer input.**
 
-The WAIT task is the key pattern here. After preparing the document, the workflow pauses at the WAIT task. Conductor holds the workflow state durably until an external signal (REST API call or SDK call) completes the task with the reviewer's decision, comments, attachments, rating, and tags. The apply-feedback worker then receives all of that structured input. Conductor takes care of holding the workflow state for hours or days while awaiting review, accepting the reviewer's rich feedback (decision, comments, attachments, rating, tags) via API, passing every field from the WAIT output into the feedback worker, and providing a complete timeline showing when the document was prepared, when the review was completed, and how long it took. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After preparing the document, the workflow pauses at the WAIT task. Conductor holds the workflow state durably until an external signal (REST API call or SDK call) completes the task with the reviewer's decision, comments, attachments, rating, and tags. The apply-feedback worker then receives all of that structured input. Conductor takes care of holding the workflow state for hours or days while awaiting review, accepting the reviewer's rich feedback (decision, comments, attachments, rating, tags) via API, passing every field from the WAIT output into the feedback worker, and providing a complete timeline showing when the document was prepared, when the review was completed, and how long it took. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +24,6 @@ PrepareDocWorker formats the document for review, and ApplyFeedbackWorker proces
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,32 +34,6 @@ review_with_comments [WAIT]
     │
     ▼
 ac_apply_feedback
-```
-
-## Example Output
-
-```
-=== Approval with Comments and Attachments Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'approval_comments_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ac_apply_feedback] Decision:
-  [prepare_doc] Processing
-
-  Status: COMPLETED
-  Output: {applied=..., ready=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -99,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -142,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow approval_comments_demo \
   --version 1 \
-  --input '{"documentId": "DOC-001", "DOC-001": "sample-DOC-001"}'
+  --input '{"documentId": "TEST-001"}'
 ```
 
 ### Check workflow status

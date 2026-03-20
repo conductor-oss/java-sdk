@@ -1,8 +1,6 @@
 # Human Task with Form Input in Java Using Conductor :  Data Collection, WAIT for Structured Form Submission, and Form Processing
 
-A Java Conductor workflow example demonstrating human task forms .  collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Workflows Need to Pause for Human Input via Forms
+A Java Conductor workflow example demonstrating human task forms .  collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.## Workflows Need to Pause for Human Input via Forms
 
 Some workflows require a human to fill out a form. Reviewing an application, entering data, or making a decision with structured input fields. The workflow collects initial data, pauses at a WAIT task (simulating a HUMAN task with a form schema), and the human provides structured input. The form response is then processed to determine the outcome. If processing fails, you need to retry it with the form data intact.
 
@@ -24,15 +22,6 @@ CollectDataWorker gathers context for the form, and ProcessFormWorker interprets
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,32 +32,6 @@ human_review_wait [WAIT]
     │
     ▼
 ht_process_form
-```
-
-## Example Output
-
-```
-=== Human Task (Form-Based Data Collection) Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'human_task_form_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect_data] Processing
-  [process_form] Processing
-
-  Status: COMPLETED
-  Output: {collected=..., decision=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow human_task_form_demo \
   --version 1 \
-  --input '{"applicantName": "sample-name"}'
+  --input '{"applicantName": "test"}'
 ```
 
 ### Check workflow status

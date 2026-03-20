@@ -1,8 +1,6 @@
 # Healthcare Appointment Scheduling in Java Using Conductor :  Provider Availability, Booking, Confirmation, and Reminders
 
-A Java Conductor workflow example for healthcare appointment scheduling .  checking provider availability for a preferred date, booking the selected time slot, sending the patient a confirmation, and scheduling appointment reminders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for healthcare appointment scheduling .  checking provider availability for a preferred date, booking the selected time slot, sending the patient a confirmation, and scheduling appointment reminders. Uses [Conductor](https://github.## The Problem
 
 You need to schedule patient appointments across a healthcare organization. A scheduling request comes in with a provider ID, preferred date, and visit type. The system must query the provider's calendar for open slots (and suggest alternates if the preferred time is taken), reserve the chosen slot, send the patient a confirmation with the appointment details, and schedule a reminder notification before the visit. Each step depends on the previous one .  you cannot book without an available slot, and you cannot confirm without a booking.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic scheduling service that queries 
 
 **You just write the scheduling workers. Availability checks, slot booking, patient confirmation, and reminder setup. Conductor handles step sequencing, automatic retries when the EHR is briefly unavailable, and a complete scheduling audit trail.**
 
-Each step of the scheduling process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking availability before booking, sending confirmations only after a successful booking, retrying if the EHR calendar API is temporarily unavailable, and maintaining a complete record of every scheduling attempt. You get all of that for free, without writing a single line of orchestration code.
+Each step of the scheduling process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking availability before booking, sending confirmations only after a successful booking, retrying if the EHR calendar API is temporarily unavailable, and maintaining a complete record of every scheduling attempt. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,47 +25,10 @@ Four workers divide the scheduling lifecycle: CheckAvailabilityWorker queries pr
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> BookWorker -> CheckAvailabilityWorker -> ConfirmWorker -> RemindWorker -> Output
-```
-
-## Example Output
-
-```
-=== Appointment Scheduling Demo ===
-
-Step 1: Registering task definitions...
-  Registered: apt_check_availability, apt_book, apt_confirm, apt_remind
-
-Step 2: Registering workflow 'appointment_scheduling_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [book] Booking
-  [availability] Checking slots for provider
-  [confirm] Confirmation sent for appointment
-  [remind] Reminder scheduled for 24h before
-
-  Status: COMPLETED
-  Output: {appointmentId=..., booked=..., bookedAt=..., availableSlot=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

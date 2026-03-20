@@ -1,8 +1,6 @@
 # Simple Plus System in Java with Conductor
 
-Combines SIMPLE workers with INLINE system tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Combines SIMPLE workers with INLINE system tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to build a store sales report: fetch orders from a database, calculate statistics (total revenue, average order value, max order), generate a visual chart, and format a summary email. Some of these steps require external services (database queries, chart generation APIs) and need dedicated workers. Others are simple calculations or string formatting that can run as lightweight JavaScript on the server. Building a worker for every step .  including trivial math and string formatting ,  adds unnecessary operational overhead.
 
@@ -25,15 +23,6 @@ Two SIMPLE workers handle external interactions. FetchOrdersWorker queries order
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -47,32 +36,6 @@ generate_visual_report
     │
     ▼
 format_summary [INLINE]
-```
-
-## Example Output
-
-```
-=== Example 14: SIMPLE + System Tasks ===
-
-Step 1: Registering task definitions...
-  Registered: fetch_orders, generate_visual_report
-
-Step 2: Registering workflow 'mixed_tasks_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [SIMPLE] Fetching orders for store
-  [SIMPLE] Generating chart for store
-
-  Status: COMPLETED
-  Output: {orders=..., chartUrl=..., generatedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -101,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mixed_tasks_demo \
   --version 1 \
-  --input '{"storeId": "STORE-42", "STORE-42": "dateRange", "dateRange": "2026-Q1", "2026-Q1": "sample-2026-Q1"}'
+  --input '{"storeId": "TEST-001", "dateRange": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

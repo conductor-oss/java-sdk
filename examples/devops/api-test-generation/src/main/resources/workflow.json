@@ -1,0 +1,20 @@
+{
+  "name": "atg_api_test_generation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["specUrl", "format"],
+  "tasks": [
+    { "name": "atg_parse_spec", "taskReferenceName": "atg_parse_ref", "type": "SIMPLE", "inputParameters": { "specUrl": "${workflow.input.specUrl}", "format": "${workflow.input.format}" } },
+    { "name": "atg_generate_tests", "taskReferenceName": "atg_generate_ref", "type": "SIMPLE", "inputParameters": { "endpoints": "${atg_parse_ref.output.endpoints}" } },
+    { "name": "atg_run_tests", "taskReferenceName": "atg_run_ref", "type": "SIMPLE", "inputParameters": { "testSuite": "${atg_generate_ref.output.testSuite}" } },
+    { "name": "atg_report", "taskReferenceName": "atg_report_ref", "type": "SIMPLE", "inputParameters": { "results": "${atg_run_ref.output.results}" } }
+  ],
+  "outputParameters": {
+    "endpointCount": "${atg_parse_ref.output.endpointCount}",
+    "testCount": "${atg_generate_ref.output.testCount}",
+    "passRate": "${atg_run_ref.output.passRate}",
+    "report": "${atg_report_ref.output.report}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

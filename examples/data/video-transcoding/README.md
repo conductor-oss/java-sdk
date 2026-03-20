@@ -1,8 +1,6 @@
 # Video Transcoding in Java Using Conductor :  Source Analysis, Parallel 720p/1080p/4K Encoding, and Output Packaging
 
-A Java Conductor workflow example for adaptive bitrate video transcoding: analyzing the source video to detect codec, resolution, and duration, then transcoding to three resolutions (720p, 1080p, 4K) in parallel via FORK_JOIN so all three encodes run simultaneously, then packaging all outputs into a manifest with total file sizes. The 720p encode doesn't wait for the 4K encode, and if one resolution fails, the others are unaffected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for adaptive bitrate video transcoding: analyzing the source video to detect codec, resolution, and duration, then transcoding to three resolutions (720p, 1080p, 4K) in parallel via FORK_JOIN so all three encodes run simultaneously, then packaging all outputs into a manifest with total file sizes. The 720p encode doesn't wait for the 4K encode, and if one resolution fails, the others are unaffected. Uses [Conductor](https://github.## The Problem
 
 When a creator uploads a video, your streaming platform needs to deliver it at multiple quality levels. 720p for mobile on cellular, 1080p for laptops, 4K for smart TVs. Each resolution requires a separate transcode pass with different bitrate targets, and a 2-hour 4K source video takes significant compute time per resolution. These three encodes are completely independent of each other: the 720p encode uses the same source video as the 4K encode, and neither needs the other's output. Running them sequentially triples the total transcoding time. But before any encoding can start, you need to analyze the source video to detect its codec, resolution, frame rate, and duration, because the encode settings depend on the source format. And after all three resolutions are ready, you need to package them into an adaptive bitrate manifest (HLS/DASH) that the player uses to switch quality based on network conditions.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd spawn three FFmpeg processes manually, manage their
 
 **You just write the video analysis, 720p/1080p/4K encoding, and manifest packaging workers. Conductor handles parallel multi-resolution encoding via FORK_JOIN, per-resolution retries, and crash recovery that preserves completed encodes while resuming only the failed resolution.**
 
-Each stage of the transcoding pipeline is a simple, independent worker. The video analyzer probes the source file to detect codec, resolution, frame rate, and duration. The three transcode workers (720p, 1080p, 4K) each encode the source video to their target resolution using the codec and duration information from the analysis. The packager assembles all three encoded outputs into a streaming manifest with per-resolution file sizes and a total size. Conductor runs the three transcode workers in parallel via FORK_JOIN, all three start as soon as analysis completes and run simultaneously. If the 4K encode fails, Conductor retries just that branch while the 720p and 1080p results are preserved. The packager only runs after all three encodes complete via the JOIN. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the transcoding pipeline is a simple, independent worker. The video analyzer probes the source file to detect codec, resolution, frame rate, and duration. The three transcode workers (720p, 1080p, 4K) each encode the source video to their target resolution using the codec and duration information from the analysis. The packager assembles all three encoded outputs into a streaming manifest with per-resolution file sizes and a total size. Conductor runs the three transcode workers in parallel via FORK_JOIN, all three start as soon as analysis completes and run simultaneously. If the 4K encode fails, Conductor retries just that branch while the 720p and 1080p results are preserved. The packager only runs after all three encodes complete via the JOIN. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,18 +24,7 @@ Five workers handle adaptive bitrate transcoding: analyzing the source video for
 | `Transcode4kWorker` | `vt_transcode_4k` | Encodes the source video to 4K (3840x2160) using the detected codec and duration, outputs the file path and resulting size (680 MB) |
 | `PackageOutputsWorker` | `vt_package_outputs` | Collects the three transcoded file paths and original duration, assembles a delivery manifest listing all resolutions with a total size (975 MB) and format count |
 
-
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
 
 ### The Workflow
 
@@ -53,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 vt_package_outputs
-```
-
-## Example Output
-
-```
-=== Video Transcoding Demo ===
-
-Step 1: Registering task definitions...
-  Registered: vt_analyze_video, vt_transcode_720p, vt_transcode_1080p, vt_transcode_4k, vt_package_outputs
-
-Step 2: Registering workflow 'video_transcoding'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [vt_analyze_video] Analyzing source video:
-  [vt_package_outputs] Packaging transcoded outputs
-  [vt_transcode_1080p] Transcoding to 1080p (codec=
-  [vt_transcode_4k] Transcoding to 4K (codec=
-  [vt_transcode_720p] Transcoding to 720p (codec=
-
-  Status: COMPLETED
-  Output: {codec=..., resolution=..., duration=..., bitrate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow video_transcoding \
   --version 1 \
-  --input '{"videoUrl": "https://cdn.example.com/input.mp4", "outputFormats": "sample-outputFormats"}'
+  --input '{"videoUrl": "TEST-001", "outputFormats": "test-value"}'
 ```
 
 ### Check workflow status

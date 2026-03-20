@@ -1,8 +1,6 @@
 # Real Estate Listing in Java with Conductor :  Create, Verify, Enrich, Publish, and Distribute
 
-A Java Conductor workflow example for publishing property listings .  creating the listing with address and price, verifying data accuracy, enriching with photos and neighborhood data, publishing to the MLS, and distributing to syndication channels (Zillow, Realtor.com, Redfin). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for publishing property listings .  creating the listing with address and price, verifying data accuracy, enriching with photos and neighborhood data, publishing to the MLS, and distributing to syndication channels (Zillow, Realtor.com, Redfin). Uses [Conductor](https://github.## The Problem
 
 You need to get a property listed and visible to buyers. The agent enters the address, price, and details; but before the listing goes live, the data must be verified (correct address, valid price range, no duplicate listings), enriched with professional photos, school district info, and walk scores, published to the MLS, and then distributed to consumer-facing portals. If the listing is published before verification, bad data reaches buyers. If distribution fails for one portal, the listing has inconsistent reach.
 
@@ -12,7 +10,7 @@ Without orchestration, listing creation is a manual process across multiple syst
 
 **You just write the listing creation, data verification, photo enrichment, MLS publishing, and portal syndication logic. Conductor handles photo processing retries, MLS publication, and listing audit trails.**
 
-Each listing step is a simple, independent worker .  one creates the listing record, one verifies accuracy, one enriches with supplementary data, one publishes to the MLS, one distributes to syndication channels. Conductor takes care of executing them in order, retrying if a portal API is temporarily unavailable, and tracking the listing lifecycle from creation through full distribution. You get all of that for free, without writing a single line of orchestration code.
+Each listing step is a simple, independent worker .  one creates the listing record, one verifies accuracy, one enriches with supplementary data, one publishes to the MLS, one distributes to syndication channels. Conductor takes care of executing them in order, retrying if a portal API is temporarily unavailable, and tracking the listing lifecycle from creation through full distribution. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Property intake, photo processing, listing composition, and MLS publication work
 | **DistributeListingWorker** | `rel_distribute` | Syndicates the listing to consumer portals (Zillow, Realtor.com, Redfin, Trulia) |
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ rel_publish
     │
     ▼
 rel_distribute
-```
-
-## Example Output
-
-```
-=== Example 681: Real Estate Listing ===
-
-Step 1: Registering task definitions...
-  Registered: rel_create, rel_verify, rel_enrich, rel_publish, rel_distribute
-
-Step 2: Registering workflow 'rel_real_estate_listing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [create] Listing at
-  [distribute] Sent to Zillow, Redfin, Realtor.com
-  [enrich] Added comps, school district, walkability score
-  [publish] Listing published to MLS
-  [verify] Address and ownership verified
-
-  Status: COMPLETED
-  Output: {listing=..., channels=..., distributed=..., enrichedListing=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rel_real_estate_listing \
   --version 1 \
-  --input '{"address": "123 Oak Lane, Austin TX", "123 Oak Lane, Austin TX": "price", "price": 475000, "AGT-100": "sample-AGT-100"}'
+  --input '{"address": "test-value", "price": 100, "agentId": "TEST-001"}'
 ```
 
 ### Check workflow status

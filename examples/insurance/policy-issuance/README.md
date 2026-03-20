@@ -1,8 +1,6 @@
 # Policy Issuance in Java with Conductor :  Underwrite, Approve, Generate Policy, Issue, Deliver
 
-A Java Conductor workflow example for end-to-end insurance policy issuance .  underwriting the applicant to determine risk class, approving the application and setting the premium, generating the policy document, officially issuing the policy in the system of record, and delivering the policy documents to the policyholder. Each step feeds into the next: underwriting produces the riskClass that approval uses to set the premium, the approved premium feeds into document generation which produces the policyId, and that policyId flows through issuance and delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## New Insurance Applications Must Flow Through Underwriting, Approval, and Issuance
+A Java Conductor workflow example for end-to-end insurance policy issuance .  underwriting the applicant to determine risk class, approving the application and setting the premium, generating the policy document, officially issuing the policy in the system of record, and delivering the policy documents to the policyholder. Each step feeds into the next: underwriting produces the riskClass that approval uses to set the premium, the approved premium feeds into document generation which produces the policyId, and that policyId flows through issuance and delivery. Uses [Conductor](https://github.## New Insurance Applications Must Flow Through Underwriting, Approval, and Issuance
 
 When a new insurance application arrives, the insurer must underwrite the applicant (assess risk class based on coverage type), approve the application (determine the premium from the underwriting result), generate the policy document with all terms and conditions, officially issue the policy in the administration system, and deliver the documents to the policyholder. If document generation fails after approval, you need to retry it without re-underwriting or re-approving the application.
 
@@ -26,15 +24,6 @@ Application intake, underwriting, policy document generation, and activation wor
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -51,35 +40,6 @@ pis_issue
     │
     ▼
 pis_deliver
-```
-
-## Example Output
-
-```
-=== Example 703: Policy Issuance ===
-
-Step 1: Registering task definitions...
-  Registered: pis_underwrite, pis_approve, pis_generate_policy, pis_issue, pis_deliver
-
-Step 2: Registering workflow 'pis_policy_issuance'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Policy approved .  standard risk
-  [deliver] Processing
-  [generate] Policy document generated
-  [issue] Processing
-  [underwrite] Processing
-
-  Status: COMPLETED
-  Output: {approved=..., premium=..., delivered=..., method=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pis_policy_issuance \
   --version 1 \
-  --input '{"applicantId": "APP-703", "APP-703": "coverageType", "coverageType": "auto", "auto": "requestedAmount", "requestedAmount": 100000}'
+  --input '{"applicantId": "TEST-001", "coverageType": "test-value", "requestedAmount": 100}'
 ```
 
 ### Check workflow status
@@ -175,7 +135,6 @@ Swap underwriting engines or document generators and the issuance pipeline struc
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

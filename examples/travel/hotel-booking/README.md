@@ -1,8 +1,6 @@
 # Hotel Booking in Java with Conductor
 
-Hotel booking: search, filter, book, confirm, reminder. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Hotel booking: search, filter, book, confirm, reminder. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to book a hotel for a business traveler. Searching available hotels in the destination city for the travel dates, filtering results by company travel policy (maximum nightly rate, preferred chains, required amenities), reserving the selected hotel, confirming the booking with the hotel, and scheduling a check-in reminder for the traveler. Each step depends on the previous one's output.
 
@@ -28,15 +26,6 @@ Availability search, rate comparison, reservation, and confirmation workers each
 
 Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ htl_confirm
     │
     ▼
 htl_reminder
-```
-
-## Example Output
-
-```
-=== Example 541: Hotel Booking ===
-
-Step 1: Registering task definitions...
-  Registered: htl_search, htl_filter, htl_book, htl_confirm, htl_reminder
-
-Step 2: Registering workflow 'htl_hotel_booking'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [book] Hotel reserved for
-  [confirm] Reservation
-  [filter] Filtered hotels by policy compliance
-  [reminder] Check-in reminder scheduled for
-  [search] Searching hotels in
-
-  Status: COMPLETED
-  Output: {reservationId=..., confirmationCode=..., confirmed=..., bestMatch=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow htl_hotel_booking \
   --version 1 \
-  --input '{"travelerId": "TRV-400", "TRV-400": "city", "city": "New York", "New York": "checkIn", "checkIn": "2024-04-15", "2024-04-15": "checkOut", "checkOut": "2024-04-18", "2024-04-18": "sample-2024-04-18"}'
+  --input '{"travelerId": "TEST-001", "city": "test-value", "checkIn": "test-value", "checkOut": "test-value"}'
 ```
 
 ### Check workflow status

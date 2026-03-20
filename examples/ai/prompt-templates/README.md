@@ -1,6 +1,6 @@
 # Prompt Templates in Java Using Conductor :  Versioned Templates, Variable Resolution, and LLM Invocation
 
-A Java Conductor workflow that manages prompt engineering as a first-class concern .  resolving a versioned prompt template by ID, substituting variables into the template, calling an LLM with the rendered prompt, and collecting the result with template metadata. This separates prompt management from LLM integration, so you can iterate on prompts without touching API code. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate template resolution, LLM invocation, and result collection as independent workers ,  you write the template registry and LLM logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that manages prompt engineering as a first-class concern .  resolving a versioned prompt template by ID, substituting variables into the template, calling an LLM with the rendered prompt, and collecting the result with template metadata. This separates prompt management from LLM integration, so you can iterate on prompts without touching API code. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate template resolution, LLM invocation, and result collection as independent workers ,  you write the template registry and LLM logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Prompt Engineering Needs Version Control
 
@@ -26,15 +26,6 @@ Three workers manage templated LLM calls .  resolving a versioned template with 
 
 **Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CallLlmWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in simulated mode with deterministic output prefixed with `[SIMULATED]`. Non-LLM workers (template resolution, collection) always run their real logic.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ pt_call_llm
     │
     ▼
 pt_collect
-```
-
-## Example Output
-
-```
-=== Prompt Templates: Versioned Prompt Resolution Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: pt_resolve_template, pt_call_llm, pt_collect
-
-Step 2: Registering workflow 'prompt_templates_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [pt_call_llm] Calling
-  [pt_collect] Logging result for template
-  [pt_resolve_template] Resolved template
-
-  Status: COMPLETED
-  Output: {error=..., response=..., tokens=..., logged=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow prompt_templates_workflow \
   --version 1 \
-  --input '{"templateId": "summarize", "summarize": "templateVersion", "templateVersion": 2, "gpt-4": "sample-gpt-4"}'
+  --input '{"templateId": "TEST-001", "templateVersion": "test-value", "variables": "test-value", "model": "test-value"}'
 ```
 
 ### Check workflow status

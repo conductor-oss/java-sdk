@@ -1,8 +1,6 @@
 # GDPR Data Deletion in Java Using Conductor :  Record Discovery, Identity Verification, Cross-System Erasure, and Audit Logging
 
-A Java Conductor workflow example for GDPR Article 17 right-to-erasure compliance. discovering all records associated with a user across multiple systems (user accounts, analytics, billing, support, marketing), verifying the requester's identity before any deletion occurs, erasing the user's data from every system where records were found, and generating a GDPR-compliant audit log that proves the deletion was completed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for GDPR Article 17 right-to-erasure compliance. discovering all records associated with a user across multiple systems (user accounts, analytics, billing, support, marketing), verifying the requester's identity before any deletion occurs, erasing the user's data from every system where records were found, and generating a GDPR-compliant audit log that proves the deletion was completed. Uses [Conductor](https://github.## The Problem
 
 When a user submits a GDPR erasure request, their data lives in five or more systems: profile and credentials in the user accounts database, clickstream and session events in analytics, invoices and payment info in billing, ticket messages and attachments in support, and email preferences in marketing. You need to find every record tied to that user across all of these systems, verify the requester's identity before touching anything (a deletion request from an unverified source must be rejected), delete from every system, and produce an audit trail that proves to regulators exactly what was found, when it was deleted, and from which systems. You have 30 days to comply.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single deletion script that queries each sy
 
 **You just write the record discovery, identity verification, cross-system deletion, and audit log workers. Conductor handles strict ordering so deletion never runs before identity verification, retries when downstream systems are temporarily unavailable, and a durable audit trail for regulatory compliance.**
 
-Each stage of the erasure pipeline is a simple, independent worker. The record finder scans user accounts, analytics, billing, support, and marketing systems to build a complete inventory of every record tied to the userId. The identity verifier checks the verification token before any deletion can proceed. If verification fails, the workflow aborts without deleting anything. The data deleter iterates through every discovered record and erases it, tracking deletion status per record and per system. The audit log generator creates a compliance-ready record containing the request ID, the user ID, every record that was deleted, and the exact timestamp of deletion. Conductor executes them in strict sequence, ensures deletion only runs after identity verification passes, retries if a system is temporarily unavailable, and provides a complete audit trail of every step. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the erasure pipeline is a simple, independent worker. The record finder scans user accounts, analytics, billing, support, and marketing systems to build a complete inventory of every record tied to the userId. The identity verifier checks the verification token before any deletion can proceed. If verification fails, the workflow aborts without deleting anything. The data deleter iterates through every discovered record and erases it, tracking deletion status per record and per system. The audit log generator creates a compliance-ready record containing the request ID, the user ID, every record that was deleted, and the exact timestamp of deletion. Conductor executes them in strict sequence, ensures deletion only runs after identity verification passes, retries if a system is temporarily unavailable, and provides a complete audit trail of every step. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers implement the GDPR erasure pipeline: discovering all records across
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ gr_delete_data
     │
     ▼
 gr_generate_audit_log
-```
-
-## Example Output
-
-```
-=== GDPR Data Deletion Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: gr_find_records, gr_verify_identity, gr_delete_data, gr_generate_audit_log
-
-Step 2: Registering workflow 'gdpr_data_deletion'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [delete] ABORTED - identity not verified
-  [find] Found
-  [audit] Generated audit log
-  [verify] Identity verification for
-
-  Status: COMPLETED
-  Output: {deletedCount=..., deletedRecords=..., timestamp=..., deletedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gdpr_data_deletion \
   --version 1 \
-  --input '{"userId": "USR-7042", "USR-7042": "requestId", "requestId": "GDPR-REQ-2024-0315", "GDPR-REQ-2024-0315": "verificationToken", "verificationToken": "verified-token-abc123", "verified-token-abc123": "sample-verified-token-abc123"}'
+  --input '{"userId": "TEST-001", "requestId": "TEST-001", "verificationToken": "test-value"}'
 ```
 
 ### Check workflow status

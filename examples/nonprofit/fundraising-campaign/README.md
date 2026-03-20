@@ -1,8 +1,6 @@
 # Fundraising Campaign in Java with Conductor
 
-A Java Conductor workflow example demonstrating Fundraising Campaign. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Fundraising Campaign. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Your nonprofit is launching an end-of-year fundraising campaign with a $100,000 goal. The development team needs to plan the campaign by selecting outreach channels (email, social, direct mail), launch it on the target date, track donations against the goal throughout the campaign, close the campaign at the end date, and produce a final report showing total raised, donor count, and whether the goal was met. Each step depends on the previous one's output.
 
@@ -28,15 +26,6 @@ Campaign setup, outreach, pledge tracking, and results reporting workers each ha
 
 Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,34 +42,6 @@ frc_close
     │
     ▼
 frc_report
-```
-
-## Example Output
-
-```
-=== Example 754: Fundraising Campaig ===
-
-Step 1: Registering task definitions...
-  Registered: frc_plan, frc_launch, frc_track, frc_close, frc_report
-
-Step 2: Registering workflow 'fundraising_campaign_754'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [close] Campaign
-  [launch] Campaign
-  [plan] Planning campaign:
-  [report] Final report for campaign
-  [track] Raised $
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow fundraising_campaign_754 \
   --version 1 \
-  --input '{"campaignName": "sample-name", "Spring Hope Drive": "sample-Spring Hope Drive", "goalAmount": 250.0, "endDate": "2025-01-15T10:00:00Z"}'
+  --input '{"campaignName": "test", "goalAmount": 100, "endDate": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

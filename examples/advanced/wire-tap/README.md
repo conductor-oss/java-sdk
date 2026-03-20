@@ -1,8 +1,6 @@
 # Wire Tap Pattern in Java Using Conductor :  Process Messages While Tapping an Audit Copy in Parallel
 
-A Java Conductor workflow example for the wire tap pattern .  receiving a message and simultaneously processing it through the main business flow while tapping a copy to an audit/monitoring system, using `FORK_JOIN` for parallel execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Auditing Must Not Slow Down the Main Flow
+A Java Conductor workflow example for the wire tap pattern .  receiving a message and simultaneously processing it through the main business flow while tapping a copy to an audit/monitoring system, using `FORK_JOIN` for parallel execution. Uses [Conductor](https://github.## Auditing Must Not Slow Down the Main Flow
 
 Every payment transaction must be processed and also logged to the compliance audit trail. If you audit synchronously before processing, you add latency to every transaction. If you audit after processing, a crash between process and audit means a transaction exists without an audit record. The wire tap pattern solves this by running both in parallel .  the main flow and the audit tap execute simultaneously, so neither blocks the other.
 
@@ -26,16 +24,6 @@ Three workers split between the main flow and the audit tap: message reception, 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,33 +36,6 @@ FORK_JOIN
     │
     ▼
 JOIN (wait for all branches)
-```
-
-## Example Output
-
-```
-=== Wire Tap Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wtp_receive, wtp_main_flow, wtp_tap_audit
-
-Step 2: Registering workflow 'wtp_wire_tap'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [main] Processing
-  [receive] Processing
-  [audit] Processing
-
-  Status: COMPLETED
-  Output: {result=..., message=..., tapped=..., auditLogId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wtp_wire_tap \
   --version 1 \
-  --input '{"message": "Sample message", "type": "standard", "payment": "sample-payment", "amount": 250.0, "auditLevel": "sample-auditLevel"}'
+  --input '{"message": "test-value", "auditLevel": "test-value"}'
 ```
 
 ### Check workflow status

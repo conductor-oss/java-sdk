@@ -1,6 +1,6 @@
 # Knowledge Graph RAG in Java Using Conductor :  Graph Traversal + Vector Search for Enriched Context
 
-A Java Conductor workflow that combines knowledge graph traversal with vector similarity search .  extracting entities from the question, running graph traversal and vector search in parallel, merging the structured (graph) and unstructured (vector) results, and generating an answer from the enriched context. The graph provides explicit relationships ("Company X acquired Company Y in 2023") while the vector store provides relevant passages. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate entity extraction, parallel retrieval, context merging, and generation as independent workers ,  you write the graph and search logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that combines knowledge graph traversal with vector similarity search .  extracting entities from the question, running graph traversal and vector search in parallel, merging the structured (graph) and unstructured (vector) results, and generating an answer from the enriched context. The graph provides explicit relationships ("Company X acquired Company Y in 2023") while the vector store provides relevant passages. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate entity extraction, parallel retrieval, context merging, and generation as independent workers ,  you write the graph and search logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## When Vector Search Alone Misses Relationships
 
@@ -28,16 +28,6 @@ Five workers combine graph and vector retrieval .  extracting entities from the 
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -54,35 +44,6 @@ kg_merge_context
     │
     ▼
 kg_generate
-```
-
-## Example Output
-
-```
-=== Example 155: Knowledge Graph RAG ===
-
-Step 1: Registering task definitions...
-  Registered: kg_extract_entities, kg_graph_traverse, kg_vector_search, kg_merge_context, kg_generate
-
-Step 2: Registering workflow 'rag_knowledge_graph_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [extract_entities] Extracting entities from:
-  [generate] Response from OpenAI API (LIVE)
-  [graph_traverse] Traversing graph with
-  [merge_context] Merging
-  [vector_search] Searching for:
-
-  Status: COMPLETED
-  Output: {entities=..., answer=..., facts=..., relations=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -111,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -155,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_knowledge_graph_workflow \
   --version 1 \
-  --input '{"question": "sample-question"}'
+  --input '{"question": "test-value"}'
 ```
 
 ### Check workflow status

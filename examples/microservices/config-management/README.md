@@ -1,8 +1,6 @@
 # Config Management in Java with Conductor
 
-Load, validate, deploy, and verify configuration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Load, validate, deploy, and verify configuration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Deploying a configuration change across a distributed system requires loading the new config from a source (file, remote store), validating it against a schema, deploying it to all nodes, and verifying consistency. A bad config value pushed without validation can cause service outages across the fleet.
 
@@ -27,15 +25,6 @@ The pipeline chains four workers: LoadConfigWorker reads from a config source, V
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cf_deploy_config
     │
     ▼
 cf_verify_config
-```
-
-## Example Output
-
-```
-=== Example 299: Config Management ===
-
-Step 1: Registering task definitions...
-  Registered: cf_load_config, cf_validate_config, cf_deploy_config, cf_verify_config
-
-Step 2: Registering workflow 'config_management_299'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [deploy] Deploying config to
-  [load] Loading config from
-  [validate] Validating config against schema
-  [verify] Verifying deployment
-
-  Status: COMPLETED
-  Output: {deploymentId=..., nodesUpdated=..., deployedAt=..., config=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow config_management_299 \
   --version 1 \
-  --input '{"configSource": "sample-configSource", "consul": "sample-consul", "environment": "sample-environment"}'
+  --input '{"configSource": "test-value", "environment": "test-value", "configData": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Portfolio Rebalancing in Java with Conductor
 
-Portfolio rebalancing workflow that analyzes drift, determines trades, executes, verifies, and reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Portfolio rebalancing workflow that analyzes drift, determines trades, executes, verifies, and reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to rebalance an investment portfolio back to its target allocation. The workflow analyzes how far the current holdings have drifted from the target allocation, determines the trades needed to bring allocations back in line, executes those trades, verifies the resulting positions, and generates a rebalancing report. Without periodic rebalancing, a portfolio's risk profile drifts away from the investor's strategy as different asset classes outperform or underperform.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a rebalancing script that calculates drift, g
 
 **You just write the rebalancing workers. Drift analysis, trade determination, execution, position verification, and reporting. Conductor handles step sequencing, automatic retries on failed trade executions, and a complete rebalancing audit trail for investment policy compliance.**
 
-Each rebalancing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (analyze drift, determine trades, execute, verify, report), retrying failed trade executions, tracking the entire rebalancing operation with audit trail, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each rebalancing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (analyze drift, determine trades, execute, verify, report), retrying failed trade executions, tracking the entire rebalancing operation with audit trail, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers manage the rebalancing process: AnalyzeDriftWorker measures allocat
 | **VerifyWorker** | `prt_verify` | Verifies and computes verified, new allocations |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ prt_verify
     │
     ▼
 prt_report
-```
-
-## Example Output
-
-```
-=== Example 496: Portfolio Rebalancing ===
-
-Step 1: Registering task definitions...
-  Registered: prt_analyze_drift, prt_determine_trades, prt_execute_trades, prt_verify, prt_report
-
-Step 2: Registering workflow 'portfolio_rebalancing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [drift] Analyzing drift for portfolio
-  [trades]
-  [execute] Executing
-  [report] Rebalancing report
-  [verify]
-
-  Status: COMPLETED
-  Output: {driftAnalysis=..., maxDrift=..., rebalanceNeeded=..., trades=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow portfolio_rebalancing_workflow \
   --version 1 \
-  --input '{"portfolioId": "PORT-INST-001", "PORT-INST-001": "accountId", "accountId": "ACCT-FIN-5501", "ACCT-FIN-5501": "strategy", "strategy": "60_20_15_5", "60_20_15_5": "sample-60-20-15-5"}'
+  --input '{"portfolioId": "TEST-001", "accountId": "TEST-001", "strategy": "test-value"}'
 ```
 
 ### Check workflow status

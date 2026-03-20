@@ -1,8 +1,6 @@
 # Premium Calculation in Java with Conductor :  Collect Rating Factors, Calculate Base, Apply Modifiers, Finalize
 
-A Java Conductor workflow example for multi-step insurance premium calculation .  collecting rating factors (policy type, applicant age), computing the base premium from those factors and the coverage amount, applying discount and surcharge modifiers (good driver -10%, multi-policy -5%), and finalizing the adjusted premium. Each step builds on the previous: collected factors feed into the base rate calculation, the base premium and factors together determine which modifiers apply, and the adjusted premium is finalized into the quoted amount ($1,530/year from a $1,800 base). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Premium Calculation Requires Sequential Factor Collection, Base Rating, and Modifier Application
+A Java Conductor workflow example for multi-step insurance premium calculation .  collecting rating factors (policy type, applicant age), computing the base premium from those factors and the coverage amount, applying discount and surcharge modifiers (good driver -10%, multi-policy -5%), and finalizing the adjusted premium. Each step builds on the previous: collected factors feed into the base rate calculation, the base premium and factors together determine which modifiers apply, and the adjusted premium is finalized into the quoted amount ($1,530/year from a $1,800 base). Uses [Conductor](https://github.## Premium Calculation Requires Sequential Factor Collection, Base Rating, and Modifier Application
 
 Insurance premiums are not a single calculation .  they require gathering rating factors (age, location, coverage type), computing a base premium from actuarial rate tables, applying eligible discounts and surcharges, and finalizing the quoted amount. Each step depends on the previous: you cannot apply modifiers without knowing the base premium, and you cannot calculate the base without collecting the factors. If the modifier step fails, you need to retry it without recalculating the base premium.
 
@@ -25,15 +23,6 @@ Risk factor collection, rate lookup, adjustment application, and quote generatio
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -47,34 +36,6 @@ pmc_apply_modifiers
     │
     ▼
 pmc_finalize
-```
-
-## Example Output
-
-```
-=== Example 708: Premium Calculatio ===
-
-Step 1: Registering task definitions...
-  Registered: pmc_collect_factors, pmc_calculate_base, pmc_apply_modifiers, pmc_finalize
-
-Step 2: Registering workflow 'pmc_premium_calculation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [modifiers] Good driver discount (-10%%), multi-policy (-5%%)
-  [base] Base premium calculated: $1,800/year
-  [collect_factors] Processing
-  [finalize] Final premium: $1,530/year
-
-  Status: COMPLETED
-  Output: {adjustedPremium=..., discounts=..., basePremium=..., factors=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pmc_premium_calculation \
   --version 1 \
-  --input '{"policyType": "standard", "auto": "sample-auto", "applicantAge": "sample-applicantAge", "coverageAmount": 250.0}'
+  --input '{"policyType": "test-value", "applicantAge": "test-value", "coverageAmount": 100}'
 ```
 
 ### Check workflow status
@@ -170,7 +131,6 @@ Update rating tables or risk factor weights and the calculation pipeline handles
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

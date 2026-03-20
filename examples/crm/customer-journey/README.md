@@ -25,16 +25,7 @@ TrackTouchpointsWorker collects cross-channel interactions, MapJourneyWorker org
 | **OptimizeWorker** | `cjy_optimize` | Generates optimization recommendations based on journey insights. |
 | **TrackTouchpointsWorker** | `cjy_track_touchpoints` | Tracks customer touchpoints across channels. |
 
-Workers simulate CRM operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
+Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -49,34 +40,6 @@ cjy_analyze
     │
     ▼
 cjy_optimize
-```
-
-## Example Output
-
-```
-=== Example 621: Customer Journey ===
-
-Step 1: Registering task definitions...
-  Registered: cjy_track_touchpoints, cjy_map_journey, cjy_analyze, cjy_optimize
-
-Step 2: Registering workflow 'cjy_customer_journey'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Journey analysis: avg 10 days from awareness to purchase
-  [map] Journey mapped across 5 stages
-  [optimize] 3 optimization recommendations generated
-  [track] Tracked touchpoints for customer
-
-  Status: COMPLETED
-  Output: {insights=..., journeyMap=..., stageCount=..., recommendations=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cjy_customer_journey \
   --version 1 \
-  --input '{"customerId": "CUST-JRN01", "CUST-JRN01": "timeWindow", "timeWindow": "30d", "30d": "sample-30d"}'
+  --input '{"customerId": "TEST-001", "timeWindow": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

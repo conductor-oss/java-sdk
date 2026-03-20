@@ -1,6 +1,6 @@
 # AI Video Generation in Java Using Conductor :  Script, Storyboard, Generate, Edit, Render
 
-A Java Conductor workflow that produces AI-generated videos through a five-stage production pipeline .  writing the script from a topic, creating a visual storyboard with scene descriptions, generating video clips for each scene, editing clips into a sequence with transitions, and rendering the final video. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the video production pipeline as independent workers ,  you write the video generation logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that produces AI-generated videos through a five-stage production pipeline .  writing the script from a topic, creating a visual storyboard with scene descriptions, generating video clips for each scene, editing clips into a sequence with transitions, and rendering the final video. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the video production pipeline as independent workers ,  you write the video generation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Automated Video Production Is a Multi-Stage Pipeline
 
@@ -28,15 +28,6 @@ Five workers divide the video creation process: scripting, storyboarding, clip g
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ avg_edit
     │
     ▼
 avg_render
-```
-
-## Example Output
-
-```
-=== Example 807: AI Video Generation. Script, Storyboard, Generate, Edit, Render ===
-
-Step 1: Registering task definitions...
-  Registered: avg_script, avg_storyboard, avg_generate, avg_edit, avg_render
-
-Step 2: Registering workflow 'avg_video_generation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [edit] Processing
-  [generate] Processing
-  [render] Processing
-  [script] Response from OpenAI (LIVE)
-  [storyboard] Response from OpenAI (LIVE)
-
-  Status: COMPLETED
-  Output: {editedVideoId=..., edits=..., videoId=..., clips=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow avg_video_generation \
   --version 1 \
-  --input '{"topic": "sample-topic", "Introduction to quantum computing": "sample-Introduction to quantum computing", "duration": "sample-duration", "style": "sample-style"}'
+  --input '{"topic": "test-value", "duration": "test-value", "style": "test-value"}'
 ```
 
 ### Check workflow status
@@ -186,7 +148,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

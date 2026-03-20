@@ -1,8 +1,6 @@
 # Email Agent in Java Using Conductor :  Analyze Intent, Draft, Review Tone, Send
 
-Email Agent .  analyze request, draft email, review tone, and send through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Writing the Right Email in the Right Tone
+Email Agent .  analyze request, draft email, review tone, and send through a sequential pipeline. Uses [Conductor](https://github.## Writing the Right Email in the Right Tone
 
 "Send a follow-up to Sarah about the Q4 proposal, keep it professional but warm." This requires understanding the intent (follow-up), identifying the context (Q4 proposal discussion), drafting content that addresses the topic, and then separately reviewing the tone .  is it actually professional but warm, or did it come across as cold and transactional?
 
@@ -27,15 +25,6 @@ Four workers handle the email workflow. Analyzing the request intent, drafting t
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ea_review_tone
     │
     ▼
 ea_send_email
-```
-
-## Example Output
-
-```
-=== Email Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ea_analyze_request, ea_draft_email, ea_review_tone, ea_send_email
-
-Step 2: Registering workflow 'email_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ea_analyze_request] Analyzing email request for:
-  [ea_draft_email] Drafting
-  [ea_review_tone] Reviewing tone for:
-  [ea_send_email] Sending email to:
-
-  Status: COMPLETED
-  Output: {emailType=..., keyPoints=..., urgency=..., formality=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow email_agent \
   --version 1 \
-  --input '{"intent": "sample-intent", "Send a project update to the team lead about milestone completion": "2025-01-15T10:00:00Z", "recipient": "sample-recipient", "sarah@company.com": "sample-sarah@company.com", "context": "Sample context", "Project Alpha team lead. Milestone 3 completed 2 days ahead of schedule. All tests passing.": "sample-Project Alpha team lead. Milestone 3 completed 2 days ahead of schedule. All tests passing.", "desiredTone": "sample-desiredTone"}'
+  --input '{"intent": "test-value", "recipient": "test-value", "context": "test-value", "desiredTone": "test-value"}'
 ```
 
 ### Check workflow status
@@ -173,7 +134,7 @@ Plug in an LLM for drafting and a real SMTP/SES sender; the email pipeline keeps
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
 
-A Java Conductor workflow that handles email composition end-to-end .  analyzing the user's intent and context, drafting the email with appropriate content, reviewing and adjusting the tone (formal, friendly, urgent), and sending the final version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step email pipeline as independent workers ,  you write the drafting and tone-review logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that handles email composition end-to-end .  analyzing the user's intent and context, drafting the email with appropriate content, reviewing and adjusting the tone (formal, friendly, urgent), and sending the final version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step email pipeline as independent workers ,  you write the drafting and tone-review logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Project Structure
 

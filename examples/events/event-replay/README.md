@@ -1,8 +1,6 @@
 # Event Replay in Java Using Conductor
 
-Event Replay Workflow .  load event history, filter by criteria, replay failed events, and generate a summary report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Replay Workflow .  load event history, filter by criteria, replay failed events, and generate a summary report. Uses [Conductor](https://github.## The Problem
 
 You need to replay failed or historical events from an event stream. The workflow loads event history from a source stream for a given time range, filters events by criteria (e.g., only failed events, specific event types), replays the filtered events through your processing pipeline, and generates a summary report of replay outcomes. Without replay capability, failed events are lost forever and historical reprocessing requires manual intervention.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a one-off script to query your event store, f
 
 **You just write the history-load, event-filter, replay, and report-generation workers. Conductor handles replay sequencing, per-event retry during reprocessing, and a durable report of every replay operation.**
 
-Each replay concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of loading history, filtering, replaying, and reporting ,  retrying individual event replays that fail, tracking the entire replay operation, and providing a complete audit trail. You get all of that for free, without writing a single line of orchestration code.
+Each replay concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of loading history, filtering, replaying, and reporting ,  retrying individual event replays that fail, tracking the entire replay operation, and providing a complete audit trail. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers manage event replay: LoadHistoryWorker reads from the event store, 
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ep_replay_events
     │
     ▼
 ep_generate_report
-```
-
-## Example Output
-
-```
-=== Event Replay Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ep_load_history, ep_filter_events, ep_replay_events, ep_generate_report
-
-Step 2: Registering workflow 'event_replay_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ep_filter_events] Filtering
-  [ep_generate_report] Generating report for
-  [ep_load_history] Loading events from
-  [ep_replay_events] Replaying
-
-  Status: COMPLETED
-  Output: {filteredEvents=..., filteredCount=..., reportId=..., successRate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_replay_wf \
   --version 1 \
-  --input '{"sourceStream": "sample-sourceStream", "order-events": "sample-order-events", "startTime": "2025-01-15T10:00:00Z", "2026-03-07T08:00:00Z": "sample-2026-03-07T08:00:00Z", "endTime": "2025-01-15T10:00:00Z", "2026-03-07T12:00:00Z": "sample-2026-03-07T12:00:00Z", "filterCriteria": "sample-filterCriteria", "status": "pending", "failed": false, "eventType": "standard"}'
+  --input '{"sourceStream": "test-value", "startTime": "2026-01-01T00:00:00Z", "endTime": "2026-01-01T00:00:00Z", "filterCriteria": "test-value"}'
 ```
 
 ### Check workflow status

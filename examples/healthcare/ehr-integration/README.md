@@ -1,8 +1,6 @@
 # EHR Integration in Java Using Conductor :  Patient Record Query, Cross-System Merge, Validation, and Master Record Update
 
-A Java Conductor workflow example for EHR integration .  querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for EHR integration .  querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.## The Problem
 
 You need to integrate patient records across multiple EHR systems. When a patient has data in more than one system (e.g., hospital Epic, clinic Cerner, lab system), the records must be queried by patient ID, merged into a unified view that reconciles demographics, medications, allergies, and diagnoses, validated against data quality rules (missing fields, conflicting entries, duplicate records), and then written back to the master patient index. Each step depends on the previous one .  you cannot merge without querying, and you cannot update the master record with unvalidated data. A bad merge that promotes incorrect allergy data or drops a medication can directly harm the patient.
 
@@ -10,9 +8,9 @@ Without orchestration, you'd build a monolithic ETL service that queries each so
 
 ## The Solution
 
-**You just write the EHR integration workers. Patient record query, cross-system merge, validation, and master record update. Conductor handles pipeline ordering, automatic retries when an EHR endpoint is temporarily down, and a HIPAA-compliant audit trail of every data exchange.**
+**You just write the EHR integration workers. Patient record query, cross-system merge, validation, and master record update. Conductor handles pipeline ordering, automatic retries when an EHR endpoint is temporarily down, and a healthcare-pattern audit trail of every data exchange.**
 
-Each stage of the integration pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of querying before merging, validating before updating, retrying if an EHR endpoint is temporarily unavailable, and maintaining a HIPAA-compliant audit trail of every data exchange. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the integration pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of querying before merging, validating before updating, retrying if an EHR endpoint is temporarily unavailable, and maintaining a healthcare-pattern audit trail of every data exchange. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers handle the integration pipeline: QueryPatientWorker pulls records f
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ehr_validate
     │
     ▼
 ehr_update
-```
-
-## Example Output
-
-```
-=== EHR Integration Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: ehr_query_patient, ehr_merge_records, ehr_validate, ehr_update
-
-Step 2: Registering workflow 'ehr_integration_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [merge] Merging
-  [query] Fetching records for patient
-  [update] Master record updated for patient
-  [validate] Record validation: PASSED
-
-  Status: COMPLETED
-  Output: {name=..., dob=..., allergies=..., medications=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ehr_integration_workflow \
   --version 1 \
-  --input '{"patientId": "PAT-10234", "PAT-10234": "sourceSystem", "sourceSystem": "all", "all": "sample-all"}'
+  --input '{"patientId": "TEST-001", "sourceSystem": "test-value"}'
 ```
 
 ### Check workflow status

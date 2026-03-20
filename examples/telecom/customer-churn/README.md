@@ -1,8 +1,6 @@
 # Customer Churn in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates customer churn prevention .  detecting at-risk subscribers based on usage trend decline, analyzing the reasons behind the churn risk (pricing, coverage, service quality), creating a personalized retention offer based on the identified reasons and account tenure, delivering the offer to the customer, and tracking whether the customer accepts and stays. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Churn Prevention Needs Orchestration
+A Java Conductor workflow example that orchestrates customer churn prevention .  detecting at-risk subscribers based on usage trend decline, analyzing the reasons behind the churn risk (pricing, coverage, service quality), creating a personalized retention offer based on the identified reasons and account tenure, delivering the offer to the customer, and tracking whether the customer accepts and stays. Uses [Conductor](https://github.## Why Churn Prevention Needs Orchestration
 
 Retaining at-risk customers requires a time-sensitive pipeline from detection through outcome tracking. You detect churn risk by analyzing usage trends .  declining call minutes, reduced data consumption, or increased complaint frequency signal a customer is likely to leave. You analyze the reasons behind the risk ,  is it pricing, network quality in their area, a recent bad support experience, or a competitor offer? You create a personalized retention offer based on the identified reasons and the customer's account age ,  a discount, a plan upgrade, bonus data, or a device credit. You deliver the offer via the most effective channel for that customer. Finally, you track whether the offer was accepted and the customer was retained.
 
@@ -28,15 +26,6 @@ Risk scoring, retention offer generation, outreach execution, and outcome tracki
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ ccn_deliver
     │
     ▼
 ccn_track
-```
-
-## Example Output
-
-```
-=== Example 812: Customer Chur ===
-
-Step 1: Registering task definitions...
-  Registered: ccn_detect_risk, ccn_analyze_reasons, ccn_create_offer, ccn_deliver, ccn_track
-
-Step 2: Registering workflow 'ccn_customer_churn'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Reasons: price sensitivity, competitor offers, declining usage
-  [offer] Retention offer: 20%% discount for 6 months
-  [deliver] Processing
-  [detect_risk] Processing
-  [track] Processing
-
-  Status: COMPLETED
-  Output: {reasons=..., primaryReason=..., offerId=..., offer=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ccn_customer_churn \
   --version 1 \
-  --input '{"customerId": "CUST-812", "CUST-812": "accountAge", "accountAge": 36, "declining": "sample-declining"}'
+  --input '{"customerId": "TEST-001", "accountAge": 10, "usageTrend": "test-value"}'
 ```
 
 ### Check workflow status

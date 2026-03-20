@@ -1,6 +1,6 @@
 # Multi-Model Compare in Java Using Conductor :  GPT-4 vs Claude vs Gemini Side-by-Side Evaluation
 
-A Java Conductor workflow that sends the same prompt to GPT-4, Claude, and Gemini in parallel, then compares their responses .  scoring each on quality metrics and picking a winner. Conductor's `FORK_JOIN` calls all three models simultaneously so the total latency is the speed of the slowest model, not the sum of all three. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel model calls and comparison as independent workers ,  you write the API integrations and scoring logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that sends the same prompt to GPT-4, Claude, and Gemini in parallel, then compares their responses .  scoring each on quality metrics and picking a winner. Conductor's `FORK_JOIN` calls all three models simultaneously so the total latency is the speed of the slowest model, not the sum of all three. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel model calls and comparison as independent workers ,  you write the API integrations and scoring logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Choosing the Right Model with Data
 
@@ -27,16 +27,6 @@ Four workers run a model comparison .  calling GPT-4, Claude, and Gemini in para
 
 Each worker auto-detects its API key at startup. When a key is present, the worker makes real API calls; when absent, it returns a deterministic simulated response prefixed with `[SIMULATED]`. You can set any combination .  for example, set only `CONDUCTOR_OPENAI_API_KEY` to get live GPT-4 results alongside simulated Claude and Gemini.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,34 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 mc_compare
-```
-
-## Example Output
-
-```
-=== Multi-Model Compare Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: mc_call_gpt4, mc_call_claude, mc_call_gemini, mc_compare
-
-Step 2: Registering workflow 'multi_model_compare'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mc_call_claude] LIVE mode. CONDUCTOR_ANTHROPIC_API_KEY detected
-  [mc_call_gemini] LIVE mode. GOOGLE_API_KEY detected
-  [mc_call_gpt4] LIVE mode. CONDUCTOR_OPENAI_API_KEY detected
-  [mc_compare worker] Winner:
-
-  Status: COMPLETED
-  Output: {model=..., response=..., latencyMs=..., tokens=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -150,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_model_compare \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

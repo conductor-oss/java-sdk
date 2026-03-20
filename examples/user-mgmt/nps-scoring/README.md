@@ -1,8 +1,6 @@
 # NPS Scoring in Java Using Conductor
 
-A Java Conductor workflow example demonstrating NPS Scoring. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating NPS Scoring. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Your product team wants to measure user satisfaction after a quarterly release. The team needs to collect NPS survey responses (scores 0-10) from the user base, calculate the NPS score by categorizing respondents into promoters, passives, and detractors, segment users into actionable groups with tailored follow-up strategies, and trigger the appropriate actions for each segment (referral programs for promoters, engagement campaigns for passives, outreach calls for detractors). Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ CollectResponsesWorker gathers survey scores, CalculateNpsWorker computes the pr
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ nps_segment
     │
     ▼
 nps_act
-```
-
-## Example Output
-
-```
-=== Nps Scoring Demo ===
-
-Step 1: Registering task definitions...
-  Registered: nps_collect_responses, nps_calculate, nps_segment, nps_act
-
-Step 2: Registering workflow 'nps_scoring'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [act] Triggering actions based on NPS score
-  [calculate] Computing NPS from
-  [collect_responses] Collecting NPS responses for campaign
-  [segment] Segmenting users: promoters=
-
-  Status: COMPLETED
-  Output: {actionsTriggered=..., totalActions=..., promoters=..., passives=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nps_scoring \
   --version 1 \
-  --input '{"campaignId": "NPS-2024-Q4", "NPS-2024-Q4": "period", "period": "2024-Q4", "2024-Q4": "sample-2024-Q4"}'
+  --input '{"campaignId": "TEST-001", "period": "test-value"}'
 ```
 
 ### Check workflow status

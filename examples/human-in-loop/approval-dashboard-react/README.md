@@ -1,8 +1,6 @@
 # React Approval Dashboard in Java Using Conductor :  Task Processing and Priority-Based Pending Approval via WAIT Task
 
-A Java Conductor workflow example paired with a React dashboard .  a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example paired with a React dashboard .  a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.## The Problem
 
 You need a React-based approval dashboard where approvers can see their pending tasks, filter by priority (high, medium, low), and act on them. Each request comes in with a title describing what needs approval, a priority level, and the assigned approver. The system must process the request and then wait for the human approver to make a decision .  which could take minutes or days depending on the priority. The dashboard needs to query for all pending tasks assigned to a specific person and display them sorted by priority, with real-time status updates as approvals are completed.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a React frontend backed by a custom API serve
 
 **You just write the task-processing worker. Conductor handles the priority-based approval queue and the searchable task API.**
 
-The WAIT task is the key pattern here. After processing the request, the workflow pauses at the WAIT task. Conductor holds the state with the title, priority, and assignee metadata until the React dashboard completes the task via the API. Conductor takes care of holding pending approvals durably, providing a searchable task API that the React dashboard queries by assignee and status, accepting the approval decision when the assignee acts, and tracking the complete timeline from request to approval. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After processing the request, the workflow pauses at the WAIT task. Conductor holds the state with the title, priority, and assignee metadata until the React dashboard completes the task via the API. Conductor takes care of holding pending approvals durably, providing a searchable task API that the React dashboard queries by assignee and status, accepting the approval decision when the assignee acts, and tracking the complete timeline from request to approval. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +23,6 @@ DashTaskWorker processes requests with title, priority, and assignee metadata. I
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -41,31 +30,6 @@ dash_task
     │
     ▼
 pending_approval [WAIT]
-```
-
-## Example Output
-
-```
-=== Approval Dashboard React Demo: Dashboard API for Pending Tasks ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'approval_dashboard_react_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [dash_task] Processing task for workflow:
-
-  Status: COMPLETED
-  Output: {processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -94,7 +58,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -137,7 +101,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow approval_dashboard_react_demo \
   --version 1 \
-  --input '{"title": "sample-title", "priority": "sample-priority", "assignee": "sample-assignee"}'
+  --input '{"title": "test-value", "priority": "test-value", "assignee": "test-value"}'
 ```
 
 ### Check workflow status

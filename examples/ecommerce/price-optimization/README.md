@@ -1,8 +1,6 @@
 # Price Optimization in Java Using Conductor :  Collect Market Data, Analyze Demand, Optimize, Update Prices
 
-A Java Conductor workflow example demonstrating Price Optimization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Static Prices Leave Money on the Table
+A Java Conductor workflow example demonstrating Price Optimization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Static Prices Leave Money on the Table
 
 Your competitor just dropped their price by 15%. Your demand hasn't changed yet, but it will. A product priced at $49.99 might sell 100 units/week, but at $44.99 it might sell 150 units .  increasing total revenue despite the lower price. Or at $54.99 it might sell 80 units with higher margins. The optimal price depends on competitor pricing, demand elasticity, inventory levels, and margin targets.
 
@@ -27,15 +25,6 @@ Data ingestion, competitor analysis, demand forecasting, and pricing workers eac
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ prz_optimize_price
     │
     ▼
 prz_update_price
-```
-
-## Example Output
-
-```
-=== Example 462: Price Optimizatio ===
-
-Step 1: Registering task definitions...
-  Registered: prz_collect_market_data, prz_analyze_demand, prz_optimize_price, prz_update_price
-
-Step 2: Registering workflow 'price_optimization_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [demand] Analyzing demand for
-  [market] Collecting data for
-  [optimize] Current: $
-  [update] Price updated: $
-
-  Status: COMPLETED
-  Output: {demandScore=..., elasticity=..., seasonalFactor=..., forecastedDemand=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow price_optimization_workflow \
   --version 1 \
-  --input '{"productId": "PROD-8821", "PROD-8821": "currentPrice", "currentPrice": 85.0, "electronics": "sample-electronics"}'
+  --input '{"productId": "TEST-001", "currentPrice": 100, "category": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Plug in a different demand model or competitor data source and the pricing pipel
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

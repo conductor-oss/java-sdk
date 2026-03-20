@@ -10,9 +10,7 @@ Without orchestration, error classification lives inside retry loops. Each calle
 
 ## The Solution
 
-**You just write the error classification logic in each worker. Conductor handles retry-or-fail decisions for free.**
-
-The smart worker classifies each error as transient or permanent. For transient errors, it returns FAILED with a retryable flag so Conductor retries with backoff. For permanent errors, it returns FAILED_WITH_TERMINAL_ERROR so Conductor skips retries and fails immediately. This prevents wasted retries on permanent errors while ensuring transient errors get proper retry treatment. You get all of that for free, without writing a single line of orchestration code.
+The smart worker classifies each error as transient or permanent. For transient errors, it returns FAILED with a retryable flag so Conductor retries with backoff. For permanent errors, it returns FAILED_WITH_TERMINAL_ERROR so Conductor skips retries and fails immediately. This prevents wasted retries on permanent errors while ensuring transient errors get proper retry treatment. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,44 +22,10 @@ SmartTaskWorker classifies each error as transient (retryable via FAILED) or per
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 tvp_smart_task
-```
-
-## Example Output
-
-```
-=== Transient vs Permanent Error Detection Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'transient_vs_permanent_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tvp_smart_task] Attempt
-
-  Status: COMPLETED
-  Output: {attempt=..., errorType=..., error=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow transient_vs_permanent_demo \
   --version 1 \
-  --input '{"errorType": "standard"}'
+  --input '{"errorType": "test-value"}'
 ```
 
 ### Check workflow status

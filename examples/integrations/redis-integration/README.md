@@ -27,15 +27,6 @@ Four workers exercise Redis operations: RedisConnectWorker establishes the conne
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ red_pub_sub
     │
     ▼
 red_cache_mgmt
-```
-
-## Example Output
-
-```
-=== Example 445: Redis Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: red_connect, red_get_set, red_pub_sub, red_cache_mgmt
-
-Step 2: Registering workflow 'redis_integration_445'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cache] Set TTL for
-  [set] [SIMULATED]
-  [publish] Channel \"" + channel + "\" ->
-  [connect] Connected to
-
-  Status: COMPLETED
-  Output: {ttl=..., memoryUsage=..., encoding=..., setOk=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow redis_integration_445 \
   --version 1 \
-  --input '{"redisHost": "sample-redisHost", "redis://localhost:6481": "sample-redis://localhost:6481", "cacheKey": "sample-cacheKey", "user:session:abc123": "sample-user:session:abc123", "cacheValue": "sample-cacheValue", "session-data": "sample-session-data", "channel": "sample-channel"}'
+  --input '{"redisHost": "test-value", "cacheKey": "test-value", "cacheValue": "test-value", "channel": "test-value"}'
 ```
 
 ### Check workflow status

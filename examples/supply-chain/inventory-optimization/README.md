@@ -1,8 +1,6 @@
 # Inventory Optimization in Java with Conductor :  Stock Analysis, Reorder Point Calculation, Multi-SKU Optimization, and Replenishment Execution
 
-A Java Conductor workflow example for inventory optimization .  analyzing current stock levels across multiple SKUs in a warehouse (e.g., WIDGET-A through CABLE-E in WH-Central), calculating reorder points based on demand velocity and lead times, optimizing order quantities to minimize carrying costs while preventing stockouts, and executing replenishment orders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for inventory optimization .  analyzing current stock levels across multiple SKUs in a warehouse (e.g., WIDGET-A through CABLE-E in WH-Central), calculating reorder points based on demand velocity and lead times, optimizing order quantities to minimize carrying costs while preventing stockouts, and executing replenishment orders. Uses [Conductor](https://github.## The Problem
 
 You need to keep the right amount of inventory across multiple SKUs. Too much stock ties up working capital and warehouse space; too little causes stockouts and lost sales. For each SKU in WH-Central (widgets, gadgets, sensors, cables), you must analyze current on-hand quantities against consumption rates, calculate the reorder point where a new order must be placed to arrive before stock runs out, optimize order quantities across all SKUs to minimize total cost (ordering costs + holding costs + stockout penalties), and trigger purchase orders for items below their reorder threshold.
 
@@ -27,15 +25,6 @@ Four workers optimize inventory across SKUs: AnalyzeStockWorker reads current le
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ io_optimize
     │
     ▼
 io_execute
-```
-
-## Example Output
-
-```
-=== Example 660: Inventory Optimizatio ===
-
-Step 1: Registering task definitions...
-  Registered: io_analyze_stock, io_calculate_reorder, io_optimize, io_execute
-
-Step 2: Registering workflow 'io_inventory_optimization'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzed
-  [reorder]
-  [execute] Placed
-  [optimize] Optimized
-
-  Status: COMPLETED
-  Output: {stockLevels=..., skuCount=..., reorderPlan=..., reorderCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow io_inventory_optimization \
   --version 1 \
-  --input '{"warehouse": "WH-Central", "WH-Central": "skuList", "skuList": ["item-1", "item-2", "item-3"]}'
+  --input '{"warehouse": "test-value", "skuList": "test-value"}'
 ```
 
 ### Check workflow status

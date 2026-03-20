@@ -1,8 +1,6 @@
 # Event Windowing in Java Using Conductor
 
-Event Windowing .  collect events into a time window, compute aggregate statistics, and emit the windowed result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Windowing .  collect events into a time window, compute aggregate statistics, and emit the windowed result. Uses [Conductor](https://github.## The Problem
 
 You need to group events into time-based windows and compute aggregate statistics per window. Events arrive continuously, but analysis requires bounded windows .  computing event count, sum, average, min, max, and standard deviation across all events within a configurable time window (e.g., 5 seconds, 1 minute). Without windowing, you either process events one at a time (losing temporal context) or accumulate unbounded state.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage window boundaries with timers, buffer events
 
 **You just write the window-collection, stats-computation, and result-emission workers. Conductor handles window lifecycle management, retry on emission failure, and a durable record of every windowed computation.**
 
-Each windowing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting events into the window, computing aggregates, and emitting the windowed result ,  retrying if aggregation fails, tracking every window computation, and resuming if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each windowing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting events into the window, computing aggregates, and emitting the windowed result ,  retrying if aggregation fails, tracking every window computation, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +24,6 @@ Three workers implement time-based windowing: CollectWindowWorker gathers events
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ ew_compute_stats
     │
     ▼
 ew_emit_result
-```
-
-## Example Output
-
-```
-=== Event Windowing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ew_collect_window, ew_compute_stats, ew_emit_result
-
-Step 2: Registering workflow 'event_windowing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ew_collect_window] Collecting
-  [ew_compute_stats] Computing stats for window:
-  [ew_emit_result] Emitting result for window:
-
-  Status: COMPLETED
-  Output: {windowEvents=..., windowId=..., windowSizeMs=..., stats=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_windowing \
   --version 1 \
-  --input '{"events": "sample-events", "ts": "sample-ts", "value": "sample-value"}'
+  --input '{"events": "test-value", "windowSizeMs": 10}'
 ```
 
 ### Check workflow status

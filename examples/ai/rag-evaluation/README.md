@@ -1,6 +1,6 @@
 # RAG Evaluation in Java Using Conductor :  Faithfulness, Relevance, and Coherence Scoring in Parallel
 
-A Java Conductor workflow that runs a RAG pipeline and then evaluates the output on three quality dimensions simultaneously .  faithfulness (does the answer stick to the retrieved context?), relevance (does it address the question?), and coherence (is it well-structured and readable?). Conductor's `FORK_JOIN` runs all three evaluations in parallel, then aggregates the scores. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate RAG execution, parallel evaluation, and score aggregation as independent workers ,  you write the evaluation logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that runs a RAG pipeline and then evaluates the output on three quality dimensions simultaneously .  faithfulness (does the answer stick to the retrieved context?), relevance (does it address the question?), and coherence (is it well-structured and readable?). Conductor's `FORK_JOIN` runs all three evaluations in parallel, then aggregates the scores. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate RAG execution, parallel evaluation, and score aggregation as independent workers ,  you write the evaluation logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Measuring RAG Quality Systematically
 
@@ -28,16 +28,6 @@ Five workers evaluate RAG quality .  running the RAG pipeline, then scoring fait
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +42,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 re_aggregate_scores
-```
-
-## Example Output
-
-```
-=== Example 162: RAG Evaluation Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: re_run_rag, re_eval_faithfulness, re_eval_relevance, re_eval_coherence, re_aggregate_scores
-
-Step 2: Registering workflow 'rag_evaluation_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] overallScore=
-  [coherence] score=
-  [faithfulness] score=
-  [relevance] score=
-  [run_rag] Processed question:
-
-  Status: COMPLETED
-  Output: {score=..., reason=..., faithfulness=..., relevance=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_evaluation_pipeline \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

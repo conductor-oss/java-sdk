@@ -1,8 +1,6 @@
 # Food Ordering in Java with Conductor
 
-Processes a food order from menu browsing through payment, kitchen preparation, and delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Processes a food order from menu browsing through payment, kitchen preparation, and delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to process a food order from browsing to delivery. The customer browses the restaurant's menu, places an order with selected items, pays for the order, the kitchen prepares the food, and it is delivered (or picked up). Each step depends on the previous .  you cannot prepare food without a confirmed, paid order; you cannot deliver without prepared food.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic ordering app that handles menu d
 
 **You just write the menu selection, payment processing, kitchen preparation, and delivery dispatch logic. Conductor handles payment retries, kitchen dispatch sequencing, and order lifecycle tracking.**
 
-Each ordering concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (browse, order, pay, prepare, deliver), retrying if the payment gateway is temporarily unavailable, tracking every order from menu to doorstep, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each ordering concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (browse, order, pay, prepare, deliver), retrying if the payment gateway is temporarily unavailable, tracking every order from menu to doorstep, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Menu browsing, cart assembly, payment, and kitchen dispatch workers handle the o
 | **PrepareWorker** | `fod_prepare` | Prepares the order in the kitchen and returns prep time and readiness status |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ fod_prepare
     │
     ▼
 fod_deliver
-```
-
-## Example Output
-
-```
-=== Example 731: Food Ordering ===
-
-Step 1: Registering task definitions...
-  Registered: fod_browse, fod_order, fod_pay, fod_prepare, fod_deliver
-
-Step 2: Registering workflow 'food_ordering_731'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [browse] Browsing menu for restaurant
-  [deliver] Delivering order
-  [order] Placing order for customer
-  [pay] Processing $
-  [prepare] Preparing order
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow food_ordering_731 \
   --version 1 \
-  --input '{"customerId": "CUST-42", "CUST-42": "restaurantId", "restaurantId": "REST-10", "REST-10": "sample-REST-10"}'
+  --input '{"customerId": "TEST-001", "restaurantId": "TEST-001"}'
 ```
 
 ### Check workflow status

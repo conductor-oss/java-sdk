@@ -1,8 +1,6 @@
 # Container Deployment Pipeline in Java Using Conductor :  Build, Deploy, Scale, Monitor
 
-A Java Conductor workflow example for container deployment .  building a Docker image from a service name and tag, deploying it with a specified replica count, configuring horizontal auto-scaling (min/max replicas), and enabling monitoring for the new deployment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Deploying Containers End-to-End
+A Java Conductor workflow example for container deployment .  building a Docker image from a service name and tag, deploying it with a specified replica count, configuring horizontal auto-scaling (min/max replicas), and enabling monitoring for the new deployment. Uses [Conductor](https://github.## Deploying Containers End-to-End
 
 Shipping a new version of a containerized service means building the image, pushing it to a registry, creating a deployment with the right replica count, configuring the horizontal pod autoscaler so it can scale between 2 and 10 replicas based on load, and wiring up monitoring dashboards so you can see if the new version is healthy. Each step depends on the previous one .  you can't deploy an image that hasn't been built, you can't configure scaling for a deployment that doesn't exist, and monitoring is useless if it's pointed at the wrong deployment ID.
 
@@ -27,15 +25,6 @@ Four workers span the deployment pipeline: image building, container deployment,
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ctr_scale
     │
     ▼
 ctr_monitor
-```
-
-## Example Output
-
-```
-=== Example 562: Container Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: ctr_build, ctr_deploy, ctr_scale, ctr_monitor
-
-Step 2: Registering workflow 'container_orchestration_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [build] Building image:
-  [deploy] Deploying
-  [monitor] Monitoring enabled for deployment
-  [scale] Auto-scaling
-
-  Status: COMPLETED
-  Output: {imageUri=..., sizeBytes=..., layers=..., deploymentId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow container_orchestration_demo \
   --version 1 \
-  --input '{"serviceName": "sample-name", "payment-api": "sample-payment-api", "imageTag": "sample-imageTag", "v2.3.1": "sample-v2.3.1", "replicas": "sample-replicas"}'
+  --input '{"serviceName": "test", "imageTag": "test-value", "replicas": "test-value"}'
 ```
 
 ### Check workflow status

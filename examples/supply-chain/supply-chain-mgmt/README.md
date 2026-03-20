@@ -1,8 +1,6 @@
 # End-to-End Supply Chain Management in Java with Conductor :  Plan, Source, Make, Deliver, and Return
 
-A Java Conductor workflow example for end-to-end supply chain management following the SCOR model .  creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for end-to-end supply chain management following the SCOR model .  creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.## The Problem
 
 You need to orchestrate the complete supply chain from demand to delivery. A production plan must be created specifying what to build and how much. Raw materials must be sourced from approved suppliers with the right lead times. Manufacturing must execute the production plan using the sourced materials. The finished goods must be shipped to the customer or distribution center. Finally, the return policy and reverse logistics path must be configured for the delivery. Each step depends on the previous one .  you cannot manufacture without sourced materials, and you cannot ship without finished goods.
 
@@ -28,15 +26,6 @@ Five workers follow the SCOR model: PlanWorker creates production plans, SourceW
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ scm_deliver
     │
     ▼
 scm_return
-```
-
-## Example Output
-
-```
-=== Example 651: Supply Chain Management ===
-
-Step 1: Registering task definitions...
-  Registered: scm_plan, scm_source, scm_make, scm_deliver, scm_return
-
-Step 2: Registering workflow 'scm_supply_chain'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [deliver] Shipping
-  [make] Manufacturing
-  [plan] Production plan for
-  [return] Return policy configured for
-  [source] Sourced
-
-  Status: COMPLETED
-  Output: {deliveryId=..., eta=..., batchId=..., unitsProduced=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow scm_supply_chain \
   --version 1 \
-  --input '{"product": "sample-product", "Industrial Sensor": "sample-Industrial Sensor", "quantity": "sample-quantity", "destination": "sample-destination"}'
+  --input '{"product": "test-value", "quantity": "test-value", "destination": "test-value"}'
 ```
 
 ### Check workflow status

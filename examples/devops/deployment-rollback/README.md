@@ -1,8 +1,6 @@
 # Deployment Rollback in Java with Conductor :  Detect Failure, Identify Version, Rollback, Verify
 
-Automates deployment rollback using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects a failing deployment (error rate spikes, health check failures), identifies the last known stable version, rolls back the deployment to that version, and verifies the service is healthy again. You write the rollback logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## When a Deploy Goes Wrong
+Automates deployment rollback using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects a failing deployment (error rate spikes, health check failures), identifies the last known stable version, rolls back the deployment to that version, and verifies the service is healthy again.## When a Deploy Goes Wrong
 
 Your checkout-service just deployed version 2.5.0 and the error rate is spiking. Customers are seeing 500 errors. You need to act fast: confirm the deployment is actually failing (not just a transient blip), find the last stable version (2.4.3, deployed 3 days ago), roll back to it, and verify the error rate normalizes. Every minute of delay means lost revenue and frustrated users.
 
@@ -27,15 +25,6 @@ Four workers execute the rollback. Detecting deployment failures, identifying th
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ rb_rollback_deploy
     │
     ▼
 rb_verify_rollback
-```
-
-## Example Output
-
-```
-=== Example 335: Deployment Rollback ===
-
-Step 1: Registering task definitions...
-  Registered: rb_detect_failure, rb_identify_version, rb_rollback_deploy, rb_verify_rollback
-
-Step 2: Registering workflow 'deployment_rollback_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect] checkout-service failure: error-rate-spike
-  [version] Last stable version: 2.4.3, deployed 3 days ago
-  [rollback] Rolled back to previous stable version
-  [verify] Service healthy after rollback, error rate normalized
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow deployment_rollback_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "checkout-service": "sample-checkout-service", "reason": "sample-reason"}'
+  --input '{"service": "test-value", "reason": "test-value"}'
 ```
 
 ### Check workflow status

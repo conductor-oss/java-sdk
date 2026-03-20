@@ -1,8 +1,6 @@
 # Project Closure in Java with Conductor :  Deliverable Review, Sign-Off, Archival, and Lessons Learned
 
-A Java Conductor workflow example for closing out a project .  reviewing all deliverables against acceptance criteria, obtaining formal stakeholder sign-off, archiving project artifacts, and capturing lessons learned for future projects. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for closing out a project .  reviewing all deliverables against acceptance criteria, obtaining formal stakeholder sign-off, archiving project artifacts, and capturing lessons learned for future projects. Uses [Conductor](https://github.## The Problem
 
 You need to formally close a project. Every deliverable must be reviewed against its acceptance criteria before anyone signs off. Sign-off must happen before archival .  you can't archive incomplete work. After archival, lessons learned need to be captured while the project is still fresh. Skip any step and you end up with unsigned deliverables sitting in limbo, project artifacts scattered across personal drives, and the same mistakes repeated on the next project.
 
@@ -12,7 +10,7 @@ Without orchestration, closure becomes a checklist someone tracks in a spreadshe
 
 **You just write the deliverable review, sign-off collection, artifact archival, and lessons learned capture logic. Conductor handles deliverable retries, archival sequencing, and closure audit trails.**
 
-Each closure step is a simple, independent worker .  one reviews deliverables against acceptance criteria, one processes formal sign-off, one archives all project artifacts, one captures lessons learned. Conductor takes care of executing them in strict sequence so nothing gets skipped, retrying if the document management system is temporarily unavailable, and maintaining a permanent record of exactly when each closure step completed. You get all of that for free, without writing a single line of orchestration code.
+Each closure step is a simple, independent worker .  one reviews deliverables against acceptance criteria, one processes formal sign-off, one archives all project artifacts, one captures lessons learned. Conductor takes care of executing them in strict sequence so nothing gets skipped, retrying if the document management system is temporarily unavailable, and maintaining a permanent record of exactly when each closure step completed. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Deliverable verification, documentation archival, lessons-learned capture, and s
 
 Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ pcl_archive
     │
     ▼
 pcl_lessons_learned
-```
-
-## Example Output
-
-```
-=== Example 909: Project Closure ===
-
-Step 1: Registering task definitions...
-  Registered: pcl_review_deliverables, pcl_sign_off, pcl_archive, pcl_lessons_learned
-
-Step 2: Registering workflow 'project_closure_project-closure'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [Archive] Archiving project
-  [Lessons Learned] Documenting lessons for project
-  [Review Deliverables] Reviewing deliverables for project
-  [Sign Off] Obtaining sign-off for project
-
-  Status: COMPLETED
-  Output: {archiveId=..., location=..., archived=..., report=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

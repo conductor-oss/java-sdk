@@ -12,7 +12,7 @@ Without orchestration, health dashboards either poll each component from the bro
 
 **You just write the health check endpoints and dashboard rendering. Conductor handles parallel health checks so one slow component does not block the others, retries on transient check failures, and per-component timing for every dashboard refresh.**
 
-Conductor's FORK/JOIN runs API, database, and cache health checks in parallel. A render worker aggregates all results into a unified dashboard. If one check is slow, the others still complete quickly. Every dashboard refresh is tracked with per-component timing and status. You get all of that for free, without writing a single line of orchestration code.
+Conductor's FORK/JOIN runs API, database, and cache health checks in parallel. A render worker aggregates all results into a unified dashboard. If one check is slow, the others still complete quickly. Every dashboard refresh is tracked with per-component timing and status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +27,6 @@ Three health checkers run in parallel via FORK/JOIN. CheckApiWorker probes API s
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,34 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 hd_render_dashboard
-```
-
-## Example Output
-
-```
-=== Example 417: Health Dashboard ===
-
-Step 1: Registering task definitions...
-  Registered: hd_check_api, hd_check_db, hd_check_cache, hd_render_dashboard
-
-Step 2: Registering workflow 'health_dashboard_417'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [api] Checking api health in
-  [cache] Checking cache health in
-  [database] Checking database health in
-  [render] Rendering dashboard for
-
-  Status: COMPLETED
-  Output: {responseTimeMs=..., overallHealth=..., dashboardUrl=..., components=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow health_dashboard_417 \
   --version 1 \
-  --input '{"environment": "sample-environment"}'
+  --input '{"environment": "test-value"}'
 ```
 
 ### Check workflow status

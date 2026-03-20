@@ -1,8 +1,6 @@
 # Tool Use Validation in Java Using Conductor :  Generate Call, Validate Input, Execute, Validate Output, Deliver
 
-Tool Use Validation .  generate tool call, validate input, execute tool, validate output, and deliver results through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Tool Calls Need Guardrails on Both Sides
+Tool Use Validation .  generate tool call, validate input, execute tool, validate output, and deliver results through a sequential pipeline. Uses [Conductor](https://github.## Tool Calls Need Guardrails on Both Sides
 
 An LLM generates a tool call: `search(query="DROP TABLE users")`. Without input validation, that malicious query goes straight to the search API. Or it generates `calculate(expression="1/0")`. Without output validation, the division-by-zero error crashes the pipeline.
 
@@ -28,15 +26,6 @@ Five workers add guardrails to tool calls. Generating the call, validating input
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ tv_validate_output
     │
     ▼
 tv_deliver
-```
-
-## Example Output
-
-```
-=== Tool Use Validation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: tv_generate_tool_call, tv_validate_input, tv_execute_tool, tv_validate_output, tv_deliver
-
-Step 2: Registering workflow 'tool_use_validation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tv_deliver] Delivering result for request:
-  [tv_execute_tool] Executing tool:
-  [tv_generate_tool_call] Generating tool call for:
-  [tv_validate_input] Validating input for tool:
-  [tv_validate_output] Validating output from tool:
-
-  Status: COMPLETED
-  Output: {formattedResult=..., validationSummary=..., rawOutput=..., executionTimeMs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_validation \
   --version 1 \
-  --input '{"userRequest": "sample-userRequest", "What is the current weather in London?": "sample-What is the current weather in London?", "toolName": "sample-name"}'
+  --input '{"userRequest": "test-value", "toolName": "test"}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Wire in real validation schemas and tool implementations; the double-validation 
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

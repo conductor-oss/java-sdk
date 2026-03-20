@@ -1,8 +1,6 @@
 # Backend For Frontend in Java with Conductor
 
-Backend for Frontend pattern with platform-specific responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Backend for Frontend pattern with platform-specific responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Different client platforms (web, mobile, TV) need different response shapes from the same backend data. A web dashboard can display a full user profile with all fields, while a mobile app needs a compact summary to conserve bandwidth. The BFF pattern solves this by fetching shared data once and then branching into platform-specific transformers.
 
@@ -26,16 +24,6 @@ FetchDataWorker loads shared user data once, then TransformWebWorker and Transfo
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,33 +34,6 @@ SWITCH (switch_ref)
     ├── web: bff_transform_web
     ├── mobile: bff_transform_mobile
     └── default: bff_transform_web
-```
-
-## Example Output
-
-```
-=== Example 306: Backend for Frontend ===
-
-Step 1: Registering task definitions...
-  Registered: bff_fetch_data, bff_transform_web, bff_transform_mobile
-
-Step 2: Registering workflow 'bff_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [fetch] Loading data for user
-  [mobile] Compact response for small screens
-  [web] Full desktop response with all fields
-
-  Status: COMPLETED
-  Output: {profile=..., orders=..., notifications=..., format=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -101,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bff_workflow \
   --version 1 \
-  --input '{"userId": "user-1", "user-1": "platform", "platform": "mobile", "mobile": "sample-mobile"}'
+  --input '{"userId": "TEST-001", "platform": "test-value"}'
 ```
 
 ### Check workflow status

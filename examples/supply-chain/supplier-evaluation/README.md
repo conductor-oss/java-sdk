@@ -1,8 +1,6 @@
 # Supplier Evaluation in Java with Conductor :  Performance Data Collection, Scoring, Ranking, and Quarterly Reporting
 
-A Java Conductor workflow example for supplier evaluation .  collecting performance data across all raw-materials suppliers for a quarterly review period (e.g., Q4 2024), scoring each supplier on delivery, quality, cost, and responsiveness metrics, ranking suppliers against each other within the category, and generating the quarterly supplier performance report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for supplier evaluation .  collecting performance data across all raw-materials suppliers for a quarterly review period (e.g., Q4 2024), scoring each supplier on delivery, quality, cost, and responsiveness metrics, ranking suppliers against each other within the category, and generating the quarterly supplier performance report. Uses [Conductor](https://github.## The Problem
 
 You need to evaluate your raw-materials suppliers at the end of each quarter. Performance data must be collected from multiple sources .  on-time delivery rates from the TMS, quality rejection rates from the QMS, cost variance from the ERP, and responsiveness scores from buyer surveys. Each supplier must be scored on a consistent rubric. Suppliers must be ranked within their category so procurement knows which to grow, maintain, or phase out. The final report must be ready for the quarterly business review.
 
@@ -27,15 +25,6 @@ Four workers power the quarterly review: CollectDataWorker pulls delivery, quali
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ spe_rank
     │
     ▼
 spe_report
-```
-
-## Example Output
-
-```
-=== Example 661: Supplier Evaluatio ===
-
-Step 1: Registering task definitions...
-  Registered: spe_collect_data, spe_score, spe_rank, spe_report
-
-Step 2: Registering workflow 'spe_supplier_evaluation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Collected data on
-  [rank] Top supplier:
-  [report] Generated evaluation report for
-  [score] Scored
-
-  Status: COMPLETED
-  Output: {suppliers=..., supplierCount=..., rank=..., rankings=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow spe_supplier_evaluation \
   --version 1 \
-  --input '{"category": "sample-category", "raw-materials": "sample-raw-materials", "period": "sample-period"}'
+  --input '{"category": "test-value", "period": "test-value"}'
 ```
 
 ### Check workflow status

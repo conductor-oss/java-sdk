@@ -1,6 +1,6 @@
 # Code RAG in Java Using Conductor :  Language-Aware Code Search and Answer Generation
 
-A Java Conductor workflow that implements RAG specifically for code .  parsing the natural language question to identify programming language and intent, embedding the query with code-aware representations, searching a code index for relevant functions/classes/snippets, and generating a code-grounded answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query parsing, code embedding, index search, and generation as independent workers ,  you write the code search logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that implements RAG specifically for code .  parsing the natural language question to identify programming language and intent, embedding the query with code-aware representations, searching a code index for relevant functions/classes/snippets, and generating a code-grounded answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query parsing, code embedding, index search, and generation as independent workers ,  you write the code search logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Code Search Is Not Text Search
 
@@ -27,15 +27,6 @@ Four workers handle code-aware retrieval .  parsing the natural language query f
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,36 +40,6 @@ cr_search_code_index
     │
     ▼
 cr_generate_code_answer
-```
-
-## Example Output
-
-```
-=== Example 153: Code RAG ===
-
-Step 1: Registering task definitions...
-  Registered: cr_parse_query, cr_embed_code_query, cr_search_code_index, cr_generate_code_answer
-
-Step 2: Registering workflow 'code_rag_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [embed_code_query] Embedding (live OpenAI) intent: \"" + parsedIntent
-                        + "\" with
-  [generate_code_answer] Answer (live OpenAI) for: \"" + question
-                        + "\" using
-  [parse_query] [SIMULATED] Parsing question: \"" + question + "\" for language:
-  [search_code_index] [SIMULATED] Searching code index for matching snippets
-
-  Status: COMPLETED
-  Output: {embedding=..., codeFilter=..., errorBody=..., httpStatus=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -107,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow code_rag_workflow \
   --version 1 \
-  --input '{"question": "How do I look up a user by ID?", "How do I look up a user by ID?": "language", "language": "java", "java": "sample-java"}'
+  --input '{"question": "test-value", "language": "test-value"}'
 ```
 
 ### Check workflow status

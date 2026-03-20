@@ -1,8 +1,6 @@
 # Financial Audit in Java with Conductor
 
-Financial audit: define scope, collect evidence, test controls, generate report, remediate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Financial audit: define scope, collect evidence, test controls, generate report, remediate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to conduct a financial audit for a business entity. This involves defining the audit scope and objectives, collecting evidence (financial statements, transaction records, supporting documents), testing internal controls for effectiveness, generating the audit report with findings, and tracking remediation of any deficiencies. An audit without proper evidence collection is incomplete; findings without remediation tracking are toothless.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage the audit process through spreadsheets and e
 
 **You just write the audit workers. Scope definition, evidence collection, control testing, report generation, and remediation tracking. Conductor handles stage sequencing, automatic retries when a data source is unavailable, and timestamped evidence collection for SOX and regulatory compliance.**
 
-Each audit concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (scope, collect, test, report, remediate), retrying if a data source is unavailable, tracking the entire audit lifecycle with timestamps and evidence, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each audit concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (scope, collect, test, report, remediate), retrying if a data source is unavailable, tracking the entire audit lifecycle with timestamps and evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +24,6 @@ Four workers cover the audit lifecycle: DefineScopeWorker sets objectives, Colle
 | **RemediateWorker** | `fau_remediate` | Remediate. Computes and returns remediation plan id, actions created, target completion date |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -52,35 +41,6 @@ fau_generate_report
     │
     ▼
 fau_remediate
-```
-
-## Example Output
-
-```
-=== Example 508: Financial Audit ===
-
-Step 1: Registering task definitions...
-  Registered: fau_define_scope, fau_collect_evidence, fau_test_controls, fau_generate_report, fau_remediate
-
-Step 2: Registering workflow 'financial_audit_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [evidence] Collecting evidence for scope areas
-  [scope] Audit
-  [report] Generating audit report for
-  [remediate] Creating plan for
-  [controls] Testing controls with
-
-  Status: COMPLETED
-  Output: {evidenceCount=..., documentsReviewed=..., interviewsConducted=..., samplesCollected=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow financial_audit_workflow \
   --version 1 \
-  --input '{"auditId": "AUD-2026-0508", "AUD-2026-0508": "entityName", "entityName": "Acme Corp", "Acme Corp": "auditType", "auditType": "annual_financial", "annual_financial": "fiscalYear", "fiscalYear": 2025}'
+  --input '{"auditId": "TEST-001", "entityName": "test", "auditType": "test-value", "fiscalYear": "test-value"}'
 ```
 
 ### Check workflow status

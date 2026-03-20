@@ -1,8 +1,6 @@
 # Real Estate Escrow Management in Java with Conductor :  Open, Deposit, Verify, Release, and Close
 
-A Java Conductor workflow example for managing the escrow lifecycle in a real estate transaction .  opening the escrow account, accepting the buyer's deposit, verifying that all closing conditions are met, releasing funds to the seller, and formally closing the escrow. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for managing the escrow lifecycle in a real estate transaction .  opening the escrow account, accepting the buyer's deposit, verifying that all closing conditions are met, releasing funds to the seller, and formally closing the escrow. Uses [Conductor](https://github.## The Problem
 
 You need to manage escrow for property transactions. When a buyer and seller agree on a sale, earnest money must be deposited into a neutral escrow account. Before funds can be released, contingencies must be verified .  title is clear, inspection passed, financing is approved. Only after verification should funds be released to the seller, and then the escrow must be formally closed with all parties notified. If any step executes out of order ,  funds released before verification, escrow closed before release ,  you face legal liability and financial loss.
 
@@ -12,7 +10,7 @@ Without orchestration, escrow management is tracked manually with phone calls, e
 
 **You just write the escrow opening, deposit handling, contingency verification, fund release, and closing logic. Conductor handles deposit retries, condition tracking, and escrow audit trails.**
 
-Each escrow step is a simple, independent worker .  one opens the account, one accepts the deposit, one verifies contingencies, one releases funds, one closes the escrow. Conductor ensures strict sequential execution so funds are never released before verification, retries if the banking API is temporarily down, and maintains a tamper-proof record of every step for regulatory compliance. You get all of that for free, without writing a single line of orchestration code.
+Each escrow step is a simple, independent worker .  one opens the account, one accepts the deposit, one verifies contingencies, one releases funds, one closes the escrow. Conductor ensures strict sequential execution so funds are never released before verification, retries if the banking API is temporarily down, and maintains a tamper-proof record of every step for regulatory compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Deposit collection, document verification, condition tracking, and fund disburse
 | **CloseEscrowWorker** | `esc_close` | Formally closes the escrow account and generates the closing statement |
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ esc_release
     │
     ▼
 esc_close
-```
-
-## Example Output
-
-```
-=== Example 689: Escrow Management ===
-
-Step 1: Registering task definitions...
-  Registered: esc_open, esc_deposit, esc_verify, esc_release, esc_close
-
-Step 2: Registering workflow 'esc_escrow_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [esc_close] Executing
-  [esc_deposit] Executing
-  [esc_open] Executing
-  [esc_release] Executing
-  [esc_verify] Executing
-
-  Status: COMPLETED
-  Output: {deposited=..., escrowId=..., released=..., conditionsMet=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow esc_escrow_management \
   --version 1 \
-  --input '{"buyerId": "BUY-100", "BUY-100": "sellerId", "sellerId": "SEL-200", "SEL-200": "amount", "amount": 475000}'
+  --input '{"buyerId": "TEST-001", "sellerId": "TEST-001", "amount": 100}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Kitchen Workflow in Java with Conductor
 
-Manages the kitchen flow for a restaurant order: receiving it from the POS, prepping ingredients, cooking, plating with garnishes, and serving to the table. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Manages the kitchen flow for a restaurant order: receiving it from the POS, prepping ingredients, cooking, plating with garnishes, and serving to the table. Uses [Conductor](https://github.## The Problem
 
 You need to manage the kitchen workflow for a restaurant order .  from the moment it arrives in the kitchen to when it reaches the customer's table. The order is received from the POS system, ingredients are prepped (chopping, marinating, portioning), the dishes are cooked, plated with garnishes and presentation, and served to the table. Kitchen delays cascade ,  late prep means late cooking, which means cold plated food sitting under heat lamps.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage kitchen flow with verbal communication and p
 
 **You just write the order receiving, ingredient prep, cooking, plating, and table service logic. Conductor handles station handoff retries, prep sequencing, and kitchen order tracking.**
 
-Each kitchen step is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (receive, prep, cook, plate, serve), tracking every order through the kitchen with timestamps at each station, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each kitchen step is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (receive, prep, cook, plate, serve), tracking every order through the kitchen with timestamps at each station, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Order receipt, prep assignment, cooking, plating, and dispatch workers model the
 | **ServeWorker** | `kit_serve` | Serves the completed order to the table and records total time from receipt to service |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ kit_plate
     │
     ▼
 kit_serve
-```
-
-## Example Output
-
-```
-=== Example 735: Kitchen Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: kit_receive_order, kit_prep, kit_cook, kit_plate, kit_serve
-
-Step 2: Registering workflow 'kitchen_workflow_735'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cook] Cooking order
-  [plate] Plating order
-  [prep] Prepping ingredients for order
-  [receive] Order
-  [serve] Serving order
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow kitchen_workflow_735 \
   --version 1 \
-  --input '{"orderId": "ORD-735", "ORD-735": "tableId", "tableId": "T-5", "T-5": "items", "items": [{"name": "Widget A", "quantity": 2}, {"name": "Widget B", "quantity": 1}]}'
+  --input '{"orderId": "TEST-001", "tableId": "TEST-001", "items": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Employee Onboarding in Java with Conductor :  Profile Creation, System Provisioning, Mentor Assignment, and Training Plan
 
-A Java Conductor workflow example for employee onboarding .  creating the new hire's profile in the HRIS, provisioning IT systems (laptop, email, Slack, Jira), assigning a department mentor, and generating a personalized training plan. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for employee onboarding .  creating the new hire's profile in the HRIS, provisioning IT systems (laptop, email, Slack, Jira), assigning a department mentor, and generating a personalized training plan. Uses [Conductor](https://github.## The Problem
 
 You need to onboard a new employee across multiple departments and systems. When a hire is confirmed, the HR team must create the employee's profile with their name, department, and start date. IT must provision a laptop, create email and Slack accounts, and grant access to Jira and other department-specific tools. A mentor from the same department must be assigned to guide the new hire through their first weeks. Finally, a training plan must be generated with required compliance courses, department-specific skills training, and scheduled check-ins. Each step depends on the previous one. IT cannot provision accounts without the employee profile, and the training plan needs to know who the mentor is.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd coordinate all of this through emails, tickets, and
 
 **You just write the profile creation, system provisioning, mentor assignment, and training plan generation logic. Conductor handles provisioning retries, onboarding step sequencing, and new-hire audit trails.**
 
-Each stage of onboarding is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of creating the profile before provisioning, provisioning before mentor assignment, building the training plan with all prior context, retrying if any system (Active Directory, Slack API) is temporarily unavailable, and giving HR complete visibility into every onboarding's status. You get all of that for free, without writing a single line of orchestration code.
+Each stage of onboarding is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of creating the profile before provisioning, provisioning before mentor assignment, building the training plan with all prior context, retrying if any system (Active Directory, Slack API) is temporarily unavailable, and giving HR complete visibility into every onboarding's status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Profile creation, system provisioning, mentor assignment, and training plan work
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ hro_assign_mentor
     │
     ▼
 hro_training
-```
-
-## Example Output
-
-```
-=== Example 605: HR Onboarding ===
-
-Step 1: Registering task definitions...
-  Registered: hro_create_profile, hro_provision, hro_assign_mentor, hro_training
-
-Step 2: Registering workflow 'hro_hr_onboarding'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mentor] Assigned mentor from
-  [profile] Created profile for
-  [provision] Provisioned laptop, email, Slack, Jira for
-  [training] Training plan created for
-
-  Status: COMPLETED
-  Output: {mentorId=..., mentorName=..., employeeId=..., email=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow hro_hr_onboarding \
   --version 1 \
-  --input '{"employeeName": "sample-name", "John Doe": "sample-John Doe", "department": "sample-department", "Engineering": "sample-Engineering", "startDate": "2025-01-15T10:00:00Z"}'
+  --input '{"employeeName": "test", "department": "test-value", "startDate": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

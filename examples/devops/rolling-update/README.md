@@ -1,8 +1,6 @@
 # Rolling Update in Java with Conductor :  Analyze, Plan, Execute, Verify
 
-Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Zero-Downtime Updates Need Careful Orchestration
+Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Zero-Downtime Updates Need Careful Orchestration
 
 Updating 20 instances of a service simultaneously causes a full outage while the new version starts up. A rolling update replaces instances in batches .  update 2, verify they're healthy, update the next 2, and so on. If a batch fails health checks, the rollout stops before affecting more instances.
 
@@ -27,15 +25,6 @@ Four workers manage the rolling update. Analyzing current state, planning the ba
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ru_execute
     │
     ▼
 ru_verify
-```
-
-## Example Output
-
-```
-=== Rolling Update Demo: Zero-Downtime Update Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: ru_analyze, ru_execute, ru_plan, ru_verify
-
-Step 2: Registering workflow 'rolling_update_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ru_analyze]
-  [ru_execute] Executing rolling update across
-  [ru_plan] Rolling update: 1 at a time, 20% max unavailable
-  [ru_verify] Verifying all replicas healthy
-
-  Status: COMPLETED
-  Output: {analyzeId=..., success=..., service=..., newVersion=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rolling_update_workflow \
   --version 1 \
-  --input '{"service": "payment-api", "newVersion": "sample-newVersion"}'
+  --input '{"service": "test-value", "newVersion": "test-value"}'
 ```
 
 ### Check workflow status

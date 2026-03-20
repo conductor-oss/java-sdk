@@ -1,8 +1,6 @@
 # Population Health Management in Java Using Conductor :  Data Aggregation, Risk Stratification, Care Gap Identification, and Intervention
 
-A Java Conductor workflow example for population health management .  aggregating clinical and claims data across a patient cohort, stratifying members by risk level, identifying care gaps (missed screenings, overdue vaccinations, uncontrolled chronic conditions), and triggering targeted interventions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for population health management .  aggregating clinical and claims data across a patient cohort, stratifying members by risk level, identifying care gaps (missed screenings, overdue vaccinations, uncontrolled chronic conditions), and triggering targeted interventions. Uses [Conductor](https://github.## The Problem
 
 You need to manage population health for a patient cohort with a specific condition during a reporting period. Clinical and claims data must be aggregated from multiple sources. EHRs, claims feeds, pharmacy records, and lab results. Members must be risk-stratified into tiers (low, moderate, high, rising risk) based on HCC scores, utilization patterns, and social determinants. Care gaps must be identified .  patients overdue for A1C tests, mammograms, colonoscopies, or flu vaccines per HEDIS/STAR quality measures. Targeted interventions must then be triggered ,  outreach calls, care coordinator assignments, appointment scheduling, or pharmacy consultations. Each step depends on the previous one ,  you cannot identify care gaps without risk stratification, and you cannot intervene without knowing which gaps exist.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic population health analytics engi
 
 **You just write the population health workers. Data aggregation, risk stratification, care gap identification, and intervention triggering. Conductor handles pipeline ordering, automatic retries when a data feed is delayed, and complete documentation for CMS quality program reporting.**
 
-Each stage of the population health pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of aggregating data before stratification, identifying gaps only after risk levels are assigned, triggering interventions only for identified gaps, and maintaining a complete audit trail for CMS quality reporting. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the population health pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of aggregating data before stratification, identifying gaps only after risk levels are assigned, triggering interventions only for identified gaps, and maintaining a complete audit trail for CMS quality reporting. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers drive the population health pipeline: AggregateDataWorker pulls cli
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ pop_identify_gaps
     │
     ▼
 pop_intervene
-```
-
-## Example Output
-
-```
-=== Population Health Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: pop_aggregate_data, pop_stratify_risk, pop_identify_gaps, pop_intervene
-
-Step 2: Registering workflow 'population_health_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Aggregating data for cohort
-  [gaps] Identifying care gaps in population
-  [intervene] Creating interventions for
-  [stratify] Stratifying patients by risk
-
-  Status: COMPLETED
-  Output: {totalPatients=..., avgAge=..., controlledPercent=..., avgHba1c=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow population_health_workflow \
   --version 1 \
-  --input '{"cohortId": "COHORT-DM2-2024", "COHORT-DM2-2024": "condition", "condition": "Type 2 Diabetes", "Type 2 Diabetes": "reportingPeriod", "reportingPeriod": "2024-Q1", "2024-Q1": "sample-2024-Q1"}'
+  --input '{"cohortId": "TEST-001", "condition": "test-value", "reportingPeriod": "test-value"}'
 ```
 
 ### Check workflow status

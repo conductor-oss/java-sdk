@@ -1,8 +1,6 @@
 # Medical Records Review in Java Using Conductor :  HIPAA Compliance Validation, Physician Review via WAIT, and Audit-Trailed Storage
 
-A Java Conductor workflow example for medical records review .  automatically validating HIPAA compliance (PHI encryption, audit logging, access controls), pausing at a WAIT task for a physician to review the records and provide their clinical assessment, and storing the result with a complete audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Medical Records Must Pass HIPAA Compliance Before Physician Review
+A Java Conductor workflow example for medical records review .  automatically validating HIPAA compliance (PHI encryption, audit logging, access controls), pausing at a WAIT task for a physician to review the records and provide their clinical assessment, and storing the result with a complete audit trail. Uses [Conductor](https://github.## Medical Records Must Pass HIPAA Compliance Before Physician Review
 
 Before a physician can review medical records, the system must validate HIPAA compliance. Checking PHI encryption, audit logging, access controls, and data retention policies. The workflow runs automated HIPAA checks, pauses at a WAIT task for physician review, then stores the result with an audit trail. If storing the result fails, you need to retry it without asking the physician to re-review.
 
@@ -14,24 +12,15 @@ Each worker handles one stage of the approval chain. Conductor manages task assi
 
 ### What You Write: Workers
 
-MrValidateHipaaWorker checks PHI encryption and access controls, and MrStoreResultWorker records the physician's assessment with an audit trail, the clinical review pause between them is HIPAA-compliant and durable.
+MrValidateHipaaWorker checks PHI encryption and access controls, and MrStoreResultWorker records the physician's assessment with an audit trail, the clinical review pause between them is healthcare-pattern and durable.
 
 | Worker | Task | What It Does |
 |---|---|---|
 | **MrValidateHipaaWorker** | `mr_validate_hipaa` | Runs automated HIPAA compliance checks .  verifies PHI encryption, audit logging configuration, access controls, and data retention policies |
 | *WAIT task* | `mr_physician_review` | Pauses until a physician reviews the records and submits their clinical assessment via `POST /tasks/{taskId}` | Built-in Conductor WAIT .  no worker needed |
-| **MrStoreResultWorker** | `mr_store_result` | Stores the physician review result with a complete HIPAA-compliant audit trail including reviewer identity, timestamp, and access log |
+| **MrStoreResultWorker** | `mr_store_result` | Stores the physician review result with a complete healthcare-pattern audit trail including reviewer identity, timestamp, and access log |
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -43,32 +32,6 @@ physician_review [WAIT]
     │
     ▼
 mr_store_result
-```
-
-## Example Output
-
-```
-=== Medical Records Review Demo: HIPAA Validation + Physician Review ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'medical_records_review_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mr_store_result] Storing physician review result...
-  [mr_validate_hipaa] Validating HIPAA compliance...
-
-  Status: COMPLETED
-  Output: {stored=..., auditTrailId=..., compliant=..., checks=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow medical_records_review_demo \
   --version 1 \
-  --input '{"recordId": "REC-12345", "REC-12345": "sample-REC-12345"}'
+  --input '{"recordId": "TEST-001"}'
 ```
 
 ### Check workflow status
@@ -155,7 +118,7 @@ conductor workflow search -w medical_records_review_demo -s COMPLETED -c 5
 
 Each worker handles one stage of the compliance flow .  connect your HIPAA compliance engine for validation and your EHR system (Epic, Cerner) for audit-trailed storage, and the medical review workflow stays the same.
 
-- **MrStoreResultWorker** (`mr_store_result`): write the review result to a HIPAA-compliant data store like AWS HealthLake, update the patient record in your EHR system, and generate a compliance audit report
+- **MrStoreResultWorker** (`mr_store_result`): write the review result to a healthcare-pattern data store like AWS HealthLake, update the patient record in your EHR system, and generate a compliance audit report
 - **MrValidateHipaaWorker** (`mr_validate_hipaa`): integrate with a compliance platform like Vanta or Drata to run real HIPAA control checks, or query your security infrastructure for encryption and access log status
 
 Integrate your HIPAA compliance platform and EHR system and the physician review pipeline with audit trail remains intact.

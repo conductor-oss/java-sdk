@@ -1,8 +1,6 @@
 # Terminate Task in Java with Conductor
 
-Early exit with TERMINATE based on validation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Early exit with TERMINATE based on validation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to validate an order before processing it. If the amount is invalid, the currency is unsupported, or the order exceeds limits, the workflow should stop immediately with a FAILED status and a clear error message. The TERMINATE task provides a clean early exit: the validation worker checks constraints, a SWITCH routes invalid orders to TERMINATE (which ends the workflow), and valid orders continue to the processing worker.
 
@@ -25,16 +23,6 @@ Two workers support the validate-then-process pattern: ValidateWorker checks ord
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,32 +34,6 @@ SWITCH (check_ref)
     │
     ▼
 term_process
-```
-
-## Example Output
-
-```
-=== TERMINATE Task: Early Workflow Exit and Validatio ===
-
-Step 1: Registering task definitions...
-  Registered: term_validate, term_process
-
-Step 2: Registering workflow 'terminate_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [process] Processing order
-  [validate] Order
-
-  Status: COMPLETED
-  Output: {processedAmount=..., valid=..., reason=..., errors=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow terminate_demo \
   --version 1 \
-  --input '{"orderId": "ORD-001", "ORD-001": "amount", "amount": 500, "USD": "sample-USD"}'
+  --input '{"orderId": "TEST-001", "amount": 100, "currency": "test-value"}'
 ```
 
 ### Check workflow status

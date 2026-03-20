@@ -12,7 +12,7 @@ Without orchestration, per-step retry configuration means building separate retr
 
 **You just write the task logic and declare each task's retry strategy in config. Conductor handles per-task retry timing with configurable strategy (FIXED or EXPONENTIAL_BACKOFF), attempt counting, backoff calculation, and a complete retry history for each step showing delays and outcomes.**
 
-Each task defines its own retry configuration in the workflow definition .  retry count, retry logic (FIXED or EXPONENTIAL_BACKOFF), and delay seconds. The workers just do their job and return success or failure. Conductor handles the retry timing, attempt counting, and backoff calculation per task. Changing a step's retry strategy is a JSON config change, not a code change. You get all of that for free, without writing a single line of orchestration code.
+Each task defines its own retry configuration in the workflow definition .  retry count, retry logic (FIXED or EXPONENTIAL_BACKOFF), and delay seconds. The workers just do their job and return success or failure. Conductor handles the retry timing, attempt counting, and backoff calculation per task. Changing a step's retry strategy is a JSON config change, not a code change. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,6 @@ PtrValidate uses 1 fixed retry for data errors that won't self-resolve, PtrPayme
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ ptr_payment
     │
     ▼
 ptr_notify
-```
-
-## Example Output
-
-```
-=== Per-Task Retry Demo: Different Retry Configs Per Task ===
-
-Step 1: Registering task definitions...
-  Registered: ptr_notify, ptr_payment, ptr_validate
-
-Step 2: Registering workflow 'per_task_retry_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ptr_notify] Sending notification for order:
-  [ptr_payment] Processing payment for order:
-  [ptr_validate] Validating order:
-
-  Status: COMPLETED
-  Output: {result=..., orderId=..., attempt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow per_task_retry_demo \
   --version 1 \
-  --input '{"orderId": "ORDER-001"}'
+  --input '{"orderId": "TEST-001"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Project Risk Management in Java with Conductor :  Identification, Severity Assessment, and Mitigation Planning
 
-A Java Conductor workflow example for project risk management .  identifying risks, assessing their severity (high/medium/low), routing to severity-appropriate handling, and producing mitigation plans. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for project risk management .  identifying risks, assessing their severity (high/medium/low), routing to severity-appropriate handling, and producing mitigation plans. Uses [Conductor](https://github.## The Problem
 
 You need to manage risks across a project portfolio. When a new risk is reported .  "key vendor may miss delivery deadline," "database migration could cause downtime" ,  someone has to identify and categorize it, assess severity and probability, route it to the right response process (executive escalation for high-severity, team-level review for medium, backlog tracking for low), and generate a mitigation plan. Each of these steps depends on the output of the previous one, and the routing logic changes based on the assessed severity.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd wire all of this into a single monolithic class .  
 
 **You just write the risk identification, severity assessment, severity-based handling, and mitigation planning logic. Conductor handles assessment retries, mitigation routing, and risk tracking audit trails.**
 
-Each concern is a simple, independent worker .  a plain Java class that does one thing: identify the risk, assess its severity, handle the high/medium/low response, or build the mitigation plan. Conductor takes care of executing them in the right order, routing to the correct severity handler via a SWITCH task, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each concern is a simple, independent worker .  a plain Java class that does one thing: identify the risk, assess its severity, handle the high/medium/low response, or build the mitigation plan. Conductor takes care of executing them in the right order, routing to the correct severity handler via a SWITCH task, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Risk identification, probability assessment, mitigation planning, and monitoring
 | **MitigateWorker** | `rkm_mitigate` | Generates a mitigation plan based on the project context and assessed severity |
 
 Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -55,36 +43,6 @@ SWITCH (switch_ref)
     │
     ▼
 rkm_mitigate
-```
-
-## Example Output
-
-```
-=== Example risk-management: Risk Management ===
-
-Step 1: Registering task definitions...
-  Registered: rkm_identify, rkm_assess, rkm_high, rkm_medium, rkm_low, rkm_mitigate
-
-Step 2: Registering workflow 'risk_management_risk-management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess] Assessing risk severity
-  [high] HIGH severity .  immediate executive escalation
-  [identify] Risk found in project
-  [low] LOW severity .  monitor and log
-  [medium] MEDIUM severity .  team review required
-  [mitigate] Creating mitigation plan for
-
-  Status: COMPLETED
-  Output: {severity=..., probability=..., impact=..., action=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

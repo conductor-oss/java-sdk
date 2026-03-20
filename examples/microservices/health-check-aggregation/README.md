@@ -1,8 +1,6 @@
 # Health Check Aggregation in Java with Conductor
 
-System-wide health check aggregation using FORK/JOIN. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+System-wide health check aggregation using FORK/JOIN. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Determining overall system health requires checking multiple infrastructure components. API gateway, database, cache, message queue, and aggregating their individual statuses into a single health verdict. These checks are independent and should run in parallel for speed, but the aggregation must wait for all of them to complete.
 
@@ -28,16 +26,6 @@ Five workers probe infrastructure in parallel: CheckApiWorker, CheckDbWorker, Ch
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -50,35 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 hc_aggregate_health
-```
-
-## Example Output
-
-```
-=== Example 317: Health Check Aggregatio ===
-
-Step 1: Registering task definitions...
-  Registered: hc_check_api, hc_check_db, hc_check_cache, hc_check_queue, hc_aggregate_health
-
-Step 2: Registering workflow 'health_check_aggregation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Overall:
-  [api] API gateway: healthy (latency: 15ms)
-  [cache] Redis: healthy (memory: 45%)
-  [db] Database: healthy (connections: 23/100)
-  [queue] Kafka: healthy (lag: 12 messages)
-
-  Status: COMPLETED
-  Output: {details=..., healthy=..., latencyMs=..., component=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -107,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -150,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow health_check_aggregation \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

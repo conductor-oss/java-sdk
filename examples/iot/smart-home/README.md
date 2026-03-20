@@ -1,8 +1,6 @@
 # Smart Home Automation in Java with Conductor :  Event Detection, Rule Evaluation, and Device Actuation
 
-A Java Conductor workflow example that orchestrates smart home automation .  detecting sensor events (occupancy, temperature changes, motion), evaluating automation rules against home context (mode, current temperature), routing to the correct device actuator via SWITCH (lights, thermostat, or security system), and logging every automation event. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Smart Home Automation Needs Orchestration
+A Java Conductor workflow example that orchestrates smart home automation .  detecting sensor events (occupancy, temperature changes, motion), evaluating automation rules against home context (mode, current temperature), routing to the correct device actuator via SWITCH (lights, thermostat, or security system), and logging every automation event. Uses [Conductor](https://github.## Why Smart Home Automation Needs Orchestration
 
 A smart home automation rule involves a decision chain: a sensor fires an event, the system evaluates context (is someone home? what mode is active? what is the current temperature?), and based on the matched rule, it actuates the right device .  dim the lights to 80% warm white, set the thermostat to a target temperature, or arm the security system for a specific zone. Different event types route to entirely different actuators, and every actuation must be logged for audit and debugging.
 
@@ -29,16 +27,6 @@ Six workers handle home automation: DetectEventWorker captures sensor events, Ev
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -55,36 +43,6 @@ SWITCH (smh_switch_ref)
     │
     ▼
 smh_log_event
-```
-
-## Example Output
-
-```
-=== Example 536: Smart Home ===
-
-Step 1: Registering task definitions...
-  Registered: smh_detect_event, smh_evaluate_rules, smh_actuate_lights, smh_actuate_thermostat, smh_actuate_security, smh_log_event
-
-Step 2: Registering workflow 'smart_home_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [lights] Processing
-  [security] Processing
-  [thermostat] Processing
-  [detect] Processing
-  [rules] Processing
-  [log] Processing
-
-  Status: COMPLETED
-  Output: {actuated=..., device=..., brightness=..., color=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow smart_home_workflow \
   --version 1 \
-  --input '{"eventId": "EVT-536-001", "EVT-536-001": "sensorId", "sensorId": "PIR-LIVING-01", "PIR-LIVING-01": "eventType", "eventType": "motion_detected", "motion_detected": "value", "value": 1}'
+  --input '{"eventId": "TEST-001", "sensorId": "TEST-001", "eventType": "test-value", "value": "test-value"}'
 ```
 
 ### Check workflow status

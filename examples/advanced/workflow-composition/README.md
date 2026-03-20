@@ -1,8 +1,6 @@
 # Workflow Composition in Java Using Conductor :  Compose Sub-Workflows into a Unified Order Pipeline
 
-A Java Conductor workflow example for workflow composition .  combining two independent sub-workflows (payment processing and inventory management) into a single unified order pipeline, where each sub-workflow has its own steps and the results are merged at the end. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Complex Processes Are Made of Simpler Ones
+A Java Conductor workflow example for workflow composition .  combining two independent sub-workflows (payment processing and inventory management) into a single unified order pipeline, where each sub-workflow has its own steps and the results are merged at the end. Uses [Conductor](https://github.## Complex Processes Are Made of Simpler Ones
 
 Fulfilling a customer order requires two independent processes: payment processing (validate card, charge amount) and inventory management (check stock, reserve items). Each process has its own steps, failure modes, and retry logic. Building them as a single monolithic workflow means a payment retry can block inventory reservation, and a stock check failure can prevent a valid payment from proceeding.
 
@@ -28,15 +26,6 @@ Five workers span two sub-workflows. Order validation and processing in sub-work
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ wcp_sub_b_step2
     │
     ▼
 wcp_merge
-```
-
-## Example Output
-
-```
-=== Workflow Composition Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wcp_sub_a_step1, wcp_sub_a_step2, wcp_sub_b_step1, wcp_sub_b_step2, wcp_merge
-
-Step 2: Registering workflow 'workflow_composition_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [merge] Processing
-  [sub-A/step1] Processing
-  [sub-A/step2] Processing
-  [sub-B/step1] Processing
-  [sub-B/step2] Processing
-
-  Status: COMPLETED
-  Output: {composedResult=..., orderProcessed=..., customerEnriched=..., validated=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow workflow_composition_demo \
   --version 1 \
-  --input '{"orderId": "ORD-9001", "ORD-9001": "customerId", "customerId": "CUST-42", "CUST-42": "sample-CUST-42"}'
+  --input '{"orderId": "TEST-001", "customerId": "TEST-001"}'
 ```
 
 ### Check workflow status

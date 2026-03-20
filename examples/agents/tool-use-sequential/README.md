@@ -1,8 +1,6 @@
 # Sequential Tool Use in Java Using Conductor :  Search, Read Page, Extract Data, Summarize
 
-Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of simulated tool calls. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Some Tools Need to Be Called in Order
+Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of simulated tool calls. Uses [Conductor](https://github.## Some Tools Need to Be Called in Order
 
 "Find the latest quarterly revenue for Acme Corp and summarize the key drivers" requires four sequential steps: search the web for Acme Corp quarterly results, read the most relevant page (likely an earnings report or press release), extract the revenue figures and key metrics from the page content, and summarize the findings in natural language.
 
@@ -27,15 +25,6 @@ Four workers chain tool calls in order. Searching the web, reading the top page,
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ts_extract_data
     │
     ▼
 ts_summarize
-```
-
-## Example Output
-
-```
-=== Tool Use Sequential Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ts_search_web, ts_read_page, ts_extract_data, ts_summarize
-
-Step 2: Registering workflow 'tool_use_sequential'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ts_extract_data] Extracting data for query:
-  [ts_read_page] Reading page:
-  [ts_search_web] Searching for:
-  [ts_summarize] Summarizing data for query:
-
-  Status: COMPLETED
-  Output: {data=..., relevanceScore=..., content=..., statusCode=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_sequential \
   --version 1 \
-  --input '{"query": "sample-query", "What is Conductor workflow orchestration?": "sample-What is Conductor workflow orchestration?", "maxResults": "sample-maxResults"}'
+  --input '{"query": "test-value", "maxResults": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Replace with real web scraping and NLP extraction; the search-read-extract-summa
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

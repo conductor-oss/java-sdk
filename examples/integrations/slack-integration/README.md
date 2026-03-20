@@ -27,47 +27,10 @@ Four workers process Slack events: ReceiveEventWorker parses incoming payloads, 
 
 The workers auto-detect Slack credentials at startup. When `SLACK_BOT_TOKEN` is set, PostMessageWorker uses the real Slack Web API (chat.postMessage, via `java.net.http`) to post messages to channels. Without the token, it falls back to simulated mode with realistic output shapes so the workflow runs end-to-end without a Slack bot token.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> PostMessageWorker -> ProcessEventWorker -> ReceiveEventWorker -> TrackDeliveryWorker -> Output
-```
-
-## Example Output
-
-```
-=== Slack Integration Demo ===
-
-Step 1: Registering task definitions...
-  Registered: slk_receive_event, slk_process_event, slk_post_message, slk_track_delivery
-
-Step 2: Registering workflow 'slack_integration'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [post] Posted
-  [SIMULATED][process]
-  [SIMULATED][receive] Event:
-  [SIMULATED][track] Message
-
-  Status: COMPLETED
-  Output: {messageId=..., postedAt=..., message=..., processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +59,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow slack_integration \
   --version 1 \
-  --input '{}'
+  --input '{"channel": "test-value", "eventType": "test-value", "payload": "test-value"}'
 ```
 
 ### Check workflow status

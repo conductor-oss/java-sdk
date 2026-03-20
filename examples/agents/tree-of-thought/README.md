@@ -1,8 +1,6 @@
 # Tree of Thought in Java Using Conductor :  Explore Three Solution Paths in Parallel, Evaluate, Select Best
 
-Tree of Thought .  define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Some Problems Have Multiple Solution Approaches
+Tree of Thought .  define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution. Uses [Conductor](https://github.## Some Problems Have Multiple Solution Approaches
 
 "How should we reduce cloud infrastructure costs by 30%?" has at least three valid approaches: right-sizing instances (analyze usage, downsize over-provisioned resources), reserved capacity (commit to 1-3 year reservations for predictable workloads), or architectural changes (move to serverless, consolidate services). Each approach has different risk profiles, implementation timelines, and savings potential.
 
@@ -29,16 +27,6 @@ Six workers explore solution space. Defining the problem, exploring three parall
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -56,36 +44,6 @@ tt_evaluate_paths
     │
     ▼
 tt_select_best
-```
-
-## Example Output
-
-```
-=== Tree of Thought Demo ===
-
-Step 1: Registering task definitions...
-  Registered: tt_define_problem, tt_path_a, tt_path_b, tt_path_c, tt_evaluate_paths, tt_select_best
-
-Step 2: Registering workflow 'tree_of_thought'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tt_define_problem] Problem:
-  [tt_evaluate_paths] Evaluating paths. A:
-  [tt_path_a] Exploring analytical path for:
-  [tt_path_b] Exploring creative path for:
-  [tt_path_c] Exploring empirical path for:
-  [tt_select_best] Selected path:
-
-  Status: COMPLETED
-  Output: {problem=..., scores=..., bestPath=..., bestSolution=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -157,7 +115,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tree_of_thought \
   --version 1 \
-  --input '{"problem": "sample-problem"}'
+  --input '{"problem": "test-value"}'
 ```
 
 ### Check workflow status
@@ -181,7 +139,6 @@ Replace with real LLM reasoning per path; the parallel exploration pipeline main
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

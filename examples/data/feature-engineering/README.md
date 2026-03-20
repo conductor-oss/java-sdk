@@ -1,8 +1,6 @@
 # Feature Engineering in Java Using Conductor :  Feature Extraction, Transformation, Normalization, and Validation
 
-A Java Conductor workflow example for ML feature engineering: extracting raw features from source data, applying transformations (log, polynomial, ratio-based derived features), normalizing numeric features to a [0,1] range via min-max scaling, and validating the final feature set for null values and range compliance before model training. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for ML feature engineering: extracting raw features from source data, applying transformations (log, polynomial, ratio-based derived features), normalizing numeric features to a [0,1] range via min-max scaling, and validating the final feature set for null values and range compliance before model training. Uses [Conductor](https://github.## The Problem
 
 Before your ML model can train, raw data needs to become features. That means extracting useful signals from raw fields (parsing dates into day-of-week, computing ratios from absolute values), transforming them (log transforms for skewed distributions, polynomial features for capturing non-linear relationships), normalizing to a consistent [0,1] range so gradient-based models converge properly, and validating that no feature has null values or falls outside the expected range. Each step depends on the previous one: you can't normalize features that haven't been transformed, and you can't validate until normalization is complete.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic feature pipeline that extracts, 
 
 **You just write the feature extraction, transformation, normalization, and validation workers. Conductor handles the sequential feature pipeline, per-step retries, and tracking of feature counts and statistics at every stage for experiment reproducibility.**
 
-Each stage of the feature pipeline is a simple, independent worker. The extractor computes raw features from source data. The transformer adds derived features (log, polynomial, ratio). The normalizer scales all features to [0,1] using min-max normalization. The validator checks for null values and confirms all features are within the expected range. Conductor executes them in sequence, passes the evolving feature matrix between steps, retries if a step fails, and tracks feature counts and statistics at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the feature pipeline is a simple, independent worker. The extractor computes raw features from source data. The transformer adds derived features (log, polynomial, ratio). The normalizer scales all features to [0,1] using min-max normalization. The validator checks for null values and confirms all features are within the expected range. Conductor executes them in sequence, passes the evolving feature matrix between steps, retries if a step fails, and tracks feature counts and statistics at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers handle the ML feature pipeline: extracting raw features from source
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ fe_normalize_features
     │
     ▼
 fe_validate_features
-```
-
-## Example Output
-
-```
-=== Feature Engineering Demo ===
-
-Step 1: Registering task definitions...
-  Registered: fe_extract_features, fe_transform_features, fe_normalize_features, fe_validate_features
-
-Step 2: Registering workflow 'feature_engineering'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [extract] Extracted
-  [normalize] Min-max normalized
-  [transform] Added 5 derived features (log, polynomial, ratio)
-  [validate]
-
-  Status: COMPLETED
-  Output: {age=..., income=..., tenure_months=..., num_products=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow feature_engineering \
   --version 1 \
-  --input '{"rawData": "sample-rawData", "age": "sample-age", "income": "sample-income", "tenure_months": "sample-tenure-months", "num_products": 5, "has_credit_card": "sample-has-credit-card", "is_active": true, "balance": "sample-balance"}'
+  --input '{"rawData": "test-value", "featureConfig": "test-value"}'
 ```
 
 ### Check workflow status

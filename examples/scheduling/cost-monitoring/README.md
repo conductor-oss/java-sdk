@@ -12,7 +12,7 @@ Without orchestration, cost monitoring is checking the AWS/GCP billing dashboard
 
 **You just write the billing data collection and budget threshold rules. Conductor handles the billing-to-alert pipeline, retries when cloud billing APIs are rate-limited, and a historical record of every cost check and budget alert.**
 
-Each cost concern is an independent worker .  billing collection, trend analysis, and budget alerting. Conductor runs them in sequence: collect current costs, analyze trends, then alert if thresholds are breached. Every cost check is tracked with billing data, trend analysis, and alert decisions. You get all of that for free, without writing a single line of orchestration code.
+Each cost concern is an independent worker .  billing collection, trend analysis, and budget alerting. Conductor runs them in sequence: collect current costs, analyze trends, then alert if thresholds are breached. Every cost check is tracked with billing data, trend analysis, and alert decisions. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,6 @@ Three workers form the cost pipeline: CollectBillingWorker pulls spending data b
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ cos_analyze_trends
     │
     ▼
 cos_alert_anomalies
-```
-
-## Example Output
-
-```
-=== Example 419: Cost Monitoring ===
-
-Step 1: Registering task definitions...
-  Registered: cos_collect_billing, cos_analyze_trends, cos_alert_anomalies
-
-Step 2: Registering workflow 'cost_monitoring_419'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzing spending trends
-  [collect] Collecting billing data for
-  [alert] Budget at
-
-  Status: COMPLETED
-  Output: {trend=..., percentOfBudget=..., anomalies=..., totalSpend=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cost_monitoring_419 \
   --version 1 \
-  --input '{"accountId": "acct-prod-001", "acct-prod-001": "billingPeriod", "billingPeriod": "2026-03", "2026-03": "budgetLimit", "budgetLimit": 15000}'
+  --input '{"accountId": "TEST-001", "billingPeriod": "test-value", "budgetLimit": 10}'
 ```
 
 ### Check workflow status

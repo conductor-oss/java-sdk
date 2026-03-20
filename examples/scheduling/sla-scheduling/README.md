@@ -12,7 +12,7 @@ Without orchestration, SLA prioritization is a manual sort in a ticketing system
 
 **You just write the SLA prioritization rules and compliance calculations. Conductor handles the prioritize-execute-track sequence, retries on ticket system failures, and SLA compliance metrics with per-ticket timing for every scheduling cycle.**
 
-Each SLA concern is an independent worker .  prioritization by SLA urgency, task execution in priority order, and compliance tracking. Conductor runs them in sequence: prioritize the queue, execute in order, then track compliance. Every scheduling run is tracked with priority assignments, execution timing, and SLA compliance metrics. You get all of that for free, without writing a single line of orchestration code.
+Each SLA concern is an independent worker .  prioritization by SLA urgency, task execution in priority order, and compliance tracking. Conductor runs them in sequence: prioritize the queue, execute in order, then track compliance. Every scheduling run is tracked with priority assignments, execution timing, and SLA compliance metrics. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,6 @@ Three workers enforce SLA discipline: PrioritizeWorker sorts tickets by SLA urge
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ sla_execute_tasks
     │
     ▼
 sla_track_compliance
-```
-
-## Example Output
-
-```
-=== Example 409: SLA Scheduling ===
-
-Step 1: Registering task definitions...
-  Registered: sla_prioritize, sla_execute_tasks, sla_track_compliance
-
-Step 2: Registering workflow 'sla_scheduling_409'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [execute] Processing
-  [prioritize] Prioritizing tickets by SLA (policy:
-  [compliance] Tracking SLA compliance
-
-  Status: COMPLETED
-  Output: {results=..., allResolved=..., orderedTickets=..., totalTickets=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sla_scheduling_409 \
   --version 1 \
-  --input '{"tickets": "sample-tickets", "TKT-101": "sample-TKT-101", "TKT-102": "sample-TKT-102", "slaPolicy": "sample-slaPolicy"}'
+  --input '{"tickets": "test-value", "slaPolicy": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Food Safety in Java with Conductor
 
-Conducts a food safety inspection: visiting the facility, checking temperatures, verifying hygiene, issuing certification, and recording results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Conducts a food safety inspection: visiting the facility, checking temperatures, verifying hygiene, issuing certification, and recording results. Uses [Conductor](https://github.## The Problem
 
 You need to conduct a food safety inspection at a restaurant. An inspector visits the facility, checks temperature logs for food storage and cooking equipment, verifies hygiene practices (handwashing, cross-contamination prevention, pest control), issues a safety certification if standards are met, and records the inspection results. Certifying without thorough temperature and hygiene checks puts public health at risk.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage inspections with paper checklists and spread
 
 **You just write the facility inspection, temperature checks, hygiene verification, and certification issuance logic. Conductor handles inspection scheduling retries, compliance routing, and safety audit trails.**
 
-Each food safety concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (inspect, check temps, verify hygiene, certify, record), tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each food safety concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (inspect, check temps, verify hygiene, certify, record), tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Inspection scheduling, temperature logging, compliance checking, and reporting w
 | **VerifyHygieneWorker** | `fsf_verify_hygiene` | Verifies hygiene practices (handwashing, surface sanitation, cross-contamination prevention) and returns a score |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ fsf_certify
     │
     ▼
 fsf_record
-```
-
-## Example Output
-
-```
-=== Example 738: Food Safety ===
-
-Step 1: Registering task definitions...
-  Registered: fsf_inspect, fsf_check_temps, fsf_verify_hygiene, fsf_certify, fsf_record
-
-Step 2: Registering workflow 'food_safety_738'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [certify] All checks passed - issuing certification
-  [temps] Checking storage temperatures at
-  [inspect] Inspector
-  [record] Recording inspection results for
-  [hygiene] Verifying hygiene at
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow food_safety_738 \
   --version 1 \
-  --input '{"restaurantId": "REST-10", "REST-10": "inspectorId", "inspectorId": "INS-007", "INS-007": "sample-INS-007"}'
+  --input '{"restaurantId": "TEST-001", "inspectorId": "TEST-001"}'
 ```
 
 ### Check workflow status

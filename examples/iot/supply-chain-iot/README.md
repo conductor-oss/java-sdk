@@ -1,8 +1,6 @@
 # Supply Chain IoT in Java with Conductor :  Shipment Tracking, Condition Monitoring, and Alert-Based Rerouting
 
-A Java Conductor workflow example that orchestrates supply chain monitoring .  tracking shipment location from origin to destination, monitoring in-transit environmental conditions (temperature for cold chain compliance), and routing to different handlers via SWITCH based on condition status: continue the shipment if conditions are normal, or trigger an alert and initiate rerouting if conditions breach thresholds. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Supply Chain Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates supply chain monitoring .  tracking shipment location from origin to destination, monitoring in-transit environmental conditions (temperature for cold chain compliance), and routing to different handlers via SWITCH based on condition status: continue the shipment if conditions are normal, or trigger an alert and initiate rerouting if conditions breach thresholds. Uses [Conductor](https://github.## Why Supply Chain Monitoring Needs Orchestration
 
 Shipping perishable goods or sensitive materials requires continuous monitoring throughout transit. You track the shipment's GPS position to know where it is. You check the in-transit environmental conditions .  temperature inside the container, humidity levels, door-open events. Based on those conditions, you take entirely different actions: if everything is within spec, you log the checkpoint and continue. If the temperature exceeds the cold chain threshold, you trigger an alert, notify the logistics team, and initiate rerouting to a closer destination before the cargo is compromised.
 
@@ -27,16 +25,6 @@ Four workers monitor shipments in transit: TrackShipmentWorker tracks GPS positi
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ sci_monitor_conditions
 SWITCH (sci_switch_ref)
     ├── ok: sci_handle_ok
     ├── alert: sci_handle_alert
-```
-
-## Example Output
-
-```
-=== Example 543: Supply Chain IoT ===
-
-Step 1: Registering task definitions...
-  Registered: sci_track_shipment, sci_monitor_conditions, sci_handle_ok, sci_handle_alert
-
-Step 2: Registering workflow 'supply_chain_iot_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ALERT] Processing task
-  [ok] Processing task
-  [conditions] Processing task
-  [track] Processing task
-
-  Status: COMPLETED
-  Output: {action=..., alertSent=..., logged=..., temperature=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow supply_chain_iot_demo \
   --version 1 \
-  --input '{"shipmentId": "SHIP-OK", "SHIP-OK": "origin", "origin": "New York", "New York": "destination", "destination": "Los Angeles", "Los Angeles": "sample-Los Angeles"}'
+  --input '{"shipmentId": "TEST-001", "origin": "test-value", "destination": "test-value"}'
 ```
 
 ### Check workflow status

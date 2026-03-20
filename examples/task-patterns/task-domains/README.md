@@ -1,8 +1,6 @@
 # Task Domains in Java with Conductor
 
-Task Domains demo .  route tasks to specific worker groups using domains. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Task Domains demo .  route tasks to specific worker groups using domains. Uses [Conductor](https://github.## The Problem
 
 You need to route tasks to specific worker groups, for example, sending GPU-intensive work to GPU-equipped workers or routing region-specific tasks to workers in that region. Task domains let you tag workers with domain labels so only workers in the matching domain pick up the task, without changing the workflow definition.
 
@@ -24,44 +22,10 @@ A single worker demonstrates domain-based routing: TdProcessWorker tags its outp
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 td_process
-```
-
-## Example Output
-
-```
-=== Task Domains: Route Tasks to Specific Worker Groups ===
-
-Step 1: Registering task definitions...
-  Registered: td_process
-
-Step 2: Registering workflow 'task_domain_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [td_process] Processing type=
-
-  Status: COMPLETED
-  Output: {result=..., worker=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow task_domain_demo \
   --version 1 \
-  --input '{"data": "sample-data", "type": "standard", "matrix": "sample-matrix", "value": "sample-value"}'
+  --input '{"data": "test-value"}'
 ```
 
 ### Check workflow status

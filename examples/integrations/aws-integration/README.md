@@ -27,16 +27,6 @@ Four workers coordinate AWS writes: AwsS3UploadWorker stores objects, AwsDynamoD
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,34 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 aws_verify
-```
-
-## Example Output
-
-```
-=== Example 441: AWS Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: aws_s3_upload, aws_dynamodb_write, aws_sns_notify, aws_verify
-
-Step 2: Registering workflow 'aws_integration'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [DynamoDB] Written item
-  [S3] Uploaded to s3://
-  [SNS] Published
-  [verify] S3:
-
-  Status: COMPLETED
-  Output: {itemId=..., tableName=..., consumedCapacity=..., s3Key=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow aws_integration \
   --version 1 \
-  --input '{"bucket": "my-data-bucket", "my-data-bucket": "tableName", "tableName": "events-table", "events-table": "topicArn", "topicArn": "arn:aws:sns:us-east-1:123456789:data-events", "arn:aws:sns:us-east-1:123456789:data-events": "payload", "payload": {"key": "value"}}'
+  --input '{"bucket": "test-value", "tableName": "test", "topicArn": "test-value", "payload": "test-value"}'
 ```
 
 ### Check workflow status

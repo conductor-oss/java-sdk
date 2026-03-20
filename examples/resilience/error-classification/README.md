@@ -1,8 +1,6 @@
 # Implementing Error Classification in Java with Conductor :  Retryable vs Non-Retryable Error Routing
 
-A Java Conductor workflow example demonstrating error classification .  distinguishing retryable errors (429 Too Many Requests, 503 Service Unavailable) from non-retryable errors (security-posture Bad Request) and routing each to the appropriate handling path. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating error classification .  distinguishing retryable errors (429 Too Many Requests, 503 Service Unavailable) from non-retryable errors (security-posture Bad Request) and routing each to the appropriate handling path. Uses [Conductor](https://github.## The Problem
 
 You call an external API that returns different error codes .  429 (rate limited), 503 (service temporarily down), security-posture (bad request data). Each error type demands a different response: retryable errors should be retried with backoff, while non-retryable errors should be routed to an error handler that logs the issue, alerts the team, and prevents wasted retry attempts on requests that will never succeed.
 
@@ -12,7 +10,7 @@ Without orchestration, error classification is buried in nested if/else chains i
 
 **You just write the API call and error classification logic. Conductor handles SWITCH-based routing by error type, automatic retries for transient failures, and a full record of every classification decision showing which errors were retried and which were sent to the handler.**
 
-The API call worker makes the request and classifies errors. Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to a dedicated error handler. Every error classification decision is recorded .  you can see exactly which errors were retried, which were routed to the handler, and what the outcome was. You get all of that for free, without writing a single line of orchestration code.
+The API call worker makes the request and classifies errors. Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to a dedicated error handler. Every error classification decision is recorded .  you can see exactly which errors were retried, which were routed to the handler, and what the outcome was. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,16 +23,6 @@ ApiCallWorker makes the external request and classifies the response error type,
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -43,32 +31,6 @@ ec_api_call
     ▼
 SWITCH (error_type_switch_ref)
     ├── non_retryable: ec_handle_error
-```
-
-## Example Output
-
-```
-=== Error Classification Demo: Retryable vs Non-Retryable Failures ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'error_classification_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ec_api_call] simulateError=
-  [ec_handle_error] Handling error:
-
-  Status: COMPLETED
-  Output: {errorType=..., error=..., httpStatus=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +59,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +102,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow error_classification_demo \
   --version 1 \
-  --input '{"simulateError": "sample-simulateError"}'
+  --input '{"triggerError": "test-value"}'
 ```
 
 ### Check workflow status

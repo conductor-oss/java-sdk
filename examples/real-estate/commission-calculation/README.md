@@ -1,8 +1,6 @@
 # Real Estate Commission Calculation in Java with Conductor :  Base Rate, Tiered Adjustments, Deductions, and Payout
 
-A Java Conductor workflow example for calculating real estate agent commissions .  computing the base commission from sale price, applying tiered adjustments based on agent performance, subtracting brokerage fees and deductions, and finalizing the payout. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for calculating real estate agent commissions .  computing the base commission from sale price, applying tiered adjustments based on agent performance, subtracting brokerage fees and deductions, and finalizing the payout. Uses [Conductor](https://github.## The Problem
 
 You need to calculate agent commissions when a property sale closes. The calculation is never as simple as "sale price times percentage." You start with a base commission rate, then apply tiered adjustments .  senior agents earn a higher split, top performers get bonus percentages, team leads take an override. Then you subtract deductions: brokerage desk fees, marketing costs, referral fees paid to other agents. Finally, the net commission is finalized and a payment is issued. Each step depends on the previous one, and any error in the chain means an agent gets paid the wrong amount.
 
@@ -12,7 +10,7 @@ Without orchestration, commission calculations live in a spreadsheet or a monoli
 
 **You just write the base commission, tier adjustment, deduction, and payout logic. Conductor handles tier calculation retries, deduction sequencing, and payout audit trails.**
 
-Each step in the commission pipeline is a simple, independent worker .  one computes the base commission, one applies tier adjustments, one subtracts deductions, one finalizes the payout. Conductor takes care of executing them in sequence, retrying if the payment system is temporarily unavailable, and maintaining a complete audit trail showing exactly how each commission was calculated. You get all of that for free, without writing a single line of orchestration code.
+Each step in the commission pipeline is a simple, independent worker .  one computes the base commission, one applies tier adjustments, one subtracts deductions, one finalizes the payout. Conductor takes care of executing them in sequence, retrying if the payment system is temporarily unavailable, and maintaining a complete audit trail showing exactly how each commission was calculated. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Base rate calculation, tiered adjustment, deduction application, and payout fina
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cmc_deductions
     │
     ▼
 cmc_finalize
-```
-
-## Example Output
-
-```
-=== Example 688: Commission Calculatio ===
-
-Step 1: Registering task definitions...
-  Registered: cmc_base, cmc_tiers, cmc_deductions, cmc_finalize
-
-Step 2: Registering workflow 'cmc_commission_calculation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cmc_base] Executing
-  [cmc_deductions] Executing
-  [cmc_finalize] Executing
-  [cmc_tiers] Executing
-
-  Status: COMPLETED
-  Output: {baseCommission=..., netCommission=..., paymentId=..., tieredAmount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cmc_commission_calculation \
   --version 1 \
-  --input '{"agentId": "AGT-200", "AGT-200": "salePrice", "salePrice": 525000, "TXN-688": "sample-TXN-688"}'
+  --input '{"agentId": "TEST-001", "salePrice": 100, "transactionId": "TEST-001"}'
 ```
 
 ### Check workflow status

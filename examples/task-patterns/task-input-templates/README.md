@@ -1,8 +1,6 @@
 # Task Input Templates in Java with Conductor
 
-Shows reusable parameter mapping patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Shows reusable parameter mapping patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to wire data between tasks, a user lookup returns a profile, a context builder enriches it with permissions, and an action executor needs fields from both previous steps plus the original workflow input. Input templates let you map outputs from any previous task into the next task's input using expressions like `${task_ref.output.field}`, composing complex objects from multiple sources without writing glue code.
 
@@ -26,15 +24,6 @@ Three workers form a user-action pipeline wired together by input templates: Loo
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ tpl_build_context
     │
     ▼
 tpl_execute_action
-```
-
-## Example Output
-
-```
-=== Task Input Templates: Dynamic Parameter Wiring ===
-
-Step 1: Registering task definitions...
-  Registered: tpl_lookup_user, tpl_build_context, tpl_execute_action
-
-Step 2: Registering workflow 'input_templates_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [context]
-  [execute]
-  [lookup] User:
-
-  Status: COMPLETED
-  Output: {permissions=..., enrichedContext=..., result=..., auditLog=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow input_templates_demo \
   --version 1 \
-  --input '{"userId": "U-1", "U-1": "action", "action": "write", "write": "metadata", "metadata": {"key": "value"}}'
+  --input '{"userId": "TEST-001", "action": "test-value", "metadata": "test-value"}'
 ```
 
 ### Check workflow status

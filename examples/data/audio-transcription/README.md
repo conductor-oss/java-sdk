@@ -1,8 +1,6 @@
 # Audio Transcription in Java Using Conductor :  Speech-to-Text, Speaker Diarization, and Keyword Extraction
 
-A Java Conductor workflow example for audio transcription pipelines: preprocessing raw audio, running speech-to-text with speaker diarization, generating word-level timestamps, and extracting keywords. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for audio transcription pipelines: preprocessing raw audio, running speech-to-text with speaker diarization, generating word-level timestamps, and extracting keywords. Uses [Conductor](https://github.## The Problem
 
 You need to turn raw audio recordings into structured, searchable text. That means normalizing audio levels and reducing background noise, running speech-to-text transcription with speaker identification, aligning words to timestamps so you can jump to any point in the recording, and extracting keywords for indexing and search. Each step depends on the output of the one before it. You can't generate timestamps without a transcript, and you can't transcribe without clean audio.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd chain all of this in a single monolithic class. Cal
 
 **You just write the audio processing workers .  preprocessing, transcription, timestamping, keyword extraction. Conductor handles sequential execution, crash recovery mid-transcription, and automatic retries when speech APIs time out.**
 
-Each stage of the transcription pipeline is a simple, independent worker, a plain Java class that does one thing. The preprocessing worker normalizes audio. The transcription worker converts speech to text. The timestamp worker aligns words to time codes. The keyword worker extracts topics. Conductor executes them in sequence, passes each worker's output to the next, retries if a speech API call fails, and resumes from exactly where it left off if the process crashes mid-transcription. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the transcription pipeline is a simple, independent worker, a plain Java class that does one thing. The preprocessing worker normalizes audio. The transcription worker converts speech to text. The timestamp worker aligns words to time codes. The keyword worker extracts topics. Conductor executes them in sequence, passes each worker's output to the next, retries if a speech API call fails, and resumes from exactly where it left off if the process crashes mid-transcription. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ This pipeline breaks audio processing into four focused workers. from raw audio 
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ au_generate_timestamps
     │
     ▼
 au_extract_keywords
-```
-
-## Example Output
-
-```
-=== Audio Transcription Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: au_preprocess_audio, au_transcribe, au_generate_timestamps, au_extract_keywords
-
-Step 2: Registering workflow 'audio_transcription'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [keywords] Extracted
-  [timestamps] Generated timestamps for
-  [preprocess] Audio:
-  [transcribe] Transcribed
-
-  Status: COMPLETED
-  Output: {keywords=..., keywordCount=..., startTime=..., endTime=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow audio_transcription \
   --version 1 \
-  --input '{"audioUrl": "https://api.example.com/resource", "s3://media/recordings/ml-discussion-2024.wav": "sample-s3://media/recordings/ml-discussion-2024.wav", "language": "sample-language", "en-US": "sample-en-US", "speakerCount": 5}'
+  --input '{"audioUrl": "https://example.com", "language": "test-value", "speakerCount": 10}'
 ```
 
 ### Check workflow status

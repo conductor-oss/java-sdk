@@ -1,8 +1,6 @@
 # Tool Use Error Handling in Java Using Conductor :  Primary Tool with Fallback on Failure
 
-Tool Use Error Handling .  tries a primary tool and falls back to an alternative tool on failure via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Tools Fail :  Have a Backup Plan
+Tool Use Error Handling .  tries a primary tool and falls back to an alternative tool on failure via a SWITCH task. Uses [Conductor](https://github.## Tools Fail :  Have a Backup Plan
 
 Your primary weather API returns a 503 because it's having an outage. Your primary search engine is rate-limiting you. Your primary database is under maintenance. If the agent simply reports "tool failed" to the user, it's a poor experience .  especially when an alternative tool could have answered the question.
 
@@ -27,16 +25,6 @@ Four workers implement failover. Trying the primary tool, checking its status, a
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,34 +34,6 @@ te_try_primary_tool
 SWITCH (route_on_status_ref)
     ├── success: te_format_success
     └── default: te_try_fallback_tool -> te_format_fallback
-```
-
-## Example Output
-
-```
-=== Tool Use Error Handling Demo ===
-
-Step 1: Registering task definitions...
-  Registered: te_try_primary_tool, te_format_success, te_try_fallback_tool, te_format_fallback
-
-Step 2: Registering workflow 'tool_use_error_handling'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [te_format_fallback] Formatting fallback result from:
-  [te_format_success] Formatting success result from:
-  [te_try_fallback_tool] Trying fallback tool:
-  [te_try_primary_tool] Trying primary tool:
-
-  Status: COMPLETED
-  Output: {formatted=..., source=..., toolName=..., reliable=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_error_handling \
   --version 1 \
-  --input '{"query": "sample-query", "What are the coordinates of San Francisco?": "sample-What are the coordinates of San Francisco?", "primaryTool": "sample-primaryTool", "google_geocoding_api": "sample-google-geocoding-api", "fallbackTool": "sample-fallbackTool"}'
+  --input '{"query": "test-value", "primaryTool": "test-value", "fallbackTool": "test-value"}'
 ```
 
 ### Check workflow status
@@ -169,7 +129,6 @@ Connect real primary and fallback APIs; the error-handling workflow keeps the sa
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

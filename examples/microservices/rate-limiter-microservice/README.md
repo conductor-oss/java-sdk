@@ -1,8 +1,6 @@
 # Rate Limiter Microservice in Java with Conductor
 
-Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates counters per client. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates counters per client. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 API rate limiting protects backend services from being overwhelmed. Each incoming request must have its client quota checked, and based on the result, the request is either processed (with the counter incremented) or rejected with a retry-after hint. The check and update must be consistent to avoid exceeding the limit.
 
@@ -27,16 +25,6 @@ Four workers implement distributed rate limiting: CheckQuotaWorker evaluates per
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,34 +34,6 @@ rl_check_quota
 SWITCH (decision_ref)
     ├── false: rl_reject_request
     └── default: rl_process_request -> rl_update_counter
-```
-
-## Example Output
-
-```
-=== Rate Limiter Microservice Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rl_check_quota, rl_process_request, rl_update_counter, rl_reject_request
-
-Step 2: Registering workflow 'rate_limiter_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [rl_check_quota]
-  [rl_process_request] Request processed successfully
-  [rl_reject_request] Rate limit exceeded for
-  [rl_update_counter] Incremented counter for
-
-  Status: COMPLETED
-  Output: {allowed=..., remaining=..., limit=..., window=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rate_limiter_workflow \
   --version 1 \
-  --input '{"clientId": "client-99", "client-99": "endpoint", "endpoint": "/api/orders", "/api/orders": "request", "request": {"key": "value"}}'
+  --input '{"clientId": "TEST-001", "endpoint": "test-value", "request": "test-value"}'
 ```
 
 ### Check workflow status

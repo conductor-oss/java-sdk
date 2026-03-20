@@ -12,7 +12,7 @@ Without orchestration, custom metrics are one-off scripts that query databases, 
 
 **You just write the metric definitions and aggregation queries. Conductor handles the define-collect-aggregate-dashboard pipeline, retries when data source queries time out, and tracking of every collection timestamp and aggregated result.**
 
-Each metrics concern is an independent worker .  metric definition, data collection, aggregation, and dashboard update. Conductor runs them in sequence: define what to measure, collect the raw data, aggregate it, then update the dashboard. Every pipeline run is tracked with collection timestamps and aggregation results. You get all of that for free, without writing a single line of orchestration code.
+Each metrics concern is an independent worker .  metric definition, data collection, aggregation, and dashboard update. Conductor runs them in sequence: define what to measure, collect the raw data, aggregate it, then update the dashboard. Every pipeline run is tracked with collection timestamps and aggregation results. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers power the metrics pipeline: DefineMetricsWorker registers business-
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ cus_aggregate
     │
     ▼
 cus_update_dashboard
-```
-
-## Example Output
-
-```
-=== Example 422: Custom Metrics ===
-
-Step 1: Registering task definitions...
-  Registered: cus_define_metrics, cus_collect_data, cus_aggregate, cus_update_dashboard
-
-Step 2: Registering workflow 'custom_metrics_422'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Collecting data for
-  [aggregate] Aggregating
-  [define] Registering custom metric definitions
-  [dashboard] Updating dashboard
-
-  Status: COMPLETED
-  Output: {rawDataPoints=..., metricCount=..., aggregatedMetrics=..., registeredMetrics=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow custom_metrics_422 \
   --version 1 \
-  --input '{"metricDefinitions": "sample-metricDefinitions", "order_processing_time": "2025-01-15T10:00:00Z", "collectionInterval": "sample-collectionInterval", "10s": "sample-10s", "aggregationWindow": "sample-aggregationWindow"}'
+  --input '{"metricDefinitions": "test-value", "collectionInterval": "test-value", "aggregationWindow": "test-value"}'
 ```
 
 ### Check workflow status

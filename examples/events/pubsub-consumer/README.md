@@ -1,8 +1,6 @@
 # Pubsub Consumer in Java Using Conductor
 
-Pub/Sub Consumer .  receive a Pub/Sub message, decode the base64 payload, process sensor data with threshold checks, and acknowledge the message. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Pub/Sub Consumer .  receive a Pub/Sub message, decode the base64 payload, process sensor data with threshold checks, and acknowledge the message. Uses [Conductor](https://github.## The Problem
 
 You need to process messages from a Google Cloud Pub/Sub subscription. Each message arrives base64-encoded with attributes metadata, must be decoded, processed (e.g., sensor data with threshold checks), and acknowledged so Pub/Sub stops redelivering it. Failing to acknowledge means the message is redelivered indefinitely; acknowledging before processing means you lose it on failure.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a Pub/Sub subscriber with manual message deco
 
 **You just write the message-receive, payload-decode, sensor-processing, and acknowledgment workers. Conductor handles receive-to-ack sequencing, guaranteed acknowledgment only after processing, and full message lifecycle visibility.**
 
-Each Pub/Sub consumption concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the message, decoding the base64 payload, processing the sensor data with threshold checks, and acknowledging the message ,  retrying on transient failures, tracking every message's lifecycle, and resuming if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each Pub/Sub consumption concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the message, decoding the base64 payload, processing the sensor data with threshold checks, and acknowledging the message ,  retrying on transient failures, tracking every message's lifecycle, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers process Pub/Sub messages: PsReceiveMessageWorker extracts the raw m
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ps_process_data
     │
     ▼
 ps_ack_message
-```
-
-## Example Output
-
-```
-=== Pub/Sub Consumer Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ps_receive_message, ps_decode_payload, ps_process_data, ps_ack_message
-
-Step 2: Registering workflow 'pubsub_consumer_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ps_ack_message] Acknowledging message
-  [ps_decode_payload] Decoding
-  [ps_process_data] Processing event type:
-  [ps_receive_message] Received message
-
-  Status: COMPLETED
-  Output: {acknowledged=..., ackedAt=..., decodedData=..., eventType=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pubsub_consumer_wf \
   --version 1 \
-  --input '{"subscription": "projects/my-project/subscriptions/sensor-readings-sub", "projects/my-project/subscriptions/sensor-readings-sub": "messageId", "messageId": "ps-fixed-001", "ps-fixed-001": "publishTime", "publishTime": "2026-03-08T10:15:00Z", "2026-03-08T10:15:00Z": "data", "data": "eyJzZW5zb3JJZCI6...", "eyJzZW5zb3JJZCI6...": "attributes", "attributes": {"key": "value"}}'
+  --input '{"subscription": "test-value", "messageId": "TEST-001", "publishTime": "2026-01-01T00:00:00Z", "data": "test-value", "attributes": "test-value"}'
 ```
 
 ### Check workflow status

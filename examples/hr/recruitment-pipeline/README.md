@@ -1,8 +1,6 @@
 # Recruitment Pipeline in Java with Conductor :  Job Posting, Resume Screening, Interview, Evaluation, and Offer
 
-A Java Conductor workflow example for recruitment .  posting a job requisition to job boards, screening candidate resumes against requirements, conducting structured interviews, evaluating composite scores from screening and interview, and extending an offer to the top candidate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for recruitment .  posting a job requisition to job boards, screening candidate resumes against requirements, conducting structured interviews, evaluating composite scores from screening and interview, and extending an offer to the top candidate. Uses [Conductor](https://github.## The Problem
 
 You need to manage the hiring pipeline from job posting through offer letter. A hiring manager opens a requisition for a role in their department. The job must be posted to job boards and the company careers page. As applications arrive, each candidate's resume must be screened against the role's requirements .  years of experience, required skills, education ,  producing a screening score (e.g., 85/100). Candidates who pass screening move to interviews, where structured questions produce an interview score. Both scores feed into a composite evaluation that generates a hire/no-hire recommendation. Top candidates receive an offer with compensation details. Each step depends on the previous ,  you cannot interview without screening, and you cannot make an offer without a composite evaluation.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic ATS (applicant tracking system) 
 
 **You just write the job posting, resume screening, interview coordination, scoring, and offer extension logic. Conductor handles screening retries, candidate routing, and hiring funnel audit trails.**
 
-Each stage of the recruitment pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of screening only after the job is posted, interviewing only after screening passes, evaluating using both the screening score and interview score, extending the offer only after a positive recommendation, retrying if job boards or HRIS systems are temporarily unavailable, and maintaining a complete audit trail for EEOC and OFCCP compliance. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the recruitment pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of screening only after the job is posted, interviewing only after screening passes, evaluating using both the screening score and interview score, extending the offer only after a positive recommendation, retrying if job boards or HRIS systems are temporarily unavailable, and maintaining a complete audit trail for EEOC and OFCCP compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Job posting, application screening, shortlisting, and offer extension workers ha
 | **OfferWorker** | `rcp_offer` | Generates and extends the offer to the recommended candidate with compensation, start date, and terms |
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ rcp_evaluate
     │
     ▼
 rcp_offer
-```
-
-## Example Output
-
-```
-=== Example 602: Recruitment Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: rcp_post, rcp_screen, rcp_interview, rcp_evaluate, rcp_offer
-
-Step 2: Registering workflow 'rcp_recruitment_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [evaluate] Combined score: screen
-  [interview] Technical interview with
-  [offer] Offer extended to
-  [post] Job posted:
-  [screen] Resume screening for
-
-  Status: COMPLETED
-  Output: {recommendation=..., overallScore=..., score=..., rounds=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rcp_recruitment_pipeline \
   --version 1 \
-  --input '{"jobTitle": "Senior Software Engineer", "Senior Software Engineer": "department", "department": "Engineering", "Engineering": "candidateName", "candidateName": "Alex Rivera", "Alex Rivera": "sample-Alex Rivera"}'
+  --input '{"jobTitle": "test-value", "department": "test-value", "candidateName": "test"}'
 ```
 
 ### Check workflow status

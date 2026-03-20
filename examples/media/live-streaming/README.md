@@ -1,8 +1,6 @@
 # Live Streaming Pipeline in Java Using Conductor :  Stream Setup, Encoding, CDN Distribution, Quality Monitoring, and Archival
 
-A Java Conductor workflow example that orchestrates a live streaming pipeline .  provisioning ingest URLs and stream keys, encoding to adaptive bitrate HLS streams with low-latency codecs, distributing across CDN nodes with multi-region viewer support, monitoring stream quality (peak viewers, average bitrate, buffer ratio, quality scores), and archiving the completed stream with thumbnails for VOD playback. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Live Streaming Workflows Need Orchestration
+A Java Conductor workflow example that orchestrates a live streaming pipeline .  provisioning ingest URLs and stream keys, encoding to adaptive bitrate HLS streams with low-latency codecs, distributing across CDN nodes with multi-region viewer support, monitoring stream quality (peak viewers, average bitrate, buffer ratio, quality scores), and archiving the completed stream with thumbnails for VOD playback. Uses [Conductor](https://github.## Why Live Streaming Workflows Need Orchestration
 
 Managing a live stream involves a sequence of infrastructure operations that must happen in the right order. You set up the stream .  provisioning an RTMP ingest URL and stream key. You configure encoding ,  setting up adaptive bitrate transcoding at multiple quality levels with low-latency settings. You distribute the encoded stream to CDN edge nodes across viewer regions. You monitor quality throughout ,  tracking peak concurrent viewers, average bitrate, buffer ratios, and computing an overall quality score. After the stream ends, you archive the recording with generated thumbnails for on-demand playback.
 
@@ -28,48 +26,10 @@ Five workers manage the broadcast lifecycle: SetupStreamWorker provisions ingest
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> ArchiveStreamWorker -> DistributeStreamWorker -> EncodeStreamWorker -> MonitorQualityWorker -> SetupStreamWorker -> Output
-```
-
-## Example Output
-
-```
-=== Example 522: Live Streaming ===
-
-Step 1: Registering task definitions...
-  Registered: lsm_setup_stream, lsm_encode_stream, lsm_distribute_stream, lsm_monitor_quality, lsm_archive_stream
-
-Step 2: Registering workflow 'live_streaming'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [archive] Archiving
-  [distribute] Distributing
-  [encode] Encoding at
-  [monitor] Monitoring stream quality
-  [setup] Setting up stream \"" + title + "\" at
-
-  Status: COMPLETED
-  Output: {archiveUrl=..., archiveSize=..., archivedAt=..., thumbnailUrl=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -98,7 +58,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

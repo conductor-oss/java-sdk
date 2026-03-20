@@ -1,8 +1,6 @@
 # Player Progression in Java Using Conductor
 
-Processes player progression after completing a quest: recording the completion, awarding XP, checking for level-up, unlocking level rewards (items, abilities, titles), and notifying the player. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Processes player progression after completing a quest: recording the completion, awarding XP, checking for level-up, unlocking level rewards (items, abilities, titles), and notifying the player. Uses [Conductor](https://github.## The Problem
 
 You need to process a player's progression after completing a quest or challenge. The player completes a task, earns experience points (XP), the system checks whether they have leveled up, unlocks any rewards associated with the new level (items, abilities, titles), and notifies the player of their achievements. Awarding XP without checking for level-up means players miss their rewards; not notifying means they do not feel the satisfaction of progression.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd handle progression in a single game server callback
 
 **You just write the quest completion, XP awarding, level-up checking, reward unlocking, and player notification logic. Conductor handles XP calculation retries, level-up sequencing, and progression audit trails.**
 
-Each progression concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (complete task, award XP, check level, unlock rewards, notify), retrying if the player database is slow, tracking every progression event, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each progression concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (complete task, award XP, check level, unlock rewards, notify), retrying if the player database is slow, tracking every progression event, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ XP calculation, level evaluation, reward unlocking, and profile update workers e
 | **UnlockRewardsWorker** | `ppg_unlock_rewards` | Unlocks level-up rewards (e.g., Gold Shield, Fire Spell, Title: Dragon Slayer) if the player leveled up |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ ppg_unlock_rewards
     │
     ▼
 ppg_notify
-```
-
-## Example Output
-
-```
-=== Example 745: Player Progressio ===
-
-Step 1: Registering task definitions...
-  Registered: ppg_complete_task, ppg_award_xp, ppg_check_level, ppg_unlock_rewards, ppg_notify
-
-Step 2: Registering workflow 'player_progression_745'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [xp] Awarding
-  [level] Total XP:
-  [complete] Player
-  [notify] Notifying
-  [rewards]
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow player_progression_745 \
   --version 1 \
-  --input '{"playerId": "P-042", "P-042": "questId", "questId": "Q-DragonsLair", "Q-DragonsLair": "xpEarned", "xpEarned": 500}'
+  --input '{"playerId": "TEST-001", "questId": "TEST-001", "xpEarned": "test-value"}'
 ```
 
 ### Check workflow status

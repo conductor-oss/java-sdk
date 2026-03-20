@@ -1,8 +1,6 @@
 # Grant Management in Java with Conductor
 
-A Java Conductor workflow example demonstrating Grant Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Grant Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Your nonprofit is applying for a foundation grant to fund a community program. The grants team needs to submit the application with the organization name and requested amount, have the grant committee review and score the application, approve the grant based on the review score, disburse the funds to the organization, and file a grant usage report documenting expenditures and outcomes. Each step depends on the previous one's output.
 
@@ -28,15 +26,6 @@ Application preparation, submission, compliance tracking, and reporting workers 
 
 Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,34 +42,6 @@ gmt_fund
     │
     ▼
 gmt_report
-```
-
-## Example Output
-
-```
-=== Example 752: Grant Management ===
-
-Step 1: Registering task definitions...
-  Registered: gmt_apply, gmt_review, gmt_approve, gmt_fund, gmt_report
-
-Step 2: Registering workflow 'grant_management_752'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Application from
-  [approve] Score:
-  [fund] Disbursing $
-  [report] Grant
-  [review] Reviewing application for $
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow grant_management_752 \
   --version 1 \
-  --input '{"organizationName": "sample-name", "HopeWorks Foundation": "sample-HopeWorks Foundation", "grantProgram": "sample-grantProgram", "Education Access": "sample-Education Access", "requestedAmount": 250.0}'
+  --input '{"organizationName": "test", "grantProgram": "test-value", "requestedAmount": 100}'
 ```
 
 ### Check workflow status

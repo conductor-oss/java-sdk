@@ -1,8 +1,6 @@
 # CQRS Pattern in Java with Conductor
 
-CQRS pattern - Command side with validation, persistence, and read model update. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+CQRS pattern - Command side with validation, persistence, and read model update. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 CQRS (Command Query Responsibility Segregation) separates write operations from read operations. A command must be validated, its resulting event persisted to an event store, and the read model updated to reflect the new state. These steps must happen in order, the read model update depends on the persisted event.
 
@@ -27,15 +25,6 @@ Three command-side workers separate write concerns: ValidateCommandWorker enforc
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -46,34 +35,6 @@ cqrs_persist_event
     │
     ▼
 cqrs_update_read_model
-```
-
-## Example Output
-
-```
-=== Example 308: CQRS Patter ===
-
-Step 1: Registering task definitions...
-  Registered: cqrs_validate_command, cqrs_persist_event, cqrs_update_read_model, cqrs_query_read_model
-
-Step 2: Registering workflow 'cqrs_command_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [persist] Event stored:
-  [query_read_model] Processing
-  [read-model] Projection updated for
-  [validate] Command:
-
-  Status: COMPLETED
-  Output: {eventId=..., persisted=..., result=..., updated=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cqrs_command_workflow \
   --version 1 \
-  --input '{"command": "UPDATE_ITEM", "UPDATE_ITEM": "aggregateId", "aggregateId": "ITEM-100", "ITEM-100": "data", "data": {"key": "value"}}'
+  --input '{"command": "test-value", "aggregateId": "TEST-001", "data": "test-value"}'
 ```
 
 ### Check workflow status

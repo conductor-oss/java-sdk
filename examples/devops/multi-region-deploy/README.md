@@ -1,8 +1,6 @@
 # Multi-Region Deploy in Java with Conductor :  Deploy Primary, Verify, Deploy Secondary, Verify Global
 
-Automates multi-region deployments using [Conductor](https://github.com/conductor-oss/conductor). This workflow deploys a service to the primary region first, verifies it is healthy, then rolls out to secondary regions, and runs a global verification to confirm all regions are serving traffic correctly. You write the deployment logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Deploying Across Regions Safely
+Automates multi-region deployments using [Conductor](https://github.com/conductor-oss/conductor). This workflow deploys a service to the primary region first, verifies it is healthy, then rolls out to secondary regions, and runs a global verification to confirm all regions are serving traffic correctly.## Deploying Across Regions Safely
 
 You run your payment service in us-east-1, eu-west-1, and ap-southeast-1. A new version needs to go out, but deploying to all three regions simultaneously is risky. If the release has a bug, all regions go down at once. The safe approach: deploy to the primary region first, verify it is healthy, then fan out to the secondary regions, and finally run a global check to confirm every region is serving traffic. If the primary deployment fails health checks, the secondary regions never get the bad version.
 
@@ -27,15 +25,6 @@ Four workers manage the multi-region rollout. Deploying to the primary region fi
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ mrd_deploy_secondary
     │
     ▼
 mrd_verify_global
-```
-
-## Example Output
-
-```
-=== Multi-Region Deploy Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mrd_deploy_primary, mrd_verify_primary, mrd_deploy_secondary, mrd_verify_global
-
-Step 2: Registering workflow 'multi_region_deploy_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [primary] Deployed
-  [secondary] Deployed to eu-west-1, ap-southeast-1
-  [verify-global] All 3 regions healthy and serving traffic
-  [verify-primary] us-east-1 healthy, proceeding to secondary regions
-
-  Status: COMPLETED
-  Output: {deploy_primaryId=..., success=..., service=..., version=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_region_deploy_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "api-gateway": "sample-api-gateway", "version": "sample-version", "3.0.0": "sample-3.0.0", "regions": "sample-regions", "us-east-1": "sample-us-east-1", "eu-west-1": "sample-eu-west-1"}'
+  --input '{"service": "test-value", "version": "test-value", "regions": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Hybrid Cloud Data Routing in Java Using Conductor :  Classify Sensitivity, Route to On-Prem or Cloud
 
-A Java Conductor workflow example for hybrid cloud data routing .  classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Sensitive Data Can't Leave Your Data Center
+A Java Conductor workflow example for hybrid cloud data routing .  classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.## Sensitive Data Can't Leave Your Data Center
 
 Regulations like GDPR, HIPAA, and PCI-DSS require that certain data .  patient records, financial transactions, PII ,  stays within controlled environments. But running everything on-premises wastes cloud elasticity for workloads that have no compliance constraints. The challenge is automatically determining which data must stay on-prem and which can be processed in the cloud, then routing each record to the right infrastructure.
 
@@ -26,16 +24,6 @@ Three workers handle the classification-and-routing split. Sensitivity classific
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -45,33 +33,6 @@ hyb_classify_data
 SWITCH (hyb_switch_ref)
     ├── onprem: hyb_process_onprem
     ├── cloud: hyb_process_cloud
-```
-
-## Example Output
-
-```
-=== Hybrid Cloud Demo ===
-
-Step 1: Registering task definitions...
-  Registered: hyb_classify_data, hyb_process_onprem, hyb_process_cloud
-
-Step 2: Registering workflow 'hybrid_cloud_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify] Processing
-  [cloud] Processing
-  [on-prem] Processing
-
-  Status: COMPLETED
-  Output: {classification=..., target=..., processedAt=..., scaledInstances=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +61,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +104,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow hybrid_cloud_demo \
   --version 1 \
-  --input '{"dataId": "DATA-PII-001", "DATA-PII-001": "dataType", "dataType": "pii", "pii": "payload", "payload": "user_records", "user_records": "sample-user-records"}'
+  --input '{"dataId": "TEST-001", "dataType": "test-value", "payload": "test-value"}'
 ```
 
 ### Check workflow status

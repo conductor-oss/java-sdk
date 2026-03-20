@@ -1,8 +1,6 @@
 # Worker Auto-Scaling in Java Using Conductor :  Monitor Queue, Calculate Capacity, Scale, Verify
 
-A Java Conductor workflow example for worker auto-scaling .  monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Fixed Worker Counts Waste Money or Miss SLAs
+A Java Conductor workflow example for worker auto-scaling .  monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.## Fixed Worker Counts Waste Money or Miss SLAs
 
 Your task queue processes 100 messages per second during business hours and 5 per second overnight. Running enough workers for peak load 24/7 wastes 95% of compute during off-hours. Running for average load means queue depth explodes during peaks and latency exceeds your SLA. You need to dynamically scale workers based on current queue depth and target latency.
 
@@ -27,15 +25,6 @@ Four workers form the auto-scaling loop. Queue monitoring, capacity calculation 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ wks_scale_workers
     │
     ▼
 wks_verify_scaling
-```
-
-## Example Output
-
-```
-=== Worker Scaling Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wks_monitor_queue, wks_calculate_needed, wks_scale_workers, wks_verify_scaling
-
-Step 2: Registering workflow 'wks_worker_scaling'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [calculate] Processing
-  [monitor] Processing
-  [scale] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {desiredWorkers=..., scaleFactor=..., queueDepth=..., avgProcessingMs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wks_worker_scaling \
   --version 1 \
-  --input '{"queueName": "sample-name", "order_processing_queue": "sample-order-processing-queue", "currentWorkers": "sample-currentWorkers", "targetLatencyMs": "sample-targetLatencyMs"}'
+  --input '{"queueName": "test", "currentWorkers": "test-value", "targetLatencyMs": "test-value"}'
 ```
 
 ### Check workflow status

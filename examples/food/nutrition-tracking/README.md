@@ -1,8 +1,6 @@
 # Nutrition Tracking in Java with Conductor
 
-Tracks a user's nutritional intake: logging meals, looking up calories and macros, calculating daily totals against goals, and generating a nutrition report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Tracks a user's nutritional intake: logging meals, looking up calories and macros, calculating daily totals against goals, and generating a nutrition report. Uses [Conductor](https://github.## The Problem
 
 You need to track a user's nutritional intake for a meal. The workflow logs what foods were consumed, looks up the nutritional information (calories, macros, micronutrients) for each food item, calculates daily totals by combining the meal with previous meals that day, and generates a nutrition report. Tracking without accurate nutritional data gives users a false sense of their intake; not calculating daily totals means missing calorie or macro targets.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single tracking service that records food e
 
 **You just write the meal logging, nutrient lookup, daily total calculation, and nutrition report generation logic. Conductor handles ingredient lookup retries, macro aggregation, and nutritional audit trails.**
 
-Each nutrition concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (log meal, lookup nutrition, calculate daily totals, generate report), retrying if the nutrition database API is unavailable, tracking every meal entry, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each nutrition concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (log meal, lookup nutrition, calculate daily totals, generate report), retrying if the nutrition database API is unavailable, tracking every meal entry, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Ingredient logging, macro calculation, meal scoring, and report generation worke
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ nut_calculate_daily
     │
     ▼
 nut_report
-```
-
-## Example Output
-
-```
-=== Example 739: Nutrition Tracking ===
-
-Step 1: Registering task definitions...
-  Registered: nut_log_meal, nut_lookup_nutrition, nut_calculate_daily, nut_report
-
-Step 2: Registering workflow 'nutrition_tracking_739'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [calc] Calculating daily totals
-  [log] Logging
-  [lookup] Looking up nutrition for foods
-  [report] Daily intake report generated
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nutrition_tracking_739 \
   --version 1 \
-  --input '{"userId": "USR-55", "USR-55": "mealType", "mealType": "lunch", "lunch": "foods", "foods": ["item-1", "item-2", "item-3"]}'
+  --input '{"userId": "TEST-001", "mealType": "test-value", "foods": "test-value"}'
 ```
 
 ### Check workflow status

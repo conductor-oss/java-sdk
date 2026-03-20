@@ -12,7 +12,7 @@ Without orchestration, failure notifications are afterthoughts .  a catch block 
 
 **You just write the order processor and notification channel integrations. Conductor handles failure detection, parallel notification dispatch across all channels, retries on delivery failures, and a record of which alerts were sent for every failed order.**
 
-The order processing worker handles business logic. When it fails, Conductor's failure workflow automatically triggers, running Slack, email, and PagerDuty notifications in parallel. Even if one notification channel is down, the others still fire. Every notification attempt is tracked .  you can see which alerts were sent, which failed, and how long each took. You get all of that for free, without writing a single line of orchestration code.
+The order processing worker handles business logic. When it fails, Conductor's failure workflow automatically triggers, running Slack, email, and PagerDuty notifications in parallel. Even if one notification channel is down, the others still fire. Every notification attempt is tracked .  you can see which alerts were sent, which failed, and how long each took. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,47 +27,10 @@ ProcessOrderWorker handles the business logic, and when it fails, Conductor's fa
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 en_process_order
-```
-
-## Example Output
-
-```
-=== Error Notification Demo: Slack/PagerDuty Alerts on Failure ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'order_with_alerts'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [en_process_order] Order processing FAILED (shouldFail=true)
-  [en_send_email] Sending email notification to
-  [en_send_pagerduty] Sending PagerDuty alert
-  [en_send_slack] Sending Slack notification to
-
-  Status: COMPLETED
-  Output: {error=..., result=..., sent=..., to=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +59,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -139,7 +102,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow order_with_alerts \
   --version 1 \
-  --input '{"shouldFail": false}'
+  --input '{"shouldFail": "test-value"}'
 ```
 
 ### Check workflow status

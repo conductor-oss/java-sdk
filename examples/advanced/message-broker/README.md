@@ -1,8 +1,6 @@
 # Message Broker Pipeline in Java Using Conductor :  Receive, Route, Deliver, Acknowledge, Log
 
-A Java Conductor workflow example for message brokering .  receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Messages Need Reliable Routing, Not Just Transport
+A Java Conductor workflow example for message brokering .  receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.## Messages Need Reliable Routing, Not Just Transport
 
 A message arrives on the `orders` topic with `high` priority. It needs to be routed to the order processing service, not the analytics pipeline. Another message arrives on `notifications` with `low` priority .  it should go to the batch notification queue, not the real-time push service. Topic-based routing, priority handling, delivery confirmation, and audit logging are the core responsibilities of a message broker.
 
@@ -28,15 +26,6 @@ Five workers manage the brokering lifecycle: message reception, topic-based rout
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ mbr_acknowledge
     │
     ▼
 mbr_log
-```
-
-## Example Output
-
-```
-=== Message Broker Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mbr_receive, mbr_route, mbr_deliver, mbr_acknowledge, mbr_log
-
-Step 2: Registering workflow 'mbr_message_broker'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ack] Processing
-  [deliver] Processing
-  [log] Processing
-  [receive] Processing
-  [route] Processing
-
-  Status: COMPLETED
-  Output: {acknowledged=..., delivered=..., deliveryLatencyMs=..., logId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mbr_message_broker \
   --version 1 \
-  --input '{"message": {"key": "value"}, "orders": "priority", "priority": "high", "high": "sample-high"}'
+  --input '{"message": "test-value", "topic": "test-value", "priority": "test-value"}'
 ```
 
 ### Check workflow status

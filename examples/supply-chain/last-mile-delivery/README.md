@@ -1,8 +1,6 @@
 # Last Mile Delivery in Java with Conductor :  Driver Assignment, Route Optimization, Package Delivery, and Delivery Confirmation
 
-A Java Conductor workflow example for last mile delivery .  assigning a driver to an order (e.g., ORD-2024-668 going to 742 Evergreen Terrace with a 2pm-4pm delivery window), optimizing the delivery route across all stops, executing the delivery, and confirming receipt with proof of delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for last mile delivery .  assigning a driver to an order (e.g., ORD-2024-668 going to 742 Evergreen Terrace with a 2pm-4pm delivery window), optimizing the delivery route across all stops, executing the delivery, and confirming receipt with proof of delivery. Uses [Conductor](https://github.## The Problem
 
 You need to deliver packages to customers within promised time windows. Order ORD-2024-668 has a 2pm-4pm delivery window at 742 Evergreen Terrace, Springfield. A driver must be assigned based on availability, location, and vehicle capacity. The route must be optimized across all the driver's stops to minimize distance while honoring each customer's time window. The delivery must be executed and confirmed with proof .  a signature, photo, or safe-place confirmation. If the delivery fails (customer not home, wrong address), a reattempt must be scheduled.
 
@@ -27,15 +25,6 @@ Four workers manage each delivery: AssignDriverWorker selects a driver by availa
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ lmd_deliver
     │
     ▼
 lmd_confirm
-```
-
-## Example Output
-
-```
-=== Example 668: Last Mile Delivery ===
-
-Step 1: Registering task definitions...
-  Registered: lmd_assign_driver, lmd_optimize_route, lmd_deliver, lmd_confirm
-
-Step 2: Registering workflow 'lmd_last_mile_delivery'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assign] Order
-  [confirm] Order
-  [deliver]
-  [route] Optimized route for
-
-  Status: COMPLETED
-  Output: {driverId=..., driverName=..., confirmed=..., customerNotified=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lmd_last_mile_delivery \
   --version 1 \
-  --input '{"orderId": "ORD-2024-668", "ORD-2024-668": "address", "address": "742 Evergreen Terrace, Springfield", "742 Evergreen Terrace, Springfield": "timeWindow", "timeWindow": "2pm-4pm", "2pm-4pm": "sample-2pm-4pm"}'
+  --input '{"orderId": "TEST-001", "address": "test-value", "timeWindow": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

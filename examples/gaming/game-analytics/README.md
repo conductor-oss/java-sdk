@@ -1,8 +1,6 @@
 # Game Analytics in Java Using Conductor
 
-Runs a game analytics pipeline: collecting raw event data, processing it into structured records, aggregating time-series metrics, computing KPIs (DAU, retention, ARPU), and generating a report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Runs a game analytics pipeline: collecting raw event data, processing it into structured records, aggregating time-series metrics, computing KPIs (DAU, retention, ARPU), and generating a report. Uses [Conductor](https://github.## The Problem
 
 You need to analyze game performance metrics over a date range. The workflow collects raw event data (sessions, purchases, achievements, crashes), processes it into structured records, aggregates it into time-series summaries, computes key performance indicators (DAU, retention, ARPU, session length), and generates an analytics report. Without analytics, you are flying blind .  you do not know which features drive engagement, where players churn, or whether a new update improved retention.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build an analytics pipeline that queries event logs
 
 **You just write the event collection, data processing, metric aggregation, KPI calculation, and report generation logic. Conductor handles ingestion retries, metric aggregation sequencing, and analytics pipeline tracking.**
 
-Each analytics concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect, process, aggregate, compute KPIs, report), retrying if the data warehouse is temporarily unavailable, tracking every analytics run, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each analytics concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect, process, aggregate, compute KPIs, report), retrying if the data warehouse is temporarily unavailable, tracking every analytics run, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Event ingestion, metric aggregation, trend analysis, and dashboard update worker
 | **ReportWorker** | `gan_report` | Generates the final analytics report with all KPIs and publishes it |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ gan_compute_kpis
     │
     ▼
 gan_report
-```
-
-## Example Output
-
-```
-=== Example 747: Game Analytics ===
-
-Step 1: Registering task definitions...
-  Registered: gan_collect_events, gan_process, gan_aggregate, gan_compute_kpis, gan_report
-
-Step 2: Registering workflow 'game_analytics_747'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Aggregating metrics
-  [collect] Collecting events for
-  [kpis] Computing KPIs
-  [process] Processing
-  [report] Analytics report for
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow game_analytics_747 \
   --version 1 \
-  --input '{"gameId": "GAME-01", "GAME-01": "dateRange", "dateRange": "2026-03-01 to 2026-03-07", "2026-03-01 to 2026-03-07": "sample-2026-03-01 to 2026-03-07"}'
+  --input '{"gameId": "TEST-001", "dateRange": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

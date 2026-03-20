@@ -1,8 +1,6 @@
 # Service Discovery in Java with Conductor
 
-Discover services, select instance, call with failover. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Discover services, select instance, call with failover. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 In a dynamic microservice environment, service instances come and go. Calling a service requires discovering available instances from a registry, selecting the best one (e.g., least connections, healthiest), making the call, and handling failover if the selected instance is down.
 
@@ -27,15 +25,6 @@ Four workers handle dynamic service resolution: DiscoverServicesWorker queries t
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ sd_call_service
     │
     ▼
 sd_handle_failover
-```
-
-## Example Output
-
-```
-=== Service Discovery Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sd_discover_services, sd_select_instance, sd_call_service, sd_handle_failover
-
-Step 2: Registering workflow 'service_discovery_293'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sd_call_service] Calling
-  [sd_discover_services] Looking up instances for \"" + serviceName + "\"...
-  [sd_handle_failover] Call
-  [sd_select_instance] Selected instance
-
-  Status: COMPLETED
-  Output: {response=..., latency=..., success=..., instances=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_discovery_293 \
   --version 1 \
-  --input '{"serviceName": "order-service", "order-service": "request", "request": {"key": "value"}}'
+  --input '{"serviceName": "test", "request": "test-value"}'
 ```
 
 ### Check workflow status

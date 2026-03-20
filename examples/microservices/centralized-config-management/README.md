@@ -1,8 +1,6 @@
 # Centralized Config Management in Java with Conductor
 
-Centralized config management with staged rollout. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Centralized config management with staged rollout. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Changing a configuration value across a fleet of microservices is error-prone. Each service may read config from a different source, and applying an invalid value can cause cascading failures. Centralized config management validates changes, plans a staged rollout (canary -> 25% -> 100%), applies the config, and verifies all services are running with the updated value.
 
@@ -27,15 +25,6 @@ Four workers handle the config lifecycle: CfgValidateWorker checks the key-value
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cfg_apply_config
     │
     ▼
 cfg_verify
-```
-
-## Example Output
-
-```
-=== Example 318: Config Management (Centralized Rollout) ===
-
-Step 1: Registering task definitions...
-  Registered: cfg_validate, cfg_stage_rollout, cfg_apply_config, cfg_verify
-
-Step 2: Registering workflow 'config_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Rolling out
-  [stage] Planning rollout to services
-  [validate] Config
-  [verify] All services running with updated config
-
-  Status: COMPLETED
-  Output: {appliedServices=..., version=..., plan=..., valid=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow config_management_workflow \
   --version 1 \
-  --input '{"configKey": "sample-configKey", "max_connections": "sample-max-connections", "configValue": "sample-configValue", "200": "sample-200", "targetServices": "sample-targetServices", "api": "sample-api", "worker": "sample-worker"}'
+  --input '{"configKey": "test-value", "configValue": "test-value", "targetServices": "test-value"}'
 ```
 
 ### Check workflow status

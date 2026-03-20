@@ -1,8 +1,6 @@
 # Public Health Surveillance in Java with Conductor :  Disease Monitoring, Outbreak Detection, and Response Coordination
 
-A Java Conductor workflow example for public health surveillance .  monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for public health surveillance .  monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.## The Problem
 
 You need to run disease surveillance for a public health department. Case reports come in for a specific disease and region. The system must pull baseline epidemiological data, compare the current case count against expected levels to detect whether an outbreak is occurring, and then take the right action .  issue a public health alert if cases exceed the threshold, or schedule continued monitoring if levels are elevated but not yet critical. Regardless of the branch taken, a response plan must be executed. The decision to alert versus monitor must be automatic and auditable.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic surveillance application that qu
 
 **You just write the disease monitoring, outbreak detection, alert routing, and public health response coordination logic. Conductor handles surveillance retries, intervention routing, and public health audit trails.**
 
-Each stage of the surveillance pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running surveillance before detection, routing to alert or monitoring via SWITCH based on the detection outcome, always executing the response step regardless of which branch was taken, and maintaining a full audit trail of every surveillance cycle. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the surveillance pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running surveillance before detection, routing to alert or monitoring via SWITCH based on the detection outcome, always executing the response step regardless of which branch was taken, and maintaining a full audit trail of every surveillance cycle. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Surveillance data collection, outbreak analysis, intervention planning, and publ
 | **RespondWorker** | `phw_respond` | Executes the public health response plan (contact tracing, resource deployment, public communications) |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -53,35 +41,6 @@ SWITCH (phw_switch_ref)
     │
     ▼
 phw_respond
-```
-
-## Example Output
-
-```
-=== Example 527: Public Health ===
-
-Step 1: Registering task definitions...
-  Registered: phw_surveillance, phw_detect_outbreak, phw_alert, phw_monitor, phw_respond
-
-Step 2: Registering workflow 'phw_public_health'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [alert] Processing
-  [detect_outbreak] Processing
-  [monitor] Processing
-  [respond] Processing
-  [surveillance] Processing
-
-  Status: COMPLETED
-  Output: {alertIssued=..., alertLevel=..., action=..., severity=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow phw_public_health \
   --version 1 \
-  --input '{"region": "sample-region", "Metro-District-5": "sample-Metro-District-5", "disease": "sample-disease", "influenza": "sample-influenza", "caseCount": 5}'
+  --input '{"region": "test-value", "disease": "test-value", "caseCount": 10}'
 ```
 
 ### Check workflow status

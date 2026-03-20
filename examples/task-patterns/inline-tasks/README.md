@@ -1,8 +1,6 @@
 # Inline Tasks in Java with Conductor
 
-Demonstrates INLINE tasks. JavaScript that runs on the Conductor server with no workers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Demonstrates INLINE tasks. JavaScript that runs on the Conductor server with no workers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to perform lightweight data transformations between workflow steps .  computing a sum and average from a list of numbers, converting text to uppercase and generating a URL slug, classifying a score into tiers (gold/silver/bronze), and assembling a final response object. These operations are simple enough that deploying a dedicated worker service for each one is overkill. You just need a few lines of logic to run without the overhead of a separate Java process, Docker container, or network round-trip.
 
@@ -18,15 +16,6 @@ This example uses zero workers. Every task is an INLINE task. JavaScript that ex
 
 This example uses Conductor system tasks (INLINE) .  no custom workers needed. All four tasks are JavaScript expressions that execute directly on the Conductor server via GraalJS.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -40,48 +29,6 @@ conditional_logic [INLINE]
     │
     ▼
 build_response [INLINE]
-```
-
-## Example Output
-
-```
-=== INLINE Tasks: Server-Side JavaScript Without Workers ===
-
-Step 1: Registering workflow 'inline_tasks_demo'...
-  Workflow registered (4 INLINE tasks, 0 workers needed).
-
-Step 2: Starting workflow with sample data...
-  Numbers: [85, 92, 78, 95, 88, 72, 91]
-  Text:    "Conductor makes workflow orchestration simple"
-  Config:  {enabled=true}
-
-  Workflow ID: d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f90
-
-Step 3: Waiting for completion (no workers polling .  server executes JS)...
-  Status: COMPLETED
-
---- Math Aggregation ---
-  Sum:     601
-  Average: 85.86
-  Min:     72
-  Max:     95
-  Count:   7
-
---- String Manipulation ---
-  Uppercase:  CONDUCTOR MAKES WORKFLOW ORCHESTRATION SIMPLE
-  Word Count: 5
-  Slug:       conductor-makes-workflow-orchestration-simple
-  Reversed:   elpmis noitartsehcro wolfkrow sekam rotcudnoC
-
---- Classification ---
-  Tier:            silver
-  High Performer:  false
-  Enabled:         true
-
---- Summary ---
-  Processed 7 numbers (avg: 85.86, tier: silver) and 5 words
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +100,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow inline_tasks_demo \
   --version 1 \
-  --input '{"numbers": [85, 92, 78, 95, 88, 72, 91], "text": "Conductor makes workflow orchestration simple", "config": {"enabled": true}}'
+  --input '{"numbers": "test-value", "text": "test-value", "config": "test-value"}'
 ```
 
 ### Check workflow status

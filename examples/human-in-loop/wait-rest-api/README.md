@@ -1,8 +1,6 @@
 # WAIT Task Completion via REST API in Java Using Conductor :  Prepare, WAIT for External HTTP Callback, SWITCH on Decision, and Route to Approved/Rejected Handlers
 
-A Java Conductor workflow example demonstrating how external systems resume paused workflows via REST API .  preparing a request, pausing at a WAIT task, and completing it when an external system sends `POST /tasks/{taskId}` with a decision payload. A SWITCH then routes based on the decision: "rejected" goes to a rejection handler, while the default path goes to an approval handler. Both paths use the same HandleDecisionWorker but receive different hardcoded decision values, demonstrating how a single worker can handle multiple SWITCH branches. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## External Systems Need to Resume Workflows via REST API
+A Java Conductor workflow example demonstrating how external systems resume paused workflows via REST API .  preparing a request, pausing at a WAIT task, and completing it when an external system sends `POST /tasks/{taskId}` with a decision payload. A SWITCH then routes based on the decision: "rejected" goes to a rejection handler, while the default path goes to an approval handler. Both paths use the same HandleDecisionWorker but receive different hardcoded decision values, demonstrating how a single worker can handle multiple SWITCH branches. Uses [Conductor](https://github.## External Systems Need to Resume Workflows via REST API
 
 Sometimes the signal to continue a workflow comes from an external system, a webhook, a third-party service callback, or an admin tool. The WAIT task pauses the workflow, and a REST API call completes it with the decision payload. The workflow prepares the request, pauses, then handles the decision when the external system calls back. If decision handling fails, you need to retry it without waiting for another external callback.
 
@@ -25,16 +23,6 @@ PrepareWorker sets up the callback context, and HandleDecisionWorker processes t
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -47,32 +35,6 @@ WAIT [WAIT]
 SWITCH (decision_switch_ref)
     ├── rejected: wapi_handle_decision
     └── default: wapi_handle_decision
-```
-
-## Example Output
-
-```
-=== Complete WAIT Task via REST API Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'wait_rest_api_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wapi_handle_decision] Handling decision:
-  [wapi_prepare] Preparing workflow for approval gate...
-
-  Status: COMPLETED
-  Output: {result=..., ready=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -101,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wait_rest_api_demo \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

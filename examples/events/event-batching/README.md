@@ -1,8 +1,6 @@
 # Event Batching in Java Using Conductor
 
-Event Batching .  collects events, creates batches, then processes each batch in a DO_WHILE loop. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Batching .  collects events, creates batches, then processes each batch in a DO_WHILE loop. Uses [Conductor](https://github.## The Problem
 
 You need to batch high-volume events into manageable chunks before processing. When events arrive continuously, processing them one by one is inefficient .  database inserts, API calls, and network round trips are much cheaper in batches. The workflow must collect incoming events, split them into fixed-size batches, and process each batch in a loop until all events are handled.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a buffering service with manual batch-size ma
 
 **You just write the event-collection, batch-creation, and batch-processing workers. Conductor handles DO_WHILE batch iteration, per-batch retry on failure, and durable progress tracking across all batches.**
 
-Each batching concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting events, creating batches, processing each batch in a DO_WHILE loop, retrying failed batches without blocking subsequent ones, and tracking every batch's processing status. You get all of that for free, without writing a single line of orchestration code.
+Each batching concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting events, creating batches, processing each batch in a DO_WHILE loop, retrying failed batches without blocking subsequent ones, and tracking every batch's processing status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,16 +24,6 @@ Three workers handle batch processing: CollectEventsWorker gathers incoming even
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -47,33 +35,6 @@ eb_create_batches
     ▼
 DO_WHILE
     └── eb_process_batch
-```
-
-## Example Output
-
-```
-=== Event Batching Demo ===
-
-Step 1: Registering task definitions...
-  Registered: eb_collect_events, eb_create_batches, eb_process_batch
-
-Step 2: Registering workflow 'event_batching'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [eb_collect_events] Collected
-  [eb_create_batches] Created
-  [eb_process_batch] Processed batch
-
-  Status: COMPLETED
-  Output: {events=..., totalCount=..., batches=..., batchCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_batching \
   --version 1 \
-  --input '{"events": ["item-1", "item-2", "item-3"]}'
+  --input '{"events": "test-value", "batchSize": 10}'
 ```
 
 ### Check workflow status

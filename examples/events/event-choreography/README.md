@@ -1,8 +1,6 @@
 # Event Choreography in Java Using Conductor
 
-Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to coordinate an order fulfillment flow where each service communicates through events. The order service creates an order and emits an event, the payment service processes payment and emits a confirmation event, the inventory service reserves stock and emits a shipment event, and the notification service sends a confirmation to the customer. Each service reacts to the previous service's event rather than being called directly.
 
@@ -30,15 +28,6 @@ Seven workers model choreography with traceability: OrderServiceWorker, PaymentS
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -61,37 +50,6 @@ ch_emit_inventory_event
     │
     ▼
 ch_notification_service
-```
-
-## Example Output
-
-```
-=== Event Choreography Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ch_order_service, ch_emit_order_event, ch_payment_service, ch_emit_payment_event, ch_inventory_service, ch_emit_inventory_event, ch_notification_service
-
-Step 2: Registering workflow 'event_choreography'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  7 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ch_emit_inventory_event] Event:
-  [ch_emit_order_event] Event:
-  [ch_emit_payment_event] Event:
-  [ch_inventory_service] Reserved items for order
-  [ch_notification_service] Sending
-  [ch_order_service] Order
-  [ch_payment_service] Charged
-
-  Status: COMPLETED
-  Output: {emitted=..., eventType=..., reserved=..., itemCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -120,7 +78,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -163,7 +121,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_choreography \
   --version 1 \
-  --input '{"orderId": "ORD-CHOR-100", "ORD-CHOR-100": "customerId", "customerId": "CUST-42", "CUST-42": "items", "items": [{"name": "Widget A", "quantity": 2}, {"name": "Widget B", "quantity": 1}]}'
+  --input '{"orderId": "TEST-001", "items": "test-value", "customerId": "TEST-001"}'
 ```
 
 ### Check workflow status

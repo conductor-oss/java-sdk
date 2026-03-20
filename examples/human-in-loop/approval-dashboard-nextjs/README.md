@@ -1,8 +1,6 @@
 # Next.js Approval Dashboard in Java Using Conductor :  Request Processing and Human Approval via WAIT Task
 
-A Java Conductor workflow example paired with a Next.js full-stack dashboard .  a SIMPLE task validates and processes an incoming approval request (type, title, amount, requester), then a WAIT task pauses the workflow until a human approver clicks approve or reject in the Next.js dashboard. The dashboard queries Conductor's API to list pending approvals and completes the WAIT task when the approver acts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example paired with a Next.js full-stack dashboard .  a SIMPLE task validates and processes an incoming approval request (type, title, amount, requester), then a WAIT task pauses the workflow until a human approver clicks approve or reject in the Next.js dashboard. The dashboard queries Conductor's API to list pending approvals and completes the WAIT task when the approver acts. Uses [Conductor](https://github.## The Problem
 
 You need a web-based approval dashboard where managers can see all pending requests and approve or reject them with a single click. Requests come in with a type (expense, purchase, time-off), title, dollar amount, and requester name. The system must validate and process each request, then pause and wait .  potentially for hours or days ,  until a human approver makes a decision. The dashboard needs to show all pending, approved, and rejected requests in real time. Without a built-in WAIT mechanism, you'd poll a database for the approver's decision, building your own state management, timeout handling, and dashboard query logic.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a full-stack app where the backend writes req
 
 **You just write the request-processing worker. Conductor handles the pending-approval queue and the dashboard API.**
 
-The WAIT task is the key pattern here. After processing the request, the workflow pauses at the WAIT task. Conductor holds the state durably until the Next.js dashboard calls the Conductor API to complete it with the approver's decision. Conductor takes care of holding the pending request for hours or days, accepting the approval decision (approved/rejected and approver identity) via a simple API call from the dashboard, tracking the complete lifecycle from submission through approval, and providing the API that the Next.js dashboard queries to list all pending, approved, and rejected requests. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After processing the request, the workflow pauses at the WAIT task. Conductor holds the state durably until the Next.js dashboard calls the Conductor API to complete it with the approver's decision. Conductor takes care of holding the pending request for hours or days, accepting the approval decision (approved/rejected and approver identity) via a simple API call from the dashboard, tracking the complete lifecycle from submission through approval, and providing the API that the Next.js dashboard queries to list all pending, approved, and rejected requests. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +23,6 @@ NxtProcessWorker validates incoming requests with type, title, and amount. It ha
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -41,31 +30,6 @@ nxt_process
     │
     ▼
 nxt_approval [WAIT]
-```
-
-## Example Output
-
-```
-=== Next.js Full-Stack Approval Dashboard Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'approval_dashboard_nextjs_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [nxt_process] Processing approval request:
-
-  Status: COMPLETED
-  Output: {processed=..., type=..., title=..., amount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -94,7 +58,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -137,7 +101,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow approval_dashboard_nextjs_demo \
   --version 1 \
-  --input '{"type": "standard", "expense": "sample-expense", "title": "sample-title", "Q4 Marketing Budget": "sample-Q4 Marketing Budget", "amount": 250.0, "requester": "sample-requester"}'
+  --input '{"type": "test-value", "title": "test-value", "amount": 100, "requester": "test-value"}'
 ```
 
 ### Check workflow status

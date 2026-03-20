@@ -1,8 +1,6 @@
 # Stream Processing in Java Using Conductor :  Event Ingestion, Time Windowing, Window Aggregation, Anomaly Detection, and Result Emission
 
-A Java Conductor workflow example for stream processing with windowed analytics: ingesting a batch of timestamped events, grouping them into configurable time windows (e.g., 5-second or 1-minute tumbling windows), computing per-window aggregates (event counts, averages, distributions), detecting anomalies where window metrics deviate significantly from the norm, and emitting the combined aggregates and anomaly alerts as the final output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for stream processing with windowed analytics: ingesting a batch of timestamped events, grouping them into configurable time windows (e.g., 5-second or 1-minute tumbling windows), computing per-window aggregates (event counts, averages, distributions), detecting anomalies where window metrics deviate significantly from the norm, and emitting the combined aggregates and anomaly alerts as the final output. Uses [Conductor](https://github.## The Problem
 
 Events are arriving continuously. API requests, sensor readings, user actions, financial transactions, and you need to analyze them in near-real-time using time windows. A configurable window size (say, 60,000ms for 1-minute windows) groups events by time, and each window needs aggregate statistics: how many events occurred, what was the average value, what was the distribution. Then anomaly detection needs to run across windows: a window with 10x the normal event count might indicate a traffic spike or DDoS, while a window with zero events might indicate a service outage. The results: both normal aggregates and anomaly alerts, need to be emitted to downstream consumers.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single stream processor that ingests, windo
 
 **You just write the event ingestion, time windowing, per-window aggregation, anomaly detection, and result emission workers. Conductor handles the sequential stream pipeline, per-stage retries, and tracking of event counts, window counts, and anomaly counts at every stage.**
 
-Each stage of the stream pipeline is a simple, independent worker. The stream ingester validates and normalizes the incoming event batch, counting the total events. The windower groups events into time windows based on the configured window size in milliseconds, producing a list of windows each containing their events. The aggregator computes per-window statistics: event count, sum, average, min, max, across all windows. The anomaly detector scans the window aggregates for outliers, flagging windows where metrics deviate significantly from expected ranges (sudden spikes, unexpected drops, unusual distributions). The emitter combines aggregates and anomaly alerts into a final summary for downstream consumption. Conductor executes them in strict sequence, passes the evolving event data between stages, retries if any stage fails, and tracks event counts, window counts, and anomaly counts at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the stream pipeline is a simple, independent worker. The stream ingester validates and normalizes the incoming event batch, counting the total events. The windower groups events into time windows based on the configured window size in milliseconds, producing a list of windows each containing their events. The aggregator computes per-window statistics: event count, sum, average, min, max, across all windows. The anomaly detector scans the window aggregates for outliers, flagging windows where metrics deviate significantly from expected ranges (sudden spikes, unexpected drops, unusual distributions). The emitter combines aggregates and anomaly alerts into a final summary for downstream consumption. Conductor executes them in strict sequence, passes the evolving event data between stages, retries if any stage fails, and tracks event counts, window counts, and anomaly counts at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers handle windowed stream analytics: ingesting timestamped events, gro
 | **WindowEventsWorker** | `st_window_events` | Window Events. Computes and returns windows, window count |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ st_detect_anomalies
     │
     ▼
 st_emit_results
-```
-
-## Example Output
-
-```
-=== Stream Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: st_ingest_stream, st_window_events, st_aggregate_windows, st_detect_anomalies, st_emit_results
-
-Step 2: Registering workflow 'stream_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Computed aggregates for
-  [anomaly] Detected
-  [emit]
-  [ingest] Received
-  [window] Grouped into
-
-  Status: COMPLETED
-  Output: {windowStart=..., count=..., sum=..., avg=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow stream_processing \
   --version 1 \
-  --input '{"events": "sample-events", "ts": "sample-ts", "value": "sample-value", "source": "sample-source"}'
+  --input '{"events": "test-value", "windowSizeMs": 10}'
 ```
 
 ### Check workflow status

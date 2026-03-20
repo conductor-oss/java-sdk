@@ -1,8 +1,6 @@
 # Event Aggregation in Java Using Conductor
 
-Event Aggregation Pipeline: collect events from a time window, aggregate metrics, generate a summary report, and publish the batch. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Aggregation Pipeline: collect events from a time window, aggregate metrics, generate a summary report, and publish the batch. Uses [Conductor](https://github.## The Problem
 
 You need to aggregate events from a time window into summary metrics. The pipeline must collect all events within a specified window, compute aggregate statistics (counts, sums, averages, percentiles), generate a human-readable summary report, and publish the aggregated batch downstream. Without aggregation, downstream systems are overwhelmed by high-volume raw events; without windowing, you lose temporal context.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a stateful aggregation service with in-memory
 
 **You just write the event-collection, metrics-aggregation, summary-generation, and batch-publish workers. Conductor handles window lifecycle management, retry on publish failure, and a durable record of every aggregation window.**
 
-Each aggregation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect, aggregate, summarize, publish), retrying if the downstream publish fails, tracking every aggregation window with full input/output details, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each aggregation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect, aggregate, summarize, publish), retrying if the downstream publish fails, tracking every aggregation window with full input/output details, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers drive the aggregation pipeline: CollectEventsWorker gathers events 
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ eg_generate_summary
     │
     ▼
 eg_publish_batch
-```
-
-## Example Output
-
-```
-=== Event Aggregation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: eg_collect_events, eg_aggregate_metrics, eg_generate_summary, eg_publish_batch
-
-Step 2: Registering workflow 'event_aggregation_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [eg_aggregate_metrics] Aggregating
-  [eg_collect_events] Collecting events from window:
-  [eg_generate_summary] Generating summary for window:
-  [eg_publish_batch] Publishing batch to:
-
-  Status: COMPLETED
-  Output: {aggregation=..., events=..., eventCount=..., summary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_aggregation_wf \
   --version 1 \
-  --input '{"windowId": "win-fixed-001", "win-fixed-001": "windowDurationSec", "windowDurationSec": 60, "transaction-stream": "sample-transaction-stream"}'
+  --input '{"windowId": "TEST-001", "windowDurationSec": "test-value", "eventSource": "test-value"}'
 ```
 
 ### Check workflow status

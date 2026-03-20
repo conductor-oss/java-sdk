@@ -1,8 +1,6 @@
 # Mortgage Application in Java with Conductor :  Apply, Credit Check, Underwriting, Approval, and Closing
 
-A Java Conductor workflow example for processing mortgage applications .  accepting the application, running a credit check, performing underwriting analysis against loan-to-value ratios, issuing an approval decision, and closing the loan. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for processing mortgage applications .  accepting the application, running a credit check, performing underwriting analysis against loan-to-value ratios, issuing an approval decision, and closing the loan. Uses [Conductor](https://github.## The Problem
 
 You need to process mortgage applications from submission to closing. An applicant requests a loan .  the application must be logged, a credit check must be run to pull their score, underwriting must evaluate the risk by comparing credit score, loan amount, and property value (LTV ratio), an approval or denial decision must be issued, and approved loans must proceed to closing with final documentation. Each step feeds into the next: underwriting can't start without the credit score, approval can't happen without the underwriting assessment.
 
@@ -12,7 +10,7 @@ Without orchestration, mortgage processing is a manual pipeline prone to bottlen
 
 **You just write the application intake, credit check, underwriting analysis, approval decision, and loan closing logic. Conductor handles credit check retries, underwriting sequencing, and application audit trails.**
 
-Each mortgage processing step is a simple, independent worker .  one logs the application, one pulls the credit score, one performs underwriting analysis, one issues the approval, one handles closing. Conductor takes care of executing them in strict order, retrying if the credit bureau API is temporarily unavailable, and maintaining a complete audit trail of every decision point for regulatory compliance. You get all of that for free, without writing a single line of orchestration code.
+Each mortgage processing step is a simple, independent worker .  one logs the application, one pulls the credit score, one performs underwriting analysis, one issues the approval, one handles closing. Conductor takes care of executing them in strict order, retrying if the credit bureau API is temporarily unavailable, and maintaining a complete audit trail of every decision point for regulatory compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Application intake, credit evaluation, underwriting, and closing workers each ha
 | **CloseWorker** | `mtg_close` | Finalizes the loan .  generates closing documents, records the mortgage, and disburses funds |
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ mtg_approve
     │
     ▼
 mtg_close
-```
-
-## Example Output
-
-```
-=== Example 683: Mortgage Applicatio ===
-
-Step 1: Registering task definitions...
-  Registered: mtg_apply, mtg_credit_check, mtg_underwrite, mtg_approve, mtg_close
-
-Step 2: Registering workflow 'mtg_mortgage_application'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mtg_apply] Executing
-  [mtg_approve] Executing
-  [mtg_close] Executing
-  [mtg_credit_check] Executing
-  [mtg_underwrite] Executing
-
-  Status: COMPLETED
-  Output: {applicationId=..., loanId=..., closingStatus=..., creditScore=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mtg_mortgage_application \
   --version 1 \
-  --input '{"applicantId": "APP-300", "APP-300": "loanAmount", "loanAmount": 300000}'
+  --input '{"applicantId": "TEST-001", "loanAmount": 100, "propertyValue": "test-value"}'
 ```
 
 ### Check workflow status

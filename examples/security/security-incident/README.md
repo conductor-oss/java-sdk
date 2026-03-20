@@ -1,8 +1,6 @@
 # Implementing Security Incident Response in Java with Conductor :  Triage, Containment, Investigation, and Remediation
 
-A Java Conductor workflow example for security incident response .  triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for security incident response .  triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.## The Problem
 
 You need to respond to security incidents .  unauthorized access attempts, data exfiltration, compromised credentials ,  following a structured playbook: triage the alert to determine severity (P1 through P4), contain the threat by isolating the affected system (e.g., an API gateway), investigate to identify root cause and blast radius, and remediate by patching the vulnerability or revoking compromised credentials. Mean time to containment directly impacts breach severity.
 
@@ -27,47 +25,10 @@ Four workers execute the incident response playbook: TriageWorker classifies sev
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> ContainWorker -> InvestigateWorker -> RemediateWorker -> TriageWorker -> Output
-```
-
-## Example Output
-
-```
-=== Security Incident Response Demo ===
-
-Step 1: Registering task definitions...
-  Registered: si_triage, si_contain, si_investigate, si_remediate
-
-Step 2: Registering workflow 'security_incident_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [contain] Isolated affected system from network
-  [investigate] Root cause: compromised API key used from unauthorized IP
-  [remediate] API key revoked, access logs preserved, patches applied
-  [triage]
-
-  Status: COMPLETED
-  Output: {contain=..., processed=..., investigate=..., remediate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

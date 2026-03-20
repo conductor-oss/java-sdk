@@ -1,8 +1,6 @@
 # Request Aggregation in Java with Conductor
 
-Aggregates data from multiple microservices in parallel using FORK_JOIN, then merges results into a single response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Aggregates data from multiple microservices in parallel using FORK_JOIN, then merges results into a single response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A single client request (e.g., loading a user dashboard) often requires data from multiple backend services. User profiles, order history, and personalized recommendations. These fetches are independent and should run in parallel for performance, then the results must be merged into a single response.
 
@@ -27,16 +25,6 @@ Four workers serve the aggregation pipeline: FetchUserWorker, FetchOrdersWorker,
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,34 +36,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 agg_merge_results
-```
-
-## Example Output
-
-```
-=== Request Aggregation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: agg_fetch_user, agg_fetch_orders, agg_fetch_recommendations, agg_merge_results
-
-Step 2: Registering workflow 'request_aggregation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [orders] Fetching recent orders for
-  [recs] Generating recommendations for
-  [user] Fetching profile for
-  [merge] Combining results from 3 services
-
-  Status: COMPLETED
-  Output: {orders=..., items=..., count=..., name=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow request_aggregation_workflow \
   --version 1 \
-  --input '{"userId": "user-42", "user-42": "sample-user-42"}'
+  --input '{"userId": "TEST-001"}'
 ```
 
 ### Check workflow status

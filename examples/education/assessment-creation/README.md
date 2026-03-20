@@ -1,8 +1,6 @@
 # Assessment Creation in Java with Conductor :  Criteria Definition, Question Generation, Review, and Publishing
 
-A Java Conductor workflow example for creating educational assessments .  defining grading criteria from course topics, generating questions that align with those criteria, reviewing questions for quality and accuracy, and publishing the finalized assessment to the course. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for creating educational assessments .  defining grading criteria from course topics, generating questions that align with those criteria, reviewing questions for quality and accuracy, and publishing the finalized assessment to the course. Uses [Conductor](https://github.## The Problem
 
 You need to create exams, quizzes, or assignments for a course. This means defining the assessment criteria based on the course's topics and desired difficulty level, generating questions that cover those criteria (multiple choice, short answer, essay), having an instructor or peer review the question bank for accuracy and fairness, and publishing the finalized assessment so students can access it. Each step depends on the previous .  you cannot generate questions without criteria, and you cannot publish without review.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic assessment-builder service that 
 
 **You just write the criteria definition, question generation, review, and publishing logic. Conductor handles generation retries, review routing, and assessment version tracking.**
 
-Each assessment concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (define criteria, create questions, review, publish), retrying if the LMS publishing API times out, tracking the full lifecycle of every assessment from criteria to published exam, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each assessment concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (define criteria, create questions, review, publish), retrying if the LMS publishing API times out, tracking the full lifecycle of every assessment from criteria to published exam, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Workers for criteria definition, question generation, review, and publishing eac
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ asc_review
     │
     ▼
 asc_publish
-```
-
-## Example Output
-
-```
-=== Example 677: Assessment Creatio ===
-
-Step 1: Registering task definitions...
-  Registered: asc_define_criteria, asc_create_questions, asc_review, asc_publish
-
-Step 2: Registering workflow 'asc_assessment_creation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [questions] Created
-  [criteria]
-  [publish]
-  [review] Reviewed
-
-  Status: COMPLETED
-  Output: {questions=..., questionCount=..., assessmentId=..., criteria=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow asc_assessment_creation \
   --version 1 \
-  --input '{"courseId": "CS-201", "CS-201": "assessmentType", "assessmentType": "midterm_exam", "midterm_exam": "topics", "topics": ["item-1", "item-2", "item-3"]}'
+  --input '{"courseId": "TEST-001", "assessmentType": "test-value", "topics": "test-value"}'
 ```
 
 ### Check workflow status

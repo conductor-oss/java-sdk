@@ -1,8 +1,6 @@
 # Three-Agent Pipeline in Java Using Conductor :  Researcher, Writer, Reviewer
 
-Three-Agent Pipeline. Researcher + Writer + Reviewer with final output assembly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Quality Content Needs Research, Writing, and Review
+Three-Agent Pipeline. Researcher + Writer + Reviewer with final output assembly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Quality Content Needs Research, Writing, and Review
 
 A single LLM call to "write an article about quantum computing" produces unreferenced, unreviewed content. The three-agent pipeline mirrors a real editorial process: the researcher finds authoritative sources and extracts key facts, the writer uses those facts to craft a narrative for the target audience, and the reviewer evaluates accuracy, clarity, and completeness .  flagging issues before publication.
 
@@ -27,15 +25,6 @@ Four workers form the editorial pipeline, the researcher gathers facts, the writ
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ thr_reviewer_agent
     │
     ▼
 thr_final_output
-```
-
-## Example Output
-
-```
-=== Three-Agent Pipeline: Researcher + Writer + Reviewer ===
-
-Step 1: Registering task definitions...
-  Registered: thr_researcher_agent, thr_writer_agent, thr_reviewer_agent, thr_final_output
-
-Step 2: Registering workflow 'three_agent_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [final-output] Assembling final report...
-  [researcher-agent] Researching:
-  [reviewer-agent] Reviewing draft for audience:
-  [writer-agent] Writing draft for audience:
-
-  Status: COMPLETED
-  Output: {finalReport=..., research=..., model=..., review=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow three_agent_pipeline \
   --version 1 \
-  --input '{"subject": "sample-subject", "artificial intelligence in healthcare": "sample-artificial intelligence in healthcare", "audience": "sample-audience"}'
+  --input '{"subject": "test-value", "audience": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Swap in LLM calls for real content generation; the research-write-review pipelin
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

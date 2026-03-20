@@ -1,8 +1,6 @@
 # User Migration in Java Using Conductor :  ETL Pipeline for Cross-Database User Transfer
 
-A Java Conductor workflow example for migrating user records between databases .  extracting from a source system, transforming schemas (e.g., v1 to v2 with new fields like avatar and timezone), loading into the target database, verifying record counts match, and notifying stakeholders of the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for migrating user records between databases .  extracting from a source system, transforming schemas (e.g., v1 to v2 with new fields like avatar and timezone), loading into the target database, verifying record counts match, and notifying stakeholders of the result. Uses [Conductor](https://github.## The Problem
 
 You need to migrate user data from one database to another .  a legacy system to a new platform, a monolith to microservices, or an old schema to a new one. The migration is a classic ETL pipeline: extract users in batches from the source, transform each record to the new schema (adding fields, renaming columns, converting formats), load the transformed records into the target database, verify that every extracted record made it through, and notify the team whether the migration succeeded or had mismatches.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a long procedural script that couples extract
 
 **You just write the extract, transform, load, verify, and notify workers. Conductor handles the ETL pipeline sequencing and batch data flow.**
 
-Each ETL phase .  extract, transform, load, verify, notify ,  is a simple, independent worker. Conductor runs them in sequence, threads the extracted user list into the transform step, passes the transformed data to the loader, feeds the loaded/expected counts into verification, and delivers the final result to the notification step. If any step fails (a database timeout, a schema error), Conductor retries automatically and resumes from exactly where it left off. You get all of that for free, without writing a single line of orchestration code.
+Each ETL phase .  extract, transform, load, verify, notify ,  is a simple, independent worker. Conductor runs them in sequence, threads the extracted user list into the transform step, passes the transformed data to the loader, feeds the loaded/expected counts into verification, and delivers the final result to the notification step. If any step fails (a database timeout, a schema error), Conductor retries automatically and resumes from exactly where it left off. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ ExtractWorker reads users from the source database, TransformWorker converts sch
 | **NotifyMigrationWorker** | `umg_notify` | Sends a migration status notification to stakeholders with the verification result |
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ umg_verify
     │
     ▼
 umg_notify
-```
-
-## Example Output
-
-```
-=== Example 615: User Migratio ===
-
-Step 1: Registering task definitions...
-  Registered: umg_extract, umg_transform, umg_load, umg_verify, umg_notify
-
-Step 2: Registering workflow 'umg_user_migration'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [extract] Extracted 500 users from
-  [load] Loaded 500 users into
-  [notify] Migration completion notification sent
-  [transform] Transformed user schema (v1 -> v2)
-  [verify] Verification:
-
-  Status: COMPLETED
-  Output: {users=..., extractedCount=..., loadedCount=..., failedCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow umg_user_migration \
   --version 1 \
-  --input '{"sourceDb": "sample-sourceDb", "legacy_mysql": "sample-legacy-mysql", "targetDb": "sample-targetDb", "postgres_v2": "sample-postgres-v2", "batchSize": 5}'
+  --input '{"sourceDb": "test-value", "targetDb": "test-value", "batchSize": 10}'
 ```
 
 ### Check workflow status

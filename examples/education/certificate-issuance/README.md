@@ -1,8 +1,6 @@
 # Certificate Issuance in Java with Conductor :  Completion Verification, Generation, Signing, Delivery, and Record-Keeping
 
-A Java Conductor workflow example for issuing educational certificates .  verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for issuing educational certificates .  verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.## The Problem
 
 You need to issue certificates when students complete a course. Before generating anything, you must verify the student actually finished all required coursework, assignments, and exams. Then you generate a certificate with the student's name, course title, and completion date, digitally sign it so it cannot be forged, deliver it to the student, and record the issued credential in the registrar's system. Issuing a certificate without verified completion is an institutional liability; losing the record makes the credential unverifiable.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd embed completion checks, PDF generation, digital si
 
 **You just write the completion verification, certificate generation, digital signing, delivery, and record-keeping logic. Conductor handles signing retries, delivery tracking, and credential issuance audit trails.**
 
-Each credential concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (verify, generate, sign, issue, record), retrying if the signing service or email delivery times out, maintaining a complete audit trail of every certificate's lifecycle, and resuming from the last step if the process crashes after signing but before delivery. You get all of that for free, without writing a single line of orchestration code.
+Each credential concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (verify, generate, sign, issue, record), retrying if the signing service or email delivery times out, maintaining a complete audit trail of every certificate's lifecycle, and resuming from the last step if the process crashes after signing but before delivery. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Eligibility verification, certificate generation, digital signing, and delivery 
 | **RecordCertificateWorker** | `cer_record` | Records the issued credential in the institution's registrar system |
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ cer_issue
     │
     ▼
 cer_record
-```
-
-## Example Output
-
-```
-=== Example 674: Certificate Issuance ===
-
-Step 1: Registering task definitions...
-  Registered: cer_verify_completion, cer_generate, cer_sign, cer_issue, cer_record
-
-Step 2: Registering workflow 'cer_certificate_issuance'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [generate] Certificate for
-  [issue]
-  [record]
-  [sign]
-  [verify] Student
-
-  Status: COMPLETED
-  Output: {certificateId=..., format=..., issued=..., deliveryMethod=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cer_certificate_issuance \
   --version 1 \
-  --input '{"studentId": "STU-2024-674", "STU-2024-674": "courseId", "courseId": "CS-301", "CS-301": "courseName", "courseName": "Machine Learning Fundamentals", "Machine Learning Fundamentals": "sample-Machine Learning Fundamentals"}'
+  --input '{"studentId": "TEST-001", "courseId": "TEST-001", "courseName": "test"}'
 ```
 
 ### Check workflow status

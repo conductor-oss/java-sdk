@@ -1,0 +1,21 @@
+{
+  "name": "tkt_ticket_management",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["subject", "description", "reportedBy"],
+  "tasks": [
+    { "name": "tkt_create", "taskReferenceName": "tkt_create_ref", "type": "SIMPLE", "inputParameters": { "subject": "${workflow.input.subject}", "description": "${workflow.input.description}", "reportedBy": "${workflow.input.reportedBy}" } },
+    { "name": "tkt_classify", "taskReferenceName": "tkt_classify_ref", "type": "SIMPLE", "inputParameters": { "ticketId": "${tkt_create_ref.output.ticketId}", "description": "${workflow.input.description}" } },
+    { "name": "tkt_assign", "taskReferenceName": "tkt_assign_ref", "type": "SIMPLE", "inputParameters": { "ticketId": "${tkt_create_ref.output.ticketId}", "category": "${tkt_classify_ref.output.category}", "priority": "${tkt_classify_ref.output.priority}" } },
+    { "name": "tkt_resolve", "taskReferenceName": "tkt_resolve_ref", "type": "SIMPLE", "inputParameters": { "ticketId": "${tkt_create_ref.output.ticketId}", "assignee": "${tkt_assign_ref.output.assignee}" } },
+    { "name": "tkt_close", "taskReferenceName": "tkt_close_ref", "type": "SIMPLE", "inputParameters": { "ticketId": "${tkt_create_ref.output.ticketId}", "resolution": "${tkt_resolve_ref.output.resolution}" } }
+  ],
+  "outputParameters": {
+    "ticketId": "${tkt_create_ref.output.ticketId}",
+    "category": "${tkt_classify_ref.output.category}",
+    "assignee": "${tkt_assign_ref.output.assignee}",
+    "resolved": "${tkt_close_ref.output.closed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

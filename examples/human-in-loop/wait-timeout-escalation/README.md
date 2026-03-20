@@ -1,8 +1,6 @@
 # WAIT Task Timeout Escalation in Java Using Conductor :  Request Preparation, WAIT with Deadline, Timeout-Triggered Escalation to Manager, and Normal Response Processing
 
-A Java Conductor workflow example for deadline-driven escalation .  preparing a request, pausing at a WAIT task with a timeout, and routing to an escalation path if no one responds before the deadline. If the human responds in time, the workflow processes their response normally. If the WAIT task times out, the escalation worker notifies a manager (manager@company.com) and flags the request as escalated. This prevents approval requests from sitting indefinitely without action. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## WAIT Tasks Should Escalate When No One Responds in Time
+A Java Conductor workflow example for deadline-driven escalation .  preparing a request, pausing at a WAIT task with a timeout, and routing to an escalation path if no one responds before the deadline. If the human responds in time, the workflow processes their response normally. If the WAIT task times out, the escalation worker notifies a manager (manager@company.com) and flags the request as escalated. This prevents approval requests from sitting indefinitely without action. Uses [Conductor](https://github.## WAIT Tasks Should Escalate When No One Responds in Time
 
 If a human does not respond to a WAIT task within a deadline, the workflow should not hang indefinitely. Instead, it should escalate. Notify a manager, auto-approve, or take a default action. The workflow prepares the request, pauses at a WAIT task with a timeout, and a SWITCH routes to the escalation path if the timeout fires or to the normal processing path if the human responds in time.
 
@@ -25,15 +23,6 @@ WtePrepareWorker sets up the escalation context, WteProcessWorker handles timely
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -44,33 +33,6 @@ wait_for_response [WAIT]
     │
     ▼
 wte_process
-```
-
-## Example Output
-
-```
-=== WAIT with Timeout and Escalation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'wait_timeout_escalation_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wte_escalate] Escalating due to timeout...
-  [wte_prepare] Preparing for wait...
-  [wte_process] Processing response:
-
-  Status: COMPLETED
-  Output: {escalated=..., escalatedTo=..., ready=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -99,7 +61,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -142,7 +104,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wait_timeout_escalation_demo \
   --version 1 \
-  --input '{"requestId": "req-001", "req-001": "reason"}'
+  --input '{"requestId": "TEST-001"}'
 ```
 
 ### Check workflow status

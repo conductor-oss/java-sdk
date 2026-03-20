@@ -1,8 +1,6 @@
 # External Payload in Java with Conductor
 
-External payload storage .  generate a summary and storage reference instead of returning large data, then process the summary. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+External payload storage .  generate a summary and storage reference instead of returning large data, then process the summary. Uses [Conductor](https://github.## The Problem
 
 You need to pass large data between workflow tasks .  a report with millions of rows, a dataset for ML training, or a full database export; but Conductor's task output has a size limit. Storing megabytes of raw data directly in task output would bloat the workflow execution record, slow down the Conductor server, and eventually hit payload size limits. The downstream task only needs a summary and a pointer to the full data, not the data itself.
 
@@ -25,15 +23,6 @@ Two workers demonstrate the external payload pattern: GenerateWorker produces a 
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -41,32 +30,6 @@ ep_generate
     │
     ▼
 ep_process
-```
-
-## Example Output
-
-```
-=== External Payload Storage: Generate -> Process ===
-
-Step 1: Registering task definitions...
-  Registered: ep_generate, ep_process
-
-Step 2: Registering workflow 'large_payload_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ep_generate] Generating summary for
-  [ep_process] Processing summary for
-
-  Status: COMPLETED
-  Output: {summary=..., storageRef=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -95,7 +58,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -138,7 +101,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow large_payload_demo \
   --version 1 \
-  --input '{"dataSize": 5}'
+  --input '{"dataSize": 10}'
 ```
 
 ### Check workflow status

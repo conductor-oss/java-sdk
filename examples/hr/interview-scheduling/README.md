@@ -1,8 +1,6 @@
 # Interview Scheduling in Java with Conductor :  Availability Check, Slot Selection, Candidate Invite, Confirmation, and Reminder
 
-A Java Conductor workflow example for interview scheduling .  checking interviewer panel calendar availability, selecting the best time slot, sending the candidate an invite with video link and details, confirming all participants, and sending day-of reminders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for interview scheduling .  checking interviewer panel calendar availability, selecting the best time slot, sending the candidate an invite with video link and details, confirming all participants, and sending day-of reminders. Uses [Conductor](https://github.## The Problem
 
 You need to coordinate interview scheduling across multiple busy interviewers and a candidate. Given an interview panel (e.g., hiring manager, two engineers, a product lead), you must find time slots where all interviewers are free. The best available slot is selected, and the candidate receives an invite with the date, time, role description, interviewer names, and a video conference link. Each interviewer must confirm their participation. On the day of the interview, all parties receive reminders with the agenda and join details. If any interviewer's calendar changes after booking, the system needs to detect the conflict and reschedule. Coordinating this manually across four or five calendars through back-and-forth emails regularly takes days and creates a poor candidate experience.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a scheduling tool that queries each interview
 
 **You just write the availability checking, slot selection, candidate invitation, confirmation, and reminder logic. Conductor handles calendar booking retries, availability matching, and scheduling audit trails.**
 
-Each stage of interview scheduling is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking availability before scheduling, scheduling before inviting, confirming all participants after the invite is sent, sending reminders only after confirmation, retrying if a calendar API is temporarily unavailable, and giving recruiters complete visibility into every interview's scheduling status. You get all of that for free, without writing a single line of orchestration code.
+Each stage of interview scheduling is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking availability before scheduling, scheduling before inviting, confirming all participants after the invite is sent, sending reminders only after confirmation, retrying if a calendar API is temporarily unavailable, and giving recruiters complete visibility into every interview's scheduling status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Availability collection, slot matching, calendar booking, and reminder workers c
 | **RemindWorker** | `ivs_remind` | Sends day-of reminders to the candidate and all interviewers with the agenda, scorecard link, and join instructions |
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ ivs_confirm
     │
     ▼
 ivs_remind
-```
-
-## Example Output
-
-```
-=== Example 603: Interview Scheduling ===
-
-Step 1: Registering task definitions...
-  Registered: ivs_availability, ivs_schedule, ivs_invite, ivs_confirm, ivs_remind
-
-Step 2: Registering workflow 'ivs_interview_scheduling'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [availability] Checked calendars for
-  [confirm] Interview
-  [invite] Calendar invite sent to
-  [remind] Reminder sent to
-  [schedule] Selected optimal interview slot
-
-  Status: COMPLETED
-  Output: {availableSlots=..., confirmed=..., confirmations=..., invited=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ivs_interview_scheduling \
   --version 1 \
-  --input '{"candidateName": "Alex Rivera", "Alex Rivera": "interviewers", "interviewers": 3, "Senior Engineer": "sample-Senior Engineer"}'
+  --input '{"candidateName": "test", "interviewers": "test-value", "role": "test-value"}'
 ```
 
 ### Check workflow status

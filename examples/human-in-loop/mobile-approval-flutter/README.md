@@ -1,8 +1,6 @@
 # Mobile Approval with Flutter in Java Using Conductor :  Request Submission, FCM Push Notification, WAIT for Mobile Response, and Finalization
 
-A Java Conductor workflow example for mobile-first approvals .  submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Mobile Users Need Push Notifications for Approvals
+A Java Conductor workflow example for mobile-first approvals .  submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.## Mobile Users Need Push Notifications for Approvals
 
 When an approval is needed, the approver might not be at their desk. The workflow submits the request, sends a push notification to the approver's mobile device, and pauses at a WAIT task until the mobile app sends back the decision. If the push notification fails to send, you need to retry it without re-submitting the request. And you need to track whether the approval came via mobile or another channel.
 
@@ -25,15 +23,6 @@ MobSubmitWorker validates the request, MobSendPushWorker delivers the FCM notifi
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -47,33 +36,6 @@ mobile_response [WAIT]
     │
     ▼
 mob_finalize
-```
-
-## Example Output
-
-```
-=== Mobile Approval with Push Notifications Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'mobile_approval_flutter'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mob_finalize] Finalizing mobile approval...
-  [mob_send_push] Simulating FCM push notification...
-  [mob_submit] Submitting mobile approval request...
-
-  Status: COMPLETED
-  Output: {done=..., pushSent=..., submitted=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mobile_approval_flutter \
   --version 1 \
-  --input '{"requestId": "REQ-001", "REQ-001": "userId", "userId": "user-42", "user-42": "sample-user-42"}'
+  --input '{"requestId": "TEST-001", "userId": "TEST-001"}'
 ```
 
 ### Check workflow status

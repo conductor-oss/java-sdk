@@ -1,6 +1,6 @@
 # AI Model Evaluation in Java Using Conductor :  Load Model, Prepare Test Set, Run Inference, Compute Metrics, Report
 
-A Java Conductor workflow that evaluates a machine learning model end-to-end .  loading the model artifacts, preparing the test dataset, running inference on all test samples, computing evaluation metrics (accuracy, F1, precision, recall, latency), and generating a comprehensive evaluation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage evaluation pipeline as independent workers ,  you write the evaluation logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that evaluates a machine learning model end-to-end .  loading the model artifacts, preparing the test dataset, running inference on all test samples, computing evaluation metrics (accuracy, F1, precision, recall, latency), and generating a comprehensive evaluation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage evaluation pipeline as independent workers ,  you write the evaluation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Model Evaluation Must Be Systematic and Reproducible
 
@@ -27,15 +27,6 @@ Each evaluation stage: model loading, test preparation, inference, metric comput
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,35 +43,6 @@ ame_compute_metrics
     │
     ▼
 ame_report
-```
-
-## Example Output
-
-```
-=== Example 802: AI Model Evaluation. Load Model, Prepare Test Set, Run Inference, Compute Metrics, Report ===
-
-Step 1: Registering task definitions...
-  Registered: ame_load_model, ame_prepare_test_set, ame_run_inference, ame_compute_metrics, ame_report
-
-Step 2: Registering workflow 'ame_model_evaluation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [metrics] Response from OpenAI (LIVE)
-  [load_model] Processing
-  [prepare_test_set] Processing
-  [report] Response from OpenAI (LIVE)
-  [run_inference] Processing
-
-  Status: COMPLETED
-  Output: {metrics=..., endpoint=..., params=..., sampleCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +115,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ame_model_evaluation \
   --version 1 \
-  --input '{"modelId": "MDL-ai-model-evaluation-BERT", "MDL-ai-model-evaluation-BERT": "testDatasetId", "testDatasetId": "TEST-802", "TEST-802": "taskType", "taskType": "classification", "classification": "sample-classification"}'
+  --input '{"modelId": "TEST-001", "testDatasetId": "TEST-001", "taskType": "test-value"}'
 ```
 
 ### Check workflow status
@@ -185,7 +147,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

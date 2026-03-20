@@ -1,8 +1,6 @@
 # Industrial IoT in Java with Conductor :  Machine Telemetry, Predictive Failure Analysis, and Repair Scheduling
 
-A Java Conductor workflow example that orchestrates industrial equipment monitoring .  collecting machine telemetry (temperature, vibration, pressure, RPM, oil level, run hours), running predictive failure analysis to identify at-risk components and estimate remaining useful life, and automatically scheduling repair work orders with parts lists and downtime estimates. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Predictive Maintenance Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates industrial equipment monitoring .  collecting machine telemetry (temperature, vibration, pressure, RPM, oil level, run hours), running predictive failure analysis to identify at-risk components and estimate remaining useful life, and automatically scheduling repair work orders with parts lists and downtime estimates. Uses [Conductor](https://github.## Why Predictive Maintenance Pipelines Need Orchestration
 
 Industrial machines generate a constant stream of telemetry .  bearing temperature at 185F, vibration at 4.2 mm/s, oil level at 72%. Turning that raw data into actionable maintenance decisions requires a pipeline. You collect telemetry from the machine's sensors. You feed those readings into a predictive model that estimates failure probability, identifies the likely component (bearing assembly, pump seal, motor winding), and predicts remaining useful life. If the failure probability exceeds a threshold, you schedule a repair work order with the right parts kit, a target date before predicted failure, and an estimated downtime window.
 
@@ -26,15 +24,6 @@ Three workers form the predictive maintenance pipeline: MonitorMachinesWorker co
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ iit_predictive_analysis
     │
     ▼
 iit_schedule_repair
-```
-
-## Example Output
-
-```
-=== Example 537: Industrial IoT ===
-
-Step 1: Registering task definitions...
-  Registered: iit_monitor_machines, iit_predictive_analysis, iit_schedule_repair
-
-Step 2: Registering workflow 'industrial_iot_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [monitor] Processing
-  [predict] Processing
-  [repair] Processing
-
-  Status: COMPLETED
-  Output: {telemetry=..., temperature=..., vibration=..., pressure=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow industrial_iot_workflow \
   --version 1 \
-  --input '{"plantId": "PLANT-EAST-01", "PLANT-EAST-01": "machineId", "machineId": "CNC-537-A", "CNC-537-A": "machineType", "machineType": "cnc_mill", "cnc_mill": "sample-cnc-mill"}'
+  --input '{"plantId": "TEST-001", "machineId": "TEST-001", "machineType": "test-value"}'
 ```
 
 ### Check workflow status

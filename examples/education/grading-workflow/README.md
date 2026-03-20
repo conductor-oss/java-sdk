@@ -1,8 +1,6 @@
 # Grading Workflow in Java with Conductor :  Submission, Scoring, Review, Recording, and Student Notification
 
-A Java Conductor workflow example for assignment grading .  receiving a student submission, scoring it against the rubric, reviewing the grade for accuracy, recording the final score in the gradebook, and notifying the student of their result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for assignment grading .  receiving a student submission, scoring it against the rubric, reviewing the grade for accuracy, recording the final score in the gradebook, and notifying the student of their result. Uses [Conductor](https://github.## The Problem
 
 You need to grade student assignments end-to-end. A student submits their work, the grading system scores it against the assignment rubric, an instructor or peer reviews the score for fairness and accuracy, the final grade is recorded in the course gradebook, and the student is notified of their result. Recording a grade before review is complete risks posting inaccurate scores; failing to notify leaves students in the dark about their performance.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single grading script that ingests submissi
 
 **You just write the submission intake, rubric scoring, grade review, gradebook recording, and student notification logic. Conductor handles scoring retries, grade routing, and complete assessment audit trails.**
 
-Each grading concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, grade, review, record, notify), retrying if the gradebook service is temporarily unavailable, maintaining a complete audit trail of every grade from submission to notification, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each grading concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, grade, review, record, notify), retrying if the gradebook service is temporarily unavailable, maintaining a complete audit trail of every grade from submission to notification, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Submission collection, grading, review, and grade posting workers each handle on
 | **NotifyWorker** | `grd_notify` | Notifies the student of their final grade |
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ grd_record
     │
     ▼
 grd_notify
-```
-
-## Example Output
-
-```
-=== Example 673: Grading Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: grd_submit, grd_grade, grd_review, grd_record, grd_notify
-
-Step 2: Registering workflow 'grd_grading'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [grade]
-  [notify] Student
-  [record] Score
-  [review] Grade review complete - final score:
-  [submit] Student
-
-  Status: COMPLETED
-  Output: {score=..., rubric=..., feedback=..., notified=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow grd_grading \
   --version 1 \
-  --input '{"studentId": "STU-2024-673", "STU-2024-673": "courseId", "courseId": "CS-101", "CS-101": "assignmentId", "assignmentId": "HW-05", "HW-05": "sample-HW-05"}'
+  --input '{"studentId": "TEST-001", "courseId": "TEST-001", "assignmentId": "TEST-001"}'
 ```
 
 ### Check workflow status

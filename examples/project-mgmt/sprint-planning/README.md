@@ -1,8 +1,6 @@
 # Sprint Planning Automation in Java with Conductor :  Story Selection, Estimation, Assignment, and Sprint Creation
 
-A Java Conductor workflow example that automates sprint planning .  selecting user stories from the backlog based on team capacity, estimating story points for each selected story, assigning stories to individual team members, and creating the sprint with total point commitment and active status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Sprint Planning Needs Orchestration
+A Java Conductor workflow example that automates sprint planning .  selecting user stories from the backlog based on team capacity, estimating story points for each selected story, assigning stories to individual team members, and creating the sprint with total point commitment and active status. Uses [Conductor](https://github.## Why Sprint Planning Needs Orchestration
 
 Planning a sprint requires a sequence where each decision constrains the next. You select stories from the prioritized backlog that fit the team's capacity .  pulling high-priority items first (US-101 "User login"), then medium (US-102 "Dashboard view"), then low (US-103 "Export CSV") until you approach the capacity limit. You estimate each selected story in points ,  5 points for the login feature, 8 for the dashboard, 3 for CSV export ,  producing a total commitment of 16 points. You assign each estimated story to a team member based on skills and individual capacity. Alice takes US-101, Bob takes US-102, Carol takes US-103. Finally, you create the sprint ,  recording the sprint number, story count, total points, and setting the status to ACTIVE.
 
@@ -27,15 +25,6 @@ Backlog analysis, capacity calculation, sprint goal setting, and task assignment
 
 Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ spn_assign
     │
     ▼
 spn_create_sprint
-```
-
-## Example Output
-
-```
-=== Example sprint-planning: Sprint Planning ===
-
-Step 1: Registering task definitions...
-  Registered: spn_select_stories, spn_estimate, spn_assign, spn_create_sprint
-
-Step 2: Registering workflow 'sprint_planning_sprint-planning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assign] Assigning stories to team members
-  [sprint] Created Sprint
-  [estimate] Estimating stories
-  [stories] Selecting stories for capacity
-
-  Status: COMPLETED
-  Output: {assignments=..., sprint=..., estimatedStories=..., totalPoints=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

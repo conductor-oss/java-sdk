@@ -12,7 +12,7 @@ Without orchestration, threshold alerting is implemented with if/else chains in 
 
 **You just write the threshold checks and severity-specific handlers. Conductor handles severity-based SWITCH routing, retries on notification delivery failures, and a record of every metric evaluation with the value, thresholds, and routing decision.**
 
-A metric checker worker evaluates the current value against both thresholds. Conductor's SWITCH task routes to the appropriate handler .  log OK, send warning, or page on-call. Every metric evaluation is tracked with the value, thresholds, and routing decision. Changing thresholds is a workflow input change, not a code change. You get all of that for free, without writing a single line of orchestration code.
+A metric checker worker evaluates the current value against both thresholds. Conductor's SWITCH task routes to the appropriate handler .  log OK, send warning, or page on-call. Every metric evaluation is tracked with the value, thresholds, and routing decision. Changing thresholds is a workflow input change, not a code change. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +27,6 @@ CheckMetricWorker evaluates a metric against warning and critical thresholds, th
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -47,34 +37,6 @@ SWITCH (th_switch_ref)
     ├── critical: th_page_oncall
     ├── warning: th_send_warning
     └── default: th_log_ok
-```
-
-## Example Output
-
-```
-=== Example 423: Threshold Alerting ===
-
-Step 1: Registering task definitions...
-  Registered: th_check_metric, th_page_oncall, th_send_warning, th_log_ok
-
-Step 2: Registering workflow 'threshold_alerting_423'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [check]
-  [ok]
-  [page] CRITICAL: Paging on-call for
-  [warning] Sending warning for
-
-  Status: COMPLETED
-  Output: {severity=..., value=..., logged=..., paged=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow threshold_alerting_423 \
   --version 1 \
-  --input '{"metricName": "sample-name", "error_rate_percent": "sample-error-rate-percent", "currentValue": "sample-currentValue", "warningThreshold": "sample-warningThreshold", "criticalThreshold": "sample-criticalThreshold"}'
+  --input '{"metricName": "test", "currentValue": "test-value", "warningThreshold": "test-value", "criticalThreshold": "test-value"}'
 ```
 
 ### Check workflow status

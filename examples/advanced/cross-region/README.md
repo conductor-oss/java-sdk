@@ -1,8 +1,6 @@
 # Cross-Region Data Replication in Java Using Conductor :  Replicate, Sync, Verify Consistency
 
-A Java Conductor workflow example for cross-region data replication .  copying a dataset from a primary region to a replica region, synchronizing the data and computing checksums, and verifying consistency between the two regions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Keeping Data Consistent Across Regions
+A Java Conductor workflow example for cross-region data replication .  copying a dataset from a primary region to a replica region, synchronizing the data and computing checksums, and verifying consistency between the two regions. Uses [Conductor](https://github.## Keeping Data Consistent Across Regions
 
 Multi-region architectures improve latency and availability, but replicating data from us-east-1 to eu-west-1 is not a simple copy. You need to initiate the replication, wait for the data to sync, compute checksums on both sides, and verify they match. If the checksums diverge .  because a write landed on the primary during sync, or a network partition caused partial replication ,  you need to know immediately, not discover it hours later when a user in Europe sees stale data.
 
@@ -26,15 +24,6 @@ Three workers own the replication lifecycle: data copying between regions, check
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ xr_sync
     │
     ▼
 xr_verify_consistency
-```
-
-## Example Output
-
-```
-=== Cross-Region Demo ===
-
-Step 1: Registering task definitions...
-  Registered: xr_replicate, xr_sync, xr_verify_consistency
-
-Step 2: Registering workflow 'cross_region_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [replicate] Processing
-  [sync] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {replicated=..., replicationId=..., bytesTransferred=..., synced=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cross_region_demo \
   --version 1 \
-  --input '{"primaryRegion": "us-east-1", "us-east-1": "replicaRegion", "replicaRegion": "eu-west-1", "eu-west-1": "datasetId", "datasetId": "DS-USERS-2024", "DS-USERS-2024": "sample-DS-USERS-2024"}'
+  --input '{"primaryRegion": "test-value", "replicaRegion": "test-value", "datasetId": "TEST-001"}'
 ```
 
 ### Check workflow status

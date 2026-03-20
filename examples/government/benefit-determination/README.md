@@ -1,8 +1,6 @@
 # Government Benefit Determination in Java with Conductor :  Eligibility Verification, Calculation, and Applicant Notification
 
-A Java Conductor workflow example for government benefit determination .  receiving applications, verifying income-based eligibility, calculating benefit amounts, and routing applicants to approval or denial notifications. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for government benefit determination .  receiving applications, verifying income-based eligibility, calculating benefit amounts, and routing applicants to approval or denial notifications. Uses [Conductor](https://github.## The Problem
 
 You need to process benefit applications for a government assistance program. Each application requires intake validation, income verification against eligibility thresholds, benefit amount calculation based on the applicant's financial profile, and then routing to either an approval notice (with the benefit amount) or a denial notice (with the specific reason). The eligibility decision must branch the workflow .  eligible applicants receive a benefit calculation and approval letter, while ineligible applicants receive a denial with an explanation.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic service that queries the applica
 
 **You just write the application intake, eligibility verification, benefit calculation, and approval or denial notification logic. Conductor handles eligibility retries, benefit routing, and determination audit trails.**
 
-Each stage of the benefit determination is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in the right order, routing eligible and ineligible applicants to different notification paths via SWITCH, retrying on failure, and providing a complete audit trail of every determination. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the benefit determination is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in the right order, routing eligible and ineligible applicants to different notification paths via SWITCH, retrying on failure, and providing a complete audit trail of every determination. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Application intake, eligibility verification, benefit calculation, and enrollmen
 | **NotifyIneligibleWorker** | `bnd_notify_ineligible` | Sends a denial notice to the applicant with the specific reason for ineligibility |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -53,35 +41,6 @@ bnd_calculate
 SWITCH (bnd_switch_ref)
     ├── eligible: bnd_notify_eligible
     ├── ineligible: bnd_notify_ineligible
-```
-
-## Example Output
-
-```
-=== Example 529: Benefit Determinatio ===
-
-Step 1: Registering task definitions...
-  Registered: bnd_apply, bnd_verify_eligibility, bnd_calculate, bnd_notify_eligible, bnd_notify_ineligible
-
-Step 2: Registering workflow 'bnd_benefit_determination'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Processing
-  [calculate] Processing
-  [notify_eligible] Processing
-  [notify_ineligible] Processing
-  [verify_eligibility] Processing
-
-  Status: COMPLETED
-  Output: {applicationId=..., benefitAmount=..., notified=..., approved=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bnd_benefit_determination \
   --version 1 \
-  --input '{"applicantId": "CIT-529", "CIT-529": "programType", "programType": "housing-assistance", "housing-assistance": "income", "income": 50000}'
+  --input '{"applicantId": "TEST-001", "programType": "test-value", "income": "test-value"}'
 ```
 
 ### Check workflow status

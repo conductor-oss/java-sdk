@@ -12,7 +12,7 @@ Without orchestration, dependency mapping is either a manual Confluence diagram 
 
 **You just write the service discovery and call tracing logic. Conductor handles the discover-trace-build sequence, retries when service mesh endpoints are unavailable, and versioned tracking of dependency graph changes over time.**
 
-Each mapping concern is an independent worker .  service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time. You get all of that for free, without writing a single line of orchestration code.
+Each mapping concern is an independent worker .  service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ The mapping pipeline chains DiscoverServicesWorker to enumerate active services,
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ dep_build_graph
     │
     ▼
 dep_visualize
-```
-
-## Example Output
-
-```
-=== Example 426: Dependency Mapping ===
-
-Step 1: Registering task definitions...
-  Registered: dep_discover_services, dep_trace_calls, dep_build_graph, dep_visualize
-
-Step 2: Registering workflow 'dependency_mapping_426'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [graph] Building dependency graph
-  [discover] Discovering services in
-  [trace] Tracing inter-service calls across
-  [visualize] Rendering dependency graph
-
-  Status: COMPLETED
-  Output: {graphId=..., nodes=..., edgeCount=..., circularDeps=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow dependency_mapping_426 \
   --version 1 \
-  --input '{"environment": "sample-environment", "production": "sample-production", "namespace": "sample-name"}'
+  --input '{"environment": "test-value", "namespace": "test"}'
 ```
 
 ### Check workflow status

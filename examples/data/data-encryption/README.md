@@ -1,8 +1,6 @@
 # Data Encryption in Java Using Conductor :  Key Generation, Field-Level Encryption, Vault Storage, and Verification
 
-A Java Conductor workflow example for field-level data encryption. generating an encryption key for the specified algorithm, identifying which fields in each record contain sensitive data, encrypting those fields while leaving non-sensitive fields in plaintext, storing the key reference in a vault, and verifying that all sensitive fields are properly encrypted in the output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for field-level data encryption. generating an encryption key for the specified algorithm, identifying which fields in each record contain sensitive data, encrypting those fields while leaving non-sensitive fields in plaintext, storing the key reference in a vault, and verifying that all sensitive fields are properly encrypted in the output. Uses [Conductor](https://github.## The Problem
 
 You need to encrypt sensitive fields in your dataset before storing it or sharing it downstream. SSNs, credit card numbers, medical record IDs. While keeping non-sensitive fields (names, categories, timestamps) readable for analytics. That means generating a cryptographic key for the chosen algorithm (AES-256, RSA), scanning records to identify which fields match the configured sensitive field list, encrypting only those fields, securely storing the key reference so authorized consumers can decrypt later, and verifying that every sensitive field in the output is actually encrypted (not accidentally left in plaintext). The order matters: you must generate the key before encrypting, and you must store the key reference before anyone can decrypt.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd generate a key inline, loop through records encrypt
 
 **You just write the key generation, field identification, encryption, vault storage, and verification workers. Conductor handles strict sequencing so keys exist before encryption starts, retries when vault services are temporarily unavailable, and a complete audit trail of every encryption decision.**
 
-Each stage of the encryption pipeline is a simple, independent worker. The key generator creates a cryptographic key for the specified algorithm. The field identifier scans records against the configured sensitive field list to determine what needs encrypting. The encryptor applies field-level encryption using the generated key. The vault writer stores the key reference so authorized consumers can decrypt. The verifier checks that every record has the correct encryption key ID tag and that no sensitive field was left in plaintext. Conductor executes them in strict sequence, ensures the key exists before encryption starts and the key is vaulted before the workflow completes, retries if the vault is temporarily unavailable, and tracks every step with full audit visibility. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the encryption pipeline is a simple, independent worker. The key generator creates a cryptographic key for the specified algorithm. The field identifier scans records against the configured sensitive field list to determine what needs encrypting. The encryptor applies field-level encryption using the generated key. The vault writer stores the key reference so authorized consumers can decrypt. The verifier checks that every record has the correct encryption key ID tag and that no sensitive field was left in plaintext. Conductor executes them in strict sequence, ensures the key exists before encryption starts and the key is vaulted before the workflow completes, retries if the vault is temporarily unavailable, and tracks every step with full audit visibility. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers implement the encryption pipeline: generating cryptographic keys, i
 | **VerifyEncryptedWorker** | `dn_verify_encrypted` | Verifies that all records are properly tagged with the encryption key ID. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ dn_store_key_ref
     │
     ▼
 dn_verify_encrypted
-```
-
-## Example Output
-
-```
-=== Data Encryption Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dn_generate_key, dn_identify_fields, dn_encrypt_fields, dn_store_key_ref, dn_verify_encrypted
-
-Step 2: Registering workflow 'data_encryption'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [encrypt] Encrypted
-  [keygen] Generated
-  [identify] Found
-  [store-key] Stored key reference:
-  [verify] Verification: all records tagged with key
-
-  Status: COMPLETED
-  Output: {_encryptionKeyId=..., encryptedRecords=..., encryptedCount=..., fieldsEncrypted=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_encryption \
   --version 1 \
-  --input '{"records": "sample-records", "name": "sample-name", "Alice": "sample-Alice", "ssn": "sample-ssn", "123-45-6789": "sample-123-45-6789", "creditCard": "sample-creditCard", "4111111111111111": "sample-4111111111111111", "email": "user@example.com", "Bob": "sample-Bob", "987-65-4321": "sample-987-65-4321", "5500000000000004": "sample-5500000000000004", "Charlie": "sample-Charlie", "456-78-9012": "sample-456-78-9012", "340000000000009": "sample-340000000000009"}'
+  --input '{"records": "test-value", "algorithm": "test-value", "sensitiveFields": "test-value"}'
 ```
 
 ### Check workflow status

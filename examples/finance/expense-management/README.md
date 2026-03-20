@@ -1,8 +1,6 @@
 # Expense Management in Java with Conductor
 
-Expense management: submit, validate receipts, categorize, approve, reimburse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Expense management: submit, validate receipts, categorize, approve, reimburse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to process employee expense reports from submission to reimbursement. An employee submits an expense with receipt, the receipt is validated for authenticity and policy compliance (amount limits, eligible categories), the expense is categorized for accounting, a manager approves it, and the employee is reimbursed. Processing expenses without receipt validation invites fraud; reimbursing without approval violates spending controls.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single expense service that uploads receipt
 
 **You just write the expense workers. Report submission, receipt validation, GL categorization, manager approval, and reimbursement. Conductor handles sequential processing, automatic retries when the receipt validation service times out, and complete expense tracking from submission to reimbursement.**
 
-Each expense concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, validate, categorize, approve, reimburse), retrying if the receipt validation service times out, tracking every expense from submission to reimbursement, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each expense concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, validate, categorize, approve, reimburse), retrying if the receipt validation service times out, tracking every expense from submission to reimbursement, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers manage the expense lifecycle: SubmitExpenseWorker captures the repo
 | **ValidateReceiptsWorker** | `exp_validate_receipts` | Checking receipt for expense |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ exp_approve_expense
     │
     ▼
 exp_reimburse
-```
-
-## Example Output
-
-```
-=== Example 505: Expense Management ===
-
-Step 1: Registering task definitions...
-  Registered: exp_submit_expense, exp_validate_receipts, exp_categorize, exp_approve_expense, exp_reimburse
-
-Step 2: Registering workflow 'expense_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Approving $
-  [categorize] Expense
-  [reimburse] Reimbursing $
-  [submit] Expense
-  [validate] Checking receipt for expense
-
-  Status: COMPLETED
-  Output: {approved=..., approvedAmount=..., approver=..., finalCategory=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow expense_management_workflow \
   --version 1 \
-  --input '{"expenseId": "EXP-7890", "EXP-7890": "employeeId", "employeeId": "EMP-1234", "EMP-1234": "amount", "amount": 342.5, "office_supplies": "receiptUrl", "receiptUrl": "https://receipts.example.com/r/7890.pdf", "https://receipts.example.com/r/7890.pdf": "sample-https://receipts.example.com/r/7890.pdf"}'
+  --input '{"expenseId": "TEST-001", "employeeId": "TEST-001", "amount": 100, "category": "test-value", "receiptUrl": "https://example.com"}'
 ```
 
 ### Check workflow status

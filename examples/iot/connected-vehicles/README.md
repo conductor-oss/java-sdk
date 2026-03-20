@@ -1,8 +1,6 @@
 # Connected Vehicles in Java with Conductor
 
-A Java Conductor workflow example that orchestrates connected vehicle monitoring .  collecting vehicle telemetry (engine RPM, fuel level, battery voltage, speed), running on-board diagnostics to assess overall vehicle health, tracking geolocation, and compiling a comprehensive vehicle status report combining health, location, and speed data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Connected Vehicle Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates connected vehicle monitoring .  collecting vehicle telemetry (engine RPM, fuel level, battery voltage, speed), running on-board diagnostics to assess overall vehicle health, tracking geolocation, and compiling a comprehensive vehicle status report combining health, location, and speed data. Uses [Conductor](https://github.## Why Connected Vehicle Monitoring Needs Orchestration
 
 Monitoring a connected vehicle requires collecting data from multiple on-board systems and combining it into an actionable status report. You pull telemetry from the vehicle's OBD-II or CAN bus .  engine RPM, fuel level, battery voltage, and speed. You run diagnostics against those readings to assess overall vehicle health (engine performance, electrical system, fuel efficiency). You track the vehicle's geolocation using its GPS module. Finally, you compile health status, location, and speed into a unified status report for fleet operators or the vehicle owner.
 
@@ -27,15 +25,6 @@ Four workers monitor connected vehicles: TelemetryWorker collects engine RPM, fu
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ veh_geolocation
     │
     ▼
 veh_status_report
-```
-
-## Example Output
-
-```
-=== Example 545: Connected Vehicles ===
-
-Step 1: Registering task definitions...
-  Registered: veh_telemetry, veh_diagnostics, veh_geolocation, veh_status_report
-
-Step 2: Registering workflow 'connected_vehicles_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [diagnostics] Processing task
-  [geo] Processing task
-  [status] Processing task
-  [telemetry] Processing task
-
-  Status: COMPLETED
-  Output: {overallHealth=..., batteryOk=..., location=..., coordinates=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow connected_vehicles_demo \
   --version 1 \
-  --input '{"vehicleId": "VEH-8821", "VEH-8821": "vin", "vin": "1HGBH41JXMN109186", "1HGBH41JXMN109186": "sample-1HGBH41JXMN109186"}'
+  --input '{"vehicleId": "TEST-001", "vin": "test-value"}'
 ```
 
 ### Check workflow status

@@ -27,15 +27,6 @@ Four workers manage the S3 upload lifecycle: S3UploadWorker stores the object, S
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ s3_generate_url
     │
     ▼
 s3_notify
-```
-
-## Example Output
-
-```
-=== Example 447: S3 Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: s3_upload, s3_set_metadata, s3_generate_url, s3_notify
-
-Step 2: Registering workflow 's3_integration_447'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [url] Generated presigned URL (expires in
-  [notify] Sent download link for
-  [upload] s3://
-  [metadata] [SIMULATED] Set metadata on
-
-  Status: COMPLETED
-  Output: {presignedUrl=..., expiresAt=..., notified=..., sentAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow s3_integration_447 \
   --version 1 \
-  --input '{"bucket": "sample-bucket", "company-reports": "sample-company-reports", "key": "sample-key", "quarterly/Q4-2024-report.pdf": "sample-quarterly/Q4-2024-report.pdf", "contentType": "standard", "application/pdf": "sample-application/pdf", "notifyEmail": "user@example.com"}'
+  --input '{"bucket": "test-value", "key": "test-value", "contentType": "test-value", "notifyEmail": "user@example.com"}'
 ```
 
 ### Check workflow status

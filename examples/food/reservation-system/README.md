@@ -1,8 +1,6 @@
 # Reservation System in Java with Conductor
 
-Manages restaurant reservations end-to-end: checking table availability, booking, sending confirmation and reminder, and seating the party on arrival. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Manages restaurant reservations end-to-end: checking table availability, booking, sending confirmation and reminder, and seating the party on arrival. Uses [Conductor](https://github.## The Problem
 
 You need to manage restaurant reservations from booking to seating. The workflow checks table availability for the requested date, time, and party size, creates the reservation, sends a confirmation to the guest, sends a reminder before the reservation, and seats the party when they arrive. Double-booking a table ruins the dining experience; forgetting to send reminders leads to no-shows.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single reservation service that queries ava
 
 **You just write the availability check, booking, confirmation, reminder, and seating logic. Conductor handles availability retries, table assignment, and reservation lifecycle tracking.**
 
-Each reservation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (check availability, book, confirm, remind, seat), retrying if the notification service is unavailable, tracking every reservation from booking to seating, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each reservation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (check availability, book, confirm, remind, seat), retrying if the notification service is unavailable, tracking every reservation from booking to seating, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Availability checking, table assignment, confirmation, and reminder workers hand
 | **SeatWorker** | `rsv_seat` | Seats the party at the assigned table and marks the reservation as seated |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ rsv_remind
     │
     ▼
 rsv_seat
-```
-
-## Example Output
-
-```
-=== Example 736: Reservation System ===
-
-Step 1: Registering task definitions...
-  Registered: rsv_check_availability, rsv_book, rsv_confirm, rsv_remind, rsv_seat
-
-Step 2: Registering workflow 'reservation_system_736'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [book] Booking for
-  [avail] Checking
-  [confirm] Confirmation sent to
-  [remind] Reminder sent for reservation
-  [seat] Seating party of
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow reservation_system_736 \
   --version 1 \
-  --input '{"guestName": "sample-name", "Johnson": "sample-Johnson", "date": "2025-01-15T10:00:00Z", "2026-03-10": "sample-2026-03-10", "time": "2025-01-15T10:00:00Z", "7:30 PM": "sample-7:30 PM", "partySize": 5}'
+  --input '{"guestName": "test", "date": "2026-01-01T00:00:00Z", "time": "2026-01-01T00:00:00Z", "partySize": 10}'
 ```
 
 ### Check workflow status

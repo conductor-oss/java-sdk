@@ -1,8 +1,6 @@
 # Salvage Recovery in Java with Conductor :  Assess Damage, Salvage, Auction, Settle, Close
 
-A Java Conductor workflow example demonstrating salvage-recovery Salvage Recovery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Total Loss Vehicles Need Salvage, Not Repair
+A Java Conductor workflow example demonstrating salvage-recovery Salvage Recovery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Total Loss Vehicles Need Salvage, Not Repair
 
 A 2020 sedan with $18K in damage and a pre-loss value of $22K .  repair cost exceeds the total loss threshold (typically 70-80% of value). The vehicle is a total loss. The salvage recovery process assesses the damage and confirms total loss, arranges salvage (tow the vehicle to a salvage yard), auctions the salvage (sell the wreck for parts value), settles with the policyholder (pay the actual cash value minus deductible, minus salvage proceeds if the owner retains the vehicle), and closes the claim.
 
@@ -28,15 +26,6 @@ Damage assessment, salvage valuation, auction coordination, and recovery account
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ slv_settle
     │
     ▼
 slv_close
-```
-
-## Example Output
-
-```
-=== Example 701: Salvage Recovery ===
-
-Step 1: Registering task definitions...
-  Registered: slv_assess_damage, slv_salvage, slv_auction, slv_settle, slv_close
-
-Step 2: Registering workflow 'slv_salvage_recovery'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess_damage] Processing
-  [auction] Sold for $5,100
-  [close] Processing
-  [salvage] Processing
-  [settle] Processing
-
-  Status: COMPLETED
-  Output: {totalLoss=..., salvageValue=..., proceeds=..., buyer=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow slv_salvage_recovery \
   --version 1 \
-  --input '{"claimId": "CLM-701", "CLM-701": "vehicleId", "vehicleId": "VIN-98321", "VIN-98321": "damageType", "damageType": "collision-total-loss", "collision-total-loss": "sample-collision-total-loss"}'
+  --input '{"claimId": "TEST-001", "vehicleId": "TEST-001", "damageType": "test-value"}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Switch auction platforms or valuation tools and the salvage pipeline keeps worki
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

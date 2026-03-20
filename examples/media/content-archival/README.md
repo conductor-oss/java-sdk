@@ -1,8 +1,6 @@
 # Content Archival Pipeline in Java Using Conductor :  Inventory, Compression, Cold Storage, Indexing, and Integrity Verification
 
-A Java Conductor workflow example that orchestrates content archival .  scanning and identifying content eligible for archival (2,450 items totaling 15.2 GB), compressing with Zstandard to achieve 65% size reduction, transferring to cold storage (Glacier Deep Archive with 12-48 hour retrieval), building searchable indexes, and verifying data integrity with SHA-256 checksums and 7-year retention policies. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Content Archival Needs Orchestration
+A Java Conductor workflow example that orchestrates content archival .  scanning and identifying content eligible for archival (2,450 items totaling 15.2 GB), compressing with Zstandard to achieve 65% size reduction, transferring to cold storage (Glacier Deep Archive with 12-48 hour retrieval), building searchable indexes, and verifying data integrity with SHA-256 checksums and 7-year retention policies. Uses [Conductor](https://github.## Why Content Archival Needs Orchestration
 
 Archiving content is a pipeline where ordering and integrity matter. You identify which content qualifies for archival based on age and access patterns .  2,450 items spanning 18 months. You compress everything into a tarball with Zstandard for 3:1 compression ratios while computing checksums. You transfer the compressed archive to cold storage (Glacier Deep Archive) where retrieval takes 12-48 hours. You index the archived content so it remains searchable without restoring from cold storage. Finally, you verify that the cold storage checksum matches the original, confirming zero data loss.
 
@@ -28,15 +26,6 @@ Five workers handle the archival pipeline: IdentifyContentWorker scans for eligi
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ car_index_archive
     │
     ▼
 car_verify_integrity
-```
-
-## Example Output
-
-```
-=== Example 528: Content Archival ===
-
-Step 1: Registering task definitions...
-  Registered: car_identify_content, car_compress, car_store_cold, car_index_archive, car_verify_integrity
-
-Step 2: Registering workflow 'content_archival_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [compress] Processing
-  [identify] Processing
-  [index] Processing
-  [store] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {compressedPath=..., compressedSizeMb=..., compressionRatio=..., checksum=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_archival_workflow \
   --version 1 \
-  --input '{"archiveJobId": "ARC-528-2026-03", "ARC-528-2026-03": "ageThresholdDays", "ageThresholdDays": 180, "blog_posts": "sample-blog-posts"}'
+  --input '{"archiveJobId": "TEST-001", "ageThresholdDays": "test-value", "contentCategory": "test-value"}'
 ```
 
 ### Check workflow status

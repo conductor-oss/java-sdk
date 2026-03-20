@@ -1,8 +1,6 @@
 # Pipeline Versioning in Java Using Conductor :  Snapshot Config, Tag, Test, Promote
 
-A Java Conductor workflow example for pipeline versioning .  snapshotting the current pipeline configuration, tagging it with a version, running integration tests against the tagged version, and promoting it to the target environment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Pipeline Configs Change, and You Need to Know What Ran When
+A Java Conductor workflow example for pipeline versioning .  snapshotting the current pipeline configuration, tagging it with a version, running integration tests against the tagged version, and promoting it to the target environment. Uses [Conductor](https://github.## Pipeline Configs Change, and You Need to Know What Ran When
 
 Your ETL pipeline's configuration .  source tables, transformation rules, destination schemas ,  changes frequently. A config change on Tuesday breaks the Wednesday morning run, and nobody can tell which configuration was active when. Rolling back means guessing which version of the config file was deployed, or restoring from a backup that may include unrelated changes.
 
@@ -26,15 +24,6 @@ Three workers manage the version lifecycle: configuration snapshotting, version 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -48,34 +37,6 @@ pvr_test_pipeline
     │
     ▼
 pvr_promote
-```
-
-## Example Output
-
-```
-=== Pipeline Versioning Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pvr_snapshot_config, pvr_tag_version, pvr_test_pipeline, pvr_promote
-
-Step 2: Registering workflow 'pipeline_versioning_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [promote] Processing
-  [snapshot] Processing
-  [tag] Processing
-  [test] Processing
-
-  Status: COMPLETED
-  Output: {promoted=..., environment=..., configSnapshot=..., configHash=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pipeline_versioning_demo \
   --version 1 \
-  --input '{"pipelineName": "sample-name", "etl-orders": "sample-etl-orders", "versionTag": "sample-versionTag", "v4.2.0": "sample-v4.2.0", "environment": "sample-environment"}'
+  --input '{"pipelineName": "test", "versionTag": "test-value", "environment": "test-value"}'
 ```
 
 ### Check workflow status

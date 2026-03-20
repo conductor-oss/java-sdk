@@ -1,8 +1,6 @@
 # Clinical Decision Support in Java Using Conductor :  Data Gathering, Guideline Application, Risk Scoring, and Treatment Recommendations
 
-A Java Conductor workflow example for clinical decision support .  gathering patient clinical data, applying evidence-based guidelines, computing a risk score, and generating treatment recommendations for the clinician. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for clinical decision support .  gathering patient clinical data, applying evidence-based guidelines, computing a risk score, and generating treatment recommendations for the clinician. Uses [Conductor](https://github.## The Problem
 
 You need to provide real-time clinical decision support at the point of care. When a clinician is treating a patient, the system must pull the patient's clinical history (labs, vitals, medications, diagnoses), apply evidence-based clinical guidelines for the presenting condition, compute a risk score (e.g., Framingham for cardiovascular risk, CURB-65 for pneumonia severity), and generate specific treatment recommendations. Each step depends on the previous one .  you cannot apply guidelines without the patient's data, and you cannot recommend treatments without a risk score.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic CDS engine that queries the EHR,
 
 **You just write the clinical decision support workers. Patient data gathering, guideline application, risk scoring, and treatment recommendation. Conductor handles data flow between stages, retries when the EHR data service is slow, and regulatory logging of every recommendation.**
 
-Each stage of the clinical decision support pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of gathering data before applying guidelines, feeding guideline outputs into the risk scorer, generating recommendations only after scoring is complete, and logging every step for regulatory compliance. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the clinical decision support pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of gathering data before applying guidelines, feeding guideline outputs into the risk scorer, generating recommendations only after scoring is complete, and logging every step for regulatory compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the CDS pipeline: GatherDataWorker pulls clinical history, App
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cds_score_risk
     │
     ▼
 cds_recommend
-```
-
-## Example Output
-
-```
-=== Clinical Decision Support Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: cds_gather_data, cds_apply_guidelines, cds_score_risk, cds_recommend
-
-Step 2: Registering workflow 'clinical_decision_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [guidelines] Applying ACC/AHA guidelines for
-  [gather] Collecting clinical data for
-  [recommend] Generating recommendations for risk score
-  [risk] 10-year ASCVD risk:
-
-  Status: COMPLETED
-  Output: {guideline=..., statinIndicated=..., aspirinIndicated=..., bpTarget=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow clinical_decision_workflow \
   --version 1 \
-  --input '{"patientId": "PAT-30567", "PAT-30567": "condition", "condition": "cardiovascular_risk", "cardiovascular_risk": "clinicalContext", "clinicalContext": "annual_wellness_visit", "annual_wellness_visit": "sample-annual-wellness-visit"}'
+  --input '{"patientId": "TEST-001", "condition": "test-value", "clinicalContext": "test-value"}'
 ```
 
 ### Check workflow status

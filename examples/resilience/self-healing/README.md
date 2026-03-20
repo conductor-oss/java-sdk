@@ -12,7 +12,7 @@ Without orchestration, self-healing logic is scattered across monitoring scripts
 
 **You just write the health check and remediation actions. Conductor handles SWITCH-based routing between healthy and unhealthy paths, the check-diagnose-remediate-retry sequence, retries on remediation steps, and a complete record of every healing attempt showing what was detected, what fix was applied, and whether recovery succeeded.**
 
-Each self-healing step is an independent worker .  health check evaluates the service, diagnose identifies the root cause, remediate applies the fix, and retry re-runs the original operation. Conductor orchestrates the flow: when the health check fails, it routes to diagnosis and remediation before retrying. Every healing attempt is tracked ,  you can see what was detected, what fix was applied, and whether the retry succeeded. You get all of that for free, without writing a single line of orchestration code.
+Each self-healing step is an independent worker .  health check evaluates the service, diagnose identifies the root cause, remediate applies the fix, and retry re-runs the original operation. Conductor orchestrates the flow: when the health check fails, it routes to diagnosis and remediation before retrying. Every healing attempt is tracked ,  you can see what was detected, what fix was applied, and whether the retry succeeded. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +28,6 @@ HealthCheckWorker evaluates service status, DiagnoseWorker identifies the root c
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -47,35 +37,6 @@ sh_health_check
 SWITCH (health_switch_ref)
     ├── false: sh_diagnose -> sh_remediate -> sh_retry_process
     └── default: sh_process
-```
-
-## Example Output
-
-```
-=== Self-Healing Workflows Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sh_diagnose, sh_health_check, sh_process, sh_remediate, sh_retry_process
-
-Step 2: Registering workflow 'self_healing_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sh_diagnose] Diagnosing service=
-  [sh_health_check] Checking health of service:
-  [sh_process] Processing data:
-  [sh_remediate] Applying fix:
-  [sh_retry_process] Retry processing data after healing:
-
-  Status: COMPLETED
-  Output: {diagnosis=..., action=..., healthy=..., symptoms=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow self_healing_demo \
   --version 1 \
-  --input '{"service": "sample-service", "healthy-service": "sample-healthy-service", "data": "sample-data"}'
+  --input '{"service": "test-value", "data": "test-value"}'
 ```
 
 ### Check workflow status

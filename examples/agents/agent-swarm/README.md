@@ -1,8 +1,6 @@
 # Agent Swarm in Java Using Conductor :  Decompose Research into Parallel Specialist Investigations
 
-Agent Swarm .  decompose a research topic into subtasks, run 4 swarm agents in parallel, then merge findings into a unified report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Research at Scale Needs Parallel Specialization
+Agent Swarm .  decompose a research topic into subtasks, run 4 swarm agents in parallel, then merge findings into a unified report. Uses [Conductor](https://github.## Research at Scale Needs Parallel Specialization
 
 Researching a topic like "edge computing adoption" thoroughly requires four distinct perspectives: market analysis (market size, growth rates, competitive landscape), technical landscape (architectures, key innovations, standards), real-world use cases (deployments, case studies, ROI data), and future trends (emerging developments, potential disruptions). A single agent doing all four sequentially takes four times as long and tends to produce shallow coverage across all areas.
 
@@ -29,16 +27,6 @@ Six workers run the swarm. Decomposing the topic, dispatching four parallel spec
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -54,36 +42,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 as_merge
-```
-
-## Example Output
-
-```
-=== Agent Swarm Demo: Decompose, Parallel Swarm, Merge ===
-
-Step 1: Registering task definitions...
-  Registered: as_decompose, as_swarm_1, as_swarm_2, as_swarm_3, as_swarm_4, as_merge
-
-Step 2: Registering workflow 'agent_swarm_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [as_decompose] Decomposing research topic:
-  [as_merge] Merging results from 4 swarm agents for topic:
-  [as_swarm_1] Agent
-  [as_swarm_2] Agent
-  [as_swarm_3] Agent
-  [as_swarm_4] Agent
-
-  Status: COMPLETED
-  Output: {id=..., area=..., instruction=..., subtasks=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -112,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -155,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agent_swarm_demo \
   --version 1 \
-  --input '{"researchTopic": "sample-researchTopic"}'
+  --input '{"researchTopic": "test-value"}'
 ```
 
 ### Check workflow status
@@ -179,7 +137,6 @@ Swap in real LLM calls and data sources; the swarm pipeline preserves the same d
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

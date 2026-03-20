@@ -1,8 +1,6 @@
 # Workflow Debugging in Java Using Conductor :  Instrument, Execute, Trace, Analyze, Report
 
-A Java Conductor workflow example for workflow debugging .  instrumenting a workflow with debug hooks, executing it with tracing enabled, collecting execution traces, analyzing the trace data for anomalies and bottlenecks, and generating a debug report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## When Workflows Fail, You Need More Than a Stack Trace
+A Java Conductor workflow example for workflow debugging .  instrumenting a workflow with debug hooks, executing it with tracing enabled, collecting execution traces, analyzing the trace data for anomalies and bottlenecks, and generating a debug report. Uses [Conductor](https://github.## When Workflows Fail, You Need More Than a Stack Trace
 
 A 20-step workflow fails at step 14. The error says "null pointer exception." But the real question is: what were the inputs at step 14? What did step 13 output? How long did each step take? Did step 7 produce unexpected output that propagated silently until step 14 crashed? You need distributed tracing across the entire workflow execution .  not just the error at the failure point.
 
@@ -28,15 +26,6 @@ Five workers form the debug cycle: instrumentation, traced execution, trace coll
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ wfd_analyze
     │
     ▼
 wfd_report
-```
-
-## Example Output
-
-```
-=== Workflow Debugging Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wfd_instrument, wfd_execute, wfd_collect_trace, wfd_analyze, wfd_report
-
-Step 2: Registering workflow 'wfd_workflow_debugging'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzing trace data for anomalies
-  [collect] Collecting trace data for execution \"" + executionId + "\"
-  [execute] Executing instrumented workflow \"" + instrumentedWorkflow + "\"
-  [instrument] Instrumenting workflow \"" + workflowName + "\" at level
-  [report] Generating debug report for workflow \"" + workflowName + "\"
-
-  Status: COMPLETED
-  Output: {analysis=..., traceData=..., executionId=..., durationMs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wfd_workflow_debugging \
   --version 1 \
-  --input '{"workflowName": "sample-name", "order-processing": "sample-order-processing", "debugLevel": "sample-debugLevel"}'
+  --input '{"workflowName": "test", "debugLevel": "test-value"}'
 ```
 
 ### Check workflow status
@@ -167,8 +127,6 @@ conductor workflow search -w wfd_workflow_debugging -s COMPLETED -c 5
 ## How to Extend
 
 Each worker covers one debugging phase .  replace the simulated trace collection with real distributed tracing APIs like Jaeger or OpenTelemetry and the instrument-analyze-report pipeline runs unchanged.
-
-
 
 The trace and report output contract stays fixed. Swap the simulated instrumentation for real OpenTelemetry spans or Jaeger traces and the analyze-report pipeline runs unchanged.
 

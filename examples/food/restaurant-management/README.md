@@ -1,8 +1,6 @@
 # Restaurant Management in Java with Conductor
 
-Manages the full restaurant guest experience: locating a reservation, seating the party, taking a food order, preparing dishes in the kitchen, and generating the bill. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Manages the full restaurant guest experience: locating a reservation, seating the party, taking a food order, preparing dishes in the kitchen, and generating the bill. Uses [Conductor](https://github.## The Problem
 
 You need to manage the full restaurant guest experience from reservation to checkout. When a guest arrives, their reservation is located, they are seated at an appropriate table, their food order is taken and sent to the kitchen, the kitchen prepares the dishes, and the guest checks out with the bill. A breakdown at any step .  lost reservation, wrong table, kitchen miscommunication, billing error ,  degrades the dining experience.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd coordinate between the host stand, waitstaff, kitch
 
 **You just write the reservation lookup, seating, order taking, kitchen preparation, and billing logic. Conductor handles scheduling retries, inventory coordination, and operational audit trails.**
 
-Each restaurant operation is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the guest flow (reservations, seating, order, kitchen, checkout), tracking every guest's experience through the restaurant, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each restaurant operation is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the guest flow (reservations, seating, order, kitchen, checkout), tracking every guest's experience through the restaurant, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Staff scheduling, inventory ordering, revenue tracking, and compliance workers e
 | **SeatingWorker** | `rst_seating` | Assigns a table and section (e.g., patio) to the reservation and marks the party as seated |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ rst_kitchen
     │
     ▼
 rst_checkout
-```
-
-## Example Output
-
-```
-=== Example 732: Restaurant Management ===
-
-Step 1: Registering task definitions...
-  Registered: rst_reservations, rst_seating, rst_order, rst_kitchen, rst_checkout
-
-Step 2: Registering workflow 'restaurant_management_732'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [checkout] Generating bill for table
-  [kitchen] Preparing items for order
-  [order] Taking order at table
-  [reserve] Reservation for
-  [seat] Seating reservation
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow restaurant_management_732 \
   --version 1 \
-  --input '{"guestName": "sample-name", "Smith": "sample-Smith", "partySize": 5}'
+  --input '{"guestName": "test", "partySize": 10}'
 ```
 
 ### Check workflow status

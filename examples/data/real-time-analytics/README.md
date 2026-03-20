@@ -1,8 +1,6 @@
 # Real-Time Analytics in Java Using Conductor :  Event Ingestion, Windowed Stream Processing, Aggregate Updates, and Alert Checking
 
-A Java Conductor workflow example for real-time analytics: ingesting a batch of events, processing them within a configurable time window to compute windowed metrics and flag anomalies, updating running aggregates with the latest window results, and evaluating alert rules against the current aggregates to trigger notifications when thresholds are breached. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for real-time analytics: ingesting a batch of events, processing them within a configurable time window to compute windowed metrics and flag anomalies, updating running aggregates with the latest window results, and evaluating alert rules against the current aggregates to trigger notifications when thresholds are breached. Uses [Conductor](https://github.## The Problem
 
 Events are arriving in batches from your application: page views, API calls, purchases, error occurrences, and you need analytics that reflect what's happening right now, not what happened yesterday. Each batch of events needs to be processed within a time window (last 5 minutes, last hour) to compute windowed metrics like requests per second, error rate, and 95th percentile latency. Those window metrics need to update running aggregates so dashboards show cumulative trends. And when an aggregate crosses a threshold, error rate exceeds 5%, latency spikes above 500ms, purchase volume drops below normal, alert rules need to fire immediately, not after a nightly batch job.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single event processor that ingests, window
 
 **You just write the event ingestion, windowed processing, aggregate updating, and alert checking workers. Conductor handles the ingest-window-aggregate-alert pipeline, retries when aggregate stores are temporarily unavailable, and event count tracking at every stage.**
 
-Each stage of the analytics pipeline is a simple, independent worker. The event ingester validates and normalizes the incoming event batch, counting the events for tracking. The stream processor groups events by the configured window size, computes windowed metrics (event rate, error rate, distribution statistics), and flags anomalous windows. The aggregate updater merges the latest window metrics into the running aggregates, maintaining cumulative counters and moving averages. The alert checker evaluates the configured alert rules against current aggregates and triggers alerts when thresholds are breached. Conductor executes them in strict sequence, passes events through the pipeline, retries if the aggregate store is temporarily unavailable, and tracks event counts, processed counts, and alert counts at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the analytics pipeline is a simple, independent worker. The event ingester validates and normalizes the incoming event batch, counting the events for tracking. The stream processor groups events by the configured window size, computes windowed metrics (event rate, error rate, distribution statistics), and flags anomalous windows. The aggregate updater merges the latest window metrics into the running aggregates, maintaining cumulative counters and moving averages. The alert checker evaluates the configured alert rules against current aggregates and triggers alerts when thresholds are breached. Conductor executes them in strict sequence, passes events through the pipeline, retries if the aggregate store is temporarily unavailable, and tracks event counts, processed counts, and alert counts at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers power the real-time analytics pipeline: ingesting and normalizing e
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ry_update_aggregates
     │
     ▼
 ry_check_alerts
-```
-
-## Example Output
-
-```
-=== Real-Time Analytics Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ry_ingest_events, ry_process_stream, ry_update_aggregates, ry_check_alerts
-
-Step 2: Registering workflow 'real_time_analytics'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [alerts]
-  [ingest] Ingested
-  [process] Processed
-  [update] Updated aggregates:
-
-  Status: COMPLETED
-  Output: {rule=..., severity=..., message=..., alerts=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow real_time_analytics \
   --version 1 \
-  --input '{"eventBatch": {"key": "value"}}'
+  --input '{"eventBatch": "test-value", "windowSize": 10, "alertRules": "test-value"}'
 ```
 
 ### Check workflow status

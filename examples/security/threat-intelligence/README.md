@@ -12,7 +12,7 @@ Without orchestration, threat intelligence is consumed manually .  a security an
 
 **You just write the feed parsers and IOC correlation queries. Conductor handles feed polling, retries when threat APIs are rate-limited, and tracking of every IOC ingested, correlated, and distributed.**
 
-Each intelligence step is an independent worker .  feed ingestion, enrichment, correlation, and distribution. Conductor runs them in sequence: ingest IOCs from feeds, enrich with context, correlate against your logs, then distribute to security tools. Every intelligence cycle is tracked with IOC counts, correlation hits, and distribution status. You get all of that for free, without writing a single line of orchestration code.
+Each intelligence step is an independent worker .  feed ingestion, enrichment, correlation, and distribution. Conductor runs them in sequence: ingest IOCs from feeds, enrich with context, correlate against your logs, then distribute to security tools. Every intelligence cycle is tracked with IOC counts, correlation hits, and distribution status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers process threat data: IngestFeedsWorker pulls IOCs from external fee
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ ti_enrich_context
     │
     ▼
 ti_distribute_intel
-```
-
-## Example Output
-
-```
-=== Example 351: Threat Intelligence ===
-
-Step 1: Registering task definitions...
-  Registered: ti_ingest_feeds, ti_correlate_iocs, ti_enrich_context, ti_distribute_intel
-
-Step 2: Registering workflow 'threat_intelligence_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [correlate] 18 IOCs matched against internal infrastructure
-  [distribute] Intel distributed to SIEM, firewall, and EDR
-  [enrich] Added MITRE ATT&CK mapping and actor attribution
-  [ingest] Ingested 2,400 indicators from 5 threat feeds
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow threat_intelligence_workflow \
   --version 1 \
-  --input '{"feedSources": "sample-feedSources", "OSINT": "sample-OSINT", "lookbackHours": "sample-lookbackHours"}'
+  --input '{"feedSources": "test-value", "lookbackHours": "test-value"}'
 ```
 
 ### Check workflow status

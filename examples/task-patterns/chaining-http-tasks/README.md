@@ -1,8 +1,6 @@
 # Chaining HTTP Tasks in Java with Conductor
 
-Chain HTTP system tasks for API orchestration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Chain HTTP system tasks for API orchestration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to call multiple external APIs in sequence, where each call depends on the previous one's response. A prepare step builds the request parameters, an HTTP system task calls the first API, the response feeds into the next HTTP call, and finally a worker processes the combined results. If any API call fails or returns an error, the chain must handle the failure without leaving data in an inconsistent state.
 
@@ -25,15 +23,6 @@ Two workers bookend the HTTP chain: PrepareRequestWorker builds the request cont
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -44,32 +33,6 @@ verify_task_via_http [HTTP]
     │
     ▼
 format_http_result [INLINE]
-```
-
-## Example Output
-
-```
-=== Chaining HTTP Tasks: Sequential REST API Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: http_prepare_request, http_process_response
-
-Step 2: Registering workflow 'http_chain_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [prepare] Building search for:
-  [process] HTTP
-
-  Status: COMPLETED
-  Output: {searchTerm=..., result=..., httpStatus=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -98,7 +61,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -141,7 +104,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow http_chain_demo \
   --version 1 \
-  --input '{"taskName": "sample-name", "conductorApiUrl": "https://api.example.com/resource"}'
+  --input '{"taskName": "test", "conductorApiUrl": "https://example.com"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Menu Management in Java with Conductor
 
-Manages a restaurant menu lifecycle: creating items with descriptions, setting prices, categorizing into sections, publishing to ordering platforms, and syncing updates. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Manages a restaurant menu lifecycle: creating items with descriptions, setting prices, categorizing into sections, publishing to ordering platforms, and syncing updates. Uses [Conductor](https://github.## The Problem
 
 You need to manage a restaurant's menu lifecycle .  creating menu items with descriptions and photos, setting prices based on food costs and margins, organizing items into categories (appetizers, entrees, desserts), publishing the menu to ordering platforms, and updating items as ingredients or prices change. Publishing a menu with incorrect prices erodes margins; outdated items lead to orders the kitchen cannot fulfill.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage menus through a combination of spreadsheets,
 
 **You just write the item creation, pricing, categorization, platform publishing, and update syncing logic. Conductor handles pricing retries, publication sequencing, and menu change audit trails.**
 
-Each menu concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create items, price, categorize, publish, update), retrying if a platform API is unavailable, tracking every menu change, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each menu concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create items, price, categorize, publish, update), retrying if a platform API is unavailable, tracking every menu change, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Item creation, pricing, categorization, and publication workers handle menu upda
 | **UpdateWorker** | `mnu_update` | Confirms the menu is live and synced across all platforms, returning the final menu status and item count |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ mnu_publish
     │
     ▼
 mnu_update
-```
-
-## Example Output
-
-```
-=== Example 734: Menu Management ===
-
-Step 1: Registering task definitions...
-  Registered: mnu_create_items, mnu_price, mnu_categorize, mnu_publish, mnu_update
-
-Step 2: Registering workflow 'menu_management_734'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [categorize] Organizing items into categories
-  [create] Creating menu items for restaurant
-  [price] Setting prices for items
-  [publish] Publishing menu:
-  [update] Menu
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow menu_management_734 \
   --version 1 \
-  --input '{"restaurantId": "REST-10", "REST-10": "menuName", "menuName": "Spring 2026 Menu", "Spring 2026 Menu": "sample-Spring 2026 Menu"}'
+  --input '{"restaurantId": "TEST-001", "menuName": "test"}'
 ```
 
 ### Check workflow status

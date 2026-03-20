@@ -1,6 +1,6 @@
 # RAG with MongoDB Atlas Vector Search in Java Using Conductor :  Embed, Search, Generate
 
-A Java Conductor workflow that implements RAG using MongoDB Atlas Vector Search .  embedding the question, running a vector search query against a MongoDB collection with a vector search index, and generating an answer from the retrieved documents. If you already store your data in MongoDB, Atlas Vector Search lets you add RAG without a separate vector database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, MongoDB vector search, and generation as independent workers ,  you write the MongoDB integration, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that implements RAG using MongoDB Atlas Vector Search .  embedding the question, running a vector search query against a MongoDB collection with a vector search index, and generating an answer from the retrieved documents. If you already store your data in MongoDB, Atlas Vector Search lets you add RAG without a separate vector database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, MongoDB vector search, and generation as independent workers ,  you write the MongoDB integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG on Your Existing MongoDB Data
 
@@ -26,15 +26,6 @@ Three workers integrate MongoDB Atlas into the RAG pipeline .  embedding the que
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ mongo_vector_search
     │
     ▼
 mongo_generate
-```
-
-## Example Output
-
-```
-=== RAG with MongoDB Atlas Vector Search ===
-
-Step 1: Registering task definitions...
-  Registered: mongo_embed, mongo_vector_search, mongo_generate
-
-Step 2: Registering workflow 'rag_mongodb_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [embed] Generated embedding via OpenAI API (LIVE):
-  [generate] Response from OpenAI API (LIVE)
-  [mongodb] Database: \"" + database + "\", Collection: \"" + collection + "\"
-
-  Status: COMPLETED
-  Output: {embedding=..., dimensions=..., answer=..., _id=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_mongodb_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "How does MongoDB Atlas Vector Search work?": "sample-How does MongoDB Atlas Vector Search work?", "database": "sample-database", "knowledge_base": "sample-knowledge-base", "collection": "sample-collection"}'
+  --input '{"question": "test-value", "database": "test-value", "collection": "test-value"}'
 ```
 
 ### Check workflow status

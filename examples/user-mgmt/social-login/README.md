@@ -1,8 +1,6 @@
 # Social Login in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Social Login. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Social Login. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A user clicks "Sign in with Google" on your login page. The system needs to detect which OAuth provider was selected, validate the OAuth token against the provider's API to retrieve the user's profile, link the social identity to an existing account or create a new one, and issue a session token so the user can access the application. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ DetectProviderWorker identifies Google/GitHub/Facebook, OAuthWorker validates th
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ slo_link_account
     │
     ▼
 slo_session
-```
-
-## Example Output
-
-```
-=== Example 612: Social Logi ===
-
-Step 1: Registering task definitions...
-  Registered: slo_detect_provider, slo_auth, slo_link_account, slo_session
-
-Step 2: Registering workflow 'slo_social_login'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [session] Session created for
-  [detect] OAuth provider detected:
-  [link] Account linked/created ->
-  [auth] OAuth token validated with
-
-  Status: COMPLETED
-  Output: {sessionToken=..., expiresIn=..., providerName=..., authEndpoint=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow slo_social_login \
   --version 1 \
-  --input '{"provider": "google", "google": "oauthToken", "oauthToken": "ya29.mock_token_xyz", "ya29.mock_token_xyz": "email", "email": "grace@example.com", "grace@example.com": "sample-grace@example.com"}'
+  --input '{"provider": "TEST-001", "oauthToken": "test-value", "email": "user@example.com"}'
 ```
 
 ### Check workflow status

@@ -12,7 +12,7 @@ Without orchestration, zero trust checks are scattered across different systems 
 
 **You just write the identity checks and device posture assessments. Conductor handles the strict verification sequence so no access is granted without all trust signals evaluated, retries when identity providers are slow, and a complete audit of every access decision with all contributing signals.**
 
-Each trust signal is evaluated by an independent worker .  identity verification, device assessment, context evaluation, and policy enforcement. Conductor runs them in sequence: verify identity, assess device, evaluate context, then enforce the combined policy. Every access decision is tracked with all trust signals ,  you can audit exactly why access was granted or denied. You get all of that for free, without writing a single line of orchestration code.
+Each trust signal is evaluated by an independent worker .  identity verification, device assessment, context evaluation, and policy enforcement. Conductor runs them in sequence: verify identity, assess device, evaluate context, then enforce the combined policy. Every access decision is tracked with all trust signals ,  you can audit exactly why access was granted or denied. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four trust-signal evaluators work in sequence: VerifyIdentityWorker checks MFA a
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ zt_evaluate_context
     │
     ▼
 zt_enforce_policy
-```
-
-## Example Output
-
-```
-=== Example 366: Zero Trust Verificatio ===
-
-Step 1: Registering task definitions...
-  Registered: zt_verify_identity, zt_assess_device, zt_evaluate_context, zt_enforce_policy
-
-Step 2: Registering workflow 'zero_trust_verification_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [device] LAPTOP-A1B2C3: compliant, patched, encrypted
-  [enforce] Access GRANTED .  composite trust score: 91
-  [context] Corporate network, business hours, normal behavior
-  [identity] engineer-01: MFA verified, trust score 95
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow zero_trust_verification_workflow \
   --version 1 \
-  --input '{"userId": "engineer-01", "engineer-01": "deviceId", "deviceId": "LAPTOP-A1B2C3", "LAPTOP-A1B2C3": "requestedResource", "requestedResource": "production-api", "production-api": "sample-production-api"}'
+  --input '{"userId": "TEST-001", "deviceId": "TEST-001", "requestedResource": "test-value"}'
 ```
 
 ### Check workflow status

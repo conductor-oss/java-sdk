@@ -1,8 +1,6 @@
 # Tool Use Caching in Java Using Conductor :  Check Cache, Execute-or-Return-Cached, Store Results
 
-Tool Use Caching .  checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Tool Calls Are Expensive :  Don't Repeat Them
+Tool Use Caching .  checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss. Uses [Conductor](https://github.## Tool Calls Are Expensive :  Don't Repeat Them
 
 Tool calls cost time and often money. A web search API charges per query. A database query consumes compute resources. A calculation takes CPU time. If the same tool is called with the same arguments within a short window (same weather query, same stock lookup, same calculation), returning the cached result saves time and cost.
 
@@ -27,16 +25,6 @@ Four workers implement caching. Checking the cache for a prior result, routing c
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,34 +34,6 @@ uc_check_cache
 SWITCH (cache_decision_ref)
     ├── hit: uc_return_cached
     └── default: uc_execute_tool -> uc_cache_result
-```
-
-## Example Output
-
-```
-=== Tool Use Caching Demo ===
-
-Step 1: Registering task definitions...
-  Registered: uc_check_cache, uc_return_cached, uc_execute_tool, uc_cache_result
-
-Step 2: Registering workflow 'tool_use_caching'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [uc_cache_result] Caching result for key:
-  [uc_check_cache] Checking cache for tool:
-  [uc_execute_tool] Executing tool:
-  [uc_return_cached] Returning cached result for key:
-
-  Status: COMPLETED
-  Output: {storedResult=..., cached=..., cacheKey=..., expiresAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_caching \
   --version 1 \
-  --input '{"toolName": "sample-name", "currency_exchange": "sample-currency-exchange", "toolArgs": "sample-toolArgs", "from": "sample-from", "USD": "sample-USD", "to": "sample-to", "EUR": "sample-EUR", "amount": 250.0, "cacheTtlSeconds": "sample-cacheTtlSeconds"}'
+  --input '{"toolName": "test", "toolArgs": "test-value", "cacheTtlSeconds": "test-value"}'
 ```
 
 ### Check workflow status
@@ -169,7 +129,6 @@ Plug in Redis for real caching; the cache-check-and-route workflow maintains the
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

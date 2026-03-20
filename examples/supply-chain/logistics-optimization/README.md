@@ -1,8 +1,6 @@
 # Logistics Optimization in Java with Conductor :  Demand Analysis, Route Optimization, Vehicle Scheduling, and Fleet Dispatch
 
-A Java Conductor workflow example for logistics optimization .  analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for logistics optimization .  analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.## The Problem
 
 You need to optimize logistics for a batch of 40+ orders spread across different ZIP codes. Demand must be analyzed to identify geographic clusters and volume patterns. Routes must be optimized across all delivery points to minimize total mileage. Vehicles must be scheduled based on load capacity, driver hours-of-service, and delivery time windows. The fleet must then be dispatched with each driver receiving their optimized stop list.
 
@@ -27,15 +25,6 @@ Four workers optimize the logistics pipeline: AnalyzeDemandWorker clusters order
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ lo_schedule
     │
     ▼
 lo_dispatch
-```
-
-## Example Output
-
-```
-=== Example 658: Logistics Optimizatio ===
-
-Step 1: Registering task definitions...
-  Registered: lo_analyze_demand, lo_optimize_routes, lo_schedule, lo_dispatch
-
-Step 2: Registering workflow 'lo_logistics_optimization'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [demand] Analyzed
-  [dispatch] Dispatched
-  [routes] Optimized
-  [schedule] Scheduled
-
-  Status: COMPLETED
-  Output: {demandMap=..., orderCount=..., dispatched=..., vehiclesDispatched=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lo_logistics_optimization \
   --version 1 \
-  --input '{"region": "midwest", "midwest": "date", "date": "2024-03-15", "2024-03-15": "orders", "orders": "sample-orders"}'
+  --input '{"region": "test-value", "date": "2026-01-01T00:00:00Z", "orders": "test-value"}'
 ```
 
 ### Check workflow status

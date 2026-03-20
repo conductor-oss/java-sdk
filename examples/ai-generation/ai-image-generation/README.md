@@ -1,6 +1,6 @@
 # AI Image Generation in Java Using Conductor :  Prompt Engineering, Generation, Enhancement, Validation, Delivery
 
-A Java Conductor workflow that generates images from text prompts through a five-stage pipeline .  engineering the prompt with style-specific keywords, generating the image with a diffusion model, enhancing resolution and color, validating content safety and quality, and delivering the final output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate prompt engineering, generation, enhancement, validation, and delivery as independent workers ,  you write the image generation logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that generates images from text prompts through a five-stage pipeline .  engineering the prompt with style-specific keywords, generating the image with a diffusion model, enhancing resolution and color, validating content safety and quality, and delivering the final output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate prompt engineering, generation, enhancement, validation, and delivery as independent workers ,  you write the image generation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## From Text Prompt to Production-Ready Image
 
@@ -30,15 +30,6 @@ The pipeline splits image generation into five focused workers, from prompt refi
 
 The remaining simulated workers produce realistic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call .  the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -55,35 +46,6 @@ aig_validate
     │
     ▼
 aig_deliver
-```
-
-## Example Output
-
-```
-=== Example 809: AI Image Generation. Prompt, Generate, Enhance, Validate, Deliver ===
-
-Step 1: Registering task definitions...
-  Registered: aig_prompt, aig_generate, aig_enhance, aig_validate, aig_deliver
-
-Step 2: Registering workflow 'aig_image_generation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [deliver] Processing
-  [enhance] Processing
-  [generate] [SIMULATED] Image generated at 1024x1024 resolution
-  [prompt] Processing
-  [validate] Processing
-
-  Status: COMPLETED
-  Output: {delivered=..., url=..., sizeKB=..., enhancedImageId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -112,7 +74,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +118,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow aig_image_generation \
   --version 1 \
-  --input '{"prompt": "sample-prompt", "A futuristic city at sunset": "sample-A futuristic city at sunset", "style": "sample-style", "photorealistic": "sample-photorealistic", "resolution": "sample-resolution"}'
+  --input '{"prompt": "test-value", "style": "test-value", "resolution": "test-value"}'
 ```
 
 ### Check workflow status

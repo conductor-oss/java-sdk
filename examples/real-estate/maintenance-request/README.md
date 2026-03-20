@@ -1,8 +1,6 @@
 # Property Maintenance Request in Java with Conductor :  Submit, Classify, Assign, Complete, and Invoice
 
-A Java Conductor workflow example for handling tenant maintenance requests end-to-end .  submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for handling tenant maintenance requests end-to-end .  submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.## The Problem
 
 You need to handle maintenance requests from tenants across your property portfolio. A tenant reports "kitchen faucet leaking" .  the request must be logged, classified by category (plumbing, electrical, HVAC, general) and priority (emergency, urgent, routine), assigned to an available technician with the right skills, tracked through completion with labor hours recorded, and invoiced for billing. Each step depends on the previous one: you can't assign a technician without knowing the category, and you can't invoice without knowing the labor hours.
 
@@ -12,7 +10,7 @@ Without orchestration, maintenance requests pile up in email inboxes. Property m
 
 **You just write the request intake, classification, technician assignment, completion tracking, and invoicing logic. Conductor handles dispatch retries, priority routing, and maintenance audit trails.**
 
-Each maintenance step is a simple, independent worker .  one logs the request, one classifies category and priority, one assigns the right technician, one records completion details, one generates the invoice. Conductor takes care of executing them in order, retrying if the technician scheduling system is temporarily down, and tracking every request from submission through invoicing so nothing falls through the cracks. You get all of that for free, without writing a single line of orchestration code.
+Each maintenance step is a simple, independent worker .  one logs the request, one classifies category and priority, one assigns the right technician, one records completion details, one generates the invoice. Conductor takes care of executing them in order, retrying if the technician scheduling system is temporarily down, and tracking every request from submission through invoicing so nothing falls through the cracks. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Request intake, priority assessment, vendor dispatch, and completion verificatio
 | **InvoiceWorker** | `mtr_invoice` | Generates an invoice for labor and materials, calculating total cost from completion data |
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ mtr_complete
     │
     ▼
 mtr_invoice
-```
-
-## Example Output
-
-```
-=== Example 686: Maintenance Request ===
-
-Step 1: Registering task definitions...
-  Registered: mtr_submit, mtr_classify, mtr_assign, mtr_complete, mtr_invoice
-
-Step 2: Registering workflow 'mtr_maintenance_request'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mtr_assign] Executing
-  [mtr_classify] Executing
-  [mtr_complete] Executing
-  [mtr_invoice] Executing
-  [mtr_submit] Executing
-
-  Status: COMPLETED
-  Output: {technicianId=..., priority=..., category=..., laborHours=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mtr_maintenance_request \
   --version 1 \
-  --input '{"tenantId": "TNT-60", "TNT-60": "propertyId", "propertyId": "UNIT-3C", "UNIT-3C": "description", "description": "Kitchen sink leaking", "Kitchen sink leaking": "sample-Kitchen sink leaking"}'
+  --input '{"tenantId": "TEST-001", "propertyId": "TEST-001", "description": "test-value"}'
 ```
 
 ### Check workflow status

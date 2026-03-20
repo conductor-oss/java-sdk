@@ -12,7 +12,7 @@ Without orchestration, implementing different timeout policies per task means wr
 
 **You just write the task logic and declare timeout policies in the workflow definition. Conductor handles per-task timeout detection with configurable policy enforcement (TIME_OUT_WF, RETRY, ALERT_ONLY), and a record of every timeout event showing which policy was applied and what action was taken.**
 
-Each task's timeout policy is declared in the task definition .  `timeoutPolicy: TIME_OUT_WF` for critical tasks, `RETRY` for flaky tasks, and `ALERT_ONLY` for non-critical tasks. The workers just do their work; Conductor handles the timeout detection and policy enforcement. Changing a task's timeout behavior is a config change, not a code change. You get all of that for free, without writing a single line of orchestration code.
+Each task's timeout policy is declared in the task definition .  `timeoutPolicy: TIME_OUT_WF` for critical tasks, `RETRY` for flaky tasks, and `ALERT_ONLY` for non-critical tasks. The workers just do their work; Conductor handles the timeout detection and policy enforcement. Changing a task's timeout behavior is a config change, not a code change. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,46 +26,10 @@ CriticalWorker uses TIME_OUT_WF to fail the entire workflow on timeout, Retryabl
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 tp_critical
-```
-
-## Example Output
-
-```
-=== Timeout Policies Demo: TIME_OUT_WF vs ALERT_ONLY vs RETRY ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'timeout_policies'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tp_critical] Processing. Responds within timeout
-  [tp_optional] Processing. Optional enrichment step
-  [tp_retryable] Processing. Retryable service call
-
-  Status: COMPLETED
-  Output: {result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -94,7 +58,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -137,7 +101,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow timeout_policy_demo \
   --version 1 \
-  --input '{"mode": "sample-mode"}'
+  --input '{"mode": "test-value"}'
 ```
 
 ### Check workflow status

@@ -27,15 +27,6 @@ Four workers run the lead scoring pipeline: QueryLeadsWorker fetches leads via S
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ sfc_update_records
     │
     ▼
 sfc_sync_crm
-```
-
-## Example Output
-
-```
-=== Example 438: Salesforce Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: sfc_query_leads, sfc_score_leads, sfc_update_records, sfc_sync_crm
-
-Step 2: Registering workflow 'salesforce_integration_438'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [query] Found 3 leads matching:
-  [score] Scored
-  [sync] Synced
-  [update] Updated
-
-  Status: COMPLETED
-  Output: {leads=..., totalCount=..., score=..., scoredLeads=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +115,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow salesforce_integration_438 \
   --version 1 \
-  --input '{"query": "sample-query", "industry = 'Technology' AND status = 'New'": "pending", "scoringModel": "sample-scoringModel", "ml-lead-v2": "sample-ml-lead-v2", "syncTarget": "sample-syncTarget"}'
+  --input '{"query": "test-value", "scoringModel": "test-value", "syncTarget": "test-value"}'Technology' AND status = 'New'": "pending", "scoringModel": "sample-scoringModel", "ml-lead-v2": "sample-ml-lead-v2", "syncTarget": "sample-syncTarget"}'
 ```
 
 ### Check workflow status

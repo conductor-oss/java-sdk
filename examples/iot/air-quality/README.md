@@ -1,8 +1,6 @@
 # Air Quality in Java with Conductor
 
-A Java Conductor workflow example that orchestrates air quality monitoring .  collecting pollutant readings (PM2.5, PM10, ozone, CO) from monitoring stations, evaluating concentrations against air quality standards to compute an AQI category, and routing to different response handlers via SWITCH based on whether conditions are good, moderate, or poor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Air Quality Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates air quality monitoring .  collecting pollutant readings (PM2.5, PM10, ozone, CO) from monitoring stations, evaluating concentrations against air quality standards to compute an AQI category, and routing to different response handlers via SWITCH based on whether conditions are good, moderate, or poor. Uses [Conductor](https://github.## Why Air Quality Monitoring Needs Orchestration
 
 Monitoring air quality requires a pipeline that collects pollutant data, evaluates it against standards, and takes different actions depending on the result. You collect readings from a monitoring station. PM2.5, PM10, ozone, and CO concentrations for a given region. You check those readings against air quality standards to compute an AQI score and categorize conditions as good, moderate, or poor. Based on the category, you route to entirely different response handlers: log a routine checkpoint for good air, issue a sensitive-groups advisory for moderate conditions, or broadcast a public health warning for poor air quality.
 
@@ -28,16 +26,6 @@ Five workers monitor air quality: CollectReadingsWorker gathers pollutant concen
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -51,35 +39,6 @@ SWITCH (aq_switch_ref)
     ├── good: aq_action_good
     ├── moderate: aq_action_moderate
     ├── poor: aq_action_poor
-```
-
-## Example Output
-
-```
-=== Example 549: Air Quality ===
-
-Step 1: Registering task definitions...
-  Registered: aq_collect_readings, aq_check_standards, aq_action_good, aq_action_moderate, aq_action_poor
-
-Step 2: Registering workflow 'air_quality_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [good] Processing task
-  [moderate] Processing task
-  [POOR] Processing task
-  [standards] Processing task
-  [readings] Processing task
-
-  Status: COMPLETED
-  Output: {action=..., notificationSent=..., done=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +67,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +110,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow air_quality_demo \
   --version 1 \
-  --input '{"stationId": "AQ-CLEAN", "AQ-CLEAN": "region", "region": "suburban", "suburban": "sample-suburban"}'
+  --input '{"stationId": "TEST-001", "region": "test-value"}'
 ```
 
 ### Check workflow status

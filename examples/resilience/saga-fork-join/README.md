@@ -12,7 +12,7 @@ Without orchestration, parallel booking means managing threads or async calls, c
 
 **You just write the booking and cancellation logic per service. Conductor handles FORK/JOIN parallel execution across all booking services, result collection, confirm-or-compensate routing, retries per booking, and independent tracking of each parallel branch with timing and outcomes.**
 
-Conductor's FORK/JOIN runs hotel, flight, and car booking workers in parallel. A check-results worker examines all outcomes. If all succeeded, a confirm-all worker finalizes the bookings. If any failed, the workflow routes to cancellation. Every parallel branch is tracked independently .  you can see exactly which booking succeeded, which failed, and how long each took. You get all of that for free, without writing a single line of orchestration code.
+Conductor's FORK/JOIN runs hotel, flight, and car booking workers in parallel. A check-results worker examines all outcomes. If all succeeded, a confirm-all worker finalizes the bookings. If any failed, the workflow routes to cancellation. Every parallel branch is tracked independently .  you can see exactly which booking succeeded, which failed, and how long each took. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +28,6 @@ BookHotelWorker, BookFlightWorker, and BookCarWorker run simultaneously via FORK
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +42,6 @@ sfj_check_results
     │
     ▼
 sfj_confirm_all
-```
-
-## Example Output
-
-```
-=== Parallel Bookings with Rollback (Saga FORK_JOIN) ===
-
-Step 1: Registering task definitions...
-  Registered: sfj_book_car, sfj_book_flight, sfj_book_hotel, sfj_check_results, sfj_confirm_all
-
-Step 2: Registering workflow 'saga_fork_join_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sfj_book_car] Booking car for trip
-  [sfj_book_flight] Booking flight for trip
-  [sfj_book_hotel] Booking hotel for trip
-  [sfj_check_results] hotel=
-  [sfj_confirm_all] tripId=
-
-  Status: COMPLETED
-  Output: {bookingId=..., type=..., tripId=..., hotelBookingId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow saga_fork_join_demo \
   --version 1 \
-  --input '{"tripId": "TRIP-42", "TRIP-42": "sample-TRIP-42"}'
+  --input '{"tripId": "TEST-001"}'
 ```
 
 ### Check workflow status

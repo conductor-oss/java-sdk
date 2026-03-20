@@ -1,8 +1,6 @@
 # Message Aggregation in Java Using Conductor :  Collect, Combine, and Forward Correlated Messages
 
-A Java Conductor workflow example for message aggregation .  collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Message Aggregation Needs Orchestration
+A Java Conductor workflow example for message aggregation .  collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.## Why Message Aggregation Needs Orchestration
 
 In distributed systems, a single business event often produces multiple messages .  an order generates a payment confirmation, an inventory reservation, and a shipping request. These messages arrive at different times from different services, and you need to collect all of them before you can compute a meaningful aggregate (total order value, item count, combined status) and forward it to the next stage.
 
@@ -27,15 +25,6 @@ Four workers form the collect-and-combine pipeline: collection, completeness che
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ agp_aggregate
     │
     ▼
 agp_forward
-```
-
-## Example Output
-
-```
-=== Aggregator Pattern Demo ===
-
-Step 1: Registering task definitions...
-  Registered: agp_collect, agp_check_complete, agp_aggregate, agp_forward
-
-Step 2: Registering workflow 'agp_aggregator_pattern'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Processing
-  [check] Processing
-  [collect] Processing
-  [forward] Processing
-
-  Status: COMPLETED
-  Output: {aggregatedResult=..., isComplete=..., collectedCount=..., expectedCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agp_aggregator_pattern \
   --version 1 \
-  --input '{"messages": [{"id": "MSG-001", "amount": 150.0}, {"id": "MSG-002", "amount": 230.0}]}'
+  --input '{"messages": "test-value", "expectedCount": 10, "aggregationKey": "test-value"}'
 ```
 
 ### Check workflow status

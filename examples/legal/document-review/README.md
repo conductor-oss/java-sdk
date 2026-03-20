@@ -1,8 +1,6 @@
 # Document Review in Java with Conductor
 
-A Java Conductor workflow example demonstrating Document Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Document Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A litigation matter requires reviewing 1,500 documents for production. You need to ingest the document batch, classify documents by relevance (420 relevant out of 1,500), have attorneys review for responsiveness (310 responsive), apply privilege designations to protected communications (25 privileged), and produce the final non-privileged responsive set (285 documents) to opposing counsel. Manual handling at this scale is error-prone and risks inadvertent privilege waiver.
 
@@ -28,15 +26,6 @@ Document ingestion, relevance classification, privilege screening, and annotatio
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ drv_privilege
     │
     ▼
 drv_produce
-```
-
-## Example Output
-
-```
-=== Example 692: Document Review ===
-
-Step 1: Registering task definitions...
-  Registered: drv_ingest, drv_classify, drv_review, drv_privilege, drv_produce
-
-Step 2: Registering workflow 'drv_document_review'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [drv_classify] Executing
-  [drv_ingest] Executing
-  [drv_privilege] Executing
-  [drv_produce] Executing
-  [drv_review] Executing
-
-  Status: COMPLETED
-  Output: {classified=..., privilegedCount=..., documents=..., reviewed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow drv_document_review \
   --version 1 \
-  --input '{"matterId": "MAT-200", "MAT-200": "documentBatch", "documentBatch": "batch-Q1-2024", "batch-Q1-2024": "sample-batch-Q1-2024"}'
+  --input '{"matterId": "TEST-001", "documentBatch": "test-value"}'
 ```
 
 ### Check workflow status

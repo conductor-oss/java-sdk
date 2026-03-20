@@ -1,8 +1,6 @@
 # Code Interpreter Agent in Java Using Conductor :  Analyze, Generate, Execute, Interpret
 
-Code Interpreter Agent .  analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Answering Data Questions Requires Running Code, Not Just Generating It
+Code Interpreter Agent .  analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. Uses [Conductor](https://github.## Answering Data Questions Requires Running Code, Not Just Generating It
 
 "What's the correlation between marketing spend and revenue in Q3?" can't be answered by an LLM alone .  it requires loading the dataset, computing a Pearson correlation coefficient, and possibly generating a scatter plot. The LLM can generate the code, but someone needs to run it, capture the output (including any charts), and explain what the results mean.
 
@@ -27,15 +25,6 @@ Four workers form the code interpreter pipeline. Analyzing the question, generat
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ci_execute_sandbox
     │
     ▼
 ci_interpret_result
-```
-
-## Example Output
-
-```
-=== Code Interpreter Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ci_analyze_question, ci_generate_code, ci_execute_sandbox, ci_interpret_result
-
-Step 2: Registering workflow 'code_interpreter_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ci_analyze_question] Analyzing question:
-  [ci_execute_sandbox] Executing
-  [ci_generate_code] Generating
-  [ci_interpret_result] Interpreting results for:
-
-  Status: COMPLETED
-  Output: {analysis=..., dataSchema=..., language=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow code_interpreter_agent \
   --version 1 \
-  --input '{"question": "What is the average sales by region? Which region performs best?", "What is the average sales by region? Which region performs best?": "dataset", "dataset": {"key": "value"}}'
+  --input '{"question": "test-value", "dataset": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Replace with real code generation and sandbox execution; the analysis-to-interpr
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -1,8 +1,6 @@
 # Release Management in Java with Conductor :  Preparation, Approval Gates, Deployment, and Announcements
 
-Orchestrates the software release lifecycle using [Conductor](https://github.com/conductor-oss/conductor). This workflow prepares a release by tagging the version and building artifacts, gates it through an approval step before anything goes to production, deploys the approved release, and announces the release to stakeholders via configured channels. You write the release logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Shipping Without the Chaos
+Orchestrates the software release lifecycle using [Conductor](https://github.com/conductor-oss/conductor). This workflow prepares a release by tagging the version and building artifacts, gates it through an approval step before anything goes to production, deploys the approved release, and announces the release to stakeholders via configured channels.## Shipping Without the Chaos
 
 Version 2.4.0 is ready to ship. Someone needs to tag the commit, build release artifacts, get sign-off from the release manager, deploy to production, and announce the release to customers and internal teams. If deployment fails after approval, the release is in limbo. Approved but not deployed. If the announcement goes out before deployment actually succeeds, customers expect features that aren't live yet. Every step must happen in the right order, and every step's success must be confirmed before moving on.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage releases via a checklist in a Confluence pag
 
 **You write the release preparation and deployment logic. Conductor handles approval gating, deploy-before-announce sequencing, and the full release audit trail.**
 
-Each stage of the release pipeline is a simple, independent worker. The preparer tags the version, builds release artifacts, and compiles the changelog. The approver gates the release: checking that all tests pass, the change log is complete, and the release manager has signed off. The deployer pushes the approved artifacts to production infrastructure. The announcer notifies stakeholders, posting release notes to Slack, updating the status page, and sending customer-facing changelogs. Conductor executes them in strict sequence, ensures deployment only happens after approval passes, retries if the deployment target is temporarily unavailable, and provides a complete audit trail of every release. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the release pipeline is a simple, independent worker. The preparer tags the version, builds release artifacts, and compiles the changelog. The approver gates the release: checking that all tests pass, the change log is complete, and the release manager has signed off. The deployer pushes the approved artifacts to production infrastructure. The announcer notifies stakeholders, posting release notes to Slack, updating the status page, and sending customer-facing changelogs. Conductor executes them in strict sequence, ensures deployment only happens after approval passes, retries if the deployment target is temporarily unavailable, and provides a complete audit trail of every release. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers manage the release lifecycle. Preparing the version, gating through
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ rm_deploy
     │
     ▼
 rm_announce
-```
-
-## Example Output
-
-```
-=== Example 500: Release Management ===
-
-Step 1: Registering task definitions...
-  Registered: rm_prepare, rm_approve, rm_deploy, rm_announce
-
-Step 2: Registering workflow 'release_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [announce] Release notes published, stakeholders notified
-  [approve] Release approved by release manager
-  [deploy] Version deployed to production
-  [prepare] Release 3.2.0 for platform: 12 changes, 3 fixes
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow release_management_workflow \
   --version 1 \
-  --input '{"version": "sample-version", "3.2.0": "sample-3.2.0", "product": "sample-product"}'
+  --input '{"version": "test-value", "product": "test-value"}'
 ```
 
 ### Check workflow status

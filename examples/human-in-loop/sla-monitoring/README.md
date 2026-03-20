@@ -1,8 +1,6 @@
 # SLA Monitoring in Java Using Conductor :  Request Processing, WAIT Task with Start/End Timestamps, Duration Calculation, and SLA Compliance Check
 
-A Java Conductor workflow example for measuring human approval response times against SLA targets .  processing a request, pausing at a WAIT task while Conductor automatically records the start and end timestamps, then calculating the actual wait duration in milliseconds and comparing it against the SLA threshold to determine compliance. The SLA metrics worker reads `waitStartTime` and `waitEndTime` directly from the WAIT task's metadata, computes the delta, and flags whether the approver responded within the agreed SLA window. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Human Approval Steps Need SLA Tracking and Compliance Reporting
+A Java Conductor workflow example for measuring human approval response times against SLA targets .  processing a request, pausing at a WAIT task while Conductor automatically records the start and end timestamps, then calculating the actual wait duration in milliseconds and comparing it against the SLA threshold to determine compliance. The SLA metrics worker reads `waitStartTime` and `waitEndTime` directly from the WAIT task's metadata, computes the delta, and flags whether the approver responded within the agreed SLA window. Uses [Conductor](https://github.## Human Approval Steps Need SLA Tracking and Compliance Reporting
 
 When a workflow pauses for human approval, you need to track how long the human takes and whether the response time meets your SLA. The workflow processes the request, records the start time, pauses for human approval, then calculates the wait duration and checks SLA compliance. If the SLA metrics recording fails, you need to retry it without asking the human to re-approve.
 
@@ -24,15 +22,6 @@ SlaProcessWorker prepares the request before the SLA clock starts, and SlaRecord
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,32 +32,6 @@ sla_wait [WAIT]
     │
     ▼
 sla_record_metrics
-```
-
-## Example Output
-
-```
-=== SLA Monitoring Demo: Track Time-to-Approval SLA Metrics ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'sla_monitoring_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sla_process] Processing request...
-  [sla_record_metrics] Wait duration:
-
-  Status: COMPLETED
-  Output: {processed=..., waitDurationMs=..., slaMet=..., slaMs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sla_monitoring_demo \
   --version 1 \
-  --input '{"slaMs": "sample-slaMs"}'
+  --input '{"slaMs": "test-value"}'
 ```
 
 ### Check workflow status

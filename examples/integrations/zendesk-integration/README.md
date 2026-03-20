@@ -27,15 +27,6 @@ Four workers manage the support lifecycle: CreateTicketWorker opens tickets, Cla
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ zd_route
     │
     ▼
 zd_resolve
-```
-
-## Example Output
-
-```
-=== Example 440: Zendesk Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: zd_create_ticket, zd_classify, zd_route, zd_resolve
-
-Step 2: Registering workflow 'zendesk_integration_440'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify] Ticket
-  [create] Ticket
-  [resolve] Ticket
-  [route] Ticket
-
-  Status: COMPLETED
-  Output: {priority=..., sentiment=..., language=..., ticketId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow zendesk_integration_440 \
   --version 1 \
-  --input '{"requesterEmail": "user@example.com", "user@company.com": "sample-user@company.com", "subject": "sample-subject", "Cannot access dashboard": "sample-Cannot access dashboard", "description": "sample-description", "Getting 403 error when accessing the analytics dashboard": "sample-Getting 403 error when accessing the analytics dashboard", "category": "sample-category"}'
+  --input '{"requesterEmail": "user@example.com", "subject": "test-value", "description": "test-value", "category": "test-value"}'
 ```
 
 ### Check workflow status

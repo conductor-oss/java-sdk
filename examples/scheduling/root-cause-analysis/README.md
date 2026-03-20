@@ -12,7 +12,7 @@ Without orchestration, root cause analysis is manual .  an engineer opens 5 dash
 
 **You just write the evidence collection queries and correlation analysis logic. Conductor handles the detect-collect-analyze-identify sequence, retries when log or metric sources are temporarily unavailable, and a complete record of every RCA session's evidence and conclusions.**
 
-Each RCA step is an independent worker .  issue detection, evidence collection, correlation analysis, and root cause identification. Conductor runs them in sequence: detect the issue, collect evidence, analyze correlations, then identify the root cause. Every RCA run is tracked ,  you can see what evidence was collected, what correlations were found, and what root cause was identified. You get all of that for free, without writing a single line of orchestration code.
+Each RCA step is an independent worker .  issue detection, evidence collection, correlation analysis, and root cause identification. Conductor runs them in sequence: detect the issue, collect evidence, analyze correlations, then identify the root cause. Every RCA run is tracked ,  you can see what evidence was collected, what correlations were found, and what root cause was identified. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers automate RCA: DetectIssueWorker identifies the incident scope, Coll
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ rca_analyze
     │
     ▼
 rca_identify_root_cause
-```
-
-## Example Output
-
-```
-=== Example 425: Root Cause Analysis ===
-
-Step 1: Registering task definitions...
-  Registered: rca_detect_issue, rca_collect_evidence, rca_analyze, rca_identify_root_cause
-
-Step 2: Registering workflow 'root_cause_analysis_425'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [evidence] Collecting evidence
-  [detect] Incident
-  [root-cause] Root cause identified (confidence:
-  [analyze] Analyzing
-
-  Status: COMPLETED
-  Output: {logCount=..., metricCount=..., recentChanges=..., totalEvidence=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow root_cause_analysis_425 \
   --version 1 \
-  --input '{"incidentId": "INC-20260308-042", "INC-20260308-042": "affectedService", "affectedService": "checkout-service", "checkout-service": "symptom", "symptom": "5xx errors spiked to 15%", "5xx errors spiked to 15%": "sample-5xx errors spiked to 15%"}'
+  --input '{"incidentId": "TEST-001", "affectedService": "test-value", "symptom": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Inter Service Communication in Java with Conductor
 
-Orchestrates request-response communication between microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Orchestrates request-response communication between microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Fulfilling a customer order requires coordinating four microservices in sequence: the order service validates the order, the inventory service reserves stock, the shipping service creates a shipment, and the notification service sends the customer a tracking email. Each service depends on the output of the previous one.
 
@@ -27,15 +25,6 @@ Four service workers chain together for order fulfillment: OrderServiceWorker va
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ isc_shipping_service
     │
     ▼
 isc_notification_service
-```
-
-## Example Output
-
-```
-=== Example 305: Inter-Service Communicatio ===
-
-Step 1: Registering task definitions...
-  Registered: isc_order_service, isc_inventory_service, isc_shipping_service, isc_notification_service
-
-Step 2: Registering workflow 'inter_service_comm_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [inventory] Reserving items for
-  [notify] Sent tracking
-  [order] Processing order
-  [shipping] Creating shipment from
-
-  Status: COMPLETED
-  Output: {reserved=..., warehouse=..., sent=..., channel=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow inter_service_comm_workflow \
   --version 1 \
-  --input '{"orderId": "ORD-500", "ORD-500": "items", "items": [{"name": "Widget A", "quantity": 2}, {"name": "Widget B", "quantity": 1}], "CUST-42": "sample-CUST-42"}'
+  --input '{"orderId": "TEST-001", "items": "test-value", "customerId": "TEST-001"}'
 ```
 
 ### Check workflow status

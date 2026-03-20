@@ -1,8 +1,6 @@
 # At-Least-Once Message Delivery in Java Using Conductor :  Receive, Process, Acknowledge, Verify
 
-A Java Conductor workflow example for at-least-once message delivery .  receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Guaranteeing Every Message Gets Processed
+A Java Conductor workflow example for at-least-once message delivery .  receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.## Guaranteeing Every Message Gets Processed
 
 Message queues like SQS and Kafka deliver messages with a receipt handle and a visibility timeout. If your consumer crashes after processing but before acknowledging, the message reappears on the queue and gets delivered again. If it crashes after acknowledging but before recording delivery, you lose the audit trail. The gap between "processed" and "acknowledged" is where messages get lost or silently duplicated.
 
@@ -27,15 +25,6 @@ Four workers own the delivery lifecycle: receive, process, acknowledge, and veri
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ alo_acknowledge
     │
     ▼
 alo_verify_delivery
-```
-
-## Example Output
-
-```
-=== At-Least-Once Delivery Demo ===
-
-Step 1: Registering task definitions...
-  Registered: alo_receive, alo_process, alo_acknowledge, alo_verify_delivery
-
-Step 2: Registering workflow 'alo_at_least_once'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ack] Processing
-  [process] Processing
-  [receive] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {acknowledged=..., ackTimestamp=..., processed=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow alo_at_least_once \
   --version 1 \
-  --input '{"messageId": "EVT-2024-0042", "EVT-2024-0042": "payload", "payload": "order_placed", "order_placed": "topic", "topic": "orders", "orders": "sample-orders"}'
+  --input '{"messageId": "TEST-001", "payload": "test-value", "topic": "test-value"}'
 ```
 
 ### Check workflow status

@@ -25,16 +25,7 @@ SegmentWorker classifies leads by funnel stage, PersonalizeWorker tailors conten
 | **SendWorker** | `nur_send` | Delivers the personalized nurture content to the lead via email. |
 | **TrackWorker** | `nur_track` | Measures engagement (opens, clicks, replies) on the delivered content. |
 
-Workers simulate CRM operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
+Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -49,34 +40,6 @@ nur_send
     │
     ▼
 nur_track
-```
-
-## Example Output
-
-```
-=== Example 623: Lead Nurturing ===
-
-Step 1: Registering task definitions...
-  Registered: nur_segment, nur_personalize, nur_send, nur_track
-
-Step 2: Registering workflow 'nur_lead_nurturing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [personalize] Content personalized for
-  [segment] Lead
-  [send] Nurture email sent ->
-  [track] Engagement tracked for delivery
-
-  Status: COMPLETED
-  Output: {content=..., segment=..., nurturePath=..., sent=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nur_lead_nurturing \
   --version 1 \
-  --input '{"leadId": "LEAD-NUR01", "LEAD-NUR01": "leadStage", "leadStage": "consideration", "consideration": "interests", "interests": ["item-1", "item-2", "item-3"]}'
+  --input '{"leadId": "TEST-001", "leadStage": "test-value", "interests": "test-value"}'
 ```
 
 ### Check workflow status

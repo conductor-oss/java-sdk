@@ -1,8 +1,6 @@
 # OTA Firmware Update in Java with Conductor :  Version Check, Download, Validation, Deployment, and Verification
 
-A Java Conductor workflow example that orchestrates over-the-air firmware updates for IoT devices .  checking for new versions, downloading firmware binaries, validating checksums and code signatures, deploying to the device with scheduled reboots, and verifying the device boots successfully on the new version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Firmware Updates Need Orchestration
+A Java Conductor workflow example that orchestrates over-the-air firmware updates for IoT devices .  checking for new versions, downloading firmware binaries, validating checksums and code signatures, deploying to the device with scheduled reboots, and verifying the device boots successfully on the new version. Uses [Conductor](https://github.## Why Firmware Updates Need Orchestration
 
 Pushing a firmware update to an IoT device is a multi-step process where failure at any stage can brick the device. You check whether a newer version exists and get the download URL and SHA-256 checksum. You download the binary (potentially over a slow, unreliable link). You validate the checksum matches, the code signature is authentic, and the firmware is compatible with the device hardware. You deploy the firmware and schedule a reboot. After reboot, you verify the device came back online running the correct version, the self-test passed, and a rollback image is available.
 
@@ -28,15 +26,6 @@ Five workers manage OTA updates: CheckVersionWorker detects available firmware, 
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ fw_deploy
     │
     ▼
 fw_verify
-```
-
-## Example Output
-
-```
-=== Example 533: Firmware Update ===
-
-Step 1: Registering task definitions...
-  Registered: fw_check_version, fw_download, fw_validate, fw_deploy, fw_verify
-
-Step 2: Registering workflow 'firmware_update_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [check] Processing
-  [deploy] Processing
-  [download] Processing
-  [validate] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {updateAvailable=..., downloadUrl=..., checksum=..., releaseNotes=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow firmware_update_workflow \
   --version 1 \
-  --input '{"deviceId": "DEV-533-GW-001", "DEV-533-GW-001": "currentVersion", "currentVersion": "2.4.1", "2.4.1": "targetVersion", "targetVersion": "2.5.0", "2.5.0": "sample-2.5.0"}'
+  --input '{"deviceId": "TEST-001", "currentVersion": "test-value", "targetVersion": "test-value"}'
 ```
 
 ### Check workflow status

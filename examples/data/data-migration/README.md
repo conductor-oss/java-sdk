@@ -1,8 +1,6 @@
 # Data Migration in Java Using Conductor :  Extract, Validate, Transform Schema, Load, and Verify
 
-A Java Conductor workflow example for database-to-database data migration. extracting records from a source system in configurable batches, validating record integrity, transforming records from the source schema to the target schema, loading into the target system, and verifying the migration by comparing source and target record counts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for database-to-database data migration. extracting records from a source system in configurable batches, validating record integrity, transforming records from the source schema to the target schema, loading into the target system, and verifying the migration by comparing source and target record counts. Uses [Conductor](https://github.## The Problem
 
 You're migrating data from one system to another, a legacy database to a new platform, an on-prem system to the cloud, or a monolithic database to microservice-owned data stores. The source and target schemas are different, so records need transformation. Some source records may be invalid and shouldn't migrate. After loading, you need to verify that the target contains the right number of records. If the load step fails after inserting 8,000 of 10,000 records, you need to know exactly where it stopped.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a migration script that connects to both data
 
 **You just write the extract, validate, transform, load, and verify workers. Conductor handles strict extract-validate-transform-load-verify ordering, retries when the target database is temporarily unavailable, and crash recovery that resumes from the exact migration step that failed.**
 
-Each stage of the migration is a simple, independent worker. The extractor reads records from the source system in configurable batch sizes. The validator checks each record for integrity (required fields, data type constraints) and filters out invalid ones. The transformer maps records from the source schema to the target schema. The loader inserts transformed records into the target system. The verifier compares source and loaded record counts to confirm the migration is complete. Conductor executes them in strict sequence, retries if the target database is temporarily unavailable, and resumes from the exact step where it left off if the process crashes mid-migration. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the migration is a simple, independent worker. The extractor reads records from the source system in configurable batch sizes. The validator checks each record for integrity (required fields, data type constraints) and filters out invalid ones. The transformer maps records from the source schema to the target schema. The loader inserts transformed records into the target system. The verifier compares source and loaded record counts to confirm the migration is complete. Conductor executes them in strict sequence, retries if the target database is temporarily unavailable, and resumes from the exact step where it left off if the process crashes mid-migration. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers cover the full migration lifecycle: extracting records from the sou
 | **VerifyMigrationWorker** | `mi_verify_migration` | Verifies the migration by comparing source and loaded counts. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ mi_load_target
     │
     ▼
 mi_verify_migration
-```
-
-## Example Output
-
-```
-=== Data Migration Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mi_extract_source, mi_validate_source, mi_transform_schema, mi_load_target, mi_verify_migration
-
-Step 2: Registering workflow 'data_migration'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [extract] Extracted
-  [load] Loaded
-  [transform] Transformed
-  [validate]
-  [verify]
-
-  Status: COMPLETED
-  Output: {id=..., name=..., email=..., dept_id=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_migration \
   --version 1 \
-  --input '{"sourceConfig": "sample-sourceConfig", "database": "sample-database", "legacy_hr_db": "sample-legacy-hr-db", "table": "sample-table", "targetConfig": "sample-targetConfig", "new_hr_system": "sample-new-hr-system", "batchSize": 5}'
+  --input '{"sourceConfig": "test-value", "targetConfig": "test-value", "batchSize": 10}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # SLA Monitoring in Java with Conductor
 
-Automates SLA/SLO monitoring using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects service level indicators (availability, latency), calculates error budget burn rate, evaluates compliance against SLO targets, and generates stakeholder reports. You write the SLA logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Burning Through Your Error Budget
+Automates SLA/SLO monitoring using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects service level indicators (availability, latency), calculates error budget burn rate, evaluates compliance against SLO targets, and generates stakeholder reports.## Burning Through Your Error Budget
 
 Your payment-api promises 99.95% availability and p99 latency under 200ms. How much error budget do you have left this month? Are you burning it faster than expected? This workflow answers those questions by collecting SLIs, computing the remaining error budget (e.g., 21.6 minutes of allowed downtime left), and flagging when you are at risk of violating your SLA before the month ends.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd query Prometheus manually, open a spreadsheet to ca
 
 **You write the SLI collection and budget calculation logic. Conductor handles the measurement-to-report pipeline and compliance audit history.**
 
-Each stage of the SLA monitoring pipeline is a simple, independent worker. The SLI collector gathers availability and latency measurements for the target service over the monitoring window. Uptime percentage, request success rate, P50/P95/P99 latency. The budget calculator computes how much error budget remains (e.g., 73% remaining, 21.6 minutes of allowed downtime left this month) and whether the current burn rate will exhaust it before the period ends. The compliance evaluator compares actual SLIs against contractual SLO targets and flags violations or at-risk services. The reporter generates a stakeholder-ready summary with per-SLO compliance status, budget remaining, and trend indicators. Conductor executes them in strict sequence, ensures budget calculations only run on fresh SLI data, retries if the metrics backend is temporarily unavailable, and tracks every monitoring run so you can audit SLA compliance history. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the SLA monitoring pipeline is a simple, independent worker. The SLI collector gathers availability and latency measurements for the target service over the monitoring window. Uptime percentage, request success rate, P50/P95/P99 latency. The budget calculator computes how much error budget remains (e.g., 73% remaining, 21.6 minutes of allowed downtime left this month) and whether the current burn rate will exhaust it before the period ends. The compliance evaluator compares actual SLIs against contractual SLO targets and flags violations or at-risk services. The reporter generates a stakeholder-ready summary with per-SLO compliance status, budget remaining, and trend indicators. Conductor executes them in strict sequence, ensures budget calculations only run on fresh SLI data, retries if the metrics backend is temporarily unavailable, and tracks every monitoring run so you can audit SLA compliance history. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers run the SLA monitoring cycle. Measuring service level indicators, c
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ sla_evaluate_compliance
     │
     ▼
 sla_report
-```
-
-## Example Output
-
-```
-=== Example 339: SLA Monitoring ===
-
-Step 1: Registering task definitions...
-  Registered: sla_collect_slis, sla_calculate_budget, sla_evaluate_compliance, sla_report
-
-Step 2: Registering workflow 'sla_monitoring_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [budget] Error budget: 73% remaining, 21.6 min left this month
-  [sli] payment-api: 99.95% availability, p99 = 180ms
-  [compliance] SLA compliant .  within error budget
-  [report] SLA report generated for stakeholders
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sla_monitoring_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "payment-api": "sample-payment-api", "sloTarget": "sample-sloTarget"}'
+  --input '{"service": "test-value", "sloTarget": "test-value"}'
 ```
 
 ### Check workflow status

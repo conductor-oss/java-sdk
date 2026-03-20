@@ -1,8 +1,6 @@
 # Agent Memory in Java Using Conductor :  Load, Think, Update, and Respond with Persistent Context
 
-Agent with Memory .  loads conversation history, thinks with context, updates memory, and responds. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Stateless Agents Forget Everything Between Messages
+Agent with Memory .  loads conversation history, thinks with context, updates memory, and responds. Uses [Conductor](https://github.## Stateless Agents Forget Everything Between Messages
 
 Without memory, every agent interaction starts from zero. A user says "I'm interested in transformers" and gets a great explanation. Next message: "How do they compare to RNNs?", and the agent has no idea what "they" refers to because the previous context is gone. The user has to repeat themselves every time.
 
@@ -27,15 +25,6 @@ Four workers manage stateful conversations. Loading memory, reasoning with conte
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ am_update_memory
     │
     ▼
 am_agent_respond
-```
-
-## Example Output
-
-```
-=== Agent with Memory Demo ===
-
-Step 1: Registering task definitions...
-  Registered: am_load_memory, am_agent_think, am_update_memory, am_agent_respond
-
-Step 2: Registering workflow 'agent_memory_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [am_agent_respond] Generating response for:
-  [am_agent_think] Thinking about:
-  [am_load_memory] Loading memory for user:
-  [am_update_memory] Updating memory for user:
-
-  Status: COMPLETED
-  Output: {response=..., confidence=..., tokensUsed=..., thoughts=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agent_memory_demo \
   --version 1 \
-  --input '{"userId": "user-42", "user-42": "userMessage", "userMessage": "Can you explain how transformers work in deep learning?", "Can you explain how transformers work in deep learning?": "sample-Can you explain how transformers work in deep learning?"}'
+  --input '{"userId": "TEST-001", "userMessage": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Wire in Redis or a vector store for real memory persistence; the conversation wo
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

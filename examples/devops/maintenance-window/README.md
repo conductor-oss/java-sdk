@@ -1,8 +1,6 @@
 # Maintenance Window in Java with Conductor :  Notify, Suppress Alerts, Execute Maintenance, Restore
 
-Automates scheduled maintenance windows using [Conductor](https://github.com/conductor-oss/conductor). This workflow notifies stakeholders that maintenance is starting, suppresses monitoring alerts to prevent false pages, executes the maintenance task (upgrades, patches, migrations), and restores normal operations by re-enabling alerts and updating the status page. You write the maintenance logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Planned Downtime Without the Chaos
+Automates scheduled maintenance windows using [Conductor](https://github.com/conductor-oss/conductor). This workflow notifies stakeholders that maintenance is starting, suppresses monitoring alerts to prevent false pages, executes the maintenance task (upgrades, patches, migrations), and restores normal operations by re-enabling alerts and updating the status page.## Planned Downtime Without the Chaos
 
 You need to upgrade the database cluster tonight. That means a 2-hour maintenance window. Everyone needs to know it is happening, alerting needs to be silenced so the on-call engineer does not get paged for expected downtime, the actual upgrade needs to run, and when it is done, alerts need to come back on and the status page needs to reflect normal operations. If any step is missed: say alerts are not re-enabled, the next real incident goes unnoticed.
 
@@ -27,15 +25,6 @@ Four workers manage the maintenance window. Notifying stakeholders, suppressing 
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ mw_execute_maintenance
     │
     ▼
 mw_restore_normal
-```
-
-## Example Output
-
-```
-=== Example 336: Maintenance Window ===
-
-Step 1: Registering task definitions...
-  Registered: mw_notify_start, mw_suppress_alerts, mw_execute_maintenance, mw_restore_normal
-
-Step 2: Registering workflow 'maintenance_window_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [execute] version-upgrade completed successfully
-  [notify] Maintenance window started for database-cluster (2h)
-  [restore] Alerts re-enabled, status page updated, maintenance ended
-  [suppress] Alert suppression enabled for maintenance window
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow maintenance_window_workflow \
   --version 1 \
-  --input '{"system": "sample-system", "database-cluster": "sample-database-cluster", "maintenanceType": "standard", "version-upgrade": "sample-version-upgrade", "duration": "sample-duration"}'
+  --input '{"system": "test-value", "maintenanceType": "test-value", "duration": "test-value"}'
 ```
 
 ### Check workflow status

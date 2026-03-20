@@ -1,8 +1,6 @@
 # Multi-Agent Planning in Java Using Conductor :  Architect, Parallel Estimators, Project Manager Timeline
 
-Multi-Agent Project Planning .  architect designs the system, three estimators run in parallel (frontend, backend, infra), then PM builds the timeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Project Planning Needs Multiple Expert Perspectives
+Multi-Agent Project Planning .  architect designs the system, three estimators run in parallel (frontend, backend, infra), then PM builds the timeline. Uses [Conductor](https://github.## Project Planning Needs Multiple Expert Perspectives
 
 A project estimate from a single person is always biased toward their specialty. The backend engineer underestimates frontend work. The infrastructure engineer forgets about API development. An accurate plan needs domain experts estimating their own areas independently .  frontend complexity, backend API surface, infrastructure provisioning ,  with an architect providing the overall design and a PM resolving the estimates into a realistic timeline.
 
@@ -28,16 +26,6 @@ Five agents plan the project, the architect designs the system, three estimators
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 pp_pm_timeline
-```
-
-## Example Output
-
-```
-=== Multi-Agent Project Planning Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pp_architect_design, pp_estimate_frontend, pp_estimate_backend, pp_estimate_infra, pp_pm_timeline
-
-Step 2: Registering workflow 'multi_agent_planning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [pp_architect_design] Designing architecture for:
-  [pp_estimate_backend] Estimating
-  [pp_estimate_frontend] Estimating
-  [pp_estimate_infra] Estimating
-  [pp_pm_timeline] Building timeline for
-
-  Status: COMPLETED
-  Output: {frontendComponents=..., backendComponents=..., infrastructure=..., architectureSummary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_agent_planning \
   --version 1 \
-  --input '{"projectName": "sample-name", "E-Commerce Platform": "sample-E-Commerce Platform", "requirements": "sample-requirements"}'
+  --input '{"projectName": "test", "requirements": "test-value"}'
 ```
 
 ### Check workflow status
@@ -176,7 +135,6 @@ Wire in real estimation tools or LLM analysis; the parallel planning pipeline ke
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

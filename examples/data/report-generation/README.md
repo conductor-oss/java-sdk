@@ -1,8 +1,6 @@
 # Report Generation in Java Using Conductor :  Data Querying, Aggregation, Formatting, and Distribution
 
-A Java Conductor workflow example for automated report generation. querying raw data for a specific report type and date range, aggregating the results into summary metrics, formatting the aggregated data into a report document with a downloadable URL, and distributing the finished report to a recipient list via email or Slack. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for automated report generation. querying raw data for a specific report type and date range, aggregating the results into summary metrics, formatting the aggregated data into a report document with a downloadable URL, and distributing the finished report to a recipient list via email or Slack. Uses [Conductor](https://github.## The Problem
 
 Every Monday morning, the sales team needs a weekly revenue report. Every month-end, finance needs a P&L summary. Every quarter, the board needs a KPI dashboard export. Each report follows the same pattern: query the right data for the right date range, aggregate it into the metrics that audience cares about, format it into a presentable document (PDF, Excel, HTML), and deliver it to the right people. But the data query for a revenue report is different from a P&L query. The aggregation logic (sum revenue by region vs. compute gross margin by product line) depends on the report type. Formatting depends on the audience. And distribution might be email for finance, Slack for engineering, and a shared drive for the board.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a cron job that queries, aggregates, formats,
 
 **You just write the data querying, aggregation, report formatting, and distribution workers. Conductor handles the query-aggregate-format-distribute sequence, retries when email servers or data sources are temporarily unavailable, and tracking of record counts and delivery status at every stage.**
 
-Each stage of the report pipeline is a simple, independent worker. The data querier fetches raw records for the specified report type and date range, returning the data along with a record count. The aggregator computes summary metrics appropriate for the report type. Totals, averages, breakdowns by dimension, period-over-period comparisons, and counts the number of aggregations performed. The formatter renders the aggregated data into a report document (PDF, Excel, HTML) and produces a downloadable URL. The distributor delivers the finished report to the recipient list via the configured channel (email, Slack, shared drive). Conductor executes them in strict sequence, passes the evolving report between stages, retries if the email server is temporarily unavailable, and tracks record counts, aggregation counts, and delivery status at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the report pipeline is a simple, independent worker. The data querier fetches raw records for the specified report type and date range, returning the data along with a record count. The aggregator computes summary metrics appropriate for the report type. Totals, averages, breakdowns by dimension, period-over-period comparisons, and counts the number of aggregations performed. The formatter renders the aggregated data into a report document (PDF, Excel, HTML) and produces a downloadable URL. The distributor delivers the finished report to the recipient list via the configured channel (email, Slack, shared drive). Conductor executes them in strict sequence, passes the evolving report between stages, retries if the email server is temporarily unavailable, and tracks record counts, aggregation counts, and delivery status at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers implement the report pipeline: querying raw data for a report type 
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ rg_format_report
     │
     ▼
 rg_distribute_report
-```
-
-## Example Output
-
-```
-=== Report Generation Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rg_query_data, rg_aggregate_results, rg_format_report, rg_distribute_report
-
-Step 2: Registering workflow 'report_generation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Total revenue:
-  [distribute] Distributed report to
-  [format] Formatted PDF report with
-  [query] Fetched
-
-  Status: COMPLETED
-  Output: {totalRevenue=..., totalUnits=..., avgRevenuePerRecord=..., byRegion=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow report_generation \
   --version 1 \
-  --input '{"reportType": "standard", "sales": "sample-sales", "dateRange": "2025-01-15T10:00:00Z", "start": "sample-start", "2024-03-01": "sample-2024-03-01", "end": "sample-end", "recipients": "sample-recipients", "cfo@company.com": "sample-cfo@company.com", "sales-team@company.com": "sample-sales-team@company.com"}'
+  --input '{"reportType": "test-value", "dateRange": "2026-01-01T00:00:00Z", "recipients": "test-value"}'
 ```
 
 ### Check workflow status

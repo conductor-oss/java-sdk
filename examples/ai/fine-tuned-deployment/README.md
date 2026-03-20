@@ -1,6 +1,6 @@
 # Fine-Tuned Model Deployment in Java Using Conductor :  Validate, Stage, Test, Promote
 
-A Java Conductor workflow that takes a fine-tuned model from training output to production serving .  validating model artifacts (weights, config, tokenizer), deploying to a staging endpoint, running acceptance tests against the staged model, and promoting to production only if tests pass. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the deployment pipeline as independent workers ,  you write the validation, deployment, and testing logic, Conductor handles conditional promotion, failure notifications, retries, and observability for free.
+A Java Conductor workflow that takes a fine-tuned model from training output to production serving .  validating model artifacts (weights, config, tokenizer), deploying to a staging endpoint, running acceptance tests against the staged model, and promoting to production only if tests pass. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the deployment pipeline as independent workers ,  you write the validation, deployment, and testing logic, Conductor handles conditional promotion, failure notifications, retries, and observability.
 
 ## Shipping a Fine-Tuned Model Safely
 
@@ -29,16 +29,6 @@ Four workers plus a test runner cover the deployment lifecycle .  model validati
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -57,35 +47,6 @@ SWITCH (route_ref)
     │
     ▼
 ftd_notify
-```
-
-## Example Output
-
-```
-=== Fine-Tuned Model Deployment Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: ftd_validate_model, ftd_deploy_staging, ftd_run_tests, ftd_promote_production, ftd_notify
-
-Step 2: Registering workflow 'fine_tuned_deploy_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [deploy] [SIMULATED] Deploying
-  [notify] [SIMULATED]
-  [promote] [SIMULATED] Promoting
-  [test] Response from OpenAI (LIVE)
-  [validate] [SIMULATED] Model:
-
-  Status: COMPLETED
-  Output: {endpoint=..., gpuType=..., replicas=..., notified=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +75,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -158,7 +119,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow fine_tuned_deploy_wf \
   --version 1 \
-  --input '{"modelId": "support-bot-v3", "support-bot-v3": "modelVersion", "modelVersion": "3.1", "3.1": "baseModel", "baseModel": "llama-2-7b", "llama-2-7b": "sample-llama-2-7b"}'
+  --input '{"modelId": "TEST-001", "modelVersion": "test-value", "baseModel": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Recommendation Engine in Java Using Conductor :  Collect Behavior, Compute Similarity, Rank, Personalize
 
-A Java Conductor workflow example demonstrating Recommendation Engine. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Generic "Popular Items" Lists Don't Convert
+A Java Conductor workflow example demonstrating Recommendation Engine. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Generic "Popular Items" Lists Don't Convert
 
 Showing every customer the same "Top Sellers" list misses the point of personalization. A customer who buys hiking gear should see trail shoes and backpacks, not kitchen appliances. Collaborative filtering finds patterns: "Customers who bought X also bought Y." Content-based filtering uses item attributes: "This hiking boot is similar to the one you viewed." A good recommendation engine combines both.
 
@@ -27,15 +25,6 @@ Profile analysis, candidate generation, scoring, and delivery workers each own o
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ rec_rank_candidates
     │
     ▼
 rec_personalize
-```
-
-## Example Output
-
-```
-=== Example 461: Recommendation Engine ===
-
-Step 1: Registering task definitions...
-  Registered: rec_collect_behavior, rec_compute_similarity, rec_rank_candidates, rec_personalize
-
-Step 2: Registering workflow 'recommendation_engine_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Gathering behavior for user
-  [similarity] Computing similarity scores for
-  [personalize] Personalizing
-  [rank] Ranking
-
-  Status: COMPLETED
-  Output: {viewedProducts=..., purchasedProducts=..., browsingCategories=..., sessionCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow recommendation_engine_workflow \
   --version 1 \
-  --input '{"userId": "USER-7891", "USER-7891": "context", "context": "product_page", "product_page": "sample-product-page"}'
+  --input '{"userId": "TEST-001", "context": "test-value"}'
 ```
 
 ### Check workflow status
@@ -165,14 +126,13 @@ Plug each worker into your real recommendation stack. Segment for behavioral dat
 
 - **CollectBehaviorWorker** (`rec_collect_behavior`): pull user events from Segment, Amplitude, or Google Analytics 4, or query a clickstream data warehouse for behavioral signals
 - **ComputeSimilarityWorker** (`rec_compute_similarity`): use Apache Mahout or Spark MLlib for collaborative filtering at scale, or precomputed item embeddings from a recommendation model (e.g., Two-Tower model)
-- **PersonalizeWorker** (`rec_personalize`): integrate with Amazon Personalize, Algolia Recommend, or Recombee for production-grade personalization with real-time model updates
+- **PersonalizeWorker** (`rec_personalize`): integrate with Amazon Personalize, Algolia Recommend, or Recombee for example-grade personalization with real-time model updates
 
 Swap your scoring model or candidate source and the recommendation pipeline structure remains the same.
 
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

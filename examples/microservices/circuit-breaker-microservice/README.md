@@ -1,8 +1,6 @@
 # Circuit Breaker Microservice in Java with Conductor
 
-Circuit breaker pattern for resilient service calls. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Circuit breaker pattern for resilient service calls. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 When a downstream service is failing, continuing to send requests wastes resources and can cascade failures to the caller. The circuit breaker pattern tracks failure counts and, when a threshold is exceeded, short-circuits requests to a fallback response until the downstream recovers. This workflow checks circuit state, routes to either a live call or a fallback, and records the result to update the circuit's failure counter.
 
@@ -27,16 +25,6 @@ Four workers implement the circuit breaker: CheckCircuitWorker reads the circuit
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,34 +34,6 @@ cb_check_circuit
 SWITCH (switch_ref)
     ├── open: cb_fallback
     └── default: cb_call_service -> cb_record_result
-```
-
-## Example Output
-
-```
-=== Example 310: Circuit Breaker Microservice ===
-
-Step 1: Registering task definitions...
-  Registered: cb_check_circuit, cb_call_service, cb_record_result, cb_fallback
-
-Step 2: Registering workflow 'circuit_breaker_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [call] Calling
-  [circuit] Checking state for
-  [fallback] Circuit open for
-  [record] Success recorded for
-
-  Status: COMPLETED
-  Output: {success=..., response=..., latencyMs=..., circuitState=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow circuit_breaker_workflow \
   --version 1 \
-  --input '{"serviceName": "inventory-service", "inventory-service": "request", "request": {"key": "value"}}'
+  --input '{"serviceName": "test", "request": "test-value"}'
 ```
 
 ### Check workflow status

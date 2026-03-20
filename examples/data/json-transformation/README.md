@@ -1,8 +1,6 @@
 # JSON Transformation in Java Using Conductor :  Field Mapping, Value Transforms, Nested Restructuring, and Schema Validation
 
-A Java Conductor workflow example for JSON-to-JSON transformation: parsing an incoming JSON record, renaming fields according to mapping rules (`cust_id` to `customerId`, `first_name` + `last_name` to `fullName`), applying value transforms (lowercasing emails, uppercasing account types, concatenating name fields), restructuring flat fields into nested groups (`identity`, `contact`, `account`), validating that the output conforms to the target schema, and emitting the final transformed record. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for JSON-to-JSON transformation: parsing an incoming JSON record, renaming fields according to mapping rules (`cust_id` to `customerId`, `first_name` + `last_name` to `fullName`), applying value transforms (lowercasing emails, uppercasing account types, concatenating name fields), restructuring flat fields into nested groups (`identity`, `contact`, `account`), validating that the output conforms to the target schema, and emitting the final transformed record. Uses [Conductor](https://github.## The Problem
 
 Your upstream system sends customer records with snake_case field names (`cust_id`, `first_name`, `last_name`, `acct_type`, `reg_date`) in a flat structure, but your downstream API expects camelCase fields (`customerId`, `fullName`, `accountType`) organized into nested groups (`identity.id`, `contact.email`, `account.type`). The transformation is not just renaming. `first_name` and `last_name` need to be concatenated into `fullName` with whitespace trimmed, `email` needs to be lowercased for consistency, and `acct_type` needs to be uppercased to match the enum values the downstream system expects. After restructuring, the output must conform to a target schema: `identity.id` and `contact.email` are required fields, and any record missing them is invalid.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single mapper method that parses, renames, 
 
 **You just write the JSON parsing, field mapping, nested restructuring, schema validation, and output workers. Conductor handles the multi-stage transformation sequence, retries on step failures, and field count tracking at every stage so you can trace how the record shape evolves from input to output.**
 
-Each stage of the JSON transformation is a simple, independent worker. The parser reads the source JSON and counts its top-level fields. The field mapper applies the mapping rules. Renaming `cust_id` to `customerId`, concatenating `first_name` and `last_name` into `fullName`, lowercasing the email, and uppercasing the account type. The restructurer takes the flat mapped record and organizes it into nested groups (`identity`, `contact`, `account`). The schema validator checks that required fields like `identity.id` and `contact.email` exist in the restructured output. The emitter produces the final record for downstream consumption. Conductor executes them in sequence, passes the evolving record between stages, retries if a step fails, and tracks the field count at every stage so you can see exactly how the record shape changed from input to output. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the JSON transformation is a simple, independent worker. The parser reads the source JSON and counts its top-level fields. The field mapper applies the mapping rules. Renaming `cust_id` to `customerId`, concatenating `first_name` and `last_name` into `fullName`, lowercasing the email, and uppercasing the account type. The restructurer takes the flat mapped record and organizes it into nested groups (`identity`, `contact`, `account`). The schema validator checks that required fields like `identity.id` and `contact.email` exist in the restructured output. The emitter produces the final record for downstream consumption. Conductor executes them in sequence, passes the evolving record between stages, retries if a step fails, and tracks the field count at every stage so you can see exactly how the record shape changed from input to output. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers handle JSON transformation: parsing the source JSON, mapping and re
 | **ValidateSchemaWorker** | `jt_validate_schema` | Validate Schema. Computes and returns validated, is valid |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ jt_validate_schema
     │
     ▼
 jt_emit_output
-```
-
-## Example Output
-
-```
-=== Example 253: JSON Transformatio ===
-
-Step 1: Registering task definitions...
-  Registered: jt_parse_input, jt_map_fields, jt_restructure_nested, jt_validate_schema, jt_emit_output
-
-Step 2: Registering workflow 'json_transformation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [jt_emit_output] Output record ready (valid:
-  [jt_map_fields] Mapped
-  [jt_parse_input] Parsed source JSON with
-  [jt_restructure_nested] Reorganized into nested structure: identity, contact, account
-  [jt_validate_schema] Validation: id=
-
-  Status: COMPLETED
-  Output: {record=..., emitted=..., customerId=..., fullName=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow json_transformation \
   --version 1 \
-  --input '{"sourceJson": {"key": "value"}}'
+  --input '{"sourceJson": "test-value", "mappingRules": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Calendar Agent in Java Using Conductor :  Parse Requests, Check Availability, Find Slots, Book Meetings
 
-Calendar Agent .  parse meeting request, check attendee calendars, find available slots, and book the meeting through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Meeting Scheduling Is a Constraint Satisfaction Problem
+Calendar Agent .  parse meeting request, check attendee calendars, find available slots, and book the meeting through a sequential pipeline. Uses [Conductor](https://github.## Meeting Scheduling Is a Constraint Satisfaction Problem
 
 Finding a time that works for three people across different time zones with existing commitments is tedious. The agent needs to parse the request ("1-hour meeting with Alice and Bob, preferably next Tuesday afternoon"), check each attendee's calendar for existing events, find overlapping free windows that satisfy the duration and preference constraints, and book the meeting with proper invitations.
 
@@ -27,15 +25,6 @@ Four workers handle scheduling. Parsing the meeting request, checking attendee c
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cl_find_slots
     │
     ▼
 cl_book_meeting
-```
-
-## Example Output
-
-```
-=== Calendar Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cl_parse_request, cl_check_calendar, cl_find_slots, cl_book_meeting
-
-Step 2: Registering workflow 'calendar_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cl_book_meeting] Booking meeting:
-  [cl_check_calendar] Checking calendars for
-  [cl_find_slots] Finding best slots from availability data
-  [cl_parse_request] Parsing request:
-
-  Status: COMPLETED
-  Output: {meetingId=..., calendarLink=..., scheduledTime=..., invitesSent=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow calendar_agent \
   --version 1 \
-  --input '{"request": "sample-request", "Schedule a Q1 architecture review meeting with the engineering leads next week": "sample-Schedule a Q1 architecture review meeting with the engineering leads next week", "attendees": "sample-attendees", "alice@company.com": "sample-alice@company.com", "bob@company.com": "sample-bob@company.com", "duration": "sample-duration", "1 hour": "sample-1 hour", "preferredDate": "2025-01-15T10:00:00Z"}'
+  --input '{"request": "test-value", "attendees": "test-value", "duration": "test-value", "preferredDate": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Connect to Google Calendar or Microsoft Graph; the scheduling pipeline preserves
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

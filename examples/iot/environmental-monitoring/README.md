@@ -1,8 +1,6 @@
 # Environmental Monitoring in Java with Conductor :  Air Quality Sensing, Threshold Alerts, and Compliance Reporting
 
-A Java Conductor workflow example that orchestrates environmental monitoring .  collecting air quality readings (PM2.5, PM10, CO2, NO2, ozone), checking pollutant concentrations against regulatory thresholds, triggering alerts when AQI breaches occur, and generating compliance reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Air Quality Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates environmental monitoring .  collecting air quality readings (PM2.5, PM10, CO2, NO2, ozone), checking pollutant concentrations against regulatory thresholds, triggering alerts when AQI breaches occur, and generating compliance reports. Uses [Conductor](https://github.## Why Air Quality Monitoring Needs Orchestration
 
 Environmental monitoring stations collect readings across multiple pollutants .  particulate matter (PM2.5, PM10), gases (CO2, NO2, ozone), and ambient conditions (temperature, humidity). Each reading must be checked against regulatory thresholds to compute an Air Quality Index. When the AQI exceeds safe levels, alerts go out to environmental teams and the monitoring dashboard. Regardless of alert status, a compliance report must be generated for regulatory review.
 
@@ -27,15 +25,6 @@ Four workers run the monitoring cycle: CollectDataWorker reads pollutant concent
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ env_trigger_alert
     │
     ▼
 env_generate_report
-```
-
-## Example Output
-
-```
-=== Example 539: Environmental Monitoring ===
-
-Step 1: Registering task definitions...
-  Registered: env_collect_data, env_check_thresholds, env_trigger_alert, env_generate_report
-
-Step 2: Registering workflow 'environmental_monitoring_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [threshold] Processing
-  [collect] Processing
-  [report] Processing
-  [alert] Processing
-
-  Status: COMPLETED
-  Output: {breachCount=..., aqi=..., readings=..., pm25=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow environmental_monitoring_workflow \
   --version 1 \
-  --input '{"stationId": "ENV-STN-539-NORTH", "ENV-STN-539-NORTH": "region", "region": "Industrial Zone A", "Industrial Zone A": "monitoringType", "monitoringType": "air_quality", "air_quality": "sample-air-quality"}'
+  --input '{"stationId": "TEST-001", "region": "test-value", "monitoringType": "test-value"}'
 ```
 
 ### Check workflow status

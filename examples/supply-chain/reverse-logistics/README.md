@@ -1,8 +1,6 @@
 # Reverse Logistics in Java with Conductor :  Return Receipt, Condition Inspection, Refurbish/Recycle/Dispose Routing, and Processing
 
-A Java Conductor workflow example for reverse logistics .  receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for reverse logistics .  receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.## The Problem
 
 You need to handle product returns efficiently and recover maximum value. When a customer returns wireless headphones with a defective speaker (return ID RET-2024-669), the item must be received at the returns center, inspected to determine condition (cosmetic damage only? functional defect? beyond repair?), and routed to the appropriate disposition: refurbishment if repairable, recycling if materials can be recovered, or disposal if neither is viable. The final processing step updates inventory, triggers the customer refund, and records the disposition for sustainability reporting.
 
@@ -29,16 +27,6 @@ Six workers handle returns end-to-end: ReceiveReturnWorker logs the return, Insp
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -55,36 +43,6 @@ SWITCH (rvl_switch_ref)
     │
     ▼
 rvl_process
-```
-
-## Example Output
-
-```
-=== Example 669: Reverse Logistics ===
-
-Step 1: Registering task definitions...
-  Registered: rvl_receive_return, rvl_inspect, rvl_refurbish, rvl_recycle, rvl_dispose, rvl_process
-
-Step 2: Registering workflow 'rvl_reverse_logistics'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [dispose]
-  [inspect]
-  [process] Return
-  [receive] Return
-  [recycle]
-  [refurbish]
-
-  Status: COMPLETED
-  Output: {action=..., method=..., condition=..., damageLevel=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rvl_reverse_logistics \
   --version 1 \
-  --input '{"returnId": "RET-2024-669", "RET-2024-669": "product", "product": "Wireless Headphones", "Wireless Headphones": "reason", "reason": "defective_speaker", "defective_speaker": "sample-defective-speaker"}'
+  --input '{"returnId": "TEST-001", "product": "test-value", "reason": "test-value"}'
 ```
 
 ### Check workflow status

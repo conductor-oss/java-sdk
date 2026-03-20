@@ -1,8 +1,6 @@
 # Cloud Cost Optimization in Java with Conductor :  Billing Collection, Usage Analysis, Savings Recommendations, and Auto-Apply
 
-Orchestrates cloud cost optimization using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects billing data for a specified account and period, analyzes resource utilization to identify waste (idle instances, over-provisioned databases, unused EBS volumes), generates savings recommendations with estimated dollar impact, and auto-applies safe optimizations like purchasing reserved instances or deleting orphaned snapshots. You write the cost logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Cloud Bill Problem
+Orchestrates cloud cost optimization using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects billing data for a specified account and period, analyzes resource utilization to identify waste (idle instances, over-provisioned databases, unused EBS volumes), generates savings recommendations with estimated dollar impact, and auto-applies safe optimizations like purchasing reserved instances or deleting orphaned snapshots.## The Cloud Bill Problem
 
 Your AWS bill jumped 40% last month. Somewhere in your account, there are EC2 instances running at 5% CPU, over-provisioned RDS databases with 2TB allocated but only 50GB used, and EBS snapshots from instances deleted six months ago. Finding these wastes requires collecting billing data, cross-referencing it with utilization metrics, computing how much each optimization would save, and then actually applying the changes. Rightsizing instances, deleting orphaned resources, converting on-demand to reserved capacity. Missing even one step means money leaking out every hour.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a cost analysis script that pulls billing dat
 
 **You write the billing analysis and optimization logic. Conductor handles the collection-to-savings pipeline and tracks every dollar saved.**
 
-Each stage of the cost optimization pipeline is a simple, independent worker. The billing collector pulls spend data for the specified account and period from the cloud provider's cost API. The usage analyzer cross-references billing with utilization metrics to identify waste: instances running below 10% CPU, databases with unused storage, orphaned load balancers with no targets. The recommender generates prioritized savings opportunities with estimated monthly dollar impact for each. The savings applier executes safe optimizations automatically, deleting orphaned snapshots, rightsizing instances, purchasing reserved capacity, and reports what was applied and the projected savings. Conductor executes them in strict sequence, retries if the billing API is rate-limited, and tracks spend amounts and savings amounts at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the cost optimization pipeline is a simple, independent worker. The billing collector pulls spend data for the specified account and period from the cloud provider's cost API. The usage analyzer cross-references billing with utilization metrics to identify waste: instances running below 10% CPU, databases with unused storage, orphaned load balancers with no targets. The recommender generates prioritized savings opportunities with estimated monthly dollar impact for each. The savings applier executes safe optimizations automatically, deleting orphaned snapshots, rightsizing instances, purchasing reserved capacity, and reports what was applied and the projected savings. Conductor executes them in strict sequence, retries if the billing API is rate-limited, and tracks spend amounts and savings amounts at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers run the cost optimization cycle. Collecting billing data, analyzing
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ co_recommend
     │
     ▼
 co_apply_savings
-```
-
-## Example Output
-
-```
-=== Example 349: Cost Optimizatio ===
-
-Step 1: Registering task definitions...
-  Registered: co_collect_billing, co_analyze_usage, co_recommend, co_apply_savings
-
-Step 2: Registering workflow 'cost_optimization_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Found 23% waste: idle instances, oversized volumes
-  [apply] Right-sized 8 instances, terminated 10 idle resources
-  [billing] Collected billing data for prod-account-001
-  [recommend] 5 optimization recommendations generated
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cost_optimization_workflow \
   --version 1 \
-  --input '{"account": 5, "prod-account-001": 5, "period": "sample-period"}'
+  --input '{"account": 10, "period": "test-value"}'
 ```
 
 ### Check workflow status

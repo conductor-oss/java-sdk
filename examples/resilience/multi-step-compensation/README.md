@@ -12,7 +12,7 @@ Without orchestration, compensation logic is tangled with forward logic. Each st
 
 **You just write the provisioning steps and their matching undo operations. Conductor handles forward sequencing, automatic compensation in reverse order via the failure workflow, retries on each undo step, and a complete record of both the forward and compensation paths.**
 
-The forward workflow runs three workers in sequence .  create account, setup billing, provision resources. A separate compensation workflow runs the undo workers in reverse order (undo provision, undo billing, undo account) using the outputs from the forward steps. Conductor's failure workflow feature links them: when the forward workflow fails, compensation runs automatically. Every step in both directions is tracked. You get all of that for free, without writing a single line of orchestration code.
+The forward workflow runs three workers in sequence .  create account, setup billing, provision resources. A separate compensation workflow runs the undo workers in reverse order (undo provision, undo billing, undo account) using the outputs from the forward steps. Conductor's failure workflow feature links them: when the forward workflow fails, compensation runs automatically. Every step in both directions is tracked. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -29,49 +29,10 @@ Three forward workers. CreateAccountWorker, SetupBillingWorker, and ProvisionRes
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> CreateAccountWorker -> ProvisionResourcesWorker -> SetupBillingWorker -> UndoAccountWorker -> UndoBillingWorker -> UndoProvisionWorker -> Output
-```
-
-## Example Output
-
-```
-=== Multi-Step Compensation Demo: Reverse Operations in Order ===
-
-Step 1: Registering task definitions...
-  Registered: msc_create_account, msc_provision_resources, msc_setup_billing, msc_undo_account, msc_undo_billing, msc_undo_provision
-
-Step 2: Registering workflow 'msc_forward_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [msc_create_account] Creating account...
-  [msc_provision_resources] Provisioning resources (failAt=
-  [msc_setup_billing] Setting up billing...
-  [msc_undo_account] Undoing account creation...
-  [msc_undo_billing] Undoing billing setup...
-  [msc_undo_provision] Undoing resource provisioning...
-
-  Status: COMPLETED
-  Output: {accountId=..., error=..., resourceId=..., billingId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +61,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

@@ -1,8 +1,6 @@
 # Telecom Provisioning in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service provisioning .  creating a service order for a customer, validating the order against the selected plan, configuring network resources for the service type, activating the service on the network, and sending a confirmation to the customer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Service Provisioning Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom service provisioning .  creating a service order for a customer, validating the order against the selected plan, configuring network resources for the service type, activating the service on the network, and sending a confirmation to the customer. Uses [Conductor](https://github.## Why Service Provisioning Needs Orchestration
 
 Provisioning a new telecom service requires a strict sequence where each step depends on the previous one. You create a service order with the customer's details and service type. You validate that the order is compatible with the selected plan. You configure the network equipment (switches, routers, HLR/HSS entries) for the service. You activate the configured service so the customer can start using it. Finally, you send a provisioning confirmation to the customer.
 
@@ -28,15 +26,6 @@ Order creation, validation, network configuration, activation, and confirmation 
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ tpv_activate
     │
     ▼
 tpv_confirm
-```
-
-## Example Output
-
-```
-=== Example 815: Telecom Provisioning ===
-
-Step 1: Registering task definitions...
-  Registered: tpv_order, tpv_validate, tpv_configure, tpv_activate, tpv_confirm
-
-Step 2: Registering workflow 'tpv_telecom_provisioning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [activate] Processing
-  [configure] Processing
-  [confirm] Processing
-  [order] Processing
-  [validate] Processing
-
-  Status: COMPLETED
-  Output: {serviceId=..., activatedAt=..., configId=..., bandwidth=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tpv_telecom_provisioning \
   --version 1 \
-  --input '{"customerId": "CUST-815", "CUST-815": "serviceType", "serviceType": "fiber-internet", "fiber-internet": "planId", "planId": "PLAN-100", "PLAN-100": "sample-PLAN-100"}'
+  --input '{"customerId": "TEST-001", "serviceType": "test-value", "planId": "TEST-001"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Custom Metrics Pipeline in Java with Conductor :  Define, Collect, Aggregate, Dashboard Update
 
-Automates custom metrics pipelines using [Conductor](https://github.com/conductor-oss/conductor). This workflow defines custom metric definitions, collects raw data points for those metrics, aggregates them over a time window (sum, average, percentiles), and updates dashboards with the results. You write the metrics logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Business Metrics That Infrastructure Tools Cannot See
+Automates custom metrics pipelines using [Conductor](https://github.com/conductor-oss/conductor). This workflow defines custom metric definitions, collects raw data points for those metrics, aggregates them over a time window (sum, average, percentiles), and updates dashboards with the results.## Business Metrics That Infrastructure Tools Cannot See
 
 Your standard monitoring covers CPU, memory, and request latency. But the business needs to track checkout conversion rate, cart abandonment by region, and API quota usage per tenant. These custom metrics require defining what to measure, collecting the raw events, aggregating them into meaningful numbers over time windows, and pushing the results to a dashboard the team actually watches.
 
@@ -27,47 +25,10 @@ Four workers manage custom metrics. Defining what to measure, collecting raw dat
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> Aggregate -> CollectData -> DefineMetrics -> UpdateDashboard -> Output
-```
-
-## Example Output
-
-```
-=== Example 422: Custom Metrics ===
-
-Step 1: Registering task definitions...
-  Registered: cus_aggregate, cus_collect_data, cus_define_metrics, cus_update_dashboard
-
-Step 2: Registering workflow 'custom_metrics_422'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cus_aggregate] Aggregating
-  [cus_collect_data] Collecting data for
-  [cus_define_metrics] Registering custom metric definitions...
-  [cus_update_dashboard] Updating dashboard with
-
-  Status: COMPLETED
-  Output: {metricCount=..., aggregatedMetrics=..., rawDataPoints=..., collectedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

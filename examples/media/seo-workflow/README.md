@@ -1,8 +1,6 @@
 # SEO Optimization Pipeline in Java Using Conductor :  Site Audit, Keyword Research, Content Optimization, Sitemap Submission, and Rank Monitoring
 
-A Java Conductor workflow example that orchestrates an SEO optimization pipeline .  auditing site health with SEO scoring and issue detection, researching target keywords with search volume and difficulty metrics, optimizing page content (meta descriptions, heading structure, internal linking), submitting updated sitemaps to search engines, and setting up ongoing rank monitoring with alert thresholds. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why SEO Workflows Need Orchestration
+A Java Conductor workflow example that orchestrates an SEO optimization pipeline .  auditing site health with SEO scoring and issue detection, researching target keywords with search volume and difficulty metrics, optimizing page content (meta descriptions, heading structure, internal linking), submitting updated sitemaps to search engines, and setting up ongoing rank monitoring with alert thresholds. Uses [Conductor](https://github.## Why SEO Workflows Need Orchestration
 
 Improving search rankings requires a pipeline where each step informs the next. You audit the site to identify SEO issues .  missing meta descriptions, poor heading structure, broken internal links, and compute an overall SEO score with current rankings. You research keywords to find opportunities ,  identifying terms with high search volume but achievable difficulty where the site does not currently rank. You optimize content pages based on the audit findings and keyword research ,  adding meta descriptions, restructuring headings, inserting internal links. You submit the updated sitemap to search engines so changes are crawled promptly. Finally, you set up rank monitoring with alert thresholds to track whether the optimizations are improving positions.
 
@@ -28,15 +26,6 @@ Five workers cover the SEO cycle: AuditSiteWorker identifies technical issues, R
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ seo_submit_sitemap
     │
     ▼
 seo_monitor_rankings
-```
-
-## Example Output
-
-```
-=== Example 525: SEO Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: seo_audit_site, seo_research_keywords, seo_optimize_content, seo_submit_sitemap, seo_monitor_rankings
-
-Step 2: Registering workflow 'seo_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [audit] Processing
-  [monitor] Processing
-  [optimize] Processing
-  [keywords] Processing
-  [submit] Processing
-
-  Status: COMPLETED
-  Output: {seoScore=..., issues=..., currentRankings=..., monitoringStatus=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow seo_workflow \
   --version 1 \
-  --input '{"siteUrl": "https://api.example.com/resource", "https://www.example.com": "sample-https://www.example.com", "targetKeywords": "sample-targetKeywords", "conductor workflow": "sample-conductor workflow", "orchestration": "sample-orchestration", "pageUrl": "https://api.example.com/resource"}'
+  --input '{"siteUrl": "https://example.com", "targetKeywords": "test-value", "pageUrl": "https://example.com"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Implementing Compliance Reporting in Java with Conductor :  Evidence Collection, Control Mapping, Gap Assessment, and Report Generation
 
-A Java Conductor workflow example automating compliance report generation .  collecting evidence artifacts (access logs, configuration snapshots, policy documents) for a target framework (SOC 2, ISO 27001, HIPAA, PCI-DSS), mapping each evidence item to the control objectives it satisfies, identifying gaps where controls lack sufficient evidence, and generating the final compliance report for auditor review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example automating compliance report generation .  collecting evidence artifacts (access logs, configuration snapshots, policy documents) for a target framework (SOC 2, ISO 27001, HIPAA, PCI-DSS), mapping each evidence item to the control objectives it satisfies, identifying gaps where controls lack sufficient evidence, and generating the final compliance report for auditor review. Uses [Conductor](https://github.## The Problem
 
 You need to produce compliance reports that demonstrate your organization meets the requirements of a regulatory framework. This means gathering hundreds of evidence items .  access review logs, network diagrams, encryption configurations, incident response records, change management tickets, and mapping each one to the specific control objective it satisfies (e.g., SOC 2 CC6.1 for logical access, ISO 27001 A.12.3 for backup verification). After mapping, you must identify gaps where a control has insufficient or missing evidence, so remediation can happen before the audit. The final report must be structured for auditor consumption, with clear traceability from each control to its supporting evidence.
 
@@ -12,7 +10,7 @@ Without orchestration, compliance reporting is a quarterly fire drill. Someone m
 
 **You just write the evidence collection and control mapping logic. Conductor handles the evidence-to-report pipeline, retries when source systems are temporarily unavailable, and a proof chain showing when evidence was collected and how controls were mapped.**
 
-Each compliance reporting step is a simple, independent worker .  one collects evidence artifacts from your systems for the specified framework and reporting period, one maps each evidence item to the control objectives it satisfies, one identifies gaps where controls lack sufficient evidence, one generates the structured compliance report for auditor review. Conductor takes care of executing them in strict order so no report is generated without a complete gap assessment, retrying if an evidence source is temporarily unavailable, and maintaining a complete audit trail that proves when evidence was collected, how controls were mapped, and what gaps were identified for every reporting cycle. You get all of that for free, without writing a single line of orchestration code.
+Each compliance reporting step is a simple, independent worker .  one collects evidence artifacts from your systems for the specified framework and reporting period, one maps each evidence item to the control objectives it satisfies, one identifies gaps where controls lack sufficient evidence, one generates the structured compliance report for auditor review. Conductor takes care of executing them in strict order so no report is generated without a complete gap assessment, retrying if an evidence source is temporarily unavailable, and maintaining a complete audit trail that proves when evidence was collected, how controls were mapped, and what gaps were identified for every reporting cycle. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ The reporting pipeline uses CollectEvidenceWorker to gather artifacts from conne
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ cr_assess_gaps
     │
     ▼
 cr_generate_report
-```
-
-## Example Output
-
-```
-=== Compliance Reporting Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cr_collect_evidence, cr_map_controls, cr_assess_gaps, cr_generate_report
-
-Step 2: Registering workflow 'compliance_reporting_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [gaps] 2 gaps found: backup verification, access review timeliness
-  [evidence] Collected 156 evidence items for
-  [report] Compliance report generated for auditor review
-  [controls] Mapped evidence to 64 control objectives
-
-  Status: COMPLETED
-  Output: {assess_gaps=..., processed=..., collect_evidenceId=..., success=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

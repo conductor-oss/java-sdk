@@ -1,8 +1,6 @@
 # Multi-Agent Content Creation in Java Using Conductor :  Research, Write, SEO Optimize, Edit, Publish
 
-Multi-Agent Content Creation .  research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Quality Content Requires Specialized Roles
+Multi-Agent Content Creation .  research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents. Uses [Conductor](https://github.## Quality Content Requires Specialized Roles
 
 Asking an LLM to "write a blog post about Kubernetes" in a single call produces generic, unresearched content with no SEO optimization and no editorial review. Quality content creation mirrors a real editorial workflow: a researcher gathers facts and sources, a writer crafts the narrative for a specific audience and word count, an SEO specialist adds keywords and meta descriptions and optimizes headings, an editor improves readability and catches errors, and a publisher formats and delivers the final piece.
 
@@ -28,15 +26,6 @@ Five agents form the editorial pipeline. Researching the topic, writing the draf
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ cc_editor_agent
     │
     ▼
 cc_publish
-```
-
-## Example Output
-
-```
-=== Multi-Agent Content Creation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cc_research_agent, cc_writer_agent, cc_seo_agent, cc_editor_agent, cc_publish
-
-Step 2: Registering workflow 'multi_agent_content_creation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cc_editor_agent] Polishing article...
-  [cc_publish] Publishing article:
-  [cc_research_agent] Researching topic:
-  [cc_seo_agent] Optimizing SEO for topic:
-  [cc_writer_agent] Writing article on:
-
-  Status: COMPLETED
-  Output: {title=..., author=..., tags=..., readTime=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_agent_content_creation \
   --version 1 \
-  --input '{"topic": "sample-topic", "AI in Healthcare": "sample-AI in Healthcare", "targetAudience": "sample-targetAudience", "healthcare professionals": "sample-healthcare professionals", "wordCount": 5}'
+  --input '{"topic": "test-value", "targetAudience": "test-value", "wordCount": 10}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Replace with real LLM writing and SEO tools; the content pipeline uses the same 
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

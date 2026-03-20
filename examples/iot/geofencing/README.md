@@ -1,8 +1,6 @@
 # Geofencing in Java with Conductor :  Location Tracking, Boundary Evaluation, and Zone-Based Alerts
 
-A Java Conductor workflow example that orchestrates geofence monitoring .  normalizing device GPS coordinates, computing distance from geofence boundaries, determining inside/outside zone status, and routing to different alert handlers based on whether the device has entered or exited the fence. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Geofence Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates geofence monitoring .  normalizing device GPS coordinates, computing distance from geofence boundaries, determining inside/outside zone status, and routing to different alert handlers based on whether the device has entered or exited the fence. Uses [Conductor](https://github.## Why Geofence Monitoring Needs Orchestration
 
 Geofencing requires a decision pipeline for every location update. You receive raw GPS coordinates from a device, normalize them, and compute the Euclidean distance to the geofence center. Based on whether the device is inside or outside the defined radius, you route to entirely different alert handlers .  an entry alert when a device enters a restricted zone, an exit alert when it leaves a monitored area. The alert type, the notification recipients, and the follow-up actions all depend on the zone status.
 
@@ -27,16 +25,6 @@ Four workers process each location update: CheckLocationWorker normalizes GPS co
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ geo_evaluate_boundaries
 SWITCH (geo_switch_ref)
     ├── inside: geo_alert_inside
     ├── outside: geo_alert_outside
-```
-
-## Example Output
-
-```
-=== Geofencing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: geo_check_location, geo_evaluate_boundaries, geo_alert_inside, geo_alert_outside
-
-Step 2: Registering workflow 'geofencing_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [alert] Device
-  [alert] Device
-  [location] Device
-  [boundary] Distance:
-
-  Status: COMPLETED
-  Output: {alertType=..., acknowledged=..., latitude=..., longitude=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow geofencing_demo \
   --version 1 \
-  --input '{"deviceId": "DEV-101", "DEV-101": "latitude", "latitude": 37.78}'
+  --input '{"deviceId": "TEST-001", "latitude": "test-value", "longitude": "test-value"}'
 ```
 
 ### Check workflow status

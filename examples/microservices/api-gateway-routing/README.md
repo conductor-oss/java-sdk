@@ -1,8 +1,6 @@
 # API Gateway Routing in Java with Conductor
 
-API gateway routing workflow that authenticates requests, checks rate limits, routes to backend services, and transforms responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+API gateway routing workflow that authenticates requests, checks rate limits, routes to backend services, and transforms responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 An API gateway must authenticate every inbound request, enforce rate limits per client, route the call to the right backend service, and transform the response before returning it. Each of these concerns lives in a different service, and they must run in strict sequence. Routing depends on auth, and the response transform depends on the routing result.
 
@@ -27,15 +25,6 @@ Four workers divide the routing pipeline: AuthenticateWorker validates tokens, R
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ gw_route_request
     │
     ▼
 gw_transform_response
-```
-
-## Example Output
-
-```
-=== API Gateway Routing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: gw_authenticate, gw_rate_check, gw_route_request, gw_transform_response
-
-Step 2: Registering workflow 'api_gateway_routing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [auth] Validating token for
-  [rate] Client
-  [route]
-  [transform] Formatting response for
-
-  Status: COMPLETED
-  Output: {clientId=..., clientVersion=..., requestId=..., allowed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow api_gateway_routing \
   --version 1 \
-  --input '{"path": "/api/v1/resource", "/api/orders/123": "sample-/api/orders/123", "method": "POST", "GET": "sample-GET", "headers": "sample-headers", "authorization": "sample-authorization", "body": "sample-body"}'
+  --input '{"path": "test-value", "method": "test-value", "headers": "test-value", "body": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Implementing Data Classification in Java with Conductor :  Data Store Scanning, PII Detection, Sensitivity Classification, and Label Application
 
-A Java Conductor workflow example automating data classification .  scanning data stores (databases, S3 buckets, file shares) for schema and column metadata, detecting personally identifiable information (PII) fields like emails, SSNs, and phone numbers, classifying each field by sensitivity level (public, internal, sensitive, restricted), and applying classification labels to the data catalog so downstream systems enforce the correct access controls and retention policies. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example automating data classification .  scanning data stores (databases, S3 buckets, file shares) for schema and column metadata, detecting personally identifiable information (PII) fields like emails, SSNs, and phone numbers, classifying each field by sensitivity level (public, internal, sensitive, restricted), and applying classification labels to the data catalog so downstream systems enforce the correct access controls and retention policies. Uses [Conductor](https://github.## The Problem
 
 You need to know what sensitive data lives in your systems before you can protect it. Across dozens of databases, data lakes, and file stores, there are tables and columns containing Social Security numbers, email addresses, payment card numbers, health records, and other regulated data .  often with column names like `field_7` or `user_data` that give no indication of what they contain. Regulations (GDPR, CCPA, HIPAA, PCI-DSS) require you to know where this data is, classify it by sensitivity, and apply appropriate protection. Without a complete inventory, you cannot enforce encryption, retention, or access control policies consistently.
 
@@ -12,7 +10,7 @@ Without orchestration, data classification is a manual, one-time project that is
 
 **You just write the PII detection rules and catalog labeling calls. Conductor handles the ordered scan-to-label pipeline, retries when database connections time out, and an audit trail proving which stores were scanned and what classifications were applied.**
 
-Each classification step is a simple, independent worker .  one scans data stores for schema and column metadata, one runs pattern matching and ML-based detection to identify PII fields, one assigns sensitivity levels (public, internal, sensitive, restricted) based on the detected data types and regulatory context, one applies the classification labels to the data catalog. Conductor takes care of executing them in strict order so no labels are applied without a complete PII detection pass, retrying if a database connection times out during scanning, and maintaining a complete audit trail that shows exactly which stores were scanned, what PII was detected, and what classifications were assigned ,  essential for demonstrating compliance to regulators. You get all of that for free, without writing a single line of orchestration code.
+Each classification step is a simple, independent worker .  one scans data stores for schema and column metadata, one runs pattern matching and ML-based detection to identify PII fields, one assigns sensitivity levels (public, internal, sensitive, restricted) based on the detected data types and regulatory context, one applies the classification labels to the data catalog. Conductor takes care of executing them in strict order so no labels are applied without a complete PII detection pass, retrying if a database connection times out during scanning, and maintaining a complete audit trail that shows exactly which stores were scanned, what PII was detected, and what classifications were assigned ,  essential for demonstrating compliance to regulators. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the classification pipeline: ScanDataStoresWorker extracts sch
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ dc_classify
     │
     ▼
 dc_apply_labels
-```
-
-## Example Output
-
-```
-=== Data Classification Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dc_scan_data_stores, dc_detect_pii, dc_classify, dc_apply_labels
-
-Step 2: Registering workflow 'data_classification_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [label] Classification labels applied to data catalog
-  [classify] Classified: 24 sensitive, 89 internal, 205 public
-  [pii] Detected 24 PII fields: emails, SSNs, phone numbers
-  [scan] Scanned
-
-  Status: COMPLETED
-  Output: {apply_labels=..., completedAt=..., classify=..., processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

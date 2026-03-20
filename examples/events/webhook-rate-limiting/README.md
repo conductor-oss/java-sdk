@@ -1,8 +1,6 @@
 # Webhook Rate Limiting in Java Using Conductor
 
-Rate limit incoming webhooks per sender. Identifies the sender, checks their request rate, and uses SWITCH to allow processing or queue for throttling. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Rate limit incoming webhooks per sender. Identifies the sender, checks their request rate, and uses SWITCH to allow processing or queue for throttling. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to rate-limit incoming webhooks per sender to protect your system from webhook floods. Each incoming webhook must be identified by sender, checked against their rate limit, and either allowed through for processing or queued for throttled delivery. Without rate limiting, a misbehaving sender can overwhelm your processing pipeline and degrade service for all other senders.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd implement a rate limiter with token buckets or slid
 
 **You just write the sender-identification, rate-check, process, and throttle-queue workers. Conductor handles SWITCH-based allow/throttle routing, per-sender rate tracking, and a full audit of every rate-limit decision.**
 
-Each rate-limiting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of identifying the sender, checking their rate, routing via a SWITCH task to process or throttle, and tracking every webhook's rate-limit decision. You get all of that for free, without writing a single line of orchestration code.
+Each rate-limiting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of identifying the sender, checking their rate, routing via a SWITCH task to process or throttle, and tracking every webhook's rate-limit decision. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Four workers enforce per-sender rate limits: IdentifySenderWorker extracts the s
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ wl_check_rate
 SWITCH (switch_ref)
     ├── allowed: wl_process_allowed
     ├── throttled: wl_queue_throttled
-```
-
-## Example Output
-
-```
-=== Webhook Rate Limiting Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wl_identify_sender, wl_check_rate, wl_process_allowed, wl_queue_throttled
-
-Step 2: Registering workflow 'webhook_rate_limiting'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wl_check_rate] Sender
-  [wl_identify_sender] Identified sender:
-  [wl_process_allowed] Processing webhook from
-  [wl_queue_throttled] Throttled
-
-  Status: COMPLETED
-  Output: {decision=..., currentRate=..., limit=..., retryAfterMs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow webhook_rate_limiting \
   --version 1 \
-  --input '{"senderId": "partner-api-xyz", "partner-api-xyz": "payload", "payload": {"key": "value"}}'
+  --input '{"senderId": "TEST-001", "payload": "test-value", "rateLimit": 10}'
 ```
 
 ### Check workflow status

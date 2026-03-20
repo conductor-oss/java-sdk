@@ -1,8 +1,6 @@
 # Payment Reconciliation in Java with Conductor
 
-Reconcile payments: match transactions, identify discrepancies, resolve mismatches, and generate report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Reconcile payments: match transactions, identify discrepancies, resolve mismatches, and generate report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to reconcile payments between your internal records and bank/processor statements. The workflow matches transactions from both sides, identifies discrepancies (missing transactions, amount mismatches, duplicate entries), resolves mismatches through investigation or adjustment, and generates a reconciliation report. Unreconciled payments mean your books are inaccurate; unresolved discrepancies accumulate and become harder to fix over time.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd run a batch reconciliation script that pulls transa
 
 **You just write the reconciliation workers. Transaction matching, discrepancy identification, and mismatch resolution. Conductor handles step ordering, automatic retries when the bank feed API is unavailable, and complete reconciliation cycle tracking.**
 
-Each reconciliation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (match, identify discrepancies, resolve, report), retrying if the bank feed API is unavailable, tracking every reconciliation cycle with full detail, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each reconciliation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (match, identify discrepancies, resolve, report), retrying if the bank feed API is unavailable, tracking every reconciliation cycle with full detail, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +23,6 @@ Three workers handle the reconciliation process: MatchTransactionsWorker compare
 | **ResolveMismatchesWorker** | `prc_resolve_mismatches` | Resolves identified mismatches/discrepancies. |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -48,34 +37,6 @@ prc_resolve_mismatches
     │
     ▼
 prc_generate_report
-```
-
-## Example Output
-
-```
-=== Payment Reconciliation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: prc_match_transactions, prc_identify_discrepancies, prc_resolve_mismatches, prc_generate_report
-
-Step 2: Registering workflow 'payment_reconciliation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [report] Generating reconciliation report for batch
-  [discrepancy] Found
-  [match] Matching transactions for batch
-  [resolve] Resolving
-
-  Status: COMPLETED
-  Output: {reportId=..., generatedAt=..., summary=..., discrepancies=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow payment_reconciliation_workflow \
   --version 1 \
-  --input '{"batchId": "BATCH-2026-0314", "BATCH-2026-0314": "accountId", "accountId": "ACCT-7890", "ACCT-7890": "periodStart", "periodStart": "2026-03-01", "2026-03-01": "periodEnd", "periodEnd": "2026-03-14", "2026-03-14": "sample-2026-03-14"}'
+  --input '{"batchId": "TEST-001", "accountId": "TEST-001", "periodStart": "test-value", "periodEnd": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Water Management in Java with Conductor :  Level Monitoring, Quality Analysis, Leak Detection, and Alerting
 
-A Java Conductor workflow example that orchestrates water infrastructure monitoring .  reading water levels from reservoir and distribution sensors, analyzing water quality parameters (pH, turbidity, chlorine, contaminants), detecting leaks in the distribution network using pressure and flow anomalies, and triggering alerts when issues are found. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Water Infrastructure Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates water infrastructure monitoring .  reading water levels from reservoir and distribution sensors, analyzing water quality parameters (pH, turbidity, chlorine, contaminants), detecting leaks in the distribution network using pressure and flow anomalies, and triggering alerts when issues are found. Uses [Conductor](https://github.## Why Water Infrastructure Monitoring Needs Orchestration
 
 Managing a water distribution network requires a monitoring pipeline where each check feeds into the next. You read water levels across the zone .  reservoir capacity, tank fill percentages, distribution pressure. You analyze water quality at multiple points in the network to detect contamination, pH drift, or chlorine depletion. You run leak detection algorithms that correlate pressure drops and flow rate anomalies to identify pipe segments losing water. If any check finds an issue ,  low levels, quality violations, or a high-confidence leak ,  you trigger alerts to the operations team.
 
@@ -27,15 +25,6 @@ Four workers monitor the water network: MonitorLevelsWorker reads reservoir and 
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ wtr_detect_leaks
     │
     ▼
 wtr_alert
-```
-
-## Example Output
-
-```
-=== Example 548: Water Management ===
-
-Step 1: Registering task definitions...
-  Registered: wtr_monitor_levels, wtr_analyze_quality, wtr_detect_leaks, wtr_alert
-
-Step 2: Registering workflow 'water_management_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [alert] Processing task
-  [quality] Processing task
-  [leaks] Processing task
-  [levels] Processing task
-
-  Status: COMPLETED
-  Output: {done=..., confidence=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow water_management_demo \
   --version 1 \
-  --input '{"zoneId": "DIST-ZONE-4", "DIST-ZONE-4": "sensorGroup", "sensorGroup": "SG-12", "SG-12": "sample-SG-12"}'
+  --input '{"zoneId": "TEST-001", "sensorGroup": "test-value"}'
 ```
 
 ### Check workflow status

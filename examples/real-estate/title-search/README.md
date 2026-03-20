@@ -1,8 +1,6 @@
 # Title Search in Java with Conductor :  Record Search, Ownership Verification, Lien Check, and Certification
 
-A Java Conductor workflow example for performing property title searches .  searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for performing property title searches .  searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.## The Problem
 
 You need to confirm that a property's title is clear before a sale can close. County records must be searched for the complete chain of title, current ownership must be verified against the recorded deeds, any outstanding liens (tax liens, mechanic's liens, HOA liens, judgments) must be identified, and only if ownership is verified and liens are clear can a title certificate be issued. If the certification step runs before lien checks complete, the buyer risks purchasing a property with hidden encumbrances. Missing a single lien can cost hundreds of thousands of dollars.
 
@@ -12,7 +10,7 @@ Without orchestration, title searches are manual and error-prone. A paralegal se
 
 **You just write the record search, ownership verification, lien check, and title certification logic. Conductor handles lien search retries, ownership verification, and title audit trails.**
 
-Each title search step is a simple, independent worker .  one searches county records, one verifies current ownership, one checks for liens, one issues the certification. Conductor takes care of executing them in strict order so no certification is issued without a lien check, retrying if the county records system is temporarily unavailable, and maintaining a complete audit trail that title insurance underwriters can rely on. You get all of that for free, without writing a single line of orchestration code.
+Each title search step is a simple, independent worker .  one searches county records, one verifies current ownership, one checks for liens, one issues the certification. Conductor takes care of executing them in strict order so no certification is issued without a lien check, retrying if the county records system is temporarily unavailable, and maintaining a complete audit trail that title insurance underwriters can rely on. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Ownership history research, lien search, encumbrance analysis, and title report 
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ tts_check_liens
     │
     ▼
 tts_certify
-```
-
-## Example Output
-
-```
-=== Example 690: Title Search ===
-
-Step 1: Registering task definitions...
-  Registered: tts_search, tts_verify_ownership, tts_check_liens, tts_certify
-
-Step 2: Registering workflow 'tts_title_search'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tts_certify] Executing
-  [tts_check_liens] Executing
-  [tts_search] Executing
-  [tts_verify_ownership] Executing
-
-  Status: COMPLETED
-  Output: {titleStatus=..., certificateId=..., records=..., clear=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tts_title_search \
   --version 1 \
-  --input '{"propertyId": "PROP-500", "PROP-500": "address", "address": "123 Oak Lane, Austin TX", "123 Oak Lane, Austin TX": "county", "county": "Travis", "Travis": "sample-Travis"}'
+  --input '{"propertyId": "TEST-001", "address": "test-value", "county": 10}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Multi-Cluster Processing in Java Using Conductor :  Partition Data, Process in Parallel Across Clusters, Aggregate
 
-A Java Conductor workflow example for multi-cluster data processing .  preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## One Cluster Is Not Enough
+A Java Conductor workflow example for multi-cluster data processing .  preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.## One Cluster Is Not Enough
 
 Your dataset has grown beyond what a single cluster can process in the required time window. You need to split the workload across clusters in different regions .  sending partition A to us-east-1 and partition B to us-west-2 ,  then merge the results. This cuts processing time in half, adds geographic redundancy, and keeps data closer to regional users.
 
@@ -27,16 +25,6 @@ Four workers handle the multi-cluster pipeline. Data partitioning, parallel per-
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -50,34 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 mcl_aggregate
-```
-
-## Example Output
-
-```
-=== Multi-Cluster Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mcl_prepare, mcl_cluster_east, mcl_cluster_west, mcl_aggregate
-
-Step 2: Registering workflow 'multi_cluster_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Processing
-  [east] Processing
-  [west] Processing
-  [prepare] Processing
-
-  Status: COMPLETED
-  Output: {totalProcessed=..., clusters=..., processed=..., recordCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_cluster_demo \
   --version 1 \
-  --input '{"jobId": "JOB-MCL-001", "JOB-MCL-001": "datasetSize", "datasetSize": 100000}'
+  --input '{"jobId": "TEST-001", "datasetSize": 10}'
 ```
 
 ### Check workflow status

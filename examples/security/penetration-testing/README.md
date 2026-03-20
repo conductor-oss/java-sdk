@@ -1,8 +1,6 @@
 # Implementing Penetration Testing in Java with Conductor :  Reconnaissance, Vulnerability Scanning, Exploit Validation, and Reporting
 
-A Java Conductor workflow example for automated penetration testing .  discovering target endpoints and open ports, scanning for known vulnerabilities, validating which findings are actually exploitable, and generating a remediation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for automated penetration testing .  discovering target endpoints and open ports, scanning for known vulnerabilities, validating which findings are actually exploitable, and generating a remediation report. Uses [Conductor](https://github.## The Problem
 
 You need to run structured pen tests against external-facing systems. Each engagement follows the same pipeline: reconnaissance to enumerate endpoints and open ports on the target, vulnerability scanning to identify known CVEs and misconfigurations, exploit testing to confirm which vulnerabilities are actually exploitable (not just theoretical), and report generation with prioritized remediation steps.
 
@@ -26,47 +24,10 @@ Three workers execute the pen test pipeline: ReconnaissanceWorker enumerates end
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> GenerateReportWorker -> ReconnaissanceWorker -> ScanVulnerabilitiesWorker -> Output
-```
-
-## Example Output
-
-```
-=== Penetration Testing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pen_reconnaissance, pen_scan_vulnerabilities, pen_exploit_test, pen_generate_report
-
-Step 2: Registering workflow 'penetration_testing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [exploit] 2 of 5 vulnerabilities confirmed exploitable
-  [report] Pen test report generated with remediation steps
-  [recon]
-  [scan] Found 5 potential vulnerabilities
-
-  Status: COMPLETED
-  Output: {exploit_test=..., processed=..., generate_report=..., completedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -95,7 +56,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

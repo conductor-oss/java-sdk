@@ -1,8 +1,6 @@
 # Network Monitoring in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom network monitoring .  polling metrics from a network segment, detecting issues such as high latency, packet loss, or link failures, diagnosing root causes, executing automated repairs, and verifying the network segment is healthy after repair. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Network Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom network monitoring .  polling metrics from a network segment, detecting issues such as high latency, packet loss, or link failures, diagnosing root causes, executing automated repairs, and verifying the network segment is healthy after repair. Uses [Conductor](https://github.## Why Network Monitoring Needs Orchestration
 
 Monitoring a telecom network segment requires a closed-loop process from detection through resolution. You poll performance metrics (latency, jitter, packet loss, throughput) from the network segment's switches and routers. You analyze those metrics to detect issues .  threshold breaches, trending degradation, or outright failures. You diagnose the root cause by correlating the detected issues with topology, recent changes, and known failure patterns. You execute the repair ,  rerouting traffic, resetting interfaces, or rolling back a bad configuration. Finally, you verify the segment is healthy by re-polling metrics and confirming the issue is resolved.
 
@@ -28,15 +26,6 @@ Metric collection, threshold evaluation, alert generation, and incident creation
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ nmn_repair
     │
     ▼
 nmn_verify
-```
-
-## Example Output
-
-```
-=== Example 789: Network Monitoring ===
-
-Step 1: Registering task definitions...
-  Registered: nmn_monitor, nmn_detect_issues, nmn_diagnose, nmn_repair, nmn_verify
-
-Step 2: Registering workflow 'nmn_network_monitoring'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect] High latency and packet loss detected
-  [diagnose] Root cause: congested switch at node SW-14
-  [monitor] Processing
-  [repair] Processing
-  [verify] Processing
-
-  Status: COMPLETED
-  Output: {issues=..., issueCount=..., diagnosis=..., node=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nmn_network_monitoring \
   --version 1 \
-  --input '{"networkSegment": "sample-networkSegment", "SEG-NE-07": "sample-SEG-NE-07", "checkType": "standard"}'
+  --input '{"networkSegment": "test-value", "checkType": "test-value"}'
 ```
 
 ### Check workflow status

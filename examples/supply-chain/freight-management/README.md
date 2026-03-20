@@ -1,8 +1,6 @@
 # Freight Management in Java with Conductor :  Carrier Booking, Shipment Tracking, Delivery Confirmation, Invoicing, and Reconciliation
 
-A Java Conductor workflow example for freight management .  booking a carrier (e.g., FastFreight Express for a 2,500 lb shipment from Detroit to Houston), tracking the shipment in transit, confirming delivery at destination, generating the freight invoice, and reconciling charges against the contracted rate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for freight management .  booking a carrier (e.g., FastFreight Express for a 2,500 lb shipment from Detroit to Houston), tracking the shipment in transit, confirming delivery at destination, generating the freight invoice, and reconciling charges against the contracted rate. Uses [Conductor](https://github.## The Problem
 
 You need to manage freight shipments end-to-end. A 2,500 lb load needs to move from Detroit, MI to Houston, TX .  you book a carrier at a quoted rate, track the shipment through pickup, in-transit, and delivery milestones, confirm proof of delivery at the destination, receive the carrier's freight invoice, and reconcile the billed amount against the contracted rate (catching accessorial charges, fuel surcharges, or billing errors). If tracking data from the carrier API goes missing, you lose visibility into a $3K+ shipment.
 
@@ -28,15 +26,6 @@ Five workers span the freight lifecycle: BookWorker reserves the carrier, TrackW
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ frm_invoice
     │
     ▼
 frm_reconcile
-```
-
-## Example Output
-
-```
-=== Example 667: Freight Management ===
-
-Step 1: Registering task definitions...
-  Registered: frm_book, frm_track, frm_deliver, frm_invoice, frm_reconcile
-
-Step 2: Registering workflow 'frm_freight_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [book]
-  [deliver]
-  [invoice] Generated invoice for $
-  [reconcile]
-  [track]
-
-  Status: COMPLETED
-  Output: {bookingId=..., rate=..., delivered=..., signedBy=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow frm_freight_management \
   --version 1 \
-  --input '{"origin": "sample-origin", "Detroit, MI": "sample-Detroit, MI", "destination": "sample-destination", "Houston, TX": "sample-Houston, TX", "weight": "sample-weight", "carrier": "sample-carrier"}'
+  --input '{"origin": "test-value", "destination": "test-value", "weight": "test-value", "carrier": "test-value"}'
 ```
 
 ### Check workflow status

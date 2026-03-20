@@ -12,7 +12,7 @@ Without orchestration, log aggregation is a Logstash/Fluentd pipeline that's con
 
 **You just write the log parsers and enrichment rules. Conductor handles the collect-parse-enrich-store pipeline, retries when log sources or storage backends are temporarily unavailable, and per-step counts and error rates for every run.**
 
-Each log processing step is an independent worker .  collection, parsing, enrichment, and storage. Conductor runs them in sequence: collect raw logs, parse into structured format, enrich with metadata, then store. Every pipeline run is tracked with counts and error rates per step. You get all of that for free, without writing a single line of orchestration code.
+Each log processing step is an independent worker .  collection, parsing, enrichment, and storage. Conductor runs them in sequence: collect raw logs, parse into structured format, enrich with metadata, then store. Every pipeline run is tracked with counts and error rates per step. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ The aggregation pipeline sequences CollectLogsWorker to ingest raw logs, ParseLo
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ la_enrich_logs
     │
     ▼
 la_store_logs
-```
-
-## Example Output
-
-```
-=== Example 412: Log Aggregatio ===
-
-Step 1: Registering task definitions...
-  Registered: la_collect_logs, la_parse_logs, la_enrich_logs, la_store_logs
-
-Step 2: Registering workflow 'log_aggregation_412'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Collecting logs from sources (
-  [enrich] Enriching
-  [parse] Parsing
-  [store] Storing
-
-  Status: COMPLETED
-  Output: {rawLogCount=..., format=..., enrichedCount=..., sizeBytes=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow log_aggregation_412 \
   --version 1 \
-  --input '{"sources": "sample-sources", "api-gateway": "sample-api-gateway", "auth-service": "sample-auth-service", "timeRange": "2025-01-15T10:00:00Z", "last-1h": "sample-last-1h", "logLevel": "sample-logLevel"}'
+  --input '{"sources": "test-value", "timeRange": "2026-01-01T00:00:00Z", "logLevel": "test-value"}'
 ```
 
 ### Check workflow status

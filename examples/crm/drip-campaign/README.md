@@ -25,16 +25,7 @@ EnrollWorker registers the contact, SendSeriesWorker delivers timed emails, Trac
 | **SendSeriesWorker** | `drp_send_series` | Delivers the sequence of timed drip emails to the contact's email address. |
 | **TrackEngagementWorker** | `drp_track_engagement` | Measures email engagement: open rates, click-through rates, and replies across the series. |
 
-Workers simulate CRM operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
+Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -49,34 +40,6 @@ drp_track_engagement
     │
     ▼
 drp_graduate
-```
-
-## Example Output
-
-```
-=== Example 625: Drip Campaig ===
-
-Step 1: Registering task definitions...
-  Registered: drp_enroll, drp_send_series, drp_track_engagement, drp_graduate
-
-Step 2: Registering workflow 'drp_drip_campaign'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [enroll] Contact
-  [graduate] Contact
-  [send] Drip series: 5 emails sent to
-  [track] Engagement tracked: 4/5 opened, 2/5 clicked
-
-  Status: COMPLETED
-  Output: {enrollmentId=..., enrolledAt=..., graduated=..., nextAction=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow drp_drip_campaign \
   --version 1 \
-  --input '{"contactId": "CON-DRP01", "CON-DRP01": "campaignId", "campaignId": "DRP-ONBOARD-2024", "DRP-ONBOARD-2024": "email", "email": "iris@startup.io", "iris@startup.io": "sample-iris@startup.io"}'
+  --input '{"contactId": "TEST-001", "campaignId": "TEST-001", "email": "user@example.com"}'
 ```
 
 ### Check workflow status

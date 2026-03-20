@@ -1,8 +1,6 @@
 # Public Records in Java with Conductor
 
-Fulfills a public records request (FOIA): receiving the request, searching government databases, verifying document authenticity, redacting sensitive information, and releasing records to the requester. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Fulfills a public records request (FOIA): receiving the request, searching government databases, verifying document authenticity, redacting sensitive information, and releasing records to the requester. Uses [Conductor](https://github.## The Problem
 
 You need to fulfill a public records request (FOIA, state open records law). A requester submits a request for specific records, the records are searched across government databases and archives, found records are verified for authenticity, sensitive information is redacted (SSNs, law enforcement details, attorney-client privilege), and the redacted records are released to the requester. Releasing un-redacted records exposes private information and violates privacy laws; denying without proper search violates open records laws.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage records requests through email and shared dr
 
 **You just write the request intake, database search, document verification, redaction, and record release logic. Conductor handles search retries, redaction sequencing, and records request audit trails.**
 
-Each records request concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (request, search, verify, redact, release), tracking every request with timestamps for statutory deadline compliance, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each records request concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (request, search, verify, redact, release), tracking every request with timestamps for statutory deadline compliance, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Request validation, records search, redaction, and delivery workers handle FOIA 
 | **VerifyWorker** | `pbr_verify` | Verifies document authenticity and checks for applicable exemptions before release |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ pbr_redact
     │
     ▼
 pbr_release
-```
-
-## Example Output
-
-```
-=== Example 528: Public Records ===
-
-Step 1: Registering task definitions...
-  Registered: pbr_request, pbr_search, pbr_verify, pbr_redact, pbr_release
-
-Step 2: Registering workflow 'pbr_public_records'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [redact] PII and sensitive info redacted from 3 documents
-  [release] Processing
-  [request] Processing
-  [search] Processing
-  [verify] Documents verified as releasable
-
-  Status: COMPLETED
-  Output: {redactedDocs=..., redactionsApplied=..., released=..., count=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pbr_public_records \
   --version 1 \
-  --input '{"requesterId": "MEDIA-01", "MEDIA-01": "recordType", "recordType": "budget", "budget": "query", "query": "2024 municipal spending", "2024 municipal spending": "sample-2024 municipal spending"}'
+  --input '{"requesterId": "TEST-001", "recordType": "test-value", "query": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Itinerary Planning in Java with Conductor
 
-Itinerary planning: preferences, search, optimize, book, finalize. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Itinerary planning: preferences, search, optimize, book, finalize. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to plan a complete travel itinerary for an employee .  loading their travel preferences (seat, airline, hotel chain, meal requirements), searching for flights and hotels that match, optimizing the combination for cost and convenience (minimizing layovers, grouping nearby hotels), booking the selected options, and finalizing the itinerary with all confirmation details sent to the traveler. Each step builds on the previous one's output.
 
@@ -28,15 +26,6 @@ Destination research, activity selection, scheduling, and itinerary assembly wor
 
 Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ itp_book
     │
     ▼
 itp_finalize
-```
-
-## Example Output
-
-```
-=== Example 544: Itinerary Planning ===
-
-Step 1: Registering task definitions...
-  Registered: itp_preferences, itp_search, itp_optimize, itp_book, itp_finalize
-
-Step 2: Registering workflow 'itp_itinerary_planning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [book] Flight and hotel booked
-  [finalize] Itinerary finalized and sent to
-  [optimize] Optimized for cost and convenience
-  [preferences] Loaded preferences for
-  [search] Found options for
-
-  Status: COMPLETED
-  Output: {bookingIds=..., totalCost=..., itineraryId=..., finalized=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow itp_itinerary_planning \
   --version 1 \
-  --input '{"travelerId": "TRV-200", "TRV-200": "destination", "destination": "Chicago", "Chicago": "days", "days": 3}'
+  --input '{"travelerId": "TEST-001", "destination": "test-value", "days": "test-value"}'
 ```
 
 ### Check workflow status

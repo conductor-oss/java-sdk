@@ -12,7 +12,7 @@ Without orchestration, encryption is either applied uniformly (wasteful) or ad h
 
 **You just write the classification rules and KMS integration. Conductor handles the strict ordering from classification to verification, retries on KMS timeouts, and an audit record of every key generated and field encrypted.**
 
-Each encryption step is an independent worker .  data classification, key generation, encryption, and verification. Conductor runs them in sequence: classify the data, generate the appropriate key, encrypt, then verify. Every encryption operation is tracked with classification level, key ID, algorithm used, and verification result. You get all of that for free, without writing a single line of orchestration code.
+Each encryption step is an independent worker .  data classification, key generation, encryption, and verification. Conductor runs them in sequence: classify the data, generate the appropriate key, encrypt, then verify. Every encryption operation is tracked with classification level, key ID, algorithm used, and verification result. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ The encryption pipeline uses four workers: ClassifyDataWorker determines sensiti
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ de_encrypt_data
     │
     ▼
 de_verify_encryption
-```
-
-## Example Output
-
-```
-=== Example 355: Data Encryptio ===
-
-Step 1: Registering task definitions...
-  Registered: de_classify_data, de_generate_key, de_encrypt_data, de_verify_encryption
-
-Step 2: Registering workflow 'data_encryption_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify] customer-database: PII detected .  classified as sensitive
-  [encrypt] 4 PII fields encrypted at rest
-  [key] AES-256 encryption key generated and stored in KMS
-  [verify] Encryption verified: no plaintext PII accessible
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_encryption_workflow \
   --version 1 \
-  --input '{"dataSource": "sample-dataSource", "customer-database": "sample-customer-database", "classification": "sample-classification"}'
+  --input '{"dataSource": "test-value", "classification": "test-value"}'
 ```
 
 ### Check workflow status

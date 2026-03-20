@@ -1,8 +1,6 @@
 # Goal Decomposition in Java Using Conductor :  Break Down Goals, Execute Subgoals in Parallel, Aggregate
 
-Goal Decomposition .  decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Big Goals Need to Be Broken Down
+Goal Decomposition .  decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results. Uses [Conductor](https://github.## Big Goals Need to Be Broken Down
 
 "Improve customer satisfaction" is a goal, not a plan. A useful agent decomposes it into actionable subgoals: analyze current satisfaction scores and identify pain points, benchmark against competitors, and design improvement initiatives. These three subgoals are independent .  they can run simultaneously; but all must complete before the results can be aggregated into a coherent improvement plan.
 
@@ -28,16 +26,6 @@ Five workers decompose goals into action. Breaking the goal into subgoals, execu
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 gd_aggregate
-```
-
-## Example Output
-
-```
-=== Goal Decomposition Demo ===
-
-Step 1: Registering task definitions...
-  Registered: gd_decompose_goal, gd_subgoal_1, gd_subgoal_2, gd_subgoal_3, gd_aggregate
-
-Step 2: Registering workflow 'goal_decomposition'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [gd_aggregate] Aggregating results for goal:
-  [gd_decompose_goal] Decomposing goal:
-  [gd_subgoal_1] Executing subgoal
-  [gd_subgoal_2] Executing subgoal
-  [gd_subgoal_3] Executing subgoal
-
-  Status: COMPLETED
-  Output: {aggregatedResult=..., subgoals=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow goal_decomposition \
   --version 1 \
-  --input '{"goal": "sample-goal"}'
+  --input '{"goal": "test-value"}'
 ```
 
 ### Check workflow status
@@ -176,7 +135,6 @@ Replace with real LLM decomposition and execution; the parallel subgoal workflow
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

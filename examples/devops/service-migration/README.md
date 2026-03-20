@@ -1,8 +1,6 @@
 # Service Migration in Java with Conductor
 
-Orchestrates a service migration between environments using [Conductor](https://github.com/conductor-oss/conductor). This workflow assesses dependencies, replicates the service to the target environment, performs the traffic cutover, and validates that all endpoints are responding correctly. You write the migration logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Moving Services Without Downtime
+Orchestrates a service migration between environments using [Conductor](https://github.com/conductor-oss/conductor). This workflow assesses dependencies, replicates the service to the target environment, performs the traffic cutover, and validates that all endpoints are responding correctly.## Moving Services Without Downtime
 
 Your payment-service needs to move from the legacy environment to the new Kubernetes cluster. It has 3 downstream dependencies and 2 data stores. You need to assess what will break, replicate the service, cut over traffic at the right moment, and validate every endpoint still works. A botched migration means payment failures and revenue loss.
 
@@ -27,15 +25,6 @@ Four workers manage the migration. Assessing dependencies, replicating the servi
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ sm_cutover
     │
     ▼
 sm_validate
-```
-
-## Example Output
-
-```
-=== Example 338: Service Migratio ===
-
-Step 1: Registering task definitions...
-  Registered: sm_assess, sm_replicate, sm_cutover, sm_validate
-
-Step 2: Registering workflow 'service_migration_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess] payment-service: 3 dependencies, 2 data stores
-  [cutover] Traffic switched to new environment
-  [replicate] Service replicated to target
-  [validate] All endpoints responding correctly
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_migration_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "payment-service": "sample-payment-service", "sourceEnv": "sample-sourceEnv", "aws-east": "sample-aws-east", "targetEnv": "sample-targetEnv"}'
+  --input '{"service": "test-value", "sourceEnv": "test-value", "targetEnv": "test-value"}'
 ```
 
 ### Check workflow status

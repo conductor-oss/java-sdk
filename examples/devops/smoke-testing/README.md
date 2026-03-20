@@ -1,8 +1,6 @@
 # Smoke Testing in Java with Conductor :  Endpoint Checks, Data Verification, Integration Tests, and Status Reporting
 
-Orchestrates post-deployment smoke testing using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks that critical API endpoints return 200 OK, verifies that the database has expected data (migrations ran, seed data present), tests integrations with external services (payment gateway reachable, email service connected), and reports the overall smoke test status with per-check results. You write the test logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Did the Deploy Actually Work?
+Orchestrates post-deployment smoke testing using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks that critical API endpoints return 200 OK, verifies that the database has expected data (migrations ran, seed data present), tests integrations with external services (payment gateway reachable, email service connected), and reports the overall smoke test status with per-check results.## Did the Deploy Actually Work?
 
 You just deployed to staging. The CI pipeline says "success," but does the /health endpoint return 200? Can the API actually connect to the database? Is the payment gateway integration responding? Smoke tests answer these questions in 60 seconds. Before anyone files a bug report. Each check depends on the previous layer: there's no point testing database queries if the endpoints are down, and no point testing payment integration if the database has no data.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd run a bash script with curl commands and grep for "
 
 **You write the health checks and integration tests. Conductor handles layered test sequencing, warm-up retries, and structured pass/fail reporting.**
 
-Each layer of the smoke test is a simple, independent worker. The endpoint checker hits critical URLs (health, readiness, key API routes) and verifies HTTP status codes and response shapes. The data verifier connects to the database to confirm migrations ran, seed data exists, and key tables are queryable. The integration tester exercises connections to external services. Payment gateway, email provider, search index, cache layer. The status reporter aggregates all check results into a pass/fail verdict with details per check. Conductor executes them in strict sequence, retries endpoint checks when services need warm-up time after deploy, and provides a clear record of every smoke test run. You get all of that for free, without writing a single line of orchestration code.
+Each layer of the smoke test is a simple, independent worker. The endpoint checker hits critical URLs (health, readiness, key API routes) and verifies HTTP status codes and response shapes. The data verifier connects to the database to confirm migrations ran, seed data exists, and key tables are queryable. The integration tester exercises connections to external services. Payment gateway, email provider, search index, cache layer. The status reporter aggregates all check results into a pass/fail verdict with details per check. Conductor executes them in strict sequence, retries endpoint checks when services need warm-up time after deploy, and provides a clear record of every smoke test run. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +23,6 @@ Three workers run layered smoke tests. Checking endpoint health, verifying datab
 | **VerifyDataWorker** | `st_verify_data` | Validates database connectivity and confirms sample queries return expected results |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -48,33 +37,6 @@ st_test_integrations
     │
     ▼
 st_report_status
-```
-
-## Example Output
-
-```
-=== Example 341: Smoke Testing ===
-
-Step 1: Registering task definitions...
-  Registered: st_check_endpoints, st_verify_data, st_test_integrations, st_report_status
-
-Step 2: Registering workflow 'smoke_testing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [endpoints] order-service: all 8 endpoints responding
-  [report] Smoke test PASSED .  deployment verified
-  [integrations] All 3 downstream services reachable
-  [data] Database connectivity and sample queries verified
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow smoke_testing_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "order-service": "sample-order-service", "environment": "sample-environment"}'
+  --input '{"service": "test-value", "environment": "test-value"}'
 ```
 
 ### Check workflow status

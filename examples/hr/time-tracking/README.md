@@ -1,8 +1,6 @@
 # Time Tracking in Java with Conductor :  Timesheet Submission, Validation, Manager Approval, and Payroll Processing
 
-A Java Conductor workflow example for employee time tracking .  submitting a weekly timesheet with hours by project code, validating entries against overtime rules and project allocations, routing for manager approval, and processing approved hours into payroll. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for employee time tracking .  submitting a weekly timesheet with hours by project code, validating entries against overtime rules and project allocations, routing for manager approval, and processing approved hours into payroll. Uses [Conductor](https://github.## The Problem
 
 You need to process employee timesheets from submission through payroll every week. An employee submits their timesheet for the week ending date, logging hours against project codes and cost centers. The entries must be validated .  checking that total hours are within policy limits, overtime is flagged for FLSA compliance, and hours are charged to active project codes. The validated timesheet routes to the employee's manager for approval, where the manager reviews hours against expected allocations and overtime justifications. Once approved, the timesheet feeds into payroll processing ,  converting hours into gross pay calculations, applying overtime rates (1.5x for hours over 40), and posting to the general ledger by cost center. If validation is skipped, employees can charge hours to closed projects or exceed overtime limits without authorization.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic timesheet system that collects e
 
 **You just write the timesheet submission, overtime validation, manager approval, and payroll processing logic. Conductor handles clock-in retries, overtime calculations, and timesheet audit trails.**
 
-Each stage of timesheet processing is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of validating entries before they reach the manager, processing payroll only after manager approval, retrying if the payroll or ERP system is temporarily unavailable, and maintaining a complete audit trail from submission through payment for FLSA and labor law compliance. You get all of that for free, without writing a single line of orchestration code.
+Each stage of timesheet processing is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of validating entries before they reach the manager, processing payroll only after manager approval, retrying if the payroll or ERP system is temporarily unavailable, and maintaining a complete audit trail from submission through payment for FLSA and labor law compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Clock-in recording, break management, overtime calculation, and payroll export w
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ttk_approve
     │
     ▼
 ttk_process
-```
-
-## Example Output
-
-```
-=== Example 606: Time Tracking ===
-
-Step 1: Registering task definitions...
-  Registered: ttk_submit, ttk_validate, ttk_approve, ttk_process
-
-Step 2: Registering workflow 'ttk_time_tracking'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Timesheet
-  [process]
-  [submit] Timesheet from
-  [validate] Timesheet
-
-  Status: COMPLETED
-  Output: {approved=..., approvedBy=..., processed=..., payrollBatch=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ttk_time_tracking \
   --version 1 \
-  --input '{"employeeId": "EMP-500", "EMP-500": "weekEnding", "weekEnding": "2024-03-22", "2024-03-22": "entries", "entries": 5}'
+  --input '{"employeeId": "TEST-001", "weekEnding": "test-value", "entries": "test-value"}'
 ```
 
 ### Check workflow status

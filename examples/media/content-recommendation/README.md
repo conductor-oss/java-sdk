@@ -1,8 +1,6 @@
 # Content Recommendation Engine in Java Using Conductor :  History Analysis, Similarity Scoring, Ranking, Filtering, and Serving
 
-A Java Conductor workflow example that orchestrates a content recommendation pipeline .  analyzing user viewing history and preferences (liked items, top categories, activity scores), computing content similarity scores, ranking candidates by relevance, applying business filters (already-viewed removal, diversity rules), and serving personalized recommendations with tracking IDs for A/B evaluation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Recommendation Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates a content recommendation pipeline .  analyzing user viewing history and preferences (liked items, top categories, activity scores), computing content similarity scores, ranking candidates by relevance, applying business filters (already-viewed removal, diversity rules), and serving personalized recommendations with tracking IDs for A/B evaluation. Uses [Conductor](https://github.## Why Recommendation Pipelines Need Orchestration
 
 Building a recommendation involves a multi-stage pipeline where each stage refines the previous one's output. You analyze the user's history .  viewed items, liked items, top categories, activity score. You compute similarity scores between the user's preferences and the content catalog, generating candidate items with relevance scores. You rank those candidates using a learned ranking model. You apply business filters ,  removing already-viewed content, enforcing category diversity, respecting content freshness rules. Finally, you serve the filtered, ranked list to the user with sub-200ms response time.
 
@@ -28,15 +26,6 @@ Five workers build the recommendation pipeline: AnalyzeHistoryWorker profiles us
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ crm_apply_filters
     │
     ▼
 crm_serve_recommendations
-```
-
-## Example Output
-
-```
-=== Example 520: Content Recommendatio ===
-
-Step 1: Registering task definitions...
-  Registered: crm_analyze_history, crm_compute_similarity, crm_rank_results, crm_apply_filters, crm_serve_recommendations
-
-Step 2: Registering workflow 'content_recommendation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [history] Processing
-  [filter] Processing
-  [similarity] Processing
-  [rank] Processing
-  [serve] Processing
-
-  Status: COMPLETED
-  Output: {viewedItems=..., likedItems=..., topCategories=..., activityScore=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_recommendation_workflow \
   --version 1 \
-  --input '{"userId": "USER-520-001", "USER-520-001": "contentType", "contentType": "all", "all": "maxResults", "maxResults": 5}'
+  --input '{"userId": "TEST-001", "contentType": "test-value", "maxResults": "test-value"}'
 ```
 
 ### Check workflow status

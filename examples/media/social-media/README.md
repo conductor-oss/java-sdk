@@ -1,8 +1,6 @@
 # Social Media Management in Java Using Conductor :  Content Creation, Scheduling, Publishing, Engagement Monitoring, and Community Response
 
-A Java Conductor workflow example that orchestrates social media management .  creating formatted posts with hashtag optimization and optimal posting time selection, scheduling for peak engagement windows, publishing to social platforms, monitoring engagement metrics (impressions, likes, shares, comments, mentions, engagement rate), and handling community responses (replies, likes, flagging for review). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Social Media Management Needs Orchestration
+A Java Conductor workflow example that orchestrates social media management .  creating formatted posts with hashtag optimization and optimal posting time selection, scheduling for peak engagement windows, publishing to social platforms, monitoring engagement metrics (impressions, likes, shares, comments, mentions, engagement rate), and handling community responses (replies, likes, flagging for review). Uses [Conductor](https://github.## Why Social Media Management Needs Orchestration
 
 Managing social media presence involves a lifecycle for every post. You create the content .  formatting the message, selecting relevant hashtags, and determining the optimal posting time based on audience analytics. You schedule the post for the peak engagement window. You publish to the platform and capture the post URL and ID. You monitor engagement over time ,  tracking impressions, likes, shares, comments, mentions, and computing the overall engagement rate. You respond to community interactions ,  replying to comments, liking fan responses, and flagging negative interactions for review.
 
@@ -28,15 +26,6 @@ Five workers manage the social lifecycle: CreateContentWorker formats posts with
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ soc_monitor_engagement
     │
     ▼
 soc_engage_responses
-```
-
-## Example Output
-
-```
-=== Example 515: Social Media ===
-
-Step 1: Registering task definitions...
-  Registered: soc_create_content, soc_schedule_post, soc_publish_post, soc_monitor_engagement, soc_engage_responses
-
-Step 2: Registering workflow 'social_media_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [create] Processing
-  [engage] Processing
-  [monitor] Processing
-  [publish] Processing
-  [schedule] Processing
-
-  Status: COMPLETED
-  Output: {contentId=..., formattedMessage=..., hashtags=..., optimalTime=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow social_media_workflow \
   --version 1 \
-  --input '{"campaignId": "CAMP-515-Q1", "CAMP-515-Q1": "platform", "platform": "twitter", "twitter": "message", "message": "Automate your workflows with Conductor!", "Automate your workflows with Conductor!": "mediaUrl", "mediaUrl": "https://media.example.com/promo/515.png", "https://media.example.com/promo/515.png": "sample-https://media.example.com/promo/515.png"}'
+  --input '{"campaignId": "TEST-001", "platform": "test-value", "message": "test-value", "mediaUrl": "https://example.com"}'
 ```
 
 ### Check workflow status

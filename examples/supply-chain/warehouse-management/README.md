@@ -1,8 +1,6 @@
 # Warehouse Management in Java with Conductor :  Receiving, Putaway, Picking, Packing, and Shipping
 
-A Java Conductor workflow example for warehouse management .  receiving inbound goods at the dock, putting away items to assigned storage locations, picking items from bins to fulfill outbound orders, packing them for shipment, and shipping via the selected carrier. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for warehouse management .  receiving inbound goods at the dock, putting away items to assigned storage locations, picking items from bins to fulfill outbound orders, packing them for shipment, and shipping via the selected carrier. Uses [Conductor](https://github.## The Problem
 
 You need to manage the flow of goods through your warehouse from dock to door. Inbound shipments must be received, inspected, and logged. Received items must be put away to optimal storage locations based on product type, pick frequency, and available capacity. When outbound orders come in, items must be picked from the correct bins in the right sequence to minimize picker travel distance. Picked items must be packed into the right box size with appropriate dunnage. Finally, packed orders must be shipped via the customer's selected method with correct labels and documentation.
 
@@ -28,15 +26,6 @@ Five workers manage dock-to-door operations: ReceiveWorker logs inbound goods, P
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ wm_pack
     │
     ▼
 wm_ship
-```
-
-## Example Output
-
-```
-=== Example 657: Warehouse Management ===
-
-Step 1: Registering task definitions...
-  Registered: wm_receive, wm_put_away, wm_pick, wm_pack, wm_ship
-
-Step 2: Registering workflow 'wm_warehouse_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [pack] Packed
-  [pick] Picked
-  [put-away] Stored
-  [receive] Order
-  [ship]
-
-  Status: COMPLETED
-  Output: {packageId=..., weight=..., pickedItems=..., pickTime=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wm_warehouse_management \
   --version 1 \
-  --input '{"orderId": "ORD-2024-657", "ORD-2024-657": "items", "items": [{"name": "Widget A", "quantity": 2}, {"name": "Widget B", "quantity": 1}]}'
+  --input '{"orderId": "TEST-001", "items": "test-value", "shippingMethod": "test-value"}'
 ```
 
 ### Check workflow status

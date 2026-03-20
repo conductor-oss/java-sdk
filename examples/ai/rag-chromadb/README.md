@@ -1,6 +1,6 @@
 # RAG with ChromaDB in Java Using Conductor :  Embed, Query, Generate
 
-A Java Conductor workflow that implements a RAG pipeline using ChromaDB as the vector store .  embedding the user question, querying a ChromaDB collection for relevant documents, and generating an answer grounded in the retrieved context. ChromaDB provides a lightweight, open-source vector database that runs locally or in Docker. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, ChromaDB querying, and LLM generation as independent workers ,  you write the embedding and ChromaDB integration, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that implements a RAG pipeline using ChromaDB as the vector store .  embedding the user question, querying a ChromaDB collection for relevant documents, and generating an answer grounded in the retrieved context. ChromaDB provides a lightweight, open-source vector database that runs locally or in Docker. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, ChromaDB querying, and LLM generation as independent workers ,  you write the embedding and ChromaDB integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG with ChromaDB
 
@@ -26,15 +26,6 @@ Three workers integrate ChromaDB into the RAG pipeline .  embedding the query, q
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ chroma_query
     │
     ▼
 chroma_generate
-```
-
-## Example Output
-
-```
-=== Example 134: RAG with ChromaDB (Local) ===
-
-Step 1: Registering task definitions...
-  Registered: chroma_embed, chroma_query, chroma_generate
-
-Step 2: Registering workflow 'rag_chromadb_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [embed] Generated embedding via OpenAI API (LIVE):
-  [generate] Response from OpenAI API (LIVE)
-  [chromadb] Host: http://localhost:8000
-
-  Status: COMPLETED
-  Output: {embedding=..., answer=..., results=..., collectionInfo=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_chromadb_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "How does ChromaDB store embeddings?": "sample-How does ChromaDB store embeddings?", "collection": "sample-collection"}'
+  --input '{"question": "test-value", "collection": "test-value"}'
 ```
 
 ### Check workflow status

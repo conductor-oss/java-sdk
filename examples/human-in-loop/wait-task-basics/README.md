@@ -1,8 +1,6 @@
 # WAIT Task Basics in Java Using Conductor :  Pre-WAIT Preparation, Pause for External Approval Signal, and Post-WAIT Processing with Approval Payload
 
-A Java Conductor workflow example demonstrating the fundamental WAIT task pattern .  running a preparation step that validates the requestId, pausing at a WAIT task until an external signal (REST API, SDK, or UI) completes it with an approval payload, then processing the approval response. The post-WAIT worker receives both the original requestId and the approval value from the WAIT task's output, demonstrating how data flows through WAIT tasks: the external completer provides the output, and the next task can reference it via `${wait_for_approval_ref.output.approval}`. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Workflows Need to Pause and Wait for External Signals
+A Java Conductor workflow example demonstrating the fundamental WAIT task pattern .  running a preparation step that validates the requestId, pausing at a WAIT task until an external signal (REST API, SDK, or UI) completes it with an approval payload, then processing the approval response. The post-WAIT worker receives both the original requestId and the approval value from the WAIT task's output, demonstrating how data flows through WAIT tasks: the external completer provides the output, and the next task can reference it via `${wait_for_approval_ref.output.approval}`. Uses [Conductor](https://github.## Workflows Need to Pause and Wait for External Signals
 
 The WAIT task is the fundamental building block for human-in-the-loop workflows. It pauses execution until an external signal (REST API call, SDK call, or UI interaction) completes the task with a payload. The workflow prepares data before the pause, waits, then processes the data provided when the WAIT task is completed. This example demonstrates the core WAIT task mechanics.
 
@@ -24,15 +22,6 @@ WaitBeforeWorker validates the requestId and prepares context, and WaitAfterWork
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,32 +32,6 @@ wait_for_approval [WAIT]
     │
     ▼
 wait_after
-```
-
-## Example Output
-
-```
-=== WAIT Task Basics: Pause and Resume a Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'wait_task_basics_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wait_after] Processing after wait .  requestId=
-  [wait_before] Preparing for wait...
-
-  Status: COMPLETED
-  Output: {result=..., prepared=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wait_task_basics_demo \
   --version 1 \
-  --input '{"requestId": "req-12345", "req-12345": "sample-req-12345"}'
+  --input '{"requestId": "TEST-001"}'
 ```
 
 ### Check workflow status

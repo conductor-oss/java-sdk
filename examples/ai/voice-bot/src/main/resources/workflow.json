@@ -1,0 +1,19 @@
+{
+  "name": "vb_voice_bot",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["audioUrl", "callerId", "language"],
+  "tasks": [
+    { "name": "vb_transcribe", "taskReferenceName": "vb_transcribe_ref", "type": "SIMPLE", "inputParameters": { "audioUrl": "${workflow.input.audioUrl}", "language": "${workflow.input.language}" } },
+    { "name": "vb_understand", "taskReferenceName": "vb_understand_ref", "type": "SIMPLE", "inputParameters": { "transcript": "${vb_transcribe_ref.output.transcript}" } },
+    { "name": "vb_generate", "taskReferenceName": "vb_generate_ref", "type": "SIMPLE", "inputParameters": { "intent": "${vb_understand_ref.output.intent}", "entities": "${vb_understand_ref.output.entities}" } },
+    { "name": "vb_synthesize", "taskReferenceName": "vb_synth_ref", "type": "SIMPLE", "inputParameters": { "text": "${vb_generate_ref.output.responseText}", "language": "${workflow.input.language}" } }
+  ],
+  "outputParameters": {
+    "transcript": "${vb_transcribe_ref.output.transcript}",
+    "intent": "${vb_understand_ref.output.intent}",
+    "responseAudioUrl": "${vb_synth_ref.output.audioUrl}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

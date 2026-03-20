@@ -1,8 +1,6 @@
 # Signals in Java with Conductor
 
-Signals demo .  send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Signals demo .  send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. Uses [Conductor](https://github.## The Problem
 
 You need an order fulfillment workflow that pauses and waits for external events at two points: first, it waits for a shipping confirmation (tracking number and carrier) from the warehouse or shipping partner, and second, it waits for a delivery confirmation (delivery timestamp and recipient signature) from the carrier. The workflow cannot continue past each wait point until the external system sends the signal with the required data. Between signals, the order sits in a known state .  prepared, shipped, or delivered ,  potentially for hours or days.
 
@@ -26,15 +24,6 @@ Three workers handle the order fulfillment flow between WAIT pauses: SigPrepareW
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -51,33 +40,6 @@ wait_delivery [WAIT]
     │
     ▼
 sig_complete
-```
-
-## Example Output
-
-```
-=== Signals: Send Data to Running Workflows via WAIT Task Completio ===
-
-Step 1: Registering task definitions...
-  Registered: sig_prepare, sig_process_shipping, sig_complete
-
-Step 2: Registering workflow 'signal_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sig_complete] Completing order:
-  [sig_prepare] Preparing order:
-  [sig_process_shipping] Processing shipping for order:
-
-  Status: COMPLETED
-  Output: {orderId=..., deliveredAt=..., signature=..., done=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow signal_demo \
   --version 1 \
-  --input '{"orderId": "ORD-12345", "ORD-12345": "sample-ORD-12345"}'
+  --input '{"orderId": "TEST-001"}'
 ```
 
 ### Check workflow status

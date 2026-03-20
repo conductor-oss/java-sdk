@@ -1,8 +1,6 @@
 # Data Validation in Java Using Conductor :  Required Fields, Type Checking, Range Validation, and Reporting
 
-A Java Conductor workflow example for multi-layer data validation: loading records, checking that required fields (name, email, age) are present and non-empty, verifying data types (name is String, age is Number), validating value ranges (age between 0-150, email contains "@"), and generating a validation report with error counts per category and the number of records that passed all checks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for multi-layer data validation: loading records, checking that required fields (name, email, age) are present and non-empty, verifying data types (name is String, age is Number), validating value ranges (age between 0-150, email contains "@"), and generating a validation report with error counts per category and the number of records that passed all checks. Uses [Conductor](https://github.## The Problem
 
 You receive data from external partners, user submissions, or upstream systems, and you need to validate it before it enters your production database. Validation is layered: first check that required fields exist (a record without an email is immediately invalid), then verify data types (age must be a number, not a string), then validate value ranges (age must be 0-150, email must contain "@"). Each layer filters out invalid records, so type checking only runs on records that passed required field checks. You need a report showing exactly how many records failed at each stage and why.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single validation method with nested if/els
 
 **You just write the required-field, type-checking, range-validation, and reporting workers. Conductor handles sequential validation layer execution, per-layer retry on failure, and precise tracking of how many records were rejected at each stage.**
 
-Each validation layer is a simple, independent worker. The required fields checker filters out records missing mandatory fields. The type checker verifies data types on the surviving records. The range validator checks value constraints. The report generator tallies errors per layer and counts the records that passed all checks. Conductor executes them in sequence, passes only valid records from one layer to the next, retries if a check fails, and tracks exactly how many records were rejected at each stage. You get all of that for free, without writing a single line of orchestration code.
+Each validation layer is a simple, independent worker. The required fields checker filters out records missing mandatory fields. The type checker verifies data types on the surviving records. The range validator checks value constraints. The report generator tallies errors per layer and counts the records that passed all checks. Conductor executes them in sequence, passes only valid records from one layer to the next, retries if a check fails, and tracks exactly how many records were rejected at each stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers implement layered validation: loading records, checking required fi
 | **LoadRecordsWorker** | `vd_load_records` | Loads records for validation. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ vd_check_ranges
     │
     ▼
 vd_generate_report
-```
-
-## Example Output
-
-```
-=== Data Validation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: vd_load_records, vd_check_required, vd_check_types, vd_check_ranges, vd_generate_report
-
-Step 2: Registering workflow 'data_validation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [vd_check_ranges]
-  [vd_check_required]
-  [vd_check_types]
-  [vd_generate_report]
-  [vd_load_records] Loaded
-
-  Status: COMPLETED
-  Output: {passedRecords=..., passedCount=..., errorCount=..., errors=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_validation \
   --version 1 \
-  --input '{"records": "sample-records", "name": "sample-name", "Alice": "sample-Alice", "email": "user@example.com", "alice@example.com": "sample-alice@example.com", "age": "sample-age", "Bob": "sample-Bob", "bob@example.com": "sample-bob@example.com", "noname@test.com": "sample-name", "Charlie": "sample-Charlie", "charlie@example.com": "sample-charlie@example.com", "Diana": "sample-Diana", "diana@example.com": "sample-diana@example.com"}'
+  --input '{"records": "test-value", "schema": "test-value"}'
 ```
 
 ### Check workflow status

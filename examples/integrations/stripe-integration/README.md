@@ -27,15 +27,6 @@ Four workers process payments: CreateCustomerWorker registers the payer, Payment
 
 The workers auto-detect Stripe credentials at startup. When `STRIPE_API_KEY` is set, CreateCustomerWorker, PaymentIntentWorker, and ChargeWorker use the real Stripe REST API (via `java.net.http`) to create customers, payment intents, and confirm charges. Without the key, they fall back to simulated mode with realistic output shapes so the workflow runs end-to-end without a Stripe account.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ stp_charge
     │
     ▼
 stp_send_receipt
-```
-
-## Example Output
-
-```
-=== Example 435: Stripe Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: stp_create_customer, stp_payment_intent, stp_charge, stp_send_receipt
-
-Step 2: Registering workflow 'stripe_integration_435'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [charge] Charged
-  [customer] Created
-  [intent] Created
-  [SIMULATED][receipt] Sent receipt for
-
-  Status: COMPLETED
-  Output: {chargeId=..., capturedAt=..., customerId=..., paymentIntentId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow stripe_integration_435 \
   --version 1 \
-  --input '{"email": "user@example.com", "customer@example.com": "sample-customer@example.com", "amount": 250.0, "currency": "sample-currency", "usd": "sample-usd", "description": "sample-description"}'
+  --input '{"email": "user@example.com", "amount": 100, "currency": "test-value", "description": "test-value"}'
 ```
 
 ### Check workflow status

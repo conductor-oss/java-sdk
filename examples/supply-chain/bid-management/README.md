@@ -1,8 +1,6 @@
 # Bid Management in Java with Conductor :  RFP Creation, Vendor Distribution, Bid Collection, Evaluation, and Award
 
-A Java Conductor workflow example for competitive bid management .  creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for competitive bid management .  creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.## The Problem
 
 You need to run a competitive bidding process across multiple vendors. The procurement team creates a bid package with project specs and budget, distributes it to a shortlist of vendors (Alpha Corp, Beta Ltd, Gamma Inc), collects their proposals by a deadline, evaluates each bid on cost, schedule, and qualifications, and awards the contract. If a vendor's submission fails to upload, you need to retry without losing other submissions. If the evaluation step crashes, you need to resume without re-soliciting bids.
 
@@ -28,15 +26,6 @@ Five workers divide the bid lifecycle: CreateWorker builds the RFP package, Dist
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ bid_evaluate
     │
     ▼
 bid_award
-```
-
-## Example Output
-
-```
-=== Example 663: Bid Management ===
-
-Step 1: Registering task definitions...
-  Registered: bid_create, bid_distribute, bid_collect, bid_evaluate, bid_award
-
-Step 2: Registering workflow 'bid_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [award]
-  [collect] Received
-  [create] Bid for \"" + task.getInputData().get("projectName") + "\" .  budget: $
-  [distribute] Sent
-  [evaluate] Best bid:
-
-  Status: COMPLETED
-  Output: {awardedTo=..., notified=..., responses=..., responseCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bid_management \
   --version 1 \
-  --input '{"projectName": "sample-name", "Warehouse Expansion": "sample-Warehouse Expansion", "budget": "sample-budget", "vendors": "sample-vendors", "Alpha Corp": "sample-Alpha Corp", "Beta Ltd": "sample-Beta Ltd"}'
+  --input '{"projectName": "test", "budget": "test-value", "vendors": "test-value"}'
 ```
 
 ### Check workflow status

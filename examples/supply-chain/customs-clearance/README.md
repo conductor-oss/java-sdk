@@ -1,8 +1,6 @@
 # Customs Clearance in Java with Conductor :  Declaration, Document Validation, Duty Calculation, Clearance, and Cargo Release
 
-A Java Conductor workflow example for international customs clearance .  filing customs declarations for imported goods (e.g., electronic components from Shanghai to Los Angeles), validating HS codes and commercial documents, calculating import duties and tariffs based on goods value and classification, obtaining customs clearance approval, and releasing cargo for domestic delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for international customs clearance .  filing customs declarations for imported goods (e.g., electronic components from Shanghai to Los Angeles), validating HS codes and commercial documents, calculating import duties and tariffs based on goods value and classification, obtaining customs clearance approval, and releasing cargo for domestic delivery. Uses [Conductor](https://github.## The Problem
 
 You need to clear imported shipments through customs. A container of electronic components (HS code 8542, $45K value) and packaging materials (HS code 4819, $5K value) arriving from Shanghai must be declared to US Customs, documents validated (commercial invoice, packing list, bill of lading), duties calculated based on tariff schedules and trade agreements, clearance obtained from CBP, and cargo released from the port. Each step depends on the previous one .  you cannot calculate duty without validated HS codes, and cargo cannot be released without clearance.
 
@@ -28,15 +26,6 @@ Five workers move shipments through customs: DeclareWorker files the declaration
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ cst_clear
     │
     ▼
 cst_release
-```
-
-## Example Output
-
-```
-=== Example 666: Customs Clearance ===
-
-Step 1: Registering task definitions...
-  Registered: cst_declare, cst_validate, cst_calculate_duty, cst_clear, cst_release
-
-Step 2: Registering workflow 'cst_customs_clearance'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [duty] Goods value: $
-  [clear]
-  [declare] Shipment
-  [release] Shipment
-  [validate] Documents for
-
-  Status: COMPLETED
-  Output: {dutyAmount=..., dutyRate=..., clearanceId=..., cleared=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cst_customs_clearance \
   --version 1 \
-  --input '{"shipmentId": "SHP-666-INT", "SHP-666-INT": "origin", "origin": "Shanghai, CN", "Shanghai, CN": "destination", "destination": "Los Angeles, US", "Los Angeles, US": "goods", "goods": ["item-1", "item-2", "item-3"]}'
+  --input '{"shipmentId": "TEST-001", "origin": "test-value", "destination": "test-value", "goods": "test-value"}'
 ```
 
 ### Check workflow status

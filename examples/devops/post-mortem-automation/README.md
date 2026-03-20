@@ -1,8 +1,6 @@
 # Post Mortem Automation in Java with Conductor
 
-Automates post-incident post-mortem generation using [Conductor](https://github.com/conductor-oss/conductor). This workflow gathers the incident timeline from alerts and response events, collects impact metrics (affected users, availability), drafts a structured post-mortem document with action items, and schedules a blameless review meeting. You write the post-mortem logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Learning From Incidents
+Automates post-incident post-mortem generation using [Conductor](https://github.com/conductor-oss/conductor). This workflow gathers the incident timeline from alerts and response events, collects impact metrics (affected users, availability), drafts a structured post-mortem document with action items, and schedules a blameless review meeting.## Learning From Incidents
 
 Incident INC-2024-042 is resolved. Now the real work starts: piecing together what happened, when, and why. You need to reconstruct a timeline from 24 scattered events across PagerDuty, Slack, and deploy logs. You need to know the blast radius. 1,200 affected users, availability dropped to 99.2%. You need a structured document with root cause, contributing factors, and action items. And you need a review meeting on the calendar before the details fade from memory.
 
@@ -12,7 +10,7 @@ Without orchestration, someone opens a blank Google Doc, spends two hours scrubb
 
 **You write the timeline reconstruction and impact analysis logic. Conductor handles data gathering sequencing, document assembly, and follow-through tracking.**
 
-Each stage of the post-mortem pipeline is a simple, independent worker. The timeline gatherer reconstructs the incident chronology from PagerDuty alerts, Slack messages, and deploy events. Building an ordered sequence of the 24 events that made up INC-2024-042. The metrics collector measures the blast radius: affected user count, availability drop, error rate spike, and duration of impact. The document drafter assembles a structured post-mortem from a template, populating the timeline, impact data, root cause section, and placeholder action items for the team to refine. The review scheduler creates a calendar invite for the blameless review meeting with all responders. Conductor executes them in strict sequence, ensures the document is only drafted after timeline and metrics are collected, retries if PagerDuty or Slack APIs are temporarily unavailable, and tracks every post-mortem so you can audit incident follow-through. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the post-mortem pipeline is a simple, independent worker. The timeline gatherer reconstructs the incident chronology from PagerDuty alerts, Slack messages, and deploy events. Building an ordered sequence of the 24 events that made up INC-2024-042. The metrics collector measures the blast radius: affected user count, availability drop, error rate spike, and duration of impact. The document drafter assembles a structured post-mortem from a template, populating the timeline, impact data, root cause section, and placeholder action items for the team to refine. The review scheduler creates a calendar invite for the blameless review meeting with all responders. Conductor executes them in strict sequence, ensures the document is only drafted after timeline and metrics are collected, retries if PagerDuty or Slack APIs are temporarily unavailable, and tracks every post-mortem so you can audit incident follow-through. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers assemble the post-mortem. Gathering the incident timeline, collecti
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ pm_draft_document
     │
     ▼
 pm_schedule_review
-```
-
-## Example Output
-
-```
-=== Example 337: Post-Mortem Automatio ===
-
-Step 1: Registering task definitions...
-  Registered: pm_gather_timeline, pm_collect_metrics, pm_draft_document, pm_schedule_review
-
-Step 2: Registering workflow 'post_mortem_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [metrics] Impact: 1,200 affected users, 99.2% availability during incident
-  [draft] Post-mortem document generated with timeline and action items
-  [timeline] Gathered 24 events for incident INC-2024-042
-  [review] Review meeting scheduled for next Tuesday
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow post_mortem_workflow \
   --version 1 \
-  --input '{"incidentId": "INC-2024-042", "INC-2024-042": "severity", "severity": "P1", "P1": "sample-P1"}'
+  --input '{"incidentId": "TEST-001", "severity": "test-value"}'
 ```
 
 ### Check workflow status

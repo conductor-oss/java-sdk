@@ -1,6 +1,6 @@
 # RAG with pgvector in Java Using Conductor :  Vector Search in PostgreSQL
 
-A Java Conductor workflow that implements RAG using pgvector .  the PostgreSQL extension that adds vector similarity search to your existing Postgres database. The pipeline embeds the question, queries a pgvector-enabled table using cosine distance or inner product operators, and generates an answer from the retrieved rows. If you already run PostgreSQL, pgvector gives you vector search without adding a separate database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, pgvector queries, and generation as independent workers ,  you write the SQL and embedding logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that implements RAG using pgvector .  the PostgreSQL extension that adds vector similarity search to your existing Postgres database. The pipeline embeds the question, queries a pgvector-enabled table using cosine distance or inner product operators, and generates an answer from the retrieved rows. If you already run PostgreSQL, pgvector gives you vector search without adding a separate database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, pgvector queries, and generation as independent workers ,  you write the SQL and embedding logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG Without a Separate Vector Database
 
@@ -26,15 +26,6 @@ Three workers integrate pgvector into the RAG pipeline .  embedding the query, r
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ pgvec_query
     │
     ▼
 pgvec_generate
-```
-
-## Example Output
-
-```
-=== RAG with pgvector ===
-
-Step 1: Registering task definitions...
-  Registered: pgvec_embed, pgvec_query, pgvec_generate
-
-Step 2: Registering workflow 'rag_pgvector_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [embed] Generated embedding via OpenAI API (LIVE):
-  [generate] Response from OpenAI API (LIVE)
-  [pgvector] Table: \"" + table + "\", metric:
-
-  Status: COMPLETED
-  Output: {embedding=..., answer=..., rows=..., sqlQuery=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_pgvector_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "How does pgvector handle similarity search?": "sample-How does pgvector handle similarity search?", "table": "sample-table"}'
+  --input '{"question": "test-value", "table": "test-value"}'
 ```
 
 ### Check workflow status

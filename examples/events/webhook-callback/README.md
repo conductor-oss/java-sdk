@@ -1,8 +1,6 @@
 # Webhook Callback in Java Using Conductor
 
-Webhook Callback Workflow .  receive an incoming webhook request, process the data, and notify the caller via callback URL. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Webhook Callback Workflow .  receive an incoming webhook request, process the data, and notify the caller via callback URL. Uses [Conductor](https://github.## The Problem
 
 You need to process an incoming webhook request and notify the caller of the result via a callback URL. The workflow receives the webhook payload, processes the data according to your business logic, and sends the result back to the caller's callback endpoint. If the callback fails, the caller never learns the outcome; if processing fails, you must still notify the caller of the failure.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd handle the webhook in a servlet or controller, proc
 
 **You just write the request-receive, data-processing, and callback-notification workers. Conductor handles ordered request processing, callback delivery retry with backoff, and a durable record of every webhook callback attempt.**
 
-Each webhook-callback concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the request, processing the data, and calling back the caller ,  retrying failed callbacks with backoff, tracking every webhook's full lifecycle, and resuming if the process crashes after processing but before the callback. You get all of that for free, without writing a single line of orchestration code.
+Each webhook-callback concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the request, processing the data, and calling back the caller ,  retrying failed callbacks with backoff, tracking every webhook's full lifecycle, and resuming if the process crashes after processing but before the callback. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +24,6 @@ Three workers handle the callback lifecycle: ReceiveRequestWorker parses the inc
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ wc_process_data
     │
     ▼
 wc_notify_callback
-```
-
-## Example Output
-
-```
-=== Webhook Callback Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wc_receive_request, wc_process_data, wc_notify_callback
-
-Step 2: Registering workflow 'webhook_callback_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wc_notify_callback] Sending callback to:
-  [wc_process_data] Processing data for request:
-  [wc_receive_request] Receiving request:
-
-  Status: COMPLETED
-  Output: {callbackSent=..., responseStatus=..., callbackPayload=..., sentAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow webhook_callback_wf \
   --version 1 \
-  --input '{"requestId": "req-fixed-001", "req-fixed-001": "data", "data": {"key": "value"}, "https://api.partner.com/webhooks/completion": "sample-https://api.partner.com/webhooks/completion"}'
+  --input '{"requestId": "TEST-001", "data": "test-value", "callbackUrl": "https://example.com"}'
 ```
 
 ### Check workflow status

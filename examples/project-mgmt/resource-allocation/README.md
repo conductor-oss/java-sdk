@@ -1,8 +1,6 @@
 # Resource Allocation Automation in Java with Conductor :  Demand Assessment, Capacity Checking, Resource Assignment, and Allocation Confirmation
 
-A Java Conductor workflow example that automates resource allocation for projects .  assessing demand by hours needed with priority and start date, checking available capacity by resource type to find team members with free hours, allocating the best-fit resource to the project, and confirming the allocation with a locked commitment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Resource Allocation Needs Orchestration
+A Java Conductor workflow example that automates resource allocation for projects .  assessing demand by hours needed with priority and start date, checking available capacity by resource type to find team members with free hours, allocating the best-fit resource to the project, and confirming the allocation with a locked commitment. Uses [Conductor](https://github.## Why Resource Allocation Needs Orchestration
 
 Allocating people to projects requires a pipeline where each step narrows the decision based on real data. You assess demand .  the project needs a specific number of hours (e.g., 30h), has a priority level (high), and a start date (2026-03-10). You check capacity for the requested resource type ,  querying which team members have free hours, producing a ranked list (Alice with 30 free hours, Bob with 20). You allocate by matching the demand to the best available resource ,  selecting Alice because her 30 free hours exactly cover the project's 30-hour need. Finally, you confirm the allocation ,  locking Alice's hours against the project so no other allocation can double-book her.
 
@@ -27,15 +25,6 @@ Demand forecasting, availability checking, assignment optimization, and conflict
 
 Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ral_allocate
     │
     ▼
 ral_confirm
-```
-
-## Example Output
-
-```
-=== Example 625: Resource Allocatio ===
-
-Step 1: Registering task definitions...
-  Registered: ral_assess_demand, ral_check_capacity, ral_allocate, ral_confirm
-
-Step 2: Registering workflow 'resource_allocation_resource-allocation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [allocate] Allocating resources to
-  [demand] Project
-  [capacity] Checking
-  [confirm] Allocation confirmed
-
-  Status: COMPLETED
-  Output: {allocation=..., demand=..., available=..., confirmed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

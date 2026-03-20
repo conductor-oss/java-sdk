@@ -1,8 +1,6 @@
 # Implementing Authentication Workflow in Java with Conductor :  Credential Validation, MFA Verification, Risk Assessment, and Token Issuance
 
-A Java Conductor workflow example implementing a multi-step authentication pipeline .  validating user credentials (password, biometric, API key), verifying a second factor via MFA, assessing login risk based on device and location signals, and issuing a signed JWT session token only after all checks pass. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example implementing a multi-step authentication pipeline .  validating user credentials (password, biometric, API key), verifying a second factor via MFA, assessing login risk based on device and location signals, and issuing a signed JWT session token only after all checks pass. Uses [Conductor](https://github.## The Problem
 
 You need to authenticate users through multiple verification layers before granting access. First, the submitted credentials (password hash, biometric template, or API key) must be validated against the identity store. Then, if MFA is enabled, a second factor (TOTP, SMS code, hardware key) must be verified. Before issuing a token, a risk assessment must evaluate whether the login attempt looks suspicious .  new device, unusual geolocation, impossible travel, or velocity anomalies. Only after all three checks pass should a JWT be minted with the appropriate claims, scopes, and expiration. If any step fails, the login must be denied and the failure recorded for security monitoring.
 
@@ -12,7 +10,7 @@ Without orchestration, authentication logic is a deeply nested chain of if/else 
 
 **You just write the credential validation, MFA check, and token signing logic. Conductor handles strict ordering so no token is minted without MFA and risk checks, retries when the MFA provider is temporarily unavailable, and a full audit trail of every login attempt.**
 
-Each authentication concern is a simple, independent worker .  one validates credentials against the identity store, one verifies the MFA challenge, one scores login risk from device and location signals, one mints the JWT with appropriate claims. Conductor takes care of executing them in strict order so no token is issued without MFA verification and risk assessment, retrying if the MFA provider is temporarily unavailable, and maintaining a complete audit trail of every login attempt with inputs, outputs, and timing for each verification step. You get all of that for free, without writing a single line of orchestration code.
+Each authentication concern is a simple, independent worker .  one validates credentials against the identity store, one verifies the MFA challenge, one scores login risk from device and location signals, one mints the JWT with appropriate claims. Conductor takes care of executing them in strict order so no token is issued without MFA verification and risk assessment, retrying if the MFA provider is temporarily unavailable, and maintaining a complete audit trail of every login attempt with inputs, outputs, and timing for each verification step. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ The authentication pipeline sequences ValidateCredentialsWorker to check passwor
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ auth_risk_assessment
     │
     ▼
 auth_issue_token
-```
-
-## Example Output
-
-```
-=== Authentication Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: auth_validate_credentials, auth_check_mfa, auth_risk_assessment, auth_issue_token
-
-Step 2: Registering workflow 'authentication_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mfa]
-  [token] JWT issued with 1h expiry
-  [risk] Known device, known location .  low risk
-  [credentials] User
-
-  Status: COMPLETED
-  Output: {check_mfa=..., processed=..., issue_token=..., completedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow authentication_workflow \
   --version 1 \
-  --input '{}'
+  --input '{"userId": "TEST-001", "authMethod": "test-value"}'
 ```
 
 ### Check workflow status

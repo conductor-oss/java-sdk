@@ -1,8 +1,6 @@
 # Government Case Management in Java with Conductor :  Intake, Investigation, Evaluation, and Resolution
 
-A Java Conductor workflow example for government case management .  opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for government case management .  opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.## The Problem
 
 You need to manage government cases from intake through resolution. A citizen or agency files a report, which opens a case. An investigator gathers evidence and interviews witnesses. An evaluator reviews the findings and assesses severity. A decision-maker renders a formal determination based on the evaluation. Finally, the case is closed with a timestamp and resolution record. Each step depends on the output of the previous one .  you cannot evaluate without investigation findings, and you cannot decide without an evaluation.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic service that tracks case state i
 
 **You just write the case intake, investigation, findings evaluation, decision rendering, and case closure logic. Conductor handles assignment retries, investigation sequencing, and case lifecycle audit trails.**
 
-Each stage of the case lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running them in sequence, passing investigation findings to the evaluator, feeding the evaluation into the decision step, retrying if any service is temporarily unavailable, and maintaining a complete audit trail of every case from open to close. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the case lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running them in sequence, passing investigation findings to the evaluator, feeding the evaluation into the decision step, retrying if any service is temporarily unavailable, and maintaining a complete audit trail of every case from open to close. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Case creation, assignment, investigation, and resolution workers track governmen
 | **CloseWorker** | `cmg_close` | Closes the case with a resolution record and timestamp |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ cmg_decide
     │
     ▼
 cmg_close
-```
-
-## Example Output
-
-```
-=== Example 522: Case Management (Gov) ===
-
-Step 1: Registering task definitions...
-  Registered: cmg_open_case, cmg_investigate, cmg_evaluate, cmg_decide, cmg_close
-
-Step 2: Registering workflow 'cmg_case_management_gov'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [close] Processing
-  [decide] Processing
-  [evaluate] Findings evaluated .  moderate severity
-  [investigate] Processing
-  [open_case] Processing
-
-  Status: COMPLETED
-  Output: {closedAt=..., archived=..., decision=..., actionPlan=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cmg_case_management_gov \
   --version 1 \
-  --input '{"caseType": "regulatory-violation", "regulatory-violation": "reporterId", "reporterId": "INSP-10", "INSP-10": "description", "description": "Non-compliant waste disposal", "Non-compliant waste disposal": "sample-Non-compliant waste disposal"}'
+  --input '{"caseType": "test-value", "reporterId": "TEST-001", "description": "test-value"}'
 ```
 
 ### Check workflow status

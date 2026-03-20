@@ -12,7 +12,7 @@ Without orchestration, fallback logic nests into deeply indented try/catch chain
 
 **You just write the primary, secondary, and cache lookup logic. Conductor handles SWITCH-based fallback routing through the tiered chain, retries at each level, and a record of every request showing which data source ultimately served the response.**
 
-The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked .  you can see which data source served each response and how far down the fallback chain it went. You get all of that for free, without writing a single line of orchestration code.
+The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked .  you can see which data source served each response and how far down the fallback chain it went. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,16 +26,6 @@ PrimaryApiWorker tries the preferred data source first, SecondaryApiWorker serve
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -45,33 +35,6 @@ fb_primary_api
 SWITCH (fallback_switch_ref)
     ├── unavailable: fb_secondary_api
     ├── error: fb_cache_lookup
-```
-
-## Example Output
-
-```
-=== Fallback Tasks Demo: Alternative Paths on Failure ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'fallback_tasks_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cache_lookup] Processing
-  [primary_api] Processing
-  [secondary_api] Processing
-
-  Status: COMPLETED
-  Output: {source=..., data=..., stale=..., apiStatus=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow fallback_tasks_demo \
   --version 1 \
-  --input '{"available": "sample-available"}'
+  --input '{"available": "test-value"}'
 ```
 
 ### Check workflow status

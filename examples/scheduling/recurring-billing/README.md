@@ -12,7 +12,7 @@ Without orchestration, recurring billing is a cron job that queries subscribers,
 
 **You just write the invoice generation and payment gateway integration. Conductor handles the generate-charge-notify sequence, automatic retries on payment gateway failures, and a complete audit trail linking every invoice to its payment attempt and customer notification.**
 
-Each billing concern is an independent worker .  invoice generation, payment processing, and notification. Conductor runs them in sequence: generate the invoice, charge the payment method, then notify the customer. Failed payments are retried automatically with Conductor's retry logic. Every billing cycle is tracked with invoice details, payment status, and notification delivery. You get all of that for free, without writing a single line of orchestration code.
+Each billing concern is an independent worker .  invoice generation, payment processing, and notification. Conductor runs them in sequence: generate the invoice, charge the payment method, then notify the customer. Failed payments are retried automatically with Conductor's retry logic. Every billing cycle is tracked with invoice details, payment status, and notification delivery. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,48 +22,10 @@ This example uses Conductor system tasks .  no custom workers needed.
 
 The workflow relies on Conductor's built-in task types. To go to production, add custom workers as needed .  the worker interface is simple, and no workflow changes are required.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input ->  -> Output
-```
-
-## Example Output
-
-```
-=== Recurring Billing Demo: Invoice Generation & Payment Processing ===
-
-Step 1: Registering task definitions...
-  Registered: billing_calculate_charges, billing_fetch_subscription, billing_generate_invoice, billing_process_payment, billing_send_notification
-
-Step 2: Registering workflow 'recurring_billing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [billing_calculate_charges] Calculating charges...
-  [billing_fetch_subscription] Fetching subscription details...
-  [billing_generate_invoice] Generating invoice...
-  [billing_process_payment] Processing payment...
-  [billing_send_notification] Sending billing notification...
-
-  Status: COMPLETED
-  Output: {basePriceCents=..., prorated=..., proratedCents=..., discountApplied=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -92,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -135,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow recurring_billing \
   --version 1 \
-  --input '{}'
+  --input '{"customerId": "TEST-001", "planId": "TEST-001", "billingCycleStart": "test-value", "billingCycleEnd": "test-value", "subscriptionStart": "test-value"}'
 ```
 
 ### Check workflow status
@@ -149,8 +111,6 @@ conductor workflow search -w recurring_billing -s COMPLETED -c 5
 ## How to Extend
 
 Each worker handles one billing step .  connect the invoice generator to your billing system, the payment processor to Stripe or Braintree, the notifier to your email service, and the generate-charge-notify workflow stays the same.
-
-
 
 Integrate with Stripe or Braintree for real payment processing, and the billing pipeline handles retries and receipts automatically.
 

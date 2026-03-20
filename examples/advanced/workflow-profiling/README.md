@@ -1,8 +1,6 @@
 # Workflow Profiling in Java Using Conductor :  Instrument, Execute, Measure, Find Bottlenecks, Optimize
 
-A Java Conductor workflow example for workflow profiling .  instrumenting a workflow to capture timing data, executing it across multiple iterations, measuring per-task execution times, identifying bottleneck tasks, and generating optimization recommendations. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## You Can't Optimize What You Don't Measure
+A Java Conductor workflow example for workflow profiling .  instrumenting a workflow to capture timing data, executing it across multiple iterations, measuring per-task execution times, identifying bottleneck tasks, and generating optimization recommendations. Uses [Conductor](https://github.## You Can't Optimize What You Don't Measure
 
 Your workflow runs in 30 seconds, but where does the time go? Is it the database query in step 3 (takes 12 seconds) or the API call in step 7 (takes 8 seconds)? Running the workflow once gives you one data point. Running it 100 times and profiling each task across iterations reveals the real bottleneck .  maybe step 3 averages 2 seconds but occasionally spikes to 12 seconds, while step 7 is consistently 8 seconds.
 
@@ -28,15 +26,6 @@ Five workers form the profiling pipeline: instrumentation, multi-iteration execu
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ wfp_bottleneck
     │
     ▼
 wfp_optimize
-```
-
-## Example Output
-
-```
-=== Workflow Profiling Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wfp_instrument, wfp_execute, wfp_measure_times, wfp_bottleneck, wfp_optimize
-
-Step 2: Registering workflow 'wfp_workflow_profiling'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [bottleneck] Processing
-  [execute] Processing
-  [instrument] Processing
-  [measure] Processing
-  [optimize] Processing
-
-  Status: COMPLETED
-  Output: {bottlenecks=..., executionResults=..., instrumentedWorkflow=..., profilingHooks=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wfp_workflow_profiling \
   --version 1 \
-  --input '{"workflowName": "sample-name", "data_pipeline": "sample-data-pipeline", "iterations": "sample-iterations"}'
+  --input '{"workflowName": "test", "iterations": "test-value"}'
 ```
 
 ### Check workflow status

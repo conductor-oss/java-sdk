@@ -1,8 +1,6 @@
 # RFP Automation in Java with Conductor :  RFP Creation, Vendor Distribution, Response Collection, Evaluation, and Vendor Selection
 
-A Java Conductor workflow example for request-for-proposal automation .  creating an RFP for a project (e.g., "Cloud Infrastructure Migration" requiring scalability, security, and 24/7 support), distributing it to qualified vendors, collecting responses by deadline, evaluating proposals against requirements, and selecting the winning vendor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for request-for-proposal automation .  creating an RFP for a project (e.g., "Cloud Infrastructure Migration" requiring scalability, security, and 24/7 support), distributing it to qualified vendors, collecting responses by deadline, evaluating proposals against requirements, and selecting the winning vendor. Uses [Conductor](https://github.## The Problem
 
 You need to run a structured RFP process for a cloud infrastructure migration. The RFP must clearly specify requirements (scalability, security, 24/7 support) and a response deadline. It must be distributed to qualified vendors in your approved vendor list. Vendor responses must be collected and validated for completeness before the deadline. Each response must be evaluated against the stated requirements with consistent scoring. The vendor with the best overall score is selected, and the decision must be defensible in case of a protest.
 
@@ -28,15 +26,6 @@ Five workers automate the RFP process: CreateWorker defines requirements and cri
 
 Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ rfp_evaluate
     │
     ▼
 rfp_select
-```
-
-## Example Output
-
-```
-=== Example 664: RFP Automatio ===
-
-Step 1: Registering task definitions...
-  Registered: rfp_create, rfp_distribute, rfp_collect, rfp_evaluate, rfp_select
-
-Step 2: Registering workflow 'rfp_automation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Received
-  [create] RFP: \"" + task.getInputData().get("projectTitle") + "\"
-  [distribute]
-  [evaluate] Top candidate:
-  [select] Selected
-
-  Status: COMPLETED
-  Output: {proposals=..., proposalCount=..., rfpId=..., distributedTo=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rfp_automation \
   --version 1 \
-  --input '{"projectTitle": "sample-projectTitle", "Cloud Infrastructure Migration": "sample-Cloud Infrastructure Migration", "requirements": "sample-requirements", "scalability": "sample-scalability", "security": "sample-security", "deadline": "sample-deadline"}'
+  --input '{"projectTitle": "test-value", "requirements": "test-value", "deadline": "test-value"}'
 ```
 
 ### Check workflow status

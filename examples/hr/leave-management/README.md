@@ -1,8 +1,6 @@
 # Leave Management in Java with Conductor :  Request, Balance Check, Manager Approval, Accrual Update, and Notification
 
-A Java Conductor workflow example for leave management .  submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for leave management .  submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.## The Problem
 
 You need to manage employee leave requests from submission through approval. An employee submits a leave request specifying the type (vacation, sick, personal, FMLA), start date, and number of days. The system must check the employee's available balance for that leave type to ensure they have sufficient hours. The request is then routed to the manager for approval, taking team coverage into account. Once approved, the leave balance must be debited and the payroll calendar updated. Finally, the employee receives confirmation, the team calendar is updated, and the manager is notified. If the balance check or approval is skipped, employees may overdraw their PTO or take leave without coverage arranged.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic leave system that queries the ac
 
 **You just write the leave request, balance checking, manager approval, accrual update, and notification logic. Conductor handles approval routing, balance updates, and leave request audit trails.**
 
-Each stage of the leave request is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking balances before approval, updating accruals only after approval, sending notifications as the final step, retrying if the payroll or HRIS system is temporarily unavailable, and maintaining a complete audit trail for labor law compliance. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the leave request is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking balances before approval, updating accruals only after approval, sending notifications as the final step, retrying if the payroll or HRIS system is temporarily unavailable, and maintaining a complete audit trail for labor law compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Request intake, balance checking, approval routing, and calendar update workers 
 | **NotifyWorker** | `lvm_notify` | Sends confirmation to the employee and updates the team calendar with the approved absence |
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ lvm_update
     │
     ▼
 lvm_notify
-```
-
-## Example Output
-
-```
-=== Example 601: Leave Management ===
-
-Step 1: Registering task definitions...
-  Registered: lvm_request, lvm_check_balance, lvm_approve, lvm_update, lvm_notify
-
-Step 2: Registering workflow 'lvm_leave_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Request
-  [balance]
-  [notify]
-  [request]
-  [update] Balance updated:
-
-  Status: COMPLETED
-  Output: {approved=..., approvedBy=..., balance=..., sufficient=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lvm_leave_management \
   --version 1 \
-  --input '{"employeeId": "EMP-400", "EMP-400": "leaveType", "leaveType": "vacation", "vacation": "startDate", "startDate": "2024-04-15", "2024-04-15": "days", "days": 5}'
+  --input '{"employeeId": "TEST-001", "leaveType": "test-value", "startDate": "2026-01-01T00:00:00Z", "days": "test-value"}'
 ```
 
 ### Check workflow status

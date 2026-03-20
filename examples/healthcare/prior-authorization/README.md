@@ -1,8 +1,6 @@
 # Prior Authorization in Java Using Conductor :  Request Submission, Clinical Criteria Review, Three-Way Decision Routing, and Provider Notification
 
-A Java Conductor workflow example for prior authorization .  submitting authorization requests with clinical justification, reviewing against medical necessity criteria, routing to auto-approve, auto-deny, or manual clinical review via SWITCH, and notifying the provider of the determination. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for prior authorization .  submitting authorization requests with clinical justification, reviewing against medical necessity criteria, routing to auto-approve, auto-deny, or manual clinical review via SWITCH, and notifying the provider of the determination. Uses [Conductor](https://github.## The Problem
 
 You need to process prior authorization requests for medical procedures, imaging studies, or specialty medications. A provider submits a request with the patient ID, procedure code, and clinical justification. The request must be reviewed against the payer's medical necessity criteria. InterQual, MCG, or custom clinical guidelines. Based on the criteria review, the request is routed to one of three paths: auto-approve if all criteria are met, auto-deny if the procedure clearly does not meet medical necessity, or escalate to a medical director for manual peer review if the case is ambiguous. Regardless of the determination, the provider must be notified with the decision, authorization number (if approved), or denial reason with appeal instructions. State prompt-decision laws require turnaround within specific timeframes.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic prior auth engine that receives 
 
 **You just write the prior auth workers. Request submission, criteria review, approve/deny/review routing, and provider notification. Conductor handles conditional SWITCH routing between approve, deny, and manual review paths, automatic retries, and timestamped records for regulatory compliance.**
 
-Each stage of the prior authorization process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of submitting before reviewing criteria, routing to the correct decision path (approve, deny, or manual review) via SWITCH, always notifying the provider regardless of which path was taken, and maintaining a complete audit trail with regulatory timeframes. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the prior authorization process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of submitting before reviewing criteria, routing to the correct decision path (approve, deny, or manual review) via SWITCH, always notifying the provider regardless of which path was taken, and maintaining a complete audit trail with regulatory timeframes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Six workers cover the prior auth process: SubmitRequestWorker intakes the reques
 | **NotifyWorker** | `pa_notify` | Sends the determination (approval with auth number, or denial with reason) to the requesting provider |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -56,36 +44,6 @@ SWITCH (pa_switch_ref)
     │
     ▼
 pa_notify
-```
-
-## Example Output
-
-```
-=== Prior Authorization Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: pa_submit_request, pa_review_criteria, pa_approve, pa_deny, pa_manual_review, pa_notify
-
-Step 2: Registering workflow 'prior_authorization_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Auth
-  [deny] Auth
-  [manual] Auth
-  [notify] Notification sent for auth
-  [review] Procedure:
-  [submit] Auth request
-
-  Status: COMPLETED
-  Output: {approved=..., authNumber=..., validDays=..., denied=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -114,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -157,7 +115,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow prior_authorization_workflow \
   --version 1 \
-  --input '{"authId": "PA-2024-0891", "PA-2024-0891": "patientId", "patientId": "PAT-10234", "PAT-10234": "procedure", "procedure": "MRI Lumbar Spine", "MRI Lumbar Spine": "clinicalReason", "clinicalReason": "Chronic back pain \u2014 medically necessary for surgical planning", "Chronic back pain \u2014 medically necessary for surgical planning": "sample-Chronic back pain \u2014 medically necessary for surgical planning"}'
+  --input '{"authId": "TEST-001", "patientId": "TEST-001", "procedure": "test-value", "clinicalReason": "test-value"}'
 ```
 
 ### Check workflow status

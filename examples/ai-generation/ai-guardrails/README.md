@@ -1,6 +1,6 @@
 # AI Guardrails in Java Using Conductor :  Input Check, Content Filter, Generate, Output Check, Deliver
 
-A Java Conductor workflow that wraps AI generation with safety guardrails .  checking the user's prompt for policy violations, filtering content based on sensitivity rules, generating the response, checking the output for harmful or inappropriate content, and delivering only safe, compliant responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage guarded generation pipeline as independent workers ,  you write the safety logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that wraps AI generation with safety guardrails .  checking the user's prompt for policy violations, filtering content based on sensitivity rules, generating the response, checking the output for harmful or inappropriate content, and delivering only safe, compliant responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage guarded generation pipeline as independent workers ,  you write the safety logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## AI Models Need Safety Boundaries on Input and Output
 
@@ -28,15 +28,6 @@ Safety checks run as independent workers before and after generation, so guardra
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ grl_output_check
     │
     ▼
 grl_deliver
-```
-
-## Example Output
-
-```
-=== Example 803: AI Guardrails. Input Check, Content Filter, Generate, Output Check, Deliver ===
-
-Step 1: Registering task definitions...
-  Registered: grl_input_check, grl_content_filter, grl_generate, grl_output_check, grl_deliver
-
-Step 2: Registering workflow 'grl_ai_guardrails'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [filter] Response from OpenAI (LIVE)
-  [deliver] Processing
-  [generate] Response from OpenAI (LIVE)
-  [input] Response from OpenAI (LIVE)
-  [output] Response from OpenAI (LIVE)
-
-  Status: COMPLETED
-  Output: {filteredPrompt=..., flagged=..., filterDetails=..., delivered=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow grl_ai_guardrails \
   --version 1 \
-  --input '{"userPrompt": "Explain what machine learning is", "Explain what machine learning is": "userId", "userId": "USR-803", "USR-803": "modelId", "modelId": "gpt-4", "gpt-4": "sample-gpt-4"}'
+  --input '{"userPrompt": "test-value", "userId": "TEST-001", "modelId": "TEST-001"}'
 ```
 
 ### Check workflow status
@@ -186,7 +148,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

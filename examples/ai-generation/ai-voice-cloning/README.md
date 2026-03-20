@@ -1,6 +1,6 @@
 # AI Voice Cloning in Java Using Conductor :  Sample Collection, Model Training, Speech Generation, Verification
 
-A Java Conductor workflow that clones a speaker's voice .  collecting voice samples from the target speaker, training a voice model on those samples, generating speech in the cloned voice from target text, verifying the output against the original voice for quality and similarity, and delivering the final audio. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage voice cloning pipeline as independent workers ,  you write the voice processing logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that clones a speaker's voice .  collecting voice samples from the target speaker, training a voice model on those samples, generating speech in the cloned voice from target text, verifying the output against the original voice for quality and similarity, and delivering the final audio. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage voice cloning pipeline as independent workers ,  you write the voice processing logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Voice Cloning Requires Training, Generation, and Verification
 
@@ -28,15 +28,6 @@ The voice cloning pipeline decomposes into discrete workers for sample collectio
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ avc_verify
     │
     ▼
 avc_deliver
-```
-
-## Example Output
-
-```
-=== Example 801: AI Voice Cloning. Collect Samples, Train Model, Generate, Verify, Deliver ===
-
-Step 1: Registering task definitions...
-  Registered: avc_collect_samples, avc_train_model, avc_generate, avc_verify, avc_deliver
-
-Step 2: Registering workflow 'avc_voice_cloning'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect_samples] Processing
-  [deliver] Processing
-  [generate] Processing
-  [train_model] Processing
-  [verify] Response from OpenAI (LIVE)
-
-  Status: COMPLETED
-  Output: {sampleCount=..., totalDuration=..., delivered=..., url=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow avc_voice_cloning \
   --version 1 \
-  --input '{"speakerId": "SPK-801", "SPK-801": "targetText", "targetText": "Welcome to our AI-powered voice platform.", "Welcome to our AI-powered voice platform.": "language", "language": "en-US", "en-US": "sample-en-US"}'
+  --input '{"speakerId": "TEST-001", "targetText": "test-value", "language": "test-value"}'
 ```
 
 ### Check workflow status
@@ -186,7 +148,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

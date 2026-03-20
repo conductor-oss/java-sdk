@@ -1,8 +1,6 @@
 # Emergency Response in Java with Conductor :  Incident Detection, Severity Classification, Dispatch, and Debrief
 
-A Java Conductor workflow example for emergency response .  detecting incidents, classifying severity, dispatching response units to a location, coordinating the on-scene response, and conducting a post-incident debrief. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for emergency response .  detecting incidents, classifying severity, dispatching response units to a location, coordinating the on-scene response, and conducting a post-incident debrief. Uses [Conductor](https://github.## The Problem
 
 You need to manage the lifecycle of an emergency incident from the moment it is reported through post-incident review. A report comes in with an incident type and location. The system must register the incident, classify its severity (fire, medical, hazmat, etc.), dispatch the appropriate response units based on severity and proximity, coordinate multi-agency action on scene, and produce a debrief record when the incident is resolved. Each step feeds the next .  you cannot dispatch without a severity classification, and you cannot debrief without knowing which units responded and what the outcome was.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic dispatch system that calls each 
 
 **You just write the incident detection, severity classification, unit dispatch, response coordination, and post-incident debrief logic. Conductor handles dispatch retries, coordination sequencing, and incident response audit trails.**
 
-Each stage of the emergency response is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running them in sequence, passing the incident ID and severity classification downstream to dispatch and coordination, retrying if the dispatch system is temporarily unavailable, and maintaining a complete timeline of every action for the post-incident debrief. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the emergency response is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running them in sequence, passing the incident ID and severity classification downstream to dispatch and coordination, retrying if the dispatch system is temporarily unavailable, and maintaining a complete timeline of every action for the post-incident debrief. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Incident detection, resource dispatch, field coordination, and situation reporti
 | **DebriefWorker** | `emr_debrief` | Produces the post-incident report with timeline, outcome, and lessons learned |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ emr_coordinate
     │
     ▼
 emr_debrief
-```
-
-## Example Output
-
-```
-=== Example 525: Emergency Response ===
-
-Step 1: Registering task definitions...
-  Registered: emr_detect, emr_classify_severity, emr_dispatch, emr_coordinate, emr_debrief
-
-Step 2: Registering workflow 'emr_emergency_response'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify_severity] Processing
-  [coordinate] Processing
-  [debrief] Processing
-  [detect] Processing
-  [dispatch] Processing
-
-  Status: COMPLETED
-  Output: {severity=..., responseLevel=..., outcome=..., duration=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow emr_emergency_response \
   --version 1 \
-  --input '{"incidentType": "structure-fire", "structure-fire": "location", "location": "123 Oak Ave", "123 Oak Ave": "reportedBy", "reportedBy": "911-dispatch", "911-dispatch": "sample-911-dispatch"}'
+  --input '{"incidentType": "TEST-001", "location": "test-value", "reportedBy": "test-value"}'
 ```
 
 ### Check workflow status

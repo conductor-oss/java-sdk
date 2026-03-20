@@ -1,6 +1,6 @@
 # Multimodal RAG in Java Using Conductor :  Text, Image, and Audio Processing in Parallel
 
-A Java Conductor workflow that handles questions with mixed-media attachments .  detecting which modalities are present (text, images, audio), processing each modality in parallel (text embedding, image feature extraction, audio transcription), searching across a multimodal index, and generating an answer that incorporates all modalities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate modality detection, parallel processing, search, and generation as independent workers ,  you write the modality-specific logic, Conductor handles parallelism, retries, durability, and observability for free.
+A Java Conductor workflow that handles questions with mixed-media attachments .  detecting which modalities are present (text, images, audio), processing each modality in parallel (text embedding, image feature extraction, audio transcription), searching across a multimodal index, and generating an answer that incorporates all modalities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate modality detection, parallel processing, search, and generation as independent workers ,  you write the modality-specific logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## When Questions Include More Than Text
 
@@ -31,16 +31,6 @@ Six workers handle multi-modal content .  detecting input modality, processing t
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -58,36 +48,6 @@ mm_multimodal_search
     │
     ▼
 mm_generate
-```
-
-## Example Output
-
-```
-=== Example 159: Multimodal RAG ===
-
-Step 1: Registering task definitions...
-  Registered: mm_detect_modality, mm_process_text, mm_process_image, mm_process_audio, mm_multimodal_search, mm_generate
-
-Step 2: Registering workflow 'multimodal_rag_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect_modality] Detected modalities:
-  [generate] Response from OpenAI (LIVE)
-  [multimodal_search] Searched with
-  [process_audio] Extracted features from
-  [process_image] Extracted features from
-  [embed] Generated embedding via OpenAI (LIVE):
-
-  Status: COMPLETED
-  Output: {detectedModalities=..., textContent=..., imageRefs=..., audioRefs=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -116,7 +76,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -160,7 +120,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multimodal_rag_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "How does multimodal retrieval improve search quality?": "sample-How does multimodal retrieval improve search quality?", "attachments": "sample-attachments", "type": "standard", "image": "sample-image", "url": "https://api.example.com/resource", "audio": "sample-audio"}'
+  --input '{"question": "test-value", "attachments": "test-value"}'
 ```
 
 ### Check workflow status

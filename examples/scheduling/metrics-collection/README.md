@@ -12,7 +12,7 @@ Without orchestration, each metrics layer has its own collection pipeline that r
 
 **You just write the per-layer metric collectors and aggregation logic. Conductor handles parallel collection so one slow layer does not block the others, retries on metric source timeouts, and per-layer timing and sample counts for every collection run.**
 
-Conductor's FORK/JOIN collects infrastructure, application, and business metrics in parallel. An aggregation worker combines all three layers into a unified view. If one collector is slow, the others don't wait. Every collection run is tracked with per-layer timing and sample counts. You get all of that for free, without writing a single line of orchestration code.
+Conductor's FORK/JOIN collects infrastructure, application, and business metrics in parallel. An aggregation worker combines all three layers into a unified view. If one collector is slow, the others don't wait. Every collection run is tracked with per-layer timing and sample counts. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +27,6 @@ Three layer-specific collectors run in parallel via FORK/JOIN: CollectAppWorker 
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,34 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 mc_aggregate
-```
-
-## Example Output
-
-```
-=== Example 411: Metrics Collectio ===
-
-Step 1: Registering task definitions...
-  Registered: mc_collect_app, mc_collect_infra, mc_collect_business, mc_aggregate
-
-Step 2: Registering workflow 'metrics_collection_411'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Aggregating
-  [application] Collecting application metrics from
-  [business] Collecting business metrics from
-  [infrastructure] Collecting infrastructure metrics from
-
-  Status: COMPLETED
-  Output: {totalMetrics=..., sources=..., metricCount=..., source=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow metrics_collection_411 \
   --version 1 \
-  --input '{"environment": "sample-environment", "production": "sample-production", "timeRange": "2025-01-15T10:00:00Z"}'
+  --input '{"environment": "test-value", "timeRange": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

@@ -12,7 +12,7 @@ Without orchestration, DDoS response is a runbook executed by an on-call enginee
 
 **You just write the traffic detection and mitigation rules. Conductor handles rapid sequential execution under attack conditions, retries on CDN API failures, and a timestamped record of every mitigation action and service availability check.**
 
-Each mitigation step is an independent worker .  traffic detection, attack classification, mitigation application, and service verification. Conductor runs them in sequence: detect the anomaly, classify the attack, apply mitigation, then verify the service. Every mitigation action is tracked with traffic metrics, attack classification, and service availability status. You get all of that for free, without writing a single line of orchestration code.
+Each mitigation step is an independent worker .  traffic detection, attack classification, mitigation application, and service verification. Conductor runs them in sequence: detect the anomaly, classify the attack, apply mitigation, then verify the service. Every mitigation action is tracked with traffic metrics, attack classification, and service availability status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ The mitigation chain runs DetectWorker to spot traffic anomalies, ClassifyWorker
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ ddos_mitigate
     │
     ▼
 ddos_verify_service
-```
-
-## Example Output
-
-```
-=== Example 353: DDoS Mitigatio ===
-
-Step 1: Registering task definitions...
-  Registered: ddos_detect, ddos_classify, ddos_mitigate, ddos_verify_service
-
-Step 2: Registering workflow 'ddos_mitigation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify] Layer 7 HTTP flood attack from botnet
-  [detect] api-gateway: traffic 500% above baseline
-  [mitigate] Rate limiting enabled, challenge page activated, 1,200 IPs blocked
-  [verify] Service restored: latency normal, legitimate traffic flowing
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ddos_mitigation_workflow \
   --version 1 \
-  --input '{"targetService": "sample-targetService", "api-gateway": "sample-api-gateway", "trafficAnomaly": "sample-trafficAnomaly"}'
+  --input '{"targetService": "test-value", "trafficAnomaly": "test-value"}'
 ```
 
 ### Check workflow status

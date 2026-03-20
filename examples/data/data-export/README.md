@@ -1,8 +1,6 @@
 # Data Export in Java Using Conductor :  Parallel Multi-Format Export (CSV, JSON, Excel) and Bundling
 
-A Java Conductor workflow example for data export: querying a data source, then exporting the results to CSV, JSON, and Excel simultaneously using `FORK_JOIN` parallelism, and bundling all exported files into a single archive for download or delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data export: querying a data source, then exporting the results to CSV, JSON, and Excel simultaneously using `FORK_JOIN` parallelism, and bundling all exported files into a single archive for download or delivery. Uses [Conductor](https://github.## The Problem
 
 Users and downstream systems need data in different formats. The finance team wants Excel with formatted columns. The integration partner needs JSON. The data analyst wants CSV for import into R or pandas. You need to export the same dataset to all three formats, do it as fast as possible (in parallel, not sequentially), and bundle the results into a single deliverable. If the Excel export fails due to a formatting issue, the CSV and JSON exports should still complete successfully.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single export method that generates CSV, th
 
 **You just write the data preparation, CSV/JSON/Excel export, and bundle workers. Conductor handles parallel format generation via FORK_JOIN, independent retries per format, and automatic join-then-bundle sequencing.**
 
-Each export format is a simple, independent worker. The data preparation worker queries the source and structures the data with headers. The CSV, JSON, and Excel workers each receive the same prepared data and produce their format-specific output. Conductor's `FORK_JOIN` runs all three exports simultaneously, waits for all to complete, and then the bundler packages them into a single archive. If one format fails, Conductor retries just that export. If the process crashes after two of three exports finish, Conductor resumes only the incomplete one. You get all of that for free, without writing a single line of parallelism or join logic.
+Each export format is a simple, independent worker. The data preparation worker queries the source and structures the data with headers. The CSV, JSON, and Excel workers each receive the same prepared data and produce their format-specific output. Conductor's `FORK_JOIN` runs all three exports simultaneously, waits for all to complete, and then the bundler packages them into a single archive. If one format fails, Conductor retries just that export. If the process crashes after two of three exports finish, Conductor resumes only the incomplete one. You get all of that, without writing a single line of parallelism or join logic.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Five workers handle the parallel export pipeline: preparing the data from a sour
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 dx_bundle_exports
-```
-
-## Example Output
-
-```
-=== Data Export Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dx_prepare_data, dx_export_csv, dx_export_json, dx_export_excel, dx_bundle_exports
-
-Step 2: Registering workflow 'data_export'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [bundle] Bundled
-  [csv] Exported
-  [excel] Exported
-  [json] Exported
-  [prepare] Prepared
-
-  Status: COMPLETED
-  Output: {bundleUrl=..., exportCount=..., files=..., file=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_export \
   --version 1 \
-  --input '{"query": "sample-query", "table": "sample-table", "products": "sample-products", "filters": "sample-filters", "active": true}'
+  --input '{"query": "test-value", "formats": "test-value", "destination": "test-value"}'
 ```
 
 ### Check workflow status

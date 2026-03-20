@@ -1,8 +1,6 @@
 # Tournament Bracket in Java Using Conductor
 
-Runs a competitive tournament from registration to finals: accepting registrations, seeding by skill, generating brackets, managing match rounds, and finalizing results with prize distribution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Runs a competitive tournament from registration to finals: accepting registrations, seeding by skill, generating brackets, managing match rounds, and finalizing results with prize distribution. Uses [Conductor](https://github.## The Problem
 
 You need to run a competitive tournament from registration to finals. The workflow accepts player registrations, seeds participants based on skill rating, generates the tournament bracket (single elimination, double elimination, or round robin), manages each round of matches, and finalizes results with prize distribution. Unseeded brackets produce lopsided first-round matchups; mismanaged rounds can deadlock the tournament.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a tournament platform that manages registrati
 
 **You just write the registration, skill seeding, bracket generation, match round management, and prize distribution logic. Conductor handles bracket generation retries, match scheduling, and tournament progression tracking.**
 
-Each tournament concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (register, seed, create bracket, manage rounds, finalize), tracking every tournament's complete state, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each tournament concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (register, seed, create bracket, manage rounds, finalize), tracking every tournament's complete state, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Registration, seeding, bracket generation, and match scheduling workers each own
 | **SeedWorker** | `tbk_seed` | Seeds registered players by skill ranking for balanced bracket placement |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ tbk_manage_rounds
     │
     ▼
 tbk_finalize
-```
-
-## Example Output
-
-```
-=== Example 743: Tournament Bracket ===
-
-Step 1: Registering task definitions...
-  Registered: tbk_register, tbk_seed, tbk_create_bracket, tbk_manage_rounds, tbk_finalize
-
-Step 2: Registering workflow 'tournament_bracket_743'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [bracket] Creating
-  [finalize] Tournament complete!
-  [rounds] Managing rounds for bracket
-  [register] Registering players for
-  [seed] Seeding players by ranking
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tournament_bracket_743 \
   --version 1 \
-  --input '{"tournamentName": "sample-name", "Spring Showdown 2026": "sample-Spring Showdown 2026", "format": "sample-format", "single-elimination": "sample-single-elimination", "maxPlayers": "sample-maxPlayers"}'
+  --input '{"tournamentName": "test", "format": "test-value", "maxPlayers": "test-value"}'
 ```
 
 ### Check workflow status

@@ -12,7 +12,7 @@ Without orchestration, API key rotation is either avoided entirely (keys never r
 
 **You just write the key generation and consumer migration logic. Conductor handles strict ordering so revocation never happens before migration, retries if a consumer update fails, and tracking of which consumers are still on the old key.**
 
-Each rotation step is an independent worker .  key generation, dual-active activation, consumer migration, and old key revocation. Conductor runs them in strict sequence: generate the new key, activate dual-active mode, migrate consumers, then revoke the old key. Every rotation is tracked with consumer migration status ,  you can see exactly which consumers are still on the old key. You get all of that for free, without writing a single line of orchestration code.
+Each rotation step is an independent worker .  key generation, dual-active activation, consumer migration, and old key revocation. Conductor runs them in strict sequence: generate the new key, activate dual-active mode, migrate consumers, then revoke the old key. Every rotation is tracked with consumer migration status ,  you can see exactly which consumers are still on the old key. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,47 +27,10 @@ Four workers execute zero-downtime rotation: GenerateNewWorker creates a fresh A
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> DualActiveWorker -> GenerateNewWorker -> MigrateConsumersWorker -> RevokeOldWorker -> Output
-```
-
-## Example Output
-
-```
-=== API Key Rotation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: akr_generate_new, akr_dual_active, akr_migrate_consumers, akr_revoke_old
-
-Step 2: Registering workflow 'api_key_rotation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [dual] Both old and new keys active during transition
-  [generate] New API key generated for
-  [migrate] 5 consumers updated to new key
-  [revoke] Old key revoked after all consumers migrated
-
-  Status: COMPLETED
-  Output: {dual_active=..., processed=..., generate_newId=..., success=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +59,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

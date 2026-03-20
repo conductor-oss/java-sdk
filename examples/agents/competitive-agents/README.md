@@ -1,8 +1,6 @@
 # Competitive Agents in Java Using Conductor :  Parallel Solvers, Judge, and Winner Selection
 
-Competitive Agents .  three solvers propose solutions in parallel, a judge scores them, and a winner is selected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Better Solutions Through Competition
+Competitive Agents .  three solvers propose solutions in parallel, a judge scores them, and a winner is selected. Uses [Conductor](https://github.## Better Solutions Through Competition
 
 A single AI agent solving a problem gives you one perspective. Three agents solving the same problem independently give you three perspectives, and the best one is almost always better than a random single attempt. Agent 1 might take an analytical approach (data-driven, quantitative). Agent 2 might take a creative approach (novel angles, unconventional solutions). Agent 3 might take a practical approach (implementation-focused, risk-aware).
 
@@ -28,16 +26,6 @@ Five workers run the competition. Three solvers propose solutions in parallel us
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ comp_judge_agent
     │
     ▼
 comp_select_winner
-```
-
-## Example Output
-
-```
-=== Competitive Agents Demo: Three Solvers Compete ===
-
-Step 1: Registering task definitions...
-  Registered: comp_solver_1, comp_solver_2, comp_solver_3, comp_judge_agent, comp_select_winner
-
-Step 2: Registering workflow 'competitive_agents_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [comp_judge_agent] Evaluating 3 competing solutions...
-  [comp_select_winner] Selected winner:
-  [comp_solver_1] Creative solver analyzing:
-  [comp_solver_2] Analytical solver analyzing:
-  [comp_solver_3] Practical solver analyzing:
-
-  Status: COMPLETED
-  Output: {winner=..., winnerTitle=..., scores=..., reasoning=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow competitive_agents_demo \
   --version 1 \
-  --input '{"problem": "sample-problem", "Reduce customer onboarding time by 50%": "2025-01-15T10:00:00Z", "criteria": "sample-criteria"}'
+  --input '{"problem": "test-value", "criteria": "test-value"}'
 ```
 
 ### Check workflow status
@@ -176,7 +135,6 @@ Swap in LLM calls for real solution generation; the parallel competition workflo
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

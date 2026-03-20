@@ -1,8 +1,6 @@
 # Implementing Privileged Access Management in Java with Conductor :  Just-In-Time Access Requests, Approval, Grant, and Auto-Revocation
 
-A Java Conductor workflow example for just-in-time privileged access management (PAM) .  receiving access requests with justification, running security approval, granting time-limited access to sensitive resources like production databases, and automatically revoking credentials when the window expires. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for just-in-time privileged access management (PAM) .  receiving access requests with justification, running security approval, granting time-limited access to sensitive resources like production databases, and automatically revoking credentials when the window expires. Uses [Conductor](https://github.## The Problem
 
 You need to manage privileged access to sensitive resources .  production databases, cloud admin consoles, SSH bastion hosts. Engineers request elevated access tied to an incident or task, someone approves it, credentials are provisioned, and access must be revoked automatically after the approved duration (e.g., 2 hours). If revocation fails or gets skipped, you have standing privileged access that violates least-privilege and creates audit findings.
 
@@ -27,47 +25,10 @@ Four workers manage just-in-time access: PamRequestWorker validates the access r
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> PamApproveWorker -> PamGrantAccessWorker -> PamRequestWorker -> PamRevokeAccessWorker -> Output
-```
-
-## Example Output
-
-```
-=== Example 391: Privileged Access ===
-
-Step 1: Registering task definitions...
-  Registered: pam_request, pam_approve, pam_grant_access, pam_revoke_access
-
-Step 2: Registering workflow 'privileged_access_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Security team approved. Risk: low
-  [grant] Temporary
-  [request]
-  [revoke] Privileged access automatically revoked after expiry
-
-  Status: COMPLETED
-  Output: {approve=..., processed=..., grant_access=..., requestId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

@@ -1,8 +1,6 @@
 # Lease Management in Java with Conductor :  Create, Sign, Activate, Renew, or Terminate
 
-A Java Conductor workflow example for managing the full lease lifecycle .  creating a lease agreement, collecting signatures, activating the lease, and then routing to renewal or termination based on the requested action. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for managing the full lease lifecycle .  creating a lease agreement, collecting signatures, activating the lease, and then routing to renewal or termination based on the requested action. Uses [Conductor](https://github.## The Problem
 
 You need to manage residential or commercial leases from creation through completion. A new lease must be drafted with terms (rent amount, duration, deposit), signed by both tenant and landlord, and then activated to begin the tenancy. At the end of the lease term, the workflow needs to handle either renewal (new terms, rent escalation) or termination (security deposit return, move-out inspection). The path taken depends on whether the tenant or landlord requests renewal or termination, and every action must be recorded for legal compliance.
 
@@ -12,7 +10,7 @@ Without orchestration, lease management is a tangle of manual steps. Property ma
 
 **You just write the lease creation, signature collection, activation, and renewal or termination logic. Conductor handles notification retries, payment scheduling, and lease lifecycle audit trails.**
 
-Each lease lifecycle step is a simple, independent worker .  one creates the lease, one handles signing, one activates it, and then a SWITCH task routes to either renewal or termination based on the requested action. Conductor takes care of executing them in order, ensuring no lease is activated without a signature, routing to the correct end-of-lease path, and maintaining a complete history of every lease action. You get all of that for free, without writing a single line of orchestration code.
+Each lease lifecycle step is a simple, independent worker .  one creates the lease, one handles signing, one activates it, and then a SWITCH task routes to either renewal or termination based on the requested action. Conductor takes care of executing them in order, ensuring no lease is activated without a signature, routing to the correct end-of-lease path, and maintaining a complete history of every lease action. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Lease drafting, tenant notification, payment scheduling, and renewal tracking wo
 | **TerminateLeaseWorker** | `lse_terminate` | Handles lease termination .  schedules move-out inspection, initiates deposit return (terminate path) |
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -53,35 +41,6 @@ lse_activate
 SWITCH (lse_switch_ref)
     ├── renew: lse_renew
     ├── terminate: lse_terminate
-```
-
-## Example Output
-
-```
-=== Example 685: Lease Management ===
-
-Step 1: Registering task definitions...
-  Registered: lse_create, lse_sign, lse_activate, lse_renew, lse_terminate
-
-Step 2: Registering workflow 'lse_lease_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [lse_activate] Executing
-  [lse_create] Executing
-  [lse_renew] Executing
-  [lse_sign] Executing
-  [lse_terminate] Executing
-
-  Status: COMPLETED
-  Output: {active=..., leaseId=..., renewed=..., signed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lse_lease_management \
   --version 1 \
-  --input '{"tenantId": "TNT-50", "TNT-50": "propertyId", "propertyId": "UNIT-5A", "UNIT-5A": "action", "action": "renew", "renew": "sample-renew"}'
+  --input '{"tenantId": "TEST-001", "propertyId": "TEST-001", "action": "test-value"}'
 ```
 
 ### Check workflow status

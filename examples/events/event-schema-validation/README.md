@@ -1,8 +1,6 @@
 # Event Schema Validation in Java Using Conductor
 
-Event Schema Validation .  validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event Schema Validation .  validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. Uses [Conductor](https://github.## The Problem
 
 You need to validate incoming events against a schema before processing them. Malformed events (missing required fields, wrong data types, extra fields) must be caught early and routed to a dead-letter queue rather than corrupting downstream systems. Valid events proceed to normal processing. Without schema validation, one malformed event can crash a consumer, corrupt a database, or produce silently incorrect results.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd embed validation logic in every consumer, duplicate
 
 **You just write the schema-validation, valid-event processing, and dead-letter workers. Conductor handles valid/invalid SWITCH routing, guaranteed DLQ delivery for bad events, and schema compliance tracking for every event.**
 
-Each validation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of validating the event against the named schema, routing via a SWITCH task to processing (valid) or dead-letter (invalid), retrying if the schema registry is unavailable, and tracking every event's validation result. You get all of that for free, without writing a single line of orchestration code.
+Each validation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of validating the event against the named schema, routing via a SWITCH task to processing (valid) or dead-letter (invalid), retrying if the schema registry is unavailable, and tracking every event's validation result. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,16 +24,6 @@ Three workers enforce schema compliance: ValidateSchemaWorker checks the event a
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -45,33 +33,6 @@ sv_validate_schema
 SWITCH (route_ref)
     ├── valid: sv_process_valid
     ├── invalid: sv_dead_letter
-```
-
-## Example Output
-
-```
-=== Event Schema Validation Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sv_validate_schema, sv_process_valid, sv_dead_letter
-
-Step 2: Registering workflow 'event_schema_validation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sv_dead_letter] Sending event to DLQ with
-  [sv_process_valid] Processing valid event with schema:
-  [sv_validate_schema] Validating event against schema:
-
-  Status: COMPLETED
-  Output: {sentToDLQ=..., errors=..., processed=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +61,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +104,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_schema_validation \
   --version 1 \
-  --input '{"event": {"key": "value"}}'
+  --input '{"event": "test-value", "schemaName": "test"}'
 ```
 
 ### Check workflow status

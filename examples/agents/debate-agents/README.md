@@ -1,8 +1,6 @@
 # Debate Agents in Java Using Conductor :  Pro and Con Arguments in Iterative Rounds with Moderation
 
-Debate Agents. PRO and CON agents argue over a topic for multiple rounds, then a moderator summarizes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Exploring Both Sides of an Issue Systematically
+Debate Agents. PRO and CON agents argue over a topic for multiple rounds, then a moderator summarizes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Exploring Both Sides of an Issue Systematically
 
 Asking an LLM for pros and cons in a single call produces a superficial list. A structured debate produces deeper analysis: the pro agent makes a strong argument, the con agent directly counters it, and the pro agent responds to the counter .  each round sharpening the analysis. After three rounds, the moderator has six substantive arguments to synthesize into a balanced summary.
 
@@ -27,16 +25,6 @@ Four workers stage the debate. Setting the topic, then iterating PRO and CON arg
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ DO_WHILE
     │
     ▼
 da_moderator_summarize
-```
-
-## Example Output
-
-```
-=== Debate Agents Demo: PRO vs CON ===
-
-Step 1: Registering task definitions...
-  Registered: da_set_topic, da_agent_pro, da_agent_con, da_moderator_summarize
-
-Step 2: Registering workflow 'debate_agents_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [da_agent_con] Round
-  [da_agent_pro] Round
-  [da_moderator_summarize] Summarizing
-  [da_set_topic] Setting debate topic:
-
-  Status: COMPLETED
-  Output: {side=..., round=..., argument=..., summary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow debate_agents_demo \
   --version 1 \
-  --input '{"topic": "sample-topic"}'
+  --input '{"topic": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +132,6 @@ Replace with real LLM argumentation; the debate loop preserves the same round-ba
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

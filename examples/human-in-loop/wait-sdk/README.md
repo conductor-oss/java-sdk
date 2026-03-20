@@ -1,8 +1,6 @@
 # WAIT Task Completion via SDK (TaskClient) in Java Using Conductor :  Ticket Initialization, WAIT for Programmatic Resolution, and Ticket Finalization
 
-A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from Java code using the Conductor SDK's TaskClient .  initializing a support ticket with status "open", pausing at a WAIT task until a separate Java process (a background service, scheduled job, or another microservice) completes it via the SDK, then finalizing and closing the ticket. Unlike the REST API approach, the SDK method provides type-safe Java objects and integrates naturally into existing Java services without HTTP client setup. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Programmatic Workflow Resumption via the Conductor SDK
+A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from Java code using the Conductor SDK's TaskClient .  initializing a support ticket with status "open", pausing at a WAIT task until a separate Java process (a background service, scheduled job, or another microservice) completes it via the SDK, then finalizing and closing the ticket. Unlike the REST API approach, the SDK method provides type-safe Java objects and integrates naturally into existing Java services without HTTP client setup. Uses [Conductor](https://github.## Programmatic Workflow Resumption via the Conductor SDK
 
 Instead of using REST APIs directly, the Conductor SDK's TaskClient can complete WAIT tasks programmatically from Java code. This is useful when another Java service or a scheduled job needs to resume a paused workflow. The workflow initializes a ticket, pauses at a WAIT task, and a separate process uses the SDK to complete it. The finalization step closes the ticket.
 
@@ -24,15 +22,6 @@ InitWorker opens the support ticket, and FinalizeWorker closes it after resoluti
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,32 +32,6 @@ WAIT [WAIT]
     │
     ▼
 wsdk_finalize
-```
-
-## Example Output
-
-```
-=== Complete WAIT Task via SDK Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'wait_sdk_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [finalize] Processing
-  [init] Processing
-
-  Status: COMPLETED
-  Output: {result=..., ticketId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wait_sdk_demo \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

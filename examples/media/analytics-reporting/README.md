@@ -1,8 +1,6 @@
 # Analytics Reporting Pipeline in Java Using Conductor :  Event Collection, Data Aggregation, KPI Computation, and Dashboard Generation
 
-A Java Conductor workflow example that orchestrates an analytics reporting pipeline .  collecting raw user events from multiple data sources into Parquet files, aggregating them into session-level metrics (total sessions, unique users, page views), computing business KPIs (DAU, WAU, MAU, bounce rate, conversion rate, revenue per user), and generating interactive dashboard reports with scheduled delivery via email and Slack. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Analytics Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an analytics reporting pipeline .  collecting raw user events from multiple data sources into Parquet files, aggregating them into session-level metrics (total sessions, unique users, page views), computing business KPIs (DAU, WAU, MAU, bounce rate, conversion rate, revenue per user), and generating interactive dashboard reports with scheduled delivery via email and Slack. Uses [Conductor](https://github.## Why Analytics Pipelines Need Orchestration
 
 Building an analytics report requires a strict data pipeline. You collect 1.25 million raw events from multiple sources and write them to a staging area. You aggregate those events into session-level summaries .  85K total sessions, 42K unique users, 320K page views, 245-second average session duration. You compute business-critical KPIs from the aggregated data: daily/weekly/monthly active users, 38.5% bounce rate, 4.2% conversion rate. Finally, you generate an interactive dashboard report and schedule delivery to stakeholders.
 
@@ -27,15 +25,6 @@ Four workers form the analytics pipeline: CollectEventsWorker ingests raw user e
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ anr_compute_metrics
     │
     ▼
 anr_generate_report
-```
-
-## Example Output
-
-```
-=== Example 526: Analytics Reporting ===
-
-Step 1: Registering task definitions...
-  Registered: anr_collect_events, anr_aggregate_data, anr_compute_metrics, anr_generate_report
-
-Step 2: Registering workflow 'analytics_reporting_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Processing
-  [collect] Processing
-  [metrics] Processing
-  [report] Processing
-
-  Status: COMPLETED
-  Output: {aggregatedData=..., totalSessions=..., uniqueUsers=..., pageViews=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow analytics_reporting_workflow \
   --version 1 \
-  --input '{"reportId": "RPT-526-WEEKLY", "dateRange": "{\"start\": \"2026-03-01\", \"end\": \"2026-03-07\"}", "dataSources": ["web_analytics", "mobile_analytics", "api_logs"]}'
+  --input '{"reportId": "TEST-001", "dateRange": "2026-01-01T00:00:00Z", "dataSources": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Service Orchestration in Java with Conductor
 
-Orchestrate auth, catalog, cart, and checkout microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Orchestrate auth, catalog, cart, and checkout microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A typical e-commerce purchase flow spans four microservices: authenticate the user, look up the product in the catalog, add it to the shopping cart, and process checkout. Each step depends on the output of the previous one, the catalog lookup needs an auth token, the cart needs the product details, and checkout needs the cart total.
 
@@ -27,15 +25,6 @@ Four workers drive the purchase flow: AuthenticateWorker validates user credenti
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ so_add_to_cart
     │
     ▼
 so_checkout
-```
-
-## Example Output
-
-```
-=== Service Orchestration Demo ===
-
-Step 1: Registering task definitions...
-  Registered: so_authenticate, so_catalog_lookup, so_add_to_cart, so_checkout
-
-Step 2: Registering workflow 'service_orchestration_291'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [so_add_to_cart] Adding
-  [so_authenticate] Authenticating user
-  [so_catalog_lookup] Looking up product
-  [so_checkout] Processing checkout for cart
-
-  Status: COMPLETED
-  Output: {cartId=..., items=..., total=..., token=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_orchestration_291 \
   --version 1 \
-  --input '{"userId": "user-42", "user-42": "productId", "productId": "PROD-100", "PROD-100": "quantity", "quantity": 2}'
+  --input '{"userId": "TEST-001", "productId": "TEST-001", "quantity": "test-value"}'
 ```
 
 ### Check workflow status

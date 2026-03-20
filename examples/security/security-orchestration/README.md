@@ -12,7 +12,7 @@ Without orchestration, SOAR is a collection of scripts that run independently. E
 
 **You just write the alert enrichment and response playbooks. Conductor handles the alert-to-playbook pipeline, retries when enrichment APIs are unavailable, and tracks mean time to respond for every incident from ingestion to resolution.**
 
-Each SOAR step is an independent worker .  alert ingestion, enrichment, triage decision, and playbook execution. Conductor runs them in sequence: ingest the alert, enrich with context, decide on action, then execute the playbook. Every alert is tracked from ingestion to resolution ,  you can measure mean time to respond and audit every automated action. You get all of that for free, without writing a single line of orchestration code.
+Each SOAR step is an independent worker .  alert ingestion, enrichment, triage decision, and playbook execution. Conductor runs them in sequence: ingest the alert, enrich with context, decide on action, then execute the playbook. Every alert is tracked from ingestion to resolution ,  you can measure mean time to respond and audit every automated action. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ The SOAR pipeline chains IngestAlertWorker to receive alerts from SIEM/EDR sourc
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ soar_decide_action
     │
     ▼
 soar_execute_playbook
-```
-
-## Example Output
-
-```
-=== Example 352: Security Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: soar_ingest_alert, soar_enrich, soar_decide_action, soar_execute_playbook
-
-Step 2: Registering workflow 'security_orchestration_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [decide] Action: isolate host, block C2 domain, collect forensics
-  [enrich] Added threat intel, asset context, user history
-  [playbook] Host isolated, C2 domain blocked, forensic collection started
-  [ingest] Alert ALERT-2024-commission-insurance from crowdstrike
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow security_orchestration_workflow \
   --version 1 \
-  --input '{"alertId": "ALERT-2024-commission-insurance", "ALERT-2024-commission-insurance": "alertSource", "alertSource": "crowdstrike", "crowdstrike": "sample-crowdstrike"}'
+  --input '{"alertId": "TEST-001", "alertSource": "test-value"}'
 ```
 
 ### Check workflow status

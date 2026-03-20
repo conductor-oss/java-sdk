@@ -1,8 +1,6 @@
 # Clickstream Analytics in Java Using Conductor :  Event Ingestion, Sessionization, and Journey Analysis
 
-A Java Conductor workflow example for clickstream analytics: ingesting raw click events, grouping them into user sessions, analyzing navigation journeys for conversion patterns, and generating analytics reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for clickstream analytics: ingesting raw click events, grouping them into user sessions, analyzing navigation journeys for conversion patterns, and generating analytics reports. Uses [Conductor](https://github.## The Problem
 
 You have a stream of raw click events. Page views, button clicks, form submissions, and you need to turn them into actionable product analytics. That means grouping events by user and time gap into sessions, tracing the page-to-page journeys users take, calculating conversion rates and drop-off points, and producing reports that product teams can act on. Each step depends on the previous one: you can't analyze journeys without sessions, and you can't build sessions without ingested events.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic analytics pipeline that reads fr
 
 **You just write the event ingestion, sessionization, journey analysis, and report generation workers. Conductor handles the sequential data flow, retries on analytics query failures, and full observability across ingestion-to-report stages.**
 
-Each stage of the analytics pipeline is a simple, independent worker. The ingestion worker parses and normalizes raw click events. The sessionization worker groups events by user ID and applies a configurable session timeout to split activity into distinct sessions. The journey analyzer traces page-to-page navigation paths and computes conversion rates. The report generator assembles session metrics, top journeys, and conversion data into a structured report. Conductor executes them in sequence, passes session data between steps, retries if an analytics query fails, and resumes from where it left off if the pipeline crashes mid-computation. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the analytics pipeline is a simple, independent worker. The ingestion worker parses and normalizes raw click events. The sessionization worker groups events by user ID and applies a configurable session timeout to split activity into distinct sessions. The journey analyzer traces page-to-page navigation paths and computes conversion rates. The report generator assembles session metrics, top journeys, and conversion data into a structured report. Conductor executes them in sequence, passes session data between steps, retries if an analytics query fails, and resumes from where it left off if the pipeline crashes mid-computation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the clickstream analytics pipeline: ingesting raw click events
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ck_analyze_journeys
     │
     ▼
 ck_generate_report
-```
-
-## Example Output
-
-```
-=== Clickstream Analytics Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ck_ingest_clicks, ck_sessionize, ck_analyze_journeys, ck_generate_report
-
-Step 2: Registering workflow 'clickstream_analytics'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [journeys] Analyzed
-  [report] Generated report:
-  [ingest] Ingested
-  [sessionize] Created
-
-  Status: COMPLETED
-  Output: {journeys=..., converted=..., bounced=..., analysis=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow clickstream_analytics \
   --version 1 \
-  --input '{"clickData": "sample-clickData", "source": "sample-source", "web-tracker": "sample-web-tracker", "site": "sample-site", "sessionTimeout": "2025-01-15T10:00:00Z", "analysisType": "standard"}'
+  --input '{"clickData": "test-value", "sessionTimeout": "2026-01-01T00:00:00Z", "analysisType": "test-value"}'
 ```
 
 ### Check workflow status

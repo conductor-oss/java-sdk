@@ -12,7 +12,7 @@ Without orchestration, log correlation is a manual process using grep across mul
 
 **You just write the log collection queries and trace correlation logic. Conductor handles parallel log collection across services, retries when individual log stores are slow, and timing data showing how long each service's collection took.**
 
-Conductor's FORK/JOIN collects logs from all three services in parallel .  if one service's log store is slow, the others don't wait. A correlation worker then stitches the logs together by trace ID into a unified timeline. Every collection and correlation run is tracked with timing ,  you can see which services responded and how long each took. You get all of that for free, without writing a single line of orchestration code.
+Conductor's FORK/JOIN collects logs from all three services in parallel .  if one service's log store is slow, the others don't wait. A correlation worker then stitches the logs together by trace ID into a unified timeline. Every collection and correlation run is tracked with timing ,  you can see which services responded and how long each took. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +27,6 @@ Three per-service collectors (CollectSvc1Worker, CollectSvc2Worker, CollectSvc3W
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -48,34 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 dg_correlate
-```
-
-## Example Output
-
-```
-=== Example 415: Distributed Logging ===
-
-Step 1: Registering task definitions...
-  Registered: dg_collect_svc1, dg_collect_svc2, dg_collect_svc3, dg_correlate
-
-Step 2: Registering workflow 'distributed_logging_415'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [
-  [
-  [
-  [correlate] Correlating
-
-  Status: COMPLETED
-  Output: {logCount=..., service=..., totalLogs=..., correlatedEvents=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow distributed_logging_415 \
   --version 1 \
-  --input '{"traceId": "trace-abc123def456", "trace-abc123def456": "timeRange", "timeRange": "last-5m", "last-5m": "sample-last-5m"}'
+  --input '{"traceId": "TEST-001", "timeRange": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

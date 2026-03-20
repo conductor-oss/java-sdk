@@ -1,8 +1,6 @@
 # Tenant Screening in Java with Conductor :  Application, Background Check, Credit Check, and Decision
 
-A Java Conductor workflow example for screening prospective tenants .  accepting the rental application, running a criminal background check, pulling a credit report against monthly rent, and making an approve/deny decision based on combined results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for screening prospective tenants .  accepting the rental application, running a criminal background check, pulling a credit report against monthly rent, and making an approve/deny decision based on combined results. Uses [Conductor](https://github.## The Problem
 
 You need to screen rental applicants before signing a lease. Each applicant submits their information, and you must run a background check (criminal history, eviction records, identity verification) and a credit check (credit score, debt-to-income ratio relative to monthly rent). Both checks must complete before the decision step can weigh the results and issue an approve, conditional approve, or deny decision. Screening must be consistent across applicants and comply with Fair Housing regulations .  every applicant must go through the same steps with the same criteria.
 
@@ -12,7 +10,7 @@ Without orchestration, screening is inconsistent and slow. Property managers run
 
 **You just write the application intake, background check, credit report, and screening decision logic. Conductor handles credit check retries, verification sequencing, and screening audit trails.**
 
-Each screening step is a simple, independent worker .  one logs the application, one runs the background check, one pulls the credit report, one makes the approval decision. Conductor takes care of executing them in order, retrying if the credit bureau is temporarily unavailable, ensuring every applicant goes through the exact same pipeline, and maintaining an audit trail that proves consistent evaluation. You get all of that for free, without writing a single line of orchestration code.
+Each screening step is a simple, independent worker .  one logs the application, one runs the background check, one pulls the credit report, one makes the approval decision. Conductor takes care of executing them in order, retrying if the credit bureau is temporarily unavailable, ensuring every applicant goes through the exact same pipeline, and maintaining an audit trail that proves consistent evaluation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Application intake, credit check, background verification, and decision notifica
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ tsc_credit
     │
     ▼
 tsc_decision
-```
-
-## Example Output
-
-```
-=== Example 684: Tenant Screening ===
-
-Step 1: Registering task definitions...
-  Registered: tsc_apply, tsc_background, tsc_credit, tsc_decision
-
-Step 2: Registering workflow 'tsc_tenant_screening'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tsc_apply] Executing
-  [tsc_background] Executing
-  [tsc_credit] Executing
-  [tsc_decision] Executing
-
-  Status: COMPLETED
-  Output: {applicationId=..., score=..., result=..., decision=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tsc_tenant_screening \
   --version 1 \
-  --input '{"applicantName": "Jane Smith", "Jane Smith": "propertyId", "propertyId": "UNIT-4B", "UNIT-4B": "monthlyRent", "monthlyRent": 1800}'
+  --input '{"applicantName": "test", "propertyId": "TEST-001", "monthlyRent": "test-value"}'
 ```
 
 ### Check workflow status

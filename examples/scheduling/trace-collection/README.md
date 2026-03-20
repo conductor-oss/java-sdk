@@ -12,7 +12,7 @@ Without orchestration, trace collection relies entirely on sidecar agents and ba
 
 **You just write the span collection and trace assembly logic. Conductor handles the instrument-collect-assemble-store pipeline, retries when span collectors or trace backends are temporarily unavailable, and a complete record of every collection run with span counts and trace completeness.**
 
-Each trace collection step is an independent worker .  instrumentation, span collection, trace assembly, and storage. Conductor runs them in sequence: configure instrumentation, collect spans, assemble into traces, then store. Every collection run is tracked with span counts, trace completeness, and storage confirmation. You get all of that for free, without writing a single line of orchestration code.
+Each trace collection step is an independent worker .  instrumentation, span collection, trace assembly, and storage. Conductor runs them in sequence: configure instrumentation, collect spans, assemble into traces, then store. Every collection run is tracked with span counts, trace completeness, and storage confirmation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ InstrumentWorker configures tracing on target services, CollectSpansWorker gathe
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ trc_assemble_trace
     │
     ▼
 trc_store_trace
-```
-
-## Example Output
-
-```
-=== Example 416: Trace Collectio ===
-
-Step 1: Registering task definitions...
-  Registered: trc_instrument, trc_collect_spans, trc_assemble_trace, trc_store_trace
-
-Step 2: Registering workflow 'trace_collection_416'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assemble_trace] Processing trace task
-  [collect_spans] Processing trace task
-  [instrument] Processing trace task
-  [store_trace] Processing trace task
-
-  Status: COMPLETED
-  Output: {traceDepth=..., totalDurationMs=..., spanCount=..., instrumentedServices=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow trace_collection_416 \
   --version 1 \
-  --input '{"serviceName": "checkout-flow", "checkout-flow": "traceId", "traceId": "trace-8128aabb", "trace-8128aabb": "samplingRate", "samplingRate": "100%", "100%": "sample-100%"}'
+  --input '{"serviceName": "test", "traceId": "TEST-001", "samplingRate": "test-value"}'
 ```
 
 ### Check workflow status

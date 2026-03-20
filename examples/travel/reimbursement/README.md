@@ -1,8 +1,6 @@
 # Reimbursement in Java with Conductor
 
-Reimbursement: submit, validate, approve, process, notify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Reimbursement: submit, validate, approve, process, notify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to process a travel reimbursement claim from submission through payment, the employee submits a claim with receipts and amounts, the system validates receipts and checks policy compliance, a manager approves or rejects the claim, the finance team processes the approved payment, and the employee receives notification of the reimbursement status. Each step depends on the previous one's outcome.
 
@@ -28,15 +26,6 @@ Expense validation, approval routing, payment processing, and notification worke
 
 Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ rmb_process
     │
     ▼
 rmb_notify
-```
-
-## Example Output
-
-```
-=== Example reimbursement: Reimbursement ===
-
-Step 1: Registering task definitions...
-  Registered: rmb_submit, rmb_validate, rmb_approve, rmb_process, rmb_notify
-
-Step 2: Registering workflow 'rmb_reimbursement'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Claim
-  [notify]
-  [process] Payment processed for
-  [submit] Reimbursement claim:
-  [validate] Claim
-
-  Status: COMPLETED
-  Output: {approved=..., approvedBy=..., notified=..., paymentId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rmb_reimbursement \
   --version 1 \
-  --input '{"employeeId": "EMP-1100", "EMP-1100": "amount", "amount": 875, "travel": "receiptCount", "receiptCount": 6}'
+  --input '{"employeeId": "TEST-001", "amount": 100, "category": "test-value", "receiptCount": 10}'
 ```
 
 ### Check workflow status

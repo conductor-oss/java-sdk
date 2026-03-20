@@ -1,8 +1,6 @@
 # Web Browsing Agent in Java Using Conductor :  Plan Search, Execute, Select Pages, Read, Extract Answer
 
-Web Browsing Agent .  plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Answering Questions by Actually Reading Web Pages
+Web Browsing Agent .  plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.## Answering Questions by Actually Reading Web Pages
 
 Search engine snippets are often insufficient. "What are the specific system requirements for running Kubernetes 1.29 on bare metal?" requires actually reading the documentation page, not just the snippet. A web browsing agent goes deeper than search: it plans the right query, gets search results, selects which pages are most likely to contain the answer, reads the full page content, and extracts the specific information needed.
 
@@ -28,15 +26,6 @@ Five workers browse the web. Planning search queries, executing the search, sele
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ wb_read_page
     │
     ▼
 wb_extract_answer
-```
-
-## Example Output
-
-```
-=== Web Browsing Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wb_plan_search, wb_execute_search, wb_select_pages, wb_read_page, wb_extract_answer
-
-Step 2: Registering workflow 'web_browsing_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wb_execute_search] Executing
-  [wb_extract_answer] Synthesizing answer from
-  [wb_plan_search] Planning search queries for:
-  [wb_read_page] Reading
-  [wb_select_pages] Selecting top
-
-  Status: COMPLETED
-  Output: {results=..., totalResults=..., answer=..., sources=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow web_browsing_agent \
   --version 1 \
-  --input '{"question": "sample-question", "What are the key features and production capabilities of Conductor workflow engine?": "sample-What are the key features and production capabilities of Conductor workflow engine?", "maxPages": "sample-maxPages"}'
+  --input '{"question": "test-value", "maxPages": "test-value"}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Connect to real search and page-reading APIs; the browsing pipeline preserves th
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

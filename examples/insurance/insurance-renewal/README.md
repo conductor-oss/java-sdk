@@ -1,8 +1,6 @@
 # Insurance Renewal in Java with Conductor :  Notify, Review Risk, Reprice, Route Decision
 
-A Java Conductor workflow example for automated insurance policy renewal .  sending a renewal notice to the policyholder, reviewing the policy's claims history and computing a risk score, repricing the premium based on that risk score, then using a SWITCH to route the policy to either renewal processing (with the new premium) or cancellation (with the reason). The review step analyzes the claims count and produces a riskScore that feeds into repricing, and the reprice step outputs the decision ("renew" or "cancel") and the new premium amount that determines the SWITCH path. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Policy Renewals Require Claims Review, Repricing, and Conditional Routing
+A Java Conductor workflow example for automated insurance policy renewal .  sending a renewal notice to the policyholder, reviewing the policy's claims history and computing a risk score, repricing the premium based on that risk score, then using a SWITCH to route the policy to either renewal processing (with the new premium) or cancellation (with the reason). The review step analyzes the claims count and produces a riskScore that feeds into repricing, and the reprice step outputs the decision ("renew" or "cancel") and the new premium amount that determines the SWITCH path. Uses [Conductor](https://github.## Policy Renewals Require Claims Review, Repricing, and Conditional Routing
 
 When an insurance policy approaches its renewal date, the insurer must review the policyholder's claims history, calculate a risk score, reprice the premium accordingly, and decide whether to renew or non-renew the policy. If the risk is acceptable, the policy renews at the adjusted premium. If the claims history is too costly, the policy is cancelled with a stated reason. The repricing step must use the risk score from the review .  if repricing fails, you need to retry it without re-reviewing the entire claims history.
 
@@ -27,16 +25,6 @@ Notification, risk review, repricing, and renewal processing workers each addres
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ irn_reprice
 SWITCH (irn_switch_ref)
     ├── renew: irn_process_renew
     ├── cancel: irn_process_cancel
-```
-
-## Example Output
-
-```
-=== Example 878: Insurance Renewal ===
-
-Step 1: Registering task definitions...
-  Registered: irn_notify, irn_review, irn_reprice, irn_process_renew, irn_process_cancel
-
-Step 2: Registering workflow 'irn_insurance_renewal'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [notify] Processing
-  [process_cancel] Processing
-  [process_renew] Processing
-  [reprice] Premium adjusted: $1,200/year .  renewal recommended
-  [review] Processing
-
-  Status: COMPLETED
-  Output: {notified=..., cancelled=..., renewed=..., effectiveDate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow irn_insurance_renewal \
   --version 1 \
-  --input '{"policyId": "POL-878", "POL-878": "customerId", "customerId": "CUST-878", "CUST-878": "claimHistory", "claimHistory": 1}'
+  --input '{"policyId": "TEST-001", "customerId": "TEST-001", "claimHistory": "test-value"}'
 ```
 
 ### Check workflow status
@@ -176,7 +135,6 @@ Connect your policy administration and claims systems and the renewal pipeline r
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -1,8 +1,6 @@
 # Background Check in Java with Conductor :  Consent, Parallel Criminal/Employment/Education Verification, and Report
 
-A Java Conductor workflow example for pre-employment background checks .  collecting candidate consent under FCRA, running criminal record, employment history, and education verification in parallel via FORK_JOIN, and compiling a final eligibility report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for pre-employment background checks .  collecting candidate consent under FCRA, running criminal record, employment history, and education verification in parallel via FORK_JOIN, and compiling a final eligibility report. Uses [Conductor](https://github.## The Problem
 
 You need to verify a candidate's background before their start date. The Fair Credit Reporting Act (FCRA) requires written consent before any checks can begin. Once consent is obtained, three independent verifications must run: a criminal record search across multiple jurisdictions (county, state, federal), an employment history verification confirming titles, dates, and employers from the candidate's resume, and an education verification confirming degrees and institutions. These three checks are independent .  each queries different databases and services ,  so they should run in parallel to minimize the total turnaround time. Once all three complete, a consolidated report determines the overall result (clear, flagged, or adverse) for the hiring decision. Running checks sequentially when they could run in parallel wastes days of time-to-hire.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic verification system that collect
 
 **You just write the consent collection, criminal check, employment verification, education verification, and eligibility reporting logic. Conductor handles verification retries, parallel check coordination, and background audit trails.**
 
-Each verification step is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of obtaining consent before any checks begin, running criminal, employment, and education checks simultaneously via FORK_JOIN, waiting for all three to complete before generating the report, retrying any individual check if its data source is temporarily unavailable (without re-running the others), and maintaining an FCRA-compliant audit trail of every verification step. You get all of that for free, without writing a single line of orchestration code.
+Each verification step is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of obtaining consent before any checks begin, running criminal, employment, and education checks simultaneously via FORK_JOIN, waiting for all three to complete before generating the report, retrying any individual check if its data source is temporarily unavailable (without re-running the others), and maintaining an FCRA-compliant audit trail of every verification step. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Identity verification, criminal records search, employment history check, and re
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 bgc_report
-```
-
-## Example Output
-
-```
-=== Example 710: Background Check ===
-
-Step 1: Registering task definitions...
-  Registered: bgc_consent, bgc_criminal, bgc_employment, bgc_education, bgc_report
-
-Step 2: Registering workflow 'bgc_background_check'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [consent]
-  [criminal] Criminal record check for
-  [education] Degree verified for
-  [employment] Employment history verified for
-  [report] All checks passed .  report generated
-
-  Status: COMPLETED
-  Output: {consented=..., consentDate=..., result=..., jurisdictions=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bgc_background_check \
   --version 1 \
-  --input '{"candidateName": "Alex Rivera", "Alex Rivera": "candidateId", "candidateId": "CAND-710", "CAND-710": "sample-CAND-710"}'
+  --input '{"candidateName": "test", "candidateId": "TEST-001"}'
 ```
 
 ### Check workflow status

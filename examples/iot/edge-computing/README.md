@@ -1,8 +1,6 @@
 # Edge Computing Pipeline in Java with Conductor :  Task Offloading, On-Device Inference, and Cloud Sync
 
-A Java Conductor workflow example that orchestrates an edge computing pipeline .  offloading compute jobs to edge nodes, running on-device ML inference (object detection, classification), syncing results back to the cloud, and aggregating edge analytics into dashboards and time-series stores. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Edge Compute Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an edge computing pipeline .  offloading compute jobs to edge nodes, running on-device ML inference (object detection, classification), syncing results back to the cloud, and aggregating edge analytics into dashboards and time-series stores. Uses [Conductor](https://github.## Why Edge Compute Pipelines Need Orchestration
 
 Edge computing pushes inference and data processing out to devices at the network edge .  cameras running object detection, gateways classifying sensor readings, robots making real-time decisions. But the results still need to flow back to the cloud for aggregation, dashboarding, and long-term storage. That creates a multi-hop pipeline: schedule the compute job on the right edge node, run the inference, sync the results over a potentially unreliable link, and aggregate everything centrally.
 
@@ -27,15 +25,6 @@ Four workers span the edge-to-cloud pipeline: OffloadTaskWorker schedules comput
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ edg_sync_results
     │
     ▼
 edg_aggregate_cloud
-```
-
-## Example Output
-
-```
-=== Example 534: Edge Computing ===
-
-Step 1: Registering task definitions...
-  Registered: edg_offload_task, edg_process_edge, edg_sync_results, edg_aggregate_cloud
-
-Step 2: Registering workflow 'edge_computing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Processing
-  [offload] Processing
-  [process] Processing
-  [sync] Processing
-
-  Status: COMPLETED
-  Output: {aggregated=..., storedInTimeseries=..., dashboardUpdated=..., totalEdgeJobs24h=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edge_computing_workflow \
   --version 1 \
-  --input '{"jobId": "EDG-534-001", "EDG-534-001": "edgeNodeId", "edgeNodeId": "node-west-07", "node-west-07": "taskType", "taskType": "image_classification", "image_classification": "payload", "payload": {"key": "value"}}'
+  --input '{"jobId": "TEST-001", "edgeNodeId": "TEST-001", "taskType": "test-value", "payload": "test-value"}'
 ```
 
 ### Check workflow status

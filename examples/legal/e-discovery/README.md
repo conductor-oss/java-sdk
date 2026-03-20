@@ -1,8 +1,6 @@
 # E Discovery in Java with Conductor
 
-A Java Conductor workflow example demonstrating E Discovery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating E Discovery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Litigation is underway and opposing counsel has served discovery requests. You need to identify relevant data sources (email, Slack), collect 45,000+ items totaling 120 GB, de-duplicate and process them down to 28,000 unique documents, have attorneys review for responsiveness and privilege (8,500 responsive, 320 privileged), and produce the final set to opposing counsel. Each stage depends on the prior one, and a missed step can lead to spoliation sanctions or waiver of privilege.
 
@@ -28,15 +26,6 @@ Data collection, processing, review, and production workers handle electronic di
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ edc_review
     │
     ▼
 edc_produce
-```
-
-## Example Output
-
-```
-=== Example 693: E-Discovery ===
-
-Step 1: Registering task definitions...
-  Registered: edc_identify, edc_collect, edc_process, edc_review, edc_produce
-
-Step 2: Registering workflow 'edc_e_discovery'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [edc_collect] Executing
-  [edc_identify] Executing
-  [edc_process] Executing
-  [edc_produce] Executing
-  [edc_review] Executing
-
-  Status: COMPLETED
-  Output: {collected=..., sources=..., processed=..., results=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edc_e_discovery \
   --version 1 \
-  --input '{"matterId": "MAT-300", "MAT-300": "custodians", "custodians": 8, "2023-01-01 to 2024-01-01": "sample-2023-01-01 to 2024-01-01"}'
+  --input '{"matterId": "TEST-001", "custodians": "test-value", "dateRange": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

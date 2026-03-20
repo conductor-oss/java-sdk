@@ -1,12 +1,12 @@
 # Conductor Java SDK Examples
 
-806 self-contained examples for the Conductor Java SDK. Each example is an independent Maven project with its own `pom.xml`, workers, workflow definition, tests, and launcher script.
+831 self-contained examples for the Conductor Java SDK. Each example is an independent Maven project with its own `pom.xml`, workers, workflow definition, tests, and launcher script.
 
 ## Quick Start
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Pick any example and run it
 cd examples/basics/hello-world
@@ -18,6 +18,10 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 - Java 21+
 - Maven 3.8+
 - Conductor server (local Docker or [Orkes Cloud](https://orkes.io))
+
+## Machine-Readable Metadata
+
+See [`manifest.json`](manifest.json) for per-example metadata: category, workflow name, task types, required API keys, difficulty level, and Conductor primitives used.
 
 ---
 
@@ -126,7 +130,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [two-agent-pipeline](agents/two-agent-pipeline/) | Sequential writer-editor pipeline: writer agent drafts content, editor agent refines it, final outpu... |
 | [web-browsing-agent](agents/web-browsing-agent/) | Web Browsing Agent .  plans search queries, executes searches, selects relevant pages, reads content... |
 
-## AI & LLM Workflows (55)
+## AI & LLM Workflows (60)
 
 | Example | Description |
 |---------|-------------|
@@ -134,16 +138,19 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [amazon-bedrock](ai/amazon-bedrock/) | A Java Conductor workflow example for orchestrating Amazon Bedrock model invocations .  building the... |
 | [anthropic-claude](ai/anthropic-claude/) | You need Claude for long-context analysis in a production pipeline: security audits, document review... |
 | [basic-rag](ai/basic-rag/) | A user asks your chatbot "What's our refund policy?" and it confidently invents a policy that doesn'... |
+| [chatbot-orchestration](ai/chatbot-orchestration/) | A Java Conductor workflow that processes a chatbot conversation turn .  receiving the user message w... |
 | [cohere](ai/cohere/) | A Java Conductor workflow example for generating marketing copy using Cohere .  building a prompt ta... |
 | [conversational-rag](ai/conversational-rag/) | A Java Conductor workflow that powers multi-turn conversational retrieval-augmented generation. Each... |
 | [corrective-rag](ai/corrective-rag/) | Your vector store retrieves three documents for a question, but two are about a completely different... |
 | [document-ingestion](ai/document-ingestion/) | Someone dumps 10,000 PDFs into a shared drive and expects the RAG system to answer questions about t... |
+| [document-qa](ai/document-qa/) | A Java Conductor workflow that answers questions about documents .  ingesting a document from a URL,... |
 | [enterprise-rag](ai/enterprise-rag/) | A Java Conductor workflow that wraps a RAG pipeline with the guardrails enterprises need before goin... |
 | [fine-tuned-deployment](ai/fine-tuned-deployment/) | A Java Conductor workflow that takes a fine-tuned model from training output to production serving .... |
 | [first-ai-workflow](ai/first-ai-workflow/) | Your LLM feature works beautifully in a Jupyter notebook. Then you deploy it. The first OpenAI rate-... |
 | [google-gemini](ai/google-gemini/) | Your team picks Gemini for multimodal tasks, but the API latency varies wildly: sometimes 2 seconds,... |
 | [huggingface](ai/huggingface/) | A Java Conductor workflow that routes NLP tasks (summarization, text generation, sentiment analysis)... |
 | [incremental-rag](ai/incremental-rag/) | A Java Conductor workflow that keeps a vector store in sync with a source document collection by det... |
+| [knowledge-base-sync](ai/knowledge-base-sync/) | A Java Conductor workflow that keeps a knowledge base in sync with a source .  crawling the source U... |
 | [llm-caching](ai/llm-caching/) | A Java Conductor workflow that wraps LLM calls with a caching layer .  hashing each prompt to create... |
 | [llm-chain](ai/llm-chain/) | First LLM call summarizes a customer email. Second one extracts product IDs. Third one validates aga... |
 | [llm-cost-tracking](ai/llm-cost-tracking/) | End of month AWS bill: $12,000 in OpenAI API calls. Nobody knows which feature consumed what, or tha... |
@@ -156,6 +163,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [ollama-local](ai/ollama-local/) | A Java Conductor workflow that runs code review through a locally-hosted Ollama model .  checking th... |
 | [openai-gpt4](ai/openai-gpt4/) | You want to call GPT-4 from a workflow, but the API times out sometimes, the response format varies ... |
 | [prompt-templates](ai/prompt-templates/) | A Java Conductor workflow that manages prompt engineering as a first-class concern .  resolving a ve... |
+| [question-answering](ai/question-answering/) | A Java Conductor workflow that answers natural language questions from a knowledge base .  parsing t... |
 | [rag-access-control](ai/rag-access-control/) | A Java Conductor workflow that wraps a RAG pipeline with enterprise access controls .  authenticatin... |
 | [rag-chromadb](ai/rag-chromadb/) | A Java Conductor workflow that implements a RAG pipeline using ChromaDB as the vector store .  embed... |
 | [rag-citation](ai/rag-citation/) | Your RAG system gives a great answer, but when the VP asks "where did you get that number?" you can'... |
@@ -184,9 +192,10 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [streaming-llm](ai/streaming-llm/) | A Java Conductor workflow that handles LLM streaming responses .  preparing the request, collecting ... |
 | [structured-output](ai/structured-output/) | The LLM returns beautiful prose when you need a JSON object. You parse it, it breaks, missing closin... |
 | [system-prompts](ai/system-prompts/) | A Java Conductor workflow that runs the same user prompt through two different system prompts .  for... |
+| [voice-bot](ai/voice-bot/) | A Java Conductor workflow that powers a voice-based conversational bot .  transcribing caller audio ... |
 | [web-scraping-rag](ai/web-scraping-rag/) | A Java Conductor workflow that scrapes web pages from a list of URLs, chunks the extracted content, ... |
 
-## AI Generation (10)
+## AI Generation (18)
 
 | Example | Description |
 |---------|-------------|
@@ -200,6 +209,14 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [ai-prompt-engineering](ai-generation/ai-prompt-engineering/) | A Java Conductor workflow that automates prompt optimization .  defining the task and evaluation cri... |
 | [ai-video-generation](ai-generation/ai-video-generation/) | A Java Conductor workflow that produces AI-generated videos through a five-stage production pipeline... |
 | [ai-voice-cloning](ai-generation/ai-voice-cloning/) | A Java Conductor workflow that clones a speaker's voice .  collecting voice samples from the target ... |
+| [code-generation](ai-generation/code-generation/) | A Java Conductor workflow that generates code from natural language requirements .  parsing requirem... |
+| [code-review-ai](ai-generation/code-review-ai/) | A Java Conductor workflow that reviews pull requests automatically .  parsing the diff to extract ch... |
+| [deployment-ai](ai-generation/deployment-ai/) | A Java Conductor workflow that makes deployment decisions intelligently .  analyzing code changes in... |
+| [documentation-ai](ai-generation/documentation-ai/) | A Java Conductor workflow that generates documentation from source code .  analyzing a repository to... |
+| [incident-ai](ai-generation/incident-ai/) | A Java Conductor workflow that handles production incidents end-to-end .  detecting an anomaly from ... |
+| [monitoring-ai](ai-generation/monitoring-ai/) | A Java Conductor workflow that provides intelligent monitoring .  collecting system metrics from a s... |
+| [pr-review-ai](ai-generation/pr-review-ai/) | A Java Conductor workflow that automates pull request reviews .  fetching the diff from the reposito... |
+| [release-notes-ai](ai-generation/release-notes-ai/) | A Java Conductor workflow that generates release notes automatically .  collecting commits between t... |
 
 ## Basics (10)
 
@@ -251,7 +268,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [voice-bot](crm/voice-bot/) | A Java Conductor workflow that powers a voice-based conversational bot .  transcribing caller audio ... |
 | [webinar-registration](crm/webinar-registration/) | A Java Conductor workflow that manages the end-to-end webinar registration experience .  registering... |
 
-## Data (40)
+## Data (44)
 
 | Example | Description |
 |---------|-------------|
@@ -287,28 +304,35 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [json-transformation](data/json-transformation/) | A Java Conductor workflow example for JSON-to-JSON transformation: parsing an incoming JSON record, ... |
 | [log-processing](data/log-processing/) | A Java Conductor workflow example for log processing. ingesting raw log entries from a source within... |
 | [ml-data-pipeline](data/ml-data-pipeline/) | A Java Conductor workflow example for an end-to-end ML training pipeline: collecting labeled data fr... |
+| [named-entity-extraction](data/named-entity-extraction/) | A Java Conductor workflow that extracts named entities from text .  tokenizing the input into words,... |
 | [ocr-pipeline](data/ocr-pipeline/) | A Java Conductor workflow example for document OCR. preprocessing a document image (deskewing, binar... |
 | [pdf-processing](data/pdf-processing/) | Five hundred vendor invoices arrive in accounts payable every month as PDF attachments. They come in... |
 | [real-time-analytics](data/real-time-analytics/) | A Java Conductor workflow example for real-time analytics: ingesting a batch of events, processing t... |
 | [report-generation](data/report-generation/) | A Java Conductor workflow example for automated report generation. querying raw data for a specific ... |
 | [schema-evolution](data/schema-evolution/) | A Java Conductor workflow example for schema evolution. comparing a current schema against a target ... |
+| [sentiment-analysis](data/sentiment-analysis/) | A Java Conductor workflow that analyzes sentiment in customer text .  preprocessing the input (clean... |
 | [stream-processing](data/stream-processing/) | A Java Conductor workflow example for stream processing with windowed analytics: ingesting a batch o... |
+| [summarization-pipeline](data/summarization-pipeline/) | A Java Conductor workflow that summarizes long documents .  extracting logical sections from the inp... |
+| [text-classification](data/text-classification/) | A Java Conductor workflow that classifies text into categories .  preprocessing the input, extractin... |
 | [video-transcoding](data/video-transcoding/) | A Java Conductor workflow example for adaptive bitrate video transcoding: analyzing the source video... |
 | [xml-parsing](data/xml-parsing/) | A Java Conductor workflow example for XML-to-JSON transformation. receiving raw XML content with a c... |
 
-## Devops (46)
+## Devops (50)
 
 | Example | Description |
 |---------|-------------|
+| [api-test-generation](devops/api-test-generation/) | A Java Conductor workflow that automatically generates API tests from an OpenAPI specification .  pa... |
 | [apm-workflow](devops/apm-workflow/) | Automates Application Performance Monitoring (APM) analysis using [Conductor](https://github.com/con... |
 | [artifact-management](devops/artifact-management/) | Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts. Uses [Condu... |
 | [auto-scaling](devops/auto-scaling/) | Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: ... |
 | [automated-testing](devops/automated-testing/) | Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate ... |
+| [bug-triage](devops/bug-triage/) | A Java Conductor workflow that automatically triages bug reports .  parsing the report text, classif... |
 | [capacity-planning](devops/capacity-planning/) | Automates infrastructure capacity planning using [Conductor](https://github.com/conductor-oss/conduc... |
 | [certificate-rotation](devops/certificate-rotation/) | It's 2 AM on a Saturday. Your wildcard TLS cert expired eleven minutes ago. Every service behind the... |
 | [change-management](devops/change-management/) | Automates ITIL-style change management using [Conductor](https://github.com/conductor-oss/conductor)... |
 | [chaos-engineering](devops/chaos-engineering/) | Orchestrates controlled chaos experiments using [Conductor](https://github.com/conductor-oss/conduct... |
 | [ci-cd-pipeline](devops/ci-cd-pipeline/) | Someone pushed to main. Seven CI jobs kicked off in three different systems. The unit tests passed, ... |
+| [commit-analysis](devops/commit-analysis/) | A Java Conductor workflow that analyzes a repository's commit history .  parsing commits from a bran... |
 | [compliance-scanning](devops/compliance-scanning/) | Orchestrates infrastructure compliance scanning using [Conductor](https://github.com/conductor-oss/c... |
 | [container-orchestration](devops/container-orchestration/) | Orchestrates a container build-scan-deploy pipeline using [Conductor](https://github.com/conductor-o... |
 | [cost-optimization](devops/cost-optimization/) | Orchestrates cloud cost optimization using [Conductor](https://github.com/conductor-oss/conductor). ... |
@@ -344,6 +368,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [service-migration](devops/service-migration/) | Orchestrates a service migration between environments using [Conductor](https://github.com/conductor... |
 | [sla-monitoring](devops/sla-monitoring/) | Automates SLA/SLO monitoring using [Conductor](https://github.com/conductor-oss/conductor). This wor... |
 | [smoke-testing](devops/smoke-testing/) | Orchestrates post-deployment smoke testing using [Conductor](https://github.com/conductor-oss/conduc... |
+| [test-generation](devops/test-generation/) | A Java Conductor workflow that automatically generates unit tests from source code .  analyzing the ... |
 | [threshold-alerting](devops/threshold-alerting/) | Automates threshold-based alerting using [Conductor](https://github.com/conductor-oss/conductor). Th... |
 | [uptime-monitor](devops/uptime-monitor/) | A Java Conductor workflow example for uptime monitoring, endpoint health checks, Slack/email alertin... |
 
@@ -387,7 +412,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [student-progress](education/student-progress/) | A Java Conductor workflow example for tracking student academic progress .  collecting all course gr... |
 | [tutoring-match](education/tutoring-match/) | A Java Conductor workflow example for matching students with tutors .  receiving a tutoring request ... |
 
-## Events (40)
+## Events (42)
 
 | Example | Description |
 |---------|-------------|
@@ -407,6 +432,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [event-driven-workflow](events/event-driven-workflow/) | Event-driven workflow that receives events, classifies them by type, and routes to the appropriate h... |
 | [event-fanout](events/event-fanout/) | Event fan-out workflow that receives an event, fans out to analytics, storage, and notification proc... |
 | [event-filtering](events/event-filtering/) | Event filtering workflow that receives events, classifies them by priority, and routes to urgent, st... |
+| [event-management](events/event-management/) | A Java Conductor workflow that manages an event lifecycle .  planning the event with venue and sched... |
 | [event-merge](events/event-merge/) | Event merge workflow that collects events from three parallel streams via FORK_JOIN, merges the resu... |
 | [event-monitoring](events/event-monitoring/) | Sequential event monitoring workflow that collects metrics, analyzes throughput, latency, and errors... |
 | [event-notification](events/event-notification/) | A customer's payment fails. They need to know immediately: via email, SMS, and push. But your notifi... |
@@ -431,6 +457,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [webhook-retry](events/webhook-retry/) | Webhook delivery workflow with DO_WHILE retry loop. Prepares the webhook, attempts delivery up to 3 ... |
 | [webhook-security](events/webhook-security/) | Webhook security workflow that computes an HMAC signature, verifies it against the provided signatur... |
 | [webhook-trigger](events/webhook-trigger/) | Webhook Trigger .  process incoming webhook event, validate payload, transform data, and store the r... |
+| [webinar-registration](events/webinar-registration/) | A Java Conductor workflow that manages the end-to-end webinar registration experience .  registering... |
 
 ## Finance (20)
 
@@ -542,7 +569,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [time-tracking](hr/time-tracking/) | A Java Conductor workflow example for employee time tracking .  submitting a weekly timesheet with h... |
 | [training-management](hr/training-management/) | A Java Conductor workflow example for employee training management .  assigning a course to an emplo... |
 
-## Human In Loop (30)
+## Human In Loop (32)
 
 | Example | Description |
 |---------|-------------|
@@ -560,6 +587,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [exception-handling](human-in-loop/exception-handling/) | A Java Conductor workflow example demonstrating exception-based human-in-the-loop routing .  analyzi... |
 | [expense-approval](human-in-loop/expense-approval/) | A Java Conductor workflow example for expense approval. validating an expense against policy rules (... |
 | [four-eyes-approval](human-in-loop/four-eyes-approval/) | A Java Conductor workflow example implementing the four-eyes principle: submitting a request, then r... |
+| [helpdesk-routing](human-in-loop/helpdesk-routing/) | A Java Conductor workflow that routes helpdesk tickets to the right support tier .  classifying the ... |
 | [human-group-claim](human-in-loop/human-group-claim/) | A Java Conductor workflow example for group-based task assignment .  processing a ticket intake and ... |
 | [human-task](human-in-loop/human-task/) | A Java Conductor workflow example demonstrating human task forms .  collecting initial data, pausing... |
 | [human-user-assignment](human-in-loop/human-user-assignment/) | A Java Conductor workflow example demonstrating user-specific task assignment .  preparing a documen... |
@@ -571,6 +599,7 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 | [quality-gate](human-in-loop/quality-gate/) | A Java Conductor workflow example for deployment quality gates .  running an automated test suite (4... |
 | [sla-monitoring](human-in-loop/sla-monitoring/) | A Java Conductor workflow example for measuring human approval response times against SLA targets . ... |
 | [slack-approval](human-in-loop/slack-approval/) | A Java Conductor workflow example for Slack-native approvals .  submitting a request, posting a Slac... |
+| [ticket-management](human-in-loop/ticket-management/) | A Java Conductor workflow that manages the full lifecycle of a support ticket .  creating the ticket... |
 | [training-data-labeling](human-in-loop/training-data-labeling/) | A Java Conductor workflow example for ML training data quality .  preparing a labeling batch, using ... |
 | [wait-rest-api](human-in-loop/wait-rest-api/) | A Java Conductor workflow example demonstrating how external systems resume paused workflows via RES... |
 | [wait-sdk](human-in-loop/wait-sdk/) | A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from... |

@@ -1,8 +1,6 @@
 # Idempotent Operations in Java with Conductor
 
-Idempotent operations with duplicate detection. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Idempotent operations with duplicate detection. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 In a distributed system, duplicate requests are inevitable (network retries, user double-clicks). Each operation must be idempotent. Executing it twice must produce the same result. This workflow generates a deterministic idempotency key, checks whether the operation was already executed, and either skips execution (duplicate) or executes and records the completion.
 
@@ -27,16 +25,6 @@ Four workers enforce exactly-once semantics: GenerateKeyWorker computes a determ
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ io_check_duplicate
 SWITCH (decision_ref)
     ├── true: 
     └── default: io_execute -> io_record_completion
-```
-
-## Example Output
-
-```
-=== Example 327: Idempotent Operations ===
-
-Step 1: Registering task definitions...
-  Registered: io_generate_key, io_check_duplicate, io_execute, io_record_completion
-
-Step 2: Registering workflow 'idempotent_operations_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [check] Key
-  [execute]
-  [key] Generated idempotency key:
-  [record] Stored completion for
-
-  Status: COMPLETED
-  Output: {isDuplicate=..., result=..., key=..., recorded=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow idempotent_operations_workflow \
   --version 1 \
-  --input '{"operationId": "OP-123", "OP-123": "action", "action": "charge-payment", "charge-payment": "data", "data": {"key": "value"}}'
+  --input '{"operationId": "TEST-001", "action": "test-value", "data": "test-value"}'
 ```
 
 ### Check workflow status

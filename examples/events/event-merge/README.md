@@ -1,8 +1,6 @@
 # Event Merge in Java Using Conductor
 
-Event merge workflow that collects events from three parallel streams via FORK_JOIN, merges the results, and processes the merged output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event merge workflow that collects events from three parallel streams via FORK_JOIN, merges the results, and processes the merged output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to collect events from multiple independent streams and merge them into a single unified dataset. Events from Stream A, Stream B, and Stream C must be collected in parallel (since they are independent), merged into a combined result set preserving source attribution, and then processed as a whole. Sequential collection would multiply latency by the number of streams.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd spawn threads to poll each stream, synchronize with
 
 **You just write the per-stream collection, merge, and processing workers. Conductor handles parallel stream collection, per-stream timeout isolation, and automatic join before merging.**
 
-Each stream consumer is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting from all three streams in parallel via FORK_JOIN, merging the results after all complete, processing the merged output, retrying any failed stream independently, and tracking every merge operation. You get all of that for free, without writing a single line of orchestration code.
+Each stream consumer is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting from all three streams in parallel via FORK_JOIN, merging the results after all complete, processing the merged output, retrying any failed stream independently, and tracking every merge operation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Five workers merge multi-source data: CollectStreamAWorker, CollectStreamBWorker
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ mg_merge_streams
     │
     ▼
 mg_process_merged
-```
-
-## Example Output
-
-```
-=== Event Merge Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mg_collect_stream_a, mg_collect_stream_b, mg_collect_stream_c, mg_merge_streams, mg_process_merged
-
-Step 2: Registering workflow 'event_merge_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mg_collect_stream_a] Collecting from source:
-  [mg_collect_stream_b] Collecting from source:
-  [mg_collect_stream_c] Collecting from source:
-  [mg_merge_streams] Merged
-  [mg_process_merged] Processing
-
-  Status: COMPLETED
-  Output: {events=..., count=..., merged=..., totalCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_merge_wf \
   --version 1 \
-  --input '{"sourceA": "sample-sourceA", "api": "sample-api", "sourceB": "sample-sourceB", "mobile": "sample-mobile", "sourceC": "sample-sourceC"}'
+  --input '{"sourceA": "test-value", "sourceB": "test-value", "sourceC": "test-value"}'
 ```
 
 ### Check workflow status

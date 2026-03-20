@@ -1,8 +1,6 @@
 # Multi-Agent Code Review in Java Using Conductor :  Security, Performance, and Style Review in Parallel
 
-Multi-Agent Code Review .  parses code, runs security/performance/style reviews in parallel, then compiles a final review report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Code Review Needs Multiple Specialized Perspectives
+Multi-Agent Code Review .  parses code, runs security/performance/style reviews in parallel, then compiles a final review report. Uses [Conductor](https://github.## Code Review Needs Multiple Specialized Perspectives
 
 A single code reviewer might catch a SQL injection vulnerability but miss an N+1 query performance issue. Or they might fix the N+1 query but overlook inconsistent naming conventions. Each review dimension .  security (injection, XSS, auth bypass), performance (algorithmic complexity, database query patterns, memory allocation), and style (naming conventions, code organization, documentation) ,  requires different expertise and different analytical approaches.
 
@@ -28,16 +26,6 @@ Five workers run the code review. Parsing the code, then dispatching security, p
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 cr_compile_review
-```
-
-## Example Output
-
-```
-=== Multi-Agent Code Review Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cr_parse_code, cr_security_review, cr_performance_review, cr_style_review, cr_compile_review
-
-Step 2: Registering workflow 'multi_agent_code_review'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cr_compile_review]
-  [cr_parse_code] Parsing
-  [cr_performance_review] Reviewing
-  [cr_security_review] Reviewing
-  [cr_style_review] Reviewing
-
-  Status: COMPLETED
-  Output: {totalIssues=..., highCount=..., overallSeverity=..., summary=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_agent_code_review \
   --version 1 \
-  --input '{"code": "sample-code", "const express = require('express');\\nconst crypto = require('crypto');\\n// ... application code": "sample-const express = require('express');\\nconst crypto = require('crypto');\\n// ... application code", "language": "sample-language"}'
+  --input '{"code": "test-value", "language": "test-value"}'express');\\nconst crypto = require('crypto');\\n// ... application code": "sample-const express = require('express');\\nconst crypto = require('crypto');\\n// ... application code", "language": "sample-language"}'
 ```
 
 ### Check workflow status
@@ -176,7 +135,6 @@ Plug in real static analysis tools like SonarQube or Semgrep; the parallel revie
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

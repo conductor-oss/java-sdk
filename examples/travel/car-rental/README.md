@@ -1,8 +1,6 @@
 # Car Rental in Java with Conductor
 
-Car rental: search, select, book, pickup, return. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Car rental: search, select, book, pickup, return. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to manage a car rental for a business traveler. Searching available vehicles at the pickup location, selecting the right vehicle class (compact, midsize, SUV) based on traveler needs and company policy, booking the reservation, processing the vehicle pickup with documentation, and handling the vehicle return with final charges. Each step depends on the previous one's output.
 
@@ -28,15 +26,6 @@ Availability lookup, rate comparison, reservation, and pickup confirmation worke
 
 Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ crl_pickup
     │
     ▼
 crl_return
-```
-
-## Example Output
-
-```
-=== Example 542: Car Rental ===
-
-Step 1: Registering task definitions...
-  Registered: crl_search, crl_select, crl_book, crl_pickup, crl_return
-
-Step 2: Registering workflow 'crl_car_rental'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [book] Vehicle reserved for
-  [pickup] Vehicle picked up .  reservation
-  [return] Vehicle returned
-  [search] Searching rentals at
-  [select] Selected midsize vehicle
-
-  Status: COMPLETED
-  Output: {reservationId=..., confirmationCode=..., pickedUp=..., mileageStart=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crl_car_rental \
   --version 1 \
-  --input '{"travelerId": "TRV-500", "TRV-500": "location", "location": "LAX Airport", "LAX Airport": "pickupDate", "pickupDate": "2024-04-15", "2024-04-15": "returnDate", "returnDate": "2024-04-18", "2024-04-18": "sample-2024-04-18"}'
+  --input '{"travelerId": "TEST-001", "location": "test-value", "pickupDate": "2026-01-01T00:00:00Z", "returnDate": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

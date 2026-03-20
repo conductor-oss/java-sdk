@@ -1,8 +1,6 @@
 # Image Processing in Java Using Conductor :  Parallel Resize, Watermark, Optimize, and Finalize
 
-A Java Conductor workflow example for image processing: loading an image from a URL, then running three operations in parallel (resizing to multiple size variants, applying a text watermark, and compressing/optimizing the file size), then finalizing by assembling all outputs into a single result. Uses a FORK_JOIN to process resize, watermark, and optimize concurrently, no operation waits for another, so a 4000x3000 image gets all three treatments at the same time. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for image processing: loading an image from a URL, then running three operations in parallel (resizing to multiple size variants, applying a text watermark, and compressing/optimizing the file size), then finalizing by assembling all outputs into a single result. Uses a FORK_JOIN to process resize, watermark, and optimize concurrently, no operation waits for another, so a 4000x3000 image gets all three treatments at the same time. Uses [Conductor](https://github.## The Problem
 
 When a user uploads a product photo, you need to generate multiple size variants (thumbnail, medium, large for responsive images), stamp it with a copyright watermark, and compress it for web delivery. all before the image is available on the site. These three operations are independent of each other: resizing doesn't need the watermark, and optimization doesn't need the resized variants. Running them sequentially wastes time, a 10-megapixel image takes seconds per operation, and waiting for resize before starting watermark triples the latency. But they all depend on the same loaded image data, and the final step needs all three results to assemble the output.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd spawn three threads manually, manage a CountDownLat
 
 **You just write the image loading, resize, watermark, optimize, and finalize workers. Conductor handles parallel image operations via FORK_JOIN, per-branch retries, and crash recovery that preserves completed branches while resuming only the failed one.**
 
-Each image operation is a simple, independent worker. The loader fetches the image from the source URL and extracts metadata (format, dimensions, file size). The resizer generates multiple size variants from the configurable sizes list. The watermarker stamps text onto the image at the specified position and opacity. The optimizer compresses the image for the target format, reducing file size while preserving acceptable quality. The finalizer assembles resize variants, the watermarked version, and the optimized version into a single output bundle with a destination URL. Conductor runs resize, watermark, and optimize in parallel via FORK_JOIN, waits for all three to complete, then runs the finalizer. If optimize fails, Conductor retries just that branch while the resize and watermark results are preserved. You get all of that for free, without writing a single line of orchestration code.
+Each image operation is a simple, independent worker. The loader fetches the image from the source URL and extracts metadata (format, dimensions, file size). The resizer generates multiple size variants from the configurable sizes list. The watermarker stamps text onto the image at the specified position and opacity. The optimizer compresses the image for the target format, reducing file size while preserving acceptable quality. The finalizer assembles resize variants, the watermarked version, and the optimized version into a single output bundle with a destination URL. Conductor runs resize, watermark, and optimize in parallel via FORK_JOIN, waits for all three to complete, then runs the finalizer. If optimize fails, Conductor retries just that branch while the resize and watermark results are preserved. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Five workers handle image processing: loading from a URL, then running resize, w
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,35 +40,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 ip_finalize
-```
-
-## Example Output
-
-```
-=== Image Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ip_load_image, ip_resize, ip_watermark, ip_optimize, ip_finalize
-
-Step 2: Registering workflow 'image_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [finalize] Assembled
-  [load] Loaded image from
-  [optimize] Compressed
-  [resize] Created
-  [watermark] Applied watermark \"" + text + "\" at bottom-right with 50% opacity
-
-  Status: COMPLETED
-  Output: {outputUrl=..., totalOutputs=..., imageData=..., width=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow image_processing \
   --version 1 \
-  --input '{"imageUrl": "https://api.example.com/resource", "https://example.com/photos/landscape-4k.png": "sample-https://example.com/photos/landscape-4k.png", "sizes": 5, "w": "sample-w", "h": "sample-h"}'
+  --input '{"imageUrl": "https://example.com", "sizes": 10, "watermarkText": "test-value"}'
 ```
 
 ### Check workflow status

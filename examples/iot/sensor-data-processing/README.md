@@ -1,8 +1,6 @@
 # Sensor Data Processing in Java with Conductor :  Collection, Validation, Aggregation, Anomaly Detection, and Alerting
 
-A Java Conductor workflow example that orchestrates a sensor data processing pipeline .  collecting batches of temperature and humidity readings from sensor groups, validating data quality (null checks, offline sensor detection), computing aggregate statistics (avg, min, max, std dev), detecting anomalies like temperature spikes above thresholds, and triggering escalation alerts via email and SMS when anomalies are found. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Sensor Data Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates a sensor data processing pipeline .  collecting batches of temperature and humidity readings from sensor groups, validating data quality (null checks, offline sensor detection), computing aggregate statistics (avg, min, max, std dev), detecting anomalies like temperature spikes above thresholds, and triggering escalation alerts via email and SMS when anomalies are found. Uses [Conductor](https://github.## Why Sensor Data Pipelines Need Orchestration
 
 Processing IoT sensor data at scale is a multi-stage pipeline where data quality and ordering matter. You collect 1,200 readings from 50 sensors in a time window. You validate each reading for data quality .  flagging null values, detecting offline sensors, and filtering bad data. You aggregate the validated readings into summary statistics: average temperature, min/max bounds, standard deviation, humidity averages. You analyze those aggregated metrics for patterns and anomalies ,  is the temperature trend rising? Did any sensor exceed the 85F threshold? If anomalies are detected, you trigger alerts at the appropriate escalation level.
 
@@ -28,48 +26,10 @@ Five workers process sensor streams: CollectReadingsWorker ingests batches from 
 
 Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> AggregateReadingsWorker -> AnalyzePatternsWorker -> CollectReadingsWorker -> TriggerAlertsWorker -> ValidateDataWorker -> Output
-```
-
-## Example Output
-
-```
-=== Sensor Data Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sen_collect_readings, sen_validate_data, sen_aggregate_readings, sen_analyze_patterns, sen_trigger_alerts
-
-Step 2: Registering workflow 'sensor_data_processing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Aggregating
-  [analyze] Max temp:
-  [collect] Collecting readings from sensor group
-  [alert] Trend:
-  [validate] Validated
-
-  Status: COMPLETED
-  Output: {aggregatedMetrics=..., timeRange=..., trend=..., anomalies=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -98,7 +58,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

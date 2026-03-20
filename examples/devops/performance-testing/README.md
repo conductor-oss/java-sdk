@@ -1,8 +1,6 @@
 # Performance Testing in Java with Conductor :  Environment Prep, Load Testing, Results Analysis, and Report Generation
 
-Orchestrates automated performance testing using [Conductor](https://github.com/conductor-oss/conductor). This workflow prepares a test environment, runs a load test against the target service at a specified requests-per-second rate for a configured duration, analyzes the results (P50/P95/P99 latency, error rates, throughput), and generates a performance report with pass/fail against SLO targets. You write the testing logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Can Your Service Handle the Load?
+Orchestrates automated performance testing using [Conductor](https://github.com/conductor-oss/conductor). This workflow prepares a test environment, runs a load test against the target service at a specified requests-per-second rate for a configured duration, analyzes the results (P50/P95/P99 latency, error rates, throughput), and generates a performance report with pass/fail against SLO targets.## Can Your Service Handle the Load?
 
 Before launching a marketing campaign that will 5x your traffic, you need to know if your API can handle 10,000 requests per second without latency spiking above 200ms. Performance testing requires a clean test environment (isolated from production traffic), a load generator that ramps to the target RPS over the configured duration, analysis of the results (did P99 latency stay under 500ms? did error rate stay below 1%?), and a report that tells the team whether it's safe to launch. Each step depends on the previous one: you can't analyze results before the test runs, and the test can't run until the environment is ready.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd SSH into a load testing box, run a k6 or JMeter scr
 
 **You write the load generation and analysis logic. Conductor handles environment-to-report sequencing, SLO comparison, and test result tracking.**
 
-Each stage of the performance testing pipeline is a simple, independent worker. The environment preparer provisions or configures the test environment. Spinning up isolated infrastructure, warming caches, and seeding test data. The load tester generates traffic at the target RPS for the specified duration, recording response times and error counts. The results analyzer computes percentile latencies (P50, P95, P99), throughput, error rates, and compares them against SLO thresholds. The report generator produces a structured performance report with pass/fail verdicts and trend comparisons against previous runs. Conductor executes them in strict sequence, ensures the load test only runs after the environment is ready, retries if environment provisioning fails, and tracks all test parameters and results. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the performance testing pipeline is a simple, independent worker. The environment preparer provisions or configures the test environment. Spinning up isolated infrastructure, warming caches, and seeding test data. The load tester generates traffic at the target RPS for the specified duration, recording response times and error counts. The results analyzer computes percentile latencies (P50, P95, P99), throughput, error rates, and compares them against SLO thresholds. The report generator produces a structured performance report with pass/fail verdicts and trend comparisons against previous runs. Conductor executes them in strict sequence, ensures the load test only runs after the environment is ready, retries if environment provisioning fails, and tracks all test parameters and results. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,15 +23,6 @@ Three workers execute the performance test. Preparing the environment, running t
 | **PrepareEnvWorker** | `pt_prepare_env` | Provisions and configures an isolated load test environment (warm caches, seed data) |
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -48,33 +37,6 @@ pt_analyze_results
     │
     ▼
 pt_generate_report
-```
-
-## Example Output
-
-```
-=== Example 430: Performance Testing ===
-
-Step 1: Registering task definitions...
-  Registered: pt_prepare_env, pt_run_load_test, pt_analyze_results, pt_generate_report
-
-Step 2: Registering workflow 'performance_testing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Performance within SLO thresholds
-  [report] Performance report generated with trend analysis
-  [prepare] Provisioned load test environment
-  [load] Running at 1000 RPS for 5m
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow performance_testing_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "api-gateway": "sample-api-gateway", "targetRps": "sample-targetRps", "duration": "sample-duration"}'
+  --input '{"service": "test-value", "targetRps": "test-value", "duration": "test-value"}'
 ```
 
 ### Check workflow status

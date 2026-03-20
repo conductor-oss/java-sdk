@@ -1,8 +1,6 @@
 # Implementing Role-Based Access Control (RBAC) in Java with Conductor :  Role Resolution, Permission Evaluation, Context Check, and Decision Enforcement
 
-A Java Conductor workflow example implementing role-based access control .  resolving a user's roles from the identity store, evaluating whether those roles grant the requested permission on the target resource, checking contextual constraints (time of day, network location, device trust), and enforcing the allow/deny decision with a full audit log. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example implementing role-based access control .  resolving a user's roles from the identity store, evaluating whether those roles grant the requested permission on the target resource, checking contextual constraints (time of day, network location, device trust), and enforcing the allow/deny decision with a full audit log. Uses [Conductor](https://github.## The Problem
 
 You need to authorize every access request against a role-based policy model. When a user requests to perform an action (read, write, delete, admin) on a resource (document, API endpoint, database table), the system must resolve their assigned roles (admin, editor, viewer) from the identity store, evaluate whether any of those roles grant the requested permission, apply contextual constraints (is the request within business hours? from a trusted network? on a managed device?), and enforce the final allow or deny decision .  all while logging every decision for compliance audits.
 
@@ -12,7 +10,7 @@ Without orchestration, authorization logic is scattered across middleware, decor
 
 **You just write the role resolution and permission evaluation logic. Conductor handles the ordered policy evaluation chain, retries when identity providers are unreachable, and a structured audit record of every access decision with the contributing roles and context signals.**
 
-Each authorization concern is a simple, independent worker .  one resolves the user's roles from the identity store, one evaluates permissions against the role-permission matrix, one checks contextual constraints like time and network, one enforces the decision and writes the audit record. Conductor takes care of executing them in strict order so no access is granted without a complete policy evaluation, retrying if the identity store is temporarily unavailable, and maintaining a complete audit trail that shows exactly which roles were resolved, which permissions were evaluated, which context was checked, and what decision was reached for every access request. You get all of that for free, without writing a single line of orchestration code.
+Each authorization concern is a simple, independent worker .  one resolves the user's roles from the identity store, one evaluates permissions against the role-permission matrix, one checks contextual constraints like time and network, one enforces the decision and writes the audit record. Conductor takes care of executing them in strict order so no access is granted without a complete policy evaluation, retrying if the identity store is temporarily unavailable, and maintaining a complete audit trail that shows exactly which roles were resolved, which permissions were evaluated, which context was checked, and what decision was reached for every access request. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers evaluate access requests: ResolveRolesWorker looks up user roles fr
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ rbac_check_context
     │
     ▼
 rbac_enforce_decision
-```
-
-## Example Output
-
-```
-=== Authorization RBAC Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rbac_resolve_roles, rbac_evaluate_permissions, rbac_check_context, rbac_enforce_decision
-
-Step 2: Registering workflow 'authorization_rbac_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [context] Access within business hours, from corporate network
-  [enforce] Access ALLOWED .  logged for audit
-  [permissions]
-  [roles] User
-
-  Status: COMPLETED
-  Output: {check_context=..., processed=..., enforce_decision=..., completedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

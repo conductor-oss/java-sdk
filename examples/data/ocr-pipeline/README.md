@@ -1,8 +1,6 @@
 # OCR Pipeline in Java Using Conductor :  Image Preprocessing, Text Extraction, Validation, and Structured Output
 
-A Java Conductor workflow example for document OCR. preprocessing a document image (deskewing, binarization, contrast enhancement), extracting raw text via OCR with a confidence score, validating the extracted text against the expected document type (invoice, receipt, form), and organizing the validated fields into structured output (invoice number, date, total, due date, payment terms). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for document OCR. preprocessing a document image (deskewing, binarization, contrast enhancement), extracting raw text via OCR with a confidence score, validating the extracted text against the expected document type (invoice, receipt, form), and organizing the validated fields into structured output (invoice number, date, total, due date, payment terms). Uses [Conductor](https://github.## The Problem
 
 A scanned invoice arrives as a JPEG. slightly rotated, low contrast, with noise from the scanner. Before you can extract structured data (invoice number, date, total amount, due date), the image needs preprocessing: deskewing to straighten the text, binarization to convert to black-and-white, and contrast enhancement so faint characters are readable. The OCR engine then produces raw text with a confidence score, but raw OCR output contains errors, a "$12,450.00" might be read as "$12,45O.OO" if the engine confuses zeros and the letter O. You need to validate the extracted text against the expected document type (an invoice should have an invoice number matching a pattern like `INV-YYYY-NNNN`, a valid date, and a dollar amount) and then organize the validated fields into structured JSON that downstream systems can consume.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single method that loads the image, preproc
 
 **You just write the image preprocessing, OCR text extraction, field validation, and structured output workers. Conductor handles strict ordering so OCR runs only on preprocessed images, retries when OCR services are temporarily unavailable, and confidence score tracking at every stage.**
 
-Each stage of the OCR pipeline is a simple, independent worker. The preprocessor takes the raw document image and applies deskewing, binarization, and contrast enhancement tailored to the document type. The text extractor runs OCR on the preprocessed image in the specified language and returns raw text with a confidence score and character count. The validator checks the extracted text against the document type's expected patterns. Confirming that an invoice has an invoice number, date, total, and due date, and produces a validation score. The structurer organizes validated fields into typed JSON output (strings for invoice numbers, dates for due dates, doubles for totals). Conductor executes them in strict sequence, ensures OCR only runs on preprocessed images, retries if the OCR service is temporarily unavailable, and tracks confidence scores and field counts at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the OCR pipeline is a simple, independent worker. The preprocessor takes the raw document image and applies deskewing, binarization, and contrast enhancement tailored to the document type. The text extractor runs OCR on the preprocessed image in the specified language and returns raw text with a confidence score and character count. The validator checks the extracted text against the document type's expected patterns. Confirming that an invoice has an invoice number, date, total, and due date, and produces a validation score. The structurer organizes validated fields into typed JSON output (strings for invoice numbers, dates for due dates, doubles for totals). Conductor executes them in strict sequence, ensures OCR only runs on preprocessed images, retries if the OCR service is temporarily unavailable, and tracks confidence scores and field counts at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the OCR pipeline: preprocessing images with deskewing and cont
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ oc_validate_text
     │
     ▼
 oc_structure_output
-```
-
-## Example Output
-
-```
-=== OCR Pipeline Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: oc_preprocess_image, oc_extract_text, oc_validate_text, oc_structure_output
-
-Step 2: Registering workflow 'ocr_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [extract] OCR extracted
-  [preprocess] Image
-  [structure] Organized into structured document with
-  [validate] Validated
-
-  Status: COMPLETED
-  Output: {rawText=..., confidence=..., characterCount=..., processedImage=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ocr_pipeline \
   --version 1 \
-  --input '{"imageUrl": "https://api.example.com/resource", "s3://documents/scans/invoice-0892.tiff": "sample-s3://documents/scans/invoice-0892.tiff", "documentType": "standard", "invoice": "sample-invoice", "language": "sample-language"}'
+  --input '{"imageUrl": "https://example.com", "documentType": "test-value", "language": "test-value"}'
 ```
 
 ### Check workflow status

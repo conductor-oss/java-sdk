@@ -1,6 +1,6 @@
 # Enterprise RAG in Java Using Conductor :  Caching, Rate Limiting, Token Budgets, and Audit Logging
 
-A Java Conductor workflow that wraps a RAG pipeline with the guardrails enterprises need before going to production .  semantic caching to avoid redundant LLM calls, per-user rate limiting to control costs, token budget enforcement to prevent context window overflows, and SOC2-compliant audit logging for every query. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate these concerns as independent workers ,  you write the caching, rate-limiting, and generation logic, Conductor handles conditional routing, retries, durability, and observability for free.
+A Java Conductor workflow that wraps a RAG pipeline with the guardrails enterprises need before going to production .  semantic caching to avoid redundant LLM calls, per-user rate limiting to control costs, token budget enforcement to prevent context window overflows, and audit-ready pattern audit logging for every query. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate these concerns as independent workers ,  you write the caching, rate-limiting, and generation logic, Conductor handles conditional routing, retries, durability, and observability.
 
 ## Beyond the Demo: What Production RAG Actually Requires
 
@@ -22,7 +22,7 @@ Seven workers implement enterprise guardrails around a RAG core .  cache check, 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **AuditLogWorker** | `er_audit_log` | Worker that creates a SOC2-compliant audit log entry for every query. Takes userId, question, sessionId, source, answ... |
+| **AuditLogWorker** | `er_audit_log` | Worker that creates a audit-ready pattern audit log entry for every query. Takes userId, question, sessionId, source, answ... |
 | **CacheResultWorker** | `er_cache_result` | Worker that caches a generated answer for future lookups. Takes question, answer, and ttlSeconds. Returns cached stat... |
 | **CheckCacheWorker** | `er_check_cache` | Worker that checks a cache for a previously answered question. Takes question and userId, returns cacheStatus and cac... |
 | **GenerateWorker** | `er_generate` | Worker that generates an answer using an LLM given question, context, and token budget. Returns the answer, tokensUse... |
@@ -31,16 +31,6 @@ Seven workers implement enterprise guardrails around a RAG core .  cache check, 
 | **TokenBudgetWorker** | `er_token_budget` | Worker that manages token budgets by trimming context to stay within limits. Takes context and userId, returns trimme... |
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -51,38 +41,6 @@ er_check_cache
 SWITCH (cache_decision_ref)
     ├── hit: er_audit_log
     └── default: er_rate_limit -> er_retrieve -> er_token_budget -> er_generate -> er_cache_result -> er_audit_log
-```
-
-## Example Output
-
-```
-=== Example 164: Enterprise RAG ===
-
-Step 1: Registering task definitions...
-  Registered: er_check_cache, er_rate_limit, er_retrieve, er_token_budget, er_generate, er_cache_result, er_audit_log
-
-Step 2: Registering workflow 'enterprise_rag'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  7 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [audit_log] Logging query for user=
-  [cache_result] Cached key=
-  [check_cache] Checking cache for user=
-  [generate] Calling OpenAI for question=\"" + question
-                    + "\" tokenBudget=
-  [rate_limit] Checking rate limit for user=
-  [retrieve] [SIMULATED] Retrieving context for question=\"" + question + "\"
-  [token_budget] user=
-
-  Status: COMPLETED
-  Output: {auditEntry=..., cached=..., cacheKey=..., expiresAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -111,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -161,7 +119,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow enterprise_rag \
   --version 1 \
-  --input '{"question": "What is retrieval-augmented generation?", "What is retrieval-augmented generation?": "userId", "userId": "user-42", "user-42": "sessionId", "sessionId": "sess-abc-123", "sess-abc-123": "sample-sess-abc-123"}'
+  --input '{"question": "test-value", "userId": "TEST-001"}'
 ```
 
 ### Check workflow status

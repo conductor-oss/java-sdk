@@ -1,6 +1,6 @@
 # Mistral AI in Java Using Conductor :  Document Q&A via Mistral Chat Completions
 
-A Java Conductor workflow that orchestrates Mistral AI chat completion calls for document-based question answering .  composing a chat request with a document as context and a user question, calling the Mistral chat API (with configurable model, temperature, max tokens, and safe prompt settings), and extracting the answer from the response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request composition, API invocation, and answer extraction as independent workers ,  you write the Mistral-specific logic, Conductor handles retries, durability, and observability for free.
+A Java Conductor workflow that orchestrates Mistral AI chat completion calls for document-based question answering .  composing a chat request with a document as context and a user question, calling the Mistral chat API (with configurable model, temperature, max tokens, and safe prompt settings), and extracting the answer from the response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request composition, API invocation, and answer extraction as independent workers ,  you write the Mistral-specific logic, Conductor handles retries, durability, and observability.
 
 ## Structured Mistral API Integration
 
@@ -26,15 +26,6 @@ Three workers manage the Mistral integration .  composing the chat request with 
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ mistral_chat
     │
     ▼
 mistral_extract_answer
-```
-
-## Example Output
-
-```
-=== Mistral AI Chat Completion Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: mistral_compose_request, mistral_chat, mistral_extract_answer
-
-Step 2: Registering workflow 'mistral_ai_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mistral_chat] Live mode: MISTRAL_API_KEY detected
-  [mistral_compose_request] Composed request for model:
-  [mistral_extract_answer] Extracted answer (
-
-  Status: COMPLETED
-  Output: {model=..., messages=..., error=..., chatResponse=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mistral_ai_workflow \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

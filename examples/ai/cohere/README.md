@@ -1,8 +1,6 @@
 # Cohere Marketing Copy Generation in Java Using Conductor :  Build Prompt, Generate Candidates, Select Best
 
-A Java Conductor workflow example for generating marketing copy using Cohere .  building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## One Generation Is Not Enough for Production Copy
+A Java Conductor workflow example for generating marketing copy using Cohere .  building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.## One Generation Is Not Enough for Production Copy
 
 Asking an LLM to write marketing copy once gives you one option, and it might be mediocre. The best practice is to generate multiple candidates with different temperature settings or prompt variations, then select the one that best matches your criteria: engagement score, reading level, brand voice alignment, and call-to-action strength. But generating multiple candidates, scoring each one, and selecting the winner requires coordinating three distinct steps.
 
@@ -26,15 +24,6 @@ Three workers cover the full copy generation pipeline .  prompt construction wit
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ cohere_generate
     │
     ▼
 cohere_select_best
-```
-
-## Example Output
-
-```
-=== Cohere Text Generation Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: cohere_build_prompt, cohere_generate, cohere_select_best
-
-Step 2: Registering workflow 'cohere_text_generation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cohere_build_prompt worker] Built request for model:
-  [cohere_generate] Live mode: COHERE_API_KEY detected
-  [cohere_select_best worker] Selected best generation with likelihood:
-
-  Status: COMPLETED
-  Output: {model=..., prompt=..., max_tokens=..., temperature=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cohere_text_generation \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

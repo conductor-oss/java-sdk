@@ -1,8 +1,6 @@
 # Medical Billing in Java Using Conductor :  CPT/ICD Coding, Coverage Verification, Claim Submission, and Payment Tracking
 
-A Java Conductor workflow example for medical billing .  coding clinical encounters with CPT and ICD codes, verifying patient insurance coverage, submitting claims to payers, and tracking reimbursement payments. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for medical billing .  coding clinical encounters with CPT and ICD codes, verifying patient insurance coverage, submitting claims to payers, and tracking reimbursement payments. Uses [Conductor](https://github.## The Problem
 
 You need to bill for a clinical encounter. After a patient visit, the encounter must be coded with CPT procedure codes (e.g., 99213 for an office visit, 36415 for venipuncture) and ICD diagnosis codes (e.g., E11.9 for type 2 diabetes, I10 for hypertension). The patient's insurance coverage must be verified against the coded procedures. A claim is then submitted to the payer with the coded line items and total charge. Finally, the payment must be tracked through adjudication to reconcile what was billed versus what was reimbursed.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic billing service that queries the
 
 **You just write the billing workers. CPT/ICD coding, coverage verification, claim submission, and payment tracking. Conductor handles task ordering, automatic retries when the payer system is temporarily down, and a complete audit trail from encounter to payment.**
 
-Each stage of the billing cycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running coding before coverage verification, submitting claims only after coverage is confirmed, retrying if the payer's system is temporarily unavailable, and maintaining a complete audit trail from encounter to payment. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the billing cycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running coding before coverage verification, submitting claims only after coverage is confirmed, retrying if the payer's system is temporarily unavailable, and maintaining a complete audit trail from encounter to payment. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers cover the billing cycle: CodeProceduresWorker assigns CPT and ICD c
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ mbl_submit_claim
     │
     ▼
 mbl_track_payment
-```
-
-## Example Output
-
-```
-=== Medical Billing Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: mbl_code_procedures, mbl_verify_coverage, mbl_submit_claim, mbl_track_payment
-
-Step 2: Registering workflow 'medical_billing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [code] Coding procedures for encounter
-  [submit] Submitting claim: $
-  [track] Tracking payment for claim
-  [coverage] Verifying coverage for
-
-  Status: COMPLETED
-  Output: {cptCodes=..., icdCodes=..., totalCharge=..., claimId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow medical_billing_workflow \
   --version 1 \
-  --input '{"encounterId": "ENC-2024-0301", "ENC-2024-0301": "patientId", "patientId": "PAT-10234", "PAT-10234": "providerId", "providerId": "PROV-5501", "PROV-5501": "procedures", "procedures": ["item-1", "item-2", "item-3"]}'
+  --input '{"encounterId": "TEST-001", "patientId": "TEST-001", "providerId": "TEST-001", "procedures": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Property Inspection in Java with Conductor :  Schedule, Inspect, Document, and Report
 
-A Java Conductor workflow example for managing property inspections .  scheduling the inspection with an inspector, conducting the on-site evaluation (structural, plumbing, electrical, HVAC), documenting findings with photos and notes, and generating the final inspection report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for managing property inspections .  scheduling the inspection with an inspector, conducting the on-site evaluation (structural, plumbing, electrical, HVAC), documenting findings with photos and notes, and generating the final inspection report. Uses [Conductor](https://github.## The Problem
 
 You need to coordinate property inspections for real estate transactions. When a buyer makes an offer contingent on inspection, an inspector must be scheduled, the on-site inspection must cover all systems (roof, foundation, plumbing, electrical, HVAC), findings must be documented with photos and severity ratings, and a formal report must be generated for the buyer, seller, and their agents. Each step depends on the previous one .  you can't document findings before the inspection, and the report can't be generated without documentation.
 
@@ -12,7 +10,7 @@ Without orchestration, inspection coordination happens over phone calls and emai
 
 **You just write the scheduling, on-site inspection, documentation, and report generation logic. Conductor handles scheduling retries, assessment sequencing, and inspection audit trails.**
 
-Each inspection step is a simple, independent worker .  one schedules the inspector, one records the inspection findings, one organizes documentation (photos, notes, checklists), one generates the final report. Conductor takes care of executing them in order, retrying if the scheduling API is unavailable, and maintaining a permanent record of every inspection from scheduling through report delivery. You get all of that for free, without writing a single line of orchestration code.
+Each inspection step is a simple, independent worker .  one schedules the inspector, one records the inspection findings, one organizes documentation (photos, notes, checklists), one generates the final report. Conductor takes care of executing them in order, retrying if the scheduling API is unavailable, and maintaining a permanent record of every inspection from scheduling through report delivery. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Scheduling, on-site assessment, deficiency documentation, and report generation 
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ pin_document
     │
     ▼
 pin_report
-```
-
-## Example Output
-
-```
-=== Example 687: Property Inspectio ===
-
-Step 1: Registering task definitions...
-  Registered: pin_schedule, pin_inspect, pin_document, pin_report
-
-Step 2: Registering workflow 'pin_property_inspection'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [pin_document] Executing
-  [pin_inspect] Executing
-  [pin_report] Executing
-  [pin_schedule] Executing
-
-  Status: COMPLETED
-  Output: {documentation=..., findings=..., reportId=..., scheduledDate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pin_property_inspection \
   --version 1 \
-  --input '{"propertyId": "PROP-400", "PROP-400": "inspectorId", "inspectorId": "INS-15", "INS-15": "inspectionType", "inspectionType": "pre-purchase", "pre-purchase": "sample-pre-purchase"}'
+  --input '{"propertyId": "TEST-001", "inspectorId": "TEST-001", "inspectionType": "test-value"}'
 ```
 
 ### Check workflow status

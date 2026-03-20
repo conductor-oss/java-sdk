@@ -1,8 +1,6 @@
 # Slack Interactive Approval in Java Using Conductor :  Request Submission, Block Kit Message with Approve/Reject Buttons, WAIT for Slack Interaction Webhook, and Decision Finalization
 
-A Java Conductor workflow example for Slack-native approvals .  submitting a request, posting a Slack Block Kit message to a channel with interactive Approve and Reject buttons (styled with primary/danger), pausing at a WAIT task until someone clicks a button (which triggers Slack's interaction webhook to complete the WAIT via `POST /tasks/{taskId}`), and finalizing the decision. The PostSlackWorker builds the full Block Kit payload (header block, section with requestor and reason in mrkdwn, actions block with styled buttons), so the approver sees a rich, actionable message right in their Slack channel. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Approvals Can Be Triggered via Slack Interactive Buttons
+A Java Conductor workflow example for Slack-native approvals .  submitting a request, posting a Slack Block Kit message to a channel with interactive Approve and Reject buttons (styled with primary/danger), pausing at a WAIT task until someone clicks a button (which triggers Slack's interaction webhook to complete the WAIT via `POST /tasks/{taskId}`), and finalizing the decision. The PostSlackWorker builds the full Block Kit payload (header block, section with requestor and reason in mrkdwn, actions block with styled buttons), so the approver sees a rich, actionable message right in their Slack channel. Uses [Conductor](https://github.## Approvals Can Be Triggered via Slack Interactive Buttons
 
 Many teams live in Slack, so approval requests should show up there as interactive messages with Approve/Reject buttons. The workflow submits the request, posts a Slack message with Block Kit interactive buttons, and pauses at a WAIT task until someone clicks a button. The button click (via Slack's interaction webhook) completes the WAIT task with the decision.
 
@@ -25,15 +23,6 @@ SubmitWorker captures the request, PostSlackWorker builds the Block Kit message 
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -47,33 +36,6 @@ slack_response [WAIT]
     │
     ▼
 sa_finalize
-```
-
-## Example Output
-
-```
-=== Slack Interactive Button Approval Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'slack_approval_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sa_finalize] Finalizing with decision:
-  [sa_post_slack] Generating Slack Block Kit payload for channel
-  [sa_submit] Processing submission...
-
-  Status: COMPLETED
-  Output: {done=..., decision=..., posted=..., slackPayload=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow slack_approval_demo \
   --version 1 \
-  --input '{"requestor": "sample-requestor", "alice@example.com": "sample-alice@example.com", "reason": "sample-reason", "Access to production database": "sample-Access to production database", "channel": "sample-channel"}'
+  --input '{"requestor": "test-value", "reason": "test-value", "channel": "test-value"}'
 ```
 
 ### Check workflow status

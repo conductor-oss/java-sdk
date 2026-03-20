@@ -1,8 +1,6 @@
 # Drug Interaction Checking in Java Using Conductor :  Medication List, Pairwise Checks, Conflict Flagging, and Alternative Recommendations
 
-A Java Conductor workflow example for drug interaction checking .  pulling a patient's current medication list, checking every drug pair for interactions, flagging clinically significant conflicts by severity, and recommending safer therapeutic alternatives. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for drug interaction checking .  pulling a patient's current medication list, checking every drug pair for interactions, flagging clinically significant conflicts by severity, and recommending safer therapeutic alternatives. Uses [Conductor](https://github.## The Problem
 
 You need to check for drug-drug interactions when a new medication is prescribed. The patient's complete active medication list must be retrieved from the EHR. Every pair of the new medication against existing medications must be checked against an interaction database for contraindications, dose adjustments, and monitoring requirements. Clinically significant conflicts must be flagged with severity levels (minor, moderate, major, contraindicated). For flagged interactions, the system must recommend alternative medications in the same therapeutic class that do not conflict. A missed major interaction .  like prescribing warfarin with a CYP2C9 inhibitor ,  can cause life-threatening adverse events.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic prescribing safety service that 
 
 **You just write the drug safety workers. Medication list retrieval, pairwise interaction checks, conflict flagging, and alternative recommendation. Conductor handles sequential evaluation, automatic retries when the interaction database is unavailable, and logged records of every safety check for medication audits.**
 
-Each stage of the interaction check is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of listing medications before checking pairs, flagging conflicts only after all pairs are evaluated, generating alternative recommendations only for flagged conflicts, and logging every check for medication safety audits. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the interaction check is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of listing medications before checking pairs, flagging conflicts only after all pairs are evaluated, generating alternative recommendations only for flagged conflicts, and logging every check for medication safety audits. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the drug safety pipeline: ListMedicationsWorker retrieves acti
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ drg_flag_conflicts
     │
     ▼
 drg_recommend_alternatives
-```
-
-## Example Output
-
-```
-=== Drug Interaction Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: drg_list_medications, drg_check_pairs, drg_flag_conflicts, drg_recommend_alternatives
-
-Step 2: Registering workflow 'drug_interaction_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [check] Checking
-  [flag]
-  [list] Retrieving medication list for patient
-  [recommend]
-
-  Status: COMPLETED
-  Output: {interactions=..., pairsChecked=..., conflicts=..., conflictCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow drug_interaction_workflow \
   --version 1 \
-  --input '{"patientId": "PAT-10234", "PAT-10234": "newMedication", "newMedication": "Aspirin 325mg", "Aspirin 325mg": "sample-Aspirin 325mg"}'
+  --input '{"patientId": "TEST-001", "newMedication": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Disaster Recovery in Java with Conductor
 
-Orchestrates a full disaster recovery failover using [Conductor](https://github.com/conductor-oss/conductor). When the primary region goes down, this workflow detects the failure, promotes the standby database in the DR region, updates DNS to point traffic to the backup, and verifies the recovery. Tracking RTO throughout. You write the failover logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## When the Primary Region Goes Down
+Orchestrates a full disaster recovery failover using [Conductor](https://github.com/conductor-oss/conductor). When the primary region goes down, this workflow detects the failure, promotes the standby database in the DR region, updates DNS to point traffic to the backup, and verifies the recovery. Tracking RTO throughout.## When the Primary Region Goes Down
 
 Your primary region (us-east-1) suffers an outage. The database needs to be failed over to the standby in us-west-2, DNS records must be updated to redirect traffic, and someone needs to verify the DR region is healthy, all within your RTO target. Doing these steps manually under pressure risks mistakes, missed steps, and blown SLAs.
 
@@ -27,15 +25,6 @@ Four workers manage the DR failover sequence. Detecting the outage, promoting th
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ dr_update_dns
     │
     ▼
 dr_verify
-```
-
-## Example Output
-
-```
-=== Example 465: Disaster Recovery ===
-
-Step 1: Registering task definitions...
-  Registered: dr_detect, dr_failover_db, dr_update_dns, dr_verify
-
-Step 2: Registering workflow 'disaster_recovery_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [detect] Primary us-east-1 failure confirmed
-  [failover] DB promoted in us-west-2
-  [dns] DNS records updated
-  [verify] DR region healthy, RTO: 8 minutes
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow disaster_recovery_workflow \
   --version 1 \
-  --input '{"primaryRegion": "sample-primaryRegion", "us-east-1": "sample-us-east-1", "drRegion": "sample-drRegion"}'
+  --input '{"primaryRegion": "test-value", "drRegion": "test-value"}'
 ```
 
 ### Check workflow status

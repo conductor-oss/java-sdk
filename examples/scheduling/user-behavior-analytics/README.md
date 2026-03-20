@@ -12,7 +12,7 @@ Without orchestration, user behavior analytics is either a batch job in a data w
 
 **You just write the sessionization logic and behavioral anomaly rules. Conductor handles the collect-sessionize-analyze-flag sequence, retries when event streams or analytics services are temporarily down, and a complete audit of every analysis run with session counts, risk scores, and anomaly flags.**
 
-Each analytics step is an independent worker .  event collection, sessionization, pattern analysis, and anomaly flagging. Conductor runs them in sequence: collect events, group into sessions, analyze patterns, then flag anomalies. Every analysis run is tracked with session counts, pattern metrics, and anomaly flags. You get all of that for free, without writing a single line of orchestration code.
+Each analytics step is an independent worker .  event collection, sessionization, pattern analysis, and anomaly flagging. Conductor runs them in sequence: collect events, group into sessions, analyze patterns, then flag anomalies. Every analysis run is tracked with session counts, pattern metrics, and anomaly flags. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ CollectEventsWorker ingests raw user events, SessionizeWorker groups them into c
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ uba_analyze_patterns
     │
     ▼
 uba_flag_anomalies
-```
-
-## Example Output
-
-```
-=== Example 429: User Behavior Analytics ===
-
-Step 1: Registering task definitions...
-  Registered: uba_collect_events, uba_sessionize, uba_analyze_patterns, uba_flag_anomalies
-
-Step 2: Registering workflow 'user_behavior_analytics_429'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzing patterns across
-  [collect] Collecting events for user
-  [flag] User
-  [sessionize] Grouping
-
-  Status: COMPLETED
-  Output: {riskScore=..., anomalies=..., baselineDeviation=..., eventCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow user_behavior_analytics_429 \
   --version 1 \
-  --input '{"userId": "user-8842", "user-8842": "timeRange", "timeRange": "last-24h", "last-24h": "riskThreshold", "riskThreshold": 70}'
+  --input '{"userId": "TEST-001", "timeRange": "2026-01-01T00:00:00Z", "riskThreshold": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Voting Workflow in Java with Conductor
 
-Processes a voter's participation in an election: confirming registration, verifying identity, casting the ballot, counting the vote, and certifying results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Processes a voter's participation in an election: confirming registration, verifying identity, casting the ballot, counting the vote, and certifying results. Uses [Conductor](https://github.## The Problem
 
 You need to process a voter's participation in an election .  from registration verification to vote certification. The voter's registration is confirmed, their identity is verified against the voter roll, they cast their ballot, the vote is counted, and the results are certified. Every step must maintain ballot secrecy while ensuring auditability. Counting a vote from an unverified voter undermines election integrity; failing to count a legitimate vote disenfranchises a citizen.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage the voting process through a combination of 
 
 **You just write the registration confirmation, identity verification, ballot casting, vote counting, and result certification logic. Conductor handles verification retries, ballot sequencing, and election audit trails.**
 
-Each voting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (register, verify identity, cast ballot, count, certify), maintaining a complete audit trail while preserving ballot secrecy, tracking every step with timestamps, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each voting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (register, verify identity, cast ballot, count, certify), maintaining a complete audit trail while preserving ballot secrecy, tracking every step with timestamps, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Voter verification, ballot issuance, vote recording, and tally workers handle el
 | **VerifyIdentityWorker** | `vtw_verify_identity` | Verifies the voter's identity against the voter roll |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ vtw_count
     │
     ▼
 vtw_certify
-```
-
-## Example Output
-
-```
-=== Example 321: Voting Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: vtw_register, vtw_verify_identity, vtw_cast_ballot, vtw_count, vtw_certify
-
-Step 2: Registering workflow 'vtw_voting_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cast_ballot] Processing
-  [certify] Processing
-  [count] Processing
-  [register] Processing
-  [verify_identity] Processing
-
-  Status: COMPLETED
-  Output: {ballotId=..., recorded=..., certified=..., certificationId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow vtw_voting_workflow \
   --version 1 \
-  --input '{"voterId": "VTR-300", "VTR-300": "electionId", "electionId": "ELEC-2024", "ELEC-2024": "precinct", "precinct": "PCT-12", "PCT-12": "sample-PCT-12"}'
+  --input '{"voterId": "TEST-001", "electionId": "TEST-001", "precinct": "test-value"}'
 ```
 
 ### Check workflow status

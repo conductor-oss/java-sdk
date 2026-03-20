@@ -1,8 +1,6 @@
 # Shipping Workflow in Java Using Conductor :  Select Carrier, Create Label, Track, Deliver, Confirm
 
-A Java Conductor workflow example for end-to-end shipment fulfillment .  selecting the optimal carrier based on package weight and dimensions, generating a shipping label, tracking the parcel in transit, confirming delivery, and closing out the order. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Shipping Involves Multiple Carriers and Real-Time Tracking
+A Java Conductor workflow example for end-to-end shipment fulfillment .  selecting the optimal carrier based on package weight and dimensions, generating a shipping label, tracking the parcel in transit, confirming delivery, and closing out the order. Uses [Conductor](https://github.## Shipping Involves Multiple Carriers and Real-Time Tracking
 
 A 5 lb package going from New York to Los Angeles with next-day shipping. FedEx quotes $32, UPS quotes $29, USPS doesn't offer next-day for this weight. The system must compare rates across carriers, select the cheapest qualifying option, generate a shipping label with barcode and customs information (for international), track the package through pickup, transit, and delivery, and confirm delivery with signature verification if required.
 
@@ -28,15 +26,6 @@ Label creation, carrier selection, tracking setup, and delivery confirmation wor
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ shp_deliver
     │
     ▼
 shp_confirm
-```
-
-## Example Output
-
-```
-=== Example 457: Shipping Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: shp_select_carrier, shp_create_label, shp_track, shp_deliver, shp_confirm
-
-Step 2: Registering workflow 'shipping_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [confirm] Order
-  [label] Created shipping label:
-  [deliver]
-  [carrier] Selected
-  [track]
-
-  Status: COMPLETED
-  Output: {confirmed=..., notificationSent=..., trackingNumber=..., labelUrl=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow shipping_workflow \
   --version 1 \
-  --input '{"orderId": "ORD-9901", "ORD-9901": "weight", "weight": 3.5, "express": "sample-express"}'
+  --input '{"orderId": "TEST-001", "weight": "test-value", "dimensions": "test-value", "origin": "test-value", "destination": "test-value"}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Switch carriers or label generation services and the shipping pipeline adjusts w
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

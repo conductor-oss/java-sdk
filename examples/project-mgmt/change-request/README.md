@@ -1,8 +1,6 @@
 # Change Request Management in Java with Conductor :  Submit, Impact Assessment, Approval, Implementation, and Verification
 
-A Java Conductor workflow example for managing project change requests end-to-end .  from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for managing project change requests end-to-end .  from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.## The Problem
 
 You need to manage change requests across your project. When someone submits a change .  "swap the payment provider," "extend the timeline by two weeks," "add a new integration requirement" ,  the request must go through a controlled process: log the change formally, assess its impact on scope, timeline, and budget, get approval from the change control board, implement the approved change, and verify the result. Each step depends on the previous one, and you need a complete audit trail for compliance.
 
@@ -12,7 +10,7 @@ Without orchestration, change management devolves into email threads and spreads
 
 **You just write the change submission, impact assessment, approval gating, implementation, and verification logic. Conductor handles impact analysis retries, approval routing, and change control audit trails.**
 
-Each step in the change request lifecycle is a simple, independent worker .  one submits and logs the request, one assesses impact, one handles the approval gate, one implements the change, one verifies the outcome. Conductor takes care of executing them in strict sequence, ensuring no step is skipped, retrying if an external system is temporarily down, and maintaining a complete execution history that serves as your audit trail. You get all of that for free, without writing a single line of orchestration code.
+Each step in the change request lifecycle is a simple, independent worker .  one submits and logs the request, one assesses impact, one handles the approval gate, one implements the change, one verifies the outcome. Conductor takes care of executing them in strict sequence, ensuring no step is skipped, retrying if an external system is temporarily down, and maintaining a complete execution history that serves as your audit trail. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Request intake, impact analysis, approval routing, and implementation tracking w
 | **VerifyWorker** | `chr_verify` | Confirms the change was implemented correctly and project artifacts are consistent |
 
 Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ chr_implement
     │
     ▼
 chr_verify
-```
-
-## Example Output
-
-```
-=== Example 360: Change Request ===
-
-Step 1: Registering task definitions...
-  Registered: chr_submit, chr_assess_impact, chr_approve, chr_implement, chr_verify
-
-Step 2: Registering workflow 'change_request_change-request'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Change
-  [impact] Assessing impact of
-  [implement] Implementing change
-  [submit] Change request
-  [verify] Verifying change
-
-  Status: COMPLETED
-  Output: {approval=..., impact=..., result=..., details=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

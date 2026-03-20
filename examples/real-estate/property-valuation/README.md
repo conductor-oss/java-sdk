@@ -1,8 +1,6 @@
 # Property Valuation in Java with Conductor :  Comparable Sales, Market Analysis, Appraisal, and Report
 
-A Java Conductor workflow example for automated property valuation .  collecting comparable sales data (comps), analyzing market trends, generating an appraisal estimate, and producing a formal valuation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for automated property valuation .  collecting comparable sales data (comps), analyzing market trends, generating an appraisal estimate, and producing a formal valuation report. Uses [Conductor](https://github.## The Problem
 
 You need to determine the market value of a property. An accurate valuation requires gathering recent comparable sales in the same neighborhood (same size, age, features), analyzing how the comps compare to the subject property (adjusting for differences in square footage, lot size, upgrades), producing an appraised value based on the analysis, and generating a formal report that lenders and buyers can rely on. Each step depends on the previous one .  the analysis needs comps, the appraisal needs the analysis, and the report needs everything.
 
@@ -12,7 +10,7 @@ Without orchestration, property valuations are manual and inconsistent. Appraise
 
 **You just write the comparable sales collection, market analysis, appraisal estimation, and report generation logic. Conductor handles comparable search retries, adjustment calculations, and appraisal audit trails.**
 
-Each valuation step is a simple, independent worker .  one collects comparable sales, one performs market analysis with adjustments, one produces the appraisal estimate, one generates the formal report. Conductor takes care of executing them in order, retrying if the MLS data feed times out, and tracking every valuation from comps collection through report delivery. You get all of that for free, without writing a single line of orchestration code.
+Each valuation step is a simple, independent worker .  one collects comparable sales, one performs market analysis with adjustments, one produces the appraisal estimate, one generates the formal report. Conductor takes care of executing them in order, retrying if the MLS data feed times out, and tracking every valuation from comps collection through report delivery. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Data collection, comparable analysis, adjustment calculation, and appraisal repo
 
 Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ pvl_appraise
     │
     ▼
 pvl_report
-```
-
-## Example Output
-
-```
-=== Example 682: Property Valuatio ===
-
-Step 1: Registering task definitions...
-  Registered: pvl_collect_comps, pvl_analyze, pvl_appraise, pvl_report
-
-Step 2: Registering workflow 'pvl_property_valuation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Average comp price analyzed
-  [appraise] Appraised value: $465000
-  [comps] Collecting comparables near
-  [report] Valuation report generated
-
-  Status: COMPLETED
-  Output: {analysis=..., appraisal=..., comps=..., reportId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pvl_property_valuation \
   --version 1 \
-  --input '{"propertyId": "PROP-200", "PROP-200": "address", "address": "123 Oak Lane, Austin TX", "123 Oak Lane, Austin TX": "sample-123 Oak Lane, Austin TX"}'
+  --input '{"propertyId": "TEST-001", "address": "test-value"}'
 ```
 
 ### Check workflow status

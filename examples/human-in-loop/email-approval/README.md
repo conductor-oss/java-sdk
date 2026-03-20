@@ -1,8 +1,6 @@
 # Email-Based Approval in Java Using Conductor :  Request Preparation, Approval Email with Click Links, WAIT for Response, and Decision Processing
 
-A Java Conductor workflow example for email-based approvals .  preparing a request, sending an email with embedded approve/reject URLs that map to the workflow's WAIT task, pausing until the approver clicks one of the links, and processing the resulting decision. Demonstrates how approvers who do not have dashboard access can approve directly from their inbox with a single click. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for email-based approvals .  preparing a request, sending an email with embedded approve/reject URLs that map to the workflow's WAIT task, pausing until the approver clicks one of the links, and processing the resulting decision. Demonstrates how approvers who do not have dashboard access can approve directly from their inbox with a single click. Uses [Conductor](https://github.## The Problem
 
 You need approvals from people who live in their email .  executives, external partners, or field workers who will never log into an approval dashboard. The workflow must prepare the request, send an email containing one-click approve and reject URLs, and wait for the approver to click one. Each URL maps to a unique Conductor WAIT task completion endpoint, so clicking "Approve" sends `{ "decision": "approved" }` and clicking "Reject" sends `{ "decision": "rejected" }` ,  completing the WAIT task and resuming the workflow. The decision must then be processed downstream. If the email provider is temporarily down, the send must retry without re-preparing the request. If the decision processing fails, it must retry without re-sending the email.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd send the email, embed callback URLs pointing to a c
 
 **You just write the request-preparation, email-sending, and decision-processing workers. Conductor handles the durable wait for the approver's one-click response.**
 
-The WAIT task is the key pattern here. After preparing the request and sending the email with embedded approve/reject URLs, the workflow pauses at the WAIT task. When the approver clicks a link, the URL triggers a Conductor API call that completes the WAIT task with the decision. The process-decision worker then handles the result. Conductor takes care of holding the workflow durably while the approver reads their email, accepting the one-click decision via the API, retrying email delivery if the email provider is temporarily unavailable (without re-preparing), and providing a complete timeline from email sent to link clicked to decision processed. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After preparing the request and sending the email with embedded approve/reject URLs, the workflow pauses at the WAIT task. When the approver clicks a link, the URL triggers a Conductor API call that completes the WAIT task with the decision. The process-decision worker then handles the result. Conductor takes care of holding the workflow durably while the approver reads their email, accepting the one-click decision via the API, retrying email delivery if the email provider is temporarily unavailable (without re-preparing), and providing a complete timeline from email sent to link clicked to decision processed. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ PrepareWorker validates the request, SendEmailWorker delivers approve/reject lin
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ email_response [WAIT]
     │
     ▼
 ea_process_decision
-```
-
-## Example Output
-
-```
-=== Email-Based Approval with Click Links Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'email_approval_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [prepare] Processing
-  [ea_process_decision] Processing decision:
-  [ea_send_email] Sending approval email for workflow
-
-  Status: COMPLETED
-  Output: {ready=..., processed=..., sent=..., approveUrl=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow email_approval_workflow \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Graceful Worker Shutdown in Java Using Conductor :  Signal, Drain, Complete, Checkpoint, Stop
 
-A Java Conductor workflow example for graceful worker shutdown .  signaling a worker group to stop accepting new tasks, draining the task queue within a configurable timeout, completing all in-flight tasks, checkpointing the current state, and finally stopping the workers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Killing Workers Loses Work
+A Java Conductor workflow example for graceful worker shutdown .  signaling a worker group to stop accepting new tasks, draining the task queue within a configurable timeout, completing all in-flight tasks, checkpointing the current state, and finally stopping the workers. Uses [Conductor](https://github.## Killing Workers Loses Work
 
 Sending `kill -9` to a worker process terminates it instantly .  any in-flight tasks get orphaned, partial results are lost, and the next worker restart has no idea where the previous instance left off. Messages get redelivered, duplicates appear, and the ops team spends an hour figuring out which tasks need to be manually retried.
 
@@ -28,15 +26,6 @@ Five workers enforce the shutdown protocol: signal broadcast, queue draining, in
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ gsh_checkpoint
     │
     ▼
 gsh_stop
-```
-
-## Example Output
-
-```
-=== Graceful Shutdown Demo ===
-
-Step 1: Registering task definitions...
-  Registered: gsh_signal, gsh_drain_tasks, gsh_complete_inflight, gsh_checkpoint, gsh_stop
-
-Step 2: Registering workflow 'gsh_graceful_shutdown'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [checkpoint] Processing
-  [complete] Processing
-  [drain] Processing
-  [signal] Processing
-  [stop] Processing
-
-  Status: COMPLETED
-  Output: {checkpointId=..., completedCount=..., completedTasks=..., drainedCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gsh_graceful_shutdown \
   --version 1 \
-  --input '{"workerGroup": "sample-workerGroup", "order-processors": "sample-order-processors", "drainTimeoutSec": "2025-01-15T10:00:00Z"}'
+  --input '{"workerGroup": "test-value", "drainTimeoutSec": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

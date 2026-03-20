@@ -1,8 +1,6 @@
 # Webhook Retry in Java Using Conductor
 
-Webhook delivery workflow with DO_WHILE retry loop. Prepares the webhook, attempts delivery up to 3 times, checks each result, and records the final outcome. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Webhook delivery workflow with DO_WHILE retry loop. Prepares the webhook, attempts delivery up to 3 times, checks each result, and records the final outcome. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to deliver webhook payloads to external URLs with automatic retry on failure. The workflow prepares the webhook payload, attempts delivery to the target URL, and retries up to a configurable number of times with backoff if delivery fails (network error, timeout, non-2xx response). After all attempts, the final outcome is recorded. Without retry, transient network issues cause permanent webhook delivery failures.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a retry loop with exponential backoff, manual
 
 **You just write the payload-prepare, delivery-attempt, result-check, and outcome-recording workers. Conductor handles DO_WHILE retry loops, durable delivery state across attempts, and a complete record of every delivery attempt and final outcome.**
 
-Each delivery concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of preparing the payload, attempting delivery in a DO_WHILE retry loop, checking each result, and recording the final outcome ,  with durable state that survives crashes and full visibility into every delivery attempt. You get all of that for free, without writing a single line of orchestration code.
+Each delivery concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of preparing the payload, attempting delivery in a DO_WHILE retry loop, checking each result, and recording the final outcome ,  with durable state that survives crashes and full visibility into every delivery attempt. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Four workers manage retry-based delivery: PrepareWebhookWorker packages the payl
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ DO_WHILE
     │
     ▼
 wr_record_outcome
-```
-
-## Example Output
-
-```
-=== Webhook Retry Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: wr_prepare_webhook, wr_attempt_delivery, wr_check_result, wr_record_outcome
-
-Step 2: Registering workflow 'webhook_retry_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wr_attempt_delivery] Attempt
-  [wr_check_result] Status
-  [wr_prepare_webhook] Preparing webhook for:
-  [wr_record_outcome] Delivered to
-
-  Status: COMPLETED
-  Output: {statusCode=..., attempt=..., backoffMs=..., success=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow webhook_retry_wf \
   --version 1 \
-  --input '{"webhookUrl": "https://api.example.com/webhook", "https://api.example.com/webhook": "payload", "payload": {"key": "value"}}'
+  --input '{"webhookUrl": "https://example.com", "payload": "test-value"}'
 ```
 
 ### Check workflow status

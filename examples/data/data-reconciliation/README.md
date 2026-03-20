@@ -1,8 +1,6 @@
 # Data Reconciliation in Java Using Conductor :  Cross-System Comparison and Discrepancy Reporting
 
-A Java Conductor workflow example for data reconciliation. fetching records from two independent sources (e.g., billing system and fulfillment system), comparing them by a configurable key field to find matches, mismatches, and records missing from either side, and generating a discrepancy report with reconciliation rate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data reconciliation. fetching records from two independent sources (e.g., billing system and fulfillment system), comparing them by a configurable key field to find matches, mismatches, and records missing from either side, and generating a discrepancy report with reconciliation rate. Uses [Conductor](https://github.## The Problem
 
 You have the same data in two systems. Orders in billing and orders in fulfillment, transactions in the ledger and transactions in the payment gateway, inventory in the warehouse system and inventory in the ERP. These systems should agree, but they drift. You need to fetch records from both sources, join them by a key field (order ID, transaction ID), identify records that match perfectly, records that exist in both but have different values (amount mismatches, status discrepancies), and records that exist in one system but not the other. The result is a reconciliation report showing exactly where the systems disagree.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a script that connects to both databases, pul
 
 **You just write the source fetching, record comparison, and discrepancy reporting workers. Conductor handles fetch-compare-report sequencing, retries when either data source is temporarily unavailable, and full tracking of match and mismatch counts.**
 
-Each stage of the reconciliation is a simple, independent worker. Source A and Source B fetch workers each connect to their respective system and return records. The comparator joins records by the configured key field and classifies each as matched, mismatched, missing-in-A, or missing-in-B. The report generator computes the reconciliation rate and lists every discrepancy. Conductor executes them in sequence, retries if a data source is temporarily unavailable, and tracks exactly how many records were fetched, matched, and mismatched. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the reconciliation is a simple, independent worker. Source A and Source B fetch workers each connect to their respective system and return records. The comparator joins records by the configured key field and classifies each as matched, mismatched, missing-in-A, or missing-in-B. The report generator computes the reconciliation rate and lists every discrepancy. Conductor executes them in sequence, retries if a data source is temporarily unavailable, and tracks exactly how many records were fetched, matched, and mismatched. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers handle cross-system reconciliation: fetching records from source A 
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ rc_compare_records
     │
     ▼
 rc_generate_discrepancy_report
-```
-
-## Example Output
-
-```
-=== Data Reconciliation Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rc_fetch_source_a, rc_fetch_source_b, rc_compare_records, rc_generate_discrepancy_report
-
-Step 2: Registering workflow 'data_reconciliation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [compare] Matched:
-  [source_a] Fetched
-  [source_b] Fetched
-  [report] Reconciliation rate:
-
-  Status: COMPLETED
-  Output: {key=..., differingFields=..., sourceA=..., sourceB=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_reconciliation \
   --version 1 \
-  --input '{"sourceA": "sample-sourceA", "system": "sample-system", "billing": "sample-billing", "table": "sample-table", "sourceB": "sample-sourceB", "fulfillment": "sample-fulfillment", "keyField": "sample-keyField"}'
+  --input '{"sourceA": "test-value", "sourceB": "test-value", "keyField": "test-value"}'
 ```
 
 ### Check workflow status

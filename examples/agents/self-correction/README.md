@@ -1,8 +1,6 @@
 # Self-Correction Agent in Java Using Conductor :  Generate Code, Test, Diagnose, Fix
 
-Self-Correction .  generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## AI-Generated Code Needs Testing and Self-Repair
+Self-Correction .  generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering. Uses [Conductor](https://github.## AI-Generated Code Needs Testing and Self-Repair
 
 LLM-generated code works on the first try about 60-70% of the time. The remaining 30-40% has bugs .  off-by-one errors, missing edge cases, incorrect API usage. A self-correcting agent doesn't just generate code; it tests the code, and if tests fail, it diagnoses what went wrong and fixes it.
 
@@ -27,16 +25,6 @@ Four workers implement self-correction. Generating code, running tests, and on f
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,35 +37,6 @@ sc_run_tests
 SWITCH (test_result_switch_ref)
     ├── pass: sc_deliver
     ├── fail: sc_diagnose -> sc_fix -> sc_deliver
-```
-
-## Example Output
-
-```
-=== Self-Correction Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sc_generate_code, sc_run_tests, sc_diagnose, sc_fix, sc_deliver
-
-Step 2: Registering workflow 'self_correction'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sc_deliver] Delivering code (wasFixed=
-  [sc_diagnose] Diagnosing
-  [sc_fix] Applying fix based on diagnosis...
-  [sc_generate_code] Generating code for:
-  [sc_run_tests] Running tests on code...
-
-  Status: COMPLETED
-  Output: {deliveredCode=..., deliveryStatus=..., diagnosis=..., severity=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow self_correction \
   --version 1 \
-  --input '{"requirement": "sample-requirement"}'
+  --input '{"requirement": "test-value"}'
 ```
 
 ### Check workflow status
@@ -174,7 +133,7 @@ Replace with real code generation and test execution; the generate-test-fix pipe
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
 
-A Java Conductor workflow that generates code, runs tests, and self-corrects on failure .  generating code from a requirement, running test cases, then routing via `SWITCH`: if tests pass, the code is delivered; if tests fail, the agent diagnoses the failures, fixes the code, and delivers the corrected version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate code generation, testing, conditional diagnosis, and fixing as independent workers ,  you write the generation and testing logic, Conductor handles the pass/fail routing, retries, durability, and observability for free.
+A Java Conductor workflow that generates code, runs tests, and self-corrects on failure .  generating code from a requirement, running test cases, then routing via `SWITCH`: if tests pass, the code is delivered; if tests fail, the agent diagnoses the failures, fixes the code, and delivers the corrected version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate code generation, testing, conditional diagnosis, and fixing as independent workers ,  you write the generation and testing logic, Conductor handles the pass/fail routing, retries, durability, and observability.
 
 ## Project Structure
 

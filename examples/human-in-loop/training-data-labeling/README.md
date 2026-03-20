@@ -1,8 +1,6 @@
 # Training Data Labeling in Java Using Conductor :  Batch Preparation, Parallel Annotator WAIT Tasks via FORK_JOIN, Inter-Annotator Agreement Computation, and Label Storage
 
-A Java Conductor workflow example for ML training data quality .  preparing a labeling batch, using FORK_JOIN to run two parallel WAIT tasks so independent annotators label the same items simultaneously, computing inter-annotator agreement (matching vs: differing labels, agreement percentage) after both annotators complete, and storing the final labels with quality metrics. The FORK_JOIN ensures neither annotator sees the other's labels, and the agreement computation compares label arrays element-by-element to produce agreements, disagreements, total, and agreementPct. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Training Data Labeling Needs Parallel Annotators and Agreement Computation
+A Java Conductor workflow example for ML training data quality .  preparing a labeling batch, using FORK_JOIN to run two parallel WAIT tasks so independent annotators label the same items simultaneously, computing inter-annotator agreement (matching vs: differing labels, agreement percentage) after both annotators complete, and storing the final labels with quality metrics. The FORK_JOIN ensures neither annotator sees the other's labels, and the agreement computation compares label arrays element-by-element to produce agreements, disagreements, total, and agreementPct. Uses [Conductor](https://github.## Training Data Labeling Needs Parallel Annotators and Agreement Computation
 
 High-quality training data requires multiple annotators to label the same items independently (via parallel WAIT tasks), then compute inter-annotator agreement to measure label reliability. The workflow prepares a batch, two annotators label it in parallel, agreement is computed (e.g., Cohen's kappa), and the final labels are stored. If the agreement computation fails, you need to retry it without asking the annotators to re-label.
 
@@ -25,16 +23,6 @@ PrepareBatchWorker identifies items to label, ComputeAgreementWorker compares an
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -51,33 +39,6 @@ tdl_compute_agreement
     │
     ▼
 tdl_store_labels
-```
-
-## Example Output
-
-```
-=== Training Data Labeling: Parallel Annotators with Agreement ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'training_data_labeling'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tdl_compute_agreement] Computing inter-annotator agreement...
-  [tdl_prepare_batch] Preparing batch for labeling...
-  [tdl_store_labels] Storing labeled data...
-
-  Status: COMPLETED
-  Output: {agreements=..., disagreements=..., total=..., agreementPct=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +67,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +110,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow training_data_labeling \
   --version 1 \
-  --input '{"batchId": "batch-001", "batch-001": "sample-batch-001"}'
+  --input '{"batchId": "TEST-001"}'
 ```
 
 ### Check workflow status

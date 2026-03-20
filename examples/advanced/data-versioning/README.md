@@ -1,8 +1,6 @@
 # Dataset Versioning in Java Using Conductor :  Snapshot, Tag, Diff, and Rollback
 
-A Java Conductor workflow example for dataset versioning .  taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Datasets Change, and You Need to Track How
+A Java Conductor workflow example for dataset versioning .  taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.## Datasets Change, and You Need to Track How
 
 A data pipeline updates your ML training dataset daily. Yesterday's model performed well, but today's retrained model has degraded accuracy. Was it the new data? Which rows changed? Can you roll back to yesterday's version and retrain? Without versioning, you're guessing .  there's no snapshot to compare against, no diff to show what changed, and no tag to identify which version produced the good model.
 
@@ -28,15 +26,6 @@ Five workers manage the version lifecycle: snapshot capture, tag assignment, met
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ dvr_diff
     │
     ▼
 dvr_rollback
-```
-
-## Example Output
-
-```
-=== Data Versioning Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dvr_snapshot, dvr_tag, dvr_store, dvr_diff, dvr_rollback
-
-Step 2: Registering workflow 'data_versioning_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [diff] Processing
-  [rollback] Processing
-  [snapshot] Processing
-  [store] Processing
-  [tag] Processing
-
-  Status: COMPLETED
-  Output: {summary=..., diffStats=..., needsRollback=..., rolledBack=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_versioning_demo \
   --version 1 \
-  --input '{"datasetId": "DS-TRANSACTIONS", "DS-TRANSACTIONS": "tagName", "tagName": "v2.3.0", "v2.3.0": "previousTag", "previousTag": "v2.2.0", "v2.2.0": "sample-v2.2.0"}'
+  --input '{"datasetId": "TEST-001", "tagName": "test", "previousTag": "test-value"}'
 ```
 
 ### Check workflow status

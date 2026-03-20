@@ -1,8 +1,6 @@
 # Tool Use Rate Limiting in Java Using Conductor :  Check Limits, Execute-or-Queue, Delayed Execution
 
-Tool Use Rate Limiting .  checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## APIs Have Rate Limits :  Respect Them
+Tool Use Rate Limiting .  checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.## APIs Have Rate Limits :  Respect Them
 
 Most external APIs enforce rate limits: OpenAI allows a certain number of requests per minute, Google Maps has a daily quota, and many services return 429 (Too Many Requests) when you exceed the limit. Hitting rate limits causes errors, potential API key suspension, and degraded user experience.
 
@@ -27,16 +25,6 @@ Four workers manage rate limits. Checking the quota, routing allowed requests to
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,34 +34,6 @@ rl_check_rate_limit
 SWITCH (rate_limit_decision_ref)
     ├── allowed: rl_execute_tool
     └── default: rl_queue_request -> rl_delayed_execute
-```
-
-## Example Output
-
-```
-=== Tool Use Rate Limiting Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rl_check_rate_limit, rl_execute_tool, rl_queue_request, rl_delayed_execute
-
-Step 2: Registering workflow 'tool_use_rate_limiting'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [rl_check_rate_limit] Checking rate limit for tool:
-  [rl_delayed_execute] Executing delayed request:
-  [rl_execute_tool] Executing tool immediately:
-  [rl_queue_request] Queuing request for tool:
-
-  Status: COMPLETED
-  Output: {quotaUsed=..., quotaLimit=..., quotaRemaining=..., decision=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_rate_limiting \
   --version 1 \
-  --input '{"toolName": "sample-name", "translation_api": "sample-translation-api", "toolArgs": "sample-toolArgs", "text": "Sample text", "Hello, how are you today?": "sample-Hello, how are you today?", "from": "sample-from", "en": "sample-en", "to": "sample-to", "apiKey": "sample-apiKey"}'
+  --input '{"toolName": "test", "toolArgs": "test-value", "apiKey": "test-value"}'
 ```
 
 ### Check workflow status
@@ -169,7 +129,6 @@ Connect to Redis for real quota tracking; the rate-limiting workflow maintains t
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

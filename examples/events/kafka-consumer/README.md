@@ -1,8 +1,6 @@
 # Kafka Consumer in Java Using Conductor
 
-Kafka consumer pipeline: receives a message, deserializes it, processes the payload, and commits the offset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Kafka consumer pipeline: receives a message, deserializes it, processes the payload, and commits the offset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to process messages from a Kafka topic reliably. Each message must be received from a specific topic/partition/offset, deserialized from its wire format, processed according to your business logic, and have its offset committed only after successful processing. Committing the offset before processing is complete means you lose the message on failure; not committing means you reprocess it on restart.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a Kafka consumer loop with manual offset mana
 
 **You just write the message-receive, deserialize, process, and offset-commit workers. Conductor handles receive-to-commit sequencing, guaranteed offset commit only after processing, and per-message lifecycle tracking.**
 
-Each Kafka consumption concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the message, deserializing it, processing the payload, and committing the offset ,  retrying on transient failures, tracking every message's processing lifecycle, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each Kafka consumption concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the message, deserializing it, processing the payload, and committing the offset ,  retrying on transient failures, tracking every message's processing lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the Kafka consumption pipeline: ReceiveMessage extracts the ra
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ kc_process_payload
     │
     ▼
 kc_commit_offset
-```
-
-## Example Output
-
-```
-=== Kafka Consumer Demo: Message Processing Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: kc_commit_offset, kc_deserialize, kc_process_payload, kc_receive_message
-
-Step 2: Registering workflow 'kafka_consumer_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [kc_commit_offset] Committing offset=
-  [kc_deserialize] Deserializing message in format=
-  [kc_process_payload] Processing messageType=
-  [kc_receive_message] Received message from topic=
-
-  Status: COMPLETED
-  Output: {committed=..., committedOffset=..., nextOffset=..., committedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow kafka_consumer_wf \
   --version 1 \
-  --input '{"topic": "events.orders", "partition": "sample-partition", "offset": "sample-offset", "messageKey": "sample-messageKey", "messageValue": "sample-messageValue"}'
+  --input '{"topic": "test-value", "partition": "test-value", "offset": "test-value", "messageKey": "test-value", "messageValue": "test-value"}'
 ```
 
 ### Check workflow status

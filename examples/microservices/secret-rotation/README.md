@@ -1,8 +1,6 @@
 # Secret Rotation in Java with Conductor
 
-Rotate secrets across services securely. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Rotate secrets across services securely. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Secrets (API keys, database passwords, encryption keys) must be rotated periodically to limit the blast radius of a leak. Rotation involves generating a new secret, storing it in a vault, updating every dependent service to use the new secret, and verifying that all services have switched over and the old secret is revoked.
 
@@ -27,15 +25,6 @@ Four workers automate the rotation lifecycle: GenerateSecretWorker produces a ne
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ sr_update_services
     │
     ▼
 sr_verify_rotation
-```
-
-## Example Output
-
-```
-=== Example 300: Secret Rotatio ===
-
-Step 1: Registering task definitions...
-  Registered: sr_generate_secret, sr_store_secret, sr_update_services, sr_verify_rotation
-
-Step 2: Registering workflow 'secret_rotation_300'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [generate] Generating new secret for \"" + secretName + "\"...
-  [store] Storing secret
-  [update] Updating
-  [verify] Verifying secret rotation for \"" + secretName + "\"...
-
-  Status: COMPLETED
-  Output: {secretId=..., algorithm=..., expiresAt=..., generatedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow secret_rotation_300 \
   --version 1 \
-  --input '{"secretName": "sample-name", "db-password": "sample-db-password", "targetServices": "sample-targetServices", "api-service": "sample-api-service", "worker-service": "sample-worker-service"}'
+  --input '{"secretName": "test", "targetServices": "test-value"}'
 ```
 
 ### Check workflow status

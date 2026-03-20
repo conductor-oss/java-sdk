@@ -1,8 +1,6 @@
 # Task Definitions in Java with Conductor
 
-Task definitions test .  runs td_fast_task to verify task definition configuration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Task definitions test .  runs td_fast_task to verify task definition configuration. Uses [Conductor](https://github.## The Problem
 
 You need to configure per-task behavior: retry counts, retry strategies (FIXED vs EXPONENTIAL_BACKOFF), timeout durations, and response timeouts, independently from the workflow definition. Task definitions let you set these policies once and have them apply everywhere the task is used, across multiple workflows.
 
@@ -24,44 +22,10 @@ One intentionally trivial worker demonstrates task definition configuration: Fas
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 td_fast_task
-```
-
-## Example Output
-
-```
-=== Task Definitions Demo: Configure Retries, Timeouts, Concurrency ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'task_def_test'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [td_fast_task] Executing fast task
-
-  Status: COMPLETED
-  Output: {done=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow task_def_test \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

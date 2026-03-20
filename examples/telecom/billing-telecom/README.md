@@ -1,8 +1,6 @@
 # Billing Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates the telecom billing cycle .  collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Telecom Billing Needs Orchestration
+A Java Conductor workflow example that orchestrates the telecom billing cycle .  collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.## Why Telecom Billing Needs Orchestration
 
 Running a billing cycle requires a strict pipeline where each step depends on the previous one. You collect all usage records (CDRs, IPDRs) for the customer's billing period. You rate each record by applying the correct tariff based on the customer's plan, time of day, destination, and any bundled allowances. You generate an invoice that itemizes the rated charges and calculates the total. You send the invoice to the customer via their preferred channel. Finally, you collect payment by charging the customer's payment method on file.
 
@@ -28,15 +26,6 @@ Usage collection, charge calculation, invoice generation, and payment processing
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ btl_send
     │
     ▼
 btl_collect_payment
-```
-
-## Example Output
-
-```
-=== Example 811: Billing (Telecom) ===
-
-Step 1: Registering task definitions...
-  Registered: btl_collect_usage, btl_rate, btl_invoice, btl_send, btl_collect_payment
-
-Step 2: Registering workflow 'btl_billing_telecom'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Payment collected
-  [collect_usage] Processing
-  [invoice] Invoice generated .  total: $54.50
-  [rate] Usage rated .  voice: $16.00, data: $31.00, sms: $7.50
-  [send] Processing
-
-  Status: COMPLETED
-  Output: {paymentStatus=..., paidAt=..., usageRecords=..., invoiceId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow btl_billing_telecom \
   --version 1 \
-  --input '{"customerId": "CUST-811", "CUST-811": "billingPeriod", "billingPeriod": "2024-03", "2024-03": "sample-2024-03"}'
+  --input '{"customerId": "TEST-001", "billingPeriod": "test-value"}'
 ```
 
 ### Check workflow status

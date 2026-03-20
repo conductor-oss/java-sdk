@@ -1,8 +1,6 @@
 # Data Partitioning in Java Using Conductor :  Split, Parallel Process, and Merge
 
-A Java Conductor workflow example for data partitioning. splitting a dataset into two partitions based on a configurable partition key, processing both partitions simultaneously using `FORK_JOIN` parallelism, and merging the results back into a unified dataset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data partitioning. splitting a dataset into two partitions based on a configurable partition key, processing both partitions simultaneously using `FORK_JOIN` parallelism, and merging the results back into a unified dataset. Uses [Conductor](https://github.## The Problem
 
 You have a large dataset that's too slow to process sequentially, but you can split it into independent partitions and process them in parallel. That means dividing records based on a partition key (region, category, hash), running the same processing logic against each partition simultaneously, and combining the results back into a single output. If one partition fails (bad data, timeout), the other partition's work shouldn't be lost.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage `ExecutorService` thread pools manually, sub
 
 **You just write the data splitting, partition processing, and result merging workers. Conductor handles parallel partition processing via FORK_JOIN, independent per-partition retries, and crash recovery that resumes only the incomplete partition.**
 
-Each concern is a simple, independent worker. The splitter divides the dataset into two partitions. The partition workers each process their half of the data independently. The merger combines results from both partitions into a unified output with counts from each. Conductor's `FORK_JOIN` runs both partitions simultaneously, waits for both to complete, and then triggers the merge. If one partition fails, Conductor retries just that partition. If the process crashes after one partition finishes, Conductor resumes only the incomplete one. You get all of that for free, without writing a single line of thread pool or synchronization code.
+Each concern is a simple, independent worker. The splitter divides the dataset into two partitions. The partition workers each process their half of the data independently. The merger combines results from both partitions into a unified output with counts from each. Conductor's `FORK_JOIN` runs both partitions simultaneously, waits for both to complete, and then triggers the merge. If one partition fails, Conductor retries just that partition. If the process crashes after one partition finishes, Conductor resumes only the incomplete one. You get all of that, without writing a single line of thread pool or synchronization code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Four workers implement the split-process-merge pattern: dividing the dataset int
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -50,34 +38,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 par_merge_results
-```
-
-## Example Output
-
-```
-=== Data Partitioning Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: par_split_data, par_process_partition_a, par_process_partition_b, par_merge_results
-
-Step 2: Registering workflow 'data_partitioning_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [par_merge_results]
-  [par_process_partition_a] Processed
-  [par_process_partition_b] Processed
-  [par_split_data] Split
-
-  Status: COMPLETED
-  Output: {mergedCount=..., summary=..., records=..., processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_partitioning_wf \
   --version 1 \
-  --input '{"records": ["item-1", "item-2", "item-3"]}'
+  --input '{"records": "test-value", "partitionKey": "test-value"}'
 ```
 
 ### Check workflow status

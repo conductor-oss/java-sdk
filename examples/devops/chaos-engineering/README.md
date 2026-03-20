@@ -1,8 +1,6 @@
 # Chaos Engineering in Java with Conductor :  Experiment Design, Fault Injection, Observation, and Recovery
 
-Orchestrates controlled chaos experiments using [Conductor](https://github.com/conductor-oss/conductor). This workflow defines an experiment (target service, fault type like CPU stress, network latency, or pod kill), injects the failure into the live system, observes the system's behavior during the fault (error rates, latency, recovery time), and then recovers by removing the injected failure. You write the chaos logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Proving Your System Breaks Gracefully
+Orchestrates controlled chaos experiments using [Conductor](https://github.com/conductor-oss/conductor). This workflow defines an experiment (target service, fault type like CPU stress, network latency, or pod kill), injects the failure into the live system, observes the system's behavior during the fault (error rates, latency, recovery time), and then recovers by removing the injected failure.## Proving Your System Breaks Gracefully
 
 Your microservices architecture claims to be resilient, but you've never actually killed a database connection mid-request or added 500ms of network latency to the payment service. Chaos engineering means deliberately injecting failures. Pod kills, CPU stress, network partitions, disk pressure, and observing whether your system degrades gracefully or falls over. Each experiment needs a clear definition (what to break and how), controlled fault injection, real-time observation of the impact, and guaranteed recovery that removes the injected failure regardless of what happened during observation.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd SSH into a server, run a stress-ng command, watch G
 
 **You write the fault injection and observation logic. Conductor handles experiment sequencing, guaranteed recovery, and complete experiment audit trails.**
 
-Each stage of the chaos experiment is a simple, independent worker. The experiment definer creates a structured experiment plan. Specifying the target service, fault type (CPU stress, network latency, pod kill), blast radius, and success criteria. The fault injector applies the specified failure to the target service in a controlled way. The observer monitors the system during the fault, recording error rates, latency spikes, and whether circuit breakers engaged. The recoverer removes the injected fault, restoring the system to its pre-experiment state. Conductor executes them in strict sequence, ensures recovery always runs even if observation reveals problems, and provides a complete audit trail of every chaos experiment. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the chaos experiment is a simple, independent worker. The experiment definer creates a structured experiment plan. Specifying the target service, fault type (CPU stress, network latency, pod kill), blast radius, and success criteria. The fault injector applies the specified failure to the target service in a controlled way. The observer monitors the system during the fault, recording error rates, latency spikes, and whether circuit breakers engaged. The recoverer removes the injected fault, restoring the system to its pre-experiment state. Conductor executes them in strict sequence, ensures recovery always runs even if observation reveals problems, and provides a complete audit trail of every chaos experiment. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers run the chaos experiment. Defining the fault parameters, injecting 
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +38,6 @@ ce_observe
     │
     ▼
 ce_recover
-```
-
-## Example Output
-
-```
-=== Example 332: Chaos Engineering ===
-
-Step 1: Registering task definitions...
-  Registered: ce_define_experiment, ce_inject_failure, ce_observe, ce_recover
-
-Step 2: Registering workflow 'chaos_engineering_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [define] Experiment: latency-injection on payment-service
-  [inject] Injected 500ms latency on 50% of requests
-  [observe] System remained within SLO: p99 < 2s
-  [recover] Fault removed, system nominal
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow chaos_engineering_workflow \
   --version 1 \
-  --input '{"service": "sample-service", "payment-service": "sample-payment-service", "faultType": "standard"}'
+  --input '{"service": "test-value", "faultType": "test-value"}'
 ```
 
 ### Check workflow status

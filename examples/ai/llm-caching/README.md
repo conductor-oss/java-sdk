@@ -1,6 +1,6 @@
 # LLM Caching in Java Using Conductor :  Hash Prompts, Cache Responses, Track Savings
 
-A Java Conductor workflow that wraps LLM calls with a caching layer .  hashing each prompt to create a deterministic cache key, checking a cache before calling the model, storing new responses, and reporting cache hit rates and cost savings. Identical prompts return cached responses in milliseconds instead of waiting seconds for an LLM round-trip. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate hashing, cache-aware LLM calls, and savings reporting as independent workers ,  you write the caching and LLM logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that wraps LLM calls with a caching layer .  hashing each prompt to create a deterministic cache key, checking a cache before calling the model, storing new responses, and reporting cache hit rates and cost savings. Identical prompts return cached responses in milliseconds instead of waiting seconds for an LLM round-trip. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate hashing, cache-aware LLM calls, and savings reporting as independent workers ,  you write the caching and LLM logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Paying for the Same Answer Twice
 
@@ -26,15 +26,6 @@ Three workers implement the caching layer .  hashing the prompt and model into a
 
 **Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CacheLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) on cache miss. Without the key, it runs in simulated mode with deterministic output prefixed with `[SIMULATED]`. Non-LLM workers (hashing, reporting) always run their real logic.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,32 +36,6 @@ cache_llm_call
     │
     ▼
 cache_report
-```
-
-## Example Output
-
-```
-=== Llm Caching Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cache_hash_prompt, cache_llm_call, cache_report
-
-Step 2: Registering workflow 'llm_caching'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [hash_prompt] Processing
-  [llm_call] Processing
-  [report] Processing
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -99,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow llm_caching \
   --version 1 \
-  --input '{"prompt": "What is Conductor?", "What is Conductor?": "model", "model": "gpt-4", "gpt-4": "sample-gpt-4"}'
+  --input '{"prompt": "test-value", "model": "test-value"}'
 ```
 
 ### Check workflow status

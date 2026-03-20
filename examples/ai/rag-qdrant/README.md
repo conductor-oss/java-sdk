@@ -1,6 +1,6 @@
 # RAG with Qdrant in Java Using Conductor :  Vector Search with Payload Filtering
 
-A Java Conductor workflow that implements RAG using Qdrant .  embedding the question, searching a Qdrant collection with vector similarity and payload filtering (filtering by metadata fields like category, date, or access level alongside vector distance), and generating an answer from the results. Qdrant is an open-source vector database with rich payload filtering and gRPC/REST APIs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Qdrant search, and generation as independent workers ,  you write the Qdrant integration, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that implements RAG using Qdrant .  embedding the question, searching a Qdrant collection with vector similarity and payload filtering (filtering by metadata fields like category, date, or access level alongside vector distance), and generating an answer from the results. Qdrant is an open-source vector database with rich payload filtering and gRPC/REST APIs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Qdrant search, and generation as independent workers ,  you write the Qdrant integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG with Payload-Filtered Vector Search
 
@@ -26,15 +26,6 @@ Three workers integrate Qdrant into the RAG pipeline .  embedding the query, sea
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,34 +36,6 @@ qdrant_search
     │
     ▼
 qdrant_generate
-```
-
-## Example Output
-
-```
-=== RAG with Qdrant: Retrieval-Augmented Generatio ===
-
-Step 1: Registering task definitions...
-  Registered: qdrant_embed, qdrant_search, qdrant_generate
-
-Step 2: Registering workflow 'rag_qdrant_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [embed] Generated embedding via OpenAI API (LIVE):
-  [generate] Response from OpenAI API (LIVE)
-  [qdrant] Collection: \"" + collection
-                + "\", limit=
-
-  Status: COMPLETED
-  Output: {embedding=..., answer=..., id=..., version=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -101,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_qdrant_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "How does Qdrant filter during search?": "sample-How does Qdrant filter during search?", "collection": "sample-collection"}'
+  --input '{"question": "test-value", "collection": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Message Correlation in Java Using Conductor :  Group Related Messages by ID and Process Together
 
-A Java Conductor workflow example for message correlation .  receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Linking Messages That Belong Together
+A Java Conductor workflow example for message correlation .  receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.## Linking Messages That Belong Together
 
 A single customer order generates events from the payment service, the inventory service, and the shipping service. Each event arrives independently with its own schema, but they all share an order ID. To build a complete order view .  payment confirmed, items reserved, label printed ,  you need to match these messages by their correlation field, group them, and process each group as a whole.
 
@@ -27,15 +25,6 @@ Four workers handle the match-and-group flow: message ingestion, correlation-ID 
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ crp_aggregate
     │
     ▼
 crp_process
-```
-
-## Example Output
-
-```
-=== Correlation Pattern Demo ===
-
-Step 1: Registering task definitions...
-  Registered: crp_receive_messages, crp_match_by_id, crp_aggregate, crp_process
-
-Step 2: Registering workflow 'crp_correlation_pattern'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Processing
-  [match] Processing
-  [process] Processing
-  [receive] Processing
-
-  Status: COMPLETED
-  Output: {aggregatedResults=..., correlatedGroups=..., groupCount=..., processedCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crp_correlation_pattern \
   --version 1 \
-  --input '{"messages": [{"id": "MSG-001", "amount": 150.0}, {"id": "MSG-002", "amount": 230.0}]}'
+  --input '{"messages": "test-value", "correlationField": "test-value"}'
 ```
 
 ### Check workflow status

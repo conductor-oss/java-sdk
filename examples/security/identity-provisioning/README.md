@@ -12,7 +12,7 @@ Without orchestration, identity provisioning is a manual checklist. IT creates a
 
 **You just write the IdP account creation and SCIM provisioning calls. Conductor handles strict sequencing so roles are assigned only after identity creation, retries on SCIM failures, and a compliance audit trail for every provisioning action.**
 
-Each provisioning step is an independent worker .  identity creation, role assignment, access provisioning, and setup verification. Conductor runs them in strict sequence: create the identity first, then assign roles, then provision access, then verify everything. Every provisioning action is tracked for compliance audit. You get all of that for free, without writing a single line of orchestration code.
+Each provisioning step is an independent worker .  identity creation, role assignment, access provisioning, and setup verification. Conductor runs them in strict sequence: create the identity first, then assign roles, then provision access, then verify everything. Every provisioning action is tracked for compliance audit. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ The provisioning pipeline sequences four workers: CreateIdentityWorker sets up t
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,33 +40,6 @@ ip_provision_access
     │
     ▼
 ip_verify_setup
-```
-
-## Example Output
-
-```
-=== Example 358: Identity Provisioning ===
-
-Step 1: Registering task definitions...
-  Registered: ip_create_identity, ip_assign_roles, ip_provision_access, ip_verify_setup
-
-Step 2: Registering workflow 'identity_provisioning_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [roles] Assigned role: senior-engineer
-  [identity] Created identity for jane.doe in engineering
-  [access] Provisioned: GitHub, AWS, Slack, Jira
-  [verify] User can access all provisioned systems
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow identity_provisioning_workflow \
   --version 1 \
-  --input '{"userId": "jane.doe", "jane.doe": "department", "department": "engineering", "engineering": "role", "role": "senior-engineer", "senior-engineer": "sample-senior-engineer"}'
+  --input '{"userId": "TEST-001", "department": "test-value", "role": "test-value"}'
 ```
 
 ### Check workflow status

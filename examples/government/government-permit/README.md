@@ -1,8 +1,6 @@
 # Government Permit in Java with Conductor
 
-Processes a government permit application: receiving the application, validating documents, routing to a zoning board review, and issuing or denying the permit via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Processes a government permit application: receiving the application, validating documents, routing to a zoning board review, and issuing or denying the permit via a SWITCH task. Uses [Conductor](https://github.## The Problem
 
 You need to process a government permit application. A citizen submits an application for a permit (building, business, event), the application is validated for completeness and jurisdiction, a reviewer assesses it against regulations and zoning rules, and the permit is either issued or denied with explanation. Issuing a permit without proper review creates legal liability for the government; denying without explanation violates due process.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage permits through a legacy system with paper f
 
 **You just write the application intake, document validation, zoning review, and permit issuance or denial logic. Conductor handles review retries, approval routing, and permit application audit trails.**
 
-Each permit concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the application flow (apply, validate, review, issue/deny), routing via a SWITCH task to the correct outcome, tracking every application with timestamps and reviewer notes, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each permit concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the application flow (apply, validate, review, issue/deny), routing via a SWITCH task to the correct outcome, tracking every application with timestamps and reviewer notes, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Application intake, document validation, zoning review, and permit issuance work
 | **ValidateWorker** | `gvp_validate` | Validates the application for completeness and verifies all required documents |
 
 Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -53,35 +41,6 @@ gvp_review
 SWITCH (gvp_switch_ref)
     ├── approve: gvp_issue
     ├── deny: gvp_deny
-```
-
-## Example Output
-
-```
-=== Example 521: Government Permit ===
-
-Step 1: Registering task definitions...
-  Registered: gvp_apply, gvp_validate, gvp_review, gvp_issue, gvp_deny
-
-Step 2: Registering workflow 'gvp_government_permit'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Processing
-  [deny] Processing
-  [issue] Processing
-  [review] Zoning board review complete .  approved
-  [validate] Application documents verified
-
-  Status: COMPLETED
-  Output: {application=..., denied=..., permitNumber=..., issued=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gvp_government_permit \
   --version 1 \
-  --input '{"applicantId": "CIT-100", "CIT-100": "permitType", "permitType": "building", "building": "details", "details": "New garage construction", "New garage construction": "sample-New garage construction"}'
+  --input '{"applicantId": "TEST-001", "permitType": "test-value", "details": "test-value"}'
 ```
 
 ### Check workflow status

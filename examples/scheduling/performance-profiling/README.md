@@ -12,7 +12,7 @@ Without orchestration, profiling is a manual process .  an engineer SSHs to a se
 
 **You just write the profiler integration and hotspot analysis logic. Conductor handles the instrument-collect-analyze-recommend sequence, retries when profiler attachment fails, and a durable record of every profiling session's findings and recommendations.**
 
-Each profiling step is an independent worker .  instrumentation, profile collection, hotspot analysis, and recommendation generation. Conductor runs them in sequence: instrument the target, collect the profile, analyze hotspots, then generate recommendations. Every profiling session is tracked with the exact profile data, findings, and recommendations. You get all of that for free, without writing a single line of orchestration code.
+Each profiling step is an independent worker .  instrumentation, profile collection, hotspot analysis, and recommendation generation. Conductor runs them in sequence: instrument the target, collect the profile, analyze hotspots, then generate recommendations. Every profiling session is tracked with the exact profile data, findings, and recommendations. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers run each profiling session: PrfInstrumentWorker attaches the profil
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +40,6 @@ prf_analyze_hotspots
     │
     ▼
 prf_recommend
-```
-
-## Example Output
-
-```
-=== Example 430: Performance Profiling ===
-
-Step 1: Registering task definitions...
-  Registered: prf_instrument, prf_collect_profile, prf_analyze_hotspots, prf_recommend
-
-Step 2: Registering workflow 'performance_profiling_430'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzing
-  [collect] Collecting
-  [instrument] Instrumenting
-  [recommend] Generating
-
-  Status: COMPLETED
-  Output: {hotspotCount=..., topHotspot=..., hotspots=..., sampleCount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow performance_profiling_430 \
   --version 1 \
-  --input '{"serviceName": "sample-name", "order-service": "sample-order-service", "profilingDuration": "sample-profilingDuration", "60s": "sample-60s", "profileType": "standard"}'
+  --input '{"serviceName": "test", "profilingDuration": "test-value", "profileType": "test-value"}'
 ```
 
 ### Check workflow status

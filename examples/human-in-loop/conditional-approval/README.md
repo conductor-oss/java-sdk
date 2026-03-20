@@ -1,8 +1,6 @@
 # Conditional Approval Routing in Java Using Conductor :  Amount-Based Tier Classification and Multi-Level Approval Chains via SWITCH
 
-Conditional approval routing .  classifies a request amount into a tier (low/medium/high), then uses SWITCH to route to different approval chains: low-amount requests need only manager approval, medium requests need manager + director, and high-amount requests need manager + director + VP. Each approval level is a WAIT task pausing for that approver's human decision. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Conditional approval routing .  classifies a request amount into a tier (low/medium/high), then uses SWITCH to route to different approval chains: low-amount requests need only manager approval, medium requests need manager + director, and high-amount requests need manager + director + VP. Each approval level is a WAIT task pausing for that approver's human decision. Uses [Conductor](https://github.## The Problem
 
 You need approval chains that vary based on the request amount. A $500 office supply purchase needs only a manager's sign-off. A $5,000 conference budget needs the manager and director. A $50,000 vendor contract needs manager, director, and VP. The system must classify the amount into a tier (low: under $1,000, medium: $1,000-$9,999, high: $10,000+), then route to the correct approval chain .  each level pausing for a human decision before advancing to the next. If any approver rejects, the chain stops. Hardcoding these rules in if/else blocks makes them impossible to change without a code deploy, and there is no visibility into which tier a request was classified as or where it is in the approval chain.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic approval system with nested cond
 
 **You just write the tier-classification and request-processing workers. Conductor handles the amount-based routing to the correct approval chain.**
 
-The SWITCH task is the key pattern here. After the classify worker determines the tier, Conductor's SWITCH routes to the correct approval chain .  low goes to a single WAIT, medium goes to two sequential WAITs, high goes to three sequential WAITs. Each WAIT pauses for a human approver at that level (manager, director, VP). After all approvals in the selected chain are complete, the process worker finalizes the request. Conductor takes care of routing to the correct chain based on tier, waiting at each approval level, tracking who approved and when at every level, and providing a complete audit trail showing the tier classification and every approval in the chain. You get all of that for free, without writing a single line of orchestration code.
+The SWITCH task is the key pattern here. After the classify worker determines the tier, Conductor's SWITCH routes to the correct approval chain .  low goes to a single WAIT, medium goes to two sequential WAITs, high goes to three sequential WAITs. Each WAIT pauses for a human approver at that level (manager, director, VP). After all approvals in the selected chain are complete, the process worker finalizes the request. Conductor takes care of routing to the correct chain based on tier, waiting at each approval level, tracking who approved and when at every level, and providing a complete audit trail showing the tier classification and every approval in the chain. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ ClassifyWorker determines the spending tier, and ProcessWorker finalizes after a
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -50,32 +38,6 @@ SWITCH (route_ref)
     │
     ▼
 car_process
-```
-
-## Example Output
-
-```
-=== Conditional Approval Routing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'conditional_approval_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [car_classify] $
-  [car_process]
-
-  Status: COMPLETED
-  Output: {tier=..., processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow conditional_approval_demo \
   --version 1 \
-  --input '{"requestId": "REQ-LO", "REQ-LO": "amount", "amount": 500, "emp@co.com": "sample-emp@co.com"}'
+  --input '{"requestId": "TEST-001", "amount": 100, "requester": "test-value"}'
 ```
 
 ### Check workflow status

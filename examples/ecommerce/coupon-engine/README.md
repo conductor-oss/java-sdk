@@ -1,8 +1,6 @@
 # Coupon Engine in Java Using Conductor :  Validate Code, Check Eligibility, Apply Discount, Record Usage
 
-Coupon engine: validate code, check eligibility, apply discount, record usage. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Coupons Have Complex Validation Rules
+Coupon engine: validate code, check eligibility, apply discount, record usage. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Coupons Have Complex Validation Rules
 
 A customer enters coupon code "SAVE20" at checkout. Before applying a 20% discount, the system must verify the code exists and is currently active (not expired, not past its redemption limit), check that the customer is eligible (hasn't used this code before, meets the minimum cart total of $50, cart contains items from eligible categories), apply the correct discount type (percentage off, fixed dollar amount, free shipping, buy-one-get-one), and record the usage atomically so the same code can't be reused.
 
@@ -27,15 +25,6 @@ Validation, eligibility, discount calculation, and usage recording workers each 
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,35 +38,6 @@ cpn_apply_discount
     │
     ▼
 cpn_record_usage
-```
-
-## Example Output
-
-```
-=== Example 460: Coupon Engine ===
-
-Step 1: Registering task definitions...
-  Registered: cpn_validate_code, cpn_check_eligibility, cpn_apply_discount, cpn_record_usage
-
-Step 2: Registering workflow 'coupon_engine'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply_discount] Processing
-  [eligible] Customer
-  [record] Code \"" + task.getInputData().get("couponCode")
-                + "\" used by
-  [validate] Code \"" + code + "\": valid=true, 20% off
-
-  Status: COMPLETED
-  Output: {discountAmount=..., newTotal=..., appliedAt=..., eligible=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow coupon_engine \
   --version 1 \
-  --input '{"couponCode": "SUMMER20", "SUMMER20": "customerId", "customerId": "cust-605", "cust-605": "cartTotal", "cartTotal": 184.96}'
+  --input '{"couponCode": "test-value", "customerId": "TEST-001", "cartTotal": "test-value", "cartItems": "test-value"}'
 ```
 
 ### Check workflow status

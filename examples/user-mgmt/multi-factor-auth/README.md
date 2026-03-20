@@ -1,8 +1,6 @@
 # Multi Factor Auth in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Multi Factor Auth. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Multi Factor Auth. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to authenticate a user with multi-factor authentication. Validating their username and password as the primary factor, determining which second factor to use (TOTP app, SMS code, hardware key) based on their preference and enrollment, verifying the second factor, and granting access only if both factors succeed. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ PrimaryAuthWorker validates credentials, SelectMethodWorker picks TOTP/SMS/email
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ mfa_verify_factor
     │
     ▼
 mfa_grant
-```
-
-## Example Output
-
-```
-=== Example 611: Multi-Factor Authenticatio ===
-
-Step 1: Registering task definitions...
-  Registered: mfa_primary_auth, mfa_select_method, mfa_verify_factor, mfa_grant
-
-Step 2: Registering workflow 'mfa_multi_factor_auth'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [grant] Access granted to
-  [primary] Password authentication passed for
-  [method] MFA method selected:
-  [verify]
-
-  Status: COMPLETED
-  Output: {accessGranted=..., token=..., expiresIn=..., userId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mfa_multi_factor_auth \
   --version 1 \
-  --input '{"username": "sample-name", "frank_secure": "sample-frank-secure", "password": "sample-password", "hashed_pw": "sample-hashed-pw", "preferredMethod": "POST"}'
+  --input '{"username": "test", "password": "test-value", "preferredMethod": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Legal Billing in Java with Conductor
 
-A Java Conductor workflow example demonstrating Legal Billing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Legal Billing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 The billing period has closed. You need to collect time entries from attorneys across matters (e.g., 4.5 hours of contract review by J. Smith, 2.0 hours of research by A. Jones), review them for billing guideline compliance, generate an invoice with the correct total ($3,250.00), send it to the client, and track payment until collected. Manual billing processes lead to write-offs from missed time entries, rejected invoices from guideline violations, and delayed collections.
 
@@ -28,15 +26,6 @@ Time entry collection, rate application, invoice generation, and payment trackin
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ lgb_send
     │
     ▼
 lgb_collect
-```
-
-## Example Output
-
-```
-=== Legal Billing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: lgb_collect, lgb_generate, lgb_review, lgb_send, lgb_track_time
-
-Step 2: Registering workflow 'legal_billing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Tracking payment for invoice
-  [generate] Generating invoice for client
-  [review] Reviewing time entries for billing compliance
-  [send] Sending invoice
-  [track-time] Collecting time entries for matter
-
-  Status: COMPLETED
-  Output: {paymentStatus=..., paymentDate=..., invoiceId=..., totalAmount=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lgb_legal_billing \
   --version 1 \
-  --input '{"clientId": "CLT-100", "CLT-100": "matterId", "matterId": "MAT-2024-050", "MAT-2024-050": "billingPeriod", "billingPeriod": "2024-Q1", "2024-Q1": "sample-2024-Q1"}'
+  --input '{"clientId": "TEST-001", "matterId": "TEST-001", "billingPeriod": "test-value"}'
 ```
 
 ### Check workflow status

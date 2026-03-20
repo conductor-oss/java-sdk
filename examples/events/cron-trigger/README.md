@@ -1,8 +1,6 @@
 # Cron Trigger in Java Using Conductor
 
-Cron-like scheduled workflow: check if the current time matches a schedule expression, decide whether to run via SWITCH, and execute or skip accordingly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Cron-like scheduled workflow: check if the current time matches a schedule expression, decide whether to run via SWITCH, and execute or skip accordingly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to execute scheduled jobs based on cron expressions. The workflow must evaluate whether the current time falls within a cron schedule window, decide whether to run or skip the job, execute the scheduled tasks if triggered, and record the run for audit. Skipping a scheduled job without logging it means you lose visibility into why a task did not execute.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a cron daemon that parses expressions, forks 
 
 **You just write the schedule-check, task-execution, skip-logging, and run-recording workers. Conductor handles cron-based SWITCH routing, durable run recording, and automatic retry of failed job executions.**
 
-Each scheduling concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the schedule check, routing via a SWITCH task to either execute or skip, recording the result, retrying if the job execution fails, and tracking every scheduled run with full input/output details. You get all of that for free, without writing a single line of orchestration code.
+Each scheduling concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the schedule check, routing via a SWITCH task to either execute or skip, recording the result, retrying if the job execution fails, and tracking every scheduled run with full input/output details. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Four workers implement scheduled execution: CheckScheduleWorker evaluates a cron
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -46,37 +34,6 @@ cn_check_schedule
 SWITCH (switch_ref)
     ├── yes: cn_execute_tasks -> cn_record_run
     ├── no: cn_log_skip
-```
-
-## Example Output
-
-```
-=== Cron Trigger Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cn_check_schedule, cn_execute_tasks, cn_record_run, cn_log_skip
-
-Step 2: Registering workflow 'cron_trigger'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cn_check_schedule] Checking cron \"" + cronExpression
-                + "\" for job \"" + jobName + "\"
-  [cn_execute_tasks] Running job \"" + jobName
-                + "\" at
-  [cn_log_skip] Job \"" + jobName + "\" skipped:
-  [cn_record_run] Job \"" + jobName
-                + "\" completed with result:
-
-  Status: COMPLETED
-  Output: {shouldRun=..., scheduledTime=..., cronExpression=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cron_trigger \
   --version 1 \
-  --input '{"cronExpression": "sample-cronExpression", "0 */5 * * *": "sample-0 */5 * * *", "jobName": "sample-name"}'
+  --input '{"cronExpression": "test-value", "jobName": "test"}'
 ```
 
 ### Check workflow status

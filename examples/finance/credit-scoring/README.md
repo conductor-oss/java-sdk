@@ -1,8 +1,6 @@
 # Credit Scoring in Java with Conductor
 
-Credit scoring: collect data, calculate factors, compute score, classify applicant. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Credit scoring: collect data, calculate factors, compute score, classify applicant. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to compute a credit score for a loan applicant. This requires collecting financial data (credit history, income, debt), calculating individual scoring factors (payment history, utilization ratio, length of credit, new inquiries), computing a composite score, and classifying the applicant into a risk tier (excellent, good, fair, poor). Each scoring factor depends on the collected data, and the classification depends on the composite score.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single scoring engine that queries credit b
 
 **You just write the scoring workers. Financial data collection, factor calculation, composite scoring, and risk classification. Conductor handles pipeline ordering, automatic retries when a credit bureau is slow, and complete factor-level logging for Fair Lending compliance.**
 
-Each scoring concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect data, calculate factors, compute score, classify), retrying if a credit bureau is slow, tracking every scoring decision with full factor breakdown for Fair Lending compliance, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each scoring concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect data, calculate factors, compute score, classify), retrying if a credit bureau is slow, tracking every scoring decision with full factor breakdown for Fair Lending compliance, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers form the scoring pipeline: CollectDataWorker pulls credit history, 
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ csc_score
     │
     ▼
 csc_classify
-```
-
-## Example Output
-
-```
-=== Example 492: Credit Scoring ===
-
-Step 1: Registering task definitions...
-  Registered: csc_collect_data, csc_calculate_factors, csc_score, csc_classify
-
-Step 2: Registering workflow 'credit_scoring_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [factors] Calculating score factors --
-  [classify] Score
-  [collect] Pulling credit data for applicant
-  [score] Computed credit score:
-
-  Status: COMPLETED
-  Output: {factors=..., classification=..., approvalLikelihood=..., creditHistory=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow credit_scoring_workflow \
   --version 1 \
-  --input '{"applicantId": "APP-5501", "APP-5501": "ssn", "ssn": "XXX-XX-1234", "XXX-XX-1234": "sample-XXX-XX-1234"}'
+  --input '{"applicantId": "TEST-001", "ssn": "test-value"}'
 ```
 
 ### Check workflow status

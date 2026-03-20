@@ -1,8 +1,6 @@
 # Course Management in Java with Conductor :  Course Creation, Scheduling, Instructor Assignment, and Catalog Publishing
 
-A Java Conductor workflow example for setting up a new course .  creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for setting up a new course .  creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.## The Problem
 
 You need to stand up a new course offering each semester. This means creating the course record in your student information system with the correct department and credit hours, scheduling class sessions into available time slots and rooms, assigning an instructor whose qualifications and availability match, and finally publishing the course to the catalog so students can register. Publishing a course without an assigned instructor or without scheduled sessions creates registration chaos.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single course-setup script that creates the
 
 **You just write the course creation, scheduling, instructor assignment, and catalog publishing logic. Conductor handles enrollment retries, scheduling coordination, and course lifecycle tracking.**
 
-Each course setup concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create, schedule, assign instructor, publish), retrying if the scheduling system is temporarily unavailable, tracking every course's setup lifecycle from creation to publication, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each course setup concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create, schedule, assign instructor, publish), retrying if the scheduling system is temporarily unavailable, tracking every course's setup lifecycle from creation to publication, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Course creation, scheduling, enrollment management, and completion tracking work
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ crs_assign_instructor
     │
     ▼
 crs_publish
-```
-
-## Example Output
-
-```
-=== Example 672: Course Management ===
-
-Step 1: Registering task definitions...
-  Registered: crs_create, crs_schedule, crs_assign_instructor, crs_publish
-
-Step 2: Registering workflow 'crs_course_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assign]
-  [create] Course:
-  [publish]
-  [schedule]
-
-  Status: COMPLETED
-  Output: {instructor=..., courseId=..., published=..., enrollmentOpen=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crs_course_management \
   --version 1 \
-  --input '{"courseName": "sample-name", "Data Structures and Algorithms": "sample-Data Structures and Algorithms", "department": "sample-department", "Computer Science": "sample-Computer Science", "credits": "sample-credits", "semester": "sample-semester"}'
+  --input '{"courseName": "test", "department": "test-value", "credits": "test-value", "semester": "test-value"}'
 ```
 
 ### Check workflow status

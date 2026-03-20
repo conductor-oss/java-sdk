@@ -1,8 +1,6 @@
 # Customer Segmentation in Java Using Conductor :  Collect Data, Cluster, Label Segments, Target
 
-Customer segmentation: collect data, cluster, label segments, target. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## One-Size-Fits-All Marketing Wastes Budget
+Customer segmentation: collect data, cluster, label segments, target. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## One-Size-Fits-All Marketing Wastes Budget
 
 Sending the same promotion to all customers means high-value VIPs get the same generic email as price-sensitive bargain hunters. Customer segmentation groups customers by behavior .  frequency of purchase, average order value, product preferences, engagement level ,  so each group gets tailored messaging.
 
@@ -27,15 +25,6 @@ Data collection, clustering, segment labeling, and targeting workers form a pipe
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ seg_label_segments
     │
     ▼
 seg_target
-```
-
-## Example Output
-
-```
-=== Example 464: Customer Segmentatio ===
-
-Step 1: Registering task definitions...
-  Registered: seg_collect_data, seg_cluster, seg_label_segments, seg_target
-
-Step 2: Registering workflow 'customer_segmentation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cluster] Running k-means with k=
-  [collect] Loading dataset
-  [label] Labeling segments based on centroid characteristics
-  [target] Creating campaigns for
-
-  Status: COMPLETED
-  Output: {clusters=..., customers=..., totalCustomers=..., segments=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow customer_segmentation_workflow \
   --version 1 \
-  --input '{"datasetId": "DS-2024Q1", "DS-2024Q1": "numSegments", "numSegments": 3}'
+  --input '{"datasetId": "TEST-001", "numSegments": "test-value"}'
 ```
 
 ### Check workflow status

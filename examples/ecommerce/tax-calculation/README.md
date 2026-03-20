@@ -1,8 +1,6 @@
 # Tax Calculation in Java Using Conductor :  Determine Jurisdiction, Calculate Rates, Apply, Report
 
-A Java Conductor workflow example for sales tax calculation .  resolving the tax jurisdiction from a shipping address, computing the applicable federal/state/local/district tax rates, applying the combined rate to the order subtotal, and recording the tax obligation for compliance reporting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Sales Tax Is Surprisingly Complex
+A Java Conductor workflow example for sales tax calculation .  resolving the tax jurisdiction from a shipping address, computing the applicable federal/state/local/district tax rates, applying the combined rate to the order subtotal, and recording the tax obligation for compliance reporting. Uses [Conductor](https://github.## Sales Tax Is Surprisingly Complex
 
 A $100 order shipping to Boulder, Colorado has four layers of sales tax: Colorado state (2.9%), Boulder County (0.985%), City of Boulder (3.86%), and RTD special district (1.0%) .  totaling 8.745%, or $8.75 in tax. Ship the same order to Portland, Oregon, and the tax is $0 (Oregon has no sales tax). Ship it to Chicago, and the rate depends on the product category ,  clothing, food, and electronics have different rates.
 
@@ -27,15 +25,6 @@ Address validation, jurisdiction lookup, rate application, and exemption workers
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ tax_apply
     │
     ▼
 tax_report
-```
-
-## Example Output
-
-```
-=== Example 470: Tax Calculatio ===
-
-Step 1: Registering task definitions...
-  Registered: tax_determine_jurisdiction, tax_calculate_rates, tax_apply, tax_report
-
-Step 2: Registering workflow 'tax_calculation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Processing
-  [calculate_rates] Processing
-  [jurisdiction] Determining tax jurisdiction for
-  [report] Tax report for order
-
-  Status: COMPLETED
-  Output: {taxAmount=..., total=..., taxRate=..., stateRate=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tax_calculation_workflow \
   --version 1 \
-  --input '{"orderId": "ORD-88421", "ORD-88421": "subtotal", "subtotal": 259.99}'
+  --input '{"orderId": "TEST-001", "subtotal": "test-value", "shippingAddress": "test-value"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Switch tax providers or add new jurisdiction rules and the calculation pipeline 
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -12,7 +12,7 @@ Without orchestration, order processing is a monolithic transaction attempt. A s
 
 **You just write the order processing and compensation logic. Conductor handles the reserve-charge-ship sequence, SWITCH-based failure detection, reverse-order compensation (refund then release), retries on each step, and a complete audit trail of every order showing which steps completed and which compensations ran.**
 
-Each forward step (reserve inventory, charge payment, ship order) and its compensation (release inventory, refund payment) are independent workers. Conductor runs the forward steps in sequence. When shipping fails, the failure workflow triggers compensation .  refund payment, then release inventory ,  in the correct reverse order. Every step is tracked, so you can see exactly where the order failed and which compensations ran. You get all of that for free, without writing a single line of orchestration code.
+Each forward step (reserve inventory, charge payment, ship order) and its compensation (release inventory, refund payment) are independent workers. Conductor runs the forward steps in sequence. When shipping fails, the failure workflow triggers compensation .  refund payment, then release inventory ,  in the correct reverse order. Every step is tracked, so you can see exactly where the order failed and which compensations ran. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +28,6 @@ ReserveInventoryWorker locks stock, ChargePaymentWorker processes the charge, an
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -52,35 +42,6 @@ spi_ship_order
     ▼
 SWITCH (check_ship_ref)
     ├── failed: spi_refund_payment -> spi_release_inventory
-```
-
-## Example Output
-
-```
-=== E-commerce Order Saga Demo ===
-
-Step 1: Registering task definitions...
-  Registered: spi_charge_payment, spi_refund_payment, spi_release_inventory, spi_reserve_inventory, spi_ship_order
-
-Step 2: Registering workflow 'saga_payment_inventory'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [spi_charge_payment] Charging payment for order:
-  [spi_refund_payment] Refunding payment
-  [spi_release_inventory] Releasing inventory
-  [spi_reserve_inventory] Reserving inventory for order:
-  [spi_ship_order] Shipping order:
-
-  Status: COMPLETED
-  Output: {paymentId=..., orderId=..., amount=..., paymentStatus=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow saga_payment_inventory \
   --version 1 \
-  --input '{"orderId": "ORD-100", "ORD-100": "amount", "amount": 99.99}'
+  --input '{"orderId": "TEST-001", "amount": 100, "shouldFail": "test-value"}'
 ```
 
 ### Check workflow status

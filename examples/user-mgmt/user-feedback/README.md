@@ -1,8 +1,6 @@
 # User Feedback Processing in Java Using Conductor :  Collection, Classification, Routing, and Auto-Response
 
-A Java Conductor workflow example for processing user feedback .  ingesting submissions from any channel, classifying them by category and priority, routing to the right internal team, and sending an automatic acknowledgment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for processing user feedback .  ingesting submissions from any channel, classifying them by category and priority, routing to the right internal team, and sending an automatic acknowledgment. Uses [Conductor](https://github.## The Problem
 
 You need to handle incoming user feedback from multiple sources (in-app forms, email, support portals). Each submission must be ingested, classified as a bug report, feature request, or general feedback, assigned a priority based on severity signals like "crash" or "urgent," routed to the appropriate team (engineering for bugs, product for feature requests, support for everything else), and followed up with a personalized acknowledgment so the user knows their feedback landed.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd chain all of this in a single service .  parsing te
 
 **You just write the feedback-ingestion, classification, routing, and auto-response workers. Conductor handles the processing pipeline and team routing.**
 
-Each concern .  ingestion, classification, routing, response ,  is a simple, independent worker. Conductor runs them in sequence, passes the classification output into routing and routing output into the response, retries any step that fails, and tracks every feedback submission end-to-end. You get all of that for free, without writing a single line of orchestration code.
+Each concern .  ingestion, classification, routing, response ,  is a simple, independent worker. Conductor runs them in sequence, passes the classification output into routing and routing output into the response, retries any step that fails, and tracks every feedback submission end-to-end. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ CollectFeedbackWorker ingests submissions, ClassifyFeedbackWorker categorizes by
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ ufb_route
     │
     ▼
 ufb_respond
-```
-
-## Example Output
-
-```
-=== Example 618: User Feedback ===
-
-Step 1: Registering task definitions...
-  Registered: ufb_collect, ufb_classify, ufb_route, ufb_respond
-
-Step 2: Registering workflow 'ufb_user_feedback'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [classify] Category:
-  [collect] Feedback received from
-  [respond] Auto-response sent to
-  [route] Routed to
-
-  Status: COMPLETED
-  Output: {category=..., priority=..., sentiment=..., feedbackId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ufb_user_feedback \
   --version 1 \
-  --input '{"userId": "USR-FB001", "USR-FB001": "feedbackText", "feedbackText": "I found a bug in the dashboard - charts crash on mobile", "I found a bug in the dashboard - charts crash on mobile": "source", "source": "in-app", "in-app": "sample-in-app"}'
+  --input '{"userId": "TEST-001", "feedbackText": "test-value", "source": "test-value"}'
 ```
 
 ### Check workflow status

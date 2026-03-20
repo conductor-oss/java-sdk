@@ -1,8 +1,6 @@
 # Nested Sub Workflows in Java with Conductor
 
-Three-level nested order processing .  order fulfillment (Level 1) delegates to a payment sub-workflow (Level 2), which delegates fraud checking to its own sub-workflow (Level 3). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Three-level nested order processing .  order fulfillment (Level 1) delegates to a payment sub-workflow (Level 2), which delegates fraud checking to its own sub-workflow (Level 3). Uses [Conductor](https://github.## The Problem
 
 You need to process an order through a three-level hierarchy: the order workflow (Level 1) calls a payment sub-workflow (Level 2), which itself calls a fraud check sub-workflow (Level 3). The order workflow takes orderId, amount, email, and items. It delegates payment processing to a separate reusable workflow that handles charging and fraud detection. The payment workflow in turn delegates fraud screening to its own sub-workflow that computes a risk score. After payment completes (with fraud check nested inside), the order workflow fulfills the order. Each level is a self-contained, independently testable, and reusable workflow.
 
@@ -26,46 +24,10 @@ Three workers handle the three-level order flow: CheckFraudWorker computes a ris
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> ChargeWorker -> CheckFraudWorker -> FulfillWorker -> Output
-```
-
-## Example Output
-
-```
-=== Nested Sub-Workflows Demo: Order -> Payment -> Fraud Check ===
-
-Step 1: Registering task definitions...
-  Registered: nest_check_fraud, nest_charge, nest_fulfill
-
-Step 2: Registering workflow 'nested_order'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [nest_charge] Charging $
-  [nest_check_fraud] Checking fraud for email=
-  [nest_fulfill] Fulfilling order
-
-  Status: COMPLETED
-  Output: {transactionId=..., charged=..., riskScore=..., approved=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -94,7 +56,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

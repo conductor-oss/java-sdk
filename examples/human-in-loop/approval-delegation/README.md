@@ -1,8 +1,6 @@
 # Approval Delegation in Java Using Conductor :  Request Preparation, WAIT for Approver, SWITCH to Delegate, and Finalization
 
-Approval delegation .  prepares a request, pauses at a WAIT task for the initial approver, then uses a SWITCH to handle delegation: if the approver responds with "delegate" and a delegateTo target, a second WAIT task pauses for the delegate's decision. Whether approved directly or via delegation, the workflow finalizes the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Approval delegation .  prepares a request, pauses at a WAIT task for the initial approver, then uses a SWITCH to handle delegation: if the approver responds with "delegate" and a delegateTo target, a second WAIT task pauses for the delegate's decision. Whether approved directly or via delegation, the workflow finalizes the result. Uses [Conductor](https://github.## The Problem
 
 You need approvals where the assigned approver can delegate to someone else. A manager receives an approval request but is on vacation, overloaded, or not the right person .  they need to reassign it to a colleague or their backup. The original WAIT task must accept three possible actions: approve (finalize immediately), reject (finalize immediately), or delegate (specify who should handle it, then wait for that person). The delegation must be tracked ,  who delegated to whom, when, and what the final decision was. Without a SWITCH after the WAIT, you cannot route delegation to a second WAIT task for the delegate's input.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build custom delegation logic .  the approver click
 
 **You just write the request-preparation and finalization workers. Conductor handles the approval hold, delegation routing, and the second wait for the delegate.**
 
-The WAIT + SWITCH + WAIT pattern is the key here. After preparing the request, the workflow pauses at the first WAIT for the initial approver. The approver's response flows into a SWITCH .  if the action is "delegate", the workflow enters a second WAIT task addressed to the delegate specified in the delegateTo field. Whether the approval comes from the original approver or the delegate, the finalize worker processes the outcome. Conductor takes care of holding state at each WAIT, routing delegation via SWITCH, tracking the complete delegation chain with timestamps, and finalizing regardless of which path was taken. You get all of that for free, without writing a single line of orchestration code.
+The WAIT + SWITCH + WAIT pattern is the key here. After preparing the request, the workflow pauses at the first WAIT for the initial approver. The approver's response flows into a SWITCH .  if the action is "delegate", the workflow enters a second WAIT task addressed to the delegate specified in the delegateTo field. Whether the approval comes from the original approver or the delegate, the finalize worker processes the outcome. Conductor takes care of holding state at each WAIT, routing delegation via SWITCH, tracking the complete delegation chain with timestamps, and finalizing regardless of which path was taken. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ PrepareWorker sets up the approval request, and FinalizeWorker records who decid
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -52,32 +40,6 @@ SWITCH (delegation_switch_ref)
     │
     ▼
 ad_finalize
-```
-
-## Example Output
-
-```
-=== Approval Delegation Demo: Reassign Approval to Another Perso ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'approval_delegation_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [ad_finalize] Finalizing approval...
-  [ad_prepare] Preparing approval request...
-
-  Status: COMPLETED
-  Output: {done=..., ready=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +68,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +111,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow approval_delegation_demo \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Roaming Management in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom roaming management .  detecting when a subscriber connects to a visited network, validating the inter-carrier roaming agreement between the home and visited networks, rating the roaming usage according to the agreement's tariff schedule, billing the subscriber for roaming charges, and settling the inter-carrier payment between the home and visited operators. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Roaming Management Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom roaming management .  detecting when a subscriber connects to a visited network, validating the inter-carrier roaming agreement between the home and visited networks, rating the roaming usage according to the agreement's tariff schedule, billing the subscriber for roaming charges, and settling the inter-carrier payment between the home and visited operators. Uses [Conductor](https://github.## Why Roaming Management Needs Orchestration
 
 Managing roaming events requires a pipeline that spans two independent carrier networks. You detect roaming when a subscriber registers on a visited network .  their device attaches to a foreign PLMN and the visited network sends a location update to the home network. You validate that a roaming agreement exists between the home and visited networks ,  checking that the agreement is active, covers the subscriber's service types, and has not exceeded volume caps. You rate the roaming usage by applying the tariffs defined in the inter-carrier agreement ,  which differ from the subscriber's domestic plan. You bill the subscriber by adding roaming charges to their account. Finally, you settle the inter-carrier amount between the home and visited operators.
 
@@ -28,15 +26,6 @@ Partner agreement lookup, session validation, charge calculation, and settlement
 
 Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ rmg_bill
     │
     ▼
 rmg_settle
-```
-
-## Example Output
-
-```
-=== Example 820: Roaming Management ===
-
-Step 1: Registering task definitions...
-  Registered: rmg_detect_roaming, rmg_validate_agreement, rmg_rate, rmg_bill, rmg_settle
-
-Step 2: Registering workflow 'rmg_roaming_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [bill] Processing
-  [detect_roaming] Processing
-  [rate] Roaming usage rated: $12.50 subscriber / $8.75 inter-carrier
-  [settle] Inter-carrier settlement processed
-  [validate_agreement] Processing
-
-  Status: COMPLETED
-  Output: {billed=..., invoiceId=..., usage=..., country=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rmg_roaming_management \
   --version 1 \
-  --input '{"subscriberId": "SUB-820", "SUB-820": "homeNetwork", "homeNetwork": "US-Mobile", "US-Mobile": "visitedNetwork", "visitedNetwork": "DE-Telco", "DE-Telco": "sample-DE-Telco"}'
+  --input '{"subscriberId": "TEST-001", "homeNetwork": "test-value", "visitedNetwork": "test-value"}'
 ```
 
 ### Check workflow status

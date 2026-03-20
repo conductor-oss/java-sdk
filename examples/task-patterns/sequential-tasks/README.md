@@ -1,8 +1,6 @@
 # Sequential Tasks in Java with Conductor
 
-Sequential ETL pipeline .  extract, transform, load. Three workers process data in order. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Sequential ETL pipeline .  extract, transform, load. Three workers process data in order. Uses [Conductor](https://github.## The Problem
 
 You need to run an ETL pipeline where each phase strictly depends on the previous one: extract raw records from a data source, transform them by adding computed fields (grade classification, normalized scores) in a specified format, then load the transformed records into a destination system. The transform step cannot start until extraction is complete because it needs the raw data. The load step cannot start until transformation is complete because it needs the enriched records. If the load step fails after transforming 1,000 records, you need to resume from the load step .  not re-extract and re-transform.
 
@@ -26,15 +24,6 @@ Three workers form the ETL sequence: ExtractWorker reads raw records from a data
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ seq_transform
     │
     ▼
 seq_load
-```
-
-## Example Output
-
-```
-=== Sequential ETL Pipeline: Extract -> Transform -> Load ===
-
-Step 1: Registering task definitions...
-  Registered: seq_extract, seq_transform, seq_load
-
-Step 2: Registering workflow 'sequential_etl'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [seq_extract] Extracting data from source:
-  [seq_load] Loading
-  [seq_transform] Transforming
-
-  Status: COMPLETED
-  Output: {rawData=..., source=..., recordCount=..., loaded=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sequential_etl \
   --version 1 \
-  --input '{"source": "sample-source", "user_database": "sample-user-database", "format": "sample-format"}'
+  --input '{"source": "test-value", "format": "test-value"}'
 ```
 
 ### Check workflow status

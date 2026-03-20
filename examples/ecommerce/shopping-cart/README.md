@@ -1,8 +1,6 @@
 # Shopping Cart in Java Using Conductor :  Add Items, Calculate Total, Apply Discounts, Reserve Inventory
 
-A Java Conductor workflow example for shopping cart processing .  adding items to a cart, calculating the subtotal, applying coupon-code discounts, and reserving inventory so items are not oversold before checkout. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Shopping Carts Are More Complex Than They Look
+A Java Conductor workflow example for shopping cart processing .  adding items to a cart, calculating the subtotal, applying coupon-code discounts, and reserving inventory so items are not oversold before checkout. Uses [Conductor](https://github.## Shopping Carts Are More Complex Than They Look
 
 A customer adds 3 items to their cart with a coupon code. The system must validate each item (in stock, valid price, quantity limits), calculate the correct total (unit prices, quantity discounts, bundle pricing), apply the coupon (validate code, check eligibility, calculate discount), and reserve inventory (so the items aren't sold out before checkout).
 
@@ -24,15 +22,6 @@ Cart creation, item management, pricing, and checkout-readiness workers operate 
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -46,34 +35,6 @@ cart_apply_discounts
     │
     ▼
 cart_reserve_inventory
-```
-
-## Example Output
-
-```
-=== Shopping Cart Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cart_add_items, cart_calculate_total, cart_apply_discounts, cart_reserve_inventory
-
-Step 2: Registering workflow 'shopping_cart'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [add] Cart
-  [discount] Cart
-  [total] Cart
-  [reserve] Cart
-
-  Status: COMPLETED
-  Output: {lineId=..., addedAt=..., cartId=..., cartItems=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -102,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -145,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow shopping_cart \
   --version 1 \
-  --input '{"userId": "user-42", "user-42": "items", "items": [{"name": "Widget A", "quantity": 2}, {"name": "Widget B", "quantity": 1}]}'
+  --input '{"userId": "TEST-001", "items": "test-value", "couponCode": "test-value"}'
 ```
 
 ### Check workflow status
@@ -169,7 +130,6 @@ Replace your pricing engine or inventory checker and the cart workflow keeps run
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

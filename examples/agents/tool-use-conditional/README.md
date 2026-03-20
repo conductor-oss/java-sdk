@@ -1,8 +1,6 @@
 # Conditional Tool Use in Java Using Conductor :  Classify Query, Route to Calculator/Interpreter/Search
 
-Tool Use Conditional .  classifies a user query and routes to the appropriate tool (calculator, interpreter, or web search) via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Different Questions Need Different Tools
+Tool Use Conditional .  classifies a user query and routes to the appropriate tool (calculator, interpreter, or web search) via a SWITCH task. Uses [Conductor](https://github.## Different Questions Need Different Tools
 
 "What's the square root of 144?" needs a calculator. "Write a Python function to sort a list" needs a code interpreter. "What happened at the G7 summit?" needs web search. A tool-using agent must first determine which type of question it's looking at, then route to the appropriate tool.
 
@@ -27,16 +25,6 @@ Four workers handle conditional routing. Classifying the query type, then routin
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -48,34 +36,6 @@ SWITCH (route_to_tool_ref)
     ├── code: tc_interpreter
     ├── search: tc_web_search
     └── default: tc_web_search
-```
-
-## Example Output
-
-```
-=== Tool Use. Conditional Tool Selection Demo ===
-
-Step 1: Registering task definitions...
-  Registered: tc_classify_query, tc_calculator, tc_interpreter, tc_web_search
-
-Step 2: Registering workflow 'tool_use_conditional'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tc_calculator] Evaluating expression:
-  [tc_classify_query] Classifying query:
-  [tc_interpreter] Interpreting code request:
-  [tc_web_search] Searching for:
-
-  Status: COMPLETED
-  Output: {answer=..., calculation=..., toolUsed=..., category=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -104,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,7 +107,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_conditional \
   --version 1 \
-  --input '{"userQuery": "sample-userQuery"}'
+  --input '{"userQuery": "test-value"}'
 ```
 
 ### Check workflow status
@@ -171,7 +131,6 @@ Swap in real tool implementations; the classify-and-route pipeline preserves the
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

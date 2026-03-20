@@ -1,8 +1,6 @@
 # GitOps Workflow in Java with Conductor :  Detect Drift, Plan Sync, Apply, Verify State
 
-Automates GitOps reconciliation using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects configuration drift between a Git repository and a target Kubernetes cluster, plans the synchronization actions needed, applies the changes to bring the cluster into the desired state, and verifies the cluster matches Git after sync. You write the reconciliation logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Git Is the Source of Truth
+Automates GitOps reconciliation using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects configuration drift between a Git repository and a target Kubernetes cluster, plans the synchronization actions needed, applies the changes to bring the cluster into the desired state, and verifies the cluster matches Git after sync.## Git Is the Source of Truth
 
 Someone ran `kubectl edit` on the production deployment and changed the replica count. Now the cluster does not match what is in Git. GitOps reconciliation detects this drift, plans the sync to restore the desired state, applies the changes, and verifies the cluster is back in alignment. Without this, manual changes accumulate silently until the next Git-based deploy overwrites them, or worse, they persist and nobody knows the cluster differs from what the repo says.
 
@@ -27,15 +25,6 @@ Four workers handle GitOps reconciliation. Detecting drift between Git and the c
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ go_apply_sync
     │
     ▼
 go_verify_state
-```
-
-## Example Output
-
-```
-=== GitOps Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: go_detect_drift, go_plan_sync, go_apply_sync, go_verify_state
-
-Step 2: Registering workflow 'gitops_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] All resources synced to desired state
-  [drift] Detected 3 drifted resources in
-  [plan] Sync plan: 2 updates, 1 create
-  [verify] Cluster state matches Git repository
-
-  Status: COMPLETED
-  Output: {apply_sync=..., processed=..., detect_driftId=..., success=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gitops_workflow \
   --version 1 \
-  --input '{"repository": "sample-repository", "infra-manifests": "sample-infra-manifests", "targetCluster": "sample-targetCluster"}'
+  --input '{"repository": "test-value", "targetCluster": "test-value"}'
 ```
 
 ### Check workflow status

@@ -10,9 +10,7 @@ Without orchestration, total execution time limits require starting a timer at t
 
 ## The Solution
 
-**You just write the task logic and set the workflow timeout in config. Conductor handles total execution time enforcement for free.**
-
-The workflow definition includes `timeoutSeconds: 30` .  if the entire workflow hasn't completed within that window, Conductor marks it as timed out. This catches scenarios that per-task timeouts miss: long queues between tasks, stuck decision logic, or unexpected loops. The timeout is configured in the workflow definition, not in code. You get all of that for free, without writing a single line of orchestration code.
+The workflow definition includes `timeoutSeconds: 30` .  if the entire workflow hasn't completed within that window, Conductor marks it as timed out. This catches scenarios that per-task timeouts miss: long queues between tasks, stuck decision logic, or unexpected loops. The timeout is configured in the workflow definition, not in code. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,44 +22,10 @@ FastWorker completes its processing quickly, while the workflow-level timeoutSec
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 wft_fast
-```
-
-## Example Output
-
-```
-=== Workflow Timeout: Short (30s) vs Long (3600s) ===
-
-Step 1: Registering task definitions...
-  Registered: wft_fast
-
-Step 2: Registering workflow 'wf_timeout_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [wft_fast] Processing with mode:
-
-  Status: COMPLETED
-  Output: {result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wf_timeout_demo \
   --version 1 \
-  --input '{"mode": "sample-mode"}'
+  --input '{"mode": "test-value"}'
 ```
 
 ### Check workflow status

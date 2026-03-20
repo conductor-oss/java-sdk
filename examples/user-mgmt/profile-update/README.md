@@ -1,8 +1,6 @@
 # Profile Update in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Profile Update. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Profile Update. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A user changes their display name and email address in their account settings. The system needs to validate the submitted fields for format and constraints, apply the updates to the user's profile record, sync the changed fields to downstream services (CRM, analytics, email platform), and notify the user that their profile was updated. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ ValidateFieldsWorker checks format constraints, UpdateProfileWorker applies the 
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ pfu_sync
     │
     ▼
 pfu_notify
-```
-
-## Example Output
-
-```
-=== Example 605: Profile Update ===
-
-Step 1: Registering task definitions...
-  Registered: pfu_validate, pfu_update, pfu_sync, pfu_notify
-
-Step 2: Registering workflow 'pfu_profile_update'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [notify] User notified of profile changes
-  [sync] Profile synced to 3 downstream services
-  [update] Updated fields:
-  [validate] Validating
-
-  Status: COMPLETED
-  Output: {notified=..., synced=..., services=..., updatedFields=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pfu_profile_update \
   --version 1 \
-  --input '{"userId": "USR-X7Y8Z9", "USR-X7Y8Z9": "updates", "updates": {"key": "value"}}'
+  --input '{"userId": "TEST-001", "updates": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # ML Model Registry in Java Using Conductor :  Register, Version, Validate, Approve, Deploy
 
-A Java Conductor workflow example for ML model lifecycle management .  registering a trained model with its artifact and metrics, assigning a version number, validating performance against quality gates, routing through an approval process, and deploying the approved model to production. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Models Without a Registry Are Unmanageable
+A Java Conductor workflow example for ML model lifecycle management .  registering a trained model with its artifact and metrics, assigning a version number, validating performance against quality gates, routing through an approval process, and deploying the approved model to production. Uses [Conductor](https://github.## Models Without a Registry Are Unmanageable
 
 Your team trains dozens of models a month. Without a registry, model artifacts live in S3 buckets with names like `model-final-v2-FIXED.pkl`, nobody knows which version is in production, and deploying a new model means SSH-ing into a server and swapping a file. When the new model degrades accuracy, there's no way to roll back to the previous version because nobody recorded which artifact, metrics, or approval was associated with it.
 
@@ -28,15 +26,6 @@ Five workers manage the model lifecycle: artifact registration, version assignme
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ mrg_approve
     │
     ▼
 mrg_deploy
-```
-
-## Example Output
-
-```
-=== Model Registry Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mrg_register, mrg_version, mrg_validate, mrg_approve, mrg_deploy
-
-Step 2: Registering workflow 'model_registry_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [approve] Processing
-  [deploy] Processing
-  [register] Processing
-  [validate] Processing
-  [version] Processing
-
-  Status: COMPLETED
-  Output: {approved=..., approver=..., deployed=..., registryId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow model_registry_demo \
   --version 1 \
-  --input '{"modelName": "sample-name", "fraud-detector": "sample-fraud-detector", "modelArtifact": "sample-modelArtifact"}'
+  --input '{"modelName": "test", "modelArtifact": "test-value", "metrics": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Artifact Management in Java with Conductor :  Build, Sign, Publish, Cleanup
 
-Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Build Artifacts Need a Managed Lifecycle
+Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Build Artifacts Need a Managed Lifecycle
 
 After building a JAR, Docker image, or npm package, the artifact needs signing (so consumers can verify it hasn't been tampered with), publishing to a repository (Artifactory, Docker Hub, npm registry), and old versions need cleanup (keeping the last 10 versions, deleting artifacts older than 90 days). Without lifecycle management, artifact repositories grow unbounded, unsigned artifacts create supply chain risks, and there's no audit trail of what was published when.
 
@@ -27,15 +25,6 @@ Four workers manage the artifact lifecycle. Building the package, signing for in
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ am_publish
     │
     ▼
 am_cleanup
-```
-
-## Example Output
-
-```
-=== Artifact Management Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: am_build, am_sign, am_publish, am_cleanup
-
-Step 2: Registering workflow 'artifact_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [build] Built
-  [cleanup] Removed 5 old artifacts beyond retention
-  [publish] Published to Artifactory
-  [sign] Artifact signed with GPG key
-
-  Status: COMPLETED
-  Output: {buildId=..., success=..., cleanup=..., completedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow artifact_management_workflow \
   --version 1 \
-  --input '{"project": "sample-project", "auth-service": "sample-auth-service", "version": "sample-version"}'
+  --input '{"project": "test-value", "version": "test-value"}'
 ```
 
 ### Check workflow status

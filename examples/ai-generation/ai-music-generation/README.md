@@ -1,6 +1,6 @@
 # AI Music Generation in Java Using Conductor :  Compose, Arrange, Produce, Master, Deliver
 
-A Java Conductor workflow that generates music through a five-stage production pipeline .  composing a melody and chord progression for the specified genre and mood, arranging with instrumentation, producing with effects and mixing, mastering for final polish, and delivering the audio file. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the music production pipeline as independent workers ,  you write the music generation logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that generates music through a five-stage production pipeline .  composing a melody and chord progression for the specified genre and mood, arranging with instrumentation, producing with effects and mixing, mastering for final polish, and delivering the audio file. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the music production pipeline as independent workers ,  you write the music generation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Music Production Has Distinct Creative Stages
 
@@ -28,15 +28,6 @@ From composition through mastering, each worker in this pipeline owns a single p
 
 Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +44,6 @@ amg_master
     │
     ▼
 amg_deliver
-```
-
-## Example Output
-
-```
-=== Example 808: AI Music Generation. Compose, Arrange, Produce, Master, Deliver ===
-
-Step 1: Registering task definitions...
-  Registered: amg_compose, amg_arrange, amg_produce, amg_master, amg_deliver
-
-Step 2: Registering workflow 'amg_music_generation'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [arrange] [SIMULATED] Arranged for piano, strings, drums
-  [compose] Processing
-  [deliver] Processing
-  [master] Processing
-  [produce] [SIMULATED] Track produced .  mixing, effects, levels balanced
-
-  Status: COMPLETED
-  Output: {arrangement=..., actualDuration=..., instruments=..., composition=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +72,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +116,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow amg_music_generation \
   --version 1 \
-  --input '{"genre": "sample-genre", "lo-fi": "sample-lo-fi", "mood": "sample-mood", "relaxed": "sample-relaxed", "durationSec": "sample-durationSec"}'
+  --input '{"genre": "test-value", "mood": "test-value", "durationSec": "test-value"}'
 ```
 
 ### Check workflow status
@@ -186,7 +148,6 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <version>5.0.1</version>
 </dependency>
 ```
-
 
 ## Project Structure
 

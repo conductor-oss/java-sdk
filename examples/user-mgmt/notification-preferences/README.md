@@ -1,8 +1,6 @@
 # Notification Preferences in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Notification Preferences. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Notification Preferences. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A user wants to change their notification settings. Enabling SMS alerts and disabling push notifications. The system needs to load their current preferences (email, SMS, push, Slack), merge the new selections with existing ones, sync the updated channel configuration to all downstream notification services, and send a confirmation that the changes took effect. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ LoadPrefsWorker reads current channel settings, UpdatePrefsWorker merges new sel
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ np_sync_channels
     │
     ▼
 np_confirm
-```
-
-## Example Output
-
-```
-=== Example 606: Notification Preferences ===
-
-Step 1: Registering task definitions...
-  Registered: np_load, np_update, np_sync_channels, np_confirm
-
-Step 2: Registering workflow 'np_notification_preferences'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [confirm] Confirmation sent for updated notification preferences
-  [load] Loading current preferences for
-  [sync] Synced
-  [update] Preferences updated:
-
-  Status: COMPLETED
-  Output: {confirmed=..., current=..., syncedChannels=..., syncedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow np_notification_preferences \
   --version 1 \
-  --input '{"userId": "USR-NP001", "USR-NP001": "preferences", "preferences": {"key": "value"}}'
+  --input '{"userId": "TEST-001", "preferences": "test-value"}'
 ```
 
 ### Check workflow status

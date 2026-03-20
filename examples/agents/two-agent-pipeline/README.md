@@ -1,8 +1,6 @@
 # Two-Agent Pipeline in Java Using Conductor :  Writer Agent to Editor Agent
 
-Sequential writer-editor pipeline: writer agent drafts content, editor agent refines it, final output assembles the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Two Agents Are Better Than One
+Sequential writer-editor pipeline: writer agent drafts content, editor agent refines it, final output assembles the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Two Agents Are Better Than One
 
 A single LLM call to "write a product description" produces serviceable but unpolished output. Adding a second pass .  where a different agent reviews and improves the first agent's output ,  consistently produces better results. The writer focuses on content and structure. The editor focuses on clarity, conciseness, and polish. Two specialized agents with a single handoff.
 
@@ -26,15 +24,6 @@ Three workers form the simplest multi-agent pattern, the writer drafts content, 
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ tap_editor_agent
     │
     ▼
 tap_final_output
-```
-
-## Example Output
-
-```
-=== Example 166: Two-Agent Pipeline. Writer + Editor ===
-
-Step 1: Registering task definitions...
-  Registered: tap_writer_agent, tap_editor_agent, tap_final_output
-
-Step 2: Registering workflow 'two_agent_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [editor-agent] Edited draft with 4 changes, tone:
-  [final-output] Assembled pipeline result: original=
-  [writer-agent] Drafted content about '
-
-  Status: COMPLETED
-  Output: {editedContent=..., notes=..., changesCount=..., model=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow two_agent_pipeline \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status
@@ -167,7 +129,6 @@ Swap in LLM calls for real content generation; the writer-editor pipeline keeps 
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

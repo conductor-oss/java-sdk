@@ -1,8 +1,6 @@
 # Cryptocurrency Trading in Java with Conductor
 
-Crypto trading: monitor market, analyze signals, SWITCH(buy/sell/hold), confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Crypto trading: monitor market, analyze signals, SWITCH(buy/sell/hold), confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to execute a cryptocurrency trading strategy. The workflow monitors market data for a trading pair (e.g., BTC/USD), analyzes technical signals (moving averages, RSI, volume), makes a buy/sell/hold decision based on the strategy, and executes the trade with confirmation. Missing a trading signal in a volatile market means lost opportunity; executing without signal analysis means trading blind.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a trading bot with a polling loop that fetche
 
 **You just write the crypto trading workers. Market monitoring, signal analysis, buy/sell/hold routing, and trade confirmation. Conductor handles conditional SWITCH routing for buy, sell, and hold decisions, automatic retries on exchange API failures, and complete trade decision logging.**
 
-Each trading concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of monitoring the market, analyzing signals, routing via a SWITCH task to buy/sell/hold, executing the trade, and confirming ,  retrying failed exchange API calls, tracking every trading decision, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each trading concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of monitoring the market, analyzing signals, routing via a SWITCH task to buy/sell/hold, executing the trade, and confirming ,  retrying failed exchange API calls, tracking every trading decision, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +26,6 @@ Six workers drive the trading cycle: MonitorMarketWorker fetches prices, Analyze
 | **MonitorMarketWorker** | `cry_monitor_market` | Monitors the market |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -55,36 +43,6 @@ SWITCH (cry_switch_ref)
     │
     ▼
 cry_confirm_action
-```
-
-## Example Output
-
-```
-=== Example 510: Cryptocurrency Trading ===
-
-Step 1: Registering task definitions...
-  Registered: cry_monitor_market, cry_analyze_signals, cry_execute_buy, cry_execute_sell, cry_execute_hold, cry_confirm_action
-
-Step 2: Registering workflow 'cryptocurrency_trading_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [signals] Analyzing signals for
-  [confirm] Action confirmed:
-  [buy] Buying
-  [hold] Holding
-  [sell] Selling
-  [monitor] Monitoring
-
-  Status: COMPLETED
-  Output: {signal=..., confidence=..., suggestedAmount=..., holdReason=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cryptocurrency_trading_workflow \
   --version 1 \
-  --input '{"pair": "BTC/USD", "BTC/USD": "portfolioId", "portfolioId": "PORT-CRYPTO-01", "PORT-CRYPTO-01": "strategy", "strategy": "momentum", "momentum": "sample-momentum"}'
+  --input '{"pair": "test-value", "portfolioId": "TEST-001", "strategy": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Event Dedup in Java Using Conductor
 
-Event deduplication workflow .  computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Event deduplication workflow .  computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. Uses [Conductor](https://github.## The Problem
 
 You need to deduplicate events so that the same event is never processed twice. In distributed systems, at-least-once delivery guarantees mean consumers may receive duplicate messages. The workflow must compute a content hash of the event payload, check whether that hash has been seen before, and either process the event (if new) or skip it (if duplicate). Processing duplicates can lead to double charges, duplicate notifications, or corrupted state.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd maintain a deduplication cache (in-memory set, Redi
 
 **You just write the hash-computation, seen-check, event-processing, and skip workers. Conductor handles SWITCH-based duplicate routing, guaranteed dedup decisions, and a full record of every event's dedup outcome.**
 
-Each deduplication concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of computing the hash, checking the dedup store, routing via a SWITCH task to process or skip, and tracking every event's dedup decision. You get all of that for free, without writing a single line of orchestration code.
+Each deduplication concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of computing the hash, checking the dedup store, routing via a SWITCH task to process or skip, and tracking every event's dedup decision. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Four workers enforce exactly-once event processing: ComputeHashWorker generates 
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -50,34 +38,6 @@ SWITCH (dedup_switch_ref)
     ├── new: dd_process_event
     ├── duplicate: dd_skip_event
     └── default: dd_skip_event
-```
-
-## Example Output
-
-```
-=== Event Deduplication Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dd_compute_hash, dd_check_seen, dd_process_event, dd_skip_event
-
-Step 2: Registering workflow 'event_dedup'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [dd_check_seen] Checking if hash was seen:
-  [dd_compute_hash] Computing hash for event:
-  [dd_process_event] Processing event:
-  [dd_skip_event] Skipping event:
-
-  Status: COMPLETED
-  Output: {checkedAt=..., hash=..., processed=..., eventId=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -106,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -149,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_dedup \
   --version 1 \
-  --input '{"eventId": "evt-1001", "evt-1001": "eventPayload", "eventPayload": {"key": "value"}}'
+  --input '{"eventId": "TEST-001", "eventPayload": "test-value"}'
 ```
 
 ### Check workflow status

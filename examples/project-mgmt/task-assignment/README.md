@@ -1,8 +1,6 @@
 # Task Assignment Automation in Java with Conductor :  Task Analysis, Skill Matching, Assignment, Notification, and Tracking
 
-A Java Conductor workflow example that automates task assignment .  analyzing the task to extract required skills and complexity, matching those skills against available team members with compatibility scoring, assigning the task to the best candidate, notifying the assignee, and setting up tracking with status and due date. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Task Assignment Needs Orchestration
+A Java Conductor workflow example that automates task assignment .  analyzing the task to extract required skills and complexity, matching those skills against available team members with compatibility scoring, assigning the task to the best candidate, notifying the assignee, and setting up tracking with status and due date. Uses [Conductor](https://github.## Why Task Assignment Needs Orchestration
 
 Assigning tasks to the right person requires a pipeline where each step narrows the decision. You analyze the task .  parsing the title and description to extract required skills (e.g., JavaScript, React) and assessing complexity (low, medium, high). You match those skills against your team ,  scoring each team member on skill overlap and checking availability, producing a best match with a compatibility score (e.g., Alice at 95% match, availability "open"). You formally assign the task to the selected candidate. You notify the assignee so they know work is waiting. You set up tracking ,  recording the assignee, setting the status to IN_PROGRESS, and computing a due date based on complexity.
 
@@ -28,15 +26,6 @@ Workload analysis, skill matching, assignment, and notification workers each own
 
 Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ tas_notify
     │
     ▼
 tas_track
-```
-
-## Example Output
-
-```
-=== Example task-assignment: Task Assignment ===
-
-Step 1: Registering task definitions...
-  Registered: tas_analyze, tas_match_skills, tas_assign, tas_notify, tas_track
-
-Step 2: Registering workflow 'task_assignment_task-assignment'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzing task:
-  [assign] Assigning task to candidate
-  [match] Finding best match for skills
-  [notify] Notified
-  [track] Tracking task assigned to
-
-  Status: COMPLETED
-  Output: {skills=..., complexity=..., assignee=..., assigned=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

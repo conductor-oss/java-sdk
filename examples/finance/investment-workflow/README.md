@@ -1,8 +1,6 @@
 # Investment Workflow in Java with Conductor
 
-Investment lifecycle: research, analyze, decide, execute, monitor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Investment lifecycle: research, analyze, decide, execute, monitor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to manage the full investment lifecycle for a security. This means researching the investment opportunity (fundamentals, market conditions), analyzing risk and return potential, making a buy/hold/pass decision, executing the trade if appropriate, and monitoring the position post-investment. Making investment decisions without research leads to uninformed bets; executing without analysis means ignoring risk-return tradeoffs.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single investment platform that pulls marke
 
 **You just write the investment workers. Opportunity research, risk-return analysis, buy/hold/pass decision, trade execution, and position monitoring. Conductor handles lifecycle ordering, automatic retries when market data APIs time out, and complete decision tracking for fiduciary compliance.**
 
-Each investment concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (research, analyze, decide, execute, monitor), retrying if market data APIs time out, tracking every investment decision with full rationale, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each investment concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (research, analyze, decide, execute, monitor), retrying if market data APIs time out, tracking every investment decision with full rationale, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers manage the investment lifecycle: ResearchWorker gathers fundamental
 | **ResearchWorker** | `ivt_research` | Researches the ticker symbol and returns fundamental data (P/E ratio, revenue, earnings growth, dividend yield) and market data (price, volume, beta, 200-day SMA) along with sector classification |
 
 Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ ivt_execute
     │
     ▼
 ivt_monitor
-```
-
-## Example Output
-
-```
-=== Example 509: Investment Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: ivt_research, ivt_analyze, ivt_decide, ivt_execute, ivt_monitor
-
-Step 2: Registering workflow 'investment_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Analyzing risk/return for
-  [decide] Recommendation:
-  [execute]
-  [monitor] Monitoring trade
-  [research] Researching
-
-  Status: COMPLETED
-  Output: {riskScore=..., expectedReturn=..., recommendation=..., sharpeRatio=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow investment_workflow \
   --version 1 \
-  --input '{"tickerSymbol": "ACME", "ACME": "investorId", "investorId": "INV-9920", "INV-9920": "maxInvestment", "maxInvestment": 25000}'
+  --input '{"tickerSymbol": "test-value", "investorId": "TEST-001", "maxInvestment": "test-value"}'
 ```
 
 ### Check workflow status

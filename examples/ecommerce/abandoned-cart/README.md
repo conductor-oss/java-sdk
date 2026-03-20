@@ -1,8 +1,6 @@
 # Abandoned Cart Recovery in Java Using Conductor :  Detect, Wait, Remind, Discount, Convert
 
-Abandoned cart recovery: detect, wait, remind, offer discount, convert. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## 70% of Shopping Carts Are Abandoned
+Abandoned cart recovery: detect, wait, remind, offer discount, convert. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## 70% of Shopping Carts Are Abandoned
 
 A customer adds $150 worth of items to their cart and leaves. Without intervention, that revenue is lost. Abandoned cart recovery sends a reminder email after a delay (typically 1-4 hours), and if the customer still hasn't returned, offers a discount to incentivize completion. This sequence recovers 5-15% of abandoned carts on average.
 
@@ -27,15 +25,6 @@ Workers for abandonment detection, reminder delivery, discount offers, and conve
 
 Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,34 +41,6 @@ abc_offer_discount
     │
     ▼
 abc_convert
-```
-
-## Example Output
-
-```
-=== Example 465: Abandoned Cart Recovery ===
-
-Step 1: Registering task definitions...
-  Registered: abc_detect_abandonment, abc_send_reminder, abc_offer_discount, abc_convert
-
-Step 2: Registering workflow 'abandoned_cart_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [convert] Conversion attempt for cart
-  [detect] Cart
-  [discount] Offering
-  [remind] Sending reminder to
-
-  Status: COMPLETED
-  Output: {recovered=..., convertedAt=..., items=..., abandonedAt=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -108,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -151,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow abandoned_cart_workflow \
   --version 1 \
-  --input '{"cartId": "CART-5512", "CART-5512": "customerId", "customerId": "CUST-4650", "CUST-4650": "cartTotal", "cartTotal": 49.98}'
+  --input '{"cartId": "TEST-001", "customerId": "TEST-001", "cartTotal": "test-value"}'
 ```
 
 ### Check workflow status

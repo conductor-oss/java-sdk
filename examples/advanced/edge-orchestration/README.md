@@ -1,8 +1,6 @@
 # Edge Computing Orchestration in Java Using Conductor :  Dispatch, Process, Collect, Merge
 
-A Java Conductor workflow example for edge computing orchestration .  dispatching a job to multiple edge nodes, executing processing on each node, collecting results from all nodes, and merging them into a single unified output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Processing Data at the Edge
+A Java Conductor workflow example for edge computing orchestration .  dispatching a job to multiple edge nodes, executing processing on each node, collecting results from all nodes, and merging them into a single unified output. Uses [Conductor](https://github.## Processing Data at the Edge
 
 Edge computing pushes computation close to the data source. IoT sensors on a factory floor, cameras at retail locations, or CDN nodes across geographies. A central system needs to dispatch an inference job to edge nodes, wait for each node to process its local data (video frames, sensor readings, log files), collect the partial results, and merge them into a global view. If one node is slow or fails, the central system needs to know, not silently drop that node's results.
 
@@ -27,15 +25,6 @@ Four workers coordinate edge-fleet processing: job dispatch to nodes, per-node e
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ eor_collect
     │
     ▼
 eor_merge
-```
-
-## Example Output
-
-```
-=== Edge Orchestration Demo ===
-
-Step 1: Registering task definitions...
-  Registered: eor_dispatch, eor_edge_process, eor_collect, eor_merge
-
-Step 2: Registering workflow 'edge_orchestration_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [collect] Processing
-  [dispatch] Processing
-  [edge-process] Processing
-  [merge] Processing
-
-  Status: COMPLETED
-  Output: {collected=..., nodeCount=..., totalRecords=..., dispatched=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edge_orchestration_demo \
   --version 1 \
-  --input '{"jobId": "EDGE-JOB-77", "EDGE-JOB-77": "edgeNodes", "edgeNodes": ["item-1", "item-2", "item-3"]}'
+  --input '{"jobId": "TEST-001", "edgeNodes": "test-value"}'
 ```
 
 ### Check workflow status

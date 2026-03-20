@@ -1,8 +1,6 @@
 # Service Decomposition in Java with Conductor
 
-Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with optional shadow comparison. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with optional shadow comparison. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Migrating from a monolith to microservices cannot happen all at once. The strangler fig pattern uses feature flags to gradually route requests from the monolith to new microservices. This workflow checks a feature flag to decide the routing target (monolith, microservice, or shadow mode), and in shadow mode runs both in parallel to compare results before committing to the new service.
 
@@ -27,16 +25,6 @@ Four workers implement the strangler fig: CheckFeatureFlagWorker determines the 
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -47,34 +35,6 @@ SWITCH (route_ref)
     ├── microservice: sd_call_microservice
     ├── shadow: parallel_compare -> join_compare -> sd_compare_results
     └── default: sd_call_monolith
-```
-
-## Example Output
-
-```
-=== Service Decomposition Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sd_check_feature_flag, sd_call_monolith, sd_call_microservice, sd_compare_results
-
-Step 2: Registering workflow 'service_decomposition_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sd_call_microservice] Processing request in new service
-  [sd_call_monolith] Processing request in legacy system
-  [sd_check_feature_flag] Feature
-  [sd_compare_results] Monolith vs Microservice results match: true
-
-  Status: COMPLETED
-  Output: {source=..., result=..., target=..., percentage=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -103,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -146,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_decomposition_workflow \
   --version 1 \
-  --input '{"feature": "order-processing", "order-processing": "request", "request": {"key": "value"}}'
+  --input '{"feature": "test-value", "request": "test-value"}'
 ```
 
 ### Check workflow status

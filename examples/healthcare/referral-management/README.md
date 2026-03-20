@@ -1,8 +1,6 @@
 # Referral Management in Java Using Conductor :  Creation, Specialist Matching, Scheduling, Tracking, and Closure
 
-A Java Conductor workflow example for referral management .  creating a referral from a PCP with clinical reason, matching the patient to an in-network specialist by specialty and availability, scheduling the specialist appointment, tracking the referral through completion, and closing with the consultation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for referral management .  creating a referral from a PCP with clinical reason, matching the patient to an in-network specialist by specialty and availability, scheduling the specialist appointment, tracking the referral through completion, and closing with the consultation report. Uses [Conductor](https://github.## The Problem
 
 You need to manage patient referrals from creation through specialist consultation. A primary care physician creates a referral specifying the patient, specialty needed, and clinical reason. The system must match the patient to an appropriate in-network specialist based on specialty, location, availability, and insurance acceptance. An appointment must be scheduled with the matched specialist. The referral must be tracked to ensure the patient actually sees the specialist and the consultation report is sent back to the referring provider. Finally, the referral is closed when the consultation is complete. Lost referrals .  where patients never see the specialist or reports never reach the PCP ,  lead to gaps in care and potential liability.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a monolithic referral system that creates the
 
 **You just write the referral workers. Order creation, specialist matching, appointment scheduling, completion tracking, and loop closure. Conductor handles lifecycle sequencing, automatic retries when the provider directory is temporarily unavailable, and full referral loop visibility for quality reporting.**
 
-Each stage of the referral lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of matching specialists only after the referral is created, scheduling only after a specialist is matched, tracking through completion, closing with the consultation report, and providing full visibility into every referral's status. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the referral lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of matching specialists only after the referral is created, scheduling only after a specialist is matched, tracking through completion, closing with the consultation report, and providing full visibility into every referral's status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers manage the referral lifecycle: CreateReferralWorker generates the o
 | **CloseReferralWorker** | `ref_close` | Closes the referral loop when the consultation report is received by the referring provider |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ ref_track
     │
     ▼
 ref_close
-```
-
-## Example Output
-
-```
-=== Referral Management Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: ref_create, ref_match_specialist, ref_schedule, ref_track, ref_close
-
-Step 2: Registering workflow 'referral_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [close] Closing referral
-  [create] Referral
-  [match] Finding
-  [schedule] Scheduling with
-  [track] Tracking referral
-
-  Status: COMPLETED
-  Output: {closedStatus=..., closedAt=..., insurancePlan=..., urgency=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow referral_management_workflow \
   --version 1 \
-  --input '{"referralId": "REF-2024-0445", "REF-2024-0445": "patientId", "patientId": "PAT-10234", "PAT-10234": "specialty", "specialty": "Orthopedics", "Orthopedics": "reason", "reason": "Chronic knee pain \u2014 evaluate for surgical intervention", "Chronic knee pain \u2014 evaluate for surgical intervention": "sample-Chronic knee pain \u2014 evaluate for surgical intervention"}'
+  --input '{"referralId": "TEST-001", "patientId": "TEST-001", "specialty": "test-value", "reason": "test-value"}'
 ```
 
 ### Check workflow status

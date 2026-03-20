@@ -1,8 +1,6 @@
 # Change Management in Java with Conductor :  Submit, Assess Risk, Approve, Implement
 
-Automates ITIL-style change management using [Conductor](https://github.com/conductor-oss/conductor). This workflow submits a change request with a tracking ID, assesses the risk level (low/medium/high), routes through Change Advisory Board (CAB) approval, and implements the approved change. You write the change management logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Controlled Changes, Not Cowboy Deploys
+Automates ITIL-style change management using [Conductor](https://github.com/conductor-oss/conductor). This workflow submits a change request with a tracking ID, assesses the risk level (low/medium/high), routes through Change Advisory Board (CAB) approval, and implements the approved change.## Controlled Changes, Not Cowboy Deploys
 
 An engineer wants to modify the production database connection pool settings. Without a process, they SSH in and change it. With change management, the request is submitted and tracked, risk is assessed (is this a low-risk config change or a high-risk schema migration?), CAB approval is obtained for anything above low risk, and only then is the change implemented. If the approval is denied or the risk assessment flags concerns, the workflow stops cleanly.
 
@@ -27,47 +25,10 @@ Four workers implement the change process. Submitting the request, assessing ris
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> ApproveChange -> AssessRisk -> ImplementChange -> SubmitChange -> Output
-```
-
-## Example Output
-
-```
-=== Change Management Demo: ITIL-Compliant Change Control ===
-
-Step 1: Registering task definitions...
-  Registered: cm_approve, cm_assess_risk, cm_implement, cm_submit
-
-Step 2: Registering workflow 'change_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [cm_approve] CAB decision:
-  [cm_assess_risk] Risk assessment:
-  [cm_implement] Change implemented successfully (approved:
-  [cm_submit] Change request:
-
-  Status: COMPLETED
-  Output: {approved=..., approver=..., approvalNote=..., riskLevel=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

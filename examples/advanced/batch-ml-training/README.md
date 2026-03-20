@@ -1,8 +1,6 @@
 # Batch ML Model Training in Java Using Conductor :  Prepare Data, Train in Parallel, Evaluate
 
-A Java Conductor workflow example for batch ML training .  loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Running ML Experiments Without Losing Your Mind
+A Java Conductor workflow example for batch ML training .  loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.## Running ML Experiments Without Losing Your Mind
 
 Training a single model is straightforward. Comparing multiple model architectures on the same dataset is where things get messy. You need to prepare the raw data (cleaning, feature engineering), split it consistently so every model trains on the same 80/20 partition, train a random forest and a gradient boosting model simultaneously to cut wall-clock time in half, then evaluate both against the held-out test set to determine which one wins.
 
@@ -28,16 +26,6 @@ Five workers cover the training pipeline: data preparation, splitting, two paral
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -54,35 +42,6 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 bml_evaluate
-```
-
-## Example Output
-
-```
-=== Batch ML Training Demo ===
-
-Step 1: Registering task definitions...
-  Registered: bml_prepare_data, bml_split_data, bml_train_model_1, bml_train_model_2, bml_evaluate
-
-Step 2: Registering workflow 'batch_ml_training_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [evaluate] Processing
-  [prepare] Processing
-  [split] Processing
-  [train-M1] Processing
-  [train-M2] Processing
-
-  Status: COMPLETED
-  Output: {bestModel=..., bestAccuracy=..., dataPath=..., samples=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -111,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -154,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow batch_ml_training_demo \
   --version 1 \
-  --input '{"datasetId": "DS-CHURN-2024", "DS-CHURN-2024": "experimentName", "experimentName": "churn-prediction-v3", "churn-prediction-v3": "sample-churn-prediction-v3"}'
+  --input '{"datasetId": "TEST-001", "experimentName": "test"}'
 ```
 
 ### Check workflow status

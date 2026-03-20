@@ -1,8 +1,6 @@
 # Data Sampling in Java Using Conductor :  Sample Drawing, Quality Checks, and Conditional Approval Routing
 
-A Java Conductor workflow example for sample-based data quality gating: loading a dataset, drawing a representative sample at a configurable rate, running quality checks against the sample, and using a `SWITCH` to route the dataset to approval (if quality meets the threshold) or flag it for manual review (if quality falls short). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for sample-based data quality gating: loading a dataset, drawing a representative sample at a configurable rate, running quality checks against the sample, and using a `SWITCH` to route the dataset to approval (if quality meets the threshold) or flag it for manual review (if quality falls short). Uses [Conductor](https://github.## The Problem
 
 You have a large incoming dataset, a vendor file, an ETL output, a batch import, and you need to decide whether it's good enough to accept before loading it into your production systems. Checking every record is too expensive, so you sample. That means drawing a statistically representative subset at a configurable sample rate, running quality checks on the sample (completeness, format validity, consistency), and making a pass/fail decision based on a threshold. Datasets that pass get approved for loading; datasets that fail get routed to a review queue with a list of specific issues found.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single script that samples, checks, and dec
 
 **You just write the dataset loading, sample drawing, quality checking, approval, and review workers. Conductor handles conditional routing via SWITCH based on quality scores, retries on transient check failures, and a complete audit trail of every dataset's sample score and routing decision.**
 
-Each stage is a simple, independent worker. The loader reads the incoming dataset. The sampler draws a deterministic subset at the configured sample rate. The quality checker scores the sample against completeness and validity rules. Conductor's `SWITCH` task then routes based on the result: datasets meeting the quality threshold go to the approval worker, while those falling short go to the review flagger with a list of specific issues. Conductor tracks the quality score, sample size, and routing decision for every dataset, retries if a check fails transiently, and provides a complete audit trail. You get all of that for free, without writing a single line of orchestration code.
+Each stage is a simple, independent worker. The loader reads the incoming dataset. The sampler draws a deterministic subset at the configured sample rate. The quality checker scores the sample against completeness and validity rules. Conductor's `SWITCH` task then routes based on the result: datasets meeting the quality threshold go to the approval worker, while those falling short go to the review flagger with a list of specific issues. Conductor tracks the quality score, sample size, and routing decision for every dataset, retries if a check fails transiently, and provides a complete audit trail. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Five workers implement sample-based quality gating: loading the dataset, drawing
 | **RunQualityChecksWorker** | `sm_run_quality_checks` | Runs quality checks on the sampled data. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -53,35 +41,6 @@ sm_run_quality_checks
 SWITCH (decision_switch_ref)
     ├── pass: sm_approve_dataset
     └── default: sm_flag_for_review
-```
-
-## Example Output
-
-```
-=== Data Sampling Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sm_load_dataset, sm_draw_sample, sm_run_quality_checks, sm_approve_dataset, sm_flag_for_review
-
-Step 2: Registering workflow 'data_sampling_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [sm_approve_dataset] Approving dataset:
-  [sm_draw_sample] Drawing sample at rate
-  [sm_flag_for_review] Flagging dataset:
-  [sm_load_dataset] Loaded
-  [sm_run_quality_checks] Checking
-
-  Status: COMPLETED
-  Output: {approved=..., sample=..., sampleSize=..., records=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_sampling_wf \
   --version 1 \
-  --input '{"records": "sample-records", "name": "sample-name", "Alice": "sample-Alice", "value": "sample-value", "Bob": "sample-Bob", "Charlie": "sample-Charlie", "Diana": "sample-Diana"}'
+  --input '{"records": "test-value", "sampleRate": "test-value", "threshold": "test-value"}'
 ```
 
 ### Check workflow status

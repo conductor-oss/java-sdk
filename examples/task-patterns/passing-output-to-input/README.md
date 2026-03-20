@@ -1,8 +1,6 @@
 # Passing Output To Input in Java with Conductor
 
-Shows all the ways to pass data between tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Shows all the ways to pass data between tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to build a regional sales report in three stages: generate raw metrics and top products for a region and time period, enrich the report with computed growth rates and health insights, then summarize by combining the original metrics with the enriched data. The second step needs access to the first step's output (metrics object, individual revenue field, top products list). The third step needs data from both previous steps .  the original metrics from step 1 and the enriched insights and growth rate from step 2. Each step consumes data wired from different upstream tasks.
 
@@ -26,15 +24,6 @@ Three workers build a sales report pipeline: GenerateReportWorker produces regio
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +34,6 @@ enrich_report
     │
     ▼
 summarize_report
-```
-
-## Example Output
-
-```
-=== Example 12: Passing Output to Input ===
-
-Step 1: Registering task definitions...
-  Registered: generate_report, enrich_report, summarize_report
-
-Step 2: Registering workflow 'data_wiring_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [enrich] Revenue: $
-  [report] Generating for
-  [summary] Growth:
-
-  Status: COMPLETED
-  Output: {insights=..., growthRate=..., enrichedAt=..., metrics=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +62,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +105,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_wiring_demo \
   --version 1 \
-  --input '{"region": "sample-region", "US-West": "sample-US-West", "period": "sample-period"}'
+  --input '{"region": "test-value", "period": "test-value"}'
 ```
 
 ### Check workflow status

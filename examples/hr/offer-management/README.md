@@ -1,8 +1,6 @@
 # Offer Management in Java with Conductor :  Generation, Approval, Delivery, and Accept/Decline Routing
 
-A Java Conductor workflow example for job offer management .  generating an offer letter with position and salary details, routing for compensation committee approval, delivering the offer to the candidate, and using SWITCH to route the candidate's response to either the acceptance path (trigger onboarding) or the decline path (reopen the requisition). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for job offer management .  generating an offer letter with position and salary details, routing for compensation committee approval, delivering the offer to the candidate, and using SWITCH to route the candidate's response to either the acceptance path (trigger onboarding) or the decline path (reopen the requisition). Uses [Conductor](https://github.## The Problem
 
 You need to manage job offers from generation through candidate response. After the hiring team selects a candidate, an offer letter must be generated with the position title, base salary, equity package, benefits summary, and start date. The offer must be approved by the compensation committee or hiring VP to ensure it falls within the approved salary band and headcount budget. Once approved, the offer is sent to the candidate with an expiration deadline. The candidate either accepts .  triggering the onboarding pipeline, background check, and equipment provisioning, or declines ,  reopening the requisition and notifying the recruiter to extend the offer to the next candidate in the pipeline. If the system sends an offer before approval, the company may commit to an unauthorized salary. If a decline is not handled, the requisition sits idle and the role goes unfilled.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage offers through email threads and spreadsheet
 
 **You just write the offer generation, compensation approval, candidate delivery, and accept/decline routing logic. Conductor handles approval routing, offer generation retries, and compensation audit trails.**
 
-Each stage of offer management is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of generating the offer before seeking approval, sending only after approval is granted, routing the candidate's response via SWITCH to the correct accept or decline path, retrying if the HRIS or e-signature platform is temporarily unavailable, and maintaining a complete audit trail of every offer's lifecycle. You get all of that for free, without writing a single line of orchestration code.
+Each stage of offer management is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of generating the offer before seeking approval, sending only after approval is granted, routing the candidate's response via SWITCH to the correct accept or decline path, retrying if the HRIS or e-signature platform is temporarily unavailable, and maintaining a complete audit trail of every offer's lifecycle. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +25,6 @@ Compensation calculation, offer letter generation, approval routing, and candida
 | **DeclineWorker** | `ofm_decline` | Processes the candidate's decline .  reopens the requisition, notifies the recruiter, and flags the next candidate in the pipeline |
 
 Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
 
 ### The Workflow
 
@@ -53,35 +41,6 @@ ofm_send
 SWITCH (ofm_switch_ref)
     ├── accept: ofm_accept
     ├── decline: ofm_decline
-```
-
-## Example Output
-
-```
-=== Example 604: Offer Management ===
-
-Step 1: Registering task definitions...
-  Registered: ofm_generate, ofm_approve, ofm_send, ofm_accept, ofm_decline
-
-Step 2: Registering workflow 'ofm_offer_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [accept]
-  [approve] Offer
-  [decline]
-  [generate] Offer for
-  [send] Offer letter sent to
-
-  Status: COMPLETED
-  Output: {accepted=..., startDate=..., approved=..., approvers=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +69,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +112,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ofm_offer_management \
   --version 1 \
-  --input '{"candidateName": "Alex Rivera", "Alex Rivera": "position", "position": "Senior Engineer", "Senior Engineer": "salary", "salary": 155000, "accept": "sample-accept"}'
+  --input '{"candidateName": "test", "position": "test-value", "salary": "test-value", "response": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Podcast Production Pipeline in Java Using Conductor :  Recording, Audio Editing, Transcription, Publishing, and Directory Distribution
 
-A Java Conductor workflow example that orchestrates podcast production .  ingesting raw audio recordings with sample rate and channel metadata, editing (silence removal, normalization, compression, bitrate optimization), transcribing speech to text with language detection and word-level confidence, publishing the episode with RSS feed generation, and distributing to podcast directories (Apple Podcasts, Spotify, Google Podcasts). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Podcast Production Needs Orchestration
+A Java Conductor workflow example that orchestrates podcast production .  ingesting raw audio recordings with sample rate and channel metadata, editing (silence removal, normalization, compression, bitrate optimization), transcribing speech to text with language detection and word-level confidence, publishing the episode with RSS feed generation, and distributing to podcast directories (Apple Podcasts, Spotify, Google Podcasts). Uses [Conductor](https://github.## Why Podcast Production Needs Orchestration
 
 Producing a podcast episode involves a multi-stage pipeline where each step transforms or enriches the audio. You ingest the raw recording .  capturing duration, sample rate, and channel count. You edit the audio ,  removing silence, normalizing levels, applying compression, and encoding at the target bitrate to reduce file size. You transcribe the edited audio for show notes, accessibility, and SEO. You publish the episode ,  generating the RSS feed entry with metadata, duration, and file URLs. Finally, you ping all major podcast directories so the new episode appears in listeners' feeds.
 
@@ -28,15 +26,6 @@ Five workers handle podcast production: RecordWorker ingests raw audio with meta
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ pod_publish
     │
     ▼
 pod_distribute
-```
-
-## Example Output
-
-```
-=== Example 514: Podcast Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: pod_record, pod_edit, pod_transcribe, pod_publish, pod_distribute
-
-Step 2: Registering workflow 'podcast_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [distribute] Processing
-  [edit] Processing
-  [publish] Processing
-  [record] Processing
-  [transcribe] Processing
-
-  Status: COMPLETED
-  Output: {directories=..., pingsSent=..., distributedAt=..., editedAudioUrl=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow podcast_workflow \
   --version 1 \
-  --input '{"episodeId": "EP-514-001", "EP-514-001": "showName", "showName": "Tech Talks Weekly", "Tech Talks Weekly": "episodeTitle", "episodeTitle": "Workflow Orchestration Deep Dive", "Workflow Orchestration Deep Dive": "hostId", "hostId": "HOST-42", "HOST-42": "sample-HOST-42"}'
+  --input '{"episodeId": "TEST-001", "showName": "test", "episodeTitle": "test-value", "hostId": "TEST-001"}'
 ```
 
 ### Check workflow status

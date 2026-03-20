@@ -1,8 +1,6 @@
 # System Tasks in Java with Conductor
 
-Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks .  no workers needed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks .  no workers needed. Uses [Conductor](https://github.## The Problem
 
 You need to build an employee compensation summary: look up a user's profile (name, department, base salary, performance rating), calculate their bonus based on performance tiers (15% for ratings 4.5+, 10% for 4.0+, 5% for 3.0+), and format the results into a structured summary with compensation breakdown and performance classification. None of these steps require external API calls .  it is all data lookup, calculation, and reshaping. Deploying three separate worker services for this logic is unnecessary overhead.
 
@@ -20,15 +18,6 @@ This example uses zero custom workers, all three tasks (user lookup, bonus calcu
 
 This example uses Conductor system tasks .  no custom workers needed. All logic runs server-side via INLINE (GraalJS) and JSON_JQ_TRANSFORM tasks.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -39,44 +28,6 @@ calculate_bonus [INLINE]
     │
     ▼
 format_output [JSON_JQ_TRANSFORM]
-```
-
-## Example Output
-
-```
-=== System Tasks: INLINE and JSON_JQ_TRANSFORM Without Workers ===
-
-KEY CONCEPT: System tasks run on the Conductor server itself.
-No workers are needed .  no polling, no task runners, no worker processes.
-INLINE tasks execute JavaScript, JSON_JQ_TRANSFORM reshapes data with JQ.
-
-Step 1: Registering workflow 'system_tasks_demo'...
-  (No task definitions needed .  system tasks are built into Conductor)
-  Workflow registered.
-
-Step 2: Starting workflows for 3 users...
-
-  --- Processing user-1 ---
-  Workflow ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-  Status: COMPLETED
-  Output: {summary={employee=Alice Johnson, department=Engineering, compensation={base=95000, bonus=14250, total=109250}, performance={rating=4.5, bonusTier=Gold, bonusPercent=15}}}
-
-  --- Processing user-2 ---
-  Workflow ID: b2c3d4e5-f6a7-8901-bcde-f12345678901
-  Status: COMPLETED
-  Output: {summary={employee=Bob Smith, department=Marketing, compensation={base=78000, bonus=3900, total=81900}, performance={rating=3.8, bonusTier=Bronze, bonusPercent=5}}}
-
-  --- Processing user-3 ---
-  Workflow ID: c3d4e5f6-a7b8-9012-cdef-123456789012
-  Status: COMPLETED
-  Output: {summary={employee=Carol Williams, department=Engineering, compensation={base=110000, bonus=16500, total=126500}, performance={rating=4.9, bonusTier=Gold, bonusPercent=15}}}
-
-=== Summary ===
-Tasks executed: 3 per workflow (lookup_user, calculate_bonus, format_output)
-Workers used: 0 (all system tasks)
-Task types: INLINE (JavaScript), JSON_JQ_TRANSFORM (JQ)
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +56,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +99,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow system_tasks_demo \
   --version 1 \
-  --input '{"userId": "user-1"}'
+  --input '{"userId": "TEST-001"}'
 ```
 
 ### Check workflow status

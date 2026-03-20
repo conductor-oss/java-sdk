@@ -1,8 +1,6 @@
 # Tool Use Logging in Java Using Conductor :  Request Log, Execute, Response Log, Audit Trail
 
-Tool Use Logging: log tool requests and responses, execute tools, and create audit entries through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Every Tool Call Needs an Audit Trail
+Tool Use Logging: log tool requests and responses, execute tools, and create audit entries through a sequential pipeline. Uses [Conductor](https://github.## Every Tool Call Needs an Audit Trail
 
 When an AI agent calls tools on behalf of users, you need to know exactly what was called, with what arguments, what it returned, how long it took, and who initiated it. Compliance (SOC2, HIPAA) requires audit logs. Debugging requires request-response pairs. Cost tracking requires knowing which tools are called how often.
 
@@ -27,15 +25,6 @@ Four workers wrap tool calls with observability. Logging the request, executing 
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ tl_log_response
     │
     ▼
 tl_create_audit_entry
-```
-
-## Example Output
-
-```
-=== Tool Use Logging Demo ===
-
-Step 1: Registering task definitions...
-  Registered: tl_log_request, tl_execute_tool, tl_log_response, tl_create_audit_entry
-
-Step 2: Registering workflow 'tool_use_logging'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [tl_create_audit_entry] Creating audit entry for requestId:
-  [tl_execute_tool] Executing tool:
-  [tl_log_request] Logging request for tool:
-  [tl_log_response] Logging response for requestId:
-
-  Status: COMPLETED
-  Output: {auditId=..., summary=..., requestId=..., compliance=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_logging \
   --version 1 \
-  --input '{"toolName": "sentiment_analysis", "sentiment_analysis": "toolArgs", "toolArgs": {"key": "value"}, "user-7392": "sessionId", "sessionId": "sess-abc-12345", "sess-abc-12345": "sample-sess-abc-12345"}'
+  --input '{"toolName": "test", "toolArgs": "test-value", "userId": "TEST-001", "sessionId": "TEST-001"}'
 ```
 
 ### Check workflow status
@@ -172,7 +133,6 @@ Wire in real logging backends like CloudWatch or Datadog; the audit pipeline mai
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

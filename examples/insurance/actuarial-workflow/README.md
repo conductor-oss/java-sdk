@@ -1,8 +1,6 @@
 # Actuarial Workflow in Java with Conductor :  Collect Data, Build Model, Run Simulations, Analyze, Report
 
-A Java Conductor workflow example demonstrating actuarial-workflow Actuarial Workflow. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Actuarial Analysis Combines Statistics, Simulation, and Reporting
+A Java Conductor workflow example demonstrating actuarial-workflow Actuarial Workflow. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Actuarial Analysis Combines Statistics, Simulation, and Reporting
 
 Setting insurance rates requires actuarial analysis: collect 10 years of loss data for a line of business, build a frequency-severity model, run 10,000 Monte Carlo simulations to estimate the loss distribution, analyze the results (mean, percentiles, confidence intervals), and produce a report for rate filings and reserve setting.
 
@@ -28,15 +26,6 @@ Data extraction, loss modeling, reserve calculation, and report generation worke
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ act_analyze
     │
     ▼
 act_report
-```
-
-## Example Output
-
-```
-=== Example 706: Actuarial Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: act_collect_data, act_model, act_run_simulations, act_analyze, act_report
-
-Step 2: Registering workflow 'act_actuarial_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Expected loss and tail risk computed
-  [collect_data] Processing
-  [model] Model built .  45K records fitted
-  [report] Processing
-  [simulate] 10,000 Monte Carlo iterations completed
-
-  Status: COMPLETED
-  Output: {analysis=..., dataSet=..., modelId=..., r2=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow act_actuarial_workflow \
   --version 1 \
-  --input '{"lineOfBusiness": "sample-lineOfBusiness", "commercial-property": "sample-commercial-property", "analysisYear": "sample-analysisYear", "2024": "sample-2024", "modelType": "standard"}'
+  --input '{"lineOfBusiness": "test-value", "analysisYear": "test-value", "modelType": "test-value"}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Swap loss models or reserve methodologies and the actuarial pipeline continues w
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -1,8 +1,6 @@
 # Data Lineage in Java Using Conductor :  Source Registration, Transformation Tracking, and Lineage Graph Construction
 
-A Java Conductor workflow example for data lineage tracking: registering the data source origin, applying sequential transformations while recording each step's impact, recording the final destination, and building a lineage graph that shows exactly how each record was transformed from source to destination. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for data lineage tracking: registering the data source origin, applying sequential transformations while recording each step's impact, recording the final destination, and building a lineage graph that shows exactly how each record was transformed from source to destination. Uses [Conductor](https://github.## The Problem
 
 When a number looks wrong in a report, your first question is "where did this data come from and what happened to it along the way?" You need end-to-end lineage tracking: recording where data originated (which database, API, or file), documenting every transformation applied (name normalization, email lowercasing, field derivations), noting where the data landed (which table, data warehouse, or API), and building a graph that traces any record's journey from source to destination. Without lineage, debugging data quality issues is guesswork, compliance audits are painful, and impact analysis for schema changes is impossible.
 
@@ -10,9 +8,9 @@ Without orchestration, lineage tracking is an afterthought bolted onto transform
 
 ## The Solution
 
-**You just write the source registration, transformation, destination recording, and lineage graph workers. Conductor handles sequential execution with built-in observability at both the orchestration and application level, giving you lineage tracking for free alongside retries and crash recovery.**
+**You just write the source registration, transformation, destination recording, and lineage graph workers. Conductor handles sequential execution with built-in observability at both the orchestration and application level, giving you lineage tracking alongside retries and crash recovery.**
 
-Each stage of the pipeline is a simple, independent worker that both transforms data and appends to the lineage chain. The source registrar records the origin system and initializes the lineage metadata. Each transformation worker applies its logic (uppercase names, lowercase emails) and appends a lineage entry documenting what it changed. The destination recorder notes where the final data lands. The graph builder assembles all lineage entries into a structured graph showing the full source-to-destination journey with every transformation step. Conductor executes them in sequence, passes the growing lineage chain between steps, and provides built-in observability for every transformation's inputs and outputs. Giving you lineage tracking both at the application level and the orchestration level. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the pipeline is a simple, independent worker that both transforms data and appends to the lineage chain. The source registrar records the origin system and initializes the lineage metadata. Each transformation worker applies its logic (uppercase names, lowercase emails) and appends a lineage entry documenting what it changed. The destination recorder notes where the final data lands. The graph builder assembles all lineage entries into a structured graph showing the full source-to-destination journey with every transformation step. Conductor executes them in sequence, passes the growing lineage chain between steps, and provides built-in observability for every transformation's inputs and outputs. Giving you lineage tracking both at the application level and the orchestration level. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Five workers track lineage across the data pipeline: registering the source orig
 | **RegisterSourceWorker** | `ln_register_source` | Registers the data source and initializes lineage tracking. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,35 +42,6 @@ ln_record_destination
     │
     ▼
 ln_build_lineage_graph
-```
-
-## Example Output
-
-```
-=== Data Lineage Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ln_register_source, ln_apply_transform_1, ln_apply_transform_2, ln_record_destination, ln_build_lineage_graph
-
-Step 2: Registering workflow 'data_lineage'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [transform-1] Applied uppercase_names to
-  [transform-2] Applied lowercase_emails to
-  [graph]
-  [destination] Recorded destination \"" + destName + "\"
-  [source] Registered source \"" + sourceName + "\" with
-
-  Status: COMPLETED
-  Output: {name=..., transformed_1=..., records=..., lineage=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_lineage \
   --version 1 \
-  --input '{"records": ["item-1", "item-2", "item-3"]}'
+  --input '{"records": "test-value", "sourceName": "test", "destName": "test"}'
 ```
 
 ### Check workflow status

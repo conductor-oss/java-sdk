@@ -1,8 +1,6 @@
 # Implementing OAuth Token Management in Java with Conductor :  Grant Validation, Token Issuance, and Compliance Auditing
 
-A Java Conductor workflow example for OAuth 2.0 token lifecycle management .  validating client credentials and grant types, issuing access and refresh tokens, persisting token metadata for revocation, and logging every issuance for compliance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for OAuth 2.0 token lifecycle management .  validating client credentials and grant types, issuing access and refresh tokens, persisting token metadata for revocation, and logging every issuance for compliance. Uses [Conductor](https://github.## The Problem
 
 You need to handle OAuth 2.0 token requests end-to-end: validate that the client ID is registered and the grant type (authorization_code, client_credentials, etc.) is permitted, issue scoped access and refresh tokens, store token metadata so tokens can be revoked or introspected later, and write an immutable audit trail for every issuance event.
 
@@ -27,47 +25,10 @@ Four workers manage the token lifecycle: ValidateGrantWorker checks client crede
 
 Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> AuditLogWorker -> IssueTokensWorker -> StoreTokenWorker -> ValidateGrantWorker -> Output
-```
-
-## Example Output
-
-```
-=== OAuth Token Management Demo ===
-
-Step 1: Registering task definitions...
-  Registered: otm_validate_grant, otm_issue_tokens, otm_store_token, otm_audit_log
-
-Step 2: Registering workflow 'oauth_token_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [audit] Token issuance logged for compliance
-  [token] Access token issued with scope:
-  [store] Token metadata stored for revocation support
-  [grant] Client
-
-  Status: COMPLETED
-  Output: {audit_log=..., completedAt=..., issue_tokens=..., processed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -96,7 +57,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done

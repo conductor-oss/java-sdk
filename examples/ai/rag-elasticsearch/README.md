@@ -1,6 +1,6 @@
 # RAG with Elasticsearch in Java Using Conductor :  Dense Vector kNN Search and Generation
 
-A Java Conductor workflow that implements RAG using Elasticsearch's native dense vector search (kNN) .  embedding the question, running a kNN query against an Elasticsearch index with dense_vector fields, and generating an answer from the retrieved documents. Elasticsearch's kNN search uses HNSW graphs for approximate nearest neighbor lookup, combining the speed of vector search with Elasticsearch's existing filtering and scoring capabilities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, kNN search, and generation as independent workers ,  you write the Elasticsearch integration, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that implements RAG using Elasticsearch's native dense vector search (kNN) .  embedding the question, running a kNN query against an Elasticsearch index with dense_vector fields, and generating an answer from the retrieved documents. Elasticsearch's kNN search uses HNSW graphs for approximate nearest neighbor lookup, combining the speed of vector search with Elasticsearch's existing filtering and scoring capabilities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, kNN search, and generation as independent workers ,  you write the Elasticsearch integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG on Your Existing Elasticsearch Cluster
 
@@ -26,15 +26,6 @@ Three workers integrate Elasticsearch into the RAG pipeline .  embedding the que
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,33 +36,6 @@ es_knn_search
     │
     ▼
 es_generate
-```
-
-## Example Output
-
-```
-=== RAG with Elasticsearch ===
-
-Step 1: Registering task definitions...
-  Registered: es_embed, es_knn_search, es_generate
-
-Step 2: Registering workflow 'rag_elasticsearch_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [embed] Generated embedding via OpenAI API (LIVE):
-  [generate] Response from OpenAI API (LIVE)
-  [elasticsearch] Index: \"" + index + "\", k=
-
-  Status: COMPLETED
-  Output: {embedding=..., dimensions=..., answer=..., hits=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +64,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_elasticsearch_workflow \
   --version 1 \
-  --input '{"question": "sample-question", "How does Elasticsearch vector search work?": "sample-How does Elasticsearch vector search work?", "index": "sample-index"}'
+  --input '{"question": "test-value", "index": "test-value"}'
 ```
 
 ### Check workflow status

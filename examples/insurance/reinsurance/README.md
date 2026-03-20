@@ -1,8 +1,6 @@
 # Reinsurance in Java with Conductor :  Assess Risk, Treaty Lookup, Cede, Confirm, Reconcile
 
-A Java Conductor workflow example demonstrating reinsurance Reinsurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Insurers Transfer Risk to Reinsurers for Large Exposures
+A Java Conductor workflow example demonstrating reinsurance Reinsurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Insurers Transfer Risk to Reinsurers for Large Exposures
 
 An insurer writes a $10M commercial property policy. That's more risk than they want on their own books. Reinsurance transfers a portion of the risk (and premium) to reinsurers. The process assesses the risk profile (coverage amount, peril, territory, loss history), identifies which reinsurance treaties apply (quota share for the first $5M, excess of loss for amounts above $5M), cedes the appropriate share (notify the reinsurer, transfer premium), confirms the reinsurer's acceptance, and reconciles the accounts at period end.
 
@@ -28,15 +26,6 @@ Treaty analysis, cession calculation, premium allocation, and settlement workers
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ rin_confirm
     │
     ▼
 rin_reconcile
-```
-
-## Example Output
-
-```
-=== Example 705: Reinsurance ===
-
-Step 1: Registering task definitions...
-  Registered: rin_assess_risk, rin_treaty_lookup, rin_cede, rin_confirm, rin_reconcile
-
-Step 2: Registering workflow 'rin_reinsurance'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess_risk] Processing
-  [cede] Processing
-  [confirm] Processing
-  [reconcile] Processing
-  [treaty_lookup] Processing
-
-  Status: COMPLETED
-  Output: {netExposure=..., retainedRisk=..., cessionId=..., ceded=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rin_reinsurance \
   --version 1 \
-  --input '{"policyId": "POL-705", "POL-705": "coverageAmount", "coverageAmount": 5000000, "property-catastrophe": "sample-property-catastrophe"}'
+  --input '{"policyId": "TEST-001", "coverageAmount": 100, "riskCategory": "test-value"}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Update treaty terms or cession formulas and the reinsurance pipeline adjusts tra
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

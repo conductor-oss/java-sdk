@@ -1,8 +1,6 @@
 # Escalation Timer in Java Using Conductor :  Request Submission, WAIT with Timeout for Auto-Approval, and Decision Processing
 
-A Java Conductor workflow example demonstrating timeout-based auto-approval .  submitting a request, pausing at a WAIT task for human approval, and auto-approving if the approver does not respond within the configured deadline. The process worker handles both human-approved and auto-approved decisions identically, recording the method (human vs, auto) for audit purposes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating timeout-based auto-approval .  submitting a request, pausing at a WAIT task for human approval, and auto-approving if the approver does not respond within the configured deadline. The process worker handles both human-approved and auto-approved decisions identically, recording the method (human vs, auto) for audit purposes. Uses [Conductor](https://github.## The Problem
 
 Pending approvals that sit indefinitely block business processes. If an approver is on vacation, overwhelmed, or simply forgets, the request should not languish forever. The workflow must submit the request, wait for a human decision, and if no decision arrives within the configured deadline (autoApproveAfterMs), automatically approve the request so work can proceed. The processing step must know whether the decision came from a human or was auto-approved, since auto-approved items may need additional audit scrutiny. Without timeout-based escalation, stale requests accumulate and SLAs are violated.
 
@@ -24,15 +22,6 @@ SubmitWorker prepares the request with a deadline, and ProcessWorker handles bot
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,32 +32,6 @@ approval_wait [WAIT]
     │
     ▼
 et_process
-```
-
-## Example Output
-
-```
-=== Example 98: Escalation Timer ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'escalation_timer_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [et_process] Decision:
-  [et_submit] Request
-
-  Status: COMPLETED
-  Output: {processed=..., submitted=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow escalation_timer_demo \
   --version 1 \
-  --input '{"requestId": "REQ-ESC", "REQ-ESC": "autoApproveAfterMs", "autoApproveAfterMs": 3000}'
+  --input '{"requestId": "TEST-001", "autoApproveAfterMs": "test-value"}'
 ```
 
 ### Check workflow status

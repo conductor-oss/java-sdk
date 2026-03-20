@@ -1,8 +1,6 @@
 # Regulatory Filing in Java with Conductor
 
-A Java Conductor workflow example demonstrating Regulatory Filing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Regulatory Filing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 A regulatory filing deadline is approaching. You need to prepare the filing package with required disclosures and attachments for the specific entity and jurisdiction, validate that the package meets all regulatory requirements (no missing fields or documents), submit it to the regulatory body, track the submission through processing (typically 15 days), and confirm receipt. A missed or defective filing can trigger penalties, enforcement actions, or loss of business licenses.
 
@@ -28,15 +26,6 @@ Data compilation, form population, validation, and submission workers each handl
 
 Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ rgf_track
     │
     ▼
 rgf_confirm
-```
-
-## Example Output
-
-```
-=== Regulatory Filing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rgf_confirm, rgf_prepare, rgf_submit, rgf_track, rgf_validate
-
-Step 2: Registering workflow 'regulatory_filing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [confirm] Confirming submission
-  [prepare] Preparing
-  [submit] Submitting regulatory filing
-  [track] Tracking submission
-  [validate] Validating filing package
-
-  Status: COMPLETED
-  Output: {confirmationNumber=..., confirmed=..., filingId=..., filingPackage=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rgf_regulatory_filing \
   --version 1 \
-  --input '{"filingType": "SEC-10K", "SEC-10K": "entityName", "entityName": "Acme Corp", "Acme Corp": "jurisdiction", "jurisdiction": "US-Federal", "US-Federal": "sample-US-Federal"}'
+  --input '{"filingType": "test-value", "entityName": "test", "jurisdiction": "test-value"}'
 ```
 
 ### Check workflow status

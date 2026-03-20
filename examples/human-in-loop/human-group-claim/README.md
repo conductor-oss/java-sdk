@@ -1,8 +1,6 @@
 # Group Assignment with Claim Pattern in Java Using Conductor :  Ticket Intake, WAIT for Group Claim, and Resolution
 
-A Java Conductor workflow example for group-based task assignment .  processing a ticket intake and queuing it to an assigned group (like a support queue), pausing at a WAIT task until any available team member claims and works the ticket, then resolving and closing it. Demonstrates the claim pattern where tasks are published to a pool and pulled by the first available person. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Tasks Can Be Assigned to a Group and Claimed by Any Member
+A Java Conductor workflow example for group-based task assignment .  processing a ticket intake and queuing it to an assigned group (like a support queue), pausing at a WAIT task until any available team member claims and works the ticket, then resolving and closing it. Demonstrates the claim pattern where tasks are published to a pool and pulled by the first available person. Uses [Conductor](https://github.## Tasks Can Be Assigned to a Group and Claimed by Any Member
 
 Some tasks do not have a specific assignee. They are published to a group (like a support queue), and any available team member can claim and work on it. The workflow processes intake, pauses at a WAIT task visible to the group, and after someone claims and completes it, the resolution step closes the ticket. If resolution fails, you need to retry it without asking someone to re-claim the task.
 
@@ -24,15 +22,6 @@ IntakeWorker queues the ticket to a support group, and ResolveWorker closes it a
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,32 +32,6 @@ group_assigned_wait [WAIT]
     │
     ▼
 hgc_resolve
-```
-
-## Example Output
-
-```
-=== Group Assignment with Claim: Human-in-the-Loop Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'human_group_claim'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [intake] Processing
-  [resolve] Processing
-
-  Status: COMPLETED
-  Output: {queued=..., closed=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -97,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -140,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow human_group_claim \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Service Versioning in Java with Conductor
 
-API version management with version routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+API version management with version routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 When an API evolves, clients on different versions must be served correctly. This workflow resolves the requested API version (mapping aliases like 'latest' to 'v2'), routes to the correct versioned handler (v1 or v2), and logs the version usage for deprecation tracking.
 
@@ -27,16 +25,6 @@ Four workers manage API versioning: ResolveVersionWorker maps aliases like 'late
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,34 +37,6 @@ SWITCH (route_ref)
     │
     ▼
 sv_log_version_usage
-```
-
-## Example Output
-
-```
-=== Example 320: Service Versioning ===
-
-Step 1: Registering task definitions...
-  Registered: sv_resolve_version, sv_call_v1, sv_call_v2, sv_log_version_usage
-
-Step 2: Registering workflow 'service_versioning_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [v1] Processing with legacy API
-  [v2] Processing with new API
-  [log] Version usage:
-  [version] API
-
-  Status: COMPLETED
-  Output: {response=..., logged=..., resolvedVersion=..., deprecated=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +65,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +108,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_versioning_workflow \
   --version 1 \
-  --input '{"apiVersion": "sample-apiVersion", "v2": "sample-v2", "request": "sample-request", "action": "sample-action"}'
+  --input '{"apiVersion": "test-value", "request": "test-value"}'
 ```
 
 ### Check workflow status

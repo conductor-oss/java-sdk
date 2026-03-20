@@ -1,8 +1,6 @@
 # Service Mesh Orchestration in Java with Conductor
 
-Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Onboarding a service into a service mesh requires deploying a sidecar proxy (e.g., Envoy), configuring mutual TLS for encrypted service-to-service communication, setting traffic policies (retries, timeouts, circuit breaking), and validating end-to-end connectivity. Each step depends on the previous one. MTLS cannot be configured until the sidecar is deployed.
 
@@ -27,15 +25,6 @@ Four workers onboard a service into the mesh: DeploySidecarWorker injects the pr
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ mesh_set_traffic_policy
     │
     ▼
 mesh_validate
-```
-
-## Example Output
-
-```
-=== Service Mesh Orchestration Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mesh_deploy_sidecar, mesh_configure_mtls, mesh_set_traffic_policy, mesh_validate
-
-Step 2: Registering workflow 'service_mesh_orchestration'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [mTLS] Configuring mutual TLS for
-  [sidecar] Deploying proxy for
-  [policy] Setting traffic policy:
-  [validate] Connectivity check passed
-
-  Status: COMPLETED
-  Output: {enabled=..., certExpiry=..., sidecarId=..., version=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_mesh_orchestration \
   --version 1 \
-  --input '{"serviceName": "sample-name", "payment-service": "sample-payment-service", "namespace": "sample-name", "production": "sample-production", "meshType": "standard"}'
+  --input '{"serviceName": "test", "namespace": "test", "meshType": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Quality Gate in Java Using Conductor :  Automated Test Suite, SWITCH on Pass/Fail, QA Engineer WAIT Sign-Off, and Production Deployment
 
-A Java Conductor workflow example for deployment quality gates .  running an automated test suite (42 tests), using a SWITCH to block deployment immediately if any test fails (TERMINATE with reason), or advancing to a QA engineer WAIT task for manual sign-off before deploying to production. The SWITCH ensures failed builds never reach a human reviewer, and the WAIT ensures passing builds still require human judgment before going live. If the deployment step fails after QA sign-off, Conductor retries the deploy without requiring the QA engineer to re-approve. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Deployments Need Automated Tests and Human QA Sign-Off
+A Java Conductor workflow example for deployment quality gates .  running an automated test suite (42 tests), using a SWITCH to block deployment immediately if any test fails (TERMINATE with reason), or advancing to a QA engineer WAIT task for manual sign-off before deploying to production. The SWITCH ensures failed builds never reach a human reviewer, and the WAIT ensures passing builds still require human judgment before going live. If the deployment step fails after QA sign-off, Conductor retries the deploy without requiring the QA engineer to re-approve. Uses [Conductor](https://github.## Deployments Need Automated Tests and Human QA Sign-Off
 
 Before deploying to production, code must pass automated tests. If tests pass, a QA engineer must sign off via a WAIT task. If tests fail, deployment is blocked. The SWITCH task routes between the QA approval path and the failure path based on test results. This ensures no code ships without both automated and human verification.
 
@@ -25,16 +23,6 @@ RunTestsWorker executes the test suite and reports pass/fail counts, and DeployW
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -44,32 +32,6 @@ qg_run_tests
 SWITCH (test_result_switch_ref)
     ├── false: tests_failed_terminate
     └── default: qa_signoff -> qg_deploy
-```
-
-## Example Output
-
-```
-=== Quality Gate Demo: Automated Tests -> Human Sign-Off -> Deploy ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'quality_gate_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [qg_deploy] Deploying application...
-  [qg_run_tests] Running automated tests...
-
-  Status: COMPLETED
-  Output: {deployed=..., allPassed=..., totalTests=..., passedTests=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -98,7 +60,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -141,7 +103,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow quality_gate_demo \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

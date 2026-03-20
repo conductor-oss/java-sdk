@@ -1,8 +1,6 @@
 # Student Progress in Java with Conductor :  Grade Collection, GPA Analysis, Progress Reports, and Notifications
 
-A Java Conductor workflow example for tracking student academic progress .  collecting all course grades for a semester, analyzing performance to compute GPA and academic standing, generating a progress report, and notifying the student of their results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for tracking student academic progress .  collecting all course grades for a semester, analyzing performance to compute GPA and academic standing, generating a progress report, and notifying the student of their results. Uses [Conductor](https://github.## The Problem
 
 You need to evaluate a student's academic progress at the end of each semester. This means pulling grades from all enrolled courses, computing the semester GPA and cumulative standing (good standing, probation, dean's list), generating a formal progress report for the student's academic record, and notifying the student of their standing. Sending a progress report with incorrect GPA calculations undermines institutional credibility; failing to flag probation status delays critical academic interventions.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single end-of-semester batch job that queri
 
 **You just write the grade collection, GPA analysis, progress report generation, and student notification logic. Conductor handles data collection retries, alert routing, and progress tracking across terms.**
 
-Each progress-tracking concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect grades, analyze, generate report, notify), retrying if the gradebook service is temporarily unavailable, maintaining an audit trail of every progress evaluation, and resuming from the last successful step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each progress-tracking concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect grades, analyze, generate report, notify), retrying if the gradebook service is temporarily unavailable, maintaining an audit trail of every progress evaluation, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Data collection, performance analysis, alert generation, and report distribution
 
 Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ spr_generate_report
     │
     ▼
 spr_notify
-```
-
-## Example Output
-
-```
-=== Example 675: Student Progress ===
-
-Step 1: Registering task definitions...
-  Registered: spr_collect_grades, spr_analyze, spr_generate_report, spr_notify
-
-Step 2: Registering workflow 'spr_student_progress'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] GPA:
-  [collect]
-  [report] Progress report generated for
-  [notify] Student
-
-  Status: COMPLETED
-  Output: {gpa=..., standing=..., analysis=..., grades=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow spr_student_progress \
   --version 1 \
-  --input '{"studentId": "STU-2024-675", "STU-2024-675": "semester", "semester": "Spring 2024", "Spring 2024": "sample-Spring 2024"}'
+  --input '{"studentId": "TEST-001", "semester": "test-value"}'
 ```
 
 ### Check workflow status

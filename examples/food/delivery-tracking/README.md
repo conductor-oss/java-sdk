@@ -1,8 +1,6 @@
 # Delivery Tracking in Java with Conductor
 
-Tracks a food delivery end-to-end: assigning a driver, recording pickup, tracking location en route, confirming delivery, and closing the order. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Tracks a food delivery end-to-end: assigning a driver, recording pickup, tracking location en route, confirming delivery, and closing the order. Uses [Conductor](https://github.## The Problem
 
 You need to track a food delivery from restaurant to customer. The workflow assigns an available delivery driver, records the pickup at the restaurant, tracks the driver's location en route, confirms delivery at the customer's address, and records completion. Late deliveries lead to cold food and unhappy customers; losing track of a driver means the customer has no ETA.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd build a single delivery service that queries driver
 
 **You just write the driver assignment, pickup recording, location tracking, delivery confirmation, and order closure logic. Conductor handles tracking retries, ETA recalculations, and delivery chain audit trails.**
 
-Each delivery concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (assign driver, pickup, track, deliver, confirm), retrying if the GPS tracking service is unavailable, tracking every delivery's full lifecycle, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each delivery concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (assign driver, pickup, track, deliver, confirm), retrying if the GPS tracking service is unavailable, tracking every delivery's full lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Pickup confirmation, route tracking, ETA updates, and delivery completion worker
 | **TrackWorker** | `dlt_track` | Tracks the driver's GPS location (lat/lng) en route to the destination and returns the current ETA |
 
 Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ dlt_deliver
     │
     ▼
 dlt_confirm
-```
-
-## Example Output
-
-```
-=== Example 733: Delivery Tracking ===
-
-Step 1: Registering task definitions...
-  Registered: dlt_assign_driver, dlt_pickup, dlt_track, dlt_deliver, dlt_confirm
-
-Step 2: Registering workflow 'delivery_tracking_733'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [driver] Assigning driver for order
-  [confirm] Delivery confirmed for order
-  [deliver] Order
-  [pickup] Driver
-  [track] Tracking driver
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow delivery_tracking_733 \
   --version 1 \
-  --input '{"orderId": "ORD-733", "ORD-733": "restaurantAddr", "restaurantAddr": "123 Main St", "123 Main St": "customerAddr", "customerAddr": "456 Oak Ave", "456 Oak Ave": "sample-456 Oak Ave"}'
+  --input '{"orderId": "TEST-001", "restaurantAddr": "test-value", "customerAddr": "test-value"}'
 ```
 
 ### Check workflow status

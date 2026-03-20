@@ -1,6 +1,6 @@
 # RAG Access Control in Java Using Conductor :  Authentication, Permission Filtering, and Data Redaction
 
-A Java Conductor workflow that wraps a RAG pipeline with enterprise access controls .  authenticating the user, checking document-level permissions, filtering retrieval results to only include documents the user is authorized to see, redacting sensitive fields (PII, financial data, classified content) from the context, and generating an answer from the sanitized, permission-filtered documents. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage access-controlled pipeline as independent workers ,  you write the auth, permission, redaction, and generation logic, Conductor handles sequencing, retries, durability, and observability for free.
+A Java Conductor workflow that wraps a RAG pipeline with enterprise access controls .  authenticating the user, checking document-level permissions, filtering retrieval results to only include documents the user is authorized to see, redacting sensitive fields (PII, financial data, classified content) from the context, and generating an answer from the sanitized, permission-filtered documents. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage access-controlled pipeline as independent workers ,  you write the auth, permission, redaction, and generation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG Without Access Control Is a Data Leak
 
@@ -30,15 +30,6 @@ Five workers enforce access control throughout the RAG pipeline .  authenticatin
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -55,35 +46,6 @@ ac_redact_sensitive
     │
     ▼
 ac_generate
-```
-
-## Example Output
-
-```
-=== Example 163: RAG with Access Control ===
-
-Step 1: Registering task definitions...
-  Registered: ac_authenticate_user, ac_check_permissions, ac_filtered_retrieve, ac_redact_sensitive, ac_generate
-
-Step 2: Registering workflow 'rag_access_control'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [authenticate] User
-  [permissions] User
-  [retrieve] Question: '
-  [generate] Response from OpenAI API (LIVE)
-  [redact] Processed
-
-  Status: COMPLETED
-  Output: {authenticated=..., error=..., userId=..., roles=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -112,7 +74,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +118,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rag_access_control \
   --version 1 \
-  --input '{}'
+  --input '{"input": "test"}'
 ```
 
 ### Check workflow status

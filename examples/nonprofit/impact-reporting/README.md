@@ -1,8 +1,6 @@
 # Impact Reporting in Java with Conductor
 
-A Java Conductor workflow example demonstrating Impact Reporting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Impact Reporting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 Your nonprofit needs to produce its annual impact report for donors and board members. The reporting team must collect raw data across all programs (beneficiaries served, events held, volunteer hours), aggregate the totals into organization-wide metrics, analyze year-over-year growth and cost-effectiveness, format the report with charts, metrics, and narrative sections, and publish the final report as a downloadable document. Each step depends on the previous one's output.
 
@@ -28,15 +26,6 @@ Data collection, outcome measurement, narrative generation, and report distribut
 
 Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,34 +42,6 @@ ipr_format
     │
     ▼
 ipr_publish
-```
-
-## Example Output
-
-```
-=== Example 756: Impact Reporting ===
-
-Step 1: Registering task definitions...
-  Registered: ipr_collect_data, ipr_aggregate, ipr_analyze, ipr_format, ipr_publish
-
-Step 2: Registering workflow 'impact_reporting_756'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [aggregate] Aggregating program data
-  [analyze] Analyzing impact metrics
-  [collect] Collecting data for
-  [format] Formatting report for
-  [publish] Impact report published
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow impact_reporting_756 \
   --version 1 \
-  --input '{"programName": "sample-name", "Community Kitchen": "sample-Community Kitchen", "reportYear": "sample-reportYear"}'
+  --input '{"programName": "test", "reportYear": "test-value"}'
 ```
 
 ### Check workflow status

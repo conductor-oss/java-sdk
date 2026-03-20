@@ -12,7 +12,7 @@ Without orchestration, maintenance windows are enforced by human judgment .  an 
 
 **You just write the window schedule checks and maintenance task logic. Conductor handles time-window evaluation with conditional routing, retries on maintenance task failures, and a record of every execution or deferral with timing details.**
 
-A window checker worker evaluates whether the current time falls within the maintenance window. Conductor's SWITCH task routes to either the execute path or the defer path. If maintenance runs, it's tracked with timing and results. If deferred, the deferral is recorded with the reason and next available window. You get all of that for free, without writing a single line of orchestration code.
+A window checker worker evaluates whether the current time falls within the maintenance window. Conductor's SWITCH task routes to either the execute path or the defer path. If maintenance runs, it's tracked with timing and results. If deferred, the deferral is recorded with the reason and next available window. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,16 +26,6 @@ CheckWindowWorker determines if the current time falls within the maintenance wi
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -45,33 +35,6 @@ mnw_check_window
 SWITCH (mnw_switch_ref)
     ├── in_window: mnw_execute_maintenance
     └── default: mnw_defer_maintenance
-```
-
-## Example Output
-
-```
-=== Example 408: Maintenance Windows ===
-
-Step 1: Registering task definitions...
-  Registered: mnw_check_window, mnw_execute_maintenance, mnw_defer_maintenance
-
-Step 2: Registering workflow 'maintenance_windows_408'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [check] Checking maintenance window for
-  [defer] Deferring
-  [execute] Running
-
-  Status: COMPLETED
-  Output: {windowStatus=..., windowStart=..., windowEnd=..., nextWindowStart=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -100,7 +63,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -143,7 +106,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow maintenance_windows_408 \
   --version 1 \
-  --input '{"system": "sample-system", "production-db": "sample-production-db", "maintenanceType": "standard", "database-optimization": "sample-database-optimization", "currentTime": "2025-01-15T10:00:00Z"}'
+  --input '{"system": "test-value", "maintenanceType": "test-value", "currentTime": "2026-01-01T00:00:00Z"}'
 ```
 
 ### Check workflow status

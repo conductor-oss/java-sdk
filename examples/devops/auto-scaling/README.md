@@ -1,8 +1,6 @@
 # Auto-Scaling in Java with Conductor :  Analyze Metrics, Plan Scaling, Execute, Verify
 
-Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Scaling Decisions Need Analysis, Not Just Thresholds
+Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Scaling Decisions Need Analysis, Not Just Thresholds
 
 CPU is at 80%. Should you scale up? Maybe, or maybe it's a transient spike from a batch job that ends in 5 minutes. Auto-scaling needs more than simple threshold crossing: analyze the metric trend (is it sustained or transient?), plan the scaling (how many instances, which instance type?), execute the scaling operation, and verify the new instances are healthy and handling traffic.
 
@@ -27,15 +25,6 @@ Four workers handle the scaling decision. Analyzing current metrics, planning th
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ as_execute
     │
     ▼
 as_verify
-```
-
-## Example Output
-
-```
-=== Auto-Scaling Demo: Intelligent Scaling Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: as_analyze, as_execute, as_plan, as_verify
-
-Step 2: Registering workflow 'auto_scaling_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [as_analyze] Analyzing
-  [as_execute] Executing action:
-  [as_plan] Planning scaling for load:
-  [as_verify] Verifying action:
-
-  Status: COMPLETED
-  Output: {service=..., metric=..., currentLoad=..., avgLoad15m=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow auto_scaling_workflow \
   --version 1 \
-  --input '{"service": "payment-api", "metric": "cpu_usage", "threshold": 80}'
+  --input '{"service": "test-value", "metric": "test-value", "threshold": "test-value"}'
 ```
 
 ### Check workflow status

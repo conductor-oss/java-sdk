@@ -1,8 +1,6 @@
 # In App Purchase in Java Using Conductor
 
-Processes an in-app purchase: selecting an item from the game catalog, verifying eligibility, charging payment, delivering the virtual item to the player's inventory, and generating a receipt. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Processes an in-app purchase: selecting an item from the game catalog, verifying eligibility, charging payment, delivering the virtual item to the player's inventory, and generating a receipt. Uses [Conductor](https://github.## The Problem
 
 You need to process an in-app purchase in a game. The player selects an item to buy, the purchase is verified with the platform's payment system (ensuring the transaction is legitimate), payment is charged, the virtual item is delivered to the player's inventory, and a receipt is generated. Delivering items without payment verification enables fraud; failing to deliver after payment creates support tickets and chargebacks.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd handle the purchase flow in a single service that v
 
 **You just write the item selection, eligibility check, payment processing, item delivery, and receipt generation logic. Conductor handles payment retries, entitlement delivery, and purchase audit trails for every transaction.**
 
-Each purchase concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (select, verify, charge, deliver, receipt), retrying if the payment platform is temporarily unavailable, tracking every purchase with full audit trail, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each purchase concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (select, verify, charge, deliver, receipt), retrying if the payment platform is temporarily unavailable, tracking every purchase with full audit trail, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Product validation, payment processing, entitlement delivery, and receipt genera
 | **VerifyWorker** | `iap_verify` | Verifies purchase eligibility, checking account balance and age restrictions |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ iap_deliver
     │
     ▼
 iap_receipt
-```
-
-## Example Output
-
-```
-=== Example 744: In-App Purchase ===
-
-Step 1: Registering task definitions...
-  Registered: iap_select_item, iap_verify, iap_charge, iap_deliver, iap_receipt
-
-Step 2: Registering workflow 'in_app_purchase_744'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [charge] Charging $
-  [deliver] Delivering item
-  [receipt] Receipt generated for transaction
-  [select] Player
-  [verify] Verifying purchase eligibility for
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow in_app_purchase_744 \
   --version 1 \
-  --input '{"playerId": "P-042", "P-042": "itemId", "itemId": "ITEM-DragonArmor", "ITEM-DragonArmor": "price", "price": 9.99}'
+  --input '{"playerId": "TEST-001", "itemId": "TEST-001", "price": 100}'
 ```
 
 ### Check workflow status

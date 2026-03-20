@@ -1,8 +1,6 @@
 # Graphql API in Java with Conductor
 
-GraphQL API demo .  single task workflow to demonstrate REST vs GraphQL query patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+GraphQL API demo .  single task workflow to demonstrate REST vs GraphQL query patterns. Uses [Conductor](https://github.## The Problem
 
 You need to trigger a deployment operation through a GraphQL API .  sending a project name and target environment, and getting back a structured deployment result. Unlike REST endpoints where you might need multiple calls to different URLs, a GraphQL query lets the client specify exactly what data it needs in a single request. The workflow takes the project and environment as inputs, executes the deployment via a GraphQL mutation or query, and returns the result.
 
@@ -24,44 +22,10 @@ A single GraphqlTaskWorker receives a project name and target environment, const
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 gql_task
-```
-
-## Example Output
-
-```
-=== GraphQL API: REST vs GraphQL Query Patterns ===
-
-Step 1: Registering task definitions...
-  Registered: gql_task
-
-Step 2: Registering workflow 'graphql_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [gql_task] Deploying project=
-
-  Status: COMPLETED
-  Output: {project=..., result=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -90,7 +54,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -133,7 +97,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow graphql_demo \
   --version 1 \
-  --input '{"project": "sample-project", "conductor-app": "sample-conductor-app", "env": "sample-env"}'
+  --input '{"project": "test-value", "env": "test-value"}'
 ```
 
 ### Check workflow status

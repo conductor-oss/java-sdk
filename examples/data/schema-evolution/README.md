@@ -1,8 +1,6 @@
 # Schema Evolution in Java Using Conductor :  Change Detection, Transform Generation, Data Migration, and Validation
 
-A Java Conductor workflow example for schema evolution. comparing a current schema against a target schema to detect changes (added fields, removed fields, type changes, renamed columns), generating the transform operations needed to migrate data from the current schema to the target, applying those transforms to existing data, and validating that the transformed data conforms to the target schema with the expected compatibility level. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example for schema evolution. comparing a current schema against a target schema to detect changes (added fields, removed fields, type changes, renamed columns), generating the transform operations needed to migrate data from the current schema to the target, applying those transforms to existing data, and validating that the transformed data conforms to the target schema with the expected compatibility level. Uses [Conductor](https://github.## The Problem
 
 Your database schema needs to evolve, a new `phone_number` column is being added, the `address` field is being split into `street`, `city`, and `zip`, and the `status` column is changing from a string to an integer enum. You need to detect exactly what changed between the current and target schemas, generate the right migration transforms (ALTER TABLE for additions, data conversion for type changes, column splitting for restructured fields), apply those transforms to the existing data, and validate that every record in the migrated table conforms to the target schema. If you apply the transforms but skip validation, you might discover weeks later that 2% of records have null values in the new required `zip` field because the address splitting logic didn't handle PO boxes.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd write a single migration script that diffs schemas,
 
 **You just write the change detection, transform generation, data migration, and schema validation workers. Conductor handles strict ordering so transforms apply only after a valid migration plan exists, retries when databases are temporarily unavailable, and tracking of change counts, transform counts, and compatibility levels at every stage.**
 
-Each stage of the schema evolution pipeline is a simple, independent worker. The change detector compares the current and target schemas field by field, identifying additions, removals, type changes, and renames, and classifying each change's compatibility impact. The transform generator converts those detected changes into concrete transform operations. ADD_COLUMN for new fields, TYPE_CAST for type changes, SPLIT for field restructuring. Producing a migration plan. The transform applier executes the migration plan against the sample data, applying each transform in sequence and tracking how many records were successfully transformed. The schema validator checks every transformed record against the target schema, confirming all required fields are present, types match, and constraints are satisfied, and reports the overall compatibility level (backward, forward, full, or breaking). Conductor executes them in strict sequence, ensures transforms only apply after change detection generates a valid plan, retries if the database is temporarily unavailable, and tracks change counts, transform counts, and validation results at every stage. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the schema evolution pipeline is a simple, independent worker. The change detector compares the current and target schemas field by field, identifying additions, removals, type changes, and renames, and classifying each change's compatibility impact. The transform generator converts those detected changes into concrete transform operations. ADD_COLUMN for new fields, TYPE_CAST for type changes, SPLIT for field restructuring. Producing a migration plan. The transform applier executes the migration plan against the sample data, applying each transform in sequence and tracking how many records were successfully transformed. The schema validator checks every transformed record against the target schema, confirming all required fields are present, types match, and constraints are satisfied, and reports the overall compatibility level (backward, forward, full, or breaking). Conductor executes them in strict sequence, ensures transforms only apply after change detection generates a valid plan, retries if the database is temporarily unavailable, and tracks change counts, transform counts, and validation results at every stage. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Four workers manage schema evolution: comparing current and target schemas to de
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ sh_apply_transform
     │
     ▼
 sh_validate_schema
-```
-
-## Example Output
-
-```
-=== Schema Evolution Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sh_detect_changes, sh_generate_transform, sh_apply_transform, sh_validate_schema
-
-Step 2: Registering workflow 'schema_evolution'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [apply] Transformed
-  [detect] Found
-  [generate] Generated
-  [validate] Validation
-
-  Status: COMPLETED
-  Output: {middle_name=..., phone_number=..., age=..., transformedData=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow schema_evolution \
   --version 1 \
-  --input '{"currentSchema": {"key": "value"}}'
+  --input '{"currentSchema": "test-value", "targetSchema": "test-value", "sampleData": "test-value"}'
 ```
 
 ### Check workflow status

@@ -1,8 +1,6 @@
 # Content Moderation Pipeline in Java Using Conductor :  Auto-Check, Toxicity Scoring, Human Review, and Policy Enforcement
 
-A Java Conductor workflow example that orchestrates content moderation .  submitting user content for review, running automated toxicity and policy violation checks with confidence scores, routing via SWITCH to approve safe content, escalate flagged content to human reviewers, or immediately block clearly violating content, and finalizing the decision with an audit log. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Content Moderation Needs Orchestration
+A Java Conductor workflow example that orchestrates content moderation .  submitting user content for review, running automated toxicity and policy violation checks with confidence scores, routing via SWITCH to approve safe content, escalate flagged content to human reviewers, or immediately block clearly violating content, and finalizing the decision with an audit log. Uses [Conductor](https://github.## Why Content Moderation Needs Orchestration
 
 Moderating user content requires a decision pipeline with multiple possible outcomes. You receive a submission and queue it. You run automated checks .  toxicity scoring, policy violation detection, confidence assessment. Based on the auto-check results, you route to three different paths: safe content (high confidence, low toxicity) is approved automatically; flagged content (medium confidence, potential violations) goes to a human moderator for manual review; clearly violating content (high toxicity, obvious violations) is blocked immediately with user notification and appeal options.
 
@@ -29,16 +27,6 @@ Six workers cover the moderation lifecycle: SubmitContentWorker queues submissio
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -55,36 +43,6 @@ SWITCH (mod_switch_ref)
     │
     ▼
 mod_finalize
-```
-
-## Example Output
-
-```
-=== Example 516: Content Moderatio ===
-
-Step 1: Registering task definitions...
-  Registered: mod_submit_content, mod_auto_check, mod_approve_safe, mod_human_review, mod_block_content, mod_finalize
-
-Step 2: Registering workflow 'content_moderation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [safe] Processing
-  [check] Processing
-  [block] Processing
-  [finalize] Processing
-  [review] Processing
-  [submit] Processing
-
-  Status: COMPLETED
-  Output: {approved=..., approvedAt=..., confidence=..., flagReasons=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -113,7 +71,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -156,7 +114,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_moderation_workflow \
   --version 1 \
-  --input '{"contentId": "UGC-516-001", "UGC-516-001": "contentType", "contentType": "comment", "comment": "userId", "userId": "USER-8800", "USER-8800": "contentText", "contentText": "Great article! Really enjoyed the insights on workflow automation.", "Great article! Really enjoyed the insights on workflow automation.": "sample-Great article! Really enjoyed the insights on workflow automation."}'
+  --input '{"contentId": "TEST-001", "contentType": "test-value", "userId": "TEST-001", "contentText": "test-value"}'
 ```
 
 ### Check workflow status

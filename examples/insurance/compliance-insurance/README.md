@@ -1,8 +1,6 @@
 # Insurance Compliance in Java with Conductor :  Audit, Assess, File Reports, Track, Certify
 
-A Java Conductor workflow example demonstrating compliance-insurance Compliance Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Insurance Compliance Spans Multiple Regulatory Bodies
+A Java Conductor workflow example demonstrating compliance-insurance Compliance Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Insurance Compliance Spans Multiple Regulatory Bodies
 
 An insurance company must comply with state DOI regulations (rate filings, market conduct), NAIC requirements (financial reporting, RBC ratios), federal regulations (OFAC sanctions screening, anti-money laundering), and industry standards (data security, claims handling best practices). Each regulatory body has different reporting requirements, filing deadlines, and audit expectations.
 
@@ -28,15 +26,6 @@ Regulation mapping, control assessment, gap identification, and remediation trac
 
 Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ cpi_track
     │
     ▼
 cpi_certify
-```
-
-## Example Output
-
-```
-=== Example 707: Compliance (Insurance) ===
-
-Step 1: Registering task definitions...
-  Registered: cpi_audit, cpi_assess, cpi_file_reports, cpi_track, cpi_certify
-
-Step 2: Registering workflow 'cpi_compliance_insurance'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [assess] 2 minor issues found .  remediation plan created
-  [audit] Processing
-  [certify] Processing
-  [file_reports] Processing
-  [track] Remediation items tracked .  all resolved
-
-  Status: COMPLETED
-  Output: {assessment=..., remediationItems=..., riskLevel=..., findings=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cpi_compliance_insurance \
   --version 1 \
-  --input '{"companyId": "INS-CO-707", "INS-CO-707": "regulatoryBody", "regulatoryBody": "NAIC", "NAIC": "compliancePeriod", "compliancePeriod": "Q1-2024", "Q1-2024": "sample-Q1-2024"}'
+  --input '{"companyId": "TEST-001", "regulatoryBody": "test-value", "compliancePeriod": "test-value"}'
 ```
 
 ### Check workflow status
@@ -177,7 +137,6 @@ Update regulatory mappings or control frameworks and the compliance pipeline ope
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

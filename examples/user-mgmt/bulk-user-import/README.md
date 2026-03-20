@@ -1,8 +1,6 @@
 # Bulk User Import in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Bulk User Import. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+A Java Conductor workflow example demonstrating Bulk User Import. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
 
 You need to import thousands of users from a CSV or JSON file. Parsing the file into individual records, validating each record for required fields, email format, and duplicate detection, batch-inserting the valid records into your user database, and generating a summary report showing how many were imported versus rejected. Each step depends on the previous one's output.
 
@@ -27,15 +25,6 @@ ParseFileWorker extracts records from CSV/JSON/Excel, ValidateRecordsWorker chec
 
 Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,34 +38,6 @@ bui_batch_insert
     │
     ▼
 bui_report
-```
-
-## Example Output
-
-```
-=== Example 616: Bulk User Import ===
-
-Step 1: Registering task definitions...
-  Registered: bui_parse_file, bui_validate, bui_batch_insert, bui_report
-
-Step 2: Registering workflow 'bui_bulk_user_import'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [insert] Batch inserted 1238 users in 13 batches
-  [parse] Parsed
-  [report] Import report generated ->
-  [validate] Validated
-
-  Status: COMPLETED
-  Output: {insertedCount=..., batches=..., avgBatchTime=..., records=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -105,7 +66,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -148,7 +109,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bui_bulk_user_import \
   --version 1 \
-  --input '{"fileUrl": "https://api.example.com/resource", "https://uploads.example.com/users-batch-42.csv": "sample-https://uploads.example.com/users-batch-42.csv", "format": "sample-format"}'
+  --input '{"fileUrl": "https://example.com", "format": "test-value"}'
 ```
 
 ### Check workflow status

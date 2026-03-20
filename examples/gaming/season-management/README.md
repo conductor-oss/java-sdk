@@ -1,8 +1,6 @@
 # Season Management in Java Using Conductor
 
-Manages a competitive season lifecycle: creating the season with a theme, defining reward tiers and battle pass structure, launching to all players, tracking progress, and closing with final reward distribution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## The Problem
+Manages a competitive season lifecycle: creating the season with a theme, defining reward tiers and battle pass structure, launching to all players, tracking progress, and closing with final reward distribution. Uses [Conductor](https://github.## The Problem
 
 You need to manage a competitive season lifecycle in your game. The workflow creates a new season with a theme and duration, defines the reward tiers and battle pass structure, launches the season to all players, tracks progress and engagement throughout, and closes the season with final reward distribution. Launching without properly defined rewards means players have nothing to earn; not closing properly means lingering rewards and confused players.
 
@@ -12,7 +10,7 @@ Without orchestration, you'd manage seasons through a mix of database scripts, a
 
 **You just write the season creation, reward tier definition, player launch, progress tracking, and final reward distribution logic. Conductor handles reward distribution retries, progress tracking, and season lifecycle audit trails.**
 
-Each season concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create, define rewards, launch, track, close), retrying if a deployment fails, tracking every season's lifecycle, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each season concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create, define rewards, launch, track, close), retrying if a deployment fails, tracking every season's lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +25,6 @@ Season creation, reward track setup, progress tracking, and season closure worke
 | **TrackWorker** | `smg_track` | Tracks season progress including active players, average level, top level, and pass holders |
 
 Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,34 +42,6 @@ smg_track
     │
     ▼
 smg_close
-```
-
-## Example Output
-
-```
-=== Example 749: Season Management ===
-
-Step 1: Registering task definitions...
-  Registered: smg_create_season, smg_define_rewards, smg_launch, smg_track, smg_close
-
-Step 2: Registering workflow 'season_management_749'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [close] Season
-  [create] Creating Season
-  [rewards] Defining reward tiers for
-  [launch] Season
-  [track] Tracking season
-
-  Status: COMPLETED
-
-Result: PASSED
 ```
 
 ## Running It
@@ -109,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -152,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow season_management_749 \
   --version 1 \
-  --input '{"seasonNumber": 5, "theme": "sample-theme", "Frozen Frontier": "sample-Frozen Frontier", "durationWeeks": "sample-durationWeeks"}'
+  --input '{"seasonNumber": "test-value", "theme": "test-value", "durationWeeks": "test-value"}'
 ```
 
 ### Check workflow status

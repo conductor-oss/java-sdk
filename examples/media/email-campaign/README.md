@@ -1,8 +1,6 @@
 # Email Campaign Pipeline in Java Using Conductor :  Audience Segmentation, Personalization, Sending, Engagement Tracking, and Performance Analysis
 
-A Java Conductor workflow example that orchestrates an email marketing campaign .  segmenting subscribers by behavior and demographics with suppression list filtering, personalizing email content with merge fields and A/B variant creation, sending the campaign in batches with bounce tracking, monitoring engagement metrics (open rate, click rate, unsubscribes), and analyzing results against industry benchmarks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers ,  you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
-
-## Why Email Campaigns Need Orchestration
+A Java Conductor workflow example that orchestrates an email marketing campaign .  segmenting subscribers by behavior and demographics with suppression list filtering, personalizing email content with merge fields and A/B variant creation, sending the campaign in batches with bounce tracking, monitoring engagement metrics (open rate, click rate, unsubscribes), and analyzing results against industry benchmarks. Uses [Conductor](https://github.## Why Email Campaigns Need Orchestration
 
 Running an email campaign involves a strict pipeline where sending before segmentation or tracking before sending produces incorrect results. You segment your subscriber list into targeted cohorts, suppress unsubscribed users, and count recipients. You personalize the email template with merge fields (first name, purchase history, recommended products) and create A/B variants. You send the campaign in batches, handling bounces in real time. You track engagement .  open rates, click-through rates, unique opens, unique clicks, unsubscribe rates. Finally, you analyze the results against industry benchmarks to measure campaign effectiveness.
 
@@ -28,15 +26,6 @@ Five workers power the campaign pipeline: SegmentAudienceWorker builds targeted 
 
 Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically .  configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status .  no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,35 +42,6 @@ eml_track_engagement
     │
     ▼
 eml_analyze_results
-```
-
-## Example Output
-
-```
-=== Example 524: Email Campaig ===
-
-Step 1: Registering task definitions...
-  Registered: eml_segment_audience, eml_personalize, eml_send_campaign, eml_track_engagement, eml_analyze_results
-
-Step 2: Registering workflow 'email_campaign_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f7a2c1e9-...
-
-  [analyze] Processing
-  [personalize] Processing
-  [segment] Processing
-  [send] Processing
-  [track] Processing
-
-  Status: COMPLETED
-  Output: {industryBenchmark=..., clickRate=..., personalizedCount=..., variantsCreated=...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -110,7 +70,7 @@ CONDUCTOR_PORT=9090 docker compose up --build
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -153,7 +113,7 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow email_campaign_workflow \
   --version 1 \
-  --input '{"campaignId": "CAMP-524-001", "CAMP-524-001": "subject", "subject": "Unlock the Power of Workflow Automation", "Unlock the Power of Workflow Automation": "templateId", "templateId": "TPL-PROMO-03", "TPL-PROMO-03": "listId", "listId": "LIST-MAIN-2026", "LIST-MAIN-2026": "sample-LIST-MAIN-2026"}'
+  --input '{"campaignId": "TEST-001", "subject": "test-value", "templateId": "TEST-001", "listId": "TEST-001"}'
 ```
 
 ### Check workflow status
