@@ -1,0 +1,22 @@
+{
+  "name": "portfolio_rebalancing_workflow",
+  "description": "Portfolio rebalancing workflow that analyzes drift, determines trades, executes, verifies, and reports.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["portfolioId", "accountId", "strategy"],
+  "tasks": [
+    {"name": "prt_analyze_drift", "taskReferenceName": "prt_drift_ref", "type": "SIMPLE", "inputParameters": {"portfolioId": "${workflow.input.portfolioId}", "strategy": "${workflow.input.strategy}"}},
+    {"name": "prt_determine_trades", "taskReferenceName": "prt_trades_ref", "type": "SIMPLE", "inputParameters": {"portfolioId": "${workflow.input.portfolioId}", "driftAnalysis": "${prt_drift_ref.output.driftAnalysis}"}},
+    {"name": "prt_execute_trades", "taskReferenceName": "prt_execute_ref", "type": "SIMPLE", "inputParameters": {"portfolioId": "${workflow.input.portfolioId}", "accountId": "${workflow.input.accountId}", "trades": "${prt_trades_ref.output.trades}"}},
+    {"name": "prt_verify", "taskReferenceName": "prt_verify_ref", "type": "SIMPLE", "inputParameters": {"portfolioId": "${workflow.input.portfolioId}", "executedTrades": "${prt_execute_ref.output.executedTrades}"}},
+    {"name": "prt_report", "taskReferenceName": "prt_report_ref", "type": "SIMPLE", "inputParameters": {"portfolioId": "${workflow.input.portfolioId}", "tradesExecuted": "${prt_execute_ref.output.tradeCount}", "verified": "${prt_verify_ref.output.verified}"}}
+  ],
+  "outputParameters": {
+    "portfolioId": "${workflow.input.portfolioId}",
+    "tradesExecuted": "${prt_execute_ref.output.tradeCount}",
+    "verified": "${prt_verify_ref.output.verified}",
+    "reportId": "${prt_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

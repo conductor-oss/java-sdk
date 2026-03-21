@@ -1,0 +1,68 @@
+{
+  "name": "image_pipeline_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "imageId",
+    "sourceUrl",
+    "targetSizes",
+    "watermarkText"
+  ],
+  "tasks": [
+    {
+      "name": "imp_upload_image",
+      "taskReferenceName": "imp_upload_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${workflow.input.imageId}",
+        "sourceUrl": "${workflow.input.sourceUrl}"
+      }
+    },
+    {
+      "name": "imp_resize_image",
+      "taskReferenceName": "imp_resize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${workflow.input.imageId}",
+        "storagePath": "${imp_upload_ref.output.storagePath}",
+        "targetSizes": "${workflow.input.targetSizes}"
+      }
+    },
+    {
+      "name": "imp_optimize_image",
+      "taskReferenceName": "imp_optimize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${workflow.input.imageId}",
+        "resizedPaths": "${imp_resize_ref.output.resizedPaths}"
+      }
+    },
+    {
+      "name": "imp_watermark_image",
+      "taskReferenceName": "imp_watermark_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${workflow.input.imageId}",
+        "optimizedPaths": "${imp_optimize_ref.output.optimizedPaths}",
+        "watermarkText": "${workflow.input.watermarkText}"
+      }
+    },
+    {
+      "name": "imp_push_cdn",
+      "taskReferenceName": "imp_cdn_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${workflow.input.imageId}",
+        "finalPaths": "${imp_watermark_ref.output.watermarkedPaths}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "imageId": "${workflow.input.imageId}",
+    "cdnUrls": "${imp_cdn_ref.output.cdnUrls}",
+    "sizesGenerated": "${imp_resize_ref.output.sizesGenerated}",
+    "totalSavedPercent": "${imp_optimize_ref.output.savedPercent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,63 @@
+{
+  "name": "calendar_agent",
+  "description": "Calendar Agent — parse meeting request, check attendee calendars, find available slots, and book the meeting through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["request", "attendees", "duration", "preferredDate"],
+  "tasks": [
+    {
+      "name": "cl_parse_request",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "request": "${workflow.input.request}",
+        "attendees": "${workflow.input.attendees}",
+        "duration": "${workflow.input.duration}",
+        "preferredDate": "${workflow.input.preferredDate}"
+      }
+    },
+    {
+      "name": "cl_check_calendar",
+      "taskReferenceName": "check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "attendees": "${parse_ref.output.parsedAttendees}",
+        "dateRange": "${parse_ref.output.dateRange}",
+        "duration": "${parse_ref.output.durationMinutes}"
+      }
+    },
+    {
+      "name": "cl_find_slots",
+      "taskReferenceName": "find_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "availability": "${check_ref.output.availability}",
+        "durationMinutes": "${parse_ref.output.durationMinutes}",
+        "preferences": "${parse_ref.output.preferences}"
+      }
+    },
+    {
+      "name": "cl_book_meeting",
+      "taskReferenceName": "book_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "selectedSlot": "${find_ref.output.bestSlot}",
+        "attendees": "${parse_ref.output.parsedAttendees}",
+        "title": "${parse_ref.output.meetingTitle}",
+        "duration": "${parse_ref.output.durationMinutes}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "meetingId": "${book_ref.output.meetingId}",
+    "calendarLink": "${book_ref.output.calendarLink}",
+    "scheduledTime": "${book_ref.output.scheduledTime}",
+    "invitesSent": "${book_ref.output.invitesSent}",
+    "status": "${book_ref.output.status}",
+    "meetingTitle": "${parse_ref.output.meetingTitle}",
+    "bestSlot": "${find_ref.output.bestSlot}",
+    "alternatives": "${find_ref.output.alternatives}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,64 @@
+{
+  "name": "avc_voice_cloning",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "speakerId",
+    "targetText",
+    "language"
+  ],
+  "tasks": [
+    {
+      "name": "avc_collect_samples",
+      "taskReferenceName": "avc_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "speakerId": "${workflow.input.speakerId}",
+        "language": "${workflow.input.language}"
+      }
+    },
+    {
+      "name": "avc_train_model",
+      "taskReferenceName": "avc_train_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "samples": "${avc_collect_ref.output.sampleCount}",
+        "speakerId": "${workflow.input.speakerId}"
+      }
+    },
+    {
+      "name": "avc_generate",
+      "taskReferenceName": "avc_gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${avc_train_ref.output.modelId}",
+        "targetText": "${workflow.input.targetText}"
+      }
+    },
+    {
+      "name": "avc_verify",
+      "taskReferenceName": "avc_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "audioId": "${avc_gen_ref.output.audioId}",
+        "speakerId": "${workflow.input.speakerId}"
+      }
+    },
+    {
+      "name": "avc_deliver",
+      "taskReferenceName": "avc_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "audioId": "${avc_gen_ref.output.audioId}",
+        "format": "mp3"
+      }
+    }
+  ],
+  "outputParameters": {
+    "audioId": "${avc_gen_ref.output.audioId}",
+    "similarity": "${avc_verify_ref.output.similarity}",
+    "delivered": "${avc_deliver_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

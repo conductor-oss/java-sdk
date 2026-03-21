@@ -1,0 +1,75 @@
+{
+  "name": "event_ttl",
+  "description": "Event TTL workflow that checks if an event has expired, processes it if still valid, or logs it if the TTL has passed. Uses SWITCH to branch on expiry status.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "payload",
+    "ttlSeconds",
+    "createdAt"
+  ],
+  "tasks": [
+    {
+      "name": "xl_check_expiry",
+      "taskReferenceName": "expiry_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "ttlSeconds": "${workflow.input.ttlSeconds}",
+        "createdAt": "${workflow.input.createdAt}"
+      }
+    },
+    {
+      "name": "ttl_decision",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${expiry_ref.output.status}"
+      },
+      "decisionCases": {
+        "valid": [
+          {
+            "name": "xl_process_event",
+            "taskReferenceName": "process_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "payload": "${workflow.input.payload}"
+            }
+          },
+          {
+            "name": "xl_acknowledge",
+            "taskReferenceName": "ack_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}"
+            }
+          }
+        ],
+        "expired": [
+          {
+            "name": "xl_log_expired",
+            "taskReferenceName": "expired_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "age": "${expiry_ref.output.ageSeconds}",
+              "ttl": "${workflow.input.ttlSeconds}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "ttlStatus": "${expiry_ref.output.status}",
+    "ageSeconds": "${expiry_ref.output.ageSeconds}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

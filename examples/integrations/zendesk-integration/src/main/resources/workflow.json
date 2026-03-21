@@ -1,0 +1,61 @@
+{
+  "name": "zendesk_integration_440",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "requesterEmail",
+    "subject",
+    "description",
+    "category"
+  ],
+  "tasks": [
+    {
+      "name": "zd_create_ticket",
+      "taskReferenceName": "create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requesterEmail": "${workflow.input.requesterEmail}",
+        "subject": "${workflow.input.subject}",
+        "description": "${workflow.input.description}",
+        "category": "${workflow.input.category}"
+      }
+    },
+    {
+      "name": "zd_classify",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${create_ref.output.ticketId}",
+        "subject": "${workflow.input.subject}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "zd_route",
+      "taskReferenceName": "route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${create_ref.output.ticketId}",
+        "priority": "${classify_ref.output.priority}",
+        "category": "${workflow.input.category}"
+      }
+    },
+    {
+      "name": "zd_resolve",
+      "taskReferenceName": "resolve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${create_ref.output.ticketId}",
+        "agentId": "${route_ref.output.agentId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ticketId": "${create_ref.output.ticketId}",
+    "priority": "${classify_ref.output.priority}",
+    "agent": "${route_ref.output.agentName}",
+    "resolved": "${resolve_ref.output.resolved}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,12 @@
+{
+  "name": "spe_supplier_evaluation", "description": "Supplier evaluation: collect data, score, rank, and report.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["category", "period"],
+  "tasks": [
+    {"name":"spe_collect_data","taskReferenceName":"spe_collect_ref","type":"SIMPLE","inputParameters":{"category":"${workflow.input.category}","period":"${workflow.input.period}"}},
+    {"name":"spe_score","taskReferenceName":"spe_score_ref","type":"SIMPLE","inputParameters":{"suppliers":"${spe_collect_ref.output.suppliers}"}},
+    {"name":"spe_rank","taskReferenceName":"spe_rank_ref","type":"SIMPLE","inputParameters":{"scores":"${spe_score_ref.output.scores}"}},
+    {"name":"spe_report","taskReferenceName":"spe_report_ref","type":"SIMPLE","inputParameters":{"rankings":"${spe_rank_ref.output.rankings}"}}
+  ],
+  "outputParameters": {"suppliersEvaluated":"${spe_collect_ref.output.supplierCount}","topSupplier":"${spe_rank_ref.output.topSupplier}","report":"${spe_report_ref.output.report}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "name": "retry_linear_task",
+    "retryCount": 4,
+    "retryLogic": "LINEAR_BACKOFF",
+    "retryDelaySeconds": 1,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

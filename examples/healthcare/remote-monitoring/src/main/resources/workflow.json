@@ -1,0 +1,81 @@
+{
+  "name": "remote_monitoring_workflow",
+  "description": "Remote Patient Monitoring: collect vitals, analyze trends, SWITCH route, take action",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["patientId", "deviceId"],
+  "tasks": [
+    {
+      "name": "rpm_collect_vitals",
+      "taskReferenceName": "rpm_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "deviceId": "${workflow.input.deviceId}"
+      }
+    },
+    {
+      "name": "rpm_analyze_trends",
+      "taskReferenceName": "rpm_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "vitals": "${rpm_collect_ref.output.vitals}"
+      }
+    },
+    {
+      "name": "rpm_route_condition",
+      "taskReferenceName": "rpm_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${rpm_analyze_ref.output.status}"
+      },
+      "decisionCases": {
+        "normal": [
+          {
+            "name": "rpm_normal_action",
+            "taskReferenceName": "rpm_normal_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "patientId": "${workflow.input.patientId}",
+              "vitals": "${rpm_collect_ref.output.vitals}"
+            }
+          }
+        ],
+        "alert": [
+          {
+            "name": "rpm_alert_action",
+            "taskReferenceName": "rpm_alert_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "patientId": "${workflow.input.patientId}",
+              "vitals": "${rpm_collect_ref.output.vitals}",
+              "alerts": "${rpm_analyze_ref.output.alerts}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "rpm_alert_action",
+          "taskReferenceName": "rpm_default_alert_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "patientId": "${workflow.input.patientId}",
+            "vitals": "${rpm_collect_ref.output.vitals}",
+            "alerts": "${rpm_analyze_ref.output.alerts}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "patientId": "${workflow.input.patientId}",
+    "status": "${rpm_analyze_ref.output.status}",
+    "alerts": "${rpm_analyze_ref.output.alerts}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

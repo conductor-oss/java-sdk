@@ -1,0 +1,72 @@
+{
+  "name": "cron_trigger",
+  "description": "Cron-like scheduled workflow: check if the current time matches a schedule expression, decide whether to run via SWITCH, and execute or skip accordingly.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "cronExpression",
+    "jobName"
+  ],
+  "tasks": [
+    {
+      "name": "cn_check_schedule",
+      "taskReferenceName": "sched_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cronExpression": "${workflow.input.cronExpression}",
+        "jobName": "${workflow.input.jobName}"
+      }
+    },
+    {
+      "name": "schedule_decision",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${sched_ref.output.shouldRun}"
+      },
+      "decisionCases": {
+        "yes": [
+          {
+            "name": "cn_execute_tasks",
+            "taskReferenceName": "exec_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "jobName": "${workflow.input.jobName}",
+              "scheduledTime": "${sched_ref.output.scheduledTime}"
+            }
+          },
+          {
+            "name": "cn_record_run",
+            "taskReferenceName": "record_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "jobName": "${workflow.input.jobName}",
+              "result": "${exec_ref.output.result}"
+            }
+          }
+        ],
+        "no": [
+          {
+            "name": "cn_log_skip",
+            "taskReferenceName": "skip_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "jobName": "${workflow.input.jobName}",
+              "reason": "${sched_ref.output.skipReason}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "jobName": "${workflow.input.jobName}",
+    "shouldRun": "${sched_ref.output.shouldRun}",
+    "scheduledTime": "${sched_ref.output.scheduledTime}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

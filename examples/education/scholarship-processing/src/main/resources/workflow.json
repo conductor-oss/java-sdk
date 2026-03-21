@@ -1,0 +1,23 @@
+{
+  "name": "scp_scholarship_processing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studentId", "scholarshipId", "gpa", "financialNeed"],
+  "tasks": [
+    { "name": "scp_apply", "taskReferenceName": "scp_apply_ref", "type": "SIMPLE", "inputParameters": { "studentId": "${workflow.input.studentId}", "scholarshipId": "${workflow.input.scholarshipId}", "gpa": "${workflow.input.gpa}" } },
+    { "name": "scp_evaluate", "taskReferenceName": "scp_evaluate_ref", "type": "SIMPLE", "inputParameters": { "applicationId": "${scp_apply_ref.output.applicationId}", "gpa": "${workflow.input.gpa}", "financialNeed": "${workflow.input.financialNeed}" } },
+    { "name": "scp_rank", "taskReferenceName": "scp_rank_ref", "type": "SIMPLE", "inputParameters": { "score": "${scp_evaluate_ref.output.score}", "applicationId": "${scp_apply_ref.output.applicationId}" } },
+    { "name": "scp_award", "taskReferenceName": "scp_award_ref", "type": "SIMPLE", "inputParameters": { "applicationId": "${scp_apply_ref.output.applicationId}", "rank": "${scp_rank_ref.output.rank}", "scholarshipId": "${workflow.input.scholarshipId}" } },
+    { "name": "scp_notify", "taskReferenceName": "scp_notify_ref", "type": "SIMPLE", "inputParameters": { "studentId": "${workflow.input.studentId}", "awarded": "${scp_award_ref.output.awarded}", "amount": "${scp_award_ref.output.amount}" } }
+  ],
+  "outputParameters": {
+    "applicationId": "${scp_apply_ref.output.applicationId}",
+    "score": "${scp_evaluate_ref.output.score}",
+    "rank": "${scp_rank_ref.output.rank}",
+    "awarded": "${scp_award_ref.output.awarded}",
+    "amount": "${scp_award_ref.output.amount}",
+    "notified": "${scp_notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

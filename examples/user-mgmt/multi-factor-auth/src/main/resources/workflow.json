@@ -1,0 +1,19 @@
+{
+  "name": "mfa_multi_factor_auth",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["username", "password", "preferredMethod"],
+  "tasks": [
+    { "name": "mfa_primary_auth", "taskReferenceName": "mfa_primary_ref", "type": "SIMPLE", "inputParameters": { "username": "${workflow.input.username}", "password": "${workflow.input.password}" } },
+    { "name": "mfa_select_method", "taskReferenceName": "mfa_method_ref", "type": "SIMPLE", "inputParameters": { "userId": "${mfa_primary_ref.output.userId}", "preferred": "${workflow.input.preferredMethod}" } },
+    { "name": "mfa_verify_factor", "taskReferenceName": "mfa_verify_ref", "type": "SIMPLE", "inputParameters": { "userId": "${mfa_primary_ref.output.userId}", "method": "${mfa_method_ref.output.selectedMethod}" } },
+    { "name": "mfa_grant", "taskReferenceName": "mfa_grant_ref", "type": "SIMPLE", "inputParameters": { "userId": "${mfa_primary_ref.output.userId}", "factorVerified": "${mfa_verify_ref.output.verified}" } }
+  ],
+  "outputParameters": {
+    "userId": "${mfa_primary_ref.output.userId}",
+    "method": "${mfa_method_ref.output.selectedMethod}",
+    "accessGranted": "${mfa_grant_ref.output.accessGranted}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

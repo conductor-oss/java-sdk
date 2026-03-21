@@ -1,0 +1,13 @@
+{
+  "name": "bid_management", "description": "Bid management: create, distribute, collect, evaluate, and award.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["projectName", "budget", "vendors"],
+  "tasks": [
+    {"name":"bid_create","taskReferenceName":"bid_create_ref","type":"SIMPLE","inputParameters":{"projectName":"${workflow.input.projectName}","budget":"${workflow.input.budget}"}},
+    {"name":"bid_distribute","taskReferenceName":"bid_distribute_ref","type":"SIMPLE","inputParameters":{"bidId":"${bid_create_ref.output.bidId}","vendors":"${workflow.input.vendors}"}},
+    {"name":"bid_collect","taskReferenceName":"bid_collect_ref","type":"SIMPLE","inputParameters":{"bidId":"${bid_create_ref.output.bidId}"}},
+    {"name":"bid_evaluate","taskReferenceName":"bid_evaluate_ref","type":"SIMPLE","inputParameters":{"responses":"${bid_collect_ref.output.responses}"}},
+    {"name":"bid_award","taskReferenceName":"bid_award_ref","type":"SIMPLE","inputParameters":{"bidId":"${bid_create_ref.output.bidId}","winner":"${bid_evaluate_ref.output.winner}"}}
+  ],
+  "outputParameters": {"bidId":"${bid_create_ref.output.bidId}","vendorsInvited":"${bid_distribute_ref.output.invitedCount}","responsesReceived":"${bid_collect_ref.output.responseCount}","winner":"${bid_award_ref.output.awardedTo}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

@@ -1,0 +1,20 @@
+{
+  "name": "umg_user_migration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sourceDb", "targetDb", "batchSize"],
+  "tasks": [
+    { "name": "umg_extract", "taskReferenceName": "umg_extract_ref", "type": "SIMPLE", "inputParameters": { "sourceDb": "${workflow.input.sourceDb}", "batchSize": "${workflow.input.batchSize}" } },
+    { "name": "umg_transform", "taskReferenceName": "umg_transform_ref", "type": "SIMPLE", "inputParameters": { "users": "${umg_extract_ref.output.users}" } },
+    { "name": "umg_load", "taskReferenceName": "umg_load_ref", "type": "SIMPLE", "inputParameters": { "targetDb": "${workflow.input.targetDb}", "transformedUsers": "${umg_transform_ref.output.transformed}" } },
+    { "name": "umg_verify", "taskReferenceName": "umg_verify_ref", "type": "SIMPLE", "inputParameters": { "loaded": "${umg_load_ref.output.loadedCount}", "expected": "${umg_extract_ref.output.extractedCount}" } },
+    { "name": "umg_notify", "taskReferenceName": "umg_notify_ref", "type": "SIMPLE", "inputParameters": { "migrationResult": "${umg_verify_ref.output.verificationResult}" } }
+  ],
+  "outputParameters": {
+    "extracted": "${umg_extract_ref.output.extractedCount}",
+    "loaded": "${umg_load_ref.output.loadedCount}",
+    "verified": "${umg_verify_ref.output.allMatch}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

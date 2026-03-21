@@ -1,0 +1,58 @@
+{
+  "name": "agp_aggregator_pattern",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "messages",
+    "expectedCount",
+    "aggregationKey"
+  ],
+  "tasks": [
+    {
+      "name": "agp_collect",
+      "taskReferenceName": "agp_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messages": "${workflow.input.messages}",
+        "aggregationKey": "${workflow.input.aggregationKey}"
+      }
+    },
+    {
+      "name": "agp_check_complete",
+      "taskReferenceName": "agp_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "collectedCount": "${agp_collect_ref.output.collectedCount}",
+        "expectedCount": "${workflow.input.expectedCount}",
+        "aggregationKey": "${workflow.input.aggregationKey}"
+      }
+    },
+    {
+      "name": "agp_aggregate",
+      "taskReferenceName": "agp_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "collectedMessages": "${agp_collect_ref.output.collectedMessages}",
+        "isComplete": "${agp_check_ref.output.isComplete}"
+      }
+    },
+    {
+      "name": "agp_forward",
+      "taskReferenceName": "agp_forward_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregatedResult": "${agp_aggregate_ref.output.aggregatedResult}",
+        "aggregationKey": "${workflow.input.aggregationKey}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "aggregationKey": "${workflow.input.aggregationKey}",
+    "messagesCollected": "${agp_collect_ref.output.collectedCount}",
+    "isComplete": "${agp_check_ref.output.isComplete}",
+    "aggregatedResult": "${agp_aggregate_ref.output.aggregatedResult}",
+    "forwarded": "${agp_forward_ref.output.forwarded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

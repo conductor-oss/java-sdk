@@ -15,6 +15,7 @@ java -jar target/hello-world-1.0.0.jar
 
 # Or use the launcher script
 ./run.sh
+
 ```
 
 ## Examples by Category
@@ -222,18 +223,19 @@ Each example is a standalone Maven project:
 
 ```
 examples/basics/hello-world/
-├── pom.xml                              # Maven build (Java 21)
-├── run.sh                               # Launcher script
-├── README.md                            # Documentation
+├── pom.xml # Maven build (Java 21)
+├── run.sh # Launcher script
+├── README.md # Documentation
 ├── src/main/java/helloworld/
-│   ├── HelloWorldExample.java           # Main class
-│   ├── ConductorClientHelper.java       # Client helper
-│   └── workers/
-│       └── GreetWorker.java             # Worker implementation
+│ ├── HelloWorldExample.java # Main class
+│ ├── ConductorClientHelper.java # Client helper
+│ └── workers/
+│ └── GreetWorker.java # Worker implementation
 ├── src/main/resources/
-│   └── workflow.json                    # Workflow definition
+│ └── workflow.json # Workflow definition
 └── src/test/java/helloworld/workers/
-    └── GreetWorkerTest.java             # Unit tests
+ └── GreetWorkerTest.java # Unit tests
+
 ```
 
 All examples support `--workers` flag for worker-only mode (useful when starting workflows via CLI or UI).
@@ -247,6 +249,7 @@ All examples support `--workers` flag for worker-only mode (useful when starting
 ```bash
 # Start Conductor locally
 docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+
 ```
 
 ## Legacy Examples
@@ -259,3 +262,7 @@ The original Gradle-based examples are preserved in the [old/](old/) directory.
 - [Worker SDK Guide](../java-sdk/worker_sdk.md)
 - [Workflow SDK Guide](../java-sdk/workflow_sdk.md)
 - [Official Conductor Documentation](https://orkes.io/content)
+
+---
+
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

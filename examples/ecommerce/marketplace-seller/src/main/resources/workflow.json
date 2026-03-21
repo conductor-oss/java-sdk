@@ -1,0 +1,23 @@
+{
+  "name": "marketplace_seller_workflow",
+  "description": "Marketplace seller onboarding: register, verify, list products, manage orders",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["sellerId", "businessName", "category"],
+  "tasks": [
+    { "name": "mkt_onboard_seller", "taskReferenceName": "mkt_onboard_ref", "type": "SIMPLE",
+      "inputParameters": { "sellerId": "${workflow.input.sellerId}", "businessName": "${workflow.input.businessName}", "category": "${workflow.input.category}" } },
+    { "name": "mkt_verify_seller", "taskReferenceName": "mkt_verify_ref", "type": "SIMPLE",
+      "inputParameters": { "sellerId": "${workflow.input.sellerId}", "documents": "${mkt_onboard_ref.output.documents}" } },
+    { "name": "mkt_list_products", "taskReferenceName": "mkt_list_ref", "type": "SIMPLE",
+      "inputParameters": { "sellerId": "${workflow.input.sellerId}", "category": "${workflow.input.category}", "storeId": "${mkt_verify_ref.output.storeId}" } },
+    { "name": "mkt_manage_orders", "taskReferenceName": "mkt_orders_ref", "type": "SIMPLE",
+      "inputParameters": { "sellerId": "${workflow.input.sellerId}", "storeId": "${mkt_verify_ref.output.storeId}", "productCount": "${mkt_list_ref.output.productCount}" } }
+  ],
+  "outputParameters": {
+    "sellerId": "${workflow.input.sellerId}",
+    "storeId": "${mkt_verify_ref.output.storeId}",
+    "productsListed": "${mkt_list_ref.output.productCount}",
+    "orderManagementActive": "${mkt_orders_ref.output.active}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

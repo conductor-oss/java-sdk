@@ -1,0 +1,60 @@
+{
+  "name": "uag_usage_analytics",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "region",
+    "period"
+  ],
+  "tasks": [
+    {
+      "name": "uag_collect_cdrs",
+      "taskReferenceName": "uag_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "region": "${workflow.input.region}",
+        "period": "${workflow.input.period}"
+      }
+    },
+    {
+      "name": "uag_process",
+      "taskReferenceName": "uag_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cdrCount": "${uag_collect_ref.output.cdrCount}"
+      }
+    },
+    {
+      "name": "uag_aggregate",
+      "taskReferenceName": "uag_agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "processedRecords": "${uag_process_ref.output.processedRecords}"
+      }
+    },
+    {
+      "name": "uag_report",
+      "taskReferenceName": "uag_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregates": "${uag_agg_ref.output.aggregates}",
+        "region": "${workflow.input.region}"
+      }
+    },
+    {
+      "name": "uag_alert",
+      "taskReferenceName": "uag_alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "anomalies": "${uag_agg_ref.output.anomalies}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalCDRs": "${uag_collect_ref.output.cdrCount}",
+    "reportId": "${uag_report_ref.output.reportId}",
+    "alertsRaised": "${uag_alert_ref.output.alertCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

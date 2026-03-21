@@ -1,0 +1,86 @@
+{
+  "name": "self_correction",
+  "description": "Self-Correction — generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requirement"],
+  "tasks": [
+    {
+      "name": "sc_generate_code",
+      "taskReferenceName": "generate_code_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requirement": "${workflow.input.requirement}"
+      }
+    },
+    {
+      "name": "sc_run_tests",
+      "taskReferenceName": "run_tests_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "code": "${generate_code_ref.output.code}"
+      }
+    },
+    {
+      "name": "test_result_switch",
+      "taskReferenceName": "test_result_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${run_tests_ref.output.testResult}"
+      },
+      "decisionCases": {
+        "pass": [
+          {
+            "name": "sc_deliver",
+            "taskReferenceName": "deliver_pass_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "code": "${generate_code_ref.output.code}",
+              "testsPassed": "${run_tests_ref.output.testsPassed}"
+            }
+          }
+        ],
+        "fail": [
+          {
+            "name": "sc_diagnose",
+            "taskReferenceName": "diagnose_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "code": "${generate_code_ref.output.code}",
+              "errors": "${run_tests_ref.output.errors}"
+            }
+          },
+          {
+            "name": "sc_fix",
+            "taskReferenceName": "fix_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "code": "${generate_code_ref.output.code}",
+              "diagnosis": "${diagnose_ref.output.diagnosis}"
+            }
+          },
+          {
+            "name": "sc_deliver",
+            "taskReferenceName": "deliver_fix_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "code": "${fix_ref.output.fixedCode}",
+              "testsPassed": "${run_tests_ref.output.testsPassed}",
+              "wasFixed": true
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "requirement": "${workflow.input.requirement}",
+    "testResult": "${run_tests_ref.output.testResult}",
+    "deliveredCode": "${test_result_switch_ref.output.deliveredCode}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

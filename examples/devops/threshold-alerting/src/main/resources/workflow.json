@@ -1,0 +1,77 @@
+{
+  "name": "threshold_alerting_423",
+  "description": "Threshold-based alerting: check metric, route by severity (critical/warning/ok) via SWITCH",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "metricName",
+    "currentValue",
+    "warningThreshold",
+    "criticalThreshold"
+  ],
+  "tasks": [
+    {
+      "name": "th_check_metric",
+      "taskReferenceName": "check_metric_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metricName": "${workflow.input.metricName}",
+        "currentValue": "${workflow.input.currentValue}",
+        "warningThreshold": "${workflow.input.warningThreshold}",
+        "criticalThreshold": "${workflow.input.criticalThreshold}"
+      }
+    },
+    {
+      "name": "severity_switch",
+      "taskReferenceName": "severity_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "severity",
+      "inputParameters": {
+        "severity": "${check_metric_ref.output.severity}"
+      },
+      "decisionCases": {
+        "critical": [
+          {
+            "name": "th_page_oncall",
+            "taskReferenceName": "page_oncall_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "metricName": "${workflow.input.metricName}",
+              "currentValue": "${workflow.input.currentValue}"
+            }
+          }
+        ],
+        "warning": [
+          {
+            "name": "th_send_warning",
+            "taskReferenceName": "send_warning_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "metricName": "${workflow.input.metricName}",
+              "currentValue": "${workflow.input.currentValue}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "th_log_ok",
+          "taskReferenceName": "log_ok_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "metricName": "${workflow.input.metricName}",
+            "currentValue": "${workflow.input.currentValue}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "severity": "${check_metric_ref.output.severity}",
+    "metricName": "${workflow.input.metricName}",
+    "currentValue": "${workflow.input.currentValue}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

@@ -1,0 +1,67 @@
+{
+  "name": "data_lineage",
+  "description": "Data lineage workflow that tracks the origin, transformation steps, and final destination of each record.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "sourceName",
+    "destName"
+  ],
+  "tasks": [
+    {
+      "name": "ln_register_source",
+      "taskReferenceName": "source_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}",
+        "sourceName": "${workflow.input.sourceName}"
+      }
+    },
+    {
+      "name": "ln_apply_transform_1",
+      "taskReferenceName": "t1_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${source_ref.output.records}",
+        "lineage": "${source_ref.output.lineage}"
+      }
+    },
+    {
+      "name": "ln_apply_transform_2",
+      "taskReferenceName": "t2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${t1_ref.output.records}",
+        "lineage": "${t1_ref.output.lineage}"
+      }
+    },
+    {
+      "name": "ln_record_destination",
+      "taskReferenceName": "dest_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${t2_ref.output.records}",
+        "lineage": "${t2_ref.output.lineage}",
+        "destName": "${workflow.input.destName}"
+      }
+    },
+    {
+      "name": "ln_build_lineage_graph",
+      "taskReferenceName": "graph_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "lineage": "${dest_ref.output.lineage}",
+        "recordCount": "${source_ref.output.recordCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "recordCount": "${source_ref.output.recordCount}",
+    "transformSteps": "${graph_ref.output.transformSteps}",
+    "lineageDepth": "${graph_ref.output.depth}",
+    "summary": "${graph_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

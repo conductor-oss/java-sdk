@@ -1,0 +1,20 @@
+{
+  "name": "data_migration_workflow",
+  "description": "Data migration with backup, transform, migrate, validate, and cutover",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["sourceDb", "targetDb", "migrationName"],
+  "tasks": [
+    {"name": "dm_backup", "taskReferenceName": "backup_ref", "type": "SIMPLE",
+      "inputParameters": {"sourceDb": "${workflow.input.sourceDb}"}},
+    {"name": "dm_transform", "taskReferenceName": "transform_ref", "type": "SIMPLE",
+      "inputParameters": {"backupId": "${backup_ref.output.backupId}"}},
+    {"name": "dm_migrate", "taskReferenceName": "migrate_ref", "type": "SIMPLE",
+      "inputParameters": {"targetDb": "${workflow.input.targetDb}", "transformedData": "${transform_ref.output.dataPath}"}},
+    {"name": "dm_validate", "taskReferenceName": "validate_ref", "type": "SIMPLE",
+      "inputParameters": {"sourceDb": "${workflow.input.sourceDb}", "targetDb": "${workflow.input.targetDb}"}},
+    {"name": "dm_cutover", "taskReferenceName": "cutover_ref", "type": "SIMPLE",
+      "inputParameters": {"targetDb": "${workflow.input.targetDb}", "validated": "${validate_ref.output.valid}"}}
+  ],
+  "outputParameters": {"migrated": "${cutover_ref.output.cutover}", "recordCount": "${migrate_ref.output.recordCount}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 3600
+}

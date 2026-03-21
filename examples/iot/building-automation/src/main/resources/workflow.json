@@ -1,0 +1,57 @@
+{
+  "name": "building_automation_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "buildingId",
+    "floor"
+  ],
+  "tasks": [
+    {
+      "name": "bld_monitor_systems",
+      "taskReferenceName": "bld_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildingId": "${workflow.input.buildingId}",
+        "floor": "${workflow.input.floor}"
+      }
+    },
+    {
+      "name": "bld_optimize",
+      "taskReferenceName": "bld_optimize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "hvacStatus": "${bld_monitor_ref.output.hvac}",
+        "lightingStatus": "${bld_monitor_ref.output.lighting}",
+        "occupancy": "${bld_monitor_ref.output.occupancy}"
+      }
+    },
+    {
+      "name": "bld_schedule",
+      "taskReferenceName": "bld_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "optimizations": "${bld_optimize_ref.output.optimizations}",
+        "buildingId": "${workflow.input.buildingId}"
+      }
+    },
+    {
+      "name": "bld_adjust",
+      "taskReferenceName": "bld_adjust_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buildingId": "${workflow.input.buildingId}",
+        "floor": "${workflow.input.floor}",
+        "schedule": "${bld_schedule_ref.output.schedule}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "buildingId": "${workflow.input.buildingId}",
+    "hvacTemp": "${bld_monitor_ref.output.hvacTemp}",
+    "energySaved": "${bld_optimize_ref.output.energySaved}",
+    "adjustmentsApplied": "${bld_adjust_ref.output.applied}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,22 @@
+{
+  "name": "poll_timeout_demo",
+  "description": "Poll timeout demo — demonstrates how pollTimeoutSeconds defines how long a task waits in the queue for a worker.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["mode"],
+  "tasks": [
+    {
+      "name": "poll_normal_task",
+      "taskReferenceName": "poll_normal_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mode": "${workflow.input.mode}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${poll_normal_task_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

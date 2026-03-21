@@ -1,0 +1,22 @@
+{
+  "name": "calendar_integration_406",
+  "description": "Calendar sync workflow that fetches events, compares schedules, syncs changes, and notifies stakeholders.",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["calendarId", "syncWindow", "direction"],
+  "tasks": [
+    {"name": "cal_fetch_events", "taskReferenceName": "cal_fetch_ref", "type": "SIMPLE",
+     "inputParameters": {"calendarId": "${workflow.input.calendarId}", "syncWindow": "${workflow.input.syncWindow}"}},
+    {"name": "cal_compare_schedules", "taskReferenceName": "cal_compare_ref", "type": "SIMPLE",
+     "inputParameters": {"externalEvents": "${cal_fetch_ref.output.events}", "eventCount": "${cal_fetch_ref.output.eventCount}", "direction": "${workflow.input.direction}"}},
+    {"name": "cal_sync_changes", "taskReferenceName": "cal_sync_ref", "type": "SIMPLE",
+     "inputParameters": {"additions": "${cal_compare_ref.output.additions}", "updates": "${cal_compare_ref.output.updates}", "deletions": "${cal_compare_ref.output.deletions}"}},
+    {"name": "cal_notify_stakeholders", "taskReferenceName": "cal_notify_ref", "type": "SIMPLE",
+     "inputParameters": {"changesSynced": "${cal_sync_ref.output.changesSynced}", "calendarId": "${workflow.input.calendarId}"}}
+  ],
+  "outputParameters": {
+    "eventsFetched": "${cal_fetch_ref.output.eventCount}",
+    "changesSynced": "${cal_sync_ref.output.changesSynced}",
+    "notified": "${cal_notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

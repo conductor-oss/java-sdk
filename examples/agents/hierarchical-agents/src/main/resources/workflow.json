@@ -1,0 +1,108 @@
+{
+  "name": "hierarchical_agents",
+  "description": "Hierarchical agents — manager plans, team leads delegate to workers in parallel branches, manager merges results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["project", "deadline"],
+  "tasks": [
+    {
+      "name": "hier_manager_plan",
+      "taskReferenceName": "hier_manager_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "project": "${workflow.input.project}",
+        "deadline": "${workflow.input.deadline}"
+      }
+    },
+    {
+      "name": "fork_teams",
+      "taskReferenceName": "fork_teams_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "hier_lead_backend",
+            "taskReferenceName": "hier_lead_backend_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "workstream": "${hier_manager_plan_ref.output.backendPlan}"
+            }
+          },
+          {
+            "name": "hier_worker_api",
+            "taskReferenceName": "hier_worker_api_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "task": "${hier_lead_backend_ref.output.apiTask}"
+            }
+          },
+          {
+            "name": "hier_worker_db",
+            "taskReferenceName": "hier_worker_db_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "task": "${hier_lead_backend_ref.output.dbTask}",
+              "apiOutput": "${hier_worker_api_ref.output.result}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "hier_lead_frontend",
+            "taskReferenceName": "hier_lead_frontend_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "workstream": "${hier_manager_plan_ref.output.frontendPlan}"
+            }
+          },
+          {
+            "name": "hier_worker_ui",
+            "taskReferenceName": "hier_worker_ui_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "task": "${hier_lead_frontend_ref.output.uiTask}"
+            }
+          },
+          {
+            "name": "hier_worker_styling",
+            "taskReferenceName": "hier_worker_styling_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "task": "${hier_lead_frontend_ref.output.stylingTask}",
+              "uiOutput": "${hier_worker_ui_ref.output.result}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_teams",
+      "taskReferenceName": "join_teams_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "hier_worker_db_ref",
+        "hier_worker_styling_ref"
+      ]
+    },
+    {
+      "name": "hier_manager_merge",
+      "taskReferenceName": "hier_manager_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "backendResults": {
+          "apiResult": "${hier_worker_api_ref.output.result}",
+          "dbResult": "${hier_worker_db_ref.output.result}"
+        },
+        "frontendResults": {
+          "uiResult": "${hier_worker_ui_ref.output.result}",
+          "stylingResult": "${hier_worker_styling_ref.output.result}"
+        }
+      }
+    }
+  ],
+  "outputParameters": {
+    "projectReport": "${hier_manager_merge_ref.output.projectReport}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

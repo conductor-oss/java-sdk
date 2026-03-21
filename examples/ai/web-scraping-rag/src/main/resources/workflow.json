@@ -1,0 +1,58 @@
+{
+  "name": "web_scraping_rag_workflow",
+  "description": "Scrape web pages, chunk content, embed and store vectors, then run a RAG query",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["urls", "question"],
+  "tasks": [
+    {
+      "name": "wsrag_scrape",
+      "taskReferenceName": "scrape_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "urls": "${workflow.input.urls}"
+      }
+    },
+    {
+      "name": "wsrag_chunk",
+      "taskReferenceName": "chunk_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pages": "${scrape_ref.output.pages}"
+      }
+    },
+    {
+      "name": "wsrag_embed_store",
+      "taskReferenceName": "store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "chunks": "${chunk_ref.output.chunks}"
+      }
+    },
+    {
+      "name": "wsrag_query",
+      "taskReferenceName": "query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "storedIds": "${store_ref.output.storedIds}"
+      }
+    },
+    {
+      "name": "wsrag_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "context": "${query_ref.output.context}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${gen_ref.output.answer}",
+    "pagesScraped": "${scrape_ref.output.pageCount}",
+    "chunksStored": "${store_ref.output.count}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

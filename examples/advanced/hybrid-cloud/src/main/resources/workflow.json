@@ -1,0 +1,65 @@
+{
+  "name": "hybrid_cloud_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dataId",
+    "dataType",
+    "payload"
+  ],
+  "tasks": [
+    {
+      "name": "hyb_classify_data",
+      "taskReferenceName": "hyb_classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataId": "${workflow.input.dataId}",
+        "dataType": "${workflow.input.dataType}"
+      }
+    },
+    {
+      "name": "hyb_route",
+      "taskReferenceName": "hyb_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "inputParameters": {
+        "switchCaseValue": "${hyb_classify_ref.output.target}"
+      },
+      "expression": "switchCaseValue",
+      "decisionCases": {
+        "onprem": [
+          {
+            "name": "hyb_process_onprem",
+            "taskReferenceName": "hyb_onprem_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "dataId": "${workflow.input.dataId}",
+              "classification": "${hyb_classify_ref.output.classification}",
+              "reason": "Sensitive data must stay on-premises"
+            }
+          }
+        ],
+        "cloud": [
+          {
+            "name": "hyb_process_cloud",
+            "taskReferenceName": "hyb_cloud_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "dataId": "${workflow.input.dataId}",
+              "classification": "${hyb_classify_ref.output.classification}",
+              "provider": "aws"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "dataId": "${workflow.input.dataId}",
+    "classification": "${hyb_classify_ref.output.classification}",
+    "target": "${hyb_classify_ref.output.target}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

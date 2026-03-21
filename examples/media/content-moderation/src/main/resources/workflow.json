@@ -1,0 +1,99 @@
+{
+  "name": "content_moderation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "contentId",
+    "contentType",
+    "userId",
+    "contentText"
+  ],
+  "tasks": [
+    {
+      "name": "mod_submit_content",
+      "taskReferenceName": "mod_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "contentType": "${workflow.input.contentType}",
+        "userId": "${workflow.input.userId}",
+        "contentText": "${workflow.input.contentText}"
+      }
+    },
+    {
+      "name": "mod_auto_check",
+      "taskReferenceName": "mod_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "contentText": "${workflow.input.contentText}",
+        "contentType": "${workflow.input.contentType}"
+      }
+    },
+    {
+      "name": "mod_decision",
+      "taskReferenceName": "mod_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${mod_check_ref.output.verdict}"
+      },
+      "decisionCases": {
+        "safe": [
+          {
+            "name": "mod_approve_safe",
+            "taskReferenceName": "mod_safe_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "contentId": "${workflow.input.contentId}",
+              "confidence": "${mod_check_ref.output.confidence}"
+            }
+          }
+        ],
+        "flag": [
+          {
+            "name": "mod_human_review",
+            "taskReferenceName": "mod_review_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "contentId": "${workflow.input.contentId}",
+              "contentText": "${workflow.input.contentText}",
+              "flagReasons": "${mod_check_ref.output.flagReasons}",
+              "confidence": "${mod_check_ref.output.confidence}"
+            }
+          }
+        ],
+        "block": [
+          {
+            "name": "mod_block_content",
+            "taskReferenceName": "mod_block_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "contentId": "${workflow.input.contentId}",
+              "userId": "${workflow.input.userId}",
+              "blockReasons": "${mod_check_ref.output.flagReasons}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "mod_finalize",
+      "taskReferenceName": "mod_finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "verdict": "${mod_check_ref.output.verdict}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "contentId": "${workflow.input.contentId}",
+    "verdict": "${mod_check_ref.output.verdict}",
+    "finalStatus": "${mod_finalize_ref.output.finalStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

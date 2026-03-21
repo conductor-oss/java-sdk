@@ -1,0 +1,22 @@
+{
+  "name": "archival_demo",
+  "description": "Archival demo workflow — single task for demonstrating cleanup policies.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batch"],
+  "tasks": [
+    {
+      "name": "arch_task",
+      "taskReferenceName": "arch_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batch": "${workflow.input.batch}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "done": "${arch_task_ref.output.done}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

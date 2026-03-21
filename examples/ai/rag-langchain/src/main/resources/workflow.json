@@ -1,0 +1,61 @@
+{
+  "name": "rag_langchain",
+  "description": "RAG pipeline with LangChain integration: load, split, embed, retrieve, generate",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "tasks": [
+    {
+      "name": "lc_load_documents",
+      "taskReferenceName": "load_documents_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceUrl": "${workflow.input.sourceUrl}"
+      }
+    },
+    {
+      "name": "lc_split_text",
+      "taskReferenceName": "split_text_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documents": "${load_documents_ref.output.documents}",
+        "chunkSize": "${workflow.input.chunkSize}",
+        "chunkOverlap": "${workflow.input.chunkOverlap}"
+      }
+    },
+    {
+      "name": "lc_embed_chunks",
+      "taskReferenceName": "embed_chunks_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "chunks": "${split_text_ref.output.chunks}"
+      }
+    },
+    {
+      "name": "lc_retrieve",
+      "taskReferenceName": "retrieve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "embeddings": "${embed_chunks_ref.output.embeddings}",
+        "topK": "${workflow.input.topK}"
+      }
+    },
+    {
+      "name": "lc_generate",
+      "taskReferenceName": "generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "retrievedDocs": "${retrieve_ref.output.retrievedDocs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${generate_ref.output.answer}",
+    "sources": "${generate_ref.output.sources}",
+    "chain": "${generate_ref.output.chain}",
+    "tokensUsed": "${generate_ref.output.tokensUsed}"
+  }
+}

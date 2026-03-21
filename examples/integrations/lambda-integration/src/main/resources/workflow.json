@@ -1,0 +1,58 @@
+{
+  "name": "lambda_integration_449",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "functionName",
+    "inputData",
+    "qualifier"
+  ],
+  "tasks": [
+    {
+      "name": "lam_prepare_payload",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "functionName": "${workflow.input.functionName}",
+        "inputData": "${workflow.input.inputData}"
+      }
+    },
+    {
+      "name": "lam_invoke",
+      "taskReferenceName": "invoke_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "functionName": "${workflow.input.functionName}",
+        "qualifier": "${workflow.input.qualifier}",
+        "payload": "${prepare_ref.output.payload}"
+      }
+    },
+    {
+      "name": "lam_process_response",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "statusCode": "${invoke_ref.output.statusCode}",
+        "responsePayload": "${invoke_ref.output.responsePayload}"
+      }
+    },
+    {
+      "name": "lam_log_result",
+      "taskReferenceName": "log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "functionName": "${workflow.input.functionName}",
+        "executionResult": "${process_ref.output.result}",
+        "duration": "${invoke_ref.output.duration}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "functionName": "${workflow.input.functionName}",
+    "statusCode": "${invoke_ref.output.statusCode}",
+    "result": "${process_ref.output.result}",
+    "logged": "${log_ref.output.logged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,37 @@
+{
+  "name": "wait_timeout_escalation_demo",
+  "description": "WAIT with Timeout and Escalation -- prepare, WAIT for human input, then process the response.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId"],
+  "tasks": [
+    {
+      "name": "wte_prepare",
+      "taskReferenceName": "wte_prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}"
+      }
+    },
+    {
+      "name": "wait_for_response",
+      "taskReferenceName": "wait_for_response_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "wte_process",
+      "taskReferenceName": "wte_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "response": "${wait_for_response_ref.output.response}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ready": "${wte_prepare_ref.output.ready}",
+    "result": "${wte_process_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

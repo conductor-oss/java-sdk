@@ -1,0 +1,55 @@
+{
+  "name": "event_aggregation_wf",
+  "description": "Event Aggregation Pipeline -- collect events from a time window, aggregate metrics, generate a summary report, and publish the batch.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["windowId", "windowDurationSec", "eventSource"],
+  "tasks": [
+    {
+      "name": "eg_collect_events",
+      "taskReferenceName": "collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "windowId": "${workflow.input.windowId}",
+        "windowDurationSec": "${workflow.input.windowDurationSec}",
+        "eventSource": "${workflow.input.eventSource}"
+      }
+    },
+    {
+      "name": "eg_aggregate_metrics",
+      "taskReferenceName": "aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${collect_ref.output.events}",
+        "eventCount": "${collect_ref.output.eventCount}"
+      }
+    },
+    {
+      "name": "eg_generate_summary",
+      "taskReferenceName": "summary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregation": "${aggregate_ref.output.aggregation}",
+        "windowId": "${workflow.input.windowId}"
+      }
+    },
+    {
+      "name": "eg_publish_batch",
+      "taskReferenceName": "publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "summary": "${summary_ref.output.summary}",
+        "destination": "${summary_ref.output.destination}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "windowId": "${workflow.input.windowId}",
+    "eventCount": "${collect_ref.output.eventCount}",
+    "totalRevenue": "${aggregate_ref.output.aggregation.totalRevenue}",
+    "batchId": "${publish_ref.output.batchId}",
+    "published": "${publish_ref.output.published}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

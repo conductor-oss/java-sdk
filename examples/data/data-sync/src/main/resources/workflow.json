@@ -1,0 +1,65 @@
+{
+  "name": "data_sync",
+  "description": "Bidirectional data sync workflow: detect changes, resolve conflicts, apply updates, and verify consistency.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "systemA",
+    "systemB",
+    "syncMode",
+    "conflictStrategy"
+  ],
+  "tasks": [
+    {
+      "name": "sy_detect_changes",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "systemA": "${workflow.input.systemA}",
+        "systemB": "${workflow.input.systemB}"
+      }
+    },
+    {
+      "name": "sy_resolve_conflicts",
+      "taskReferenceName": "resolve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changesInA": "${detect_ref.output.changesInA}",
+        "changesInB": "${detect_ref.output.changesInB}",
+        "conflicts": "${detect_ref.output.conflicts}",
+        "conflictStrategy": "${workflow.input.conflictStrategy}"
+      }
+    },
+    {
+      "name": "sy_apply_updates",
+      "taskReferenceName": "apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toApplyA": "${resolve_ref.output.toApplyA}",
+        "toApplyB": "${resolve_ref.output.toApplyB}",
+        "systemA": "${workflow.input.systemA}",
+        "systemB": "${workflow.input.systemB}"
+      }
+    },
+    {
+      "name": "sy_verify_consistency",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appliedToA": "${apply_ref.output.appliedToA}",
+        "appliedToB": "${apply_ref.output.appliedToB}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "changesDetectedA": "${detect_ref.output.changeCountA}",
+    "changesDetectedB": "${detect_ref.output.changeCountB}",
+    "conflictsFound": "${detect_ref.output.conflictCount}",
+    "conflictsResolved": "${resolve_ref.output.resolvedCount}",
+    "updatesApplied": "${apply_ref.output.totalApplied}",
+    "consistencyStatus": "${verify_ref.output.status}",
+    "syncSummary": "${verify_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

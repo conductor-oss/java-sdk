@@ -1,0 +1,19 @@
+{
+  "name": "pms_permission_sync",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sourceSystem", "targetSystems"],
+  "tasks": [
+    { "name": "pms_scan_systems", "taskReferenceName": "pms_scan_ref", "type": "SIMPLE", "inputParameters": { "source": "${workflow.input.sourceSystem}", "targets": "${workflow.input.targetSystems}" } },
+    { "name": "pms_diff", "taskReferenceName": "pms_diff_ref", "type": "SIMPLE", "inputParameters": { "sourcePerms": "${pms_scan_ref.output.sourcePermissions}", "targetPerms": "${pms_scan_ref.output.targetPermissions}" } },
+    { "name": "pms_sync", "taskReferenceName": "pms_sync_ref", "type": "SIMPLE", "inputParameters": { "diffs": "${pms_diff_ref.output.diffs}", "targets": "${workflow.input.targetSystems}" } },
+    { "name": "pms_verify", "taskReferenceName": "pms_verify_ref", "type": "SIMPLE", "inputParameters": { "syncResults": "${pms_sync_ref.output.syncResults}" } }
+  ],
+  "outputParameters": {
+    "diffsFound": "${pms_diff_ref.output.totalDiffs}",
+    "syncedCount": "${pms_sync_ref.output.syncedCount}",
+    "verified": "${pms_verify_ref.output.allVerified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

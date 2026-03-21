@@ -1,0 +1,23 @@
+{
+  "name": "sync_exec_demo",
+  "description": "Simple workflow for demonstrating sync vs async execution",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["a", "b"],
+  "tasks": [
+    {
+      "name": "sync_add",
+      "taskReferenceName": "sync_add_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "a": "${workflow.input.a}",
+        "b": "${workflow.input.b}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sum": "${sync_add_ref.output.sum}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

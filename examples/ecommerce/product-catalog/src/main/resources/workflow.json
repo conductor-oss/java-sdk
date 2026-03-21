@@ -1,0 +1,69 @@
+{
+  "name": "product_catalog",
+  "description": "Product catalog management: add, validate, enrich, publish, and index products",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sku", "name", "price", "category", "description"],
+  "tasks": [
+    {
+      "name": "prd_add_product",
+      "taskReferenceName": "add_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sku": "${workflow.input.sku}",
+        "name": "${workflow.input.name}",
+        "price": "${workflow.input.price}",
+        "category": "${workflow.input.category}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "prd_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${add_ref.output.productId}",
+        "sku": "${workflow.input.sku}",
+        "price": "${workflow.input.price}"
+      }
+    },
+    {
+      "name": "prd_enrich",
+      "taskReferenceName": "enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${add_ref.output.productId}",
+        "category": "${workflow.input.category}",
+        "name": "${workflow.input.name}"
+      }
+    },
+    {
+      "name": "prd_publish",
+      "taskReferenceName": "publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${add_ref.output.productId}",
+        "enrichedData": "${enrich_ref.output.enrichedData}"
+      }
+    },
+    {
+      "name": "prd_index",
+      "taskReferenceName": "index_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${add_ref.output.productId}",
+        "name": "${workflow.input.name}",
+        "category": "${workflow.input.category}",
+        "price": "${workflow.input.price}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "productId": "${add_ref.output.productId}",
+    "valid": "${validate_ref.output.valid}",
+    "published": "${publish_ref.output.published}",
+    "indexed": "${index_ref.output.indexed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

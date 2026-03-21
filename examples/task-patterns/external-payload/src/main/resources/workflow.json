@@ -1,0 +1,32 @@
+{
+  "name": "large_payload_demo",
+  "description": "External payload storage — generate a summary and storage reference instead of returning large data, then process the summary.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["dataSize"],
+  "tasks": [
+    {
+      "name": "ep_generate",
+      "taskReferenceName": "ep_generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataSize": "${workflow.input.dataSize}"
+      }
+    },
+    {
+      "name": "ep_process",
+      "taskReferenceName": "ep_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "summary": "${ep_generate_ref.output.summary}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${ep_generate_ref.output.summary}",
+    "storageRef": "${ep_generate_ref.output.storageRef}",
+    "result": "${ep_process_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

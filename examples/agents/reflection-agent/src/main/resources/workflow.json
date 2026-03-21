@@ -1,0 +1,60 @@
+{
+  "name": "reflection_agent",
+  "description": "Reflection Agent — generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["topic"],
+  "tasks": [
+    {
+      "name": "rn_initial_generation",
+      "taskReferenceName": "initial_generation_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}"
+      }
+    },
+    {
+      "name": "reflection_loop",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < 2) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "rn_reflect",
+          "taskReferenceName": "reflect_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "topic": "${workflow.input.topic}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "rn_improve",
+          "taskReferenceName": "improve_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "feedback": "${reflect_ref.output.feedback}",
+            "iteration": "${loop_ref.output.iteration}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "rn_final_output",
+      "taskReferenceName": "final_output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "totalIterations": "${loop_ref.output.iteration}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "topic": "${workflow.input.topic}",
+    "iterations": "${loop_ref.output.iteration}",
+    "finalOutput": "${final_output_ref.output.content}",
+    "qualityScore": "${final_output_ref.output.qualityScore}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

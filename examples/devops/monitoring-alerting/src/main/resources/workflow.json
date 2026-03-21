@@ -1,0 +1,47 @@
+{
+  "name": "monitoring_alerting_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["alertName", "metric", "value"],
+  "tasks": [
+    {
+      "name": "ma_evaluate",
+      "taskReferenceName": "eval_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alertName": "${workflow.input.alertName}",
+        "value": "${workflow.input.value}"
+      }
+    },
+    {
+      "name": "ma_deduplicate",
+      "taskReferenceName": "dedup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alertName": "${workflow.input.alertName}"
+      }
+    },
+    {
+      "name": "ma_enrich",
+      "taskReferenceName": "enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alertName": "${workflow.input.alertName}"
+      }
+    },
+    {
+      "name": "ma_route",
+      "taskReferenceName": "route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "severity": "${eval_ref.output.severity}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "severity": "${eval_ref.output.severity}",
+    "routed": "${route_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

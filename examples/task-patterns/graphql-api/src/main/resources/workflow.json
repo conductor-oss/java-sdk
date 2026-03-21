@@ -1,0 +1,24 @@
+{
+  "name": "graphql_demo",
+  "description": "GraphQL API demo — single task workflow to demonstrate REST vs GraphQL query patterns.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["project", "env"],
+  "tasks": [
+    {
+      "name": "gql_task",
+      "taskReferenceName": "gql_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "project": "${workflow.input.project}",
+        "env": "${workflow.input.env}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "project": "${gql_task_ref.output.project}",
+    "result": "${gql_task_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

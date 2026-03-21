@@ -1,0 +1,64 @@
+{
+  "name": "privileged_access_workflow",
+  "description": "Privileged access management: request, approve, grant just-in-time access, auto-revoke",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "resource",
+    "justification",
+    "duration"
+  ],
+  "tasks": [
+    {
+      "name": "pam_request",
+      "taskReferenceName": "pam_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "resource": "${workflow.input.resource}",
+        "justification": "${workflow.input.justification}",
+        "duration": "${workflow.input.duration}"
+      }
+    },
+    {
+      "name": "pam_approve",
+      "taskReferenceName": "pam_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${pam_request_ref.output.requestId}",
+        "userId": "${workflow.input.userId}",
+        "resource": "${workflow.input.resource}"
+      }
+    },
+    {
+      "name": "pam_grant_access",
+      "taskReferenceName": "pam_grant_access_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${pam_request_ref.output.requestId}",
+        "approved": "${pam_approve_ref.output.approved}",
+        "resource": "${workflow.input.resource}",
+        "duration": "${workflow.input.duration}"
+      }
+    },
+    {
+      "name": "pam_revoke_access",
+      "taskReferenceName": "pam_revoke_access_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${pam_request_ref.output.requestId}",
+        "userId": "${workflow.input.userId}",
+        "resource": "${workflow.input.resource}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${pam_request_ref.output.requestId}",
+    "approved": "${pam_approve_ref.output.approved}",
+    "accessGranted": "${pam_grant_access_ref.output.granted}",
+    "accessRevoked": "${pam_revoke_access_ref.output.revoked}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

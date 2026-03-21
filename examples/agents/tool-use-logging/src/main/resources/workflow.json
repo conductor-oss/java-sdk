@@ -1,0 +1,68 @@
+{
+  "name": "tool_use_logging",
+  "description": "Tool Use Logging -- log tool requests and responses, execute tools, and create audit entries through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["toolName", "toolArgs", "userId", "sessionId"],
+  "tasks": [
+    {
+      "name": "tl_log_request",
+      "taskReferenceName": "tl_log_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${workflow.input.toolName}",
+        "toolArgs": "${workflow.input.toolArgs}",
+        "userId": "${workflow.input.userId}",
+        "sessionId": "${workflow.input.sessionId}"
+      }
+    },
+    {
+      "name": "tl_execute_tool",
+      "taskReferenceName": "tl_execute_tool_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${workflow.input.toolName}",
+        "toolArgs": "${workflow.input.toolArgs}",
+        "requestId": "${tl_log_request_ref.output.requestId}"
+      }
+    },
+    {
+      "name": "tl_log_response",
+      "taskReferenceName": "tl_log_response_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${tl_log_request_ref.output.requestId}",
+        "toolName": "${workflow.input.toolName}",
+        "result": "${tl_execute_tool_ref.output.result}",
+        "executionTimeMs": "${tl_execute_tool_ref.output.executionTimeMs}",
+        "toolStatus": "${tl_execute_tool_ref.output.toolStatus}"
+      }
+    },
+    {
+      "name": "tl_create_audit_entry",
+      "taskReferenceName": "tl_create_audit_entry_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${tl_log_request_ref.output.requestId}",
+        "userId": "${workflow.input.userId}",
+        "sessionId": "${workflow.input.sessionId}",
+        "toolName": "${workflow.input.toolName}",
+        "toolArgs": "${workflow.input.toolArgs}",
+        "result": "${tl_execute_tool_ref.output.result}",
+        "executionTimeMs": "${tl_execute_tool_ref.output.executionTimeMs}",
+        "requestTimestamp": "${tl_log_request_ref.output.timestamp}",
+        "responseTimestamp": "${tl_log_response_ref.output.timestamp}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "auditId": "${tl_create_audit_entry_ref.output.auditId}",
+    "summary": "${tl_create_audit_entry_ref.output.summary}",
+    "requestId": "${tl_log_request_ref.output.requestId}",
+    "toolResult": "${tl_execute_tool_ref.output.result}",
+    "executionTimeMs": "${tl_execute_tool_ref.output.executionTimeMs}",
+    "compliance": "${tl_create_audit_entry_ref.output.compliance}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

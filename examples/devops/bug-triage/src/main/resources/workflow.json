@@ -1,0 +1,32 @@
+{
+  "name": "btg_bug_triage",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["bugReport"],
+  "tasks": [
+    { "name": "btg_parse_report", "taskReferenceName": "btg_parse_ref", "type": "SIMPLE", "inputParameters": { "bugReport": "${workflow.input.bugReport}" } },
+    { "name": "btg_classify_severity", "taskReferenceName": "btg_classify_ref", "type": "SIMPLE", "inputParameters": { "title": "${btg_parse_ref.output.title}", "description": "${btg_parse_ref.output.description}", "component": "${btg_parse_ref.output.component}" } },
+    {
+      "name": "severity_switch",
+      "taskReferenceName": "btg_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": { "switchCaseValue": "${btg_classify_ref.output.severity}" },
+      "decisionCases": {
+        "critical": [{ "name": "btg_handle_critical", "taskReferenceName": "btg_critical_ref", "type": "SIMPLE", "inputParameters": { "bugId": "${btg_parse_ref.output.bugId}" } }],
+        "high": [{ "name": "btg_handle_high", "taskReferenceName": "btg_high_ref", "type": "SIMPLE", "inputParameters": { "bugId": "${btg_parse_ref.output.bugId}" } }]
+      },
+      "defaultCase": [{ "name": "btg_handle_low", "taskReferenceName": "btg_low_ref", "type": "SIMPLE", "inputParameters": { "bugId": "${btg_parse_ref.output.bugId}" } }]
+    },
+    { "name": "btg_assign", "taskReferenceName": "btg_assign_ref", "type": "SIMPLE", "inputParameters": { "bugId": "${btg_parse_ref.output.bugId}", "severity": "${btg_classify_ref.output.severity}", "component": "${btg_parse_ref.output.component}" } }
+  ],
+  "outputParameters": {
+    "bugId": "${btg_parse_ref.output.bugId}",
+    "severity": "${btg_classify_ref.output.severity}",
+    "assignee": "${btg_assign_ref.output.assignee}",
+    "priority": "${btg_assign_ref.output.priority}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

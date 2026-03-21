@@ -1,0 +1,62 @@
+{
+  "name": "cloudwatch_integration_450",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "namespace",
+    "metricName",
+    "value",
+    "threshold",
+    "notifyEmail"
+  ],
+  "tasks": [
+    {
+      "name": "cw_put_metric",
+      "taskReferenceName": "metric_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "namespace": "${workflow.input.namespace}",
+        "metricName": "${workflow.input.metricName}",
+        "value": "${workflow.input.value}"
+      }
+    },
+    {
+      "name": "cw_create_alarm",
+      "taskReferenceName": "alarm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "namespace": "${workflow.input.namespace}",
+        "metricName": "${workflow.input.metricName}",
+        "threshold": "${workflow.input.threshold}"
+      }
+    },
+    {
+      "name": "cw_check_status",
+      "taskReferenceName": "check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alarmName": "${alarm_ref.output.alarmName}",
+        "currentValue": "${workflow.input.value}",
+        "threshold": "${workflow.input.threshold}"
+      }
+    },
+    {
+      "name": "cw_notify",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alarmName": "${alarm_ref.output.alarmName}",
+        "alarmState": "${check_ref.output.state}",
+        "email": "${workflow.input.notifyEmail}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "metricPublished": "${metric_ref.output.published}",
+    "alarmName": "${alarm_ref.output.alarmName}",
+    "alarmState": "${check_ref.output.state}",
+    "notified": "${notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,57 @@
+{
+  "name": "penetration_testing_workflow",
+  "description": "Penetration testing: reconnaissance, scan vulnerabilities, exploit test, generate report",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "target",
+    "scope"
+  ],
+  "tasks": [
+    {
+      "name": "pen_reconnaissance",
+      "taskReferenceName": "reconnaissance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "target": "${workflow.input.target}",
+        "scope": "${workflow.input.scope}"
+      }
+    },
+    {
+      "name": "pen_scan_vulnerabilities",
+      "taskReferenceName": "scan_vulnerabilities_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "target": "${workflow.input.target}",
+        "reconData": "${reconnaissance_ref.output}"
+      }
+    },
+    {
+      "name": "pen_exploit_test",
+      "taskReferenceName": "exploit_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vulnerabilities": "${scan_vulnerabilities_ref.output}",
+        "target": "${workflow.input.target}"
+      }
+    },
+    {
+      "name": "pen_generate_report",
+      "taskReferenceName": "generate_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "target": "${workflow.input.target}",
+        "exploitResults": "${exploit_test_ref.output}",
+        "vulnerabilities": "${scan_vulnerabilities_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "reconData": "${reconnaissance_ref.output}",
+    "vulnerabilitiesFound": "${scan_vulnerabilities_ref.output}",
+    "exploitResults": "${exploit_test_ref.output}",
+    "report": "${generate_report_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

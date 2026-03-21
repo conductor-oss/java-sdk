@@ -1,0 +1,58 @@
+{
+  "name": "human_task_form_demo",
+  "description": "Human task demo -- collect_data, WAIT (demonstrating HUMAN task with form schema), process_form.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["applicantName"],
+  "tasks": [
+    {
+      "name": "ht_collect_data",
+      "taskReferenceName": "collect_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantName": "${workflow.input.applicantName}"
+      }
+    },
+    {
+      "name": "human_review_wait",
+      "taskReferenceName": "human_review_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "formSchema": {
+          "type": "object",
+          "properties": {
+            "approved": {
+              "type": "boolean",
+              "description": "Whether the application is approved"
+            },
+            "reviewNotes": {
+              "type": "string",
+              "description": "Notes from the reviewer"
+            },
+            "riskScore": {
+              "type": "number",
+              "description": "Risk score assigned by the reviewer (0-100)"
+            }
+          },
+          "required": ["approved"]
+        }
+      }
+    },
+    {
+      "name": "ht_process_form",
+      "taskReferenceName": "process_form_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "approved": "${human_review_ref.output.approved}",
+        "reviewNotes": "${human_review_ref.output.reviewNotes}",
+        "riskScore": "${human_review_ref.output.riskScore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "collected": "${collect_data_ref.output.collected}",
+    "decision": "${process_form_ref.output.decision}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 3600
+}

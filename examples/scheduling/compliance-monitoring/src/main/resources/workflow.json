@@ -1,0 +1,74 @@
+{
+  "name": "compliance_monitoring_428",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "framework",
+    "scope",
+    "autoRemediate"
+  ],
+  "tasks": [
+    {
+      "name": "cpm_scan_resources",
+      "taskReferenceName": "cpm_scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "framework": "${workflow.input.framework}",
+        "scope": "${workflow.input.scope}"
+      }
+    },
+    {
+      "name": "cpm_evaluate_policies",
+      "taskReferenceName": "cpm_eval_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourcesScanned": "${cpm_scan_ref.output.resourcesScanned}",
+        "findings": "${cpm_scan_ref.output.findings}",
+        "framework": "${workflow.input.framework}"
+      }
+    },
+    {
+      "name": "cpm_result_switch",
+      "taskReferenceName": "cpm_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${cpm_eval_ref.output.overallStatus}"
+      },
+      "decisionCases": {
+        "compliant": [
+          {
+            "name": "cpm_log_compliant",
+            "taskReferenceName": "cpm_log_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "framework": "${workflow.input.framework}",
+              "score": "${cpm_eval_ref.output.complianceScore}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "cpm_remediate",
+          "taskReferenceName": "cpm_remediate_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "violations": "${cpm_eval_ref.output.violations}",
+            "autoRemediate": "${workflow.input.autoRemediate}",
+            "framework": "${workflow.input.framework}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "resourcesScanned": "${cpm_scan_ref.output.resourcesScanned}",
+    "overallStatus": "${cpm_eval_ref.output.overallStatus}",
+    "complianceScore": "${cpm_eval_ref.output.complianceScore}",
+    "violations": "${cpm_eval_ref.output.violationCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

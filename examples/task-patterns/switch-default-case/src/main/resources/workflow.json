@@ -1,0 +1,77 @@
+{
+  "name": "default_case_demo",
+  "description": "Fallback routing for unmatched payment methods using SWITCH with defaultCase",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "paymentMethod"
+  ],
+  "tasks": [
+    {
+      "name": "route_by_payment",
+      "taskReferenceName": "route_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${workflow.input.paymentMethod}"
+      },
+      "decisionCases": {
+        "credit_card": [
+          {
+            "name": "dc_process_card",
+            "taskReferenceName": "process_card_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "paymentMethod": "${workflow.input.paymentMethod}"
+            }
+          }
+        ],
+        "bank_transfer": [
+          {
+            "name": "dc_process_bank",
+            "taskReferenceName": "process_bank_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "paymentMethod": "${workflow.input.paymentMethod}"
+            }
+          }
+        ],
+        "crypto": [
+          {
+            "name": "dc_process_crypto",
+            "taskReferenceName": "process_crypto_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "paymentMethod": "${workflow.input.paymentMethod}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "dc_unknown_method",
+          "taskReferenceName": "unknown_method_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "method": "${workflow.input.paymentMethod}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "dc_log",
+      "taskReferenceName": "log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "paymentMethod": "${workflow.input.paymentMethod}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "method": "${workflow.input.paymentMethod}",
+    "logged": "${log_ref.output.logged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,50 @@
+{
+  "name": "security_posture_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "organization",
+    "assessmentScope"
+  ],
+  "tasks": [
+    {
+      "name": "sp_assess_infrastructure",
+      "taskReferenceName": "assess_infrastructure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "organization": "${workflow.input.organization}",
+        "assessmentScope": "${workflow.input.assessmentScope}"
+      }
+    },
+    {
+      "name": "sp_assess_application",
+      "taskReferenceName": "assess_application_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assess_applicationData": "${assess_infrastructure_ref.output}"
+      }
+    },
+    {
+      "name": "sp_assess_compliance",
+      "taskReferenceName": "assess_compliance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assess_complianceData": "${assess_application_ref.output}"
+      }
+    },
+    {
+      "name": "sp_calculate_score",
+      "taskReferenceName": "calculate_score_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "calculate_scoreData": "${assess_compliance_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "assess_infrastructureResult": "${assess_infrastructure_ref.output}",
+    "calculate_scoreResult": "${calculate_score_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1200
+}

@@ -1,0 +1,32 @@
+{
+  "name": "azure_integration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["containerName", "databaseName", "eventHubName", "payload"],
+  "tasks": [
+    {
+      "name": "fork_azure_services",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [{"name": "az_blob_upload", "taskReferenceName": "blob_ref", "type": "SIMPLE",
+          "inputParameters": {"container": "${workflow.input.containerName}", "blobName": "events/${workflow.input.payload.id}.json", "data": "${workflow.input.payload}"}}],
+        [{"name": "az_cosmosdb_write", "taskReferenceName": "cosmos_ref", "type": "SIMPLE",
+          "inputParameters": {"database": "${workflow.input.databaseName}", "document": "${workflow.input.payload}"}}],
+        [{"name": "az_eventhub_publish", "taskReferenceName": "eventhub_ref", "type": "SIMPLE",
+          "inputParameters": {"eventHub": "${workflow.input.eventHubName}", "event": "${workflow.input.payload}"}}]
+      ]
+    },
+    {"name": "join_azure_services", "taskReferenceName": "join_ref", "type": "JOIN", "joinOn": ["blob_ref", "cosmos_ref", "eventhub_ref"]},
+    {"name": "az_verify", "taskReferenceName": "verify_ref", "type": "SIMPLE",
+      "inputParameters": {"blobUrl": "${blob_ref.output.blobUrl}", "cosmosId": "${cosmos_ref.output.documentId}", "eventHubSeq": "${eventhub_ref.output.sequenceNumber}"}}
+  ],
+  "outputParameters": {
+    "blobUrl": "${blob_ref.output.blobUrl}",
+    "cosmosDocId": "${cosmos_ref.output.documentId}",
+    "eventHubSeq": "${eventhub_ref.output.sequenceNumber}",
+    "verified": "${verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,52 @@
+{
+  "name": "zero_trust_verification_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "deviceId",
+    "requestedResource"
+  ],
+  "tasks": [
+    {
+      "name": "zt_verify_identity",
+      "taskReferenceName": "verify_identity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "deviceId": "${workflow.input.deviceId}",
+        "requestedResource": "${workflow.input.requestedResource}"
+      }
+    },
+    {
+      "name": "zt_assess_device",
+      "taskReferenceName": "assess_device_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assess_deviceData": "${verify_identity_ref.output}"
+      }
+    },
+    {
+      "name": "zt_evaluate_context",
+      "taskReferenceName": "evaluate_context_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "evaluate_contextData": "${assess_device_ref.output}"
+      }
+    },
+    {
+      "name": "zt_enforce_policy",
+      "taskReferenceName": "enforce_policy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enforce_policyData": "${evaluate_context_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "verify_identityResult": "${verify_identity_ref.output}",
+    "enforce_policyResult": "${enforce_policy_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

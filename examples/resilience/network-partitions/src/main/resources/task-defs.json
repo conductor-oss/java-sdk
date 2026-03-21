@@ -1,0 +1,11 @@
+[
+  {
+    "name": "np_resilient_task",
+    "retryCount": 3,
+    "retryLogic": "FIXED",
+    "retryDelaySeconds": 1,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "name": "shopping_cart",
+  "description": "Shopping cart workflow: add items, calculate total, apply discounts, reserve inventory",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "items", "couponCode"],
+  "tasks": [
+    {
+      "name": "cart_add_items",
+      "taskReferenceName": "add_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "cart_calculate_total",
+      "taskReferenceName": "total_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cartId": "${add_ref.output.cartId}",
+        "items": "${add_ref.output.cartItems}"
+      }
+    },
+    {
+      "name": "cart_apply_discounts",
+      "taskReferenceName": "discount_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cartId": "${add_ref.output.cartId}",
+        "subtotal": "${total_ref.output.subtotal}",
+        "couponCode": "${workflow.input.couponCode}"
+      }
+    },
+    {
+      "name": "cart_reserve_inventory",
+      "taskReferenceName": "reserve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cartId": "${add_ref.output.cartId}",
+        "items": "${add_ref.output.cartItems}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "cartId": "${add_ref.output.cartId}",
+    "subtotal": "${total_ref.output.subtotal}",
+    "finalTotal": "${discount_ref.output.finalTotal}",
+    "reserved": "${reserve_ref.output.allReserved}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

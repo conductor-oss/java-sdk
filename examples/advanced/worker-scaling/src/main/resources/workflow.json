@@ -1,0 +1,59 @@
+{
+  "name": "wks_worker_scaling",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "queueName",
+    "currentWorkers",
+    "targetLatencyMs"
+  ],
+  "tasks": [
+    {
+      "name": "wks_monitor_queue",
+      "taskReferenceName": "wks_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "queueName": "${workflow.input.queueName}"
+      }
+    },
+    {
+      "name": "wks_calculate_needed",
+      "taskReferenceName": "wks_calc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "queueDepth": "${wks_monitor_ref.output.queueDepth}",
+        "avgProcessingMs": "${wks_monitor_ref.output.avgProcessingMs}",
+        "currentWorkers": "${workflow.input.currentWorkers}",
+        "targetLatencyMs": "${workflow.input.targetLatencyMs}"
+      }
+    },
+    {
+      "name": "wks_scale_workers",
+      "taskReferenceName": "wks_scale_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "currentWorkers": "${workflow.input.currentWorkers}",
+        "desiredWorkers": "${wks_calc_ref.output.desiredWorkers}",
+        "queueName": "${workflow.input.queueName}"
+      }
+    },
+    {
+      "name": "wks_verify_scaling",
+      "taskReferenceName": "wks_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scalingAction": "${wks_scale_ref.output.scalingAction}",
+        "newWorkerCount": "${wks_scale_ref.output.newWorkerCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "queueName": "${workflow.input.queueName}",
+    "queueDepth": "${wks_monitor_ref.output.queueDepth}",
+    "scalingAction": "${wks_scale_ref.output.scalingAction}",
+    "newWorkerCount": "${wks_scale_ref.output.newWorkerCount}",
+    "verified": "${wks_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

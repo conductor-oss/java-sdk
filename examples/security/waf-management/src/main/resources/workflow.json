@@ -1,0 +1,50 @@
+{
+  "name": "waf_management_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "application",
+    "threatType"
+  ],
+  "tasks": [
+    {
+      "name": "waf_analyze_traffic",
+      "taskReferenceName": "analyze_traffic_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "application": "${workflow.input.application}",
+        "threatType": "${workflow.input.threatType}"
+      }
+    },
+    {
+      "name": "waf_update_rules",
+      "taskReferenceName": "update_rules_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "update_rulesData": "${analyze_traffic_ref.output}"
+      }
+    },
+    {
+      "name": "waf_deploy_rules",
+      "taskReferenceName": "deploy_rules_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deploy_rulesData": "${update_rules_ref.output}"
+      }
+    },
+    {
+      "name": "waf_verify_protection",
+      "taskReferenceName": "verify_protection_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_protectionData": "${deploy_rules_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "analyze_trafficResult": "${analyze_traffic_ref.output}",
+    "verify_protectionResult": "${verify_protection_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

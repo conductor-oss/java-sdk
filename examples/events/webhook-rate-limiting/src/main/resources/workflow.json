@@ -1,0 +1,72 @@
+{
+  "name": "webhook_rate_limiting",
+  "description": "Rate limit incoming webhooks per sender. Identifies the sender, checks their request rate, and uses SWITCH to allow processing or queue for throttling.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "senderId",
+    "payload",
+    "rateLimit"
+  ],
+  "tasks": [
+    {
+      "name": "wl_identify_sender",
+      "taskReferenceName": "sender_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "senderId": "${workflow.input.senderId}"
+      }
+    },
+    {
+      "name": "wl_check_rate",
+      "taskReferenceName": "rate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "senderId": "${sender_ref.output.senderId}",
+        "rateLimit": "${workflow.input.rateLimit}"
+      }
+    },
+    {
+      "name": "rate_decision",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${rate_ref.output.decision}"
+      },
+      "decisionCases": {
+        "allowed": [
+          {
+            "name": "wl_process_allowed",
+            "taskReferenceName": "process_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "senderId": "${sender_ref.output.senderId}",
+              "payload": "${workflow.input.payload}"
+            }
+          }
+        ],
+        "throttled": [
+          {
+            "name": "wl_queue_throttled",
+            "taskReferenceName": "queue_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "senderId": "${sender_ref.output.senderId}",
+              "retryAfterMs": "${rate_ref.output.retryAfterMs}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "senderId": "${sender_ref.output.senderId}",
+    "decision": "${rate_ref.output.decision}",
+    "currentRate": "${rate_ref.output.currentRate}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

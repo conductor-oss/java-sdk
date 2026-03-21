@@ -77,8 +77,8 @@ class LoadRunbookWorkerTest {
         for (Map<String, Object> step : steps) {
             String command = (String) step.get("command");
             assertFalse(command.isBlank(), "Command should not be blank");
-            // Commands should be real shell commands, not simulated
-            assertFalse(command.contains("SIMULATED"), "Command should be real, not simulated");
+            // Commands should be real shell commands, not demo
+            assertFalse(command.contains("DEMO"), "Command should be real, not demo");
         }
     }
 

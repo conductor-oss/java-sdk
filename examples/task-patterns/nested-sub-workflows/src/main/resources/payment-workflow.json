@@ -1,0 +1,39 @@
+{
+  "name": "nested_payment",
+  "description": "Level 2 — Payment sub-workflow. Calls fraud check sub-workflow, then charges payment.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "amount", "email"],
+  "tasks": [
+    {
+      "name": "fraud_check_sub",
+      "taskReferenceName": "fraud_check_sub_ref",
+      "type": "SUB_WORKFLOW",
+      "subWorkflowParam": {
+        "name": "nested_fraud_check",
+        "version": 1
+      },
+      "inputParameters": {
+        "email": "${workflow.input.email}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "nest_charge",
+      "taskReferenceName": "nest_charge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "transactionId": "${nest_charge_ref.output.transactionId}",
+    "charged": "${nest_charge_ref.output.charged}",
+    "riskScore": "${fraud_check_sub_ref.output.riskScore}",
+    "approved": "${fraud_check_sub_ref.output.approved}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

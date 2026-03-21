@@ -1,0 +1,54 @@
+{
+  "name": "crs_course_management",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["courseName", "department", "credits", "semester"],
+  "tasks": [
+    {
+      "name": "crs_create",
+      "taskReferenceName": "crs_create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "courseName": "${workflow.input.courseName}",
+        "department": "${workflow.input.department}",
+        "credits": "${workflow.input.credits}"
+      }
+    },
+    {
+      "name": "crs_schedule",
+      "taskReferenceName": "crs_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "courseId": "${crs_create_ref.output.courseId}",
+        "semester": "${workflow.input.semester}"
+      }
+    },
+    {
+      "name": "crs_assign_instructor",
+      "taskReferenceName": "crs_assign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "courseId": "${crs_create_ref.output.courseId}",
+        "department": "${workflow.input.department}"
+      }
+    },
+    {
+      "name": "crs_publish",
+      "taskReferenceName": "crs_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "courseId": "${crs_create_ref.output.courseId}",
+        "schedule": "${crs_schedule_ref.output.schedule}",
+        "instructor": "${crs_assign_ref.output.instructor}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "courseId": "${crs_create_ref.output.courseId}",
+    "schedule": "${crs_schedule_ref.output.schedule}",
+    "instructor": "${crs_assign_ref.output.instructor}",
+    "published": "${crs_publish_ref.output.published}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,70 @@
+{
+  "name": "loan_origination_workflow",
+  "description": "Loan origination: application intake, credit check, underwriting, approval, and funding.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["applicationId", "applicantId", "loanAmount", "loanType"],
+  "tasks": [
+    {
+      "name": "lnr_application",
+      "taskReferenceName": "lnr_app_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicationId": "${workflow.input.applicationId}",
+        "applicantId": "${workflow.input.applicantId}",
+        "loanAmount": "${workflow.input.loanAmount}",
+        "loanType": "${workflow.input.loanType}"
+      }
+    },
+    {
+      "name": "lnr_credit_check",
+      "taskReferenceName": "lnr_credit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "loanAmount": "${workflow.input.loanAmount}"
+      }
+    },
+    {
+      "name": "lnr_underwrite",
+      "taskReferenceName": "lnr_underwrite_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicationId": "${workflow.input.applicationId}",
+        "creditScore": "${lnr_credit_ref.output.creditScore}",
+        "loanAmount": "${workflow.input.loanAmount}",
+        "dti": "${lnr_credit_ref.output.dti}"
+      }
+    },
+    {
+      "name": "lnr_approve",
+      "taskReferenceName": "lnr_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicationId": "${workflow.input.applicationId}",
+        "underwritingDecision": "${lnr_underwrite_ref.output.decision}",
+        "approvedRate": "${lnr_underwrite_ref.output.interestRate}"
+      }
+    },
+    {
+      "name": "lnr_fund",
+      "taskReferenceName": "lnr_fund_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicationId": "${workflow.input.applicationId}",
+        "applicantId": "${workflow.input.applicantId}",
+        "loanAmount": "${workflow.input.loanAmount}",
+        "approvedRate": "${lnr_underwrite_ref.output.interestRate}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "applicationId": "${workflow.input.applicationId}",
+    "creditScore": "${lnr_credit_ref.output.creditScore}",
+    "decision": "${lnr_underwrite_ref.output.decision}",
+    "interestRate": "${lnr_underwrite_ref.output.interestRate}",
+    "funded": "${lnr_fund_ref.output.funded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

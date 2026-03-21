@@ -1,0 +1,44 @@
+{
+  "name": "huggingface_inference_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["text", "task"],
+  "tasks": [
+    {
+      "name": "hf_select_model",
+      "taskReferenceName": "select_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "text": "${workflow.input.text}",
+        "task": "${workflow.input.task}"
+      }
+    },
+    {
+      "name": "hf_inference",
+      "taskReferenceName": "infer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${select_ref.output.modelId}",
+        "inputs": "${select_ref.output.formattedInput}",
+        "parameters": "${select_ref.output.parameters}",
+        "options": "${select_ref.output.options}"
+      }
+    },
+    {
+      "name": "hf_format_result",
+      "taskReferenceName": "fmt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawOutput": "${infer_ref.output.rawOutput}",
+        "task": "${workflow.input.task}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${fmt_ref.output.result}",
+    "model": "${select_ref.output.modelId}",
+    "task": "${workflow.input.task}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

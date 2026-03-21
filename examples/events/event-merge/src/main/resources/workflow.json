@@ -1,0 +1,86 @@
+{
+  "name": "event_merge_wf",
+  "description": "Event merge workflow that collects events from three parallel streams via FORK_JOIN, merges the results, and processes the merged output.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "sourceA",
+    "sourceB",
+    "sourceC"
+  ],
+  "tasks": [
+    {
+      "name": "fork_collect_streams",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "mg_collect_stream_a",
+            "taskReferenceName": "stream_a_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "source": "${workflow.input.sourceA}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mg_collect_stream_b",
+            "taskReferenceName": "stream_b_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "source": "${workflow.input.sourceB}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mg_collect_stream_c",
+            "taskReferenceName": "stream_c_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "source": "${workflow.input.sourceC}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_streams",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "stream_a_ref",
+        "stream_b_ref",
+        "stream_c_ref"
+      ]
+    },
+    {
+      "name": "mg_merge_streams",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "streamA": "${stream_a_ref.output.events}",
+        "streamB": "${stream_b_ref.output.events}",
+        "streamC": "${stream_c_ref.output.events}"
+      }
+    },
+    {
+      "name": "mg_process_merged",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mergedEvents": "${merge_ref.output.merged}",
+        "totalCount": "${merge_ref.output.totalCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "status": "${process_ref.output.status}",
+    "totalCount": "${merge_ref.output.totalCount}",
+    "merged": "${merge_ref.output.merged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

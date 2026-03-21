@@ -1,0 +1,64 @@
+{
+  "name": "pis_policy_issuance",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "applicantId",
+    "coverageType",
+    "requestedAmount"
+  ],
+  "tasks": [
+    {
+      "name": "pis_underwrite",
+      "taskReferenceName": "pis_uw_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "coverageType": "${workflow.input.coverageType}"
+      }
+    },
+    {
+      "name": "pis_approve",
+      "taskReferenceName": "pis_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "underwritingResult": "${pis_uw_ref.output.result}",
+        "riskClass": "${pis_uw_ref.output.riskClass}"
+      }
+    },
+    {
+      "name": "pis_generate_policy",
+      "taskReferenceName": "pis_gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "coverageType": "${workflow.input.coverageType}",
+        "premium": "${pis_approve_ref.output.premium}"
+      }
+    },
+    {
+      "name": "pis_issue",
+      "taskReferenceName": "pis_issue_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${pis_gen_ref.output.policyId}"
+      }
+    },
+    {
+      "name": "pis_deliver",
+      "taskReferenceName": "pis_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "policyId": "${pis_gen_ref.output.policyId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "policyId": "${pis_gen_ref.output.policyId}",
+    "premium": "${pis_approve_ref.output.premium}",
+    "delivered": "${pis_deliver_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,57 @@
+{
+  "name": "log_processing",
+  "description": "Log processing workflow that ingests logs, parses entries, extracts patterns, and aggregates metrics.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "logSource",
+    "timeRange",
+    "filters"
+  ],
+  "tasks": [
+    {
+      "name": "lp_ingest_logs",
+      "taskReferenceName": "ingest_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "logSource": "${workflow.input.logSource}",
+        "timeRange": "${workflow.input.timeRange}"
+      }
+    },
+    {
+      "name": "lp_parse_entries",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawLogs": "${ingest_ref.output.rawLogs}",
+        "filters": "${workflow.input.filters}"
+      }
+    },
+    {
+      "name": "lp_extract_patterns",
+      "taskReferenceName": "patterns_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "entries": "${parse_ref.output.entries}"
+      }
+    },
+    {
+      "name": "lp_aggregate_metrics",
+      "taskReferenceName": "metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "entries": "${parse_ref.output.entries}",
+        "patterns": "${patterns_ref.output.patterns}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalEntries": "${ingest_ref.output.entryCount}",
+    "parsedEntries": "${parse_ref.output.parsedCount}",
+    "patternsFound": "${patterns_ref.output.patternCount}",
+    "topPattern": "${patterns_ref.output.topPattern}",
+    "metrics": "${metrics_ref.output.metrics}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

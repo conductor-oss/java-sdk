@@ -1,0 +1,71 @@
+{
+  "name": "multi_model_compare",
+  "description": "Compare responses from GPT-4, Claude, and Gemini in parallel",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "fork_model_calls",
+      "taskReferenceName": "fork_model_calls",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "mc_call_gpt4",
+            "taskReferenceName": "mc_call_gpt4_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "prompt": "${workflow.input.prompt}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mc_call_claude",
+            "taskReferenceName": "mc_call_claude_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "prompt": "${workflow.input.prompt}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mc_call_gemini",
+            "taskReferenceName": "mc_call_gemini_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "prompt": "${workflow.input.prompt}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_model_calls",
+      "taskReferenceName": "join_model_calls",
+      "type": "JOIN",
+      "joinOn": [
+        "mc_call_gpt4_ref",
+        "mc_call_claude_ref",
+        "mc_call_gemini_ref"
+      ]
+    },
+    {
+      "name": "mc_compare",
+      "taskReferenceName": "mc_compare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "gpt4": "${mc_call_gpt4_ref.output}",
+        "claude": "${mc_call_claude_ref.output}",
+        "gemini": "${mc_call_gemini_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "winner": "${mc_compare_ref.output.winner}",
+    "scores": "${mc_compare_ref.output.scores}",
+    "comparison": "${mc_compare_ref.output.comparison}"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "frm_freight_management", "description": "Freight management: book, track, deliver, invoice, and reconcile.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["origin", "destination", "weight", "carrier"],
+  "tasks": [
+    {"name":"frm_book","taskReferenceName":"frm_book_ref","type":"SIMPLE","inputParameters":{"origin":"${workflow.input.origin}","destination":"${workflow.input.destination}","weight":"${workflow.input.weight}","carrier":"${workflow.input.carrier}"}},
+    {"name":"frm_track","taskReferenceName":"frm_track_ref","type":"SIMPLE","inputParameters":{"bookingId":"${frm_book_ref.output.bookingId}"}},
+    {"name":"frm_deliver","taskReferenceName":"frm_deliver_ref","type":"SIMPLE","inputParameters":{"bookingId":"${frm_book_ref.output.bookingId}"}},
+    {"name":"frm_invoice","taskReferenceName":"frm_invoice_ref","type":"SIMPLE","inputParameters":{"bookingId":"${frm_book_ref.output.bookingId}","rate":"${frm_book_ref.output.rate}"}},
+    {"name":"frm_reconcile","taskReferenceName":"frm_reconcile_ref","type":"SIMPLE","inputParameters":{"invoiceId":"${frm_invoice_ref.output.invoiceId}","bookingId":"${frm_book_ref.output.bookingId}"}}
+  ],
+  "outputParameters": {"bookingId":"${frm_book_ref.output.bookingId}","delivered":"${frm_deliver_ref.output.delivered}","invoiceId":"${frm_invoice_ref.output.invoiceId}","reconciled":"${frm_reconcile_ref.output.reconciled}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

@@ -1,0 +1,38 @@
+{
+  "name": "wait_sdk_demo",
+  "description": "Demonstrates completing a WAIT task via the Conductor SDK (TaskClient)",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "wsdk_init",
+      "taskReferenceName": "init",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${workflow.input.ticketId}"
+      }
+    },
+    {
+      "name": "WAIT",
+      "taskReferenceName": "wait_for_resolution",
+      "type": "WAIT",
+      "inputParameters": {
+        "ticketId": "${init.output.ticketId}"
+      }
+    },
+    {
+      "name": "wsdk_finalize",
+      "taskReferenceName": "finalize",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${init.output.ticketId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ticketId": "${init.output.ticketId}",
+    "initStatus": "${init.output.status}",
+    "finalResult": "${finalize.output.result}"
+  }
+}

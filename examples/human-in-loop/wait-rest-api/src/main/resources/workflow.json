@@ -1,0 +1,56 @@
+{
+  "name": "wait_rest_api_demo",
+  "description": "Demonstrates completing a WAIT task via REST API for human-in-the-loop approval",
+  "version": 1,
+  "schemaVersion": 2,
+  "tasks": [
+    {
+      "name": "wapi_prepare",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    },
+    {
+      "name": "WAIT",
+      "taskReferenceName": "wait_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "decision_switch",
+      "taskReferenceName": "decision_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${wait_ref.output.decision}"
+      },
+      "decisionCases": {
+        "rejected": [
+          {
+            "name": "wapi_handle_decision",
+            "taskReferenceName": "reject_handler_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "decision": "rejected"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "wapi_handle_decision",
+          "taskReferenceName": "approve_handler_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "decision": "approved"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "decision": "${wait_ref.output.decision}",
+    "result": "${decision_switch_ref.output.result}"
+  }
+}

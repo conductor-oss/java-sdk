@@ -1,0 +1,13 @@
+{
+  "name": "rcp_recruitment_pipeline","description": "Recruitment pipeline: post, screen, interview, evaluate, offer.","version": 1,"schemaVersion": 2,
+  "inputParameters": ["jobTitle","department","candidateName"],
+  "tasks": [
+    {"name":"rcp_post","taskReferenceName":"rcp_post_ref","type":"SIMPLE","inputParameters":{"jobTitle":"${workflow.input.jobTitle}","department":"${workflow.input.department}"}},
+    {"name":"rcp_screen","taskReferenceName":"rcp_screen_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}","jobId":"${rcp_post_ref.output.jobId}"}},
+    {"name":"rcp_interview","taskReferenceName":"rcp_interview_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}"}},
+    {"name":"rcp_evaluate","taskReferenceName":"rcp_eval_ref","type":"SIMPLE","inputParameters":{"screenScore":"${rcp_screen_ref.output.score}","interviewScore":"${rcp_interview_ref.output.score}"}},
+    {"name":"rcp_offer","taskReferenceName":"rcp_offer_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}","recommendation":"${rcp_eval_ref.output.recommendation}"}}
+  ],
+  "outputParameters":{"recommendation":"${rcp_eval_ref.output.recommendation}","offerId":"${rcp_offer_ref.output.offerId}"},
+  "ownerEmail":"examples@orkes.io","timeoutSeconds":60
+}

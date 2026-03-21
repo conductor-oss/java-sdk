@@ -1,0 +1,74 @@
+{
+  "name": "inw_inspection_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["propertyId", "inspectionType"],
+  "tasks": [
+    {
+      "name": "inw_schedule",
+      "taskReferenceName": "inw_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "propertyId": "${workflow.input.propertyId}",
+        "inspectionType": "${workflow.input.inspectionType}"
+      }
+    },
+    {
+      "name": "inw_inspect",
+      "taskReferenceName": "inw_inspect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "propertyId": "${workflow.input.propertyId}",
+        "scheduledDate": "${inw_schedule_ref.output.scheduledDate}"
+      }
+    },
+    {
+      "name": "inw_document",
+      "taskReferenceName": "inw_document_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "findings": "${inw_inspect_ref.output.findings}"
+      }
+    },
+    {
+      "name": "route_result",
+      "taskReferenceName": "inw_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${inw_document_ref.output.result}"
+      },
+      "decisionCases": {
+        "pass": [
+          {
+            "name": "inw_record_pass",
+            "taskReferenceName": "inw_pass_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "propertyId": "${workflow.input.propertyId}"
+            }
+          }
+        ],
+        "fail": [
+          {
+            "name": "inw_record_fail",
+            "taskReferenceName": "inw_fail_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "propertyId": "${workflow.input.propertyId}",
+              "violations": "${inw_document_ref.output.violations}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "propertyId": "${workflow.input.propertyId}",
+    "result": "${inw_document_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

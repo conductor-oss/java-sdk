@@ -1,0 +1,76 @@
+{
+  "name": "saga_payment_inventory",
+  "description": "E-commerce order saga: reserve inventory, charge payment, ship order. If shipping fails, compensate by refunding payment and releasing inventory.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "amount", "shouldFail"],
+  "tasks": [
+    {
+      "name": "spi_reserve_inventory",
+      "taskReferenceName": "reserve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}"
+      }
+    },
+    {
+      "name": "spi_charge_payment",
+      "taskReferenceName": "charge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "spi_ship_order",
+      "taskReferenceName": "ship_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "shouldFail": "${workflow.input.shouldFail}"
+      }
+    },
+    {
+      "name": "check_ship_status",
+      "taskReferenceName": "check_ship_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${ship_ref.output.shipStatus}"
+      },
+      "decisionCases": {
+        "failed": [
+          {
+            "name": "spi_refund_payment",
+            "taskReferenceName": "refund_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "paymentId": "${charge_ref.output.paymentId}",
+              "orderId": "${workflow.input.orderId}"
+            }
+          },
+          {
+            "name": "spi_release_inventory",
+            "taskReferenceName": "release_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "reservationId": "${reserve_ref.output.reservationId}",
+              "orderId": "${workflow.input.orderId}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "shipStatus": "${ship_ref.output.shipStatus}",
+    "shipmentId": "${ship_ref.output.shipmentId}",
+    "compensated": "${check_ship_ref.output.selectedCase}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

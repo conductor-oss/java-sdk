@@ -1,0 +1,38 @@
+{
+  "name": "wait_task_basics_demo",
+  "description": "WAIT Task basics -- pause a workflow at a WAIT task and resume it by completing the task externally.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId"],
+  "tasks": [
+    {
+      "name": "wait_before",
+      "taskReferenceName": "wait_before_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}"
+      }
+    },
+    {
+      "name": "wait_for_approval",
+      "taskReferenceName": "wait_for_approval_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "wait_after",
+      "taskReferenceName": "wait_after_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "approval": "${wait_for_approval_ref.output.approval}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "prepared": "${wait_before_ref.output.prepared}",
+    "result": "${wait_after_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

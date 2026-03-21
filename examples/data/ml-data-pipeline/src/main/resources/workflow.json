@@ -1,0 +1,24 @@
+{
+  "name": "ml_data_pipeline",
+  "description": "ML pipeline: collect data, clean, split into train/test, train model, and evaluate.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["dataSource", "modelType", "splitRatio"],
+  "tasks": [
+    { "name": "ml_collect_data", "taskReferenceName": "collect_ref", "type": "SIMPLE", "inputParameters": { "dataSource": "${workflow.input.dataSource}" } },
+    { "name": "ml_clean_data", "taskReferenceName": "clean_ref", "type": "SIMPLE", "inputParameters": { "rawData": "${collect_ref.output.data}", "recordCount": "${collect_ref.output.recordCount}" } },
+    { "name": "ml_split_data", "taskReferenceName": "split_ref", "type": "SIMPLE", "inputParameters": { "cleanData": "${clean_ref.output.cleanData}", "splitRatio": "${workflow.input.splitRatio}" } },
+    { "name": "ml_train_model", "taskReferenceName": "train_ref", "type": "SIMPLE", "inputParameters": { "trainData": "${split_ref.output.trainData}", "modelType": "${workflow.input.modelType}" } },
+    { "name": "ml_evaluate_model", "taskReferenceName": "eval_ref", "type": "SIMPLE", "inputParameters": { "model": "${train_ref.output.model}", "testData": "${split_ref.output.testData}" } }
+  ],
+  "outputParameters": {
+    "totalRecords": "${collect_ref.output.recordCount}",
+    "cleanRecords": "${clean_ref.output.cleanCount}",
+    "trainSize": "${split_ref.output.trainSize}",
+    "testSize": "${split_ref.output.testSize}",
+    "accuracy": "${eval_ref.output.accuracy}",
+    "metrics": "${eval_ref.output.metrics}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

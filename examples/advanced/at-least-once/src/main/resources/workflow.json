@@ -1,0 +1,59 @@
+{
+  "name": "alo_at_least_once",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "messageId",
+    "payload",
+    "topic"
+  ],
+  "tasks": [
+    {
+      "name": "alo_receive",
+      "taskReferenceName": "alo_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "payload": "${workflow.input.payload}",
+        "topic": "${workflow.input.topic}"
+      }
+    },
+    {
+      "name": "alo_process",
+      "taskReferenceName": "alo_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "payload": "${workflow.input.payload}",
+        "receiptHandle": "${alo_receive_ref.output.receiptHandle}"
+      }
+    },
+    {
+      "name": "alo_acknowledge",
+      "taskReferenceName": "alo_ack_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "receiptHandle": "${alo_receive_ref.output.receiptHandle}",
+        "processResult": "${alo_process_ref.output.result}"
+      }
+    },
+    {
+      "name": "alo_verify_delivery",
+      "taskReferenceName": "alo_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${workflow.input.messageId}",
+        "acknowledged": "${alo_ack_ref.output.acknowledged}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${workflow.input.messageId}",
+    "processed": "${alo_process_ref.output.processed}",
+    "acknowledged": "${alo_ack_ref.output.acknowledged}",
+    "deliveryVerified": "${alo_verify_ref.output.deliveryVerified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,35 @@
+{
+  "name": "idempotent_workers_demo",
+  "description": "Idempotent workers demo -- charge then send email, both handling duplicates safely.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "amount", "email"],
+  "tasks": [
+    {
+      "name": "idem_charge",
+      "taskReferenceName": "idem_charge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "idem_send_email",
+      "taskReferenceName": "idem_send_email_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "email": "${workflow.input.email}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "charged": "${idem_charge_ref.output.charged}",
+    "chargeDuplicate": "${idem_charge_ref.output.duplicate}",
+    "emailSent": "${idem_send_email_ref.output.sent}",
+    "emailDuplicate": "${idem_send_email_ref.output.duplicate}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,19 @@
+{
+  "name": "txc_text_classification",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["text", "categories"],
+  "tasks": [
+    { "name": "txc_preprocess", "taskReferenceName": "txc_preprocess_ref", "type": "SIMPLE", "inputParameters": { "text": "${workflow.input.text}" } },
+    { "name": "txc_extract_features", "taskReferenceName": "txc_features_ref", "type": "SIMPLE", "inputParameters": { "cleanedText": "${txc_preprocess_ref.output.cleanedText}" } },
+    { "name": "txc_classify", "taskReferenceName": "txc_classify_ref", "type": "SIMPLE", "inputParameters": { "features": "${txc_features_ref.output.features}", "categories": "${workflow.input.categories}" } },
+    { "name": "txc_confidence", "taskReferenceName": "txc_conf_ref", "type": "SIMPLE", "inputParameters": { "prediction": "${txc_classify_ref.output.prediction}", "scores": "${txc_classify_ref.output.scores}" } }
+  ],
+  "outputParameters": {
+    "category": "${txc_classify_ref.output.prediction}",
+    "confidence": "${txc_conf_ref.output.confidence}",
+    "reliable": "${txc_conf_ref.output.reliable}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

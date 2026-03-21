@@ -1,0 +1,57 @@
+{
+  "name": "code_interpreter_agent",
+  "description": "Code Interpreter Agent — analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "dataset"],
+  "tasks": [
+    {
+      "name": "ci_analyze_question",
+      "taskReferenceName": "ci_analyze_question_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "dataset": "${workflow.input.dataset}"
+      }
+    },
+    {
+      "name": "ci_generate_code",
+      "taskReferenceName": "ci_generate_code_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analysis": "${ci_analyze_question_ref.output.analysis}",
+        "dataSchema": "${ci_analyze_question_ref.output.dataSchema}",
+        "language": "${ci_analyze_question_ref.output.language}"
+      }
+    },
+    {
+      "name": "ci_execute_sandbox",
+      "taskReferenceName": "ci_execute_sandbox_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "code": "${ci_generate_code_ref.output.code}",
+        "language": "${ci_generate_code_ref.output.language}",
+        "dataset": "${workflow.input.dataset}"
+      }
+    },
+    {
+      "name": "ci_interpret_result",
+      "taskReferenceName": "ci_interpret_result_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "executionOutput": "${ci_execute_sandbox_ref.output.result}",
+        "executionStatus": "${ci_execute_sandbox_ref.output.status}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${ci_interpret_result_ref.output.answer}",
+    "interpretation": "${ci_interpret_result_ref.output.interpretation}",
+    "confidence": "${ci_interpret_result_ref.output.confidence}",
+    "code": "${ci_generate_code_ref.output.code}",
+    "executionStatus": "${ci_execute_sandbox_ref.output.status}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

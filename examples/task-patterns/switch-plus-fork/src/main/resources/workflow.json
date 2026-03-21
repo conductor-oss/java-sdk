@@ -1,0 +1,85 @@
+{
+  "name": "switch_fork_demo",
+  "description": "SWITCH + FORK demo — conditional parallel execution. Batch type triggers parallel lanes A and B; default runs single processing.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["type", "items"],
+  "tasks": [
+    {
+      "name": "route_by_type",
+      "taskReferenceName": "route_by_type_ref",
+      "type": "SWITCH",
+      "evaluatorType": "javascript",
+      "expression": "(function() { return $.type === 'batch' ? 'batch' : 'single'; })()",
+      "inputParameters": {
+        "type": "${workflow.input.type}"
+      },
+      "decisionCases": {
+        "batch": [
+          {
+            "name": "fork_batch",
+            "taskReferenceName": "fork_batch_ref",
+            "type": "FORK_JOIN",
+            "forkTasks": [
+              [
+                {
+                  "name": "sf_process_a",
+                  "taskReferenceName": "sf_process_a_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "items": "${workflow.input.items}"
+                  }
+                }
+              ],
+              [
+                {
+                  "name": "sf_process_b",
+                  "taskReferenceName": "sf_process_b_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "items": "${workflow.input.items}"
+                  }
+                }
+              ]
+            ]
+          },
+          {
+            "name": "join_batch",
+            "taskReferenceName": "join_batch_ref",
+            "type": "JOIN",
+            "joinOn": [
+              "sf_process_a_ref",
+              "sf_process_b_ref"
+            ]
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "sf_single_process",
+          "taskReferenceName": "sf_single_process_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "type": "${workflow.input.type}",
+            "items": "${workflow.input.items}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sf_finalize",
+      "taskReferenceName": "sf_finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "type": "${workflow.input.type}",
+        "items": "${workflow.input.items}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "type": "${workflow.input.type}",
+    "done": "${sf_finalize_ref.output.done}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

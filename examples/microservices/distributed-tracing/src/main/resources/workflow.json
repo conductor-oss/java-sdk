@@ -1,0 +1,18 @@
+{
+  "name": "distributed_tracing_workflow",
+  "description": "Distributed tracing with end-to-end request tracking",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["requestId", "operation"],
+  "tasks": [
+    {"name": "dt_create_trace", "taskReferenceName": "trace_ref", "type": "SIMPLE",
+      "inputParameters": {"requestId": "${workflow.input.requestId}", "operation": "${workflow.input.operation}"}},
+    {"name": "dt_service_span", "taskReferenceName": "svc_ref", "type": "SIMPLE",
+      "inputParameters": {"traceId": "${trace_ref.output.traceId}", "parentSpanId": "${trace_ref.output.spanId}"}},
+    {"name": "dt_db_span", "taskReferenceName": "db_ref", "type": "SIMPLE",
+      "inputParameters": {"traceId": "${trace_ref.output.traceId}", "parentSpanId": "${svc_ref.output.spanId}"}},
+    {"name": "dt_export_trace", "taskReferenceName": "export_ref", "type": "SIMPLE",
+      "inputParameters": {"traceId": "${trace_ref.output.traceId}", "spanCount": 3}}
+  ],
+  "outputParameters": {"traceId": "${trace_ref.output.traceId}", "spans": 3, "exported": "${export_ref.output.exported}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 30
+}

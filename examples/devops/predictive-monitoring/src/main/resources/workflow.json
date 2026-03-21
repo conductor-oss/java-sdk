@@ -1,0 +1,57 @@
+{
+  "name": "predictive_monitoring_424",
+  "description": "Predictive monitoring: collect history, train model, predict anomalies, alert",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "metricName",
+    "historyDays",
+    "forecastHours"
+  ],
+  "tasks": [
+    {
+      "name": "pdm_collect_history",
+      "taskReferenceName": "collect_history_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metricName": "${workflow.input.metricName}",
+        "historyDays": "${workflow.input.historyDays}"
+      }
+    },
+    {
+      "name": "pdm_train_model",
+      "taskReferenceName": "train_model_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataPoints": "${collect_history_ref.output.dataPoints}",
+        "metricName": "${workflow.input.metricName}"
+      }
+    },
+    {
+      "name": "pdm_predict",
+      "taskReferenceName": "predict_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${train_model_ref.output.modelId}",
+        "forecastHours": "${workflow.input.forecastHours}"
+      }
+    },
+    {
+      "name": "pdm_alert",
+      "taskReferenceName": "alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "predictions": "${predict_ref.output}",
+        "metricName": "${workflow.input.metricName}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "dataPoints": "${collect_history_ref.output.dataPoints}",
+    "modelAccuracy": "${train_model_ref.output.accuracy}",
+    "predictedAnomaly": "${predict_ref.output.anomalyPredicted}",
+    "alertSent": "${alert_ref.output.alertSent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

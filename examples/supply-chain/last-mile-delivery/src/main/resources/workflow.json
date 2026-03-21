@@ -1,0 +1,12 @@
+{
+  "name": "lmd_last_mile_delivery", "description": "Last mile delivery: assign driver, optimize route, deliver, and confirm.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["orderId", "address", "timeWindow"],
+  "tasks": [
+    {"name":"lmd_assign_driver","taskReferenceName":"lmd_assign_ref","type":"SIMPLE","inputParameters":{"orderId":"${workflow.input.orderId}","address":"${workflow.input.address}"}},
+    {"name":"lmd_optimize_route","taskReferenceName":"lmd_route_ref","type":"SIMPLE","inputParameters":{"driverId":"${lmd_assign_ref.output.driverId}","address":"${workflow.input.address}"}},
+    {"name":"lmd_deliver","taskReferenceName":"lmd_deliver_ref","type":"SIMPLE","inputParameters":{"driverId":"${lmd_assign_ref.output.driverId}","route":"${lmd_route_ref.output.route}","orderId":"${workflow.input.orderId}"}},
+    {"name":"lmd_confirm","taskReferenceName":"lmd_confirm_ref","type":"SIMPLE","inputParameters":{"orderId":"${workflow.input.orderId}","deliveryStatus":"${lmd_deliver_ref.output.status}"}}
+  ],
+  "outputParameters": {"driverId":"${lmd_assign_ref.output.driverId}","estimatedTime":"${lmd_route_ref.output.estimatedTime}","deliveryStatus":"${lmd_deliver_ref.output.status}","confirmed":"${lmd_confirm_ref.output.confirmed}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

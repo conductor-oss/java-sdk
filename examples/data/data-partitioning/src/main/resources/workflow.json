@@ -1,0 +1,77 @@
+{
+  "name": "data_partitioning_wf",
+  "description": "Data partitioning workflow that splits records into two partitions, processes them in parallel via FORK_JOIN, then merges the results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "partitionKey"
+  ],
+  "tasks": [
+    {
+      "name": "par_split_data",
+      "taskReferenceName": "split_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}",
+        "partitionKey": "${workflow.input.partitionKey}"
+      }
+    },
+    {
+      "name": "fork_partitions",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "par_process_partition_a",
+            "taskReferenceName": "part_a_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "partition": "${split_data_ref.output.partitionA}",
+              "partitionName": "A"
+            }
+          }
+        ],
+        [
+          {
+            "name": "par_process_partition_b",
+            "taskReferenceName": "part_b_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "partition": "${split_data_ref.output.partitionB}",
+              "partitionName": "B"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_partitions",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "part_a_ref",
+        "part_b_ref"
+      ]
+    },
+    {
+      "name": "par_merge_results",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resultA": "${part_a_ref.output.result}",
+        "resultB": "${part_b_ref.output.result}",
+        "countA": "${part_a_ref.output.processedCount}",
+        "countB": "${part_b_ref.output.processedCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "mergedCount": "${merge_ref.output.mergedCount}",
+    "summary": "${merge_ref.output.summary}",
+    "records": "${merge_ref.output.records}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

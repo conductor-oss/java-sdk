@@ -1,0 +1,47 @@
+{
+  "name": "human_user_assignment_demo",
+  "description": "HUMAN Task with User Assignment — assigns a review task to a specific user",
+  "version": 1,
+  "tasks": [
+    {
+      "name": "hua_prepare",
+      "taskReferenceName": "prepare",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documentId": "${workflow.input.documentId}"
+      }
+    },
+    {
+      "name": "assigned_review",
+      "taskReferenceName": "assigned_review_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "assignedTo": "${workflow.input.assignedTo}",
+        "documentId": "${workflow.input.documentId}",
+        "taskType": "review",
+        "instructions": "Please review the document and approve or reject."
+      }
+    },
+    {
+      "name": "hua_post_review",
+      "taskReferenceName": "post_review",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reviewResult": "${assigned_review_ref.output.result}",
+        "documentId": "${workflow.input.documentId}"
+      }
+    }
+  ],
+  "inputParameters": [
+    "documentId",
+    "assignedTo"
+  ],
+  "outputParameters": {
+    "prepared": "${prepare.output.prepared}",
+    "reviewResult": "${assigned_review_ref.output.result}",
+    "finalized": "${post_review.output.finalized}"
+  },
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": false
+}

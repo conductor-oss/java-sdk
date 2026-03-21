@@ -1,0 +1,23 @@
+{
+  "name": "network_partitions_demo",
+  "description": "Network partitions demo -- resilient worker that tracks attempts and handles reconnection.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["data"],
+  "tasks": [
+    {
+      "name": "np_resilient_task",
+      "taskReferenceName": "np_resilient_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${workflow.input.data}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${np_resilient_ref.output.result}",
+    "attempt": "${np_resilient_ref.output.attempt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

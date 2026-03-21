@@ -1,0 +1,25 @@
+{
+  "name": "auction_workflow",
+  "description": "Auction workflow: open bidding, collect bids, close, determine winner, settle",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["auctionId", "itemName", "startingPrice"],
+  "tasks": [
+    { "name": "auc_open_bidding", "taskReferenceName": "auc_open_ref", "type": "SIMPLE",
+      "inputParameters": { "auctionId": "${workflow.input.auctionId}", "itemName": "${workflow.input.itemName}", "startingPrice": "${workflow.input.startingPrice}" } },
+    { "name": "auc_collect_bids", "taskReferenceName": "auc_bids_ref", "type": "SIMPLE",
+      "inputParameters": { "auctionId": "${workflow.input.auctionId}", "startingPrice": "${workflow.input.startingPrice}" } },
+    { "name": "auc_close_auction", "taskReferenceName": "auc_close_ref", "type": "SIMPLE",
+      "inputParameters": { "auctionId": "${workflow.input.auctionId}", "bidCount": "${auc_bids_ref.output.bidCount}" } },
+    { "name": "auc_determine_winner", "taskReferenceName": "auc_winner_ref", "type": "SIMPLE",
+      "inputParameters": { "auctionId": "${workflow.input.auctionId}", "bids": "${auc_bids_ref.output.bids}" } },
+    { "name": "auc_settle", "taskReferenceName": "auc_settle_ref", "type": "SIMPLE",
+      "inputParameters": { "auctionId": "${workflow.input.auctionId}", "winnerId": "${auc_winner_ref.output.winnerId}", "winningBid": "${auc_winner_ref.output.winningBid}" } }
+  ],
+  "outputParameters": {
+    "auctionId": "${workflow.input.auctionId}",
+    "winner": "${auc_winner_ref.output.winnerId}",
+    "finalPrice": "${auc_winner_ref.output.winningBid}",
+    "settled": "${auc_settle_ref.output.settled}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

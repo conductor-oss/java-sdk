@@ -1,0 +1,24 @@
+{
+  "name": "worker_health_checks_demo",
+  "description": "Worker health checks demo -- runs whc_task and demonstrates health monitoring APIs.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["data"],
+  "tasks": [
+    {
+      "name": "whc_task",
+      "taskReferenceName": "whc_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${workflow.input.data}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${whc_task_ref.output.result}",
+    "pollCount": "${whc_task_ref.output.pollCount}",
+    "completedCount": "${whc_task_ref.output.completedCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

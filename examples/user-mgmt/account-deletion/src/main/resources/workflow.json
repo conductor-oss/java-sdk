@@ -1,0 +1,19 @@
+{
+  "name": "acd_account_deletion",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "reason"],
+  "tasks": [
+    { "name": "acd_verify", "taskReferenceName": "acd_verify_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "reason": "${workflow.input.reason}" } },
+    { "name": "acd_backup", "taskReferenceName": "acd_backup_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}" } },
+    { "name": "acd_delete", "taskReferenceName": "acd_delete_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "backupId": "${acd_backup_ref.output.backupId}" } },
+    { "name": "acd_confirm", "taskReferenceName": "acd_confirm_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "deleted": "${acd_delete_ref.output.deleted}" } }
+  ],
+  "outputParameters": {
+    "backupId": "${acd_backup_ref.output.backupId}",
+    "deleted": "${acd_delete_ref.output.deleted}",
+    "confirmationSent": "${acd_confirm_ref.output.confirmationSent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

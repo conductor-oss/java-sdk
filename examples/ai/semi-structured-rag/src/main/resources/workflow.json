@@ -1,0 +1,79 @@
+{
+  "name": "semi_structured_rag_workflow",
+  "description": "Semi-Structured RAG - Classify data, search structured and unstructured sources in parallel, merge, and generate",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "dataContext"],
+  "tasks": [
+    {
+      "name": "ss_classify_data",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "dataContext": "${workflow.input.dataContext}"
+      }
+    },
+    {
+      "name": "parallel_search",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "ss_search_structured",
+            "taskReferenceName": "structured_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "structuredFields": "${classify_ref.output.structuredFields}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ss_search_unstructured",
+            "taskReferenceName": "unstructured_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "textChunks": "${classify_ref.output.textChunks}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_searches",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["structured_ref", "unstructured_ref"]
+    },
+    {
+      "name": "ss_merge_results",
+      "taskReferenceName": "merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "structuredResults": "${structured_ref.output.results}",
+        "unstructuredResults": "${unstructured_ref.output.results}"
+      }
+    },
+    {
+      "name": "ss_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "context": "${merge_ref.output.mergedContext}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${gen_ref.output.answer}",
+    "mergedContext": "${merge_ref.output.mergedContext}",
+    "totalDocs": "${merge_ref.output.totalDocs}",
+    "dataTypes": "${classify_ref.output.dataTypes}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

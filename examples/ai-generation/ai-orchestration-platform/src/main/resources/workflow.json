@@ -1,0 +1,65 @@
+{
+  "name": "aop_ai_orchestration_platform",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "requestType",
+    "payload",
+    "priority"
+  ],
+  "tasks": [
+    {
+      "name": "aop_receive_request",
+      "taskReferenceName": "aop_recv_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestType": "${workflow.input.requestType}",
+        "priority": "${workflow.input.priority}"
+      }
+    },
+    {
+      "name": "aop_route_model",
+      "taskReferenceName": "aop_route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestType": "${workflow.input.requestType}",
+        "requestId": "${aop_recv_ref.output.requestId}"
+      }
+    },
+    {
+      "name": "aop_execute",
+      "taskReferenceName": "aop_exec_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelEndpoint": "${aop_route_ref.output.modelEndpoint}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "aop_validate",
+      "taskReferenceName": "aop_val_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "result": "${aop_exec_ref.output.result}",
+        "requestType": "${workflow.input.requestType}"
+      }
+    },
+    {
+      "name": "aop_respond",
+      "taskReferenceName": "aop_resp_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${aop_recv_ref.output.requestId}",
+        "validatedResult": "${aop_val_ref.output.validatedResult}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${aop_recv_ref.output.requestId}",
+    "model": "${aop_route_ref.output.selectedModel}",
+    "result": "${aop_val_ref.output.validatedResult}",
+    "latency": "${aop_exec_ref.output.latencyMs}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

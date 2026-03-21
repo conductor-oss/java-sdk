@@ -1,0 +1,58 @@
+{
+  "name": "serverless_orchestration_demo",
+  "description": "Invoke serverless functions, chain their outputs, and aggregate the final results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "payload"
+  ],
+  "tasks": [
+    {
+      "name": "svl_invoke_parse",
+      "taskReferenceName": "svl_parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "functionArn": "arn:aws:lambda:us-east-1:123:function:parse-event",
+        "eventId": "${workflow.input.eventId}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "svl_invoke_enrich",
+      "taskReferenceName": "svl_enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "functionArn": "arn:aws:lambda:us-east-1:123:function:enrich-data",
+        "parsedData": "${svl_parse_ref.output.parsed}"
+      }
+    },
+    {
+      "name": "svl_invoke_score",
+      "taskReferenceName": "svl_score_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "functionArn": "arn:aws:lambda:us-east-1:123:function:compute-score",
+        "enrichedData": "${svl_enrich_ref.output.enriched}"
+      }
+    },
+    {
+      "name": "svl_aggregate",
+      "taskReferenceName": "svl_agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "score": "${svl_score_ref.output.score}",
+        "enriched": "${svl_enrich_ref.output.enriched}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "score": "${svl_score_ref.output.score}",
+    "functionsInvoked": 3,
+    "aggregated": "${svl_agg_ref.output.aggregated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

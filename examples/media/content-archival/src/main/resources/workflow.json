@@ -1,0 +1,70 @@
+{
+  "name": "content_archival_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "archiveJobId",
+    "ageThresholdDays",
+    "contentCategory"
+  ],
+  "tasks": [
+    {
+      "name": "car_identify_content",
+      "taskReferenceName": "car_identify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "archiveJobId": "${workflow.input.archiveJobId}",
+        "ageThresholdDays": "${workflow.input.ageThresholdDays}",
+        "contentCategory": "${workflow.input.contentCategory}"
+      }
+    },
+    {
+      "name": "car_compress",
+      "taskReferenceName": "car_compress_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "archiveJobId": "${workflow.input.archiveJobId}",
+        "itemCount": "${car_identify_ref.output.itemCount}",
+        "totalSizeMb": "${car_identify_ref.output.totalSizeMb}"
+      }
+    },
+    {
+      "name": "car_store_cold",
+      "taskReferenceName": "car_store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "archiveJobId": "${workflow.input.archiveJobId}",
+        "compressedPath": "${car_compress_ref.output.compressedPath}",
+        "compressedSizeMb": "${car_compress_ref.output.compressedSizeMb}"
+      }
+    },
+    {
+      "name": "car_index_archive",
+      "taskReferenceName": "car_index_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "archiveJobId": "${workflow.input.archiveJobId}",
+        "coldStoragePath": "${car_store_ref.output.coldStoragePath}",
+        "itemCount": "${car_identify_ref.output.itemCount}"
+      }
+    },
+    {
+      "name": "car_verify_integrity",
+      "taskReferenceName": "car_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "archiveJobId": "${workflow.input.archiveJobId}",
+        "coldStoragePath": "${car_store_ref.output.coldStoragePath}",
+        "checksum": "${car_compress_ref.output.checksum}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "archiveJobId": "${workflow.input.archiveJobId}",
+    "itemsArchived": "${car_identify_ref.output.itemCount}",
+    "savedMb": "${car_compress_ref.output.savedMb}",
+    "verified": "${car_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

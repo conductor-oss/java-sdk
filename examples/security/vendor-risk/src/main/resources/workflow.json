@@ -1,0 +1,50 @@
+{
+  "name": "vendor_risk_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "vendorName",
+    "dataAccess"
+  ],
+  "tasks": [
+    {
+      "name": "vr_collect_questionnaire",
+      "taskReferenceName": "collect_questionnaire_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vendorName": "${workflow.input.vendorName}",
+        "dataAccess": "${workflow.input.dataAccess}"
+      }
+    },
+    {
+      "name": "vr_assess_risk",
+      "taskReferenceName": "assess_risk_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assess_riskData": "${collect_questionnaire_ref.output}"
+      }
+    },
+    {
+      "name": "vr_review_soc2",
+      "taskReferenceName": "review_soc2_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "review_soc2Data": "${assess_risk_ref.output}"
+      }
+    },
+    {
+      "name": "vr_make_decision",
+      "taskReferenceName": "make_decision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "make_decisionData": "${review_soc2_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "collect_questionnaireResult": "${collect_questionnaire_ref.output}",
+    "make_decisionResult": "${make_decision_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 86400
+}

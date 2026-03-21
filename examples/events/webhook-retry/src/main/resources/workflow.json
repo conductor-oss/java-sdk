@@ -1,0 +1,64 @@
+{
+  "name": "webhook_retry_wf",
+  "description": "Webhook delivery workflow with DO_WHILE retry loop. Prepares the webhook, attempts delivery up to 3 times, checks each result, and records the final outcome.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "webhookUrl",
+    "payload"
+  ],
+  "tasks": [
+    {
+      "name": "wr_prepare_webhook",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "webhookUrl": "${workflow.input.webhookUrl}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "retry_loop",
+      "taskReferenceName": "loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.loop_ref['iteration'] < 3) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "wr_attempt_delivery",
+          "taskReferenceName": "attempt_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "webhookUrl": "${prepare_ref.output.url}",
+            "payload": "${prepare_ref.output.payload}",
+            "attempt": "${loop_ref.output.iteration}"
+          }
+        },
+        {
+          "name": "wr_check_result",
+          "taskReferenceName": "check_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "statusCode": "${attempt_ref.output.statusCode}",
+            "attempt": "${attempt_ref.output.attempt}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wr_record_outcome",
+      "taskReferenceName": "outcome_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "totalAttempts": "${loop_ref.output.iteration}",
+        "webhookUrl": "${prepare_ref.output.url}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "outcome": "${outcome_ref.output.outcome}",
+    "totalAttempts": "${outcome_ref.output.totalAttempts}",
+    "webhookUrl": "${prepare_ref.output.url}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

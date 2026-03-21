@@ -1,0 +1,58 @@
+{
+  "name": "ccs_competing_consumers",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "taskPayload",
+    "queueName",
+    "consumerCount"
+  ],
+  "tasks": [
+    {
+      "name": "ccs_publish",
+      "taskReferenceName": "ccs_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "taskPayload": "${workflow.input.taskPayload}",
+        "queueName": "${workflow.input.queueName}"
+      }
+    },
+    {
+      "name": "ccs_compete",
+      "taskReferenceName": "ccs_compete_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${ccs_publish_ref.output.messageId}",
+        "consumerCount": "${workflow.input.consumerCount}"
+      }
+    },
+    {
+      "name": "ccs_process",
+      "taskReferenceName": "ccs_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${ccs_publish_ref.output.messageId}",
+        "winner": "${ccs_compete_ref.output.winner}",
+        "payload": "${workflow.input.taskPayload}"
+      }
+    },
+    {
+      "name": "ccs_acknowledge",
+      "taskReferenceName": "ccs_ack_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${ccs_publish_ref.output.messageId}",
+        "processedBy": "${ccs_compete_ref.output.winner}",
+        "result": "${ccs_process_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${ccs_publish_ref.output.messageId}",
+    "winner": "${ccs_compete_ref.output.winner}",
+    "result": "${ccs_process_ref.output.result}",
+    "acknowledged": "${ccs_ack_ref.output.acknowledged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

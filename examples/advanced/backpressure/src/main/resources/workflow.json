@@ -1,0 +1,84 @@
+{
+  "name": "bkp_backpressure",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "queueName",
+    "thresholdHigh",
+    "thresholdCritical"
+  ],
+  "tasks": [
+    {
+      "name": "bkp_monitor_queue",
+      "taskReferenceName": "bkp_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "queueName": "${workflow.input.queueName}",
+        "thresholdHigh": "${workflow.input.thresholdHigh}",
+        "thresholdCritical": "${workflow.input.thresholdCritical}"
+      }
+    },
+    {
+      "name": "pressure_switch",
+      "taskReferenceName": "bkp_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${bkp_monitor_ref.output.pressureLevel}"
+      },
+      "decisionCases": {
+        "ok": [
+          {
+            "name": "bkp_handle_ok",
+            "taskReferenceName": "bkp_ok_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queueDepth": "${bkp_monitor_ref.output.queueDepth}"
+            }
+          }
+        ],
+        "high": [
+          {
+            "name": "bkp_throttle",
+            "taskReferenceName": "bkp_throttle_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queueDepth": "${bkp_monitor_ref.output.queueDepth}",
+              "throttlePercent": "${bkp_monitor_ref.output.throttlePercent}"
+            }
+          }
+        ],
+        "critical": [
+          {
+            "name": "bkp_shed_load",
+            "taskReferenceName": "bkp_shed_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queueDepth": "${bkp_monitor_ref.output.queueDepth}",
+              "shedPercent": "${bkp_monitor_ref.output.shedPercent}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "bkp_handle_ok",
+          "taskReferenceName": "bkp_default_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "queueDepth": "${bkp_monitor_ref.output.queueDepth}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "queueName": "${workflow.input.queueName}",
+    "pressureLevel": "${bkp_monitor_ref.output.pressureLevel}",
+    "queueDepth": "${bkp_monitor_ref.output.queueDepth}",
+    "action": "${bkp_monitor_ref.output.pressureLevel}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

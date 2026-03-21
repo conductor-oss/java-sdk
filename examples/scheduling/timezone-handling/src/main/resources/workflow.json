@@ -1,0 +1,16 @@
+{
+  "name": "timezone_handling_407", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["userId", "requestedTime", "jobName"],
+  "tasks": [
+    {"name": "tz_detect_zone", "taskReferenceName": "tz_detect_ref", "type": "SIMPLE",
+     "inputParameters": {"userId": "${workflow.input.userId}"}},
+    {"name": "tz_convert_time", "taskReferenceName": "tz_convert_ref", "type": "SIMPLE",
+     "inputParameters": {"requestedTime": "${workflow.input.requestedTime}", "sourceTimezone": "${tz_detect_ref.output.timezone}", "targetTimezone": "UTC"}},
+    {"name": "tz_schedule_job", "taskReferenceName": "tz_schedule_ref", "type": "SIMPLE",
+     "inputParameters": {"jobName": "${workflow.input.jobName}", "utcTime": "${tz_convert_ref.output.convertedTime}", "localTime": "${workflow.input.requestedTime}", "timezone": "${tz_detect_ref.output.timezone}"}},
+    {"name": "tz_execute_job", "taskReferenceName": "tz_execute_ref", "type": "SIMPLE",
+     "inputParameters": {"jobName": "${workflow.input.jobName}", "scheduledUtc": "${tz_convert_ref.output.convertedTime}"}}
+  ],
+  "outputParameters": {"detectedTimezone": "${tz_detect_ref.output.timezone}", "utcTime": "${tz_convert_ref.output.convertedTime}", "scheduled": "${tz_schedule_ref.output.scheduled}", "executed": "${tz_execute_ref.output.executed}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

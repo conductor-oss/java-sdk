@@ -1,0 +1,18 @@
+{
+  "name": "shared_nothing_workflow",
+  "description": "Shared nothing architecture with fully independent services",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["requestId", "data"],
+  "tasks": [
+    {"name": "sn_service_a", "taskReferenceName": "a_ref", "type": "SIMPLE",
+      "inputParameters": {"requestId": "${workflow.input.requestId}", "data": "${workflow.input.data}"}},
+    {"name": "sn_service_b", "taskReferenceName": "b_ref", "type": "SIMPLE",
+      "inputParameters": {"requestId": "${workflow.input.requestId}", "aResult": "${a_ref.output.result}"}},
+    {"name": "sn_service_c", "taskReferenceName": "c_ref", "type": "SIMPLE",
+      "inputParameters": {"requestId": "${workflow.input.requestId}", "bResult": "${b_ref.output.result}"}},
+    {"name": "sn_aggregate", "taskReferenceName": "agg_ref", "type": "SIMPLE",
+      "inputParameters": {"a": "${a_ref.output.result}", "b": "${b_ref.output.result}", "c": "${c_ref.output.result}"}}
+  ],
+  "outputParameters": {"finalResult": "${agg_ref.output.aggregated}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

@@ -1,0 +1,66 @@
+{
+  "name": "sql_rag_workflow",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "question",
+    "dbSchema"
+  ],
+  "tasks": [
+    {
+      "name": "sq_parse_nl",
+      "taskReferenceName": "parse_nl_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "dbSchema": "${workflow.input.dbSchema}"
+      }
+    },
+    {
+      "name": "sq_generate_sql",
+      "taskReferenceName": "generate_sql_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "intent": "${parse_nl_ref.output.intent}",
+        "entities": "${parse_nl_ref.output.entities}",
+        "schema": "${workflow.input.dbSchema}"
+      }
+    },
+    {
+      "name": "sq_validate_sql",
+      "taskReferenceName": "validate_sql_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sql": "${generate_sql_ref.output.sql}",
+        "schema": "${workflow.input.dbSchema}"
+      }
+    },
+    {
+      "name": "sq_execute_sql",
+      "taskReferenceName": "execute_sql_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sql": "${validate_sql_ref.output.validatedSql}"
+      }
+    },
+    {
+      "name": "sq_format_results",
+      "taskReferenceName": "format_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "sql": "${generate_sql_ref.output.sql}",
+        "rows": "${execute_sql_ref.output.rows}",
+        "rowCount": "${execute_sql_ref.output.rowCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${format_results_ref.output.answer}",
+    "sql": "${generate_sql_ref.output.sql}",
+    "rowCount": "${execute_sql_ref.output.rowCount}",
+    "isValid": "${validate_sql_ref.output.isValid}"
+  }
+}

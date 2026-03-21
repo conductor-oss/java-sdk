@@ -1,0 +1,23 @@
+{
+  "name": "retry_linear_demo",
+  "description": "LINEAR_BACKOFF retry demo — delay increases linearly (delay * attempt).",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["service"],
+  "tasks": [
+    {
+      "name": "retry_linear_task",
+      "taskReferenceName": "retry_linear_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "attempts": "${retry_linear_task_ref.output.attempts}",
+    "serviceStatus": "${retry_linear_task_ref.output.serviceStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

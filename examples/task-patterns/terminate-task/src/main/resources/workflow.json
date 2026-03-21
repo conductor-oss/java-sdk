@@ -1,0 +1,68 @@
+{
+  "name": "terminate_demo",
+  "description": "Early exit with TERMINATE based on validation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "orderId",
+    "amount",
+    "currency"
+  ],
+  "tasks": [
+    {
+      "name": "term_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}",
+        "currency": "${workflow.input.currency}"
+      }
+    },
+    {
+      "name": "check_validation",
+      "taskReferenceName": "check_ref",
+      "type": "SWITCH",
+      "evaluatorType": "javascript",
+      "expression": "(function(){ return $.valid === true ? 'proceed' : 'reject'; })()",
+      "inputParameters": {
+        "valid": "${validate_ref.output.valid}"
+      },
+      "decisionCases": {
+        "reject": [
+          {
+            "name": "terminate_invalid",
+            "taskReferenceName": "terminate_ref",
+            "type": "TERMINATE",
+            "inputParameters": {
+              "terminationStatus": "FAILED",
+              "terminationReason": "${validate_ref.output.reason}",
+              "workflowOutput": {
+                "orderId": "${workflow.input.orderId}",
+                "status": "REJECTED",
+                "reason": "${validate_ref.output.reason}"
+              }
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "term_process",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "amount": "${workflow.input.amount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "status": "APPROVED",
+    "processedAmount": "${process_ref.output.processedAmount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

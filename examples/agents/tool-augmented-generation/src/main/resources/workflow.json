@@ -1,0 +1,60 @@
+{
+  "name": "tool_augmented_generation",
+  "description": "Tool-Augmented Generation — detect knowledge gaps during text generation, invoke external tools to fill them, and produce enriched output.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt"],
+  "tasks": [
+    {
+      "name": "tg_start_generation",
+      "taskReferenceName": "start_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}"
+      }
+    },
+    {
+      "name": "tg_detect_gap",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "partialText": "${start_ref.output.partialText}",
+        "gapType": "${start_ref.output.gapType}"
+      }
+    },
+    {
+      "name": "tg_call_tool",
+      "taskReferenceName": "call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${detect_ref.output.toolName}",
+        "toolQuery": "${detect_ref.output.toolQuery}"
+      }
+    },
+    {
+      "name": "tg_incorporate_result",
+      "taskReferenceName": "incorporate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "partialText": "${start_ref.output.partialText}",
+        "toolResult": "${call_ref.output.toolResult}"
+      }
+    },
+    {
+      "name": "tg_complete_generation",
+      "taskReferenceName": "complete_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enrichedText": "${incorporate_ref.output.enrichedText}",
+        "prompt": "${workflow.input.prompt}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "prompt": "${workflow.input.prompt}",
+    "toolUsed": "${detect_ref.output.toolName}",
+    "finalText": "${complete_ref.output.finalText}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

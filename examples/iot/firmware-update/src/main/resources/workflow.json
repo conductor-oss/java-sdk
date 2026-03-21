@@ -1,0 +1,70 @@
+{
+  "name": "firmware_update_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "deviceId",
+    "currentVersion",
+    "targetVersion"
+  ],
+  "tasks": [
+    {
+      "name": "fw_check_version",
+      "taskReferenceName": "fw_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "currentVersion": "${workflow.input.currentVersion}",
+        "targetVersion": "${workflow.input.targetVersion}"
+      }
+    },
+    {
+      "name": "fw_download",
+      "taskReferenceName": "fw_download_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "targetVersion": "${workflow.input.targetVersion}",
+        "downloadUrl": "${fw_check_ref.output.downloadUrl}"
+      }
+    },
+    {
+      "name": "fw_validate",
+      "taskReferenceName": "fw_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "firmwarePath": "${fw_download_ref.output.firmwarePath}",
+        "expectedChecksum": "${fw_check_ref.output.checksum}"
+      }
+    },
+    {
+      "name": "fw_deploy",
+      "taskReferenceName": "fw_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "firmwarePath": "${fw_download_ref.output.firmwarePath}",
+        "validated": "${fw_validate_ref.output.validated}"
+      }
+    },
+    {
+      "name": "fw_verify",
+      "taskReferenceName": "fw_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "targetVersion": "${workflow.input.targetVersion}",
+        "deploymentId": "${fw_deploy_ref.output.deploymentId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "deviceId": "${workflow.input.deviceId}",
+    "previousVersion": "${workflow.input.currentVersion}",
+    "newVersion": "${workflow.input.targetVersion}",
+    "verified": "${fw_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

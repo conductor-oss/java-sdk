@@ -1,0 +1,60 @@
+{
+  "name": "authorization_rbac_workflow",
+  "description": "RBAC authorization: resolve roles, evaluate permissions, check context, enforce decision",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "resource",
+    "action"
+  ],
+  "tasks": [
+    {
+      "name": "rbac_resolve_roles",
+      "taskReferenceName": "resolve_roles_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "rbac_evaluate_permissions",
+      "taskReferenceName": "evaluate_permissions_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "roles": "${resolve_roles_ref.output.roles}",
+        "resource": "${workflow.input.resource}",
+        "action": "${workflow.input.action}"
+      }
+    },
+    {
+      "name": "rbac_check_context",
+      "taskReferenceName": "check_context_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "resource": "${workflow.input.resource}",
+        "permitted": "${evaluate_permissions_ref.output.permitted}"
+      }
+    },
+    {
+      "name": "rbac_enforce_decision",
+      "taskReferenceName": "enforce_decision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "resource": "${workflow.input.resource}",
+        "action": "${workflow.input.action}",
+        "contextAllowed": "${check_context_ref.output.contextAllowed}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "roles": "${resolve_roles_ref.output.roles}",
+    "permitted": "${evaluate_permissions_ref.output.permitted}",
+    "contextAllowed": "${check_context_ref.output.contextAllowed}",
+    "decision": "${enforce_decision_ref.output.decision}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

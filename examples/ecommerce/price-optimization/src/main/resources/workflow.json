@@ -1,0 +1,56 @@
+{
+  "name": "price_optimization_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["productId", "currentPrice", "category"],
+  "tasks": [
+    {
+      "name": "prz_collect_market_data",
+      "taskReferenceName": "prz_market_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${workflow.input.productId}",
+        "category": "${workflow.input.category}"
+      }
+    },
+    {
+      "name": "prz_analyze_demand",
+      "taskReferenceName": "prz_demand_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${workflow.input.productId}",
+        "competitorPrices": "${prz_market_ref.output.competitorPrices}",
+        "marketTrend": "${prz_market_ref.output.marketTrend}"
+      }
+    },
+    {
+      "name": "prz_optimize_price",
+      "taskReferenceName": "prz_optimize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${workflow.input.productId}",
+        "currentPrice": "${workflow.input.currentPrice}",
+        "demandScore": "${prz_demand_ref.output.demandScore}",
+        "elasticity": "${prz_demand_ref.output.elasticity}"
+      }
+    },
+    {
+      "name": "prz_update_price",
+      "taskReferenceName": "prz_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "productId": "${workflow.input.productId}",
+        "newPrice": "${prz_optimize_ref.output.newPrice}",
+        "currentPrice": "${workflow.input.currentPrice}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "productId": "${workflow.input.productId}",
+    "oldPrice": "${workflow.input.currentPrice}",
+    "newPrice": "${prz_optimize_ref.output.newPrice}",
+    "priceChange": "${prz_update_ref.output.priceChange}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,50 @@
+{
+  "name": "cost_optimization_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "account",
+    "period"
+  ],
+  "tasks": [
+    {
+      "name": "co_collect_billing",
+      "taskReferenceName": "collect_billing_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "account": "${workflow.input.account}",
+        "period": "${workflow.input.period}"
+      }
+    },
+    {
+      "name": "co_analyze_usage",
+      "taskReferenceName": "analyze_usage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analyze_usageData": "${collect_billing_ref.output}"
+      }
+    },
+    {
+      "name": "co_recommend",
+      "taskReferenceName": "recommend_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "recommendData": "${analyze_usage_ref.output}"
+      }
+    },
+    {
+      "name": "co_apply_savings",
+      "taskReferenceName": "apply_savings_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apply_savingsData": "${recommend_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "collect_billingResult": "${collect_billing_ref.output}",
+    "apply_savingsResult": "${apply_savings_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

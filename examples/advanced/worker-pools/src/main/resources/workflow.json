@@ -1,0 +1,57 @@
+{
+  "name": "wpl_worker_pools",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "taskPayload",
+    "taskCategory"
+  ],
+  "tasks": [
+    {
+      "name": "wpl_categorize_task",
+      "taskReferenceName": "wpl_categorize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "taskPayload": "${workflow.input.taskPayload}",
+        "taskCategory": "${workflow.input.taskCategory}"
+      }
+    },
+    {
+      "name": "wpl_assign_pool",
+      "taskReferenceName": "wpl_assign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "category": "${wpl_categorize_ref.output.category}",
+        "resourceProfile": "${wpl_categorize_ref.output.resourceProfile}"
+      }
+    },
+    {
+      "name": "wpl_execute_task",
+      "taskReferenceName": "wpl_execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pool": "${wpl_assign_ref.output.assignedPool}",
+        "workerId": "${wpl_assign_ref.output.workerId}",
+        "taskPayload": "${workflow.input.taskPayload}"
+      }
+    },
+    {
+      "name": "wpl_return_to_pool",
+      "taskReferenceName": "wpl_return_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pool": "${wpl_assign_ref.output.assignedPool}",
+        "workerId": "${wpl_assign_ref.output.workerId}",
+        "executionResult": "${wpl_execute_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "category": "${wpl_categorize_ref.output.category}",
+    "assignedPool": "${wpl_assign_ref.output.assignedPool}",
+    "result": "${wpl_execute_ref.output.result}",
+    "workerReturned": "${wpl_return_ref.output.returned}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

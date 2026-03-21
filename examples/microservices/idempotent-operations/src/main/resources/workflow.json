@@ -1,0 +1,25 @@
+{
+  "name": "idempotent_operations_workflow",
+  "description": "Idempotent operations with duplicate detection",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["operationId", "action", "data"],
+  "tasks": [
+    {"name": "io_generate_key", "taskReferenceName": "key_ref", "type": "SIMPLE",
+      "inputParameters": {"operationId": "${workflow.input.operationId}", "action": "${workflow.input.action}"}},
+    {"name": "io_check_duplicate", "taskReferenceName": "dup_ref", "type": "SIMPLE",
+      "inputParameters": {"idempotencyKey": "${key_ref.output.key}"}},
+    {"name": "dup_decision", "taskReferenceName": "decision_ref", "type": "SWITCH",
+      "evaluatorType": "value-param", "expression": "switchCaseValue",
+      "inputParameters": {"switchCaseValue": "${dup_ref.output.isDuplicate}"},
+      "decisionCases": {"true": []},
+      "defaultCase": [
+        {"name": "io_execute", "taskReferenceName": "exec_ref", "type": "SIMPLE",
+          "inputParameters": {"action": "${workflow.input.action}", "data": "${workflow.input.data}", "idempotencyKey": "${key_ref.output.key}"}},
+        {"name": "io_record_completion", "taskReferenceName": "record_ref", "type": "SIMPLE",
+          "inputParameters": {"idempotencyKey": "${key_ref.output.key}", "result": "${exec_ref.output.result}"}}
+      ]
+    }
+  ],
+  "outputParameters": {"idempotencyKey": "${key_ref.output.key}", "isDuplicate": "${dup_ref.output.isDuplicate}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 30
+}

@@ -1,0 +1,50 @@
+{
+  "name": "security_orchestration_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "alertId",
+    "alertSource"
+  ],
+  "tasks": [
+    {
+      "name": "soar_ingest_alert",
+      "taskReferenceName": "ingest_alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alertId": "${workflow.input.alertId}",
+        "alertSource": "${workflow.input.alertSource}"
+      }
+    },
+    {
+      "name": "soar_enrich",
+      "taskReferenceName": "enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "enrichData": "${ingest_alert_ref.output}"
+      }
+    },
+    {
+      "name": "soar_decide_action",
+      "taskReferenceName": "decide_action_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "decide_actionData": "${enrich_ref.output}"
+      }
+    },
+    {
+      "name": "soar_execute_playbook",
+      "taskReferenceName": "execute_playbook_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "execute_playbookData": "${decide_action_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ingest_alertResult": "${ingest_alert_ref.output}",
+    "execute_playbookResult": "${execute_playbook_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

@@ -1,0 +1,58 @@
+{
+  "name": "dynamic_workflow_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["pipelineName", "payload"],
+  "tasks": [
+    {
+      "name": "dw_validate",
+      "taskReferenceName": "dw_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stepId": "validate",
+        "stepType": "validation",
+        "config": "{\"id\":\"validate\",\"type\":\"validation\",\"required\":true}"
+      }
+    },
+    {
+      "name": "dw_transform",
+      "taskReferenceName": "dw_transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stepId": "transform",
+        "stepType": "transformation",
+        "config": "{\"id\":\"transform\",\"type\":\"transformation\",\"format\":\"json\"}",
+        "previousOutput": "${dw_validate_ref.output.result}"
+      }
+    },
+    {
+      "name": "dw_enrich",
+      "taskReferenceName": "dw_enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stepId": "enrich",
+        "stepType": "enrichment",
+        "config": "{\"id\":\"enrich\",\"type\":\"enrichment\",\"source\":\"external_api\"}",
+        "previousOutput": "${dw_transform_ref.output.result}"
+      }
+    },
+    {
+      "name": "dw_publish",
+      "taskReferenceName": "dw_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stepId": "publish",
+        "stepType": "publish",
+        "config": "{\"id\":\"publish\",\"type\":\"publish\",\"target\":\"event_bus\"}",
+        "previousOutput": "${dw_enrich_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "pipelineName": "${workflow.input.pipelineName}",
+    "finalResult": "${dw_publish_ref.output.result}",
+    "stepsExecuted": 4
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

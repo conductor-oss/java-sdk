@@ -1,0 +1,51 @@
+{
+  "name": "clc_claim_check",
+  "description": "Claim Check pattern: store a large payload by reference, pass a lightweight claim check through the workflow, retrieve and process the payload.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["payload", "storageType"],
+  "tasks": [
+    {
+      "name": "clc_store_payload",
+      "taskReferenceName": "clc_store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "payload": "${workflow.input.payload}",
+        "storageType": "${workflow.input.storageType}"
+      }
+    },
+    {
+      "name": "clc_pass_reference",
+      "taskReferenceName": "clc_ref_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimCheckId": "${clc_store_ref.output.claimCheckId}",
+        "storageLocation": "${clc_store_ref.output.storageLocation}"
+      }
+    },
+    {
+      "name": "clc_retrieve",
+      "taskReferenceName": "clc_retrieve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimCheckId": "${clc_ref_ref.output.claimCheckId}",
+        "storageLocation": "${clc_ref_ref.output.storageLocation}"
+      }
+    },
+    {
+      "name": "clc_process",
+      "taskReferenceName": "clc_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "retrievedPayload": "${clc_retrieve_ref.output.payload}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "claimCheckId": "${clc_store_ref.output.claimCheckId}",
+    "payloadSizeBytes": "${clc_store_ref.output.payloadSizeBytes}",
+    "processed": "${clc_process_ref.output.processed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

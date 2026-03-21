@@ -1,0 +1,60 @@
+{
+  "name": "oauth_token_management_workflow",
+  "description": "OAuth token management: validate grant, issue tokens, store token, audit log",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "clientId",
+    "grantType",
+    "scope"
+  ],
+  "tasks": [
+    {
+      "name": "otm_validate_grant",
+      "taskReferenceName": "validate_grant_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "clientId": "${workflow.input.clientId}",
+        "grantType": "${workflow.input.grantType}",
+        "scope": "${workflow.input.scope}"
+      }
+    },
+    {
+      "name": "otm_issue_tokens",
+      "taskReferenceName": "issue_tokens_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "clientId": "${workflow.input.clientId}",
+        "grantValid": "${validate_grant_ref.output.valid}",
+        "scope": "${workflow.input.scope}"
+      }
+    },
+    {
+      "name": "otm_store_token",
+      "taskReferenceName": "store_token_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "tokenId": "${issue_tokens_ref.output.tokenId}",
+        "clientId": "${workflow.input.clientId}"
+      }
+    },
+    {
+      "name": "otm_audit_log",
+      "taskReferenceName": "audit_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "clientId": "${workflow.input.clientId}",
+        "grantType": "${workflow.input.grantType}",
+        "tokenId": "${issue_tokens_ref.output.tokenId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "grantValid": "${validate_grant_ref.output.valid}",
+    "tokenId": "${issue_tokens_ref.output.tokenId}",
+    "stored": "${store_token_ref.output.stored}",
+    "auditLogged": "${audit_log_ref.output.logged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

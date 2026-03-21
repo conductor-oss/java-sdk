@@ -1,0 +1,45 @@
+{
+  "name": "email_approval_workflow",
+  "description": "Email-based approval workflow with click links",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "ea_prepare",
+      "taskReferenceName": "prepare",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requester": "${workflow.input.requester}",
+        "subject": "${workflow.input.subject}"
+      }
+    },
+    {
+      "name": "ea_send_email",
+      "taskReferenceName": "send_email",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requester": "${workflow.input.requester}",
+        "subject": "${workflow.input.subject}"
+      }
+    },
+    {
+      "name": "email_response",
+      "taskReferenceName": "wait_for_email_response",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "ea_process_decision",
+      "taskReferenceName": "process_decision",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "decision": "${wait_for_email_response.output.decision}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "decision": "${wait_for_email_response.output.decision}",
+    "processed": "${process_decision.output.processed}"
+  }
+}

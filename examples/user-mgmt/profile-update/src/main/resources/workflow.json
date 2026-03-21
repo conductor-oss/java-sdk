@@ -1,0 +1,50 @@
+{
+  "name": "pfu_profile_update",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "updates"],
+  "tasks": [
+    {
+      "name": "pfu_validate",
+      "taskReferenceName": "pfu_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "updates": "${workflow.input.updates}"
+      }
+    },
+    {
+      "name": "pfu_update",
+      "taskReferenceName": "pfu_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "validatedFields": "${pfu_validate_ref.output.validatedFields}"
+      }
+    },
+    {
+      "name": "pfu_sync",
+      "taskReferenceName": "pfu_sync_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "updatedFields": "${pfu_update_ref.output.updatedFields}"
+      }
+    },
+    {
+      "name": "pfu_notify",
+      "taskReferenceName": "pfu_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "changes": "${pfu_update_ref.output.updatedFields}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "fieldsUpdated": "${pfu_update_ref.output.updatedFields}",
+    "synced": "${pfu_sync_ref.output.synced}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

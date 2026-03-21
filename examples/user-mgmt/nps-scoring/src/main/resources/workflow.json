@@ -1,0 +1,19 @@
+{
+  "name": "nps_scoring",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["campaignId", "period"],
+  "tasks": [
+    { "name": "nps_collect_responses", "taskReferenceName": "nps_collect_ref", "type": "SIMPLE", "inputParameters": { "campaignId": "${workflow.input.campaignId}", "period": "${workflow.input.period}" } },
+    { "name": "nps_calculate", "taskReferenceName": "nps_calc_ref", "type": "SIMPLE", "inputParameters": { "responses": "${nps_collect_ref.output.responses}" } },
+    { "name": "nps_segment", "taskReferenceName": "nps_seg_ref", "type": "SIMPLE", "inputParameters": { "promoters": "${nps_calc_ref.output.promoters}", "passives": "${nps_calc_ref.output.passives}", "detractors": "${nps_calc_ref.output.detractors}" } },
+    { "name": "nps_act", "taskReferenceName": "nps_act_ref", "type": "SIMPLE", "inputParameters": { "npsScore": "${nps_calc_ref.output.npsScore}", "segments": "${nps_seg_ref.output.segments}" } }
+  ],
+  "outputParameters": {
+    "npsScore": "${nps_calc_ref.output.npsScore}",
+    "totalResponses": "${nps_collect_ref.output.totalResponses}",
+    "actionsTriggered": "${nps_act_ref.output.actionsTriggered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

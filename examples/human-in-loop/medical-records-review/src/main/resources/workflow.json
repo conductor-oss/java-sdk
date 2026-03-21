@@ -1,0 +1,41 @@
+{
+  "name": "medical_records_review_demo",
+  "description": "Medical Records Review -- validate HIPAA compliance, wait for physician review, then store result.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["recordId"],
+  "tasks": [
+    {
+      "name": "mr_validate_hipaa",
+      "taskReferenceName": "validate_hipaa_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "recordId": "${workflow.input.recordId}"
+      }
+    },
+    {
+      "name": "physician_review",
+      "taskReferenceName": "physician_review_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "mr_store_result",
+      "taskReferenceName": "store_result_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "recordId": "${workflow.input.recordId}",
+        "compliant": "${validate_hipaa_ref.output.compliant}",
+        "physicianDecision": "${physician_review_ref.output.decision}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "compliant": "${validate_hipaa_ref.output.compliant}",
+    "checks": "${validate_hipaa_ref.output.checks}",
+    "stored": "${store_result_ref.output.stored}",
+    "auditTrailId": "${store_result_ref.output.auditTrailId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

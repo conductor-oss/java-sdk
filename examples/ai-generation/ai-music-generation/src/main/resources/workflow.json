@@ -1,0 +1,62 @@
+{
+  "name": "amg_music_generation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "genre",
+    "mood",
+    "durationSec"
+  ],
+  "tasks": [
+    {
+      "name": "amg_compose",
+      "taskReferenceName": "amg_compose_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "genre": "${workflow.input.genre}",
+        "mood": "${workflow.input.mood}"
+      }
+    },
+    {
+      "name": "amg_arrange",
+      "taskReferenceName": "amg_arrange_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "composition": "${amg_compose_ref.output.composition}",
+        "durationSec": "${workflow.input.durationSec}"
+      }
+    },
+    {
+      "name": "amg_produce",
+      "taskReferenceName": "amg_produce_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "arrangement": "${amg_arrange_ref.output.arrangement}"
+      }
+    },
+    {
+      "name": "amg_master",
+      "taskReferenceName": "amg_master_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "trackId": "${amg_produce_ref.output.trackId}"
+      }
+    },
+    {
+      "name": "amg_deliver",
+      "taskReferenceName": "amg_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "trackId": "${amg_master_ref.output.masteredTrackId}",
+        "format": "wav"
+      }
+    }
+  ],
+  "outputParameters": {
+    "trackId": "${amg_master_ref.output.masteredTrackId}",
+    "duration": "${amg_arrange_ref.output.actualDuration}",
+    "delivered": "${amg_deliver_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

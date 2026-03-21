@@ -1,0 +1,63 @@
+{
+  "name": "wtp_wire_tap",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "message",
+    "auditLevel"
+  ],
+  "tasks": [
+    {
+      "name": "wtp_receive",
+      "taskReferenceName": "wtp_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "message": "${workflow.input.message}"
+      }
+    },
+    {
+      "name": "wire_tap_fork",
+      "taskReferenceName": "wtp_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "wtp_main_flow",
+            "taskReferenceName": "wtp_main_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "message": "${wtp_receive_ref.output.message}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "wtp_tap_audit",
+            "taskReferenceName": "wtp_audit_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "message": "${wtp_receive_ref.output.message}",
+              "auditLevel": "${workflow.input.auditLevel}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "wire_tap_join",
+      "taskReferenceName": "wtp_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "wtp_main_ref",
+        "wtp_audit_ref"
+      ]
+    }
+  ],
+  "outputParameters": {
+    "mainResult": "${wtp_main_ref.output.result}",
+    "auditLogId": "${wtp_audit_ref.output.auditLogId}",
+    "tapped": "${wtp_audit_ref.output.tapped}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

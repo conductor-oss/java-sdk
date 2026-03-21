@@ -1,0 +1,60 @@
+{
+  "name": "content_syndication_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "contentId",
+    "title",
+    "platforms",
+    "publishDate"
+  ],
+  "tasks": [
+    {
+      "name": "syn_select_content",
+      "taskReferenceName": "syn_select_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "title": "${workflow.input.title}",
+        "platforms": "${workflow.input.platforms}"
+      }
+    },
+    {
+      "name": "syn_format_per_platform",
+      "taskReferenceName": "syn_format_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "platforms": "${workflow.input.platforms}",
+        "contentBody": "${syn_select_ref.output.contentBody}",
+        "metadata": "${syn_select_ref.output.metadata}"
+      }
+    },
+    {
+      "name": "syn_distribute",
+      "taskReferenceName": "syn_distribute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "formattedVersions": "${syn_format_ref.output.formattedVersions}",
+        "publishDate": "${workflow.input.publishDate}"
+      }
+    },
+    {
+      "name": "syn_track_performance",
+      "taskReferenceName": "syn_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "distributedPlatforms": "${syn_distribute_ref.output.distributedPlatforms}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "contentId": "${workflow.input.contentId}",
+    "platformsDistributed": "${syn_distribute_ref.output.distributedCount}",
+    "trackingId": "${syn_track_ref.output.trackingId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

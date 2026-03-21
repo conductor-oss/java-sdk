@@ -1,0 +1,93 @@
+{
+  "name": "rag_multi_query",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "question"
+  ],
+  "tasks": [
+    {
+      "name": "mq_expand_queries",
+      "taskReferenceName": "expand_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "parallel_queries",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "mq_search_q1",
+            "taskReferenceName": "sq1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${expand_ref.output.queries[0]}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mq_search_q2",
+            "taskReferenceName": "sq2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${expand_ref.output.queries[1]}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mq_search_q3",
+            "taskReferenceName": "sq3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "query": "${expand_ref.output.queries[2]}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_queries",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "sq1_ref",
+        "sq2_ref",
+        "sq3_ref"
+      ]
+    },
+    {
+      "name": "mq_dedup_results",
+      "taskReferenceName": "dedup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "results1": "${sq1_ref.output.results}",
+        "results2": "${sq2_ref.output.results}",
+        "results3": "${sq3_ref.output.results}"
+      }
+    },
+    {
+      "name": "mq_generate_answer",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "context": "${dedup_ref.output.uniqueDocs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "question": "${workflow.input.question}",
+    "queries": "${expand_ref.output.queries}",
+    "answer": "${gen_ref.output.answer}",
+    "totalRetrieved": "${dedup_ref.output.totalRetrieved}",
+    "uniqueDocs": "${dedup_ref.output.uniqueCount}"
+  }
+}

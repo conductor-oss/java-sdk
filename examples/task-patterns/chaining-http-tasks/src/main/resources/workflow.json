@@ -1,0 +1,68 @@
+{
+  "name": "http_chain_demo",
+  "description": "Chain HTTP system tasks for API orchestration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["taskName", "conductorApiUrl"],
+  "tasks": [
+    {
+      "name": "register_task_via_http",
+      "taskReferenceName": "register_http_ref",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.conductorApiUrl}/metadata/taskdefs",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": [
+            {
+              "name": "${workflow.input.taskName}",
+              "retryCount": 1,
+              "timeoutSeconds": 30,
+              "ownerEmail": "http-demo@orkes.io"
+            }
+          ],
+          "connectionTimeOut": 5000,
+          "readTimeOut": 5000
+        }
+      }
+    },
+    {
+      "name": "verify_task_via_http",
+      "taskReferenceName": "verify_http_ref",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.conductorApiUrl}/metadata/taskdefs/${workflow.input.taskName}",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "connectionTimeOut": 5000,
+          "readTimeOut": 5000
+        }
+      }
+    },
+    {
+      "name": "format_http_result",
+      "taskReferenceName": "format_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "registerStatus": "${register_http_ref.output.response.statusCode}",
+        "verifiedTaskName": "${verify_http_ref.output.response.body.name}",
+        "taskName": "${workflow.input.taskName}",
+        "evaluatorType": "javascript",
+        "expression": "(function() { return { taskRegistered: $.registerStatus >= 200 && $.registerStatus < 300, taskName: $.taskName, verifiedName: $.verifiedTaskName, summary: 'HTTP chain: registered task ' + $.taskName + ' (status: ' + $.registerStatus + '), verified as ' + $.verifiedTaskName }; })()"
+      }
+    }
+  ],
+  "outputParameters": {
+    "registered": "${format_ref.output.result.taskRegistered}",
+    "verifiedName": "${format_ref.output.result.verifiedName}",
+    "summary": "${format_ref.output.result.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

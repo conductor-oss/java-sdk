@@ -1,0 +1,22 @@
+{
+  "name": "wf_timeout_demo",
+  "description": "Workflow with a 30-second timeout. Uses a fast worker that completes immediately.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["mode"],
+  "tasks": [
+    {
+      "name": "wft_fast",
+      "taskReferenceName": "wft_fast_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mode": "${workflow.input.mode}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${wft_fast_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

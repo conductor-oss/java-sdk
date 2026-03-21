@@ -1,0 +1,104 @@
+{
+  "name": "rag_quality_gates_workflow",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "question"
+  ],
+  "tasks": [
+    {
+      "name": "qg_retrieve",
+      "taskReferenceName": "retrieve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "qg_check_relevance",
+      "taskReferenceName": "check_relevance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documents": "${retrieve_ref.output.documents}"
+      }
+    },
+    {
+      "name": "relevance_gate",
+      "taskReferenceName": "relevance_gate_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${check_relevance_ref.output.decision}"
+      },
+      "decisionCases": {
+        "pass": [
+          {
+            "name": "qg_generate",
+            "taskReferenceName": "generate_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "documents": "${retrieve_ref.output.documents}"
+            }
+          },
+          {
+            "name": "qg_check_faithfulness",
+            "taskReferenceName": "check_faithfulness_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "answer": "${generate_ref.output.answer}",
+              "documents": "${retrieve_ref.output.documents}"
+            }
+          },
+          {
+            "name": "faithfulness_gate",
+            "taskReferenceName": "faithfulness_gate_ref",
+            "type": "SWITCH",
+            "evaluatorType": "value-param",
+            "expression": "switchCaseValue",
+            "inputParameters": {
+              "switchCaseValue": "${check_faithfulness_ref.output.decision}"
+            },
+            "decisionCases": {
+              "pass": [],
+              "fail": [
+                {
+                  "name": "qg_reject",
+                  "taskReferenceName": "reject_faithfulness_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "reason": "faithfulness_below_threshold",
+                    "score": "${check_faithfulness_ref.output.faithfulnessScore}"
+                  }
+                }
+              ]
+            },
+            "defaultCase": []
+          }
+        ],
+        "fail": [
+          {
+            "name": "qg_reject",
+            "taskReferenceName": "reject_relevance_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "reason": "relevance_below_threshold",
+              "score": "${check_relevance_ref.output.relevanceScore}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "answer": "${generate_ref.output.answer}",
+    "relevanceScore": "${check_relevance_ref.output.relevanceScore}",
+    "faithfulnessScore": "${check_faithfulness_ref.output.faithfulnessScore}",
+    "rejected": "${reject_relevance_ref.output.rejected}",
+    "rejectReason": "${reject_relevance_ref.output.reason}"
+  }
+}

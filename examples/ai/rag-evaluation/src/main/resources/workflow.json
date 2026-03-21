@@ -1,0 +1,87 @@
+{
+  "name": "rag_evaluation_pipeline",
+  "description": "Run RAG pipeline then evaluate faithfulness, relevance, and coherence in parallel",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "tasks": [
+    {
+      "name": "re_run_rag",
+      "taskReferenceName": "run_rag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "fork_evaluations",
+      "taskReferenceName": "fork_evaluations",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "re_eval_faithfulness",
+            "taskReferenceName": "eval_faithfulness_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "answer": "${run_rag_ref.output.answer}",
+              "context": "${run_rag_ref.output.context}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "re_eval_relevance",
+            "taskReferenceName": "eval_relevance_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "answer": "${run_rag_ref.output.answer}",
+              "context": "${run_rag_ref.output.context}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "re_eval_coherence",
+            "taskReferenceName": "eval_coherence_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "answer": "${run_rag_ref.output.answer}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_evaluations",
+      "taskReferenceName": "join_evaluations",
+      "type": "JOIN",
+      "joinOn": [
+        "eval_faithfulness_ref",
+        "eval_relevance_ref",
+        "eval_coherence_ref"
+      ]
+    },
+    {
+      "name": "re_aggregate_scores",
+      "taskReferenceName": "aggregate_scores_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "faithfulnessScore": "${eval_faithfulness_ref.output.score}",
+        "faithfulnessReason": "${eval_faithfulness_ref.output.reason}",
+        "relevanceScore": "${eval_relevance_ref.output.score}",
+        "relevanceReason": "${eval_relevance_ref.output.reason}",
+        "coherenceScore": "${eval_coherence_ref.output.score}",
+        "coherenceReason": "${eval_coherence_ref.output.reason}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "overallScore": "${aggregate_scores_ref.output.overallScore}",
+    "verdict": "${aggregate_scores_ref.output.verdict}",
+    "breakdown": "${aggregate_scores_ref.output.breakdown}"
+  }
+}

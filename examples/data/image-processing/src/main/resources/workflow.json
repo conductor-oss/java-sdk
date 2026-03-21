@@ -1,0 +1,90 @@
+{
+  "name": "image_processing",
+  "description": "Image processing workflow with parallel resize, watermark, and optimize using FORK_JOIN.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "imageUrl",
+    "sizes",
+    "watermarkText"
+  ],
+  "tasks": [
+    {
+      "name": "ip_load_image",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageUrl": "${workflow.input.imageUrl}"
+      }
+    },
+    {
+      "name": "image_fork",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "ip_resize",
+            "taskReferenceName": "resize_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "imageData": "${load_ref.output.imageData}",
+              "sizes": "${workflow.input.sizes}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ip_watermark",
+            "taskReferenceName": "watermark_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "imageData": "${load_ref.output.imageData}",
+              "text": "${workflow.input.watermarkText}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "ip_optimize",
+            "taskReferenceName": "optimize_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "imageData": "${load_ref.output.imageData}",
+              "format": "${load_ref.output.format}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "image_join",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "resize_ref",
+        "watermark_ref",
+        "optimize_ref"
+      ]
+    },
+    {
+      "name": "ip_finalize",
+      "taskReferenceName": "finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resized": "${resize_ref.output.variants}",
+        "watermarked": "${watermark_ref.output.result}",
+        "optimized": "${optimize_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalSize": "${load_ref.output.originalSize}",
+    "variantCount": "${resize_ref.output.variantCount}",
+    "watermarkApplied": "${watermark_ref.output.applied}",
+    "optimizedSize": "${optimize_ref.output.optimizedSize}",
+    "outputUrl": "${finalize_ref.output.outputUrl}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,99 @@
+{
+  "name": "switch_js_demo",
+  "description": "SWITCH with JavaScript evaluator for complex routing based on amount, customerType, and region",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["amount", "customerType", "region"],
+  "tasks": [
+    {
+      "name": "route_order",
+      "taskReferenceName": "route_order_ref",
+      "type": "SWITCH",
+      "evaluatorType": "javascript",
+      "expression": "(function() { if ($.customerType === 'vip' && $.amount > 1000) return 'vip_high'; if ($.customerType === 'vip') return 'vip_standard'; if ($.amount > 5000) return 'needs_review'; if ($.region === 'EU') return 'eu_processing'; return 'standard'; })()",
+      "inputParameters": {
+        "amount": "${workflow.input.amount}",
+        "customerType": "${workflow.input.customerType}",
+        "region": "${workflow.input.region}"
+      },
+      "decisionCases": {
+        "vip_high": [
+          {
+            "name": "swjs_vip_concierge",
+            "taskReferenceName": "vip_concierge_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "amount": "${workflow.input.amount}",
+              "customerType": "${workflow.input.customerType}",
+              "region": "${workflow.input.region}"
+            }
+          }
+        ],
+        "vip_standard": [
+          {
+            "name": "swjs_vip_standard",
+            "taskReferenceName": "vip_standard_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "amount": "${workflow.input.amount}",
+              "customerType": "${workflow.input.customerType}",
+              "region": "${workflow.input.region}"
+            }
+          }
+        ],
+        "needs_review": [
+          {
+            "name": "swjs_manual_review",
+            "taskReferenceName": "manual_review_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "amount": "${workflow.input.amount}",
+              "customerType": "${workflow.input.customerType}",
+              "region": "${workflow.input.region}"
+            }
+          }
+        ],
+        "eu_processing": [
+          {
+            "name": "swjs_eu_handler",
+            "taskReferenceName": "eu_handler_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "amount": "${workflow.input.amount}",
+              "customerType": "${workflow.input.customerType}",
+              "region": "${workflow.input.region}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "swjs_standard",
+          "taskReferenceName": "standard_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "amount": "${workflow.input.amount}",
+            "customerType": "${workflow.input.customerType}",
+            "region": "${workflow.input.region}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "swjs_finalize",
+      "taskReferenceName": "finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "amount": "${workflow.input.amount}",
+        "customerType": "${workflow.input.customerType}",
+        "region": "${workflow.input.region}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "route": "${route_order_ref.output.evaluationResult[0]}",
+    "amount": "${workflow.input.amount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

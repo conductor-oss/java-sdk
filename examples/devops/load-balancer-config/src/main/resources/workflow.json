@@ -1,0 +1,51 @@
+{
+  "name": "load_balancer_config_workflow",
+  "description": "Load balancer configuration workflow: discover backends, configure rules, apply config, and health check.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "loadBalancer",
+    "action"
+  ],
+  "tasks": [
+    {
+      "name": "lb_discover_backends",
+      "taskReferenceName": "discover_backends_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "loadBalancer": "${workflow.input.loadBalancer}",
+        "action": "${workflow.input.action}"
+      }
+    },
+    {
+      "name": "lb_configure_rules",
+      "taskReferenceName": "configure_rules_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "configure_rulesData": "${discover_backends_ref.output}"
+      }
+    },
+    {
+      "name": "lb_apply_config",
+      "taskReferenceName": "apply_config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apply_configData": "${configure_rules_ref.output}"
+      }
+    },
+    {
+      "name": "lb_health_check",
+      "taskReferenceName": "health_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "health_checkData": "${apply_config_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "discover_backendsResult": "${discover_backends_ref.output}",
+    "health_checkResult": "${health_check_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

@@ -1,0 +1,51 @@
+{
+  "name": "cross_region_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "primaryRegion",
+    "replicaRegion",
+    "datasetId"
+  ],
+  "tasks": [
+    {
+      "name": "xr_replicate",
+      "taskReferenceName": "xr_replicate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "primaryRegion": "${workflow.input.primaryRegion}",
+        "replicaRegion": "${workflow.input.replicaRegion}",
+        "datasetId": "${workflow.input.datasetId}"
+      }
+    },
+    {
+      "name": "xr_sync",
+      "taskReferenceName": "xr_sync_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "primaryRegion": "${workflow.input.primaryRegion}",
+        "replicaRegion": "${workflow.input.replicaRegion}",
+        "replicationId": "${xr_replicate_ref.output.replicationId}"
+      }
+    },
+    {
+      "name": "xr_verify_consistency",
+      "taskReferenceName": "xr_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "primaryRegion": "${workflow.input.primaryRegion}",
+        "replicaRegion": "${workflow.input.replicaRegion}",
+        "primaryChecksum": "${xr_sync_ref.output.primaryChecksum}",
+        "replicaChecksum": "${xr_sync_ref.output.replicaChecksum}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "datasetId": "${workflow.input.datasetId}",
+    "replicated": "${xr_replicate_ref.output.replicated}",
+    "synced": "${xr_sync_ref.output.synced}",
+    "consistent": "${xr_verify_ref.output.consistent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

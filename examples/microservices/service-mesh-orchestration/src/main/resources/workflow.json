@@ -1,0 +1,53 @@
+{
+  "name": "service_mesh_orchestration",
+  "description": "Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "namespace", "meshType"],
+  "tasks": [
+    {
+      "name": "mesh_deploy_sidecar",
+      "taskReferenceName": "sidecar_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "namespace": "${workflow.input.namespace}"
+      }
+    },
+    {
+      "name": "mesh_configure_mtls",
+      "taskReferenceName": "mtls_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "sidecarId": "${sidecar_ref.output.sidecarId}"
+      }
+    },
+    {
+      "name": "mesh_set_traffic_policy",
+      "taskReferenceName": "policy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "meshType": "${workflow.input.meshType}"
+      }
+    },
+    {
+      "name": "mesh_validate",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "sidecarId": "${sidecar_ref.output.sidecarId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sidecarId": "${sidecar_ref.output.sidecarId}",
+    "mtlsEnabled": "${mtls_ref.output.enabled}",
+    "policyApplied": "${policy_ref.output.applied}",
+    "validated": "${validate_ref.output.valid}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

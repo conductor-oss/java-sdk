@@ -1,0 +1,59 @@
+{
+  "name": "txa_tax_assessment",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["propertyId", "taxYear", "ownerId"],
+  "tasks": [
+    {
+      "name": "txa_collect_data",
+      "taskReferenceName": "txa_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "propertyId": "${workflow.input.propertyId}",
+        "taxYear": "${workflow.input.taxYear}"
+      }
+    },
+    {
+      "name": "txa_assess_property",
+      "taskReferenceName": "txa_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "propertyData": "${txa_collect_ref.output.propertyData}"
+      }
+    },
+    {
+      "name": "txa_calculate",
+      "taskReferenceName": "txa_calc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assessedValue": "${txa_assess_ref.output.assessedValue}",
+        "taxRate": "${txa_assess_ref.output.taxRate}"
+      }
+    },
+    {
+      "name": "txa_notify",
+      "taskReferenceName": "txa_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ownerId": "${workflow.input.ownerId}",
+        "taxAmount": "${txa_calc_ref.output.taxAmount}"
+      }
+    },
+    {
+      "name": "txa_appeal",
+      "taskReferenceName": "txa_appeal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "propertyId": "${workflow.input.propertyId}",
+        "taxAmount": "${txa_calc_ref.output.taxAmount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "propertyId": "${workflow.input.propertyId}",
+    "taxAmount": "${txa_calc_ref.output.taxAmount}",
+    "appealWindow": "${txa_appeal_ref.output.appealDeadline}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

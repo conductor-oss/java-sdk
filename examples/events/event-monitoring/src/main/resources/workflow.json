@@ -1,0 +1,62 @@
+{
+  "name": "event_monitoring_wf",
+  "description": "Sequential event monitoring workflow that collects metrics, analyzes throughput, latency, and errors, then generates a report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "pipelineName",
+    "timeRange"
+  ],
+  "tasks": [
+    {
+      "name": "em_collect_metrics",
+      "taskReferenceName": "collect_metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pipelineName": "${workflow.input.pipelineName}",
+        "timeRange": "${workflow.input.timeRange}"
+      }
+    },
+    {
+      "name": "em_analyze_throughput",
+      "taskReferenceName": "analyze_throughput_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metrics": "${collect_metrics_ref.output.rawMetrics}"
+      }
+    },
+    {
+      "name": "em_analyze_latency",
+      "taskReferenceName": "analyze_latency_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metrics": "${collect_metrics_ref.output.rawMetrics}"
+      }
+    },
+    {
+      "name": "em_analyze_errors",
+      "taskReferenceName": "analyze_errors_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "metrics": "${collect_metrics_ref.output.rawMetrics}"
+      }
+    },
+    {
+      "name": "em_generate_report",
+      "taskReferenceName": "generate_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pipeline": "${workflow.input.pipelineName}",
+        "throughput": "${analyze_throughput_ref.output.throughput}",
+        "latency": "${analyze_latency_ref.output.latency}",
+        "errorRate": "${analyze_errors_ref.output.errorRate}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "reportGenerated": "${generate_report_ref.output.reportGenerated}",
+    "alertLevel": "${generate_report_ref.output.alertLevel}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

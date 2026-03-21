@@ -1,0 +1,47 @@
+{
+  "name": "database_migration_devops_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["database", "migrationVersion"],
+  "tasks": [
+    {
+      "name": "dbm_backup",
+      "taskReferenceName": "backup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "database": "${workflow.input.database}",
+        "migrationVersion": "${workflow.input.migrationVersion}"
+      }
+    },
+    {
+      "name": "dbm_migrate",
+      "taskReferenceName": "migrate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "migrateData": "${backup_ref.output}"
+      }
+    },
+    {
+      "name": "dbm_validate_schema",
+      "taskReferenceName": "validate_schema_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validate_schemaData": "${migrate_ref.output}"
+      }
+    },
+    {
+      "name": "dbm_update_app",
+      "taskReferenceName": "update_app_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "update_appData": "${validate_schema_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "backupResult": "${backup_ref.output}",
+    "update_appResult": "${update_app_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

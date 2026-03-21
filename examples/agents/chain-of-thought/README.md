@@ -1,6 +1,6 @@
 # Chain-of-Thought in Java Using Conductor: Understand, Reason, Calculate, Verify, Answer
 
-You ask the model "What's the compound interest on $10,000 at 5% for 3 years?" and it confidently replies "$11,576.25." Wrong. The real answer is $11,576.25 only if compounded annually; but you didn't specify, and the model didn't ask. Worse, you can't tell where it went wrong because the entire reasoning happened inside a single opaque API call. Did it misunderstand the problem, pick the wrong formula, or botch the arithmetic? This example externalizes each reasoning step: understand, reason, calculate, verify, answer, as a separate Conductor worker, so you can see exactly which step failed and retry just that step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You ask the model "What's the compound interest on $10,000 at 5% for 3 years?" and it confidently replies "$11,576.25." Wrong. The real answer is $11,576.25 only if compounded annually; but you didn't specify, and the model didn't ask. Worse, you can't tell where it went wrong because the entire reasoning happened inside a single opaque API call. Did it misunderstand the problem, pick the wrong formula, or botch the arithmetic? This example externalizes each reasoning step: understand, reason, calculate, verify, answer, as a separate Conductor worker, so you can see exactly which step failed and retry just that step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Making AI Reasoning Transparent and Debuggable
 
@@ -18,190 +18,35 @@ Externalizing each reasoning step as a separate worker makes the thought process
 
 Five workers externalize the reasoning chain. Understanding the problem, choosing an approach, calculating step by step, verifying the result, and assembling the final answer.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **FinalAnswerWorker** | `ct_final_answer` | Produces the final human-readable answer combining the verified result and confidence score. | Simulated |
-| **Step1ReasonWorker** | `ct_step_1_reason` | Takes the problem understanding and produces a reasoning step identifying the formula and variables to use. | Simulated |
-| **Step2CalculateWorker** | `ct_step_2_calculate` | Step2s Calculate and computes calculation, interest | Simulated |
-| **Step3VerifyWorker** | `ct_step_3_verify` | Verifies the calculation result using fixed (hardcoded) verification values. No year-by-year computation is performed. | Simulated |
-| **UnderstandProblemWorker** | `ct_understand_problem` | Analyzes the incoming problem and produces a structured understanding including the problem type and known values. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **FinalAnswerWorker** | `ct_final_answer` | Produces the final human-readable answer combining the verified result and confidence score. |
+| **Step1ReasonWorker** | `ct_step_1_reason` | Takes the problem understanding and produces a reasoning step identifying the formula and variables to use. |
+| **Step2CalculateWorker** | `ct_step_2_calculate` | Step2s Calculate and computes calculation, interest |
+| **Step3VerifyWorker** | `ct_step_3_verify` | Verifies the calculation result using fixed (hardcoded) verification values. No year-by-year computation is performed. |
+| **UnderstandProblemWorker** | `ct_understand_problem` | Analyzes the incoming problem and produces a structured understanding including the problem type and known values. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 
 ```
 ct_understand_problem
-    │
-    ▼
+ │
+ ▼
 ct_step_1_reason
-    │
-    ▼
+ │
+ ▼
 ct_step_2_calculate
-    │
-    ▼
+ │
+ ▼
 ct_step_3_verify
-    │
-    ▼
+ │
+ ▼
 ct_final_answer
-```
-
-## Example Output
 
 ```
-=== Chain of Thought Demo ===
 
-Step 1: Registering task definitions...
-  Registered: ct_understand_problem, ct_step_1_reason, ct_step_2_calculate, ct_step_3_verify, ct_final_answer
+---
 
-Step 2: Registering workflow 'chain_of_thought'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: d7f1032a-ac6c-9b7e-6035-67c8d72477ef
-
-  [ct_understand_problem] Analyzing problem: What is the compound interest on $10,000 at 5% annual rate for 3 years?
-  [ct_step_1_reason] Reasoning about: Calculate compound interest on a $10,000 principal at 5% annual rate for 3 years
-  [ct_step_2_calculate] Calculating from reasoning: Use compound interest formula: A = P(1 + r)^t where P=10000, r=0.05, t=3
-  [ct_step_3_verify] Verifying calculation: 10000 * (1 + 0.05)^3
-  [ct_final_answer] Composing answer for: What is the compound interest on $10,000 at 5% annual rate for 3 years?
-
-
-  Status: COMPLETED
-  Output: {problem=What is the compound interest on $10,000 at 5% annual rate for 3 years?, understanding=Calculate compound interest on a $10,000 principal at 5% annual rate for 3 years, reasoning=Use compound interest formula: A = P(1 + r)^t where P=10000, r=0.05, t=3, calculation=10000 * (1 + 0.05)^3, verified=True, answer=The compound interest on $10,000 at 5% for 3 years yields $11576.25 (confidence: 1.0)}
-
-Result: PASSED
-```
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/chain-of-thought-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/chain-of-thought-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow chain_of_thought \
-  --version 1 \
-  --input '{"problem": "What is the compound interest on $10,000 at 5% annual rate for 3 years?"}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w chain_of_thought -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker externalizes one reasoning step. Replace simulations with an LLM for problem understanding, a computation engine (Wolfram Alpha, BigDecimal) for calculation, and formal verification for result checking, and the understand-reason-calculate-verify pipeline runs unchanged.
-
-- **Step2CalculateWorker** (`ct_step_2_calculate`): use a dedicated computation engine (Wolfram Alpha API, SymPy, or Java's BigDecimal) for reliable arithmetic instead of LLM-based calculation
-- **Step3VerifyWorker** (`ct_step_3_verify`): implement formal verification: substitute the answer back into the original equations, cross-check with known bounds, or use a second LLM call as an independent verifier
-- **UnderstandProblemWorker** (`ct_understand_problem`): use GPT-4 with structured output to extract problem components (given values, unknowns, constraints, relationships) into a machine-readable format
-
-Plug in real LLM reasoning for each step; the reasoning chain uses the same understand-reason-calculate-verify interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-
-## Project Structure
-
-```
-chain-of-thought/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/chainofthought/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ChainOfThoughtExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── FinalAnswerWorker.java
-│       ├── Step1ReasonWorker.java
-│       ├── Step2CalculateWorker.java
-│       ├── Step3VerifyWorker.java
-│       └── UnderstandProblemWorker.java
-└── src/test/java/chainofthought/workers/
-    ├── FinalAnswerWorkerTest.java        # 8 tests
-    ├── Step1ReasonWorkerTest.java        # 8 tests
-    ├── Step2CalculateWorkerTest.java        # 8 tests
-    ├── Step3VerifyWorkerTest.java        # 8 tests
-    └── UnderstandProblemWorkerTest.java        # 8 tests
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

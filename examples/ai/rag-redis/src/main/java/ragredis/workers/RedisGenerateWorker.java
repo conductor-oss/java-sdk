@@ -1,0 +1,88 @@
+package ragredis.workers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.conductor.client.worker.Worker;
+import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.common.metadata.tasks.TaskResult;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Worker that generates an answer from the question and Redis search results.
+ */
+public class RedisGenerateWorker implements Worker {
+
+    private final String openaiApiKey;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    public RedisGenerateWorker() {
+        this.openaiApiKey = System.getenv("CONDUCTOR_OPENAI_API_KEY");
+    }
+
+    @Override
+    public String getTaskDefName() {
+        return "redis_generate";
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public TaskResult execute(Task task) {
+        String question = (String) task.getInputData().get("question");
+        List<Map<String, Object>> results = (List<Map<String, Object>>) task.getInputData().get("results");
+
+        int count = (results != null) ? results.size() : 0;
+
+        TaskResult result = new TaskResult(task);
+
+        if (openaiApiKey != null && !openaiApiKey.isBlank()) {
+            try {
+                String context = (results != null) ? mapper.writeValueAsString(results) : "No results available.";
+                String requestJson = mapper.writeValueAsString(Map.of(
+                    "model", "gpt-4o-mini",
+                    "messages", List.of(
+                        Map.of("role", "system", "content", "You are a helpful assistant. Use the provided context to answer questions accurately."),
+                        Map.of("role", "user", "content", "Context:\n" + context + "\n\nQuestion: " + question)
+                    ),
+                    "max_tokens", 512,
+                    "temperature", 0.3
+                ));
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.openai.com/v1/chat/completions"))
+                    .header("Authorization", "Bearer " + openaiApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                    .build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    Map<String, Object> apiResponse = mapper.readValue(response.body(), Map.class);
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) apiResponse.get("choices");
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    String answer = (String) message.get("content");
+                    System.out.println("  [generate] Response from OpenAI API (LIVE)");
+                    result.getOutputData().put("answer", answer);
+                    result.setStatus(TaskResult.Status.COMPLETED);
+                    return result;
+                }
+            } catch (Exception e) {
+                System.err.println("  [generate] OpenAI API error, falling back to deterministic. " + e.getMessage());
+            }
+        }
+
+        // Fall through to fallback mode
+        String answer = "Redis vector similarity search uses the RediSearch module with FT.SEARCH "
+                + "and KNN queries. It supports HNSW and FLAT index types with COSINE, L2, or IP "
+                + "distance metrics. Queries use DIALECT 2 syntax. Found " + count + " results.";
+
+        System.out.println("  [generate] Answer from " + count + " Redis results");
+
+        result.setStatus(TaskResult.Status.COMPLETED);
+        result.getOutputData().put("answer", answer);
+        return result;
+    }
+}

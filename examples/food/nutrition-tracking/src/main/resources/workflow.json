@@ -1,0 +1,19 @@
+{
+  "name": "nutrition_tracking_739",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "mealType", "foods"],
+  "tasks": [
+    { "name": "nut_log_meal", "taskReferenceName": "log_ref", "type": "SIMPLE",
+      "inputParameters": { "userId": "${workflow.input.userId}", "mealType": "${workflow.input.mealType}", "foods": "${workflow.input.foods}" } },
+    { "name": "nut_lookup_nutrition", "taskReferenceName": "lookup_ref", "type": "SIMPLE",
+      "inputParameters": { "foods": "${log_ref.output.loggedFoods}" } },
+    { "name": "nut_calculate_daily", "taskReferenceName": "calc_ref", "type": "SIMPLE",
+      "inputParameters": { "userId": "${workflow.input.userId}", "mealNutrition": "${lookup_ref.output.nutrition}" } },
+    { "name": "nut_report", "taskReferenceName": "report_ref", "type": "SIMPLE",
+      "inputParameters": { "userId": "${workflow.input.userId}", "daily": "${calc_ref.output.daily}" } }
+  ],
+  "outputParameters": { "nutrition": "${report_ref.output.report}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,42 @@
+{
+  "name": "document_verification_demo",
+  "description": "Document Verification -- AI extracts data from document, human verifies, then store verified data.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["documentId"],
+  "tasks": [
+    {
+      "name": "dv_ai_extract",
+      "taskReferenceName": "dv_ai_extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documentId": "${workflow.input.documentId}"
+      }
+    },
+    {
+      "name": "dv_human_verify",
+      "taskReferenceName": "dv_human_verify_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "extracted": "${dv_ai_extract_ref.output.extracted}",
+        "confidence": "${dv_ai_extract_ref.output.confidence}"
+      }
+    },
+    {
+      "name": "dv_store_verified",
+      "taskReferenceName": "dv_store_verified_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verifiedData": "${dv_human_verify_ref.output.verifiedData}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "extracted": "${dv_ai_extract_ref.output.extracted}",
+    "confidence": "${dv_ai_extract_ref.output.confidence}",
+    "verifiedData": "${dv_human_verify_ref.output.verifiedData}",
+    "stored": "${dv_store_verified_ref.output.stored}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

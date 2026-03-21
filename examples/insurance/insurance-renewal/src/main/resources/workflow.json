@@ -1,0 +1,81 @@
+{
+  "name": "irn_insurance_renewal",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "policyId",
+    "customerId",
+    "claimHistory"
+  ],
+  "tasks": [
+    {
+      "name": "irn_notify",
+      "taskReferenceName": "irn_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "customerId": "${workflow.input.customerId}"
+      }
+    },
+    {
+      "name": "irn_review",
+      "taskReferenceName": "irn_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "claimHistory": "${workflow.input.claimHistory}"
+      }
+    },
+    {
+      "name": "irn_reprice",
+      "taskReferenceName": "irn_reprice_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyId": "${workflow.input.policyId}",
+        "riskScore": "${irn_review_ref.output.riskScore}"
+      }
+    },
+    {
+      "name": "route_decision",
+      "taskReferenceName": "irn_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${irn_reprice_ref.output.decision}"
+      },
+      "decisionCases": {
+        "renew": [
+          {
+            "name": "irn_process_renew",
+            "taskReferenceName": "irn_renew_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "policyId": "${workflow.input.policyId}",
+              "newPremium": "${irn_reprice_ref.output.newPremium}"
+            }
+          }
+        ],
+        "cancel": [
+          {
+            "name": "irn_process_cancel",
+            "taskReferenceName": "irn_cancel_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "policyId": "${workflow.input.policyId}",
+              "reason": "${irn_reprice_ref.output.reason}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "policyId": "${workflow.input.policyId}",
+    "decision": "${irn_reprice_ref.output.decision}",
+    "newPremium": "${irn_reprice_ref.output.newPremium}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

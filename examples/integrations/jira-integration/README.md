@@ -18,185 +18,20 @@ Each worker integrates with one external system. Conductor manages the integrati
 
 Four workers manage the issue lifecycle: CreateIssueWorker opens tickets, TransitionWorker moves issues through statuses, TrackStatusWorker monitors current state, and NotifyWorker alerts assignees of changes.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue via the Jira REST API (POST /rest/api/3/issue). When `JIRA_URL` and `JIRA_API_TOKEN` are set, calls the real Jira API. When unset, runs in simulated mode with deterministic issue keys. | Real (simulated fallback if credentials unset) |
-| **TransitionWorker** | `jra_transition` | Transitions the issue. moves the issue through workflow statuses (To Do -> In Progress -> Done) and returns the new status | Simulated, swap in Jira REST API (POST /rest/api/3/issue/{key}/transitions) for production |
-| **TrackStatusWorker** | `jra_track_status` | Tracks the issue status: queries the current status, assignee, and last update timestamp for the issue | Simulated, swap in Jira REST API (GET /rest/api/3/issue/{key}) for production |
-| **NotifyWorker** | `jra_notify` | Notifies the assignee. sends a notification about the status change with the issue key and new status | Simulated, swap in Jira notification API, Slack integration, or email notification for production |
-
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue via the Jira REST API (POST /rest/api/3/issue). When `JIRA_URL` and `JIRA_API_TOKEN` are set, calls the real Jira API. When unset, runs in demo mode with deterministic issue keys. |
+| **TransitionWorker** | `jra_transition` | Transitions the issue. moves the issue through workflow statuses (To Do -> In Progress -> Done) and returns the new status |
+| **TrackStatusWorker** | `jra_track_status` | Tracks the issue status: queries the current status, assignee, and last update timestamp for the issue |
+| **NotifyWorker** | `jra_notify` | Notifies the assignee. sends a notification about the status change with the issue key and new status |
 
 ### The Workflow
 
 ```
 Input -> CreateIssueWorker -> NotifyWorker -> TrackStatusWorker -> TransitionWorker -> Output
-```
-
-## Example Output
 
 ```
-=== Jira Integration Demo ===
 
-Step 1: Registering task definitions...
-  Registered: jra_create_issue, jra_track_status, jra_transition, jra_notify
+---
 
-Step 2: Registering workflow 'jira_integration'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 4576757b-786b-37cd-9074-737a2bd65026
-
-  [create] Created issue : Fix login timeout issue
-  [create] : Fix login timeout issue
-  [track] Issue  status: To Do
-  [transition] : ... -> ...
-  [notify] Notified jane.doe about  -> ...
-
-
-  Status: COMPLETED
-  Output: {issueKey=, status=..., notified=true}
-
-Result: PASSED
-```
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/jira-integration-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `JIRA_URL` | _(none)_ | Jira instance URL (e.g., `https://yoursite.atlassian.net`). Required for live mode. |
-| `JIRA_EMAIL` | _(none)_ | Jira account email for Basic auth. Required for live mode. |
-| `JIRA_API_TOKEN` | _(none)_ | Jira API token. When set with `JIRA_URL`, CreateIssueWorker calls the Jira REST API. When unset, all workers run in simulated mode with `` output prefix. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/jira-integration-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow jira_integration \
-  --version 1 \
-  --input '{"project": "ENG", "summary": "Fix login timeout issue", "description": "Users experiencing timeout on login page", "assignee": "jane.doe"}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w jira_integration -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Swap in Jira REST API calls. POST /rest/api/3/issue for creation, POST /transitions for status changes, and your notification channel (Slack, email) for alerts. The workflow definition stays exactly the same.
-
-- **CreateIssueWorker** (`jra_create_issue`): use the Jira REST API to create real issues with project, summary, and assignee fields
-- **TransitionWorker** (`jra_transition`): use the Jira REST API transitions endpoint to move issues between workflow statuses
-- **NotifyWorker** (`jra_notify`): integrate with Slack, email, or Jira's own notification system for real assignee alerts
-
-Swap each simulation for real Jira REST API calls while preserving output fields, and the issue lifecycle pipeline stays unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-jira-integration/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/jiraintegration/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── JiraIntegrationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CreateIssueWorker.java
-│       ├── NotifyWorker.java
-│       ├── TrackStatusWorker.java
-│       └── TransitionWorker.java
-└── src/test/java/jiraintegration/workers/
-    ├── CreateIssueWorkerTest.java        # 8 tests
-    ├── NotifyWorkerTest.java        # 8 tests
-    ├── TrackStatusWorkerTest.java        # 7 tests
-    └── TransitionWorkerTest.java        # 8 tests
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

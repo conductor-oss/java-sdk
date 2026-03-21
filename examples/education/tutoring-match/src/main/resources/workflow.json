@@ -1,0 +1,56 @@
+{
+  "name": "tut_tutoring_match",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studentId", "subject", "preferredTime"],
+  "tasks": [
+    {
+      "name": "tut_student_request",
+      "taskReferenceName": "tut_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "subject": "${workflow.input.subject}",
+        "preferredTime": "${workflow.input.preferredTime}"
+      }
+    },
+    {
+      "name": "tut_match_tutor",
+      "taskReferenceName": "tut_match_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subject": "${workflow.input.subject}",
+        "preferredTime": "${workflow.input.preferredTime}"
+      }
+    },
+    {
+      "name": "tut_schedule",
+      "taskReferenceName": "tut_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "tutorId": "${tut_match_ref.output.tutorId}",
+        "preferredTime": "${workflow.input.preferredTime}"
+      }
+    },
+    {
+      "name": "tut_confirm",
+      "taskReferenceName": "tut_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sessionId": "${tut_schedule_ref.output.sessionId}",
+        "studentId": "${workflow.input.studentId}",
+        "tutorId": "${tut_match_ref.output.tutorId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${tut_request_ref.output.requestId}",
+    "tutorName": "${tut_match_ref.output.tutorName}",
+    "sessionId": "${tut_schedule_ref.output.sessionId}",
+    "sessionTime": "${tut_schedule_ref.output.sessionTime}",
+    "confirmed": "${tut_confirm_ref.output.confirmed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

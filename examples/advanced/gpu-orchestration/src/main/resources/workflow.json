@@ -1,0 +1,68 @@
+{
+  "name": "gpu_orchestration_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "jobId",
+    "gpuType",
+    "modelPath"
+  ],
+  "tasks": [
+    {
+      "name": "gpu_check_availability",
+      "taskReferenceName": "gpu_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "gpuType": "${workflow.input.gpuType}",
+        "jobId": "${workflow.input.jobId}"
+      }
+    },
+    {
+      "name": "gpu_allocate",
+      "taskReferenceName": "gpu_alloc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "gpuType": "${workflow.input.gpuType}",
+        "availableGpus": "${gpu_check_ref.output.available}"
+      }
+    },
+    {
+      "name": "gpu_submit_job",
+      "taskReferenceName": "gpu_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "gpuId": "${gpu_alloc_ref.output.gpuId}",
+        "modelPath": "${workflow.input.modelPath}"
+      }
+    },
+    {
+      "name": "gpu_collect_results",
+      "taskReferenceName": "gpu_results_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "gpuId": "${gpu_alloc_ref.output.gpuId}",
+        "outputPath": "${gpu_submit_ref.output.outputPath}"
+      }
+    },
+    {
+      "name": "gpu_release",
+      "taskReferenceName": "gpu_release_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "gpuId": "${gpu_alloc_ref.output.gpuId}",
+        "jobId": "${workflow.input.jobId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "jobId": "${workflow.input.jobId}",
+    "gpuId": "${gpu_alloc_ref.output.gpuId}",
+    "gpuType": "${workflow.input.gpuType}",
+    "outputPath": "${gpu_submit_ref.output.outputPath}",
+    "released": "${gpu_release_ref.output.released}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

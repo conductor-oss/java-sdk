@@ -22,225 +22,37 @@ With graceful degradation, the core order is created immediately. Enrichment and
 
 **You just write the core processing and optional enrichment logic. Conductor handles FORK/JOIN parallel execution of optional services, continuing the pipeline when optional tasks fail, and clear tracking of which services were available versus degraded for every execution.**
 
-The core process worker runs first and always succeeds. Then Conductor's FORK/JOIN runs the enrichment and analytics workers in parallel. Both are optional, so their failure does not fail the workflow. The finalize worker checks which optional services succeeded, sets a degraded flag if any failed, and produces the final result. Every execution shows which services were available and which were degraded. You get all of that for free, without writing a single line of orchestration code.
-
-### What You Write: Workers
+The core process worker runs first and always succeeds. Then Conductor's FORK/JOIN runs the enrichment and analytics workers in parallel. Both are optional, so their failure does not fail the workflow. The finalize worker checks which optional services succeeded, sets a degraded flag if any failed, and produces the final result. Every execution shows which services were available and which were degraded. ### What You Write: Workers
 
 CoreProcessWorker handles the required order creation that must always succeed, EnrichWorker and AnalyticsWorker run in parallel via FORK/JOIN as optional enhancements, and FinalizeWorker checks which services responded and sets a degradation flag.
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CoreProcessWorker** | `gd_core_process` | The required core processing step. Accepts `{data: "order-123"}`, returns `{result: "processed-order-123"}`. Always succeeds. Uses "default" when no data input is provided. | Simulated |
-| **EnrichWorker** | `gd_enrich` | Optional enrichment step. When `available=true` (or not specified), returns `{enriched: true}`. When `available=false`, returns `{enriched: false}` (simulating the enrichment service being down). | Simulated |
-| **AnalyticsWorker** | `gd_analytics` | Optional analytics tracking step. When `available=true` (or not specified), returns `{tracked: true}`. When `available=false`, returns `{tracked: false}` (simulating the analytics service being down). | Simulated |
-| **FinalizeWorker** | `gd_finalize` | Checks enrichment and analytics results. Sets `degraded=true` if either `enriched` or `analytics` is false. Returns `{enriched, analytics, degraded}`. | Simulated |
+| Worker | Task | What It Does |
+|---|---|---|
+| **CoreProcessWorker** | `gd_core_process` | The required core processing step. Accepts `{data: "order-123"}`, returns `{result: "processed-order-123"}`. Always succeeds. Uses "default" when no data input is provided. |
+| **EnrichWorker** | `gd_enrich` | Optional enrichment step. When `available=true` (or not specified), returns `{enriched: true}`. When `available=false`, returns `{enriched: false}` (simulating the enrichment service being down). |
+| **AnalyticsWorker** | `gd_analytics` | Optional analytics tracking step. When `available=true` (or not specified), returns `{tracked: true}`. When `available=false`, returns `{tracked: false}` (simulating the analytics service being down). |
+| **FinalizeWorker** | `gd_finalize` | Checks enrichment and analytics results. Sets `degraded=true` if either `enriched` or `analytics` is false. Returns `{enriched, analytics, degraded}`. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
 ```
-gd_core_process  (always runs, always succeeds)
-    |
-    v
+gd_core_process (always runs, always succeeds)
+ |
+ v
 FORK_JOIN
-    |-- branch 1: gd_enrich     (optional. Can fail without failing the workflow)
-    |-- branch 2: gd_analytics  (optional. Can fail without failing the workflow)
-    |
-    v
+ |-- branch 1: gd_enrich (optional. Can fail without failing the workflow)
+ |-- branch 2: gd_analytics (optional. Can fail without failing the workflow)
+ |
+ v
 JOIN (wait for both branches)
-    |
-    v
-gd_finalize  (checks which services responded, sets degraded flag)
-```
-
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/graceful-degradation-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Example Output
+ |
+ v
+gd_finalize (checks which services responded, sets degraded flag)
 
 ```
-=== Graceful Degradation Demo: Continue with Reduced Functionality ===
 
-Step 1: Registering task definitions...
-  Registered: gd_core_process, gd_enrich, gd_analytics, gd_finalize
+---
 
-Step 2: Registering workflow 'graceful_degradation_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow with all services available...
-
-  Workflow ID: a2b3c4d5-...
-  [gd_core_process] Processing data: order-123
-  [gd_enrich] available=true
-  [gd_analytics] available=true
-  [gd_finalize] enriched=true analytics=true degraded=True
-
-
-  Status: COMPLETED
-  Output: {coreResult=processed-order-123, enriched=true, analytics=true, degraded=true}
-
-
-
-
-Step 5: Starting workflow with enrichment unavailable...
-
-  Workflow ID: e6f7a8b9-...
-  Status: COMPLETED
-  Output: {coreResult=processed-order-123, enriched=true, analytics=true, degraded=true}
-
-
-
-
-Result: PASSED
-```
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/graceful-degradation-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-# All services available.; no degradation
-conductor workflow start \
-  --workflow graceful_degradation_demo \
-  --version 1 \
-  --input '{"data": "order-789", "enrichAvailable": true, "analyticsAvailable": true}'
-
-# Enrichment down: degraded mode (core still processes)
-conductor workflow start \
-  --workflow graceful_degradation_demo \
-  --version 1 \
-  --input '{"data": "order-707", "enrichAvailable": false, "analyticsAvailable": true}'
-
-# Both optional services down: fully degraded (core still processes)
-conductor workflow start \
-  --workflow graceful_degradation_demo \
-  --version 1 \
-  --input '{"data": "order-809", "enrichAvailable": false, "analyticsAvailable": false}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w graceful_degradation_demo -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker handles one concern. Connect the core worker to your order service, the enrichment worker to a third-party data API, the analytics worker to Segment or Mixpanel, and the core-plus-optional-enrichment workflow stays the same.
-
-- **CoreProcessWorker** (`gd_core_process`): replace with your core business logic that must always succeed (order creation, data transformation, message routing)
-- **EnrichWorker** (`gd_enrich`): call a third-party API for data enrichment (geolocation, sentiment analysis, credit scoring). Failure returns empty enrichment
-- **AnalyticsWorker** (`gd_analytics`): publish events to your analytics pipeline (Segment, Mixpanel, internal data warehouse). Failure is silently tolerated
-- **Add more optional branches**: add recommendation, fraud scoring, or personalization as additional FORK branches. Each can fail independently without affecting the core result.
-
-Connect the core worker to your order service and the optional workers to your enrichment and analytics APIs, and the graceful degradation behavior adapts to production seamlessly.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-graceful-degradation/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/gracefuldegradation/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── GracefulDegradationExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyticsWorker.java
-│       ├── CoreProcessWorker.java
-│       ├── EnrichWorker.java
-│       └── FinalizeWorker.java
-└── src/test/java/gracefuldegradation/workers/
-    ├── CoreProcessWorkerTest.java   # 7 tests
-    ├── EnrichWorkerTest.java        # 7 tests
-    ├── AnalyticsWorkerTest.java     # 7 tests
-    └── FinalizeWorkerTest.java      # 8 tests
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,0 +1,52 @@
+{
+  "name": "opr_ordered_processing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "messages",
+    "partitionKey"
+  ],
+  "tasks": [
+    {
+      "name": "opr_receive",
+      "taskReferenceName": "opr_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messages": "${workflow.input.messages}",
+        "partitionKey": "${workflow.input.partitionKey}"
+      }
+    },
+    {
+      "name": "opr_sort_by_sequence",
+      "taskReferenceName": "opr_sort_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "receivedMessages": "${opr_receive_ref.output.receivedMessages}"
+      }
+    },
+    {
+      "name": "opr_process_in_order",
+      "taskReferenceName": "opr_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sortedMessages": "${opr_sort_ref.output.sortedMessages}"
+      }
+    },
+    {
+      "name": "opr_verify_order",
+      "taskReferenceName": "opr_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "processedOrder": "${opr_process_ref.output.processedOrder}",
+        "expectedOrder": "${opr_sort_ref.output.expectedOrder}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "partitionKey": "${workflow.input.partitionKey}",
+    "messagesProcessed": "${opr_process_ref.output.processedCount}",
+    "orderVerified": "${opr_verify_ref.output.orderCorrect}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

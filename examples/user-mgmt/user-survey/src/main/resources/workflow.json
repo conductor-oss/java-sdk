@@ -1,0 +1,20 @@
+{
+  "name": "usv_user_survey",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["surveyTitle", "questions", "targetAudience"],
+  "tasks": [
+    { "name": "usv_create", "taskReferenceName": "usv_create_ref", "type": "SIMPLE", "inputParameters": { "title": "${workflow.input.surveyTitle}", "questions": "${workflow.input.questions}" } },
+    { "name": "usv_distribute", "taskReferenceName": "usv_dist_ref", "type": "SIMPLE", "inputParameters": { "surveyId": "${usv_create_ref.output.surveyId}", "audience": "${workflow.input.targetAudience}" } },
+    { "name": "usv_collect", "taskReferenceName": "usv_collect_ref", "type": "SIMPLE", "inputParameters": { "surveyId": "${usv_create_ref.output.surveyId}" } },
+    { "name": "usv_analyze", "taskReferenceName": "usv_analyze_ref", "type": "SIMPLE", "inputParameters": { "responses": "${usv_collect_ref.output.responses}" } },
+    { "name": "usv_report", "taskReferenceName": "usv_report_ref", "type": "SIMPLE", "inputParameters": { "analysis": "${usv_analyze_ref.output.analysis}", "surveyId": "${usv_create_ref.output.surveyId}" } }
+  ],
+  "outputParameters": {
+    "surveyId": "${usv_create_ref.output.surveyId}",
+    "responseCount": "${usv_collect_ref.output.responseCount}",
+    "avgSatisfaction": "${usv_analyze_ref.output.analysis.avgSatisfaction}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

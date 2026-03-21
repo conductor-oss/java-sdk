@@ -1,0 +1,73 @@
+{
+  "name": "gcp_integration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["bucketName", "collection", "topicName", "payload"],
+  "tasks": [
+    {
+      "name": "fork_gcp_services",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "gcp_gcs_upload",
+            "taskReferenceName": "gcs_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "bucket": "${workflow.input.bucketName}",
+              "objectName": "events/${workflow.input.payload.id}.json",
+              "data": "${workflow.input.payload}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "gcp_firestore_write",
+            "taskReferenceName": "firestore_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "collection": "${workflow.input.collection}",
+              "document": "${workflow.input.payload}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "gcp_pubsub_publish",
+            "taskReferenceName": "pubsub_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "topic": "${workflow.input.topicName}",
+              "message": "${workflow.input.payload}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_gcp_services",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["gcs_ref", "firestore_ref", "pubsub_ref"]
+    },
+    {
+      "name": "gcp_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "gcsObject": "${gcs_ref.output.objectPath}",
+        "firestoreDoc": "${firestore_ref.output.documentId}",
+        "pubsubMsg": "${pubsub_ref.output.messageId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "gcsObject": "${gcs_ref.output.objectPath}",
+    "firestoreDoc": "${firestore_ref.output.documentId}",
+    "pubsubMessage": "${pubsub_ref.output.messageId}",
+    "verified": "${verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

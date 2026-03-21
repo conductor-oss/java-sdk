@@ -1,0 +1,61 @@
+{
+  "name": "gdpr_data_deletion",
+  "description": "GDPR right-to-erasure workflow: find user records, verify identity, delete data, and generate audit log.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "requestId",
+    "verificationToken"
+  ],
+  "tasks": [
+    {
+      "name": "gr_find_records",
+      "taskReferenceName": "find_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "gr_verify_identity",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "verificationToken": "${workflow.input.verificationToken}"
+      }
+    },
+    {
+      "name": "gr_delete_data",
+      "taskReferenceName": "delete_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "records": "${find_ref.output.records}",
+        "verified": "${verify_ref.output.verified}"
+      }
+    },
+    {
+      "name": "gr_generate_audit_log",
+      "taskReferenceName": "audit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "userId": "${workflow.input.userId}",
+        "deletedRecords": "${delete_ref.output.deletedRecords}",
+        "deletionTimestamp": "${delete_ref.output.timestamp}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "recordsFound": "${find_ref.output.recordCount}",
+    "identityVerified": "${verify_ref.output.verified}",
+    "recordsDeleted": "${delete_ref.output.deletedCount}",
+    "systems": "${find_ref.output.systems}",
+    "auditId": "${audit_ref.output.auditId}",
+    "completionStatus": "${audit_ref.output.status}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

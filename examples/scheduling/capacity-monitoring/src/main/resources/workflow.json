@@ -1,0 +1,6 @@
+{"name":"capacity_monitoring_418","version":1,"schemaVersion":2,"inputParameters":["cluster","forecastDays"],
+"tasks":[
+ {"name":"cap_measure_resources","taskReferenceName":"cap_measure_ref","type":"SIMPLE","inputParameters":{"cluster":"${workflow.input.cluster}"}},
+ {"name":"cap_forecast","taskReferenceName":"cap_forecast_ref","type":"SIMPLE","inputParameters":{"cpuUsage":"${cap_measure_ref.output.cpuUsage}","memoryUsage":"${cap_measure_ref.output.memoryUsage}","diskUsage":"${cap_measure_ref.output.diskUsage}","forecastDays":"${workflow.input.forecastDays}"}},
+ {"name":"cap_alert","taskReferenceName":"cap_alert_ref","type":"SIMPLE","inputParameters":{"cluster":"${workflow.input.cluster}","daysUntilCpuFull":"${cap_forecast_ref.output.daysUntilCpuFull}","daysUntilMemFull":"${cap_forecast_ref.output.daysUntilMemFull}","daysUntilDiskFull":"${cap_forecast_ref.output.daysUntilDiskFull}"}}
+],"outputParameters":{"cpuUsage":"${cap_measure_ref.output.cpuUsage}","memoryUsage":"${cap_measure_ref.output.memoryUsage}","diskUsage":"${cap_measure_ref.output.diskUsage}","daysUntilDiskFull":"${cap_forecast_ref.output.daysUntilDiskFull}","alertSent":"${cap_alert_ref.output.alertSent}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

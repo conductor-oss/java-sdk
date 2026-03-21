@@ -5,14 +5,14 @@ These examples demonstrate LLM integration patterns with Conductor workflows: pr
 ## Prerequisites
 
 1. **Running Conductor server**:
-   ```bash
-   npm install -g @conductor-oss/conductor-cli
-   conductor server start
-   ```
+ ```bash
+ npm install -g @conductor-oss/conductor-cli
+ conductor server start
+ ```
 
 2. **Java 21+** and **Maven 3.8+**
 
-3. **LLM API key** (see table below). `first-ai-workflow` runs in **simulated mode by default** (no API key needed). Other examples require an API key — set the appropriate environment variable before running.
+3. **LLM API key** (see table below). `first-ai-workflow` runs in **demo mode by default** (no API key needed). Other examples require an API key, set the appropriate environment variable before running.
 
 ## Examples
 
@@ -38,12 +38,17 @@ These examples demonstrate LLM integration patterns with Conductor workflows: pr
 ```bash
 cd examples/ai/first-ai-workflow
 
-# Simulated mode (no API key needed)
+# Demo mode (no API key needed)
 mvn package -DskipTests
 java -jar target/first-ai-workflow-1.0.0.jar
 
 # Live mode (real OpenAI calls)
 CONDUCTOR_OPENAI_API_KEY=sk-... java -jar target/first-ai-workflow-1.0.0.jar
+
 ```
 
-All examples print `Result: PASSED` on success, whether in simulated or live mode.
+All examples print `Result: PASSED` on success, whether in demo or live mode.
+
+---
+
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

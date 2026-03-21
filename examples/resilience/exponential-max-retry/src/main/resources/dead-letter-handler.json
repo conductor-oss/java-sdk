@@ -1,0 +1,25 @@
+{
+  "name": "emr_dead_letter_handler",
+  "description": "Dead letter handler -- logs details of the failed workflow for later inspection.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["failedWorkflowId", "reason"],
+  "tasks": [
+    {
+      "name": "emr_dead_letter_log",
+      "taskReferenceName": "emr_dead_letter_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "failedWorkflowId": "${workflow.input.failedWorkflowId}",
+        "reason": "${workflow.input.reason}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "logged": "${emr_dead_letter_log_ref.output.logged}",
+    "failedWorkflowId": "${emr_dead_letter_log_ref.output.failedWorkflowId}",
+    "reason": "${emr_dead_letter_log_ref.output.reason}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

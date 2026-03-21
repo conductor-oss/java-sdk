@@ -1,0 +1,71 @@
+{
+  "name": "data_compression",
+  "description": "Data compression workflow that analyzes data, chooses an algorithm, compresses, verifies integrity, and reports savings.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "targetFormat"
+  ],
+  "tasks": [
+    {
+      "name": "cmp_analyze_data",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}"
+      }
+    },
+    {
+      "name": "cmp_choose_algorithm",
+      "taskReferenceName": "algo_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalSizeBytes": "${analyze_ref.output.sizeBytes}",
+        "recordCount": "${analyze_ref.output.recordCount}",
+        "targetFormat": "${workflow.input.targetFormat}"
+      }
+    },
+    {
+      "name": "cmp_compress_data",
+      "taskReferenceName": "compress_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${analyze_ref.output.records}",
+        "algorithm": "${algo_ref.output.algorithm}",
+        "originalSize": "${analyze_ref.output.sizeBytes}"
+      }
+    },
+    {
+      "name": "cmp_verify_integrity",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "compressedSize": "${compress_ref.output.compressedSize}",
+        "checksum": "${compress_ref.output.checksum}",
+        "recordCount": "${analyze_ref.output.recordCount}"
+      }
+    },
+    {
+      "name": "cmp_report_savings",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalSize": "${analyze_ref.output.sizeBytes}",
+        "compressedSize": "${compress_ref.output.compressedSize}",
+        "algorithm": "${algo_ref.output.algorithm}",
+        "verified": "${verify_ref.output.integrityOk}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalSize": "${analyze_ref.output.sizeBytes}",
+    "compressedSize": "${compress_ref.output.compressedSize}",
+    "compressionRatio": "${report_ref.output.compressionRatio}",
+    "algorithm": "${algo_ref.output.algorithm}",
+    "integrityVerified": "${verify_ref.output.integrityOk}",
+    "summary": "${report_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

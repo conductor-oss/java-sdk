@@ -1,0 +1,23 @@
+{
+  "name": "loyalty_program_workflow",
+  "description": "Loyalty program: earn points, check tier, upgrade, deliver rewards",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["customerId", "purchaseAmount", "currentTier"],
+  "tasks": [
+    { "name": "loy_earn_points", "taskReferenceName": "loy_earn_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "purchaseAmount": "${workflow.input.purchaseAmount}", "currentTier": "${workflow.input.currentTier}" } },
+    { "name": "loy_check_tier", "taskReferenceName": "loy_tier_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "totalPoints": "${loy_earn_ref.output.totalPoints}", "currentTier": "${workflow.input.currentTier}" } },
+    { "name": "loy_upgrade_tier", "taskReferenceName": "loy_upgrade_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "currentTier": "${workflow.input.currentTier}", "newTier": "${loy_tier_ref.output.newTier}", "eligible": "${loy_tier_ref.output.upgradeEligible}" } },
+    { "name": "loy_reward", "taskReferenceName": "loy_reward_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "tier": "${loy_upgrade_ref.output.activeTier}", "pointsEarned": "${loy_earn_ref.output.pointsEarned}" } }
+  ],
+  "outputParameters": {
+    "customerId": "${workflow.input.customerId}",
+    "pointsEarned": "${loy_earn_ref.output.pointsEarned}",
+    "tier": "${loy_upgrade_ref.output.activeTier}",
+    "reward": "${loy_reward_ref.output.reward}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

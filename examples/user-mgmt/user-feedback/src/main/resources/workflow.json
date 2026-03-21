@@ -1,0 +1,19 @@
+{
+  "name": "ufb_user_feedback",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "feedbackText", "source"],
+  "tasks": [
+    { "name": "ufb_collect", "taskReferenceName": "ufb_collect_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "feedbackText": "${workflow.input.feedbackText}", "source": "${workflow.input.source}" } },
+    { "name": "ufb_classify", "taskReferenceName": "ufb_classify_ref", "type": "SIMPLE", "inputParameters": { "feedbackText": "${workflow.input.feedbackText}" } },
+    { "name": "ufb_route", "taskReferenceName": "ufb_route_ref", "type": "SIMPLE", "inputParameters": { "category": "${ufb_classify_ref.output.category}", "priority": "${ufb_classify_ref.output.priority}" } },
+    { "name": "ufb_respond", "taskReferenceName": "ufb_respond_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "category": "${ufb_classify_ref.output.category}", "team": "${ufb_route_ref.output.assignedTeam}" } }
+  ],
+  "outputParameters": {
+    "category": "${ufb_classify_ref.output.category}",
+    "priority": "${ufb_classify_ref.output.priority}",
+    "assignedTeam": "${ufb_route_ref.output.assignedTeam}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

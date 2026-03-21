@@ -1,0 +1,61 @@
+{
+  "name": "container_orchestration_demo",
+  "description": "Build a container image, deploy it, configure auto-scaling, and set up monitoring.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "serviceName",
+    "imageTag",
+    "replicas"
+  ],
+  "tasks": [
+    {
+      "name": "ctr_build",
+      "taskReferenceName": "ctr_build_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "imageTag": "${workflow.input.imageTag}"
+      }
+    },
+    {
+      "name": "ctr_deploy",
+      "taskReferenceName": "ctr_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "imageUri": "${ctr_build_ref.output.imageUri}",
+        "replicas": "${workflow.input.replicas}"
+      }
+    },
+    {
+      "name": "ctr_scale",
+      "taskReferenceName": "ctr_scale_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "deploymentId": "${ctr_deploy_ref.output.deploymentId}",
+        "minReplicas": 2,
+        "maxReplicas": 10
+      }
+    },
+    {
+      "name": "ctr_monitor",
+      "taskReferenceName": "ctr_monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "deploymentId": "${ctr_deploy_ref.output.deploymentId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "serviceName": "${workflow.input.serviceName}",
+    "imageUri": "${ctr_build_ref.output.imageUri}",
+    "deploymentId": "${ctr_deploy_ref.output.deploymentId}",
+    "scalingConfigured": "${ctr_scale_ref.output.configured}",
+    "monitoringEnabled": "${ctr_monitor_ref.output.enabled}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

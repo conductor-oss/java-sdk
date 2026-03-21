@@ -1,0 +1,85 @@
+{
+  "name": "event_choreography",
+  "description": "Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "orderId",
+    "items",
+    "customerId"
+  ],
+  "tasks": [
+    {
+      "name": "ch_order_service",
+      "taskReferenceName": "order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "items": "${workflow.input.items}",
+        "customerId": "${workflow.input.customerId}"
+      }
+    },
+    {
+      "name": "ch_emit_order_event",
+      "taskReferenceName": "order_evt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "order.created",
+        "orderId": "${order_ref.output.orderId}"
+      }
+    },
+    {
+      "name": "ch_payment_service",
+      "taskReferenceName": "payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "amount": "${order_ref.output.totalAmount}"
+      }
+    },
+    {
+      "name": "ch_emit_payment_event",
+      "taskReferenceName": "payment_evt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "payment.completed",
+        "orderId": "${order_ref.output.orderId}"
+      }
+    },
+    {
+      "name": "ch_inventory_service",
+      "taskReferenceName": "inventory_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "items": "${order_ref.output.items}"
+      }
+    },
+    {
+      "name": "ch_emit_inventory_event",
+      "taskReferenceName": "inv_evt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "inventory.reserved",
+        "orderId": "${order_ref.output.orderId}"
+      }
+    },
+    {
+      "name": "ch_notification_service",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${order_ref.output.orderId}",
+        "customerId": "${workflow.input.customerId}",
+        "event": "order.confirmed"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${order_ref.output.orderId}",
+    "eventsEmitted": 3,
+    "finalStatus": "${notify_ref.output.notificationStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

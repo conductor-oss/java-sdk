@@ -1,0 +1,87 @@
+{
+  "name": "returns_processing",
+  "description": "Returns processing workflow with SWITCH: receive, inspect, then refund/exchange/reject",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "returnReason", "items", "customerId"],
+  "tasks": [
+    {
+      "name": "ret_receive",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "items": "${workflow.input.items}",
+        "customerId": "${workflow.input.customerId}"
+      }
+    },
+    {
+      "name": "ret_inspect",
+      "taskReferenceName": "inspect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "returnId": "${receive_ref.output.returnId}",
+        "items": "${workflow.input.items}",
+        "returnReason": "${workflow.input.returnReason}"
+      }
+    },
+    {
+      "name": "return_decision",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${inspect_ref.output.decision}"
+      },
+      "decisionCases": {
+        "refund": [
+          {
+            "name": "ret_refund",
+            "taskReferenceName": "refund_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "returnId": "${receive_ref.output.returnId}",
+              "orderId": "${workflow.input.orderId}",
+              "amount": "${inspect_ref.output.refundAmount}",
+              "customerId": "${workflow.input.customerId}"
+            }
+          }
+        ],
+        "exchange": [
+          {
+            "name": "ret_exchange",
+            "taskReferenceName": "exchange_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "returnId": "${receive_ref.output.returnId}",
+              "orderId": "${workflow.input.orderId}",
+              "items": "${workflow.input.items}",
+              "customerId": "${workflow.input.customerId}"
+            }
+          }
+        ],
+        "reject": [
+          {
+            "name": "ret_reject",
+            "taskReferenceName": "reject_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "returnId": "${receive_ref.output.returnId}",
+              "orderId": "${workflow.input.orderId}",
+              "reason": "${inspect_ref.output.rejectReason}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "returnId": "${receive_ref.output.returnId}",
+    "decision": "${inspect_ref.output.decision}",
+    "inspectionResult": "${inspect_ref.output.condition}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,20 @@
+{
+  "name": "tge_test_generation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["sourceFile", "language", "framework"],
+  "tasks": [
+    { "name": "tge_analyze_code", "taskReferenceName": "tge_analyze_ref", "type": "SIMPLE", "inputParameters": { "sourceFile": "${workflow.input.sourceFile}", "language": "${workflow.input.language}" } },
+    { "name": "tge_generate_tests", "taskReferenceName": "tge_generate_ref", "type": "SIMPLE", "inputParameters": { "functions": "${tge_analyze_ref.output.functions}", "framework": "${workflow.input.framework}" } },
+    { "name": "tge_validate_tests", "taskReferenceName": "tge_validate_ref", "type": "SIMPLE", "inputParameters": { "tests": "${tge_generate_ref.output.tests}", "language": "${workflow.input.language}" } },
+    { "name": "tge_report", "taskReferenceName": "tge_report_ref", "type": "SIMPLE", "inputParameters": { "validatedTests": "${tge_validate_ref.output.validatedTests}", "sourceFile": "${workflow.input.sourceFile}" } }
+  ],
+  "outputParameters": {
+    "functionsAnalyzed": "${tge_analyze_ref.output.functionCount}",
+    "testsGenerated": "${tge_generate_ref.output.testCount}",
+    "testsValid": "${tge_validate_ref.output.validCount}",
+    "report": "${tge_report_ref.output.report}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

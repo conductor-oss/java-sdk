@@ -1,0 +1,19 @@
+{
+  "name": "lo_logistics_optimization",
+  "description": "Logistics optimization: analyze demand, optimize routes, schedule vehicles, and dispatch.",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["region", "date", "orders"],
+  "tasks": [
+    {"name":"lo_analyze_demand","taskReferenceName":"lo_demand_ref","type":"SIMPLE","inputParameters":{"region":"${workflow.input.region}","orders":"${workflow.input.orders}"}},
+    {"name":"lo_optimize_routes","taskReferenceName":"lo_routes_ref","type":"SIMPLE","inputParameters":{"demandMap":"${lo_demand_ref.output.demandMap}"}},
+    {"name":"lo_schedule","taskReferenceName":"lo_schedule_ref","type":"SIMPLE","inputParameters":{"routes":"${lo_routes_ref.output.routes}","date":"${workflow.input.date}"}},
+    {"name":"lo_dispatch","taskReferenceName":"lo_dispatch_ref","type":"SIMPLE","inputParameters":{"schedule":"${lo_schedule_ref.output.schedule}"}}
+  ],
+  "outputParameters": {
+    "totalOrders": "${lo_demand_ref.output.orderCount}",
+    "routeCount": "${lo_routes_ref.output.routeCount}",
+    "vehiclesAssigned": "${lo_schedule_ref.output.vehicleCount}",
+    "dispatched": "${lo_dispatch_ref.output.dispatched}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

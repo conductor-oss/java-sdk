@@ -1,0 +1,57 @@
+{
+  "name": "trt_task_routing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "taskType",
+    "resourceNeeds",
+    "region"
+  ],
+  "tasks": [
+    {
+      "name": "trt_analyze_requirements",
+      "taskReferenceName": "trt_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "taskType": "${workflow.input.taskType}",
+        "resourceNeeds": "${workflow.input.resourceNeeds}",
+        "region": "${workflow.input.region}"
+      }
+    },
+    {
+      "name": "trt_select_pool",
+      "taskReferenceName": "trt_select_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requirements": "${trt_analyze_ref.output.requirements}",
+        "availablePools": "${trt_analyze_ref.output.availablePools}"
+      }
+    },
+    {
+      "name": "trt_dispatch",
+      "taskReferenceName": "trt_dispatch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "selectedPool": "${trt_select_ref.output.selectedPool}",
+        "taskType": "${workflow.input.taskType}"
+      }
+    },
+    {
+      "name": "trt_verify",
+      "taskReferenceName": "trt_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dispatchId": "${trt_dispatch_ref.output.dispatchId}",
+        "expectedPool": "${trt_select_ref.output.selectedPool}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "taskType": "${workflow.input.taskType}",
+    "selectedPool": "${trt_select_ref.output.selectedPool}",
+    "dispatchId": "${trt_dispatch_ref.output.dispatchId}",
+    "verified": "${trt_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

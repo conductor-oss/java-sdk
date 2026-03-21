@@ -1,0 +1,62 @@
+{
+  "name": "aig_image_generation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "prompt",
+    "style",
+    "resolution"
+  ],
+  "tasks": [
+    {
+      "name": "aig_prompt",
+      "taskReferenceName": "aig_prompt_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}",
+        "style": "${workflow.input.style}"
+      }
+    },
+    {
+      "name": "aig_generate",
+      "taskReferenceName": "aig_gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "processedPrompt": "${aig_prompt_ref.output.processedPrompt}",
+        "resolution": "${workflow.input.resolution}"
+      }
+    },
+    {
+      "name": "aig_enhance",
+      "taskReferenceName": "aig_enhance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${aig_gen_ref.output.imageId}"
+      }
+    },
+    {
+      "name": "aig_validate",
+      "taskReferenceName": "aig_val_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${aig_enhance_ref.output.enhancedImageId}"
+      }
+    },
+    {
+      "name": "aig_deliver",
+      "taskReferenceName": "aig_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "imageId": "${aig_enhance_ref.output.enhancedImageId}",
+        "format": "png"
+      }
+    }
+  ],
+  "outputParameters": {
+    "imageId": "${aig_enhance_ref.output.enhancedImageId}",
+    "quality": "${aig_val_ref.output.qualityScore}",
+    "delivered": "${aig_deliver_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,68 @@
+{
+  "name": "data_archival",
+  "description": "Data archival workflow that identifies stale records, snapshots them, transfers to cold storage, verifies the archive, and purges from hot storage.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "retentionDays",
+    "coldStoragePath"
+  ],
+  "tasks": [
+    {
+      "name": "arc_identify_stale",
+      "taskReferenceName": "stale_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}",
+        "retentionDays": "${workflow.input.retentionDays}"
+      }
+    },
+    {
+      "name": "arc_snapshot_records",
+      "taskReferenceName": "snapshot_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "staleRecords": "${stale_ref.output.staleRecords}"
+      }
+    },
+    {
+      "name": "arc_transfer_to_cold",
+      "taskReferenceName": "transfer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "snapshot": "${snapshot_ref.output.snapshot}",
+        "coldStoragePath": "${workflow.input.coldStoragePath}"
+      }
+    },
+    {
+      "name": "arc_verify_archive",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "archivePath": "${transfer_ref.output.archivePath}",
+        "expectedCount": "${transfer_ref.output.transferredCount}",
+        "checksum": "${transfer_ref.output.checksum}"
+      }
+    },
+    {
+      "name": "arc_purge_hot",
+      "taskReferenceName": "purge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "staleRecordIds": "${stale_ref.output.staleIds}",
+        "archiveVerified": "${verify_ref.output.verified}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalRecords": "${stale_ref.output.totalCount}",
+    "staleRecords": "${stale_ref.output.staleCount}",
+    "archivedCount": "${transfer_ref.output.transferredCount}",
+    "archiveVerified": "${verify_ref.output.verified}",
+    "purgedCount": "${purge_ref.output.purgedCount}",
+    "summary": "${purge_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

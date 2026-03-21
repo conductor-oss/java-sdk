@@ -1,0 +1,15 @@
+{
+  "name": "insurance_underwriting_workflow",
+  "description": "Insurance underwriting with SWITCH decision routing for accept/decline/refer.",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["applicationId", "applicantName", "coverageType", "coverageAmount"],
+  "tasks": [
+    {"name": "uw_collect_app", "taskReferenceName": "uw_collect_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "applicantName": "${workflow.input.applicantName}", "coverageType": "${workflow.input.coverageType}", "coverageAmount": "${workflow.input.coverageAmount}"}},
+    {"name": "uw_assess_risk", "taskReferenceName": "uw_risk_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "applicantData": "${uw_collect_ref.output.applicantData}", "coverageAmount": "${workflow.input.coverageAmount}"}},
+    {"name": "uw_quote", "taskReferenceName": "uw_quote_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "riskClass": "${uw_risk_ref.output.riskClass}", "coverageType": "${workflow.input.coverageType}", "coverageAmount": "${workflow.input.coverageAmount}"}},
+    {"name": "uw_route_decision", "taskReferenceName": "uw_switch_ref", "type": "SWITCH", "evaluatorType": "value-param", "expression": "switchCaseValue", "inputParameters": {"switchCaseValue": "${uw_risk_ref.output.decision}"}, "decisionCases": {"accept": [{"name": "uw_accept", "taskReferenceName": "uw_accept_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "premium": "${uw_quote_ref.output.premium}"}}], "decline": [{"name": "uw_decline", "taskReferenceName": "uw_decline_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "declineReason": "${uw_risk_ref.output.declineReason}"}}], "refer": [{"name": "uw_refer", "taskReferenceName": "uw_refer_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "referReason": "${uw_risk_ref.output.referReason}"}}]}, "defaultCase": [{"name": "uw_refer", "taskReferenceName": "uw_default_refer_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "referReason": "Unclassified decision — manual review required"}}]},
+    {"name": "uw_bind", "taskReferenceName": "uw_bind_ref", "type": "SIMPLE", "inputParameters": {"applicationId": "${workflow.input.applicationId}", "applicantName": "${workflow.input.applicantName}", "decision": "${uw_risk_ref.output.decision}", "premium": "${uw_quote_ref.output.premium}"}}
+  ],
+  "outputParameters": {"applicationId": "${workflow.input.applicationId}", "decision": "${uw_risk_ref.output.decision}", "premium": "${uw_quote_ref.output.premium}", "policyNumber": "${uw_bind_ref.output.policyNumber}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

@@ -1,0 +1,19 @@
+{
+  "name":"ofm_offer_management","description":"Offer management with SWITCH for accept/decline.","version":1,"schemaVersion":2,
+  "inputParameters":["candidateName","position","salary","response"],
+  "tasks":[
+    {"name":"ofm_generate","taskReferenceName":"ofm_gen_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}","position":"${workflow.input.position}","salary":"${workflow.input.salary}"}},
+    {"name":"ofm_approve","taskReferenceName":"ofm_approve_ref","type":"SIMPLE","inputParameters":{"offerId":"${ofm_gen_ref.output.offerId}"}},
+    {"name":"ofm_send","taskReferenceName":"ofm_send_ref","type":"SIMPLE","inputParameters":{"offerId":"${ofm_gen_ref.output.offerId}","candidateName":"${workflow.input.candidateName}"}},
+    {"name":"offer_response","taskReferenceName":"ofm_switch_ref","type":"SWITCH","evaluatorType":"value-param","expression":"switchCaseValue",
+      "inputParameters":{"switchCaseValue":"${workflow.input.response}"},
+      "decisionCases":{
+        "accept":[{"name":"ofm_accept","taskReferenceName":"ofm_accept_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}","offerId":"${ofm_gen_ref.output.offerId}"}}],
+        "decline":[{"name":"ofm_decline","taskReferenceName":"ofm_decline_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}","offerId":"${ofm_gen_ref.output.offerId}"}}]
+      },
+      "defaultCase":[]
+    }
+  ],
+  "outputParameters":{"offerId":"${ofm_gen_ref.output.offerId}","response":"${workflow.input.response}"},
+  "ownerEmail":"examples@orkes.io","timeoutSeconds":60
+}

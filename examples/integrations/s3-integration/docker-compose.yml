@@ -1,0 +1,24 @@
+services:
+  conductor:
+    image: orkesio/orkes-conductor-standalone:1.2.3
+    ports:
+      - "${CONDUCTOR_PORT:-8080}:8080"
+      - "${CONDUCTOR_UI_PORT:-1234}:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    environment:
+      - conductor.app.ownerEmailMandatory=false
+
+  s3-integration:
+    build: .
+    depends_on:
+      conductor:
+        condition: service_healthy
+    environment:
+      - CONDUCTOR_BASE_URL=http://conductor:8080/api
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - S3_BUCKET=${S3_BUCKET:-}

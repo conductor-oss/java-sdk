@@ -1,0 +1,61 @@
+{
+  "name": "ptf_patent_filing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["inventionTitle", "inventors", "description"],
+  "tasks": [
+    {
+      "name": "ptf_draft",
+      "taskReferenceName": "ptf_draft_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "inventionTitle": "${workflow.input.inventionTitle}",
+        "inventors": "${workflow.input.inventors}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "ptf_review",
+      "taskReferenceName": "ptf_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "draftId": "${ptf_draft_ref.output.draftId}"
+      }
+    },
+    {
+      "name": "ptf_prior_art",
+      "taskReferenceName": "ptf_prior_art_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "inventionTitle": "${workflow.input.inventionTitle}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "ptf_file",
+      "taskReferenceName": "ptf_file_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "draftId": "${ptf_draft_ref.output.draftId}",
+        "priorArtClear": "${ptf_prior_art_ref.output.priorArtClear}"
+      }
+    },
+    {
+      "name": "ptf_track",
+      "taskReferenceName": "ptf_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicationNumber": "${ptf_file_ref.output.applicationNumber}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "draftId": "${ptf_draft_ref.output.draftId}",
+    "reviewStatus": "${ptf_review_ref.output.reviewStatus}",
+    "priorArtClear": "${ptf_prior_art_ref.output.priorArtClear}",
+    "applicationNumber": "${ptf_file_ref.output.applicationNumber}",
+    "trackingId": "${ptf_track_ref.output.trackingId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

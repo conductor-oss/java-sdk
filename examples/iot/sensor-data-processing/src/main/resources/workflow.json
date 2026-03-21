@@ -1,0 +1,67 @@
+{
+  "name": "sensor_data_processing_workflow",
+  "description": "Sensor data processing: collect readings, validate, aggregate, analyze patterns, trigger alerts",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "batchId",
+    "sensorGroupId",
+    "timeWindowMinutes"
+  ],
+  "tasks": [
+    {
+      "name": "sen_collect_readings",
+      "taskReferenceName": "collect_readings_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "sensorGroupId": "${workflow.input.sensorGroupId}",
+        "timeWindowMinutes": "${workflow.input.timeWindowMinutes}"
+      }
+    },
+    {
+      "name": "sen_validate_data",
+      "taskReferenceName": "validate_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "readings": "${collect_readings_ref.output}",
+        "batchId": "${workflow.input.batchId}"
+      }
+    },
+    {
+      "name": "sen_aggregate_readings",
+      "taskReferenceName": "aggregate_readings_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "validatedData": "${validate_data_ref.output}",
+        "timeWindowMinutes": "${workflow.input.timeWindowMinutes}"
+      }
+    },
+    {
+      "name": "sen_analyze_patterns",
+      "taskReferenceName": "analyze_patterns_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregatedData": "${aggregate_readings_ref.output}"
+      }
+    },
+    {
+      "name": "sen_trigger_alerts",
+      "taskReferenceName": "trigger_alerts_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "anomalies": "${analyze_patterns_ref.output}",
+        "sensorGroupId": "${workflow.input.sensorGroupId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "readingsCollected": "${collect_readings_ref.output.readingCount}",
+    "validRecords": "${validate_data_ref.output.validRecords}",
+    "aggregatedResult": "${aggregate_readings_ref.output}",
+    "patternsFound": "${analyze_patterns_ref.output.patternsFound}",
+    "alertsTriggered": "${trigger_alerts_ref.output.alertsTriggered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

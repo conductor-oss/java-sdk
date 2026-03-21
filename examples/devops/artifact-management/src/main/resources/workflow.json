@@ -1,0 +1,51 @@
+{
+  "name": "artifact_management_workflow",
+  "description": "Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "project",
+    "version"
+  ],
+  "tasks": [
+    {
+      "name": "am_build",
+      "taskReferenceName": "build_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "project": "${workflow.input.project}",
+        "version": "${workflow.input.version}"
+      }
+    },
+    {
+      "name": "am_sign",
+      "taskReferenceName": "sign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "signData": "${build_ref.output}"
+      }
+    },
+    {
+      "name": "am_publish",
+      "taskReferenceName": "publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "publishData": "${sign_ref.output}"
+      }
+    },
+    {
+      "name": "am_cleanup",
+      "taskReferenceName": "cleanup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "cleanupData": "${publish_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "buildResult": "${build_ref.output}",
+    "cleanupResult": "${cleanup_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

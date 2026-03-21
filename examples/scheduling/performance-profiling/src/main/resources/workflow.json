@@ -1,0 +1,58 @@
+{
+  "name": "performance_profiling_430",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "serviceName",
+    "profilingDuration",
+    "profileType"
+  ],
+  "tasks": [
+    {
+      "name": "prf_instrument",
+      "taskReferenceName": "prf_instrument_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "profileType": "${workflow.input.profileType}"
+      }
+    },
+    {
+      "name": "prf_collect_profile",
+      "taskReferenceName": "prf_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "profilingDuration": "${workflow.input.profilingDuration}",
+        "instrumentId": "${prf_instrument_ref.output.instrumentId}"
+      }
+    },
+    {
+      "name": "prf_analyze_hotspots",
+      "taskReferenceName": "prf_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sampleCount": "${prf_collect_ref.output.sampleCount}",
+        "profileType": "${workflow.input.profileType}"
+      }
+    },
+    {
+      "name": "prf_recommend",
+      "taskReferenceName": "prf_recommend_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "hotspotCount": "${prf_analyze_ref.output.hotspotCount}",
+        "serviceName": "${workflow.input.serviceName}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sampleCount": "${prf_collect_ref.output.sampleCount}",
+    "hotspotCount": "${prf_analyze_ref.output.hotspotCount}",
+    "topHotspot": "${prf_analyze_ref.output.topHotspot}",
+    "recommendationCount": "${prf_recommend_ref.output.recommendationCount}",
+    "reportUrl": "${prf_recommend_ref.output.reportUrl}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

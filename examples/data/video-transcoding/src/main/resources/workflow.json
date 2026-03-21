@@ -1,0 +1,84 @@
+{
+  "name": "video_transcoding",
+  "description": "Video transcoding workflow: analyze source, transcode to 720p/1080p/4K in parallel via FORK_JOIN, then package outputs.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["videoUrl", "outputFormats"],
+  "tasks": [
+    {
+      "name": "vt_analyze_video",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": { "videoUrl": "${workflow.input.videoUrl}" }
+    },
+    {
+      "name": "transcode_fork",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "vt_transcode_720p",
+            "taskReferenceName": "t720_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "videoUrl": "${workflow.input.videoUrl}",
+              "codec": "${analyze_ref.output.codec}",
+              "duration": "${analyze_ref.output.duration}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "vt_transcode_1080p",
+            "taskReferenceName": "t1080_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "videoUrl": "${workflow.input.videoUrl}",
+              "codec": "${analyze_ref.output.codec}",
+              "duration": "${analyze_ref.output.duration}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "vt_transcode_4k",
+            "taskReferenceName": "t4k_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "videoUrl": "${workflow.input.videoUrl}",
+              "codec": "${analyze_ref.output.codec}",
+              "duration": "${analyze_ref.output.duration}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "transcode_join",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["t720_ref", "t1080_ref", "t4k_ref"]
+    },
+    {
+      "name": "vt_package_outputs",
+      "taskReferenceName": "package_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "result720": "${t720_ref.output.result}",
+        "result1080": "${t1080_ref.output.result}",
+        "result4k": "${t4k_ref.output.result}",
+        "originalDuration": "${analyze_ref.output.duration}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "originalCodec": "${analyze_ref.output.codec}",
+    "duration": "${analyze_ref.output.duration}",
+    "formatsGenerated": "${package_ref.output.formatCount}",
+    "totalSize": "${package_ref.output.totalSize}",
+    "manifest": "${package_ref.output.manifest}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

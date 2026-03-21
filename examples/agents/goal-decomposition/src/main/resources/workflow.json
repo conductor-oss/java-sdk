@@ -1,0 +1,81 @@
+{
+  "name": "goal_decomposition",
+  "description": "Goal Decomposition — decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["goal"],
+  "tasks": [
+    {
+      "name": "gd_decompose_goal",
+      "taskReferenceName": "decompose_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "goal": "${workflow.input.goal}"
+      }
+    },
+    {
+      "name": "fork_subgoals",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "gd_subgoal_1",
+            "taskReferenceName": "subgoal_1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subgoal": "${decompose_ref.output.subgoals[0]}",
+              "index": 0
+            }
+          }
+        ],
+        [
+          {
+            "name": "gd_subgoal_2",
+            "taskReferenceName": "subgoal_2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subgoal": "${decompose_ref.output.subgoals[1]}",
+              "index": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "gd_subgoal_3",
+            "taskReferenceName": "subgoal_3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "subgoal": "${decompose_ref.output.subgoals[2]}",
+              "index": 2
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_subgoals",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["subgoal_1_ref", "subgoal_2_ref", "subgoal_3_ref"]
+    },
+    {
+      "name": "gd_aggregate",
+      "taskReferenceName": "aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "goal": "${workflow.input.goal}",
+        "result1": "${subgoal_1_ref.output.result}",
+        "result2": "${subgoal_2_ref.output.result}",
+        "result3": "${subgoal_3_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "goal": "${workflow.input.goal}",
+    "subgoals": "${decompose_ref.output.subgoals}",
+    "aggregatedResult": "${aggregate_ref.output.aggregatedResult}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

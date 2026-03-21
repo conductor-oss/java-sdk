@@ -1,0 +1,86 @@
+{
+  "name": "search_agent",
+  "description": "Search Agent — formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "maxResults"],
+  "tasks": [
+    {
+      "name": "sa_formulate_queries",
+      "taskReferenceName": "formulate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "maxResults": "${workflow.input.maxResults}"
+      }
+    },
+    {
+      "name": "fork_searches",
+      "taskReferenceName": "fork_searches_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "sa_search_google",
+            "taskReferenceName": "search_google_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queries": "${formulate_ref.output.queries}",
+              "maxResults": "${formulate_ref.output.maxResults}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "sa_search_wiki",
+            "taskReferenceName": "search_wiki_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "queries": "${formulate_ref.output.queries}",
+              "maxResults": "${formulate_ref.output.maxResults}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_searches",
+      "taskReferenceName": "join_searches_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "search_google_ref",
+        "search_wiki_ref"
+      ]
+    },
+    {
+      "name": "sa_rank_merge",
+      "taskReferenceName": "rank_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "googleResults": "${search_google_ref.output.results}",
+        "wikiResults": "${search_wiki_ref.output.results}"
+      }
+    },
+    {
+      "name": "sa_synthesize",
+      "taskReferenceName": "synthesize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "rankedResults": "${rank_merge_ref.output.rankedResults}",
+        "topSources": "${rank_merge_ref.output.topSources}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${synthesize_ref.output.answer}",
+    "confidence": "${synthesize_ref.output.confidence}",
+    "sourcesUsed": "${synthesize_ref.output.sourcesUsed}",
+    "answerType": "${synthesize_ref.output.answerType}",
+    "topSources": "${rank_merge_ref.output.topSources}",
+    "totalResults": "${rank_merge_ref.output.totalResults}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

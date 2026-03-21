@@ -1,0 +1,69 @@
+{
+  "name": "telemedicine_workflow",
+  "description": "Telemedicine: schedule, connect, consult, prescribe, follow-up",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["visitId", "patientId", "providerId", "reason"],
+  "tasks": [
+    {
+      "name": "tlm_schedule",
+      "taskReferenceName": "tlm_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "visitId": "${workflow.input.visitId}",
+        "patientId": "${workflow.input.patientId}",
+        "providerId": "${workflow.input.providerId}",
+        "reason": "${workflow.input.reason}"
+      }
+    },
+    {
+      "name": "tlm_connect",
+      "taskReferenceName": "tlm_connect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "visitId": "${workflow.input.visitId}",
+        "sessionUrl": "${tlm_schedule_ref.output.sessionUrl}"
+      }
+    },
+    {
+      "name": "tlm_consult",
+      "taskReferenceName": "tlm_consult_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "visitId": "${workflow.input.visitId}",
+        "patientId": "${workflow.input.patientId}",
+        "reason": "${workflow.input.reason}",
+        "connectionId": "${tlm_connect_ref.output.connectionId}"
+      }
+    },
+    {
+      "name": "tlm_prescribe",
+      "taskReferenceName": "tlm_prescribe_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "visitId": "${workflow.input.visitId}",
+        "patientId": "${workflow.input.patientId}",
+        "diagnosis": "${tlm_consult_ref.output.diagnosis}"
+      }
+    },
+    {
+      "name": "tlm_followup",
+      "taskReferenceName": "tlm_followup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "visitId": "${workflow.input.visitId}",
+        "patientId": "${workflow.input.patientId}",
+        "providerId": "${workflow.input.providerId}",
+        "followUpNeeded": "${tlm_consult_ref.output.followUpNeeded}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "visitId": "${workflow.input.visitId}",
+    "diagnosis": "${tlm_consult_ref.output.diagnosis}",
+    "prescription": "${tlm_prescribe_ref.output.prescription}",
+    "followUpDate": "${tlm_followup_ref.output.followUpDate}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

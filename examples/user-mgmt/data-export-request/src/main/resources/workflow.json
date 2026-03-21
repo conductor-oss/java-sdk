@@ -1,0 +1,51 @@
+{
+  "name": "der_data_export",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "exportFormat", "dataCategories"],
+  "tasks": [
+    {
+      "name": "der_validate",
+      "taskReferenceName": "der_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "exportFormat": "${workflow.input.exportFormat}"
+      }
+    },
+    {
+      "name": "der_collect",
+      "taskReferenceName": "der_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "categories": "${workflow.input.dataCategories}"
+      }
+    },
+    {
+      "name": "der_package",
+      "taskReferenceName": "der_package_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${der_collect_ref.output.collectedData}",
+        "format": "${workflow.input.exportFormat}"
+      }
+    },
+    {
+      "name": "der_deliver",
+      "taskReferenceName": "der_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "packageUrl": "${der_package_ref.output.packageUrl}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "downloadUrl": "${der_package_ref.output.packageUrl}",
+    "totalRecords": "${der_collect_ref.output.totalRecords}",
+    "delivered": "${der_deliver_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

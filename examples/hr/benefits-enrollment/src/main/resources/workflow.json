@@ -1,0 +1,25 @@
+{
+  "name": "ben_benefits_enrollment",
+  "description": "Benefits enrollment workflow: present options, select, validate, enroll, confirm.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["employeeId", "enrollmentPeriod"],
+  "tasks": [
+    { "name": "ben_present", "taskReferenceName": "ben_present_ref", "type": "SIMPLE",
+      "inputParameters": { "employeeId": "${workflow.input.employeeId}" } },
+    { "name": "ben_select", "taskReferenceName": "ben_select_ref", "type": "SIMPLE",
+      "inputParameters": { "options": "${ben_present_ref.output.options}" } },
+    { "name": "ben_validate", "taskReferenceName": "ben_validate_ref", "type": "SIMPLE",
+      "inputParameters": { "selections": "${ben_select_ref.output.selections}" } },
+    { "name": "ben_enroll", "taskReferenceName": "ben_enroll_ref", "type": "SIMPLE",
+      "inputParameters": { "employeeId": "${workflow.input.employeeId}", "selections": "${ben_validate_ref.output.validSelections}" } },
+    { "name": "ben_confirm", "taskReferenceName": "ben_confirm_ref", "type": "SIMPLE",
+      "inputParameters": { "enrollmentId": "${ben_enroll_ref.output.enrollmentId}" } }
+  ],
+  "outputParameters": {
+    "enrollmentId": "${ben_enroll_ref.output.enrollmentId}",
+    "monthlyPremium": "${ben_enroll_ref.output.monthlyPremium}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

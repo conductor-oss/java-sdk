@@ -1,0 +1,58 @@
+{
+  "name": "sendgrid_integration_437",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "recipientEmail",
+    "recipientName",
+    "templateId",
+    "campaignId"
+  ],
+  "tasks": [
+    {
+      "name": "sgd_compose_email",
+      "taskReferenceName": "compose_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "templateId": "${workflow.input.templateId}",
+        "campaignId": "${workflow.input.campaignId}"
+      }
+    },
+    {
+      "name": "sgd_personalize",
+      "taskReferenceName": "personalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "template": "${compose_ref.output.template}",
+        "recipientName": "${workflow.input.recipientName}",
+        "recipientEmail": "${workflow.input.recipientEmail}"
+      }
+    },
+    {
+      "name": "sgd_send_email",
+      "taskReferenceName": "send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "to": "${workflow.input.recipientEmail}",
+        "subject": "${personalize_ref.output.subject}",
+        "htmlBody": "${personalize_ref.output.htmlBody}"
+      }
+    },
+    {
+      "name": "sgd_track_opens",
+      "taskReferenceName": "track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${send_ref.output.messageId}",
+        "campaignId": "${workflow.input.campaignId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${send_ref.output.messageId}",
+    "delivered": "${send_ref.output.delivered}",
+    "trackingEnabled": "${track_ref.output.trackingEnabled}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,64 @@
+{
+  "name": "edge_computing_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "jobId",
+    "edgeNodeId",
+    "taskType",
+    "payload"
+  ],
+  "tasks": [
+    {
+      "name": "edg_offload_task",
+      "taskReferenceName": "edg_offload_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "edgeNodeId": "${workflow.input.edgeNodeId}",
+        "taskType": "${workflow.input.taskType}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "edg_process_edge",
+      "taskReferenceName": "edg_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "edgeNodeId": "${workflow.input.edgeNodeId}",
+        "taskType": "${workflow.input.taskType}",
+        "edgeJobId": "${edg_offload_ref.output.edgeJobId}"
+      }
+    },
+    {
+      "name": "edg_sync_results",
+      "taskReferenceName": "edg_sync_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "edgeNodeId": "${workflow.input.edgeNodeId}",
+        "edgeResult": "${edg_process_ref.output.edgeResult}",
+        "processedAt": "${edg_process_ref.output.processedAt}"
+      }
+    },
+    {
+      "name": "edg_aggregate_cloud",
+      "taskReferenceName": "edg_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "jobId": "${workflow.input.jobId}",
+        "syncedData": "${edg_sync_ref.output.syncedData}",
+        "latencyMs": "${edg_sync_ref.output.latencyMs}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "jobId": "${workflow.input.jobId}",
+    "edgeNodeId": "${workflow.input.edgeNodeId}",
+    "processingTimeMs": "${edg_process_ref.output.processingTimeMs}",
+    "aggregated": "${edg_aggregate_ref.output.aggregated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

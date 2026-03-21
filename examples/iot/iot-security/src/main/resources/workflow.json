@@ -1,0 +1,56 @@
+{
+  "name": "iot_security_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "networkId",
+    "scanDepth"
+  ],
+  "tasks": [
+    {
+      "name": "ios_scan_devices",
+      "taskReferenceName": "ios_scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "networkId": "${workflow.input.networkId}",
+        "scanDepth": "${workflow.input.scanDepth}"
+      }
+    },
+    {
+      "name": "ios_detect_vulnerabilities",
+      "taskReferenceName": "ios_vuln_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "devices": "${ios_scan_ref.output.devices}",
+        "networkId": "${workflow.input.networkId}"
+      }
+    },
+    {
+      "name": "ios_patch",
+      "taskReferenceName": "ios_patch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "vulnerabilities": "${ios_vuln_ref.output.vulnerabilities}",
+        "affectedDevices": "${ios_vuln_ref.output.affectedDevices}"
+      }
+    },
+    {
+      "name": "ios_verify",
+      "taskReferenceName": "ios_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patchedDevices": "${ios_patch_ref.output.patchedDevices}",
+        "networkId": "${workflow.input.networkId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "networkId": "${workflow.input.networkId}",
+    "devicesScanned": "${ios_scan_ref.output.deviceCount}",
+    "vulnerabilitiesFound": "${ios_vuln_ref.output.vulnCount}",
+    "patchesApplied": "${ios_patch_ref.output.patchCount}",
+    "verified": "${ios_verify_ref.output.allClear}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

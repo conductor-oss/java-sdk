@@ -1,0 +1,55 @@
+{
+  "name": "authentication_workflow",
+  "description": "Authentication: validate credentials, check MFA, risk assessment, issue token",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "authMethod"
+  ],
+  "tasks": [
+    {
+      "name": "auth_validate_credentials",
+      "taskReferenceName": "validate_credentials_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "auth_check_mfa",
+      "taskReferenceName": "check_mfa_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "authMethod": "${workflow.input.authMethod}"
+      }
+    },
+    {
+      "name": "auth_risk_assessment",
+      "taskReferenceName": "risk_assessment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "mfaVerified": "${check_mfa_ref.output.mfaVerified}"
+      }
+    },
+    {
+      "name": "auth_issue_token",
+      "taskReferenceName": "issue_token_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "riskScore": "${risk_assessment_ref.output.riskScore}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "credentialsValid": "${validate_credentials_ref.output.valid}",
+    "mfaVerified": "${check_mfa_ref.output.mfaVerified}",
+    "riskScore": "${risk_assessment_ref.output.riskScore}",
+    "token": "${issue_token_ref.output.token}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

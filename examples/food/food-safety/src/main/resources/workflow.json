@@ -1,0 +1,21 @@
+{
+  "name": "food_safety_738",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["restaurantId", "inspectorId"],
+  "tasks": [
+    { "name": "fsf_inspect", "taskReferenceName": "inspect_ref", "type": "SIMPLE",
+      "inputParameters": { "restaurantId": "${workflow.input.restaurantId}", "inspectorId": "${workflow.input.inspectorId}" } },
+    { "name": "fsf_check_temps", "taskReferenceName": "temps_ref", "type": "SIMPLE",
+      "inputParameters": { "restaurantId": "${workflow.input.restaurantId}" } },
+    { "name": "fsf_verify_hygiene", "taskReferenceName": "hygiene_ref", "type": "SIMPLE",
+      "inputParameters": { "restaurantId": "${workflow.input.restaurantId}" } },
+    { "name": "fsf_certify", "taskReferenceName": "certify_ref", "type": "SIMPLE",
+      "inputParameters": { "inspection": "${inspect_ref.output.findings}", "temps": "${temps_ref.output.temps}", "hygiene": "${hygiene_ref.output.hygiene}" } },
+    { "name": "fsf_record", "taskReferenceName": "record_ref", "type": "SIMPLE",
+      "inputParameters": { "restaurantId": "${workflow.input.restaurantId}", "certification": "${certify_ref.output.certification}" } }
+  ],
+  "outputParameters": { "report": "${record_ref.output.report}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

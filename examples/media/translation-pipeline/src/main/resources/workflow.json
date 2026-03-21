@@ -1,0 +1,62 @@
+{
+  "name": "translation_pipeline_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "contentId",
+    "sourceText",
+    "targetLanguage"
+  ],
+  "tasks": [
+    {
+      "name": "trn_detect_language",
+      "taskReferenceName": "trn_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "sourceText": "${workflow.input.sourceText}"
+      }
+    },
+    {
+      "name": "trn_translate",
+      "taskReferenceName": "trn_translate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "sourceText": "${workflow.input.sourceText}",
+        "sourceLanguage": "${trn_detect_ref.output.detectedLanguage}",
+        "targetLanguage": "${workflow.input.targetLanguage}"
+      }
+    },
+    {
+      "name": "trn_review_translation",
+      "taskReferenceName": "trn_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "translatedText": "${trn_translate_ref.output.translatedText}",
+        "targetLanguage": "${workflow.input.targetLanguage}",
+        "qualityScore": "${trn_translate_ref.output.qualityScore}"
+      }
+    },
+    {
+      "name": "trn_publish_translation",
+      "taskReferenceName": "trn_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contentId": "${workflow.input.contentId}",
+        "finalText": "${trn_review_ref.output.finalText}",
+        "targetLanguage": "${workflow.input.targetLanguage}",
+        "approved": "${trn_review_ref.output.approved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "contentId": "${workflow.input.contentId}",
+    "sourceLanguage": "${trn_detect_ref.output.detectedLanguage}",
+    "targetLanguage": "${workflow.input.targetLanguage}",
+    "translationUrl": "${trn_publish_ref.output.translationUrl}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

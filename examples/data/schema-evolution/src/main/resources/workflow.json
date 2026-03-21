@@ -1,0 +1,59 @@
+{
+  "name": "schema_evolution",
+  "description": "Schema evolution workflow that detects schema changes, generates transforms, applies them to data, and validates the result.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "currentSchema",
+    "targetSchema",
+    "sampleData"
+  ],
+  "tasks": [
+    {
+      "name": "sh_detect_changes",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "currentSchema": "${workflow.input.currentSchema}",
+        "targetSchema": "${workflow.input.targetSchema}"
+      }
+    },
+    {
+      "name": "sh_generate_transform",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changes": "${detect_ref.output.changes}",
+        "currentSchema": "${workflow.input.currentSchema}"
+      }
+    },
+    {
+      "name": "sh_apply_transform",
+      "taskReferenceName": "apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transforms": "${gen_ref.output.transforms}",
+        "sampleData": "${workflow.input.sampleData}"
+      }
+    },
+    {
+      "name": "sh_validate_schema",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedData": "${apply_ref.output.transformedData}",
+        "targetSchema": "${workflow.input.targetSchema}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "changesDetected": "${detect_ref.output.changeCount}",
+    "changeTypes": "${detect_ref.output.changeTypes}",
+    "transformsGenerated": "${gen_ref.output.transformCount}",
+    "recordsTransformed": "${apply_ref.output.recordCount}",
+    "validationPassed": "${validate_ref.output.passed}",
+    "compatibilityLevel": "${validate_ref.output.compatibilityLevel}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

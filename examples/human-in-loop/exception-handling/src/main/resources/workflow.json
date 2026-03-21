@@ -1,0 +1,55 @@
+{
+  "name": "exception_handling_demo",
+  "description": "Auto-Process or Human Review Based on Risk",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["risk"],
+  "tasks": [
+    {
+      "name": "eh_analyze",
+      "taskReferenceName": "analyze",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "risk": "${workflow.input.risk}"
+      }
+    },
+    {
+      "name": "route_switch",
+      "taskReferenceName": "route_switch",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${analyze.output.route}"
+      },
+      "decisionCases": {
+        "human_review": [
+          {
+            "name": "human_review_wait",
+            "taskReferenceName": "human_review_wait",
+            "type": "WAIT",
+            "inputParameters": {}
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "eh_auto_process",
+          "taskReferenceName": "auto_process",
+          "type": "SIMPLE",
+          "inputParameters": {}
+        }
+      ]
+    },
+    {
+      "name": "eh_finalize",
+      "taskReferenceName": "finalize",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    }
+  ],
+  "outputParameters": {
+    "route": "${analyze.output.route}",
+    "finalized": "${finalize.output.finalized}"
+  }
+}

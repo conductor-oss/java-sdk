@@ -1,0 +1,107 @@
+{
+  "name": "conditional_approval_demo",
+  "description": "Conditional Approval Routing -- routes approval requests to different approval chains based on amount tier.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId", "amount", "requester"],
+  "tasks": [
+    {
+      "name": "car_classify",
+      "taskReferenceName": "class_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "amount": "${workflow.input.amount}"
+      }
+    },
+    {
+      "name": "route_approval",
+      "taskReferenceName": "route_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "inputParameters": {
+        "switchCaseValue": "${class_ref.output.tier}"
+      },
+      "expression": "switchCaseValue",
+      "decisionCases": {
+        "low": [
+          {
+            "name": "mgr_only_approval",
+            "taskReferenceName": "mgr_only_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "level": "Manager",
+              "amount": "${workflow.input.amount}"
+            }
+          }
+        ],
+        "medium": [
+          {
+            "name": "mgr_med_approval",
+            "taskReferenceName": "mgr_med_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "level": "Manager",
+              "amount": "${workflow.input.amount}"
+            }
+          },
+          {
+            "name": "dir_med_approval",
+            "taskReferenceName": "dir_med_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "level": "Director",
+              "amount": "${workflow.input.amount}"
+            }
+          }
+        ],
+        "high": [
+          {
+            "name": "mgr_hi_approval",
+            "taskReferenceName": "mgr_hi_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "level": "Manager",
+              "amount": "${workflow.input.amount}"
+            }
+          },
+          {
+            "name": "dir_hi_approval",
+            "taskReferenceName": "dir_hi_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "level": "Director",
+              "amount": "${workflow.input.amount}"
+            }
+          },
+          {
+            "name": "vp_hi_approval",
+            "taskReferenceName": "vp_hi_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "level": "VP",
+              "amount": "${workflow.input.amount}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "car_process",
+      "taskReferenceName": "proc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "tier": "${class_ref.output.tier}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${workflow.input.requestId}",
+    "amount": "${workflow.input.amount}",
+    "tier": "${class_ref.output.tier}",
+    "processed": "${proc_ref.output.processed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

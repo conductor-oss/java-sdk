@@ -1,0 +1,59 @@
+{
+  "name": "rqr_request_reply",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "requestPayload",
+    "targetService",
+    "timeoutMs"
+  ],
+  "tasks": [
+    {
+      "name": "rqr_send_request",
+      "taskReferenceName": "rqr_send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestPayload": "${workflow.input.requestPayload}",
+        "targetService": "${workflow.input.targetService}",
+        "timeoutMs": "${workflow.input.timeoutMs}"
+      }
+    },
+    {
+      "name": "rqr_wait_response",
+      "taskReferenceName": "rqr_wait_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlationId": "${rqr_send_ref.output.correlationId}",
+        "replyQueue": "${rqr_send_ref.output.replyQueue}",
+        "timeoutMs": "${workflow.input.timeoutMs}"
+      }
+    },
+    {
+      "name": "rqr_correlate",
+      "taskReferenceName": "rqr_correlate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalCorrelationId": "${rqr_send_ref.output.correlationId}",
+        "responseCorrelationId": "${rqr_wait_ref.output.correlationId}",
+        "response": "${rqr_wait_ref.output.response}"
+      }
+    },
+    {
+      "name": "rqr_deliver",
+      "taskReferenceName": "rqr_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlatedResponse": "${rqr_correlate_ref.output.correlatedResponse}",
+        "matched": "${rqr_correlate_ref.output.matched}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "correlationId": "${rqr_send_ref.output.correlationId}",
+    "response": "${rqr_correlate_ref.output.correlatedResponse}",
+    "matched": "${rqr_correlate_ref.output.matched}",
+    "delivered": "${rqr_deliver_ref.output.delivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

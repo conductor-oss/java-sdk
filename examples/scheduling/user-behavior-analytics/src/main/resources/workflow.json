@@ -1,0 +1,57 @@
+{
+  "name": "user_behavior_analytics_429",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "timeRange",
+    "riskThreshold"
+  ],
+  "tasks": [
+    {
+      "name": "uba_collect_events",
+      "taskReferenceName": "uba_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "timeRange": "${workflow.input.timeRange}"
+      }
+    },
+    {
+      "name": "uba_sessionize",
+      "taskReferenceName": "uba_session_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventCount": "${uba_collect_ref.output.eventCount}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "uba_analyze_patterns",
+      "taskReferenceName": "uba_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sessionCount": "${uba_session_ref.output.sessionCount}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "uba_flag_anomalies",
+      "taskReferenceName": "uba_flag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "riskScore": "${uba_analyze_ref.output.riskScore}",
+        "riskThreshold": "${workflow.input.riskThreshold}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventCount": "${uba_collect_ref.output.eventCount}",
+    "sessionCount": "${uba_session_ref.output.sessionCount}",
+    "riskScore": "${uba_analyze_ref.output.riskScore}",
+    "flagged": "${uba_flag_ref.output.flagged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

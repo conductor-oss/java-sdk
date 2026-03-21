@@ -1,0 +1,53 @@
+{
+  "name": "network_automation_workflow",
+  "description": "Automated network configuration: audit, plan changes, apply config, verify connectivity",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "network",
+    "changeType"
+  ],
+  "tasks": [
+    {
+      "name": "na_audit",
+      "taskReferenceName": "na_audit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "network": "${workflow.input.network}"
+      }
+    },
+    {
+      "name": "na_plan_changes",
+      "taskReferenceName": "na_plan_changes_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "auditResult": "${na_audit_ref.output}",
+        "changeType": "${workflow.input.changeType}"
+      }
+    },
+    {
+      "name": "na_apply_config",
+      "taskReferenceName": "na_apply_config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "plannedChanges": "${na_plan_changes_ref.output}",
+        "network": "${workflow.input.network}"
+      }
+    },
+    {
+      "name": "na_verify_connectivity",
+      "taskReferenceName": "na_verify_connectivity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "network": "${workflow.input.network}",
+        "appliedChanges": "${na_apply_config_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "auditResult": "${na_audit_ref.output}",
+    "verify_connectivityResult": "${na_verify_connectivity_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

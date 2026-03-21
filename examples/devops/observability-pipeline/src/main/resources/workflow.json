@@ -1,0 +1,50 @@
+{
+  "name": "observability_pipeline_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "timeWindow"
+  ],
+  "tasks": [
+    {
+      "name": "op_collect_metrics",
+      "taskReferenceName": "collect_metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "timeWindow": "${workflow.input.timeWindow}"
+      }
+    },
+    {
+      "name": "op_correlate_traces",
+      "taskReferenceName": "correlate_traces_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlate_tracesData": "${collect_metrics_ref.output}"
+      }
+    },
+    {
+      "name": "op_detect_anomalies",
+      "taskReferenceName": "detect_anomalies_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "detect_anomaliesData": "${correlate_traces_ref.output}"
+      }
+    },
+    {
+      "name": "op_alert_or_store",
+      "taskReferenceName": "alert_or_store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "alert_or_storeData": "${detect_anomalies_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "collect_metricsResult": "${collect_metrics_ref.output}",
+    "alert_or_storeResult": "${alert_or_store_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

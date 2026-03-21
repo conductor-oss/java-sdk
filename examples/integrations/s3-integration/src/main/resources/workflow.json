@@ -1,0 +1,60 @@
+{
+  "name": "s3_integration_447",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "bucket",
+    "key",
+    "contentType",
+    "notifyEmail"
+  ],
+  "tasks": [
+    {
+      "name": "s3_upload",
+      "taskReferenceName": "upload_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "bucket": "${workflow.input.bucket}",
+        "key": "${workflow.input.key}",
+        "contentType": "${workflow.input.contentType}"
+      }
+    },
+    {
+      "name": "s3_set_metadata",
+      "taskReferenceName": "meta_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "bucket": "${workflow.input.bucket}",
+        "key": "${workflow.input.key}",
+        "etag": "${upload_ref.output.etag}"
+      }
+    },
+    {
+      "name": "s3_generate_url",
+      "taskReferenceName": "url_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "bucket": "${workflow.input.bucket}",
+        "key": "${workflow.input.key}",
+        "expiresIn": 3600
+      }
+    },
+    {
+      "name": "s3_notify",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.notifyEmail}",
+        "presignedUrl": "${url_ref.output.presignedUrl}",
+        "key": "${workflow.input.key}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "etag": "${upload_ref.output.etag}",
+    "presignedUrl": "${url_ref.output.presignedUrl}",
+    "notified": "${notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

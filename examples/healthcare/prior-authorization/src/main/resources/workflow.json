@@ -1,0 +1,103 @@
+{
+  "name": "prior_authorization_workflow",
+  "description": "Prior Authorization: submit, review criteria, SWITCH decision, notify",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["authId", "patientId", "procedure", "clinicalReason"],
+  "tasks": [
+    {
+      "name": "pa_submit_request",
+      "taskReferenceName": "pa_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "authId": "${workflow.input.authId}",
+        "patientId": "${workflow.input.patientId}",
+        "procedure": "${workflow.input.procedure}",
+        "clinicalReason": "${workflow.input.clinicalReason}"
+      }
+    },
+    {
+      "name": "pa_review_criteria",
+      "taskReferenceName": "pa_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "authId": "${workflow.input.authId}",
+        "procedure": "${workflow.input.procedure}",
+        "clinicalReason": "${workflow.input.clinicalReason}"
+      }
+    },
+    {
+      "name": "pa_route_decision",
+      "taskReferenceName": "pa_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${pa_review_ref.output.decision}"
+      },
+      "decisionCases": {
+        "approve": [
+          {
+            "name": "pa_approve",
+            "taskReferenceName": "pa_approve_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "authId": "${workflow.input.authId}",
+              "validDays": "${pa_review_ref.output.validDays}"
+            }
+          }
+        ],
+        "deny": [
+          {
+            "name": "pa_deny",
+            "taskReferenceName": "pa_deny_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "authId": "${workflow.input.authId}",
+              "denyReason": "${pa_review_ref.output.denyReason}"
+            }
+          }
+        ],
+        "review": [
+          {
+            "name": "pa_manual_review",
+            "taskReferenceName": "pa_manual_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "authId": "${workflow.input.authId}",
+              "reviewNotes": "${pa_review_ref.output.reviewNotes}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "pa_manual_review",
+          "taskReferenceName": "pa_default_review_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "authId": "${workflow.input.authId}",
+            "reviewNotes": "Unclassified — needs manual review"
+          }
+        }
+      ]
+    },
+    {
+      "name": "pa_notify",
+      "taskReferenceName": "pa_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "authId": "${workflow.input.authId}",
+        "patientId": "${workflow.input.patientId}",
+        "decision": "${pa_review_ref.output.decision}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "authId": "${workflow.input.authId}",
+    "decision": "${pa_review_ref.output.decision}",
+    "notified": "${pa_notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

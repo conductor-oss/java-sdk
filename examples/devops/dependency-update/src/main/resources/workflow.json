@@ -1,0 +1,50 @@
+{
+  "name": "dependency_update_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "repository",
+    "updateType"
+  ],
+  "tasks": [
+    {
+      "name": "du_scan_outdated",
+      "taskReferenceName": "scan_outdated_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repository": "${workflow.input.repository}",
+        "updateType": "${workflow.input.updateType}"
+      }
+    },
+    {
+      "name": "du_update_deps",
+      "taskReferenceName": "update_deps_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "update_depsData": "${scan_outdated_ref.output}"
+      }
+    },
+    {
+      "name": "du_run_tests",
+      "taskReferenceName": "run_tests_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "run_testsData": "${update_deps_ref.output}"
+      }
+    },
+    {
+      "name": "du_create_pr",
+      "taskReferenceName": "create_pr_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "create_prData": "${run_tests_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "scan_outdatedResult": "${scan_outdated_ref.output}",
+    "create_prResult": "${create_pr_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

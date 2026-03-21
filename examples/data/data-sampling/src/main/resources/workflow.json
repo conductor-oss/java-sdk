@@ -1,0 +1,83 @@
+{
+  "name": "data_sampling_wf",
+  "description": "Data sampling workflow that loads a dataset, draws a sample, runs quality checks, and routes via SWITCH to approve or flag for review.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "sampleRate",
+    "threshold"
+  ],
+  "tasks": [
+    {
+      "name": "sm_load_dataset",
+      "taskReferenceName": "load_dataset_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}"
+      }
+    },
+    {
+      "name": "sm_draw_sample",
+      "taskReferenceName": "draw_sample_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${load_dataset_ref.output.records}",
+        "sampleRate": "${workflow.input.sampleRate}"
+      }
+    },
+    {
+      "name": "sm_run_quality_checks",
+      "taskReferenceName": "quality_checks_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sample": "${draw_sample_ref.output.sample}",
+        "threshold": "${workflow.input.threshold}"
+      }
+    },
+    {
+      "name": "route_by_decision",
+      "taskReferenceName": "decision_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${quality_checks_ref.output.decision}"
+      },
+      "decisionCases": {
+        "pass": [
+          {
+            "name": "sm_approve_dataset",
+            "taskReferenceName": "approve_dataset_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "totalRecords": "${load_dataset_ref.output.count}",
+              "qualityScore": "${quality_checks_ref.output.qualityScore}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "sm_flag_for_review",
+          "taskReferenceName": "flag_for_review_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "totalRecords": "${load_dataset_ref.output.count}",
+            "qualityScore": "${quality_checks_ref.output.qualityScore}",
+            "issues": "${quality_checks_ref.output.issues}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "totalRecords": "${load_dataset_ref.output.count}",
+    "qualityScore": "${quality_checks_ref.output.qualityScore}",
+    "decision": "${quality_checks_ref.output.decision}",
+    "approved": "${decision_switch_ref.output.approved}",
+    "status": "${decision_switch_ref.output.status}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

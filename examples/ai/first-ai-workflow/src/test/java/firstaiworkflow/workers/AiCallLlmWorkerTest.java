@@ -14,9 +14,9 @@ class AiCallLlmWorkerTest {
     }
 
     @Test
-    void constructorRunsInSimulatedModeWithoutApiKey() {
+    void constructorRunsInDemoModeWithoutApiKey() {
         // The default constructor reads from env; if CONDUCTOR_OPENAI_API_KEY is not set
-        // it should start in simulated mode without throwing
+        // it should start in demo mode without throwing
         String key = System.getenv("CONDUCTOR_OPENAI_API_KEY");
         if (key == null || key.isBlank()) {
             AiCallLlmWorker worker = new AiCallLlmWorker();

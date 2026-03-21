@@ -1,0 +1,57 @@
+{
+  "name": "medical_billing_workflow",
+  "description": "Medical Billing: code procedures, verify coverage, submit claim, track payment",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["encounterId", "patientId", "providerId", "procedures"],
+  "tasks": [
+    {
+      "name": "mbl_code_procedures",
+      "taskReferenceName": "mbl_code_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "encounterId": "${workflow.input.encounterId}",
+        "procedures": "${workflow.input.procedures}"
+      }
+    },
+    {
+      "name": "mbl_verify_coverage",
+      "taskReferenceName": "mbl_coverage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "cptCodes": "${mbl_code_ref.output.cptCodes}"
+      }
+    },
+    {
+      "name": "mbl_submit_claim",
+      "taskReferenceName": "mbl_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "encounterId": "${workflow.input.encounterId}",
+        "patientId": "${workflow.input.patientId}",
+        "providerId": "${workflow.input.providerId}",
+        "cptCodes": "${mbl_code_ref.output.cptCodes}",
+        "totalCharge": "${mbl_code_ref.output.totalCharge}",
+        "coverage": "${mbl_coverage_ref.output.coveragePercent}"
+      }
+    },
+    {
+      "name": "mbl_track_payment",
+      "taskReferenceName": "mbl_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "claimId": "${mbl_submit_ref.output.claimId}",
+        "expectedPayment": "${mbl_submit_ref.output.expectedPayment}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "encounterId": "${workflow.input.encounterId}",
+    "claimId": "${mbl_submit_ref.output.claimId}",
+    "totalCharge": "${mbl_code_ref.output.totalCharge}",
+    "paymentStatus": "${mbl_track_ref.output.paymentStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

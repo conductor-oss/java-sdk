@@ -1,0 +1,43 @@
+{
+  "name": "event_windowing",
+  "description": "Event Windowing — collect events into a time window, compute aggregate statistics, and emit the windowed result.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["events", "windowSizeMs"],
+  "tasks": [
+    {
+      "name": "ew_collect_window",
+      "taskReferenceName": "collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${workflow.input.events}",
+        "windowSizeMs": "${workflow.input.windowSizeMs}"
+      }
+    },
+    {
+      "name": "ew_compute_stats",
+      "taskReferenceName": "compute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "windowEvents": "${collect_ref.output.windowEvents}",
+        "windowId": "${collect_ref.output.windowId}"
+      }
+    },
+    {
+      "name": "ew_emit_result",
+      "taskReferenceName": "emit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "windowId": "${compute_ref.output.windowId}",
+        "stats": "${compute_ref.output.stats}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "windowId": "${emit_ref.output.windowId}",
+    "eventCount": "${compute_ref.output.stats.count}",
+    "avgValue": "${compute_ref.output.stats.avg}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

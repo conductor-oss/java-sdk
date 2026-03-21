@@ -1,0 +1,73 @@
+{
+  "name": "webhook_security_wf",
+  "description": "Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "payload",
+    "secret",
+    "providedSignature"
+  ],
+  "tasks": [
+    {
+      "name": "ws_compute_hmac",
+      "taskReferenceName": "compute_hmac_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "payload": "${workflow.input.payload}",
+        "secret": "${workflow.input.secret}"
+      }
+    },
+    {
+      "name": "ws_verify_signature",
+      "taskReferenceName": "verify_signature_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "expected": "${compute_hmac_ref.output.computedSignature}",
+        "provided": "${workflow.input.providedSignature}"
+      }
+    },
+    {
+      "name": "route_by_validity",
+      "taskReferenceName": "validity_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${verify_signature_ref.output.result}"
+      },
+      "decisionCases": {
+        "valid": [
+          {
+            "name": "ws_process_webhook",
+            "taskReferenceName": "process_webhook_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "payload": "${workflow.input.payload}"
+            }
+          }
+        ],
+        "invalid": [
+          {
+            "name": "ws_reject_webhook",
+            "taskReferenceName": "reject_webhook_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "reason": "Signature mismatch",
+              "provided": "${workflow.input.providedSignature}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "payload": "${workflow.input.payload}",
+    "signatureResult": "${verify_signature_ref.output.result}",
+    "signatureMatch": "${verify_signature_ref.output.match}",
+    "verified": "true"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

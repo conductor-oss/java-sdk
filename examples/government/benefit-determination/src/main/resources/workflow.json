@@ -1,0 +1,77 @@
+{
+  "name": "bnd_benefit_determination",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["applicantId", "programType", "income"],
+  "tasks": [
+    {
+      "name": "bnd_apply",
+      "taskReferenceName": "bnd_apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "programType": "${workflow.input.programType}"
+      }
+    },
+    {
+      "name": "bnd_verify_eligibility",
+      "taskReferenceName": "bnd_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "income": "${workflow.input.income}"
+      }
+    },
+    {
+      "name": "bnd_calculate",
+      "taskReferenceName": "bnd_calc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eligibility": "${bnd_verify_ref.output.eligibility}",
+        "income": "${workflow.input.income}"
+      }
+    },
+    {
+      "name": "route_eligibility",
+      "taskReferenceName": "bnd_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${bnd_verify_ref.output.eligibility}"
+      },
+      "decisionCases": {
+        "eligible": [
+          {
+            "name": "bnd_notify_eligible",
+            "taskReferenceName": "bnd_elig_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "applicantId": "${workflow.input.applicantId}",
+              "benefit": "${bnd_calc_ref.output.benefitAmount}"
+            }
+          }
+        ],
+        "ineligible": [
+          {
+            "name": "bnd_notify_ineligible",
+            "taskReferenceName": "bnd_inelig_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "applicantId": "${workflow.input.applicantId}",
+              "reason": "${bnd_verify_ref.output.reason}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "applicantId": "${workflow.input.applicantId}",
+    "eligibility": "${bnd_verify_ref.output.eligibility}",
+    "benefitAmount": "${bnd_calc_ref.output.benefitAmount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

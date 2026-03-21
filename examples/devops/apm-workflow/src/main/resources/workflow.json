@@ -1,0 +1,57 @@
+{
+  "name": "apm_workflow_421",
+  "description": "APM workflow: collect traces, analyze latency, detect bottlenecks, generate report",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "serviceName",
+    "timeRange",
+    "percentile"
+  ],
+  "tasks": [
+    {
+      "name": "apm_collect_traces",
+      "taskReferenceName": "collect_traces_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "timeRange": "${workflow.input.timeRange}"
+      }
+    },
+    {
+      "name": "apm_analyze_latency",
+      "taskReferenceName": "analyze_latency_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "traceCount": "${collect_traces_ref.output.traceCount}",
+        "percentile": "${workflow.input.percentile}"
+      }
+    },
+    {
+      "name": "apm_detect_bottlenecks",
+      "taskReferenceName": "detect_bottlenecks_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "slowEndpoints": "${analyze_latency_ref.output.slowEndpoints}",
+        "p99Latency": "${analyze_latency_ref.output.p99Latency}"
+      }
+    },
+    {
+      "name": "apm_report",
+      "taskReferenceName": "apm_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "bottlenecks": "${detect_bottlenecks_ref.output.bottlenecks}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "traceCount": "${collect_traces_ref.output.traceCount}",
+    "p99Latency": "${analyze_latency_ref.output.p99Latency}",
+    "bottlenecksFound": "${detect_bottlenecks_ref.output.bottlenecksFound}",
+    "reportGenerated": "${apm_report_ref.output.reportGenerated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

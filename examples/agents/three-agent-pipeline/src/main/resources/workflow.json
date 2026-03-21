@@ -1,0 +1,54 @@
+{
+  "name": "three_agent_pipeline",
+  "description": "Three-Agent Pipeline — Researcher + Writer + Reviewer with final output assembly",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["subject", "audience"],
+  "tasks": [
+    {
+      "name": "thr_researcher_agent",
+      "taskReferenceName": "researcher_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subject": "${workflow.input.subject}",
+        "systemPrompt": "You are a research specialist. Gather key facts, statistics, and sources on the given subject."
+      }
+    },
+    {
+      "name": "thr_writer_agent",
+      "taskReferenceName": "writer_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "research": "${researcher_agent_ref.output.research}",
+        "audience": "${workflow.input.audience}",
+        "systemPrompt": "You are a professional writer. Using the provided research, write a concise article for the target audience."
+      }
+    },
+    {
+      "name": "thr_reviewer_agent",
+      "taskReferenceName": "reviewer_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "draft": "${writer_agent_ref.output.draft}",
+        "research": "${researcher_agent_ref.output.research}",
+        "audience": "${workflow.input.audience}",
+        "systemPrompt": "You are an editorial reviewer. Evaluate the draft for accuracy, clarity, and audience fit."
+      }
+    },
+    {
+      "name": "thr_final_output",
+      "taskReferenceName": "final_output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "research": "${researcher_agent_ref.output.research}",
+        "draft": "${writer_agent_ref.output.draft}",
+        "review": "${reviewer_agent_ref.output.review}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "finalReport": "${final_output_ref.output.finalReport}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

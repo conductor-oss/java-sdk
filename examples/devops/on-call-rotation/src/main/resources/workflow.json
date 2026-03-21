@@ -1,0 +1,50 @@
+{
+  "name": "on_call_rotation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "team",
+    "rotationType"
+  ],
+  "tasks": [
+    {
+      "name": "oc_check_schedule",
+      "taskReferenceName": "check_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "team": "${workflow.input.team}",
+        "rotationType": "${workflow.input.rotationType}"
+      }
+    },
+    {
+      "name": "oc_handoff",
+      "taskReferenceName": "handoff_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "handoffData": "${check_schedule_ref.output}"
+      }
+    },
+    {
+      "name": "oc_update_routing",
+      "taskReferenceName": "update_routing_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "update_routingData": "${handoff_ref.output}"
+      }
+    },
+    {
+      "name": "oc_confirm",
+      "taskReferenceName": "confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "confirmData": "${update_routing_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "check_scheduleResult": "${check_schedule_ref.output}",
+    "confirmResult": "${confirm_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

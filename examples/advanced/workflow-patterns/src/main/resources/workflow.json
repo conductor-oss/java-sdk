@@ -1,0 +1,88 @@
+{
+  "name": "workflow_patterns_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["inputData", "iterations"],
+  "tasks": [
+    {
+      "name": "wp_chain_step",
+      "taskReferenceName": "wp_chain_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "step": "chain",
+        "data": "${workflow.input.inputData}"
+      }
+    },
+    {
+      "name": "wp_fork",
+      "taskReferenceName": "wp_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "wp_split_a",
+            "taskReferenceName": "wp_split_a_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "branch": "A",
+              "chainOutput": "${wp_chain_ref.output.result}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "wp_split_b",
+            "taskReferenceName": "wp_split_b_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "branch": "B",
+              "chainOutput": "${wp_chain_ref.output.result}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "wp_join",
+      "taskReferenceName": "wp_join_ref",
+      "type": "JOIN",
+      "joinOn": ["wp_split_a_ref", "wp_split_b_ref"]
+    },
+    {
+      "name": "wp_merge_results",
+      "taskReferenceName": "wp_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resultA": "${wp_split_a_ref.output.result}",
+        "resultB": "${wp_split_b_ref.output.result}"
+      }
+    },
+    {
+      "name": "wp_loop",
+      "taskReferenceName": "wp_loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.wp_loop_ref['iteration'] < $.iterations) { true; } else { false; }",
+      "inputParameters": {
+        "iterations": "${workflow.input.iterations}"
+      },
+      "loopOver": [
+        {
+          "name": "wp_loop_iteration",
+          "taskReferenceName": "wp_iter_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "iteration": "${wp_loop_ref.output.iteration}",
+            "merged": "${wp_merge_ref.output.combined}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "chainResult": "${wp_chain_ref.output.result}",
+    "mergedResult": "${wp_merge_ref.output.combined}",
+    "loopCompleted": true
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}
