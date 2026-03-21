@@ -1,7 +1,5 @@
 # Data Export Request in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Data Export Request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
 ## The Problem
 
 You need to fulfill a user's data export request. Validating the request parameters and user identity, collecting their data across multiple categories (profile, activity, preferences, uploaded content), packaging everything into the requested format (JSON, CSV, ZIP), and delivering a secure download link to the user. Each step depends on the previous one's output.
@@ -25,157 +23,22 @@ ValidateExportWorker verifies identity and format, CollectDataWorker aggregates 
 | **PackageDataWorker** | `der_package` | Packages the collected data into the requested format (JSON, CSV) and uploads it to a downloadable URL |
 | **ValidateExportWorker** | `der_validate` | Validates the export request by verifying the user's identity and checking the requested format |
 
-Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
-
-### The Workflow
+Replace with real identity provider and database calls and ### The Workflow
 
 ```
 der_validate
-    │
-    ▼
+ │
+ ▼
 der_collect
-    │
-    ▼
+ │
+ ▼
 der_package
-    │
-    ▼
+ │
+ ▼
 der_deliver
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/data-export-request-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/data-export-request-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow der_data_export \
-  --version 1 \
-  --input '{"userId": "TEST-001", "exportFormat": "json", "dataCategories": {"key": "value"}}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w der_data_export -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one export step. connect your data stores for multi-source collection and your object storage (S3, GCS) for secure file delivery, and the data-export workflow stays the same.
-
-- **ValidateExportWorker** (`der_validate`): verify the user exists in your identity provider (Auth0, Okta) and validate that requested data categories match your data catalog schema
-- **CollectDataWorker** (`der_collect`): query user data across your services: profile from PostgreSQL, activity from Elasticsearch, files from S3, preferences from Redis. Aggregating everything into a unified structure
-- **PackageDataWorker** (`der_package`): serialize the collected data into JSON, CSV, or machine-readable format per GDPR Article 20, compress it, and upload the archive to S3 with a pre-signed URL that expires after 72 hours
-- **DeliverExportWorker** (`der_deliver`): send the download notification via email (SendGrid, SES) or in-app notification, logging the delivery timestamp for compliance audit trails
-
-Connect your data stores and S3 for real packaging and the validate-collect-package-deliver export pipeline keeps functioning as defined.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-data-export-request/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/dataexportrequest/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DataExportRequestExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CollectDataWorker.java
-│       ├── DeliverExportWorker.java
-│       ├── PackageDataWorker.java
-│       └── ValidateExportWorker.java
-└── src/test/java/dataexportrequest/workers/
-    ├── CollectDataWorkerTest.java        # 4 tests
-    ├── DeliverExportWorkerTest.java        # 3 tests
-    ├── PackageDataWorkerTest.java        # 3 tests
-    └── ValidateExportWorkerTest.java        # 3 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

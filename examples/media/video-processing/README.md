@@ -26,163 +26,25 @@ Five workers process each video: UploadWorker ingests the source with codec dete
 | **MetadataWorker** | `vid_metadata` | Assembles a metadata index from upstream outputs: title, duration, resolution list, content type, for search and discovery. Returns a `metadata` map. |
 | **PublishWorker** | `vid_publish` | Publishes the video with its HLS manifest, thumbnail, and metadata to a live watch URL. Returns `publishUrl`, `publishedAt`, `status`. |
 
-Workers implement media processing stages: transcoding, thumbnail generation, metadata extraction, with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
-
 ### The Workflow
 
 ```
 vid_upload
-    │
-    ▼
+ │
+ ▼
 vid_transcode
-    │
-    ▼
+ │
+ ▼
 vid_thumbnail
-    │
-    ▼
+ │
+ ▼
 vid_metadata
-    │
-    ▼
+ │
+ ▼
 vid_publish
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/video-processing-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/video-processing-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow video_processing_workflow \
-  --version 1 \
-  --input '{"videoId": "VID-001", "sourceUrl": "https://uploads.example.com/raw/VID-001.mp4", "title": "Introduction to Conductor Workflows", "creatorId": "creator-42"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w video_processing_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect TranscodeWorker to your encoding backend (FFmpeg, AWS MediaConvert), ThumbnailWorker to your frame extraction service, and PublishWorker to your video CDN. The workflow definition stays exactly the same.
-
-- **UploadWorker** (`vid_upload`): ingest source video via multipart upload or URL fetch, store to S3/GCS, and probe with FFprobe to extract codec, duration, file size, and container format
-- **TranscodeWorker** (`vid_transcode`): transcode using FFmpeg, AWS MediaConvert, or Google Transcoder API to produce adaptive bitrate HLS with configurable rendition profiles (resolution, bitrate, codec)
-- **ThumbnailWorker** (`vid_thumbnail`): extract a frame at a computed keyframe position using FFmpeg, generate multiple thumbnail sizes for different UI contexts (player poster, grid card, social share), and upload to your CDN
-- **MetadataWorker** (`vid_metadata`): index video metadata (title, duration, resolutions, content type) in Elasticsearch or your catalog database for search, filtering, and recommendation feeds
-- **PublishWorker** (`vid_publish`): register the video in your CMS, set the watch page URL, configure CDN distribution rules, and update the video status to live so it appears in user-facing listings
-
-Swap any worker for a real transcoding backend or CDN while preserving its return fields, and the video pipeline runs without changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-video-processing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/videoprocessing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── VideoProcessingExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── UploadWorker.java        # vid_upload. Ingest and store source video
-│       ├── TranscodeWorker.java     # vid_transcode. Adaptive bitrate HLS
-│       ├── ThumbnailWorker.java     # vid_thumbnail. Keyframe extraction
-│       ├── MetadataWorker.java      # vid_metadata. Metadata index assembly
-│       └── PublishWorker.java       # vid_publish. Publish to watch URL
-└── src/test/java/videoprocessing/workers/
-    ├── UploadWorkerTest.java        # Tests upload outputs and task def name
-    ├── TranscodeWorkerTest.java     # Tests resolutions, HLS URL, determinism
-    ├── ThumbnailWorkerTest.java     # Tests capture position derived from duration
-    ├── MetadataWorkerTest.java      # Tests metadata map assembly
-    └── PublishWorkerTest.java       # Tests publish URL and status
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

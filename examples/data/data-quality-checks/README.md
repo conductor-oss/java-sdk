@@ -32,161 +32,19 @@ Workers implement data processing stages with representative outputs so the pipe
 
 ```
 qc_load_data
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── qc_check_completeness
-    ├── qc_check_accuracy
-    └── qc_check_consistency
-    │
-    ▼
+ ├── qc_check_completeness
+ ├── qc_check_accuracy
+ └── qc_check_consistency
+ │
+ ▼
 JOIN (wait for all branches)
 qc_generate_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/data-quality-checks-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/data-quality-checks-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow data_quality_checks \
-  --version 1 \
-  --input '{"records": [{"id": 1, "name": "Alice", "email": "alice@example.com", "status": "active"}, {"id": 2, "name": "Bob", "email": "invalid-email", "status": "active"}, {"id": 3, "name": "", "email": "charlie@example.com", "status": "pending"}]}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w data_quality_checks -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Add domain-specific validation rules, integrate reference data lookups for accuracy checks, and connect the report to a quality dashboard, the parallel quality assessment workflow runs unchanged.
-
-- **`LoadDataWorker`**: Read records from a real data source (database, data lake, API response) to check quality before downstream processing.
-
-- **`CheckCompletenessWorker`**: Configure required fields per dataset type; compute null rates, empty string percentages, and missing value distributions.
-
-- **`CheckAccuracyWorker`**: Validate against reference data (zip code databases, currency code lists), use regex for format validation, or call verification APIs (email verification, address validation).
-
-- **`CheckConsistencyWorker`**: Check cross-field rules (if status is "shipped", shipDate must be set), referential integrity, and temporal consistency (startDate before endDate).
-
-- **`GenerateReportWorker`**: Produce quality dashboards, trigger alerts when scores drop below thresholds, or block downstream pipeline execution on failing grades.
-
-Adding reference data lookups or stricter validation rules inside any check worker does not affect the parallel quality assessment workflow, provided each returns its score in the expected format.
-
-**Add new quality dimensions** by adding branches to the `FORK_JOIN` in `workflow.json`, for example, a timeliness check (is data arriving on schedule?), a uniqueness check, or a freshness check (how old is the newest record?).
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-data-quality-checks/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/dataqualitychecks/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DataQualityChecksExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CheckAccuracyWorker.java
-│       ├── CheckCompletenessWorker.java
-│       ├── CheckConsistencyWorker.java
-│       ├── GenerateReportWorker.java
-│       └── LoadDataWorker.java
-└── src/test/java/dataqualitychecks/workers/
-    ├── CheckAccuracyWorkerTest.java
-    ├── CheckCompletenessWorkerTest.java
-    ├── CheckConsistencyWorkerTest.java
-    ├── GenerateReportWorkerTest.java
-    └── LoadDataWorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

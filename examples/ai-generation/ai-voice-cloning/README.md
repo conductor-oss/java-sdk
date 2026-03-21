@@ -1,6 +1,4 @@
-# AI Voice Cloning in Java Using Conductor :  Sample Collection, Model Training, Speech Generation, Verification
-
-A Java Conductor workflow that clones a speaker's voice. collecting voice samples from the target speaker, training a voice model on those samples, generating speech in the cloned voice from target text, verifying the output against the original voice for quality and similarity, and delivering the final audio. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage voice cloning pipeline as independent workers,  you write the voice processing logic, Conductor handles sequencing, retries, durability, and observability.
+# AI Voice Cloning in Java Using Conductor : Sample Collection, Model Training, Speech Generation, Verification
 
 ## Voice Cloning Requires Training, Generation, and Verification
 
@@ -32,153 +30,21 @@ Workers implement AI generation stages with realistic outputs so you can see the
 
 ```
 avc_collect_samples
-    │
-    ▼
+ │
+ ▼
 avc_train_model
-    │
-    ▼
+ │
+ ▼
 avc_generate
-    │
-    ▼
+ │
+ ▼
 avc_verify
-    │
-    ▼
+ │
+ ▼
 avc_deliver
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/ai-voice-cloning-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live voice verification (optional. falls back to demo) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/ai-voice-cloning-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow avc_voice_cloning \
-  --version 1 \
-  --input '{"speakerId": "TEST-001", "targetText": "Process this order for customer C-100", "language": "en"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w avc_voice_cloning -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Swap each worker for your real voice stack. ElevenLabs or Coqui TTS for model training and synthesis, Resemblyzer for speaker verification scoring, your audio CDN for delivery, and the workflow runs identically in production.
-
-- **TrainModelWorker** (`avc_train_model`): integrate with ElevenLabs Voice Cloning API, Coqui TTS voice cloning, or OpenAI's voice model fine-tuning for real voice model training
-- **GenerateWorker** (`avc_generate`): use ElevenLabs Text-to-Speech, Azure Neural TTS with custom voice, or Bark for multilingual voice generation
-- **VerifyWorker** (`avc_verify`): implement speaker verification using Resemblyzer for voice similarity scoring, PESQ for speech quality metrics, and manual A/B testing workflows
-
-Replace any synthesis engine or verification model and the surrounding workers continue unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-ai-voice-cloning-ai-voice-cloning/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/aivoicecloning/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AiVoiceCloningExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CollectSamplesWorker.java
-│       ├── DeliverWorker.java
-│       ├── GenerateWorker.java
-│       ├── TrainModelWorker.java
-│       └── VerifyWorker.java
-└── src/test/java/aivoicecloning/workers/
-    ├── CollectSamplesWorkerTest.java        # 1 tests
-    └── VerifyWorkerTest.java        # 1 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

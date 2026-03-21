@@ -5,10 +5,10 @@ These examples demonstrate LLM integration patterns with Conductor workflows: pr
 ## Prerequisites
 
 1. **Running Conductor server**:
-   ```bash
-   npm install -g @conductor-oss/conductor-cli
-   conductor server start
-   ```
+ ```bash
+ npm install -g @conductor-oss/conductor-cli
+ conductor server start
+ ```
 
 2. **Java 21+** and **Maven 3.8+**
 
@@ -48,3 +48,7 @@ CONDUCTOR_OPENAI_API_KEY=sk-... java -jar target/first-ai-workflow-1.0.0.jar
 ```
 
 All examples print `Result: PASSED` on success, whether in demo or live mode.
+
+---
+
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

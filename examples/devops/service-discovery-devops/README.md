@@ -25,151 +25,22 @@ Four workers manage service registration. Registering the instance, running heal
 | `UpdateRoutingWorker` | `sd_update_routing` | Updates load balancer and routing tables to include the new healthy instance |
 | `NotifyConsumersWorker` | `sd_notify_consumers` | Notifies downstream consumers via webhook that a new service endpoint is available |
 
-Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
-
 ### The Workflow
 
 ```
 sd_register
-    │
-    ▼
+ │
+ ▼
 sd_health_check
-    │
-    ▼
+ │
+ ▼
 sd_update_routing
-    │
-    ▼
+ │
+ ▼
 sd_notify_consumers
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/service-discovery-devops-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/service-discovery-devops-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow service_discovery_devops_workflow \
-  --version 1 \
-  --input '{"serviceName": "recommendation-engine", "endpoint": "http://rec-svc.prod.internal:8080", "version": "2.4.1", "healthCheckUrl": "http://rec-svc.prod.internal:8080/health"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w service_discovery_devops_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one service discovery step. Replace the demo calls with Consul, Eureka, or Kubernetes Service APIs for real registration and routing updates, and the discovery workflow runs unchanged.
-
-- **`RegisterWorker`**: Replace the demo registration with a call to [HashiCorp Consul](https://www.consul.io/) service catalog, [Netflix Eureka](https://github.com/Netflix/eureka) registry, or the [Kubernetes Service API](https://kubernetes.io/docs/concepts/services-networking/service/) to register the instance in a real service mesh.
-
-- **`HealthCheckWorker`**: Replace the demo health probe with real HTTP or gRPC health checks against the service endpoint, or integrate with [Kubernetes readiness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) to verify the instance is ready to receive traffic.
-
-- **`UpdateRoutingWorker`**: Replace the demo routing update with calls to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) configuration, NGINX upstream config updates, or [AWS ALB target group](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) registration to route real traffic to the new instance.
-
-- **`NotifyConsumersWorker`**: Replace the demo notification with DNS record updates, webhook callbacks to downstream services, or service mesh sidecar configuration refresh (e.g., Envoy xDS push) so consumers discover the new endpoint.
-
-Integrate with Consul or Eureka for real service registration; the discovery pipeline preserves the same register-verify-route interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-service-discovery-devops/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/servicediscoverydevops/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ServiceDiscoveryDevopsExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── RegisterWorker.java      # Registers service in discovery registry
-│       ├── HealthCheckWorker.java   # Probes endpoint health and response time
-│       ├── UpdateRoutingWorker.java # Updates load balancer routing tables
-│       └── NotifyConsumersWorker.java # Notifies downstream consumers
-└── src/test/java/servicediscoverydevops/workers/
-    ├── RegisterWorkerTest.java      # Tests deterministic registration ID, output fields
-    ├── HealthCheckWorkerTest.java   # Tests health status, response time presence
-    ├── UpdateRoutingWorkerTest.java # Tests routing update outputs
-    └── NotifyConsumersWorkerTest.java # Tests notification count, consumer list
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

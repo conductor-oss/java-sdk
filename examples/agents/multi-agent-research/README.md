@@ -1,6 +1,6 @@
 # Multi-Agent Research in Java Using Conductor: Define, Parallel Search Across Web/Papers/Databases, Synthesize, Report
 
-Your research intern searches Google, finds three blog posts, and writes the report. No academic papers. No internal data. The conclusions sound confident but rest on a single source type. Another intern starts from Semantic Scholar, finds contradicting peer-reviewed evidence, but never cross-references the web findings. When research agents work sequentially on one source at a time, a five-minute task takes an hour, and you still get a biased report. This example fans out three specialized search agents (web, academic papers, internal databases) in parallel using Conductor's `FORK_JOIN`, then synthesizes and cross-references their findings into a single report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
+Your research intern searches Google, finds three blog posts, and writes the report. No academic papers. No internal data. The conclusions sound confident but rest on a single source type. Another intern starts from Semantic Scholar, finds contradicting peer-reviewed evidence, but never cross-references the web findings. When research agents work sequentially on one source at a time, a five-minute task takes an hour, and you still get a biased report. This example fans out three specialized search agents (web, academic papers, internal databases) in parallel using Conductor's `FORK_JOIN`, then synthesizes and cross-references their findings into a single report. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Comprehensive Research Requires Multiple Sources
 
@@ -33,149 +33,22 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 ra_define_research
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── ra_search_web
-    ├── ra_search_papers
-    └── ra_search_databases
-    │
-    ▼
+ ├── ra_search_web
+ ├── ra_search_papers
+ └── ra_search_databases
+ │
+ ▼
 JOIN (wait for all branches)
 ra_synthesize
-    │
-    ▼
+ │
+ ▼
 ra_write_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/multi-agent-research-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/multi-agent-research-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow multi_agent_research \
-  --version 1 \
-  --input '{"topic": "Impact of large language models on software engineering", "depth": "comprehensive"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w multi_agent_research -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each search agent targets one source type. Integrate Tavily for web results, Semantic Scholar for academic papers, and JDBC for internal databases, and the define-search-synthesize-report workflow runs unchanged.
-
-- **SearchWebWorker** (`ra_search_web`): integrate with Tavily, SerpAPI, or Bing Search API for real web results with snippet extraction and source credibility scoring
-- **SearchPapersWorker** (`ra_search_papers`): query Semantic Scholar, arXiv, PubMed, or Google Scholar APIs for peer-reviewed papers with citation counts and relevance ranking
-- **SynthesizeWorker** (`ra_synthesize`): use an LLM to perform cross-source analysis: identify agreements, contradictions, and gaps across web, academic, and database sources
-
-Plug in real search APIs and academic databases; the research pipeline preserves the same search-synthesize-report interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-multi-agent-research/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/multiagentresearch/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MultiAgentResearchExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── DefineResearchWorker.java
-│       ├── SearchDatabasesWorker.java
-│       ├── SearchPapersWorker.java
-│       ├── SearchWebWorker.java
-│       ├── SynthesizeWorker.java
-│       └── WriteReportWorker.java
-└── src/test/java/multiagentresearch/workers/
-    ├── DefineResearchWorkerTest.java        # 9 tests
-    ├── SearchDatabasesWorkerTest.java        # 8 tests
-    ├── SearchPapersWorkerTest.java        # 8 tests
-    ├── SearchWebWorkerTest.java        # 8 tests
-    ├── SynthesizeWorkerTest.java        # 12 tests
-    └── WriteReportWorkerTest.java        # 10 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

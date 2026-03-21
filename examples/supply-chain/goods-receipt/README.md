@@ -1,6 +1,4 @@
-# Goods Receipt in Java with Conductor :  Shipment Receiving, Quality Inspection, PO Matching, Warehouse Storage, and Inventory Update
-
-A Java Conductor workflow example for inbound goods receipt processing. receiving a shipment at the dock (e.g., 5,000 M10 bolts and 5,000 M10 nuts against PO-654-001), inspecting items for quality and damage, matching received quantities to the purchase order, assigning storage locations in the warehouse, and updating inventory records. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Goods Receipt in Java with Conductor : Shipment Receiving, Quality Inspection, PO Matching, Warehouse Storage, and Inventory Update
 
 ## The Problem
 
@@ -26,163 +24,25 @@ Five workers handle the receiving dock workflow: ReceiveWorker logs inbound ship
 | **StoreWorker** | `grc_store` | Assigns storage bin locations and records putaway for inspected and matched goods. |
 | **UpdateInventoryWorker** | `grc_update_inventory` | Updates the inventory management system so received stock is available for picking. |
 
-Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 grc_receive
-    │
-    ▼
+ │
+ ▼
 grc_inspect
-    │
-    ▼
+ │
+ ▼
 grc_match_po
-    │
-    ▼
+ │
+ ▼
 grc_store
-    │
-    ▼
+ │
+ ▼
 grc_update_inventory
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/goods-receipt-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/goods-receipt-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow grc_goods_receipt \
-  --version 1 \
-  --input '{"shipmentId": "TEST-001", "poNumber": "sample-poNumber", "items": [{"id": "ITEM-001", "quantity": 2}]}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w grc_goods_receipt -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect ReceiveWorker to your WMS dock scanner, MatchPoWorker to your ERP purchase order module, and UpdateInventoryWorker to your inventory management system. The workflow definition stays exactly the same.
-
-- **ReceiveWorker** (`grc_receive`): scan barcodes or ASN (Advance Ship Notice) data at the dock, log receipt in your WMS (Manhattan Associates, Blue Yonder, SAP EWM), and capture photos of delivery condition
-- **InspectWorker** (`grc_inspect`): record quality inspection results (visual check, dimension measurement, sample testing) against acceptance criteria from the PO specifications
-- **MatchPoWorker** (`grc_match_po`): query your ERP for the purchase order, perform three-way matching (PO, receipt, invoice), and flag quantity or specification discrepancies for procurement review
-- **StoreWorker** (`grc_store`): assign optimal bin/rack locations based on WMS slotting rules (FIFO, product type, pick frequency), and generate putaway tasks for warehouse staff
-- **UpdateInventoryWorker** (`grc_update_inventory`): post the goods receipt to your ERP inventory module (SAP MM, Oracle Inventory), making stock available for order allocation and MRP planning
-
-Wire any worker to your WMS or ERP while keeping the same output contract, and the receiving workflow continues unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-goods-receipt/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/goodsreceipt/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── GoodsReceiptExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── InspectWorker.java
-│       ├── MatchPoWorker.java
-│       ├── ReceiveWorker.java
-│       ├── StoreWorker.java
-│       └── UpdateInventoryWorker.java
-└── src/test/java/goodsreceipt/workers/
-    ├── InspectWorkerTest.java        # 2 tests
-    ├── MatchPoWorkerTest.java        # 2 tests
-    ├── ReceiveWorkerTest.java        # 3 tests
-    ├── StoreWorkerTest.java        # 2 tests
-    └── UpdateInventoryWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

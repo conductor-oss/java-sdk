@@ -1,8 +1,6 @@
-# Multi-Agent Content Creation in Java Using Conductor :  Research, Write, SEO Optimize, Edit, Publish
+# Multi-Agent Content Creation in Java Using Conductor : Research, Write, SEO Optimize, Edit, Publish
 
-Multi-Agent Content Creation. research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Quality Content Requires Specialized Roles
+Multi-Agent Content Creation. research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents. ## Quality Content Requires Specialized Roles
 
 Asking an LLM to "write a blog post about Kubernetes" in a single call produces generic, unresearched content with no SEO optimization and no editorial review. Quality content creation mirrors a real editorial workflow: a researcher gathers facts and sources, a writer crafts the narrative for a specific audience and word count, an SEO specialist adds keywords and meta descriptions and optimizes headings, an editor improves readability and catches errors, and a publisher formats and delivers the final piece.
 
@@ -32,146 +30,21 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 cc_research_agent
-    │
-    ▼
+ │
+ ▼
 cc_writer_agent
-    │
-    ▼
+ │
+ ▼
 cc_seo_agent
-    │
-    ▼
+ │
+ ▼
 cc_editor_agent
-    │
-    ▼
+ │
+ ▼
 cc_publish
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/multi-agent-content-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/multi-agent-content-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow multi_agent_content_creation \
-  --version 1 \
-  --input '{"topic": "microservices best practices", "targetAudience": "production", "wordCount": 10}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w multi_agent_content_creation -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each agent owns one editorial role. Connect Tavily for topic research, an LLM for writing, SEMrush for keyword optimization, and WordPress or Ghost for publishing, and the research-write-optimize-edit-publish pipeline runs unchanged.
-
-- **ResearchAgentWorker** (`cc_research_agent`): integrate with Tavily or SerpAPI for web research, Google Trends for topic relevance, and content APIs (Wikipedia, industry databases) for authoritative sources
-- **SeoAgentWorker** (`cc_seo_agent`): use Ahrefs or SEMrush APIs for keyword difficulty and volume data, Yoast-style readability scoring, and competitive SERP analysis for the target keywords
-- **PublishWorker** (`cc_publish`): push to WordPress via REST API, Ghost CMS, Medium's API, or generate formatted Markdown for static site generators (Hugo, Jekyll)
-
-Replace with real LLM writing and SEO tools; the content pipeline uses the same research-to-publish interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-multi-agent-content/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/multiagentcontent/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MultiAgentContentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── EditorAgentWorker.java
-│       ├── PublishWorker.java
-│       ├── ResearchAgentWorker.java
-│       ├── SeoAgentWorker.java
-│       └── WriterAgentWorker.java
-└── src/test/java/multiagentcontent/workers/
-    ├── EditorAgentWorkerTest.java        # 11 tests
-    ├── PublishWorkerTest.java        # 8 tests
-    ├── ResearchAgentWorkerTest.java        # 8 tests
-    ├── SeoAgentWorkerTest.java        # 8 tests
-    └── WriterAgentWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

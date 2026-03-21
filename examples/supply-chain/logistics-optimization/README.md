@@ -1,6 +1,4 @@
-# Logistics Optimization in Java with Conductor :  Demand Analysis, Route Optimization, Vehicle Scheduling, and Fleet Dispatch
-
-A Java Conductor workflow example for logistics optimization. analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Logistics Optimization in Java with Conductor : Demand Analysis, Route Optimization, Vehicle Scheduling, and Fleet Dispatch
 
 ## The Problem
 
@@ -25,157 +23,22 @@ Four workers optimize the logistics pipeline: AnalyzeDemandWorker clusters order
 | **OptimizeRoutesWorker** | `lo_optimize_routes` | Computes optimal delivery routes across all delivery points to minimize total mileage. |
 | **ScheduleWorker** | `lo_schedule` | Schedules vehicles based on load capacity, driver hours-of-service, and time windows. |
 
-Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 lo_analyze_demand
-    │
-    ▼
+ │
+ ▼
 lo_optimize_routes
-    │
-    ▼
+ │
+ ▼
 lo_schedule
-    │
-    ▼
+ │
+ ▼
 lo_dispatch
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/logistics-optimization-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/logistics-optimization-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow lo_logistics_optimization \
-  --version 1 \
-  --input '{"region": "us-east-1", "date": "2026-01-01T00:00:00Z", "orders": "sample-orders"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w lo_logistics_optimization -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect AnalyzeDemandWorker to your order management system, OptimizeRoutesWorker to your vehicle routing solver (OR-Tools, Vroom), and DispatchWorker to your fleet dispatch platform. The workflow definition stays exactly the same.
-
-- **AnalyzeDemandWorker** (`lo_analyze_demand`): pull order data from your OMS/WMS, cluster by geography, and compute volume/weight per cluster for vehicle sizing
-- **OptimizeRoutesWorker** (`lo_optimize_routes`): solve the vehicle routing problem using Google OR-Tools, OptaPlanner, or a commercial solver (Routific, OptimoRoute)
-- **ScheduleWorker** (`lo_schedule`): assign vehicles from your fleet management system based on optimized route requirements, driver availability, and HOS compliance
-- **DispatchWorker** (`lo_dispatch`): push route assignments to drivers via telematics (Samsara, Geotab) and update the TMS with dispatch confirmations
-
-Replace any worker with a production route solver or fleet system while keeping the same return structure, and the pipeline adapts seamlessly.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-logistics-optimization/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/logisticsoptimization/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── LogisticsOptimizationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeDemandWorker.java
-│       ├── DispatchWorker.java
-│       ├── OptimizeRoutesWorker.java
-│       └── ScheduleWorker.java
-└── src/test/java/logisticsoptimization/workers/
-    ├── AnalyzeDemandWorkerTest.java        # 2 tests
-    ├── DispatchWorkerTest.java        # 2 tests
-    ├── OptimizeRoutesWorkerTest.java        # 2 tests
-    └── ScheduleWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

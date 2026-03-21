@@ -31,150 +31,18 @@ The workers auto-detect GitHub credentials at startup. When `GITHUB_TOKEN` is se
 
 ```
 gh_receive_webhook
-    │
-    ▼
+ │
+ ▼
 gh_create_pr
-    │
-    ▼
+ │
+ ▼
 gh_run_checks
-    │
-    ▼
+ │
+ ▼
 gh_merge_pr
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/github-integration-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `GITHUB_TOKEN` | _(none)_ | GitHub personal access token. When set, enables live PR creation and merging via the GitHub REST API. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/github-integration-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow github_integration_434 \
-  --version 1 \
-  --input '{"repo": "acme/api-service", "branch": "feature/new-endpoint", "baseBranch": "main", "commitMessage": "add user preferences endpoint"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w github_integration_434 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-CreatePrWorker and MergePrWorker already use the real GitHub REST API (via java.net.http) when `GITHUB_TOKEN` is provided. The remaining workers are demo:
-
-- **ReceiveWebhookWorker** (`gh_receive_webhook`): integrate with a real webhook endpoint that receives GitHub push events
-- **RunChecksWorker** (`gh_run_checks`): integrate with GitHub Actions, Jenkins, or another CI system to run real CI checks against the PR
-
-Replace each simulation with real API calls while keeping the same return schema, and the webhook-to-merge pipeline adapts without changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-github-integration/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/githubintegration/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── GithubIntegrationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CreatePrWorker.java
-│       ├── MergePrWorker.java
-│       ├── ReceiveWebhookWorker.java
-│       └── RunChecksWorker.java
-└── src/test/java/githubintegration/workers/
-    ├── CreatePrWorkerTest.java        # 2 tests
-    ├── MergePrWorkerTest.java        # 2 tests
-    ├── ReceiveWebhookWorkerTest.java        # 2 tests
-    └── RunChecksWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

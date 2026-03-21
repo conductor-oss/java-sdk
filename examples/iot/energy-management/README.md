@@ -1,6 +1,4 @@
-# Building Energy Management in Java with Conductor :  Consumption Monitoring, Pattern Analysis, and Optimization
-
-A Java Conductor workflow example that orchestrates building energy management. collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Building Energy Management in Java with Conductor : Consumption Monitoring, Pattern Analysis, and Optimization
 
 ## Why Energy Optimization Needs Orchestration
 
@@ -25,157 +23,24 @@ Four workers analyze building energy: MonitorConsumptionWorker reads kWh meter d
 | **OptimizeWorker** | `erg_optimize` | Generates optimization recommendations and projected savings. |
 | **ReportWorker** | `erg_report` | Generates an energy report. |
 
-Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs. the workflow and alerting logic stay the same.
+the workflow and alerting logic stay the same.
 
 ### The Workflow
 
 ```
 erg_monitor_consumption
-    │
-    ▼
+ │
+ ▼
 erg_analyze_patterns
-    │
-    ▼
+ │
+ ▼
 erg_optimize
-    │
-    ▼
+ │
+ ▼
 erg_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/energy-management-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/energy-management-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow energy_management_demo \
-  --version 1 \
-  --input '{"buildingId": "TEST-001", "period": "sample-period"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w energy_management_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect MonitorConsumptionWorker to your smart meter data feeds, AnalyzePatternsWorker to your energy analytics platform, and OptimizeWorker to your building management system. The workflow definition stays exactly the same.
-
-- **MonitorConsumptionWorker** (`erg_monitor_consumption`): pull real meter readings from your BMS (Modbus, BACnet), smart meter API, or time-series database to return per-interval kW readings and total kWh
-- **AnalyzePatternsWorker** (`erg_analyze_patterns`): run actual statistical analysis or ML models to detect HVAC-dominant periods, peak demand windows, and baseline load profiles
-- **OptimizeWorker** (`erg_optimize`): integrate with building control systems to generate actionable recommendations (HVAC schedule shifts, demand response participation) with projected cost savings
-- **ReportWorker** (`erg_report`): generate PDF or HTML energy reports via a templating engine and distribute to facilities managers via email or a building management dashboard
-
-Connect each worker to your smart meters or energy analytics platform while preserving output fields, and the analysis pipeline stays the same.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-energy-management/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/energymanagement/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── EnergyManagementExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzePatternsWorker.java
-│       ├── MonitorConsumptionWorker.java
-│       ├── OptimizeWorker.java
-│       └── ReportWorker.java
-└── src/test/java/energymanagement/workers/
-    ├── AnalyzePatternsWorkerTest.java        # 8 tests
-    ├── MonitorConsumptionWorkerTest.java        # 8 tests
-    ├── OptimizeWorkerTest.java        # 8 tests
-    └── ReportWorkerTest.java        # 7 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

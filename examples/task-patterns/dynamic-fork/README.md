@@ -20,7 +20,7 @@ Three workers implement the dynamic fanout: PrepareTasksWorker generates one tas
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **AggregateWorker** | `df_aggregate` | Aggregates results from all dynamic fork branches. Takes the joinOutput map (keyed by taskReferenceName) produced by  |
+| **AggregateWorker** | `df_aggregate` | Aggregates results from all dynamic fork branches. Takes the joinOutput map (keyed by taskReferenceName) produced by |
 | **FetchUrlWorker** | `df_fetch_url` | Fetches a URL and returns metadata. In a real application, this would make an HTTP request. Here it returns determini |
 | **PrepareTasksWorker** | `df_prepare_tasks` | Prepares the dynamic task list and input map for FORK_JOIN_DYNAMIC. Takes a list of URLs and generates: - dynamicTask |
 
@@ -30,146 +30,16 @@ Workers implement their processing steps so you can see the pattern in action wi
 
 ```
 df_prepare_tasks
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN_DYNAMIC (parallel, determined at runtime)
-    │
-    ▼
+ │
+ ▼
 JOIN (wait for all branches)
 df_aggregate
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/dynamic-fork-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/dynamic-fork-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow dynamic_fork_demo \
-  --version 1 \
-  --input '{"urls": ["https://example.com", "https://openai.com", "https://conductor.netflix.com"]}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w dynamic_fork_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Replace the URL fetcher with your real HTTP client or API integration, and the runtime-determined parallel fanout workflow runs unchanged regardless of the input list size.
-
-- **PrepareTasksWorker** (`df_prepare_tasks`): query a database or message queue for the list of URLs to fetch, filter by domain or priority, and generate the dynamic task definitions with per-URL configuration (headers, auth tokens, timeout overrides)
-- **FetchUrlWorker** (`df_fetch_url`): make real HTTP requests using Apache HttpClient or OkHttp, follow redirects, capture response headers and body, handle content types (JSON, HTML, binary), and return structured metadata (status code, content-length, response time)
-- **AggregateWorker** (`df_aggregate`): merge all fetch results into a report, compute statistics (success rate, average response time, total bytes transferred), flag failures for retry, and write the aggregated output to S3 or a database
-
-Replacing demo fetches with real HTTP requests does not change the dynamic fork workflow, as long as each branch worker returns the expected URL metadata and status fields.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-dynamic-fork/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/dynamicfork/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DynamicForkExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AggregateWorker.java
-│       ├── FetchUrlWorker.java
-│       └── PrepareTasksWorker.java
-└── src/test/java/dynamicfork/workers/
-    ├── AggregateWorkerTest.java        # 7 tests
-    ├── FetchUrlWorkerTest.java        # 8 tests
-    └── PrepareTasksWorkerTest.java        # 7 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

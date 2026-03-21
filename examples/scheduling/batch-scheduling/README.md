@@ -12,9 +12,7 @@ Without orchestration, batch scheduling is a cron-triggered script that runs eve
 
 **You just write the job prioritization and resource allocation logic. Conductor handles the prioritize-allocate-execute sequence, retries if a resource allocation fails, and visibility into which jobs ran, their ordering, and execution outcomes.**
 
-Each scheduling concern is an independent worker. Job prioritization, resource allocation, and batch execution. Conductor runs them in sequence: prioritize the queue, allocate resources, then execute. Every batch run is tracked with job ordering, resource assignments, and execution results. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each scheduling concern is an independent worker. Job prioritization, resource allocation, and batch execution. Conductor runs them in sequence: prioritize the queue, allocate resources, then execute. Every batch run is tracked with job ordering, resource assignments, and execution results. ### What You Write: Workers
 
 Three workers manage each batch run: PrioritizeJobsWorker orders the queue by urgency and resource needs, AllocateResourcesWorker assigns compute slots based on capacity, and ExecuteBatchWorker runs the prioritized jobs within concurrency limits.
 
@@ -24,151 +22,19 @@ Three workers manage each batch run: PrioritizeJobsWorker orders the queue by ur
 | **ExecuteBatchWorker** | `bs_execute_batch` | Executes the batch with allocated resources. |
 | **PrioritizeJobsWorker** | `bs_prioritize_jobs` | Prioritizes jobs in a batch based on priority weighting. |
 
-Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
-
 ### The Workflow
 
 ```
 bs_prioritize_jobs
-    │
-    ▼
+ │
+ ▼
 bs_allocate_resources
-    │
-    ▼
+ │
+ ▼
 bs_execute_batch
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/batch-scheduling-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/batch-scheduling-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow batch_scheduling_404 \
-  --version 1 \
-  --input '{"batchId": "batch-20260308-001", "jobs": ["etl-import", "data-transform", "report-gen"], "maxConcurrency": 4}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w batch_scheduling_404 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one scheduling phase. Connect the prioritizer to your job queue (SQS, Redis), the executor to your compute environment (Kubernetes Jobs, AWS Batch), and the prioritize-allocate-execute workflow stays the same.
-
-- **AllocateResourcesWorker** (`bs_allocate_resources`): check Kubernetes cluster capacity, cloud instance availability, or on-prem resource pools before allocation
-- **ExecuteBatchWorker** (`bs_execute_batch`): launch real jobs via Kubernetes Jobs, AWS Batch, or your internal execution engine with concurrency controls
-- **PrioritizeJobsWorker** (`bs_prioritize_jobs`): implement real priority scoring based on SLA deadlines, customer tier, job age, and resource requirements
-
-Wire in your real job queue and compute resource APIs, and the prioritize-allocate-execute orchestration runs without modification.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-batch-scheduling/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/batchscheduling/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── BatchSchedulingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AllocateResourcesWorker.java
-│       ├── ExecuteBatchWorker.java
-│       └── PrioritizeJobsWorker.java
-└── src/test/java/batchscheduling/workers/
-    ├── AllocateResourcesWorkerTest.java        # 3 tests
-    ├── ExecuteBatchWorkerTest.java        # 3 tests
-    └── PrioritizeJobsWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

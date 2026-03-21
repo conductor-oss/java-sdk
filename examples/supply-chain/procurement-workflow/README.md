@@ -26,163 +26,25 @@ Five workers cover the procure-to-pay cycle: RequisitionWorker creates the reque
 | **ReceiveWorker** | `prw_receive` | Confirms goods receipt. |
 | **RequisitionWorker** | `prw_requisition` | Creates a purchase requisition. |
 
-Workers implement supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 prw_requisition
-    │
-    ▼
+ │
+ ▼
 prw_approve
-    │
-    ▼
+ │
+ ▼
 prw_purchase
-    │
-    ▼
+ │
+ ▼
 prw_receive
-    │
-    ▼
+ │
+ ▼
 prw_pay
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/procurement-workflow-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/procurement-workflow-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow prw_procurement \
-  --version 1 \
-  --input '{"item": "Office Laptops", "quantity": 100, "budget": 50000, "requester": "eng-manager"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w prw_procurement -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect RequisitionWorker to your procurement portal, ApproveWorker to your budget authority system, and PayWorker to your accounts payable and banking integration. The workflow definition stays exactly the same.
-
-- **RequisitionWorker** (`prw_requisition`): create purchase requisitions in your ERP (SAP MM, Oracle Procurement) with line items, cost center allocation, and budget reference
-- **ApproveWorker** (`prw_approve`): route approvals based on spending thresholds (e.g., manager <$5K, director <$50K, VP >$50K) via your approval engine or Slack integration
-- **PurchaseWorker** (`prw_purchase`): convert approved requisitions to purchase orders in the ERP and transmit to the vendor via EDI, email, or supplier portal
-- **ReceiveWorker** (`prw_receive`): confirm goods receipt against the PO in your WMS/ERP, performing three-way matching (PO, receipt, invoice)
-- **PayWorker** (`prw_pay`): submit payment to AP via your ERP's payment run or payment platform (Bill.com, Tipalti), releasing funds only after goods receipt confirmation
-
-Connect any worker to your ERP procurement module while keeping output fields consistent, and the approval-to-payment pipeline remains the same.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-procurement-workflow/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/procurementworkflow/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ProcurementWorkflowExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ApproveWorker.java
-│       ├── PayWorker.java
-│       ├── PurchaseWorker.java
-│       ├── ReceiveWorker.java
-│       └── RequisitionWorker.java
-└── src/test/java/procurementworkflow/workers/
-    ├── ApproveWorkerTest.java        # 3 tests
-    ├── PayWorkerTest.java        # 2 tests
-    ├── PurchaseWorkerTest.java        # 2 tests
-    ├── ReceiveWorkerTest.java        # 2 tests
-    └── RequisitionWorkerTest.java        # 3 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

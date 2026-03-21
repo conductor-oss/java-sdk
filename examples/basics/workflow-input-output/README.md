@@ -29,147 +29,18 @@ The price calculator workers show how JSONPath expressions route specific fields
 
 ```
 lookup_price
-    │
-    ▼
+ │
+ ▼
 apply_discount
-    │
-    ▼
+ │
+ ▼
 calculate_tax
-    │
-    ▼
+ │
+ ▼
 format_invoice
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/workflow-input-output-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/workflow-input-output-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow price_calculator \
-  --version 1 \
-  --input '{"productId": "PROD-001", "quantity": 3, "couponCode": "SAVE10"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w price_calculator -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-- **LookupPriceWorker** (`lookup_price`): replace the in-memory catalog with a database query or product API call (e.g., Stripe Products, Shopify).
-- **ApplyDiscountWorker** (`apply_discount`): validate coupons against a promotions database with usage limits and expiry dates.
-- **CalculateTaxWorker** (`calculate_tax`): integrate a tax service like Avalara or TaxJar to calculate location-based tax rates.
-- **FormatInvoiceWorker** (`format_invoice`): generate a PDF invoice or post it to an accounting system like QuickBooks.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-workflow-input-output/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/workflowinputoutput/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── PriceCalculatorExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ApplyDiscountWorker.java
-│       ├── CalculateTaxWorker.java
-│       ├── FormatInvoiceWorker.java
-│       └── LookupPriceWorker.java
-└── src/test/java/workflowinputoutput/workers/
-    ├── ApplyDiscountWorkerTest.java
-    ├── CalculateTaxWorkerTest.java
-    ├── FormatInvoiceWorkerTest.java
-    └── LookupPriceWorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

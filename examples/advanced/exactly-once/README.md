@@ -26,161 +26,25 @@ Five workers enforce the exactly-once protocol: distributed locking, state check
 | **ExoProcessWorker** | `exo_process` | Executes the idempotent business logic (e.g., applying a debit and computing new balance) |
 | **ExoUnlockWorker** | `exo_unlock` | Releases the distributed lock after processing and commit are complete |
 
-Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
-
 ### The Workflow
 
 ```
 exo_lock
-    │
-    ▼
+ │
+ ▼
 exo_check_state
-    │
-    ▼
+ │
+ ▼
 exo_process
-    │
-    ▼
+ │
+ ▼
 exo_commit
-    │
-    ▼
+ │
+ ▼
 exo_unlock
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/exactly-once-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/exactly-once-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow exo_exactly_once \
-  --version 1 \
-  --input '{"messageId": "TXN-2024-5678", "payload": "debit_49.99", "resourceKey": "account:ACC-001"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w exo_exactly_once -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker enforces one part of the lock-check-process-commit protocol. Replace the demo Redis locks and idempotency lookups with real distributed lock and dedup store APIs and the exactly-once guarantee runs unchanged.
-
-- **ExoLockWorker** (`exo_lock`): acquire a real distributed lock using Redis (Redisson `RLock`), ZooKeeper (`InterProcessMutex`), or DynamoDB conditional writes with a TTL
-- **ExoCheckStateWorker** (`exo_check_state`): query a real idempotency store (DynamoDB `getItem` by message ID, PostgreSQL `SELECT` on a processed_messages table, or Redis `EXISTS`)
-- **ExoCommitWorker** (`exo_commit`): atomically write the result and mark the message as processed in a single database transaction, or use DynamoDB `TransactWriteItems` to commit both in one call
-
-The lock-check-commit protocol stays fixed. Swap the demo Redis lock for a real distributed lock (Redlock, ZooKeeper) and the deduplication guarantee holds unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-exactly-once/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/exactlyonce/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ExactlyOnceExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ExoCheckStateWorker.java
-│       ├── ExoCommitWorker.java
-│       ├── ExoLockWorker.java
-│       ├── ExoProcessWorker.java
-│       └── ExoUnlockWorker.java
-└── src/test/java/exactlyonce/workers/
-    ├── ExoCheckStateWorkerTest.java        # 4 tests
-    ├── ExoCommitWorkerTest.java        # 4 tests
-    ├── ExoLockWorkerTest.java        # 4 tests
-    ├── ExoProcessWorkerTest.java        # 4 tests
-    └── ExoUnlockWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

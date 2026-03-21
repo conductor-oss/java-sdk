@@ -25,148 +25,22 @@ Four checkout workers: cart validation, tax calculation, payment processing, and
 | **ProcessPaymentWorker** | `chk_process_payment` | Processes payment and returns a payment ID. |
 | **ValidateCartWorker** | `chk_validate_cart` | Validates the shopping cart and returns subtotal information. |
 
-Workers implement e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 chk_validate_cart
-    │
-    ▼
+ │
+ ▼
 chk_calculate_tax
-    │
-    ▼
+ │
+ ▼
 chk_process_payment
-    │
-    ▼
+ │
+ ▼
 chk_confirm_order
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/checkout-flow-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/checkout-flow-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow checkout_flow \
-  --version 1 \
-  --input '{"cartId": "cart-abc123", "userId": "usr-501", "shippingAddress": {"street": "123 Main St", "city": "San Francisco", "state": "CA", "zip": "94105"}, "paymentMethod": {"type": "credit_card", "last4": "4242"}}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w checkout_flow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real checkout services. Stripe for payments, Avalara for tax, your inventory system for cart validation, and the workflow runs identically in production.
-
-- **ValidateCartWorker** (`chk_validate_cart`): verify item availability against real inventory, confirm current pricing, and check for any cart-level restrictions (minimum order, shipping eligibility)
-- **CalculateTaxWorker** (`chk_calculate_tax`): integrate with Avalara AvaTax, TaxJar, or Stripe Tax for real-time tax calculation with jurisdiction-level accuracy and exemption handling
-- **ProcessPaymentWorker** (`chk_process_payment`): use Stripe Payment Intents or Braintree Transactions API with idempotency keys to prevent double-charging on retries
-- **ConfirmOrderWorker** (`chk_confirm_order`): create orders in Shopify, WooCommerce, or a custom OMS, send confirmation emails via SendGrid, and publish order events to an event stream for downstream systems
-
-Connect each worker to your real checkout services and the workflow runs identically in production.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-checkout-flow/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/checkoutflow/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CheckoutFlowExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CalculateTaxWorker.java
-│       ├── ConfirmOrderWorker.java
-│       ├── ProcessPaymentWorker.java
-│       └── ValidateCartWorker.java
-└── src/test/java/checkoutflow/workers/
-    ├── CalculateTaxWorkerTest.java        # 7 tests
-    ├── ConfirmOrderWorkerTest.java        # 5 tests
-    ├── ProcessPaymentWorkerTest.java        # 5 tests
-    └── ValidateCartWorkerTest.java        # 5 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

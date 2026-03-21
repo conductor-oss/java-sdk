@@ -26,160 +26,25 @@ Five workers form the tracking pipeline: TagAssetWorker registers IoT identifier
 | **TriggerAlertWorker** | `ast_trigger_alert` | Evaluates geofence status and triggers an alert if the asset is outside the authorized zone. |
 | **UpdateRegistryWorker** | `ast_update_registry` | Updates the central asset registry with current location, geofence status, and alert information. |
 
-Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
-
 ### The Workflow
 
 ```
 ast_tag_asset
-    │
-    ▼
+ │
+ ▼
 ast_track_location
-    │
-    ▼
+ │
+ ▼
 ast_geofence_check
-    │
-    ▼
+ │
+ ▼
 ast_trigger_alert
-    │
-    ▼
+ │
+ ▼
 ast_update_registry
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/asset-tracking-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/asset-tracking-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow asset_tracking_workflow \
-  --version 1 \
-  --input '{"assetId": "ASSET-540-PALLET-001", "assetType": "shipping_pallet", "geofenceId": "GF-WAREHOUSE-A"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w asset_tracking_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect TagAssetWorker to your IoT device registry, TrackLocationWorker to your GPS tracking platform, and TriggerAlertWorker to your operations notification system. The workflow definition stays exactly the same.
-
-- **TagAssetWorker** (`ast_tag_asset`): register the asset with your IoT tracking platform (Tile, Apple AirTag network, custom BLE tags) or asset management system to get a tag ID
-- **TrackLocationWorker** (`ast_track_location`): query real GPS positions from your tracking hardware (CalAmp, Queclink, Sierra Wireless) or a fleet tracking API (Samsara, GPS Trackit)
-- **GeofenceCheckWorker** (`ast_geofence_check`): perform real geospatial boundary checks using PostGIS, JTS Topology Suite, or Google Maps Geofencing API with polygon or radius-based fences
-- **TriggerAlertWorker** (`ast_trigger_alert`): send real alerts via SMS, email, or push notifications to security or logistics teams when assets leave authorized zones
-- **UpdateRegistryWorker** (`ast_update_registry`): write location and status updates to your asset management database, ERP system, or CMDB
-
-Swap each worker for a production GPS provider or alert system while keeping the same output fields, and the tracking workflow needs no changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-asset-tracking/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/assettracking/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AssetTrackingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── GeofenceCheckWorker.java
-│       ├── TagAssetWorker.java
-│       ├── TrackLocationWorker.java
-│       ├── TriggerAlertWorker.java
-│       └── UpdateRegistryWorker.java
-└── src/test/java/assettracking/workers/
-    ├── TagAssetWorkerTest.java        # 2 tests
-    └── TrackLocationWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

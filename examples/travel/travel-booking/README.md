@@ -26,167 +26,25 @@ Five workers divide the booking flow. Search, compare, book, confirm, and itiner
 | `ConfirmWorker` | `tvb_confirm` | Finalizes the reservation, issuing e-ticket `ET-travel-booking-2024` |
 | `ItineraryWorker` | `tvb_itinerary` | Assembles and sends the complete itinerary (flight, booking ref, e-ticket) to the traveler |
 
-Workers implement travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 tvb_search
-    |
-    v
+ |
+ v
 tvb_compare
-    |
-    v
+ |
+ v
 tvb_book
-    |
-    v
+ |
+ v
 tvb_confirm
-    |
-    v
+ |
+ v
 tvb_itinerary
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/travel-booking-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/travel-booking-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow tvb_travel_booking \
-  --version 1 \
-  --input '{"travelerId": "TRV-100", "origin": "SFO", "destination": "JFK", "departDate": "2024-04-15"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w tvb_travel_booking -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Swap each worker for real travel APIs. Amadeus or Sabre for flight search, your GDS for booking, SendGrid for itinerary emails, and the workflow runs identically in production.
-
-- **`SearchWorker`**: Query a GDS (Amadeus, Sabre, Travelport) or airline NDC APIs for available flights matching the origin, destination, and travel dates.
-
-- **`CompareWorker`**: Rank results by total cost, layover time, airline preference, and loyalty program benefits to find the best value option.
-
-- **`BookWorker`**: Create the PNR (Passenger Name Record) in the GDS or airline's reservation system and return the booking reference.
-
-- **`ConfirmWorker`**: Issue the e-ticket via the airline's ticketing API, charge the traveler's payment method, and return the ticket number.
-
-- **`ItineraryWorker`**: Assemble the complete itinerary (flight details, booking ref, e-ticket, gate info) and deliver it via email or your corporate travel portal.
-
-Connect real GDS and airline APIs and the booking pipeline runs without structural changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-travel-booking-travel-booking/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/travelbooking/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── TravelBookingExample.java    # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── BookWorker.java          # Reserves selected flight, returns booking ID
-│       ├── CompareWorker.java       # Selects best-value flight from search results
-│       ├── ConfirmWorker.java       # Confirms booking and issues e-ticket
-│       ├── ItineraryWorker.java     # Assembles and sends itinerary to traveler
-│       └── SearchWorker.java        # Searches available flights across airlines
-└── src/test/java/travelbooking/workers/
-    ├── BookWorkerTest.java
-    ├── CompareWorkerTest.java
-    ├── ConfirmWorkerTest.java
-    ├── ItineraryWorkerTest.java
-    └── SearchWorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

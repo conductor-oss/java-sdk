@@ -12,9 +12,7 @@ Without orchestration, anomaly detection is either a monolithic ML pipeline that
 
 **You just write the baseline computation and deviation detection logic. Conductor handles the collect-baseline-detect-classify-alert sequence, retries when metric sources are temporarily unavailable, and tracking of every baseline computed and anomaly detected.**
 
-Each anomaly detection step is an independent worker: data collection, baseline computation, deviation detection, classification, and alerting. Conductor runs them in sequence, passing the baseline to the detector and the anomaly details to the classifier. Every detection run is tracked, you can see the baseline used, deviations found, and whether alerts fired. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each anomaly detection step is an independent worker: data collection, baseline computation, deviation detection, classification, and alerting. Conductor runs them in sequence, passing the baseline to the detector and the anomaly details to the classifier. Every detection run is tracked, you can see the baseline used, deviations found, and whether alerts fired. ### What You Write: Workers
 
 Five workers form the detection pipeline: CollectDataWorker gathers historical metrics, ComputeBaselineWorker calculates statistical baselines, DetectWorker computes z-scores against the baseline, ClassifyWorker categorizes anomaly severity, and AlertWorker notifies the appropriate channel.
 
@@ -26,157 +24,25 @@ Five workers form the detection pipeline: CollectDataWorker gathers historical m
 | **ComputeBaselineWorker** | `anom_compute_baseline` | Computes a statistical baseline (mean and standard deviation) from collected data points for anomaly comparison |
 | **DetectWorker** | `anom_detect` | Calculates the z-score of the latest metric value against the baseline to determine if it is anomalous |
 
-Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
-
 ### The Workflow
 
 ```
 anom_collect_data
-    │
-    ▼
+ │
+ ▼
 anom_compute_baseline
-    │
-    ▼
+ │
+ ▼
 anom_detect
-    │
-    ▼
+ │
+ ▼
 anom_classify
-    │
-    ▼
+ │
+ ▼
 anom_alert
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/anomaly-detection-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/anomaly-detection-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow anomaly_detection_414 \
-  --version 1 \
-  --input '{"metricName": "request_latency_ms", "lookbackHours": 24, "sensitivity": "high"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w anomaly_detection_414 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker owns one detection step. Connect the data collector to Prometheus or InfluxDB, the alerting worker to PagerDuty, and the collect-baseline-detect-classify-alert workflow stays the same.
-
-- **AlertWorker** (`anom_alert`): send severity-appropriate alerts via PagerDuty (critical), Slack (warning), or dashboard updates (info)
-- **ClassifyWorker** (`anom_classify`): classify anomaly severity based on deviation magnitude, duration, and business impact
-- **CollectDataWorker** (`anom_collect_data`): query real metric stores. Prometheus, InfluxDB, CloudWatch, Datadog, for historical and current values
-
-Connect to your real time-series databases and alerting channels, and the statistical detection pipeline continues running without workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-anomaly-detection/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/anomalydetection/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AnomalyDetectionExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AlertWorker.java
-│       ├── ClassifyWorker.java
-│       ├── CollectDataWorker.java
-│       ├── ComputeBaselineWorker.java
-│       └── DetectWorker.java
-└── src/test/java/anomalydetection/workers/
-    └── DetectWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -31,103 +31,15 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 cr_retrieve_docs
-    │
-    ▼
+ │
+ ▼
 cr_generate_cited
-    │
-    ▼
+ │
+ ▼
 cr_extract_citations
-    │
-    ▼
+ │
+ ▼
 cr_verify_citations
-
-```
-
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/rag-citation-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, GenerateCitedWorker calls gpt-4o-mini instead of using demo output |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/rag-citation-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow citation_rag_workflow \
-  --version 1 \
-  --input '{"question": "How does Conductor handle workflow orchestration?"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w citation_rag_workflow -s COMPLETED -c 5
 
 ```
 
@@ -143,53 +55,6 @@ Standard RAG generates answers from retrieved context, but there is no guarantee
 
 4. **Verify Citations** (`cr_verify_citations`): Cross-reference each citation's `docId` against the retrieved document set. This catches hallucinated citations, where the LLM references a document that was never retrieved (e.g., citing `[5]` when only 4 documents were provided).
 
-## How to Extend
+---
 
-Each worker handles one citation lifecycle step. Swap in a real vector store for retrieval, instruct Claude or GPT-4 to produce inline citations, and the extraction and verification pipeline runs unchanged.
-
-- **RetrieveDocsWorker** (`cr_retrieve_docs`): swap in a real vector store query against Pinecone, Weaviate, Qdrant, pgvector, or Elasticsearch. Include document metadata (title, page, URL) so citations can link to the source
-- **GenerateCitedWorker** (`cr_generate_cited`): call Claude or GPT-4 with a system prompt that instructs inline citations: "Cite sources using [1], [2], etc. Every factual claim must have a citation." Parse the structured citations from the LLM response
-- **ExtractCitationsWorker** (`cr_extract_citations`): the parsing logic is already deterministic and well-tested. Enhance it with regex-based extraction of citation markers from free-text LLM output
-- **VerifyCitationsWorker** (`cr_verify_citations`): the verification logic is already deterministic and well-tested. Add content verification: check that the cited claim is actually supported by the referenced document's text (semantic similarity check)
-- **Add a citation rejection loop**: if `allVerified` is false, re-generate the answer with stricter citation instructions (Conductor DO_WHILE task)
-
-Each worker keeps its output contract stable, so upgrading the retrieval backend or tightening the citation verification logic requires no workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-rag-citation/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/ragcitation/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── RagCitationExample.java      # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ExtractCitationsWorker.java  # Parse and validate citation markers in answer text
-│       ├── GenerateCitedWorker.java     # LLM generation with inline [1][2][3][4] citations
-│       ├── RetrieveDocsWorker.java      # Fetch source documents with metadata
-│       └── VerifyCitationsWorker.java   # Cross-reference citations against document set
-└── src/test/java/ragcitation/workers/
-    ├── ExtractCitationsWorkerTest.java  # 5 tests. Marker parsing, missing markers
-    ├── GenerateCitedWorkerTest.java     # Tests. Citation structure, answer format
-    ├── RetrieveDocsWorkerTest.java      # Tests. Document count, metadata fields
-    └── VerifyCitationsWorkerTest.java   # 7 tests. Verified/unverified, null handling
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

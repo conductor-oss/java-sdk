@@ -24,7 +24,7 @@ Five workers drive the ReAct loop. Initializing the question, then iterating thr
 | **FinalAnswerWorker** | `rx_final_answer` | Produces the final answer after all ReAct iterations are complete. Returns a deterministic answer with a confidence s |
 | **InitTaskWorker** | `rx_init_task` | Initializes the ReAct agent loop by capturing the question and creating an empty context list for subsequent iterations. |
 | **ObserveWorker** | `rx_observe` | Observes the result of the action and determines whether the information is useful for answering the question. Always |
-| **ReasonWorker** | `rx_reason` | Reasons about the question and decides what action to take next. Produces a thought, an action type, and a query for  |
+| **ReasonWorker** | `rx_reason` | Reasons about the question and decides what action to take next. Produces a thought, an action type, and a query for |
 
 Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
@@ -32,143 +32,18 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 rx_init_task
-    │
-    ▼
+ │
+ ▼
 DO_WHILE
-    └── rx_reason
-    └── rx_act
-    └── rx_observe
-    │
-    ▼
+ └── rx_reason
+ └── rx_act
+ └── rx_observe
+ │
+ ▼
 rx_final_answer
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/react-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/react-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow react_agent \
-  --version 1 \
-  --input '{"question": "What is the current world population?"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w react_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one phase of the Reason-Act-Observe cycle. Use an LLM with ReAct prompting for reasoning, connect real tools (SerpAPI, Wolfram Alpha, Wikipedia) for actions, and add LLM-based observation evaluation, and the iterative reasoning loop runs unchanged.
-
-- **ReasonWorker** (`rx_reason`): use GPT-4 or Claude with the ReAct prompt format (Thought/Action/Observation) for genuine multi-step reasoning with tool selection
-- **ActWorker** (`rx_act`): connect to real tools: SerpAPI or Tavily for web search, Wolfram Alpha for calculations, Wikipedia API for factual lookups, and SQL databases for data queries
-- **ObserveWorker** (`rx_observe`): use an LLM to extract relevant facts from action results, assess confidence levels, and determine whether the question can be answered or more actions are needed
-
-Wire in real search APIs and LLM reasoning; the reason-act-observe loop uses the same iteration contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-react-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/reactagent/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ReactAgentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ActWorker.java
-│       ├── FinalAnswerWorker.java
-│       ├── InitTaskWorker.java
-│       ├── ObserveWorker.java
-│       └── ReasonWorker.java
-└── src/test/java/reactagent/workers/
-    ├── ActWorkerTest.java        # 9 tests
-    ├── FinalAnswerWorkerTest.java        # 8 tests
-    ├── InitTaskWorkerTest.java        # 8 tests
-    ├── ObserveWorkerTest.java        # 8 tests
-    └── ReasonWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

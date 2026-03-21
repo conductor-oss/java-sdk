@@ -26,8 +26,6 @@ Risk signal workers run in parallel. Rule checks, ML scoring, and velocity detec
 | `VelocityCheckWorker` | `frd_velocity_check` | Checks transaction velocity patterns: rapid succession, unusual volume, and geographic anomaly flags. Returns overall `velocityResult` (`normal` / `elevated` / `suspicious`) and per-flag details |
 | `DecideWorker` | `frd_decide` | Combines rule result, ML fraud score, and velocity result into a final APPROVE / REVIEW / BLOCK decision with risk score and reason |
 
-Workers implement e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
-
 ### Decision Semantics
 
 `DecideWorker` uses deterministic thresholds to make the final decision:
@@ -44,146 +42,19 @@ Thresholds are evaluated top-down: BLOCK conditions are checked first, then REVI
 
 ```
 frd_analyze_transaction
-    |
-    v
+ |
+ v
 FORK_JOIN
-    |-- frd_rule_check
-    |-- frd_ml_score
-    +-- frd_velocity_check
-    |
-    v
+ |-- frd_rule_check
+ |-- frd_ml_score
+ +-- frd_velocity_check
+ |
+ v
 JOIN (wait for all branches)
 frd_decide
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/fraud-detection-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/fraud-detection-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow fraud_detection_workflow \
-  --version 1 \
-  --input '{"transactionId": "TXN-98321", "amount": 249.99, "merchantId": "MERCH-1234", "customerId": "CUST-5678"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w fraud_detection_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Replace each worker with your real fraud systems, a feature store like Feast for transaction analysis, SageMaker for ML scoring, Redis for velocity tracking, and the workflow runs identically in production.
-
-| Worker | Production Replacement |
-|---|---|
-| `AnalyzeTransactionWorker` | Feature store (Feast, Tecton) for real-time feature retrieval; customer data platform for profile enrichment |
-| `RuleCheckWorker` | Rules engine (Drools, AWS Fraud Detector rules) for configurable, hot-reloadable fraud rules |
-| `MlScoreWorker` | ML model endpoint (SageMaker, Vertex AI, or a custom model server) serving a trained fraud model |
-| `VelocityCheckWorker` | Redis sorted sets or time-windowed counters for real-time transaction frequency tracking |
-| `DecideWorker` | Case management queue (ServiceNow, custom review dashboard) for REVIEW decisions; webhook/notification for BLOCK decisions |
-
-Update your ML model or add a new risk signal and the decision pipeline incorporates it without restructuring.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk).
-
-## Project Structure
-
-```
-fraud-detection/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/frauddetection/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── FraudDetectionExample.java   # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeTransactionWorker.java
-│       ├── RuleCheckWorker.java
-│       ├── MlScoreWorker.java
-│       ├── VelocityCheckWorker.java
-│       └── DecideWorker.java
-└── src/test/java/frauddetection/workers/
-    ├── DecideWorkerTest.java              # 13 tests: APPROVE/REVIEW/BLOCK thresholds, edge cases
-    ├── AnalyzeTransactionWorkerTest.java  # 9 tests: profile output, feature extraction, null safety
-    └── RuleCheckWorkerTest.java           # 8 tests: rule evaluation, fired/unfired rules
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

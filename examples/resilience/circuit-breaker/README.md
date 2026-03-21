@@ -1,7 +1,5 @@
 # Implementing Circuit Breaker Pattern in Java with Conductor: Prevent Cascading Failures with State-Based Routing
 
-A Java Conductor workflow example implementing the circuit breaker pattern. Checking the circuit state based on recent failure counts, routing to the real service call when the circuit is CLOSED, or returning cached/fallback data when the circuit is OPEN to prevent cascading failures.
-
 ## The Problem
 
 You have a service that depends on an unreliable downstream dependency, a payment API, a third-party geocoding service, an internal inventory microservice. When that dependency starts failing, every request continues to hit it, making things worse (thundering herd), and each request waits for a timeout before failing (degrading your own response times). Meanwhile, the downstream service is overwhelmed and cannot recover.
@@ -11,17 +9,17 @@ You have a service that depends on an unreliable downstream dependency, a paymen
 The circuit breaker pattern tracks failure counts and transitions between three states:
 
 ```
-           success
-     +------------------+
-     |                  |
-     v    failureCount  |    failureCount
-  CLOSED  ------------> OPEN  <-- stays OPEN until cooldown
-     ^   >= threshold   |
-     |                  | cooldown expires
-     |                  v
-     +--- HALF_OPEN ----+
-          (test one       failure -> back to OPEN
-           request)       success -> back to CLOSED
+ success
+ +------------------+
+ | |
+ v failureCount | failureCount
+ CLOSED ------------> OPEN <-- stays OPEN until cooldown
+ ^ >= threshold |
+ | | cooldown expires
+ | v
+ +--- HALF_OPEN ----+
+ (test one failure -> back to OPEN
+ request) success -> back to CLOSED
 
 ```
 
@@ -35,9 +33,7 @@ Without orchestration, implementing circuit breakers means embedding state manag
 
 **You just write the service call and fallback logic. Conductor handles SWITCH-based state routing between OPEN and CLOSED paths, retries on the service call, and visibility into every circuit evaluation showing which state was active and whether the live or fallback path was taken.**
 
-Each circuit breaker concern is a simple, independent worker. One evaluates the circuit state from failure count and threshold, one makes the actual service call, one returns fallback data. Conductor's SWITCH task handles the routing: when the circuit is OPEN, it skips the service call entirely and routes to the fallback path. Every circuit evaluation is tracked with inputs, outputs, and timing, giving you full visibility into which circuits tripped and when. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each circuit breaker concern is a simple, independent worker. One evaluates the circuit state from failure count and threshold, one makes the actual service call, one returns fallback data. Conductor's SWITCH task handles the routing: when the circuit is OPEN, it skips the service call entirely and routes to the fallback path. Every circuit evaluation is tracked with inputs, outputs, and timing, giving you full visibility into which circuits tripped and when. ### What You Write: Workers
 
 CheckCircuitWorker evaluates the circuit state from failure counts and thresholds, CallServiceWorker makes the live service call when the circuit is CLOSED, and FallbackWorker returns cached data when the circuit is OPEN to protect the failing dependency.
 
@@ -53,164 +49,14 @@ Workers implement success and failure scenarios so you can observe the resilienc
 
 ```
 cb_check_circuit
-    |
-    v
+ |
+ v
 SWITCH (circuit_switch_ref) on state:
-    |-- "OPEN":    cb_fallback  --> returns cached data (source: "cache")
-    |-- default:   cb_call_service --> returns live data (source: "live")
+ |-- "OPEN": cb_fallback --> returns cached data (source: "cache")
+ |-- default: cb_call_service --> returns live data (source: "live")
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/circuit-breaker-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/circuit-breaker-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-# Circuit CLOSED: 0 failures, threshold 3, service call goes through
-conductor workflow start \
-  --workflow circuit_breaker_demo \
-  --version 1 \
-  --input '{"failureCount": 0, "threshold": 3, "serviceName": "payment-api"}'
-
-# Circuit OPEN: 5 failures exceed threshold of 3, fallback returned
-conductor workflow start \
-  --workflow circuit_breaker_demo \
-  --version 1 \
-  --input '{"failureCount": 5, "threshold": 3, "serviceName": "payment-api"}'
-
-# Circuit forced OPEN: manual kill switch, regardless of failure count
-conductor workflow start \
-  --workflow circuit_breaker_demo \
-  --version 1 \
-  --input '{"circuitState": "OPEN", "serviceName": "payment-api"}'
-
-# Circuit HALF_OPEN: testing if service has recovered
-conductor workflow start \
-  --workflow circuit_breaker_demo \
-  --version 1 \
-  --input '{"circuitState": "HALF_OPEN", "serviceName": "inventory-api"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w circuit_breaker_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one circuit breaker concern. Connect the service call worker to your real downstream API (payment gateway, geocoding service), the fallback worker to serve cached data, and the state-check-route-respond workflow stays the same.
-
-- **CheckCircuitWorker** (`cb_check_circuit`): back with Redis or DynamoDB to persist failure counts across invocations and support HALF_OPEN state with time-based cooldowns
-- **CallServiceWorker** (`cb_call_service`): replace with your real HTTP/gRPC service call, record success/failure to update the circuit state for the next invocation
-- **FallbackWorker** (`cb_fallback`): return cached data from Redis/Memcached, serve stale values from a read replica, or return a graceful degraded response
-- **Add HALF_OPEN routing**: extend the SWITCH task with a HALF_OPEN case that sends a single test request and transitions back to CLOSED on success or OPEN on failure
-
-Wire the service call worker to your real downstream API and the fallback to your cache layer, and the state-based circuit breaker routing works without any orchestration changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-circuit-breaker/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/circuitbreaker/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CircuitBreakerExample.java   # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CallServiceWorker.java
-│       ├── CheckCircuitWorker.java
-│       └── FallbackWorker.java
-└── src/test/java/circuitbreaker/workers/
-    ├── CallServiceWorkerTest.java   # 4 tests
-    ├── CheckCircuitWorkerTest.java  # 12 tests
-    └── FallbackWorkerTest.java      # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -31,151 +31,18 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 FORK_JOIN
-    ├── hs_vector_search
-    └── hs_keyword_search
-    │
-    ▼
+ ├── hs_vector_search
+ └── hs_keyword_search
+ │
+ ▼
 JOIN (wait for all branches)
 hs_rrf_merge
-    │
-    ▼
+ │
+ ▼
 hs_generate_answer
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/rag-hybrid-search-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, GenerateAnswerWorker calls gpt-4o-mini instead of using demo output |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/rag-hybrid-search-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow rag_hybrid_search \
-  --version 1 \
-  --input '{"question": "How does Conductor define and execute workflows?"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w rag_hybrid_search -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one search strategy. Swap in a real vector store for semantic search, Elasticsearch or Solr for BM25 keyword search, and the parallel search with reciprocal rank fusion runs unchanged.
-
-- **GenerateAnswerWorker** (`hs_generate_answer`): send the merged context documents to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer
-- **KeywordSearchWorker** (`hs_keyword_search`): tokenize the query and search a BM25 inverted index (Elasticsearch, Apache Solr, OpenSearch) for keyword-matching documents
-- **RrfMergeWorker** (`hs_rrf_merge`): apply Reciprocal Rank Fusion to merge and deduplicate results from both vector and keyword searches into a single ranked list
-
-Each search worker returns the same scored-result shape, so tuning RRF weights, adding new search strategies, or swapping the vector store requires no changes to the merge or generation workers.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-rag-hybrid-search/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/raghybridsearch/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── RagHybridSearchExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── GenerateAnswerWorker.java
-│       ├── KeywordSearchWorker.java
-│       ├── RrfMergeWorker.java
-│       └── VectorSearchWorker.java
-└── src/test/java/raghybridsearch/workers/
-    ├── GenerateAnswerWorkerTest.java        # 4 tests
-    ├── KeywordSearchWorkerTest.java        # 5 tests
-    ├── RrfMergeWorkerTest.java        # 4 tests
-    └── VectorSearchWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

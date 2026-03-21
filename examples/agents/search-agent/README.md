@@ -1,8 +1,6 @@
-# Search Agent in Java Using Conductor :  Formulate Queries, Parallel Google/Wiki Search, Rank, Synthesize
+# Search Agent in Java Using Conductor : Formulate Queries, Parallel Google/Wiki Search, Rank, Synthesize
 
-Search Agent. formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Good Answers Need Multiple Search Sources
+Search Agent. formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. ## Good Answers Need Multiple Search Sources
 
 A question like "What are the environmental impacts of lithium mining?" benefits from both web search (current news, industry reports, environmental assessments) and Wikipedia (background knowledge, historical context, established science). Searching either alone gives incomplete results. Searching both sequentially doubles the latency.
 
@@ -32,146 +30,21 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 sa_formulate_queries
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── sa_search_google
-    └── sa_search_wiki
-    │
-    ▼
+ ├── sa_search_google
+ └── sa_search_wiki
+ │
+ ▼
 JOIN (wait for all branches)
 sa_rank_merge
-    │
-    ▼
+ │
+ ▼
 sa_synthesize
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/search-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/search-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow search_agent \
-  --version 1 \
-  --input '{"question": "What is workflow orchestration?", "maxResults": "sample-maxResults"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w search_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each search worker targets one source. Integrate SerpAPI or Google Custom Search for web results, the Wikipedia API for encyclopedic knowledge, and an LLM for cited answer synthesis, and the formulate-search-rank-synthesize workflow runs unchanged.
-
-- **SearchGoogleWorker** (`sa_search_google`): integrate with SerpAPI, Google Custom Search JSON API, or Tavily for real web search with snippet extraction and source credibility scoring
-- **SearchWikiWorker** (`sa_search_wiki`): use the Wikipedia API's `action=query&list=search` endpoint for full-text search, with `prop=extracts` for page content retrieval
-- **SynthesizeWorker** (`sa_synthesize`): use an LLM with the ranked results as context, instructing it to cite sources using numbered references and note where sources agree or disagree
-
-Connect to real search engines and Wikipedia API; the parallel search pipeline preserves the same query-rank-synthesize interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-search-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/searchagent/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── SearchAgentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── FormulateQueriesWorker.java
-│       ├── RankMergeWorker.java
-│       ├── SearchGoogleWorker.java
-│       ├── SearchWikiWorker.java
-│       └── SynthesizeWorker.java
-└── src/test/java/searchagent/workers/
-    ├── FormulateQueriesWorkerTest.java        # 9 tests
-    ├── RankMergeWorkerTest.java        # 8 tests
-    ├── SearchGoogleWorkerTest.java        # 8 tests
-    ├── SearchWikiWorkerTest.java        # 8 tests
-    └── SynthesizeWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

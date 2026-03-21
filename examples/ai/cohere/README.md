@@ -1,6 +1,4 @@
-# Cohere Marketing Copy Generation in Java Using Conductor :  Build Prompt, Generate Candidates, Select Best
-
-A Java Conductor workflow example for generating marketing copy using Cohere. building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Cohere Marketing Copy Generation in Java Using Conductor : Build Prompt, Generate Candidates, Select Best
 
 ## One Generation Is Not Enough for Production Copy
 
@@ -12,7 +10,7 @@ Without orchestration, you'd loop through generations in a single function, mix 
 
 **You write the prompt construction, Cohere API call, and candidate selection logic. Conductor handles the pipeline, retries, and observability.**
 
-`CohereBuildPromptWorker` constructs a prompt tailored for marketing content. specifying tone, audience, product details, and desired call-to-action. `CohereGenerateWorker` calls the Cohere Generate API to produce multiple text candidates. `CohereSelectBestWorker` evaluates each candidate against quality criteria and selects the winner. Conductor records the prompt, all generated candidates, and the selection rationale,  so the marketing team can review alternatives and understand why one version was chosen.
+`CohereBuildPromptWorker` constructs a prompt tailored for marketing content. specifying tone, audience, product details, and desired call-to-action. `CohereGenerateWorker` calls the Cohere Generate API to produce multiple text candidates. `CohereSelectBestWorker` evaluates each candidate against quality criteria and selects the winner. Conductor records the prompt, all generated candidates, and the selection rationale, so the marketing team can review alternatives and understand why one version was chosen.
 
 ### What You Write: Workers
 
@@ -30,146 +28,15 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 cohere_build_prompt
-    │
-    ▼
+ │
+ ▼
 cohere_generate
-    │
-    ▼
+ │
+ ▼
 cohere_select_best
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/cohere-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `COHERE_API_KEY` | _(none)_ | Cohere API key. When set, `CohereGenerateWorker` calls the real Cohere Generate API. When unset, returns demo responses with `[DEMO]` prefix. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/cohere-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow cohere_text_generation \
-  --version 1 \
-  --input '{"input": "test"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w cohere_text_generation -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one stage of the copy generation pipeline. swap in the real Cohere Generate API for multi-candidate generation, add readability scoring or Cohere Rerank for selection, and the workflow runs unchanged.
-
-- **CohereGenerateWorker** (`cohere_generate`): call the real Cohere Generate API (`co.generate()`) or Chat API (`co.chat()`) with your API key, generating multiple candidates with different temperature/p values
-- **CohereSelectBestWorker** (`cohere_select_best`): implement real selection: use Cohere's Rerank API to score candidates, apply readability metrics (Flesch-Kincaid), or call a separate LLM to judge quality
-- **CohereBuildPromptWorker** (`cohere_build_prompt`): load real prompt templates from a database, inject product details from your catalog API, and apply brand voice guidelines from a style configuration
-
-Each worker maintains its output shape, so swapping in the real Cohere API or adding a Rerank-based selection step requires no workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-cohere/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/cohere/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CohereExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CohereBuildPromptWorker.java
-│       ├── CohereGenerateWorker.java
-│       └── CohereSelectBestWorker.java
-└── src/test/java/cohere/workers/
-    ├── CohereBuildPromptWorkerTest.java        # 4 tests
-    ├── CohereGenerateWorkerTest.java        # 5 tests
-    └── CohereSelectBestWorkerTest.java        # 6 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

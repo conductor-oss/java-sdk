@@ -12,9 +12,7 @@ Without orchestration, you'd write a single ETL method that connects to the sour
 
 **You just write the extract, transform, validate, load, and confirm workers. Conductor handles the extract-transform-validate-load-confirm sequence, retries when the destination is unavailable, and per-stage record count tracking.**
 
-Each stage of the ETL pipeline is a simple, independent worker. The extractor reads records from the source. The transformer cleans and normalizes fields (trimming, lowercasing, type conversion). The validator filters out incomplete or invalid records. The loader writes clean records to the destination. The confirmer verifies the load completed successfully. Conductor executes them in sequence, passes records between stages, retries if the destination is unavailable, and tracks exactly how many records survived each stage. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each stage of the ETL pipeline is a simple, independent worker. The extractor reads records from the source. The transformer cleans and normalizes fields (trimming, lowercasing, type conversion). The validator filters out incomplete or invalid records. The loader writes clean records to the destination. The confirmer verifies the load completed successfully. Conductor executes them in sequence, passes records between stages, retries if the destination is unavailable, and tracks exactly how many records survived each stage. ### What You Write: Workers
 
 Five workers form the classic ETL pipeline: extracting records from a source, transforming them (trimming names, lowercasing emails, parsing amounts), validating output quality, loading into the destination, and confirming successful completion.
 
@@ -32,163 +30,21 @@ Workers implement data processing stages with representative outputs so the pipe
 
 ```
 el_extract_data
-    │
-    ▼
+ │
+ ▼
 el_transform_data
-    │
-    ▼
+ │
+ ▼
 el_validate_output
-    │
-    ▼
+ │
+ ▼
 el_load_data
-    │
-    ▼
+ │
+ ▼
 el_confirm_load
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/etl-basics-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/etl-basics-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow etl_basics_wf \
-  --version 1 \
-  --input '{"jsonData": "[{\"id\":1,\"name\":\"Alice\",\"email\":\"ALICE@EXAMPLE.COM\"},{\"id\":2,\"name\":\"Bob\",\"email\":\"bob@test.org\"}]", "destination": "analytics-warehouse", "rules": {"trimNames": true, "lowercaseEmails": true}}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w etl_basics_wf -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect the extractor to a real PostgreSQL or Salesforce source, add custom transform rules, and load into your data warehouse, the ETL workflow runs unchanged.
-
-- **`ExtractDataWorker`**: Connect to a real source (PostgreSQL, MySQL, REST API, S3 CSV, Salesforce export) via JDBC or HTTP.
-
-- **`TransformDataWorker`**: Add custom transformation rules (currency conversion, date format normalization, field derivation, lookup enrichment).
-
-- **`ValidateOutputWorker`**: Implement domain-specific validation (business rule checks, schema conformance, referential integrity).
-
-- **`LoadDataWorker`**: Write to a real destination (data warehouse, database, API endpoint, message queue) with batch insert for performance.
-
-- **`ConfirmLoadWorker`**: Run count verification between source and destination, send a Slack notification, or trigger downstream pipelines.
-
-Connecting the extractor to a real database or replacing the transformer with production cleaning logic does not require workflow changes, as long as each worker returns records in the expected shape.
-
-**Add new stages** by inserting tasks in `workflow.json`, for example, a deduplication step before loading, a data quality score computation, or an archival step that backs up the source data after successful load.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-etl-basics/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/etlbasics/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── EtlBasicsExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ConfirmLoadWorker.java
-│       ├── ExtractDataWorker.java
-│       ├── LoadDataWorker.java
-│       ├── TransformDataWorker.java
-│       └── ValidateOutputWorker.java
-└── src/test/java/etlbasics/workers/
-    ├── ConfirmLoadWorkerTest.java
-    ├── ExtractDataWorkerTest.java
-    ├── LoadDataWorkerTest.java
-    ├── TransformDataWorkerTest.java
-    └── ValidateOutputWorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

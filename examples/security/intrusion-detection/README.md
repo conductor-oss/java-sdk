@@ -1,6 +1,4 @@
-# Implementing Intrusion Detection in Java with Conductor :  Event Analysis, Threat Correlation, Severity Assessment, and Response
-
-A Java Conductor workflow example for intrusion detection. analyzing security events, correlating them with known threat patterns, assessing severity, and triggering automated response actions.
+# Implementing Intrusion Detection in Java with Conductor : Event Analysis, Threat Correlation, Severity Assessment, and Response
 
 ## The Problem
 
@@ -12,9 +10,7 @@ Without orchestration, intrusion detection is either a SIEM that generates thous
 
 **You just write the event analysis and threat correlation logic. Conductor handles sequential execution, automatic retries if a threat feed is down, and a complete forensic timeline of every detection.**
 
-Each detection step is an independent worker. event analysis, threat correlation, severity assessment, and automated response. Conductor runs them in sequence: analyze the event, correlate with threat intelligence, assess severity, then trigger the response. Every detection is tracked with full context,  event details, correlation results, severity score, and actions taken. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each detection step is an independent worker. event analysis, threat correlation, severity assessment, and automated response. Conductor runs them in sequence: analyze the event, correlate with threat intelligence, assess severity, then trigger the response. Every detection is tracked with full context, event details, correlation results, severity score, and actions taken. ### What You Write: Workers
 
 The detection pipeline chains four focused workers: AnalyzeEventsWorker parses security events, CorrelateThreatsWorker matches against threat feeds, AssessSeverityWorker scores the risk, and RespondWorker triggers automated containment.
 
@@ -25,153 +21,24 @@ The detection pipeline chains four focused workers: AnalyzeEventsWorker parses s
 | **CorrelateThreatsWorker** | `id_correlate_threats` | Correlates the event IP against threat intelligence feeds for known indicators |
 | **RespondWorker** | `id_respond` | Executes automated response actions. blocks the IP and notifies the security team |
 
-Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
+the workflow logic stays the same.
 
 ### The Workflow
 
 ```
 id_analyze_events
-    │
-    ▼
+ │
+ ▼
 id_correlate_threats
-    │
-    ▼
+ │
+ ▼
 id_assess_severity
-    │
-    ▼
+ │
+ ▼
 id_respond
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/intrusion-detection-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/intrusion-detection-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow intrusion_detection_workflow \
-  --version 1 \
-  --input '{"sourceIp": "api", "eventType": "standard"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w intrusion_detection_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one stage of the detection pipeline. connect AnalyzeEventsWorker to your SIEM (Splunk, Elastic), CorrelateThreatsWorker to threat feeds like VirusTotal, and the detection-to-response workflow stays the same.
-
-- **AnalyzeEventsWorker** (`id_analyze_events`): parse security events from your SIEM (Splunk, Elastic SIEM, QRadar) or log aggregator
-- **AssessSeverityWorker** (`id_assess_severity`): compute severity using MITRE ATT&CK mapping, asset criticality, and attack chain analysis
-- **CorrelateThreatsWorker** (`id_correlate_threats`): check events against threat intelligence feeds (VirusTotal, AlienVault OTX, MISP) for IOC matches
-
-Point each worker at your real SIEM and threat feeds, and the detect-correlate-respond pipeline keeps working as-is.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-intrusion-detection-intrusion-detection/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/intrusiondetection/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MainExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeEventsWorker.java
-│       ├── AssessSeverityWorker.java
-│       ├── CorrelateThreatsWorker.java
-│       └── RespondWorker.java
-└── src/test/java/intrusiondetection/
-    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

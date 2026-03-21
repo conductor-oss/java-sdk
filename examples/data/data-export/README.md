@@ -1,6 +1,4 @@
-# Data Export in Java Using Conductor :  Parallel Multi-Format Export (CSV, JSON, Excel) and Bundling
-
-A Java Conductor workflow example for data export: querying a data source, then exporting the results to CSV, JSON, and Excel simultaneously using `FORK_JOIN` parallelism, and bundling all exported files into a single archive for download or delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Data Export in Java Using Conductor : Parallel Multi-Format Export (CSV, JSON, Excel) and Bundling
 
 ## The Problem
 
@@ -32,157 +30,19 @@ Workers implement data processing stages with representative outputs so the pipe
 
 ```
 dx_prepare_data
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── dx_export_csv
-    ├── dx_export_json
-    └── dx_export_excel
-    │
-    ▼
+ ├── dx_export_csv
+ ├── dx_export_json
+ └── dx_export_excel
+ │
+ ▼
 JOIN (wait for all branches)
 dx_bundle_exports
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/data-export-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/data-export-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow data_export \
-  --version 1 \
-  --input '{"query": "What is workflow orchestration?", "formats": "json", "destination": "production"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w data_export -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Replace the format workers with Apache Commons CSV, Jackson JSON, and Apache POI for Excel generation, then upload the bundle to S3, the parallel export workflow runs unchanged.
-
-- **PrepareDataWorker** → query a real database, API, or data warehouse to fetch records based on the input query parameters
-- **ExportCsvWorker** → use Apache Commons CSV or OpenCSV to write real CSV files with proper quoting and encoding
-- **ExportJsonWorker** → serialize to JSON with Jackson or Gson, supporting pretty-print and streaming for large datasets
-- **ExportExcelWorker** → generate real Excel files with Apache POI, including formatted headers, column widths, and data types
-- **BundleExportsWorker** → create a ZIP archive of all exports and upload to S3, send via email, or store for download
-
-Replacing any format worker with a production library like Apache POI or Jackson leaves the parallel export workflow unchanged, as long as each returns a file reference and metadata.
-
-**Add new export formats** by adding a new branch to the `FORK_JOIN` in `workflow.json`, for example, Parquet for data engineering teams, PDF reports for executives, or XML for legacy system integrations. Each new format is just another parallel worker.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-data-export/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/dataexport/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DataExportExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── BundleExportsWorker.java
-│       ├── ExportCsvWorker.java
-│       ├── ExportExcelWorker.java
-│       ├── ExportJsonWorker.java
-│       └── PrepareDataWorker.java
-└── src/test/java/dataexport/workers/
-    ├── BundleExportsWorkerTest.java        # 6 tests
-    ├── ExportCsvWorkerTest.java        # 5 tests
-    ├── ExportExcelWorkerTest.java        # 4 tests
-    ├── ExportJsonWorkerTest.java        # 4 tests
-    └── PrepareDataWorkerTest.java        # 6 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

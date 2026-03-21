@@ -34,108 +34,14 @@ GenerateAnswerWorker and GenerateFromWebWorker require CONDUCTOR_OPENAI_API_KEY.
 
 ```
 cr_retrieve_docs
-    │
-    ▼
+ │
+ ▼
 cr_grade_relevance
-    │
-    ▼
+ │
+ ▼
 SWITCH (switch_ref)
-    ├── relevant: cr_generate_answer
-    └── default: cr_web_search -> cr_generate_from_web
-
-```
-
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/corrective-rag-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(required)_ | OpenAI API key. When set, generate workers call OpenAI (gpt-4o-mini). Workers throw IllegalStateException if not set. |
-
-### API Key Requirement
-
-All LLM workers (GenerateAnswerWorker, GenerateFromWebWorker) require CONDUCTOR_OPENAI_API_KEY and throw IllegalStateException if missing.
-
-RetrieveDocsWorker uses Jaccard similarity over bundled technical documents. WebSearchWorker fetches real results from the Wikipedia search API. GradeRelevanceWorker uses algorithmic relevance scoring.
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/corrective-rag-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow corrective_rag \
-  --version 1 \
-  --input '{"question": "What are the benefits of workflow orchestration?"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w corrective_rag -s COMPLETED -c 5
+ ├── relevant: cr_generate_answer
+ └── default: cr_web_search -> cr_generate_from_web
 
 ```
 
@@ -148,60 +54,11 @@ Standard RAG blindly generates from whatever the vector store returns. Correctiv
 2. **Grade** (`cr_grade_relevance`): An LLM-based grader scores each document for relevance to the question on a 0-1 scale. If the average score is >= 0.5, the verdict is `"relevant"`; otherwise `"irrelevant"`.
 
 3. **Route** (SWITCH): Conductor's SWITCH task inspects the verdict and routes to the appropriate generation path:
-   - **Relevant**: Generate the answer directly from the retrieved documents
-   - **Irrelevant**: Fall back to web search, then generate from fresh web results
+ - **Relevant**: Generate the answer directly from the retrieved documents
+ - **Irrelevant**: Fall back to web search, then generate from fresh web results
 
 This self-healing pattern ensures the user gets a grounded answer even when the vector store has stale embeddings, topic drift, or missing coverage. Every execution records which path was taken and the average relevance score, so you can audit retrieval quality over time.
 
-## How to Extend
+---
 
-Each worker handles one stage of the self-healing pipeline. Swap in a real vector store, an LLM-based relevance grader, and a web search API like Tavily or SerpAPI, and the corrective routing runs unchanged.
-
-- **RetrieveDocsWorker** (`cr_retrieve_docs`): swap in a real vector store query against Pinecone, Weaviate, pgvector, or Elasticsearch
-- **GradeRelevanceWorker** (`cr_grade_relevance`): replace with an LLM call (Claude, GPT-4) that scores document-question relevance on a 0-1 scale, or use a fine-tuned cross-encoder model for faster grading
-- **WebSearchWorker** (`cr_web_search`): integrate a real search API (Tavily, Brave Search, SerpAPI, or Google Custom Search)
-- **GenerateAnswerWorker** / **GenerateFromWebWorker**. Swap in Claude Messages API, OpenAI Chat Completions, or Ollama for grounded answer generation
-- **Add a confidence threshold**: make the 0.5 relevance threshold configurable as a workflow input parameter, so you can tune the sensitivity per use case
-
-Each worker preserves the same output contract. Swap the grading model, the vector store, or the web search API, and the corrective routing logic stays untouched.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-corrective-rag/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/correctiverag/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CorrectiveRagExample.java    # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── GenerateAnswerWorker.java    # Generate from vector store context
-│       ├── GenerateFromWebWorker.java   # Generate from web search results
-│       ├── GradeRelevanceWorker.java    # Score documents, verdict: relevant/irrelevant
-│       ├── RetrieveDocsWorker.java      # Vector store retrieval (simulates low relevance)
-│       └── WebSearchWorker.java         # Web search fallback
-└── src/test/java/correctiverag/workers/
-    ├── GenerateAnswerWorkerTest.java
-    ├── GenerateFromWebWorkerTest.java
-    ├── GradeRelevanceWorkerTest.java
-    ├── RetrieveDocsWorkerTest.java
-    └── WebSearchWorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

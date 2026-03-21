@@ -1,7 +1,5 @@
 # Notification Preferences in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Notification Preferences. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
 ## The Problem
 
 A user wants to change their notification settings. Enabling SMS alerts and disabling push notifications. The system needs to load their current preferences (email, SMS, push, Slack), merge the new selections with existing ones, sync the updated channel configuration to all downstream notification services, and send a confirmation that the changes took effect. Each step depends on the previous one's output.
@@ -25,157 +23,22 @@ LoadPrefsWorker reads current channel settings, UpdatePrefsWorker merges new sel
 | **SyncChannelsWorker** | `np_sync_channels` | Identifies which channels are now active and syncs the configuration to each notification service |
 | **UpdatePrefsWorker** | `np_update` | Merges the new preference selections with existing ones and persists the updated configuration |
 
-Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
-
-### The Workflow
+Replace with real identity provider and database calls and ### The Workflow
 
 ```
 np_load
-    │
-    ▼
+ │
+ ▼
 np_update
-    │
-    ▼
+ │
+ ▼
 np_sync_channels
-    │
-    ▼
+ │
+ ▼
 np_confirm
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/notification-preferences-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/notification-preferences-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow np_notification_preferences \
-  --version 1 \
-  --input '{"userId": "TEST-001", "preferences": "sample-preferences"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w np_notification_preferences -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one preference step. connect your notification services (Twilio for SMS, Firebase for push, Slack API) for channel sync and your user store for preference persistence, and the notification-preferences workflow stays the same.
-
-- **LoadPrefsWorker** (`np_load`): query the user's current notification preferences from your database or user profile service (Auth0, Cognito user attributes)
-- **UpdatePrefsWorker** (`np_update`): merge the new preferences with existing ones and persist the updated record to your database or identity provider
-- **SyncChannelsWorker** (`np_sync_channels`): propagate channel settings to SendGrid (email), Twilio (SMS), Firebase Cloud Messaging (push), and Slack API based on which channels are active
-- **ConfirmPrefsWorker** (`np_confirm`): send a confirmation notification via the user's preferred active channel using SendGrid, Twilio, or push notification service
-
-Connect your real notification services (Twilio, FCM, Slack) and the load-merge-sync-confirm preference pipeline operates unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-notification-preferences/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/notificationpreferences/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── NotificationPreferencesExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ConfirmPrefsWorker.java
-│       ├── LoadPrefsWorker.java
-│       ├── SyncChannelsWorker.java
-│       └── UpdatePrefsWorker.java
-└── src/test/java/notificationpreferences/workers/
-    ├── ConfirmPrefsWorkerTest.java        # 3 tests
-    ├── LoadPrefsWorkerTest.java        # 3 tests
-    ├── SyncChannelsWorkerTest.java        # 4 tests
-    └── UpdatePrefsWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

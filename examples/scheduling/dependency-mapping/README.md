@@ -1,6 +1,4 @@
-# Dependency Mapping in Java Using Conductor :  Service Discovery, Call Tracing, Graph Building, and Visualization
-
-A Java Conductor workflow example for mapping service dependencies. discovering services in an environment, tracing inter-service calls, building a dependency graph, and visualizing the architecture.
+# Dependency Mapping in Java Using Conductor : Service Discovery, Call Tracing, Graph Building, and Visualization
 
 ## The Problem
 
@@ -12,9 +10,7 @@ Without orchestration, dependency mapping is either a manual Confluence diagram 
 
 **You just write the service discovery and call tracing logic. Conductor handles the discover-trace-build sequence, retries when service mesh endpoints are unavailable, and versioned tracking of dependency graph changes over time.**
 
-Each mapping concern is an independent worker. service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each mapping concern is an independent worker. service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time. ### What You Write: Workers
 
 The mapping pipeline chains DiscoverServicesWorker to enumerate active services, TraceCallsWorker to capture inter-service communication, BuildGraphWorker to construct the dependency graph, and a visualization step to render the architecture map.
 
@@ -25,153 +21,24 @@ The mapping pipeline chains DiscoverServicesWorker to enumerate active services,
 | **TraceCallsWorker** | `dep_trace_calls` | Traces inter-service call patterns across discovered services, returning directed edges (caller-to-callee) |
 | **VisualizeWorker** | `dep_visualize` | Renders the dependency graph into a visual format and generates a shareable visualization URL |
 
-Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
+the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
 ```
 dep_discover_services
-    │
-    ▼
+ │
+ ▼
 dep_trace_calls
-    │
-    ▼
+ │
+ ▼
 dep_build_graph
-    │
-    ▼
+ │
+ ▼
 dep_visualize
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/dependency-mapping-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/dependency-mapping-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow dependency_mapping_426 \
-  --version 1 \
-  --input '{"environment": "staging", "namespace": "test"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w dependency_mapping_426 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker tackles one mapping phase. connect the service discovery worker to your service mesh (Istio, Linkerd) or Kubernetes API, the visualizer to generate real architecture diagrams, and the discover-trace-graph-visualize workflow stays the same.
-
-- **BuildGraphWorker** (`dep_build_graph`): construct a directed graph using JGraphT or Neo4j, computing metrics like PageRank and betweenness centrality
-- **DiscoverServicesWorker** (`dep_discover_services`): query Kubernetes service registry, Consul, AWS ECS/EKS, or your CMDB for active services
-- **TraceCallsWorker** (`dep_trace_calls`): analyze service mesh data (Istio, Linkerd), distributed traces (Jaeger, Zipkin), or API gateway logs for call patterns
-
-Connect to your service mesh or Kubernetes API, and the dependency mapping orchestration operates without modification.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-dependency-mapping/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/dependencymapping/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DependencyMappingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── BuildGraphWorker.java
-│       ├── DiscoverServicesWorker.java
-│       ├── TraceCallsWorker.java
-│       └── VisualizeWorker.java
-└── src/test/java/dependencymapping/workers/
-    └── DiscoverServicesWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

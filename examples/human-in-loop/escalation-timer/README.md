@@ -1,6 +1,4 @@
-# Escalation Timer in Java Using Conductor :  Request Submission, WAIT with Timeout for Auto-Approval, and Decision Processing
-
-A Java Conductor workflow example demonstrating timeout-based auto-approval. submitting a request, pausing at a WAIT task for human approval, and auto-approving if the approver does not respond within the configured deadline. The process worker handles both human-approved and auto-approved decisions identically, recording the method (human vs, auto) for audit purposes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Escalation Timer in Java Using Conductor : Request Submission, WAIT with Timeout for Auto-Approval, and Decision Processing
 
 ## The Problem
 
@@ -28,142 +26,15 @@ Workers implement the approval steps and human decisions so the workflow runs en
 
 ```
 et_submit
-    │
-    ▼
+ │
+ ▼
 approval_wait [WAIT]
-    │
-    ▼
+ │
+ ▼
 et_process
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/escalation-timer-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/escalation-timer-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow escalation_timer_demo \
-  --version 1 \
-  --input '{"requestId": "TEST-001", "autoApproveAfterMs": "sample-autoApproveAfterMs"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w escalation_timer_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one end of the timeout flow. swap in your request system for submission and your SLA enforcement service for decision processing, and the auto-approval-on-timeout workflow stays the same.
-
-- **ProcessWorker** (`et_process`): route the decision to downstream systems. If auto-approved, flag it for audit review; if human-approved, proceed with standard fulfillment
-- **SubmitWorker** (`et_submit`): enrich the submission with SLA deadlines from a configuration database and notify the approver via email/Slack/push notification
-
-Integrate your request management system and the timeout-based auto-approval mechanism keeps functioning as configured.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-escalation-timer/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/escalationtimer/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── EscalationTimerExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ProcessWorker.java
-│       └── SubmitWorker.java
-└── src/test/java/escalationtimer/workers/
-    ├── ProcessWorkerTest.java        # 10 tests
-    └── SubmitWorkerTest.java        # 7 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,8 +1,6 @@
-# Goal Decomposition in Java Using Conductor :  Break Down Goals, Execute Subgoals in Parallel, Aggregate
+# Goal Decomposition in Java Using Conductor : Break Down Goals, Execute Subgoals in Parallel, Aggregate
 
-Goal Decomposition. decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Big Goals Need to Be Broken Down
+Goal Decomposition. decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results. ## Big Goals Need to Be Broken Down
 
 "Improve customer satisfaction" is a goal, not a plan. A useful agent decomposes it into actionable subgoals: analyze current satisfaction scores and identify pain points, benchmark against competitors, and design improvement initiatives. These three subgoals are independent. they can run simultaneously; but all must complete before the results can be aggregated into a coherent improvement plan.
 
@@ -32,144 +30,19 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 gd_decompose_goal
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── gd_subgoal_1
-    ├── gd_subgoal_2
-    └── gd_subgoal_3
-    │
-    ▼
+ ├── gd_subgoal_1
+ ├── gd_subgoal_2
+ └── gd_subgoal_3
+ │
+ ▼
 JOIN (wait for all branches)
 gd_aggregate
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/goal-decomposition-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/goal-decomposition-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow goal_decomposition \
-  --version 1 \
-  --input '{"goal": "sample-goal"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w goal_decomposition -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each subgoal worker tackles one independent piece of the problem. Connect real analytics APIs for measurement, web scraping for benchmarking, and LLMs for strategic synthesis, and the decompose-fork-aggregate workflow runs unchanged.
-
-- **DecomposeGoalWorker** (`gd_decompose_goal`): use an LLM to dynamically determine the right number and scope of subgoals based on the goal's complexity, with dependency detection to identify which subgoals can truly run in parallel
-- **Subgoal workers** (`gd_subgoal_1/2/3`): connect to real data sources and tools based on the subgoal type: analytics APIs for measurement, web scraping for benchmarking, LLMs for strategic planning
-- **AggregateWorker** (`gd_aggregate`): use an LLM to synthesize findings across subgoals, identify conflicts or overlaps, and produce a prioritized action plan with estimated impact and effort
-
-Replace with real LLM decomposition and execution; the parallel subgoal workflow keeps the same decompose-execute-aggregate interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-goal-decomposition/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/goaldecomposition/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── GoalDecompositionExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AggregateWorker.java
-│       ├── DecomposeGoalWorker.java
-│       ├── Subgoal1Worker.java
-│       ├── Subgoal2Worker.java
-│       └── Subgoal3Worker.java
-└── src/test/java/goaldecomposition/workers/
-    ├── AggregateWorkerTest.java        # 8 tests
-    ├── DecomposeGoalWorkerTest.java        # 8 tests
-    ├── Subgoal1WorkerTest.java        # 8 tests
-    ├── Subgoal2WorkerTest.java        # 8 tests
-    └── Subgoal3WorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

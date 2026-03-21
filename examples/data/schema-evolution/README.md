@@ -1,6 +1,4 @@
-# Schema Evolution in Java Using Conductor :  Change Detection, Transform Generation, Data Migration, and Validation
-
-A Java Conductor workflow example for schema evolution. comparing a current schema against a target schema to detect changes (added fields, removed fields, type changes, renamed columns), generating the transform operations needed to migrate data from the current schema to the target, applying those transforms to existing data, and validating that the transformed data conforms to the target schema with the expected compatibility level. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Schema Evolution in Java Using Conductor : Change Detection, Transform Generation, Data Migration, and Validation
 
 ## The Problem
 
@@ -12,9 +10,7 @@ Without orchestration, you'd write a single migration script that diffs schemas,
 
 **You just write the change detection, transform generation, data migration, and schema validation workers. Conductor handles strict ordering so transforms apply only after a valid migration plan exists, retries when databases are temporarily unavailable, and tracking of change counts, transform counts, and compatibility levels at every stage.**
 
-Each stage of the schema evolution pipeline is a simple, independent worker. The change detector compares the current and target schemas field by field, identifying additions, removals, type changes, and renames, and classifying each change's compatibility impact. The transform generator converts those detected changes into concrete transform operations. ADD_COLUMN for new fields, TYPE_CAST for type changes, SPLIT for field restructuring. Producing a migration plan. The transform applier executes the migration plan against the sample data, applying each transform in sequence and tracking how many records were successfully transformed. The schema validator checks every transformed record against the target schema, confirming all required fields are present, types match, and constraints are satisfied, and reports the overall compatibility level (backward, forward, full, or breaking). Conductor executes them in strict sequence, ensures transforms only apply after change detection generates a valid plan, retries if the database is temporarily unavailable, and tracks change counts, transform counts, and validation results at every stage. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each stage of the schema evolution pipeline is a simple, independent worker. The change detector compares the current and target schemas field by field, identifying additions, removals, type changes, and renames, and classifying each change's compatibility impact. The transform generator converts those detected changes into concrete transform operations. ADD_COLUMN for new fields, TYPE_CAST for type changes, SPLIT for field restructuring. Producing a migration plan. The transform applier executes the migration plan against the sample data, applying each transform in sequence and tracking how many records were successfully transformed. The schema validator checks every transformed record against the target schema, confirming all required fields are present, types match, and constraints are satisfied, and reports the overall compatibility level (backward, forward, full, or breaking). Conductor executes them in strict sequence, ensures transforms only apply after change detection generates a valid plan, retries if the database is temporarily unavailable, and tracks change counts, transform counts, and validation results at every stage. ### What You Write: Workers
 
 Four workers manage schema evolution: comparing current and target schemas to detect changes, generating concrete transform operations for each change, applying those transforms to existing data, and validating that transformed records conform to the target schema.
 
@@ -31,153 +27,18 @@ Workers implement data processing stages with representative outputs so the pipe
 
 ```
 sh_detect_changes
-    │
-    ▼
+ │
+ ▼
 sh_generate_transform
-    │
-    ▼
+ │
+ ▼
 sh_apply_transform
-    │
-    ▼
+ │
+ ▼
 sh_validate_schema
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/schema-evolution-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/schema-evolution-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow schema_evolution \
-  --version 1 \
-  --input '{"currentSchema": "sample-currentSchema", "targetSchema": "production", "sampleData": {"key": "value"}}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w schema_evolution -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Compare real Avro or Protobuf schemas, generate ALTER TABLE migrations, and validate transformed data against the target schema, the schema evolution workflow runs unchanged.
-
-- **DetectChangesWorker** → compare real schemas: diff Avro schema versions in a Confluent Schema Registry, compare PostgreSQL `information_schema.columns` between environments, or parse Protobuf `.proto` file revisions to detect field additions, removals, and type changes
-- **GenerateTransformWorker** → generate real migration operations: Flyway/Liquibase migration scripts for SQL databases, Avro schema evolution rules for Kafka topics, or custom ETL transforms for data warehouse column restructuring
-- **ApplyTransformWorker** → execute real migrations: run ALTER TABLE statements via JDBC, apply Avro schema evolution to Kafka consumers, execute Snowflake `ALTER TABLE ... ADD COLUMN` with default value backfill, or run dbt model changes
-- **ValidateSchemaWorker** → validate against real schema registries: Confluent Schema Registry compatibility checks (BACKWARD, FORWARD, FULL), JSON Schema validation with ajv, or custom constraint validators that check referential integrity after migration
-
-Adding new change types (column splits, constraint additions) or connecting to real migration tooling does not affect the detect-generate-apply-validate pipeline, as long as each worker outputs the expected change and transform structures.
-
-**Add new stages** by inserting tasks in `workflow.json`, for example, a backup step that snapshots the current data before migration, a dry-run step that applies transforms to a sample before touching production, or a rollback step that reverts the migration if validation fails.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-schema-evolution/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/schemaevolution/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── SchemaEvolutionExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ApplyTransformWorker.java
-│       ├── DetectChangesWorker.java
-│       ├── GenerateTransformWorker.java
-│       └── ValidateSchemaWorker.java
-└── src/test/java/schemaevolution/workers/
-    ├── ApplyTransformWorkerTest.java        # 3 tests
-    ├── DetectChangesWorkerTest.java        # 3 tests
-    ├── GenerateTransformWorkerTest.java        # 4 tests
-    └── ValidateSchemaWorkerTest.java        # 5 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

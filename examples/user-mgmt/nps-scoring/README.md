@@ -1,7 +1,5 @@
 # NPS Scoring in Java Using Conductor
 
-A Java Conductor workflow example demonstrating NPS Scoring. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
 ## The Problem
 
 Your product team wants to measure user satisfaction after a quarterly release. The team needs to collect NPS survey responses (scores 0-10) from the user base, calculate the NPS score by categorizing respondents into promoters, passives, and detractors, segment users into actionable groups with tailored follow-up strategies, and trigger the appropriate actions for each segment (referral programs for promoters, engagement campaigns for passives, outreach calls for detractors). Each step depends on the previous one's output.
@@ -25,157 +23,22 @@ CollectResponsesWorker gathers survey scores, CalculateNpsWorker computes the pr
 | **CollectResponsesWorker** | `nps_collect_responses` | Collects NPS survey responses for a campaign and period, returning individual user scores |
 | **SegmentWorker** | `nps_segment` | Segments respondents into promoter, passive, and detractor groups with assigned follow-up actions |
 
-Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
-
-### The Workflow
+Replace with real identity provider and database calls and ### The Workflow
 
 ```
 nps_collect_responses
-    │
-    ▼
+ │
+ ▼
 nps_calculate
-    │
-    ▼
+ │
+ ▼
 nps_segment
-    │
-    ▼
+ │
+ ▼
 nps_act
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/nps-scoring-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/nps-scoring-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow nps_scoring \
-  --version 1 \
-  --input '{"campaignId": "TEST-001", "period": "sample-period"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w nps_scoring -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one NPS step. connect your survey platform (Delighted, SurveyMonkey, Typeform) for collection and your CRM (Salesforce, HubSpot) for segment-based follow-up actions, and the NPS workflow stays the same.
-
-- **CollectResponsesWorker** (`nps_collect_responses`): pull survey responses from your survey platform (Delighted, SurveyMonkey, Typeform) or query your database for in-app NPS submissions
-- **CalculateNpsWorker** (`nps_calculate`): compute the NPS score using standard methodology and store historical scores in your analytics database for trend tracking
-- **SegmentWorker** (`nps_segment`): create user segments in your CRM or marketing platform (HubSpot, Intercom) and tag users for targeted follow-up campaigns
-- **ActWorker** (`nps_act`): trigger automated actions: enroll promoters in a referral program via your referral platform, create engagement campaigns in SendGrid for passives, and create support tickets in Zendesk for detractor outreach
-
-Connect your survey platform and marketing tools and the NPS scoring pipeline with segment-based actions keeps running unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-nps-scoring/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/npsscoring/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── NpsScoringExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ActWorker.java
-│       ├── CalculateNpsWorker.java
-│       ├── CollectResponsesWorker.java
-│       └── SegmentWorker.java
-└── src/test/java/npsscoring/workers/
-    ├── ActWorkerTest.java        # 4 tests
-    ├── CalculateNpsWorkerTest.java        # 5 tests
-    ├── CollectResponsesWorkerTest.java        # 4 tests
-    └── SegmentWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

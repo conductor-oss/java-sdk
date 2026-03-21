@@ -31,141 +31,18 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 fc_llm_plan
-    │
-    ▼
+ │
+ ▼
 fc_extract_function_call
-    │
-    ▼
+ │
+ ▼
 fc_execute_function
-    │
-    ▼
+ │
+ ▼
 fc_llm_synthesize
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/function-calling-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/function-calling-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow function_calling \
-  --version 1 \
-  --input '{"userQuery": "What's the current price of Apple stock?", "functionDefinitions": [{"name": "get_stock_price", "description": "Get the current stock price for a given ticker symbol", "parameters": {"ticker": {"type": "string", "description": "Stock ticker symbol"}, "includeChange": {"type": "boolean", "description": "Include price change data"}}}, {"name": "get_weather", "description": "Get the current weather for a location", "parameters": {"location": {"type": "string", "description": "City name or coordinates"}, "units": {"type": "string", "description": "Temperature units: celsius or fahrenheit"}}}, {"name": "search_web", "description": "Search the web for information", "parameters": {"query": {"type": "string", "description": "Search query"}, "maxResults": {"type": "integer", "description": "Maximum number of results"}}}]}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w function_calling -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker owns one phase of the function-calling pattern. Connect OpenAI's function calling or Claude's tool use for planning, build a validated function registry for execution, and use an LLM for answer synthesis, and the plan-extract-execute-synthesize workflow runs unchanged.
-
-- **LlmPlanWorker** (`fc_llm_plan`): use OpenAI's function calling API or Claude's tool use feature for native structured function call output instead of parsing free-text responses
-- **ExecuteFunctionWorker** (`fc_execute_function`): build a real function registry with input validation, sandboxed execution, rate limiting, and audit logging per function call
-- **LlmSynthesizeWorker** (`fc_llm_synthesize`): use streaming responses for real-time output, with citation of which function provided which data points in the answer
-
-Wire in a real LLM and function registry; the plan-extract-execute-synthesize pipeline preserves the same interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-function-calling/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/functioncalling/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── FunctionCallingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ExecuteFunctionWorker.java
-│       ├── ExtractFunctionCallWorker.java
-│       ├── LlmPlanWorker.java
-│       └── LlmSynthesizeWorker.java
-└── src/test/java/functioncalling/workers/
-    ├── ExecuteFunctionWorkerTest.java        # 9 tests
-    ├── ExtractFunctionCallWorkerTest.java        # 9 tests
-    ├── LlmPlanWorkerTest.java        # 8 tests
-    └── LlmSynthesizeWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

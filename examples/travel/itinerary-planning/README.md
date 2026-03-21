@@ -1,8 +1,6 @@
 # Itinerary Planning in Java with Conductor
 
-Itinerary planning: preferences, search, optimize, book, finalize. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## The Problem
+Itinerary planning: preferences, search, optimize, book, finalize. ## The Problem
 
 You need to plan a complete travel itinerary for an employee. loading their travel preferences (seat, airline, hotel chain, meal requirements), searching for flights and hotels that match, optimizing the combination for cost and convenience (minimizing layovers, grouping nearby hotels), booking the selected options, and finalizing the itinerary with all confirmation details sent to the traveler. Each step builds on the previous one's output.
 
@@ -26,163 +24,25 @@ Destination research, activity selection, scheduling, and itinerary assembly wor
 | **PreferencesWorker** | `itp_preferences` | Loads the traveler's preferences (budget, travel style, dietary needs) |
 | **SearchWorker** | `itp_search` | Searches for flights, hotels, and activities matching the trip criteria |
 
-Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 itp_preferences
-    │
-    ▼
+ │
+ ▼
 itp_search
-    │
-    ▼
+ │
+ ▼
 itp_optimize
-    │
-    ▼
+ │
+ ▼
 itp_book
-    │
-    ▼
+ │
+ ▼
 itp_finalize
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/itinerary-planning-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/itinerary-planning-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow itp_itinerary_planning \
-  --version 1 \
-  --input '{"travelerId": "TEST-001", "destination": "production", "days": "sample-days"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w itp_itinerary_planning -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real travel stack. your traveler profile service for preferences, Amadeus for flight and hotel search, your booking engine for reservations, and the workflow runs identically in production.
-
-- **PreferencesWorker** (`itp_preferences`): load traveler preferences from your travel management system (SAP Concur, Navan) or HR profile database
-- **SearchWorker** (`itp_search`): query GDS APIs (Amadeus, Sabre) for flights and hotel aggregators (Booking.com, Hotels.com) for accommodations matching the dates and preferences
-- **OptimizeWorker** (`itp_optimize`): run cost/convenience optimization using your travel policy rules, corporate rate agreements, and meeting location proximity
-- **BookWorker** (`itp_book`): reserve the selected flights and hotels via GDS booking APIs, applying corporate discount codes and loyalty program numbers
-- **FinalizeWorker** (`itp_finalize`): generate the consolidated itinerary PDF or calendar invites and deliver via email, Slack, or your corporate travel portal
-
-Replace activity databases or scheduling algorithms and the planning pipeline keeps its structure.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-itinerary-planning-itinerary-planning/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/itineraryplanning/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ItineraryPlanningExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── BookWorker.java
-│       ├── FinalizeWorker.java
-│       ├── OptimizeWorker.java
-│       ├── PreferencesWorker.java
-│       └── SearchWorker.java
-└── src/test/java/itineraryplanning/workers/
-    ├── BookWorkerTest.java        # 2 tests
-    ├── FinalizeWorkerTest.java        # 2 tests
-    ├── OptimizeWorkerTest.java        # 2 tests
-    ├── PreferencesWorkerTest.java        # 2 tests
-    └── SearchWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

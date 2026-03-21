@@ -1,8 +1,6 @@
-# Code Interpreter Agent in Java Using Conductor :  Analyze, Generate, Execute, Interpret
+# Code Interpreter Agent in Java Using Conductor : Analyze, Generate, Execute, Interpret
 
-Code Interpreter Agent. analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Answering Data Questions Requires Running Code, Not Just Generating It
+Code Interpreter Agent. analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. ## Answering Data Questions Requires Running Code, Not Just Generating It
 
 "What's the correlation between marketing spend and revenue in Q3?" can't be answered by an LLM alone. it requires loading the dataset, computing a Pearson correlation coefficient, and possibly generating a scatter plot. The LLM can generate the code, but someone needs to run it, capture the output (including any charts), and explain what the results mean.
 
@@ -31,141 +29,18 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 ci_analyze_question
-    │
-    ▼
+ │
+ ▼
 ci_generate_code
-    │
-    ▼
+ │
+ ▼
 ci_execute_sandbox
-    │
-    ▼
+ │
+ ▼
 ci_interpret_result
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/code-interpreter-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/code-interpreter-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow code_interpreter_agent \
-  --version 1 \
-  --input '{"question": "What is workflow orchestration?", "dataset": {"key": "value"}}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w code_interpreter_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker owns one phase of the code interpretation cycle. Connect an LLM for code generation, a real sandbox (Docker, AWS Lambda, Jupyter kernel) for execution, and an LLM for result interpretation, and the analyze-generate-execute-interpret workflow runs unchanged.
-
-- **ExecuteSandboxWorker** (`ci_execute_sandbox`): integrate with a real sandbox: Docker containers with resource limits, AWS Lambda for serverless execution, or Jupyter kernel gateway for notebook-style computation
-- **GenerateCodeWorker** (`ci_generate_code`): use GPT-4 with the dataset schema as context and function-calling to generate syntactically correct code, with automatic linting before execution
-- **InterpretResultWorker** (`ci_interpret_result`): use an LLM to generate contextual explanations of statistical results, with visualization descriptions for charts and confidence intervals for estimates
-
-Replace with real code generation and sandbox execution; the analysis-to-interpretation pipeline maintains the same data contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-code-interpreter/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/codeinterpreter/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CodeInterpreterExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeQuestionWorker.java
-│       ├── ExecuteSandboxWorker.java
-│       ├── GenerateCodeWorker.java
-│       └── InterpretResultWorker.java
-└── src/test/java/codeinterpreter/workers/
-    ├── AnalyzeQuestionWorkerTest.java        # 9 tests
-    ├── ExecuteSandboxWorkerTest.java        # 9 tests
-    ├── GenerateCodeWorkerTest.java        # 9 tests
-    └── InterpretResultWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

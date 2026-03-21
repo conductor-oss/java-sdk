@@ -31,151 +31,18 @@ The `DedupStore` is a `ConcurrentHashMap` shared across workers within the same 
 
 ```
 idp_check_processed
-    │
-    ▼
+ │
+ ▼
 SWITCH (idp_switch_ref)
-    ├── unprocessed: idp_process
-    ├── processed: idp_skip
-    └── default: idp_process
-    │
-    ▼
+ ├── unprocessed: idp_process
+ ├── processed: idp_skip
+ └── default: idp_process
+ │
+ ▼
 idp_record
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/idempotent-processing-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/idempotent-processing-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow idp_idempotent_processing \
-  --version 1 \
-  --input '{"messageId": "msg-abc-123", "payload": "order data"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w idp_idempotent_processing -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker is a standalone class with a simple interface. The `DedupStore` is an in-memory `ConcurrentHashMap`. Swap it for a durable, distributed store and you're in production:
-
-- **Redis for distributed dedup**: replace `DedupStore.isProcessed()` with `EXISTS messageId` and `DedupStore.record()` with `SET messageId resultHash`. Redis gives you sub-millisecond lookups and optional TTL-based expiry for old message IDs.
-- **Database-backed processing log**: use a `processed_messages` table with columns `(message_id PRIMARY KEY, result_hash, processed_at)`. `CheckProcessedWorker` does `SELECT`, `RecordWorker` does `INSERT`. You get durability, queryability, and audit trails.
-- **Message queue acknowledgment patterns**: combine with Kafka consumer offsets or SQS visibility timeouts. Process the message, record it in the dedup store, then acknowledge. If the consumer crashes before acknowledgment, the redelivered message hits the dedup check and is skipped.
-
-The check-process-record interface contract stays fixed. Only the dedup store implementation behind each worker changes, not the workflow routing.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-idempotent-processing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/idempotentprocessing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── IdempotentProcessingExample.java  # Main entry point (submits same message twice)
-│   └── workers/
-│       ├── DedupStore.java          # In-memory ConcurrentHashMap dedup store
-│       ├── CheckProcessedWorker.java # Looks up messageId in DedupStore
-│       ├── ProcessWorker.java       # Deterministic processing (SHA-256 hash)
-│       ├── RecordWorker.java        # Records messageId in DedupStore
-│       └── SkipWorker.java          # Returns skip reason + previous result
-└── src/test/java/idempotentprocessing/workers/
-    ├── CheckProcessedWorkerTest.java # 4 tests: new, recorded, independent, task name
-    ├── ProcessWorkerTest.java        # 4 tests: deterministic, different, fields, task name
-    ├── RecordWorkerTest.java         # 3 tests: marks processed, verified via check, task name
-    └── SkipWorkerTest.java           # 4 tests: reason, messageId, previousResult, task name
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,6 +1,4 @@
-# Cold Chain Monitoring in Java with Conductor :  Temperature Sensing, Threshold Checks, Alert Routing, and Corrective Action
-
-A Java Conductor workflow example for cold chain monitoring. reading temperature sensor data for shipments of temperature-sensitive goods (e.g., frozen pharmaceuticals requiring 2-8C), checking readings against configured thresholds, routing to alert or OK handlers based on compliance status, and triggering corrective actions when excursions are detected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Cold Chain Monitoring in Java with Conductor : Temperature Sensing, Threshold Checks, Alert Routing, and Corrective Action
 
 ## The Problem
 
@@ -26,162 +24,24 @@ Five workers cover the cold chain pipeline: MonitorTempWorker reads sensor data,
 | **HandleOkWorker** | `cch_handle_ok` | Logs a compliant checkpoint when temperature is within the acceptable range. |
 | **MonitorTempWorker** | `cch_monitor_temp` | Reads the current temperature from the shipment's IoT sensor. |
 
-Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 cch_monitor_temp
-    │
-    ▼
+ │
+ ▼
 cch_check_thresholds
-    │
-    ▼
+ │
+ ▼
 SWITCH (cch_switch_ref)
-    ├── ok: cch_handle_ok
-    └── default: cch_handle_alert
-    │
-    ▼
+ ├── ok: cch_handle_ok
+ └── default: cch_handle_alert
+ │
+ ▼
 cch_act
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/cold-chain-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/cold-chain-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow cch_cold_chain \
-  --version 1 \
-  --input '{"shipmentId": "TEST-001", "product": "widget-pro", "minTemp": "sample-minTemp", "maxTemp": "sample-maxTemp"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w cch_cold_chain -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Point MonitorTempWorker at your real IoT gateway (AWS IoT Core, Azure IoT Hub) and HandleAlertWorker at your logistics dispatch system to go live. The workflow definition stays exactly the same.
-
-- **MonitorTempWorker** (`cch_monitor_temp`): read real sensor data from IoT platforms (AWS IoT Core, Azure IoT Hub) or cold chain hardware APIs (Sensitech, Emerson GO Real-Time)
-- **CheckThresholdsWorker** (`cch_check_thresholds`): compare readings against product-specific thresholds stored in your product master data (e.g., 2-8C for vaccines, -20C for biologics)
-- **HandleOkWorker** (`cch_handle_ok`): log compliant readings to your cold chain compliance database for GDP/FDA audit evidence
-- **HandleAlertWorker** (`cch_handle_alert`): send excursion alerts via SMS/email to the logistics team and create an incident ticket in ServiceNow or your quality management system
-- **ActWorker** (`cch_act`): trigger corrective actions: reroute the shipment to the nearest compliant facility, dispatch a replacement, or flag the batch for quality hold in your WMS
-
-As long as each worker returns the same fields, the workflow definition and SWITCH routing remain untouched.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-cold-chain/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/coldchain/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ColdChainExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ActWorker.java
-│       ├── CheckThresholdsWorker.java
-│       ├── HandleAlertWorker.java
-│       ├── HandleOkWorker.java
-│       └── MonitorTempWorker.java
-└── src/test/java/coldchain/workers/
-    ├── ActWorkerTest.java        # 2 tests
-    ├── CheckThresholdsWorkerTest.java        # 2 tests
-    ├── HandleAlertWorkerTest.java        # 2 tests
-    ├── HandleOkWorkerTest.java        # 2 tests
-    └── MonitorTempWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

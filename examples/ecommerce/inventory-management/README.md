@@ -25,147 +25,22 @@ Stock checking, reservation, inventory updates, and reorder workers manage wareh
 | **ReserveStockWorker** | `inv_reserve` | Performs the reserve stock operation |
 | **UpdateInventoryWorker** | `inv_update` | Performs the update inventory operation |
 
-Workers implement e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 inv_check_stock
-    │
-    ▼
+ │
+ ▼
 inv_reserve
-    │
-    ▼
+ │
+ ▼
 inv_update
-    │
-    ▼
+ │
+ ▼
 inv_reorder
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/inventory-management-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/inventory-management-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow inventory_management \
-  --version 1 \
-  --input '{"sku": "WH-1000XM5", "requestedQty": 20, "warehouseId": "WH-EAST-01", "reorderThreshold": 30}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w inventory_management -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real inventory systems. Your WMS for stock queries, Redis for atomic reservations, your ERP for reorder triggers, and the workflow runs identically in production.
-
-- **CheckStockWorker** (`inv_check_stock`): query real inventory systems: Shopify Inventory API, NetSuite, SAP, or a PostgreSQL inventory table with row-level locking for concurrent access
-- **ReserveWorker** (`inv_reserve`): use Redis `DECRBY` with atomic check for high-concurrency reservation, or PostgreSQL `SELECT FOR UPDATE` for transactional consistency
-- **ReorderWorker** (`inv_reorder`): integrate with supplier APIs for automated purchase orders, or use demand forecasting (Prophet, ARIMA) to calculate optimal reorder quantities
-
-Switch warehouse management systems and the inventory workflow continues with no definition changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-inventory-management/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/inventorymanagement/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── InventoryManagementExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CheckStockWorker.java
-│       ├── ReorderWorker.java
-│       ├── ReserveStockWorker.java
-│       └── UpdateInventoryWorker.java
-└── src/test/java/inventorymanagement/workers/
-    ├── CheckStockWorkerTest.java        # 3 tests
-    ├── ReorderWorkerTest.java        # 3 tests
-    ├── ReserveStockWorkerTest.java        # 4 tests
-    └── UpdateInventoryWorkerTest.java        # 3 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

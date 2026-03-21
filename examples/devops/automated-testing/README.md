@@ -1,8 +1,6 @@
-# Automated Testing Pipeline in Java with Conductor :  Setup Environment, Parallel Test Suites, Aggregate Results
+# Automated Testing Pipeline in Java with Conductor : Setup Environment, Parallel Test Suites, Aggregate Results
 
-Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Parallel Testing Cuts Pipeline Time by 3x
+Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results. ## Parallel Testing Cuts Pipeline Time by 3x
 
 A test suite takes 30 minutes to run sequentially: 10 minutes for unit tests, 15 minutes for integration tests, 5 minutes for performance tests. Running all three in parallel brings it down to 15 minutes (the slowest suite). But parallel execution requires a shared environment setup, independent test runners, and a final aggregation step that merges results from all three suites.
 
@@ -26,148 +24,25 @@ Five workers run the test pipeline. Setting up the environment, executing unit/i
 | **RunUnit** | `at_run_unit` | Runs unit tests. |
 | **SetupEnv** | `at_setup_env` | Sets up the test environment. |
 
-Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
+the workflow and rollback logic stay the same.
 
 ### The Workflow
 
 ```
 at_setup_env
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── at_run_unit
-    ├── at_run_integration
-    └── at_run_e2e
-    │
-    ▼
+ ├── at_run_unit
+ ├── at_run_integration
+ └── at_run_e2e
+ │
+ ▼
 JOIN (wait for all branches)
 at_aggregate_results
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/automated-testing-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/automated-testing-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow automated_testing_workflow \
-  --version 1 \
-  --input '{"suite": "sample-suite", "branch": "sample-branch"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w automated_testing_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker runs one test suite or setup task. replace the demo calls with Maven Surefire, Testcontainers, or k6 for real test execution and coverage reporting, and the testing workflow runs unchanged.
-
-- **Test suite workers**: execute real test suites via Maven Surefire (unit), Testcontainers (integration), or k6/Gatling (performance) with actual pass/fail results and coverage reports
-- **SetupEnvWorker** (`at_setup_env`): provision ephemeral test environments using Docker Compose, Kubernetes namespaces, or Terraform workspaces with automatic cleanup after test completion
-- **AggregateResultsWorker** (`at_aggregate_results`): generate HTML test reports, push results to SonarQube for quality gate enforcement, and post summaries to GitHub PR checks
-
-Swap in real test frameworks like JUnit and Selenium; the parallel test pipeline maintains the same aggregation interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-automated-testing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/automatedtesting/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AutomatedTestingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AggregateResults.java
-│       ├── RunE2e.java
-│       ├── RunIntegration.java
-│       ├── RunUnit.java
-│       └── SetupEnv.java
-└── src/test/java/automatedtesting/workers/
-    ├── AggregateResultsTest.java        # 7 tests
-    ├── RunUnitTest.java        # 7 tests
-    └── SetupEnvTest.java        # 7 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

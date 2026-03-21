@@ -1,7 +1,5 @@
 # Beneficiary Tracking in Java with Conductor
 
-A Java Conductor workflow example demonstrating Beneficiary Tracking. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
 ## The Problem
 
 A community health nonprofit enrolls a new beneficiary into a housing-assistance program. The intake team needs to register the person's demographics and location, assess their needs across housing, food security, education, and health, match them with appropriate services like food assistance, health screenings, and tutoring, monitor their progress over time, and produce a case report summarizing outcomes. Each step depends on the previous one's output.
@@ -26,160 +24,25 @@ Registration, needs assessment, service provision, and monitoring workers each t
 | **RegisterWorker** | `btr_register` | Registers the beneficiary with their name and location, assigning a unique beneficiary ID |
 | **ReportWorker** | `btr_report` | Generates a case report summarizing the beneficiary's services received and outcome status |
 
-Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 btr_register
-    │
-    ▼
+ │
+ ▼
 btr_assess_needs
-    │
-    ▼
+ │
+ ▼
 btr_provide_services
-    │
-    ▼
+ │
+ ▼
 btr_monitor
-    │
-    ▼
+ │
+ ▼
 btr_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/beneficiary-tracking-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/beneficiary-tracking-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow beneficiary_tracking_758 \
-  --version 1 \
-  --input '{"beneficiaryName": "test", "programId": "TEST-001", "location": "us-east-1"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w beneficiary_tracking_758 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real program systems. your case management platform for intake, your outcomes database for progress tracking, your reporting tools for impact metrics, and the workflow runs identically in production.
-
-- **RegisterWorker** (`btr_register`): create the beneficiary record in Salesforce NPSP or Bloomerang via their REST API, returning the CRM contact ID
-- **AssessNeedsWorker** (`btr_assess_needs`): pull intake assessment data from your case management system (e.g., Apricot, Penelope) and map responses to standardized need categories
-- **ProvideServicesWorker** (`btr_provide_services`): log service delivery in your program database and sync attendance records with Salesforce NPSP program engagement objects
-- **MonitorWorker** (`btr_monitor`): query outcome tracking tables or pull progress data from your case management platform to evaluate beneficiary well-being over time
-- **ReportWorker** (`btr_report`): generate the case report as a PDF using a reporting engine and upload it to your document management system or Salesforce Files
-
-Swap your case management system or reporting tools and the tracking pipeline operates without structural changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-beneficiary-tracking/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/beneficiarytracking/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── BeneficiaryTrackingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AssessNeedsWorker.java
-│       ├── MonitorWorker.java
-│       ├── ProvideServicesWorker.java
-│       ├── RegisterWorker.java
-│       └── ReportWorker.java
-└── src/test/java/beneficiarytracking/workers/
-    ├── RegisterWorkerTest.java        # 1 tests
-    └── ReportWorkerTest.java        # 1 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

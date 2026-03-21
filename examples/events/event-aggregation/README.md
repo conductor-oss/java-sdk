@@ -1,8 +1,6 @@
 # Event Aggregation in Java Using Conductor
 
-Event Aggregation Pipeline: collect events from a time window, aggregate metrics, generate a summary report, and publish the batch. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## The Problem
+Event Aggregation Pipeline: collect events from a time window, aggregate metrics, generate a summary report, and publish the batch. ## The Problem
 
 You need to aggregate events from a time window into summary metrics. The pipeline must collect all events within a specified window, compute aggregate statistics (counts, sums, averages, percentiles), generate a human-readable summary report, and publish the aggregated batch downstream. Without aggregation, downstream systems are overwhelmed by high-volume raw events; without windowing, you lose temporal context.
 
@@ -12,9 +10,7 @@ Without orchestration, you'd build a stateful aggregation service with in-memory
 
 **You just write the event-collection, metrics-aggregation, summary-generation, and batch-publish workers. Conductor handles window lifecycle management, retry on publish failure, and a durable record of every aggregation window.**
 
-Each aggregation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect, aggregate, summarize, publish), retrying if the downstream publish fails, tracking every aggregation window with full input/output details, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each aggregation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect, aggregate, summarize, publish), retrying if the downstream publish fails, tracking every aggregation window with full input/output details, and resuming from the last step if the process crashes. ### What You Write: Workers
 
 Four workers drive the aggregation pipeline: CollectEventsWorker gathers events from a time window, AggregateMetricsWorker computes totals and averages, GenerateSummaryWorker produces a human-readable report, and PublishBatchWorker sends the aggregated result downstream.
 
@@ -31,151 +27,18 @@ Workers implement event processing with realistic payloads so you can trace the 
 
 ```
 eg_collect_events
-    │
-    ▼
+ │
+ ▼
 eg_aggregate_metrics
-    │
-    ▼
+ │
+ ▼
 eg_generate_summary
-    │
-    ▼
+ │
+ ▼
 eg_publish_batch
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/event-aggregation-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/event-aggregation-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow event_aggregation_wf \
-  --version 1 \
-  --input '{"windowId": "TEST-001", "windowDurationSec": "sample-windowDurationSec", "eventSource": "api"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w event_aggregation_wf -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real event store, metrics computation engine, and downstream publish target (Kafka, data warehouse), the collect-aggregate-summarize-publish pipeline workflow stays exactly the same.
-
-- **EgCollectEventsWorker** (`eg_collect_events`): query your event store (Kafka, Elasticsearch, InfluxDB) for events within the specified time window
-- **EgAggregateMetricsWorker** (`eg_aggregate_metrics`): compute real-time metrics using streaming libraries (Apache Flink, Spark Structured Streaming) or in-process calculations
-- **EgGenerateSummaryWorker** (`eg_generate_summary`): render summary reports as JSON, HTML, or PDF for dashboards and stakeholder consumption
-- **EgPublishBatchWorker** (`eg_publish_batch`): publish aggregated results to downstream systems (data warehouse, Kafka topic, REST API, S3)
-
-Pointing CollectEventsWorker at a real event store or PublishBatchWorker at Kafka preserves the collect-aggregate-summarize-publish pipeline.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-event-aggregation/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/eventaggregation/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── EventAggregationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AggregateMetricsWorker.java
-│       ├── CollectEventsWorker.java
-│       ├── GenerateSummaryWorker.java
-│       └── PublishBatchWorker.java
-└── src/test/java/eventaggregation/workers/
-    ├── AggregateMetricsWorkerTest.java        # 9 tests
-    ├── CollectEventsWorkerTest.java        # 9 tests
-    ├── GenerateSummaryWorkerTest.java        # 9 tests
-    └── PublishBatchWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

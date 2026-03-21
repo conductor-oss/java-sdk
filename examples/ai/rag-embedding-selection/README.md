@@ -1,6 +1,4 @@
-# RAG Embedding Selection in Java Using Conductor :  Benchmark OpenAI, Cohere, and Local Models in Parallel
-
-A Java Conductor workflow that benchmarks three embedding providers (OpenAI, Cohere, and a local model) against the same test data in parallel, evaluates each on quality and latency metrics, and selects the best model for your use case. Conductor's `FORK_JOIN` runs all three embeddings simultaneously so the benchmark completes in the time of the slowest provider, not the sum. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel benchmarking, evaluation, and selection as independent workers.  you write the embedding and evaluation logic, Conductor handles parallelism, retries, durability, and observability.
+# RAG Embedding Selection in Java Using Conductor : Benchmark OpenAI, Cohere, and Local Models in Parallel
 
 ## Choosing the Right Embedding Model
 
@@ -33,162 +31,22 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 es_prepare_benchmark
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── es_embed_openai
-    ├── es_embed_cohere
-    └── es_embed_local
-    │
-    ▼
+ ├── es_embed_openai
+ ├── es_embed_cohere
+ └── es_embed_local
+ │
+ ▼
 JOIN (wait for all branches)
 es_evaluate_embeddings
-    │
-    ▼
+ │
+ ▼
 es_select_best
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/rag-embedding-selection-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use demo responses. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/rag-embedding-selection-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow rag_embedding_selection \
-  --version 1 \
-  --input '{"input": "test"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w rag_embedding_selection -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker benchmarks one embedding provider. swap in real OpenAI, Cohere, and local sentence-transformers calls, add retrieval quality metrics like MRR, and the parallel benchmark-evaluate-select workflow runs unchanged.
-
-- **PrepareBenchmarkWorker** (`es_prepare_benchmark`): load benchmark datasets (MTEB, BEIR, or custom domain-specific query/document pairs) with ground truth relevance judgments
-- **EmbedOpenaiWorker** (`es_embed_openai`): call the real OpenAI Embeddings API (text-embedding-3-large) and compute NDCG, recall, and precision against the benchmark
-- **EmbedCohereWorker** (`es_embed_cohere`): call the real Cohere Embed API (embed-english-v3.0) with input_type='search_query' and compute retrieval metrics against the benchmark
-- **EmbedLocalWorker** (`es_embed_local`): run a local embedding model (all-MiniLM-L6-v2 via ONNX Runtime or Sentence Transformers) and compute retrieval metrics against the benchmark
-- **EvaluateEmbeddingsWorker** (`es_evaluate_embeddings`): compute composite scores weighting quality (NDCG, recall), latency, and cost-per-query to recommend the best embedding model for your use case
-- **SelectBestWorker** (`es_select_best`): output a deployment recommendation with the winning model, its retrieval quality metrics, latency percentiles, and estimated monthly cost
-
-Each embedding worker returns the same vector/timing shape, so adding new providers to the benchmark requires only a new worker and fork branch. the evaluation and selection logic stays unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-rag-embedding-selection/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/ragembeddingselection/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── RagEmbeddingSelectionExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── EmbedCohereWorker.java
-│       ├── EmbedLocalWorker.java
-│       ├── EmbedOpenaiWorker.java
-│       ├── EvaluateEmbeddingsWorker.java
-│       ├── PrepareBenchmarkWorker.java
-│       └── SelectBestWorker.java
-└── src/test/java/ragembeddingselection/workers/
-    ├── EmbedCohereWorkerTest.java        # 2 tests
-    ├── EmbedLocalWorkerTest.java        # 2 tests
-    ├── EmbedOpenaiWorkerTest.java        # 2 tests
-    ├── EvaluateEmbeddingsWorkerTest.java        # 3 tests
-    ├── PrepareBenchmarkWorkerTest.java        # 4 tests
-    └── SelectBestWorkerTest.java        # 3 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

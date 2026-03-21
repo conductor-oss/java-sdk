@@ -1,6 +1,4 @@
-# XML Parsing in Java Using Conductor :  XML Reception, Tag Parsing, Field Extraction, JSON Conversion, and Record Emission
-
-A Java Conductor workflow example for XML-to-JSON transformation. receiving raw XML content with a configurable root element, parsing the XML tags into structured elements, extracting typed fields from each element (id, name, price as double, category), converting the extracted data to JSON records with source metadata and timestamps, and emitting the final records for downstream consumption. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# XML Parsing in Java Using Conductor : XML Reception, Tag Parsing, Field Extraction, JSON Conversion, and Record Emission
 
 ## The Problem
 
@@ -12,9 +10,7 @@ Without orchestration, you'd write a single JAXB or DOM parser method that reads
 
 **You just write the XML reception, tag parsing, field extraction, JSON conversion, and record emission workers. Conductor handles the multi-stage XML pipeline, retries when parsing fails on unexpected structures, and element-by-element count tracking across every stage.**
 
-Each stage of the XML pipeline is a simple, independent worker. The receiver accepts the raw XML content and the root element name, validating that the XML is well-formed. The tag parser walks the XML structure and extracts elements under the specified root tag, producing a list of parsed elements. The field extractor pulls typed values from each element: strings for `id`, `name`, and `category`, doubles for `price`, producing clean records. The JSON converter transforms the extracted records into JSON format, adding metadata like source identifier and `parsedAt` timestamp to each record. The emitter produces the final record set with a completion status and record count. Conductor executes them in strict sequence, passes the evolving data representation between stages, retries if any step fails, and tracks element counts and record counts at every stage. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each stage of the XML pipeline is a simple, independent worker. The receiver accepts the raw XML content and the root element name, validating that the XML is well-formed. The tag parser walks the XML structure and extracts elements under the specified root tag, producing a list of parsed elements. The field extractor pulls typed values from each element: strings for `id`, `name`, and `category`, doubles for `price`, producing clean records. The JSON converter transforms the extracted records into JSON format, adding metadata like source identifier and `parsedAt` timestamp to each record. The emitter produces the final record set with a completion status and record count. Conductor executes them in strict sequence, passes the evolving data representation between stages, retries if any step fails, and tracks element counts and record counts at every stage. ### What You Write: Workers
 
 Five workers handle XML-to-JSON transformation: receiving raw XML content, parsing tags into structured elements under the root, extracting typed fields (strings, doubles) from each element, converting to JSON records with metadata, and emitting the final dataset.
 
@@ -32,159 +28,21 @@ Workers implement data processing stages with representative outputs so the pipe
 
 ```
 xp_receive_xml
-    │
-    ▼
+ │
+ ▼
 xp_parse_tags
-    │
-    ▼
+ │
+ ▼
 xp_extract_fields
-    │
-    ▼
+ │
+ ▼
 xp_convert_to_json
-    │
-    ▼
+ │
+ ▼
 xp_emit_records
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/xml-parsing-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/xml-parsing-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow xml_parsing_wf \
-  --version 1 \
-  --input '{"xmlContent": "Process this order for customer C-100", "rootElement": "sample-rootElement"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w xml_parsing_wf -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Parse real partner XML catalogs with JAXB or StAX, extract typed fields with namespace-aware processing, and publish JSON records to a downstream API, the XML-to-JSON workflow runs unchanged.
-
-- **ReceiveXmlWorker** → receive XML from real sources: S3/GCS file downloads, SFTP pulls from partner systems, webhook payloads from EDI gateways, or Kafka messages containing XML payloads, with XML well-formedness validation using SAX parser
-- **ParseTagsWorker** → implement real XML parsing using JAXB for schema-bound parsing, StAX for memory-efficient streaming of large XML files, or DOM for small documents where XPath queries are needed; support namespaces and configurable root element paths
-- **ExtractFieldsWorker** → extract real typed fields with validation: parse dates using configurable date formats, handle currency-annotated price elements, support nested field extraction (address/city, address/zip), and apply XSD type constraints
-- **ConvertToJsonWorker** → use real JSON serialization with Jackson or Gson, apply configurable field naming strategies (camelCase, snake_case), flatten nested XML structures into dot-notation JSON keys, and attach provenance metadata (source file, parse timestamp, schema version)
-- **EmitRecordsWorker** → publish records to real downstream systems: REST API bulk endpoints, Kafka topics for event-driven consumers, database bulk inserts via JDBC batch, or Elasticsearch bulk index API
-
-Replacing the tag parser with a real JAXB or SAX implementation or adding new typed fields requires only worker changes, the receive-parse-extract-convert-emit pipeline remains intact.
-
-**Add new stages** by inserting tasks in `workflow.json`, for example, an XSD validation step that checks the XML against a schema before parsing, a deduplication step that filters out products already in the catalog, or a transformation step that enriches extracted records with data from a reference database (supplier names, category hierarchies).
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-xml-parsing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/xmlparsing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── XmlParsingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ConvertToJsonWorker.java
-│       ├── EmitRecordsWorker.java
-│       ├── ExtractFieldsWorker.java
-│       ├── ParseTagsWorker.java
-│       └── ReceiveXmlWorker.java
-└── src/test/java/xmlparsing/workers/
-    ├── ConvertToJsonWorkerTest.java        # 9 tests
-    ├── EmitRecordsWorkerTest.java        # 9 tests
-    ├── ExtractFieldsWorkerTest.java        # 9 tests
-    ├── ParseTagsWorkerTest.java        # 8 tests
-    └── ReceiveXmlWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

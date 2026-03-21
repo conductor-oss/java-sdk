@@ -12,9 +12,7 @@ Without orchestration, you'd build a monolithic trial management system that che
 
 **You just write the trial management workers. Participant screening, consent collection, arm randomization, adverse event monitoring, and outcome analysis. Conductor handles strict step sequencing, automatic retries, and a 21 CFR Part 11-compliant audit trail of every participant interaction.**
 
-Each stage of the trial enrollment pipeline is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running screening before consent, randomizing only after consent is obtained, triggering monitoring after randomization, analyzing only after monitoring is complete, and maintaining a 21 CFR Part 11-compliant audit trail of every step. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each stage of the trial enrollment pipeline is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running screening before consent, randomizing only after consent is obtained, triggering monitoring after randomization, analyzing only after monitoring is complete, and maintaining a 21 CFR Part 11-compliant audit trail of every step. ### What You Write: Workers
 
 Five workers manage the trial enrollment pipeline: ScreenWorker checks eligibility, ConsentWorker records informed consent, RandomizeWorker assigns treatment arms, MonitorWorker tracks adverse events, and AnalyzeTrialWorker runs outcome analysis.
 
@@ -26,161 +24,25 @@ Five workers manage the trial enrollment pipeline: ScreenWorker checks eligibili
 | **MonitorWorker** | `clt_monitor` | Tracks the participant through the trial for adverse events, protocol deviations, and study visits |
 | **AnalyzeTrialWorker** | `clt_analyze` | Runs the statistical analysis on collected trial data and generates outcome reports |
 
-Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
-
 ### The Workflow
 
 ```
 clt_screen
-    │
-    ▼
+ │
+ ▼
 clt_consent
-    │
-    ▼
+ │
+ ▼
 clt_randomize
-    │
-    ▼
+ │
+ ▼
 clt_monitor
-    │
-    ▼
+ │
+ ▼
 clt_analyze
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/clinical-trials-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/clinical-trials-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow clinical_trials_workflow \
-  --version 1 \
-  --input '{"trialId": "TRIAL-2024-CARDIO-001", "participantId": "SUBJ-4401", "condition": "hypertension"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w clinical_trials_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect ScreenWorker to your CTMS eligibility engine, ConsentWorker to your eConsent platform (DocuSign, REDCap), and RandomizeWorker to your IWRS randomization system. The workflow definition stays exactly the same.
-
-- **ScreenWorker** → integrate with your CTMS to evaluate eligibility against real trial protocols and patient EHR data
-- **ConsentWorker** → connect to an eConsent platform (DocuSign CLM, REDCap, Medable) for 21 CFR Part 11-compliant electronic signatures
-- **RandomizeWorker** → call your IWRS/IRT system for blinded, stratified randomization with drug supply allocation
-- **MonitorWorker** → integrate with your EDC system (Medidata Rave, Oracle Clinical, Veeva) for real-time adverse event tracking
-- **AnalyzeTrialWorker** → trigger SAS or R pipelines for interim and final analyses with CDISC-compliant data packages
-- Add a **SafetyReviewWorker** with a SWITCH on adverse event severity to trigger DSMB notifications for serious adverse events
-
-Connect each worker to your CTMS, eConsent platform, and EDC system while keeping the same output fields, and the trial management workflow requires no modifications.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-clinical-trials/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/clinicaltrials/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ClinicalTrialsExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeTrialWorker.java
-│       ├── ConsentWorker.java
-│       ├── MonitorWorker.java
-│       ├── RandomizeWorker.java
-│       └── ScreenWorker.java
-└── src/test/java/clinicaltrials/workers/
-    ├── AnalyzeTrialWorkerTest.java        # 2 tests
-    └── ScreenWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

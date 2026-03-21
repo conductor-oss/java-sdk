@@ -32,171 +32,21 @@ The demo workers produce realistic, deterministic output shapes so the workflow 
 
 ```
 sup_plan
-    |
-    v
+ |
+ v
 FORK_JOIN
-    +-- sup_coder_agent
-    +-- sup_tester_agent
-    +-- sup_documenter_agent
-    |
-    v
+ +-- sup_coder_agent
+ +-- sup_tester_agent
+ +-- sup_documenter_agent
+ |
+ v
 JOIN (wait for all branches)
-    |
-    v
+ |
+ v
 sup_review
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/agent-supervisor-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/agent-supervisor-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-# Build the user-authentication feature
-conductor workflow start \
-  --workflow agent_supervisor \
-  --version 1 \
-  --input '{"feature": "user-authentication", "priority": "high", "systemPrompt": "You are a senior engineering supervisor coordinating agent work."}'
-
-# Build a payment-processing feature
-conductor workflow start \
-  --workflow agent_supervisor \
-  --version 1 \
-  --input '{"feature": "payment-processing", "priority": "critical", "systemPrompt": "You are a senior engineering supervisor coordinating agent work."}'
-
-# Build a search feature with normal priority
-conductor workflow start \
-  --workflow agent_supervisor \
-  --version 1 \
-  --input '{"feature": "full-text-search", "priority": "medium", "systemPrompt": "You are a senior engineering supervisor coordinating agent work."}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w agent_supervisor -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each specialist agent is self-contained. Connect the coder to GitHub/Codex, the tester to Maven Surefire/JaCoCo, and the documenter to an LLM docs pipeline, and the plan-fork-review supervisory workflow runs unchanged.
-
-- **PlanWorker** (`sup_plan`): use GPT-4 or Claude to generate context-aware development plans from feature specifications, or integrate with Jira/Linear APIs to create real tasks with story points and sprint assignments
-- **CoderAgentWorker** (`sup_coder_agent`): integrate with GitHub's API to create branches and commit code, or use OpenAI Codex / Anthropic tool use to generate real implementations from the supervisor's task specification
-- **TesterAgentWorker** (`sup_tester_agent`): execute real test suites via Maven Surefire or JUnit Platform Launcher, parse JaCoCo coverage reports, and return actual pass/fail metrics with failing test details
-- **DocumenterAgentWorker** (`sup_documenter_agent`): use an LLM to generate API documentation from the coder's output, or integrate with Swagger/OpenAPI to auto-generate reference docs from code annotations
-- **ReviewWorker** (`sup_review`): use an LLM to cross-reference the coder's implementation against the tester's coverage and the documenter's API descriptions, flagging gaps automatically
-- **Add a new agent**: create a new worker class, add a branch to the `FORK_JOIN` in `workflow.json`, and update the `JOIN` and `ReviewWorker` inputs. No existing code changes needed.
-
-Replace with real code generation and test frameworks; the supervisor pipeline maintains the same plan-execute-review contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-agent-supervisor/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/agentsupervisor/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AgentSupervisorExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── PlanWorker.java          # Creates dev plan with phases and task assignments
-│       ├── CoderAgentWorker.java    # Implements feature, reports files and LOC
-│       ├── TesterAgentWorker.java   # Runs tests, reports coverage and pass rates
-│       ├── DocumenterAgentWorker.java # Generates docs, reports sections and word count
-│       └── ReviewWorker.java        # Reviews all outputs, produces quality report
-└── src/test/java/agentsupervisor/workers/
-    ├── PlanWorkerTest.java          # 11 tests
-    ├── CoderAgentWorkerTest.java    # 10 tests
-    ├── TesterAgentWorkerTest.java   # 10 tests
-    ├── DocumenterAgentWorkerTest.java # 9 tests
-    └── ReviewWorkerTest.java        # 12 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

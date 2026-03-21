@@ -1,6 +1,4 @@
-# Question Answering in Java with Conductor :  Parse, Retrieve, and Generate Answers from a Knowledge Base
-
-A Java Conductor workflow that answers natural language questions from a knowledge base. parsing the question to extract intent and keywords, retrieving relevant context from the knowledge base, and generating a natural language answer from the retrieved context. Given a `question` and `knowledgeBase`, the pipeline produces parsed intent, relevant context, and a generated answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the three-step question answering pipeline.
+# Question Answering in Java with Conductor : Parse, Retrieve, and Generate Answers from a Knowledge Base
 
 ## Answering Questions with Knowledge-Grounded Responses
 
@@ -24,151 +22,19 @@ ParseQuestionWorker extracts intent and keywords, RetrieveContextWorker finds th
 | **ParseQuestionWorker** | `qas_parse_question` | Analyzes the input question to extract intent type (how-to, definition, comparison) and keywords. |
 | **RetrieveContextWorker** | `qas_retrieve_context` | Searches the knowledge base for the most relevant passages matching the parsed question. |
 
-Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 qas_parse_question
-    │
-    ▼
+ │
+ ▼
 qas_retrieve_context
-    │
-    ▼
+ │
+ ▼
 qas_generate_answer
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/question-answering-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/question-answering-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow qas_question_answering \
-  --version 1 \
-  --input '{"question": "What is workflow orchestration?", "knowledgeBase": "sample-knowledgeBase"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w qas_question_answering -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one QA step. connect your search engine (Elasticsearch, Algolia) for passage retrieval and your LLM (Claude, GPT-4) for answer synthesis, and the question-answering workflow stays the same.
-
-- **GenerateAnswerWorker** (`qas_generate_answer`): swap in an LLM (GPT-4, Claude) for real answer generation from retrieved context
-- **ParseQuestionWorker** (`qas_parse_question`): use NLP models for intent classification and keyword extraction
-- **RetrieveContextWorker** (`qas_retrieve_context`): connect to a vector database (Pinecone, Weaviate) or search engine (Elasticsearch) for semantic retrieval
-
-Swap in a real retrieval engine and LLM and the parse-retrieve-generate QA pipeline continues to answer questions as designed.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-question-answering/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/questionanswering/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── QuestionAnsweringExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── GenerateAnswerWorker.java
-│       ├── ParseQuestionWorker.java
-│       └── RetrieveContextWorker.java
-└── src/test/java/questionanswering/workers/
-    ├── GenerateAnswerWorkerTest.java        # 2 tests
-    ├── ParseQuestionWorkerTest.java        # 2 tests
-    └── RetrieveContextWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

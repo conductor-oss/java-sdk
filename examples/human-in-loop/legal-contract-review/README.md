@@ -1,7 +1,5 @@
 # Legal Contract Review in Java Using Conductor: AI Term Extraction, Human Legal Review via WAIT, and Finalization
 
-A Java Conductor workflow example for legal contract review: using AI to extract key terms (parties, payment terms, liability caps, termination clauses) and risk flags (unlimited liability, auto-renewal, broad IP assignment) from a contract, pausing at a WAIT task for a lawyer to verify the extracted terms and approve or flag issues, then finalizing the reviewed contract. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
-
 ## Contracts Need AI-Assisted Extraction Followed by Human Legal Review
 
 Legal contracts contain key terms (parties, payment terms, liability caps, termination clauses) and risk flags (unlimited liability, auto-renewal, broad IP assignment) that AI can extract, but a human lawyer must verify before the contract is signed. The workflow extracts terms via AI, pauses for legal review via a WAIT task, then finalizes the review. If finalization fails after the lawyer approves, you need to retry it without asking the lawyer to re-review.
@@ -28,180 +26,15 @@ Workers implement the approval steps and human decisions so the workflow runs en
 
 ```
 lcr_extract_terms
-    │
-    ▼
+ │
+ ▼
 legal_review [WAIT]
-    │
-    ▼
+ │
+ ▼
 lcr_finalize
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/legal-contract-review-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/legal-contract-review-1.0.0.jar --workers
-
-```
-
-Then use the CLI in a separate terminal to start and manage workflows.
-
-### Start a workflow run
-
-```bash
-conductor workflow start \
-  --workflow legal_contract_review_demo \
-  --version 1 \
-  --input '{"contractId": "MSA-2026-0147"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w legal_contract_review_demo -s COMPLETED -c 5
-
-```
-
-### Completing the WAIT task (lawyer review)
-
-When the workflow hits the `legal_review` WAIT task, it pauses with the extracted key terms and risk flags until a lawyer completes the review. The workflow status will show as `RUNNING` with the WAIT task `IN_PROGRESS`.
-
-**Step 1: Find the WAIT task ID**
-
-```bash
-# Get the execution details: look for the task named "legal_review"
-conductor workflow get-execution <workflow_id> -c
-
-```
-
-The task ID is in the `taskId` field of the `legal_review_ref` task. The WAIT task's input will contain the extracted `keyTerms` and `riskFlags` for the lawyer to review.
-
-**Step 2: Approve the contract**
-
-```bash
-curl -X POST http://localhost:8080/api/tasks \
-  -H 'Content-Type: application/json' \
-  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "COMPLETED", "outputData": {"approved": true, "reviewedBy": "jsmith@lawfirm.com", "reviewedAt": "2026-03-14T16:00:00Z", "notes": "Liability cap negotiated down to $5M. Auto-renewal opt-out window added.", "redlineRequested": false}}'
-
-```
-
-**Step 2 (alternative): Flag issues and request redlines**
-
-```bash
-curl -X POST http://localhost:8080/api/tasks \
-  -H 'Content-Type: application/json' \
-  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "COMPLETED", "outputData": {"approved": false, "reviewedBy": "jsmith@lawfirm.com", "reviewedAt": "2026-03-14T16:00:00Z", "redlineRequested": true, "issues": ["Unlimited liability clause must be capped at 2x contract value", "Auto-renewal needs a 30-day opt-out window", "Termination notice should be reduced from 90 to 30 days"]}}'
-
-```
-
-After the lawyer completes the review, the workflow automatically resumes and the `lcr_finalize` worker records the outcome.
-
-## How to Extend
-
-Each worker handles one piece of the contract pipeline. Connect your legal AI platform (Kira Systems, LawGeex, Ironclad) for extraction and your CLM system (DocuSign CLM, Agiloft) for finalization, and the review workflow stays the same.
-
-- **LcrExtractTermsWorker** (`lcr_extract_terms`): use a legal NLP service like Kira Systems, LawGeex, or an LLM (Claude, GPT-4) fine-tuned on contracts to extract real terms and identify risk flags from uploaded contract PDFs
-- **WAIT task**: trigger from your legal review dashboard or CLM (Contract Lifecycle Management) system, where the lawyer sees the extracted terms, marks up risk flags, and clicks Approve/Reject to call `POST /tasks/{taskId}`
-- **LcrFinalizeWorker** (`lcr_finalize`): push the reviewed contract to a CLM system like Ironclad, DocuSign CLM, or Agiloft, update the deal record in your CRM (Salesforce, HubSpot), and notify the requesting team via email or Slack
-- **Add a redline loop**: if the lawyer flags issues, add a sub-workflow that sends redlines to the counterparty, waits for a revised contract, re-extracts terms, and returns to the legal review WAIT task
-
-Replace the demo extraction with a real contract AI platform and the review pipeline continues to work as designed.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-legal-contract-review/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/legalcontractreview/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── LegalContractReviewExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── LcrExtractTermsWorker.java   # AI-based term extraction with risk flags
-│       └── LcrFinalizeWorker.java       # Records lawyer's review outcome
-└── src/test/java/legalcontractreview/workers/
-    ├── LcrExtractTermsWorkerTest.java   # 8 tests. Key terms, risk flags, determinism
-    └── LcrFinalizeWorkerTest.java       # 5 tests. Completion, output shape
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,4 +1,4 @@
-# Predictive Monitoring in Java with Conductor :  Collect History, Train Model, Predict, Alert
+# Predictive Monitoring in Java with Conductor : Collect History, Train Model, Predict, Alert
 
 Automates predictive monitoring using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects historical metric data, trains a forecasting model (e.g., Prophet), predicts future metric values and breach likelihood, and sends proactive alerts before thresholds are actually crossed.
 
@@ -25,7 +25,7 @@ Four workers power predictive monitoring. Collecting historical metrics, trainin
 | **Predict** | `pdm_predict` | Forecasts future metric values using the trained model, outputting predicted peak, timing, and breach likelihood with confidence intervals |
 | **TrainModel** | `pdm_train_model` | Trains a time-series forecasting model (e.g., Prophet) on the collected historical data points |
 
-Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
+the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -34,125 +34,6 @@ Input -> CollectHistory -> PdmAlert -> Predict -> TrainModel -> Output
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/predictive-monitoring-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/predictive-monitoring-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow predictive_monitoring \
-  --version 1 \
-  --input '{}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w predictive_monitoring -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one prediction stage. replace the demo calls with Prometheus range queries, Prophet time-series forecasting, or PagerDuty proactive alerts, and the monitoring workflow runs unchanged.
-
-- **CollectHistory** (`pdm_collect_history`): query Prometheus range queries, CloudWatch GetMetricData, or InfluxDB for historical metric data with proper aggregation and gap handling
-- **TrainModel** (`pdm_train_model`): use Prophet for time-series forecasting with automatic seasonality detection, scikit-learn for linear models, or AWS Forecast for managed ML-based predictions
-- **Predict** (`pdm_predict`): generate future metric value forecasts using the trained model, identifying when thresholds will be breached and the estimated time-to-breach
-- **PdmAlert** (`pdm_alert`): send predictive alerts to PagerDuty with estimated breach date and severity, post to Slack with trend charts, or create Jira tickets for capacity planning
-
-Swap in Prophet or a real ML model; the forecast pipeline operates with the same prediction interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-predictive-monitoring/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/predictivemonitoring/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── PredictiveMonitoringExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CollectHistory.java
-│       ├── PdmAlert.java
-│       ├── Predict.java
-│       └── TrainModel.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

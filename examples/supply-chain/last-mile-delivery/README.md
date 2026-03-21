@@ -1,6 +1,4 @@
-# Last Mile Delivery in Java with Conductor :  Driver Assignment, Route Optimization, Package Delivery, and Delivery Confirmation
-
-A Java Conductor workflow example for last mile delivery. assigning a driver to an order (e.g., ORD-2024-668 going to 742 Evergreen Terrace with a 2pm-4pm delivery window), optimizing the delivery route across all stops, executing the delivery, and confirming receipt with proof of delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Last Mile Delivery in Java with Conductor : Driver Assignment, Route Optimization, Package Delivery, and Delivery Confirmation
 
 ## The Problem
 
@@ -25,157 +23,22 @@ Four workers manage each delivery: AssignDriverWorker selects a driver by availa
 | **DeliverWorker** | `lmd_deliver` | Executes the delivery to the customer address within the time window. |
 | **OptimizeRouteWorker** | `lmd_optimize_route` | Optimizes the delivery route across all stops to minimize distance while honoring time windows. |
 
-Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 lmd_assign_driver
-    │
-    ▼
+ │
+ ▼
 lmd_optimize_route
-    │
-    ▼
+ │
+ ▼
 lmd_deliver
-    │
-    ▼
+ │
+ ▼
 lmd_confirm
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/last-mile-delivery-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/last-mile-delivery-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow lmd_last_mile_delivery \
-  --version 1 \
-  --input '{"orderId": "TEST-001", "address": "sample-address", "timeWindow": "2026-01-01T00:00:00Z"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w lmd_last_mile_delivery -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect AssignDriverWorker to your fleet management system, OptimizeRouteWorker to a routing engine (Google Routes API, OSRM), and ConfirmWorker to your proof-of-delivery platform. The workflow definition stays exactly the same.
-
-- **AssignDriverWorker** (`lmd_assign_driver`): match orders to drivers using your fleet management system (Onfleet, Bringg, or Route4Me), considering driver location, vehicle capacity, and delivery window constraints
-- **OptimizeRouteWorker** (`lmd_optimize_route`): compute the optimal stop sequence using Google Maps Directions API, HERE Routing API, or a TSP/VRP solver, minimizing total distance while honoring each customer's time window
-- **DeliverWorker** (`lmd_deliver`): push the delivery task to the driver's mobile app, track GPS location during delivery, and handle exceptions (access code needed, gate closed, no safe place)
-- **ConfirmWorker** (`lmd_confirm`): capture proof of delivery (e-signature, delivery photo, GPS coordinates at drop-off), update the order management system, and trigger customer notification
-
-Swap any simulation for a real routing engine or fleet API while maintaining the output contract, and the delivery workflow requires no changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-last-mile-delivery/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/lastmiledelivery/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── LastMileDeliveryExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AssignDriverWorker.java
-│       ├── ConfirmWorker.java
-│       ├── DeliverWorker.java
-│       └── OptimizeRouteWorker.java
-└── src/test/java/lastmiledelivery/workers/
-    ├── AssignDriverWorkerTest.java        # 2 tests
-    ├── ConfirmWorkerTest.java        # 2 tests
-    ├── DeliverWorkerTest.java        # 2 tests
-    └── OptimizeRouteWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

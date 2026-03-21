@@ -1,6 +1,4 @@
-# Implementing Fallback Tasks in Java with Conductor :  Primary API, Secondary API, and Cache Lookup
-
-A Java Conductor workflow example demonstrating tiered fallback. trying a primary API first, falling back to a secondary API if the primary is unavailable, and ultimately serving from cache if both APIs are down.
+# Implementing Fallback Tasks in Java with Conductor : Primary API, Secondary API, and Cache Lookup
 
 ## The Problem
 
@@ -12,9 +10,7 @@ Without orchestration, fallback logic nests into deeply indented try/catch chain
 
 **You just write the primary, secondary, and cache lookup logic. Conductor handles SWITCH-based fallback routing through the tiered chain, retries at each level, and a record of every request showing which data source ultimately served the response.**
 
-The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked. you can see which data source served each response and how far down the fallback chain it went. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked. you can see which data source served each response and how far down the fallback chain it went. ### What You Write: Workers
 
 PrimaryApiWorker tries the preferred data source first, SecondaryApiWorker serves as the backup provider if the primary is unavailable, and CacheLookupWorker delivers stale-but-valid cached data as the last resort.
 
@@ -30,142 +26,14 @@ Workers implement success and failure scenarios so you can observe the resilienc
 
 ```
 fb_primary_api
-    │
-    ▼
+ │
+ ▼
 SWITCH (fallback_switch_ref)
-    ├── unavailable: fb_secondary_api
-    ├── error: fb_cache_lookup
+ ├── unavailable: fb_secondary_api
+ ├── error: fb_cache_lookup
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/fallback-tasks-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/fallback-tasks-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow fallback_tasks_demo \
-  --version 1 \
-  --input '{"available": "sample-available"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w fallback_tasks_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker calls one data source. connect the primary worker to your main API, the secondary worker to a backup provider or different region, the cache worker to Redis or Memcached, and the primary-secondary-cache fallback chain stays the same.
-
-- **CacheLookupWorker** (`fb_cache_lookup`): serve from Redis/Memcached/local cache. stale data is better than no data for most read operations
-- **PrimaryApiWorker** (`fb_primary_api`): call your primary data provider (production database, main API endpoint, preferred vendor)
-- **SecondaryApiWorker** (`fb_secondary_api`): call your backup data source (read replica, secondary vendor, different AWS region)
-
-Point each tier at your real API providers and cache layer, and the primary-secondary-cache fallback chain operates in production with no orchestration changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-fallback-tasks/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/fallbacktasks/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── FallbackTasksExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CacheLookupWorker.java
-│       ├── PrimaryApiWorker.java
-│       └── SecondaryApiWorker.java
-└── src/test/java/fallbacktasks/workers/
-    └── FallbackWorkersTest.java        # 12 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

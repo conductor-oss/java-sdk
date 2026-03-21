@@ -32,169 +32,21 @@ The demo workers produce realistic, deterministic output shapes so the workflow 
 
 ```
 pe_create_plan
-    |
-    v
+ |
+ v
 pe_execute_step_1
-    |
-    v
+ |
+ v
 pe_execute_step_2
-    |
-    v
+ |
+ v
 pe_execute_step_3
-    |
-    v
+ |
+ v
 pe_compile_results
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/plan-execute-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/plan-execute-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-# Plan a go-to-market strategy
-conductor workflow start \
-  --workflow plan_execute_agent \
-  --version 1 \
-  --input '{"objective": "Develop go-to-market strategy for new SaaS product"}'
-
-# Plan a competitive analysis
-conductor workflow start \
-  --workflow plan_execute_agent \
-  --version 1 \
-  --input '{"objective": "Analyze competitive landscape for AI-powered customer support tools"}'
-
-# Plan a product launch
-conductor workflow start \
-  --workflow plan_execute_agent \
-  --version 1 \
-  --input '{"objective": "Create launch plan for mobile app expansion into European markets"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w plan_execute_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each step worker is a self-contained executor. Connect an LLM for dynamic plan creation, SerpAPI or databases for research steps, and an LLM for narrative report compilation, and the plan-execute-compile workflow runs unchanged.
-
-- **CreatePlanWorker** (`pe_create_plan`): use OpenAI function calling or Anthropic tool use to generate dynamic plans with variable step counts based on objective complexity, or integrate LangChain's `PlanAndExecute` agent to decompose objectives into dependency-aware task graphs
-- **Execute workers** (`pe_execute_step_1/2/3`): connect to real tools based on step type: SerpAPI or Tavily for web research, Pandas/DuckDB for data analysis, or call domain-specific APIs (Crunchbase for competitor data, Statista for market sizing)
-- **CompileResultsWorker** (`pe_compile_results`): use GPT-4 or Claude to synthesize step results into a coherent narrative report with executive summary, comparison tables, and prioritized recommendations
-- **Add more steps**: create additional `ExecuteStepNWorker` classes and extend the workflow JSON with new tasks. Each step worker follows the same interface, so adding steps is copy-paste.
-
-Replace with LLM-generated plans and real data queries; the plan-execute pipeline preserves the same step-by-step interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-plan-execute-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/planexecuteagent/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── PlanExecuteAgentExample.java # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CreatePlanWorker.java     # Decomposes objective into 3 ordered steps
-│       ├── ExecuteStep1Worker.java   # Market data and competitor analysis
-│       ├── ExecuteStep2Worker.java   # Trend analysis and opportunity identification
-│       ├── ExecuteStep3Worker.java   # Strategic recommendations with ROI estimates
-│       └── CompileResultsWorker.java # Merges step results into final report
-└── src/test/java/planexecuteagent/workers/
-    ├── CreatePlanWorkerTest.java     # 9 tests
-    ├── ExecuteStep1WorkerTest.java   # 9 tests
-    ├── ExecuteStep2WorkerTest.java   # 9 tests
-    ├── ExecuteStep3WorkerTest.java   # 9 tests
-    └── CompileResultsWorkerTest.java # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

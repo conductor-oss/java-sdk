@@ -1,6 +1,4 @@
-# End-to-End Supply Chain Management in Java with Conductor :  Plan, Source, Make, Deliver, and Return
-
-A Java Conductor workflow example for end-to-end supply chain management following the SCOR model. creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# End-to-End Supply Chain Management in Java with Conductor : Plan, Source, Make, Deliver, and Return
 
 ## The Problem
 
@@ -26,163 +24,25 @@ Five workers follow the SCOR model: PlanWorker creates production plans, SourceW
 | **ReturnWorker** | `scm_return` | Configures the return policy for a delivery. |
 | **SourceWorker** | `scm_source` | Sources materials from suppliers. |
 
-Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 scm_plan
-    │
-    ▼
+ │
+ ▼
 scm_source
-    │
-    ▼
+ │
+ ▼
 scm_make
-    │
-    ▼
+ │
+ ▼
 scm_deliver
-    │
-    ▼
+ │
+ ▼
 scm_return
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/supply-chain-mgmt-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/supply-chain-mgmt-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow scm_supply_chain \
-  --version 1 \
-  --input '{"product": "widget-pro", "quantity": "sample-quantity", "destination": "production"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w scm_supply_chain -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect PlanWorker to your demand planning system, SourceWorker to your supplier management platform, and DeliverWorker to your TMS for shipment execution. The workflow definition stays exactly the same.
-
-- **PlanWorker** (`scm_plan`): create production plans in your APS (Advanced Planning System) or ERP (SAP PP, Oracle Manufacturing), specifying BOM, quantities, and target dates
-- **SourceWorker** (`scm_source`): issue purchase orders to approved suppliers via your procurement system, tracking lead times and confirming material availability
-- **MakeWorker** (`scm_make`): create manufacturing work orders in your MES, track production progress, and record output quantities and quality metrics
-- **DeliverWorker** (`scm_deliver`): book carriers via your TMS, generate shipping documents (BOL, packing list), and track delivery to the destination
-- **ReturnWorker** (`scm_return`): configure the return policy (RMA process, return window, refurbishment eligibility) for the delivered batch in your order management system
-
-Integrate each worker with your ERP, MES, or TMS while keeping the same return structure, and the end-to-end supply chain flow remains intact.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-supply-chain-mgmt/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/supplychainmgmt/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── SupplyChainMgmtExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── DeliverWorker.java
-│       ├── MakeWorker.java
-│       ├── PlanWorker.java
-│       ├── ReturnWorker.java
-│       └── SourceWorker.java
-└── src/test/java/supplychainmgmt/workers/
-    ├── DeliverWorkerTest.java        # 3 tests
-    ├── MakeWorkerTest.java        # 3 tests
-    ├── PlanWorkerTest.java        # 4 tests
-    ├── ReturnWorkerTest.java        # 3 tests
-    └── SourceWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

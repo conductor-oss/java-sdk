@@ -32,147 +32,21 @@ All workers run in mock mode by default when `STRIPE_API_KEY` is not set, produc
 
 ```
 pay_validate
-    │
-    ▼
+ │
+ ▼
 pay_authorize
-    │
-    ▼
+ │
+ ▼
 pay_capture
-    │
-    ▼
+ │
+ ▼
 pay_receipt
-    │
-    ▼
+ │
+ ▼
 pay_reconcile
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/payment-processing-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `STRIPE_API_KEY` | _(none, mock mode)_ | Stripe API key. If unset, runs in mock mode with demo validation. Set to `sk_test_...` for real Stripe validation |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/payment-processing-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow payment_processing \
-  --version 1 \
-  --input '{"orderId": "ORD-8801", "amount": 259.97, "currency": "USD", "paymentMethod": {"type": "credit_card", "brand": "visa", "last4": "1234"}, "merchantId": "merch-100"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w payment_processing -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Replace each worker with your real payment stack. Stripe Payment Intents for auth and capture, your receipt service for invoicing, your ledger for reconciliation, and the workflow runs identically in production.
-
-- **AuthorizeWorker/CaptureWorker** (`pay_authorize/capture`): integrate with Stripe Payment Intents (separate authorize and capture), Braintree, or Adyen for real two-phase payment processing with 3D Secure support
-- **ReconcileWorker** (`pay_reconcile`): match captured transactions against Stripe payouts, bank settlement files (BAI2 format), or accounting system entries in QuickBooks/Xero
-- **ReceiptWorker** (`pay_receipt`): generate PDF receipts using Apache PDFBox, send via SendGrid with dynamic templates, and store in S3 for customer access and compliance retention
-
-Swap payment gateways or add new settlement logic and the processing pipeline remains stable.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-payment-processing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/paymentprocessing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── PaymentProcessingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AuthorizePaymentWorker.java
-│       ├── CapturePaymentWorker.java
-│       ├── ReceiptWorker.java
-│       ├── ReconcileWorker.java
-│       └── ValidatePaymentWorker.java
-└── src/test/java/paymentprocessing/workers/
-    ├── AuthorizePaymentWorkerTest.java        # 4 tests
-    ├── CapturePaymentWorkerTest.java        # 3 tests
-    ├── ReceiptWorkerTest.java        # 3 tests
-    ├── ReconcileWorkerTest.java        # 3 tests
-    └── ValidatePaymentWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

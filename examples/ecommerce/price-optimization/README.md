@@ -1,6 +1,4 @@
-# Price Optimization in Java Using Conductor :  Collect Market Data, Analyze Demand, Optimize, Update Prices
-
-A Java Conductor workflow example demonstrating Price Optimization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Price Optimization in Java Using Conductor : Collect Market Data, Analyze Demand, Optimize, Update Prices
 
 ## Static Prices Leave Money on the Table
 
@@ -25,147 +23,22 @@ Data ingestion, competitor analysis, demand forecasting, and pricing workers eac
 | **OptimizePriceWorker** | `prz_optimize_price` | Optimize Price. Computes and returns new price, adjustment percent, confidence |
 | **UpdatePriceWorker** | `prz_update_price` | Updates the product price and computes the price change delta. |
 
-Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 prz_collect_market_data
-    │
-    ▼
+ │
+ ▼
 prz_analyze_demand
-    │
-    ▼
+ │
+ ▼
 prz_optimize_price
-    │
-    ▼
+ │
+ ▼
 prz_update_price
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/price-optimization-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/price-optimization-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow price_optimization_workflow \
-  --version 1 \
-  --input '{"productId": "TEST-001", "currentPrice": 100, "category": "general"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w price_optimization_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Swap each worker for your real pricing tools. competitor scraping APIs for market data, your demand forecasting model for elasticity analysis, your catalog API for price updates, and the workflow runs identically in production.
-
-- **CollectMarketDataWorker** (`prz_collect_market_data`): scrape competitor prices via Bright Data or Oxylabs, pull market trends from Google Trends API, and check inventory levels from your WMS
-- **AnalyzeDemandWorker** (`prz_analyze_demand`): implement price elasticity models using historical sales data from your data warehouse, or use Prophet/ARIMA for demand forecasting
-- **UpdatePriceWorker** (`prz_update_price`): update prices via Shopify Product API, Amazon SP-API, or your catalog database, with safeguards against extreme price changes (max % change per update)
-
-Plug in a different demand model or competitor data source and the pricing pipeline incorporates it transparently.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-price-optimization/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/priceoptimization/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── PriceOptimizationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeDemandWorker.java
-│       ├── CollectMarketDataWorker.java
-│       ├── OptimizePriceWorker.java
-│       └── UpdatePriceWorker.java
-└── src/test/java/priceoptimization/workers/
-    ├── AnalyzeDemandWorkerTest.java        # 8 tests
-    ├── CollectMarketDataWorkerTest.java        # 8 tests
-    ├── OptimizePriceWorkerTest.java        # 8 tests
-    └── UpdatePriceWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

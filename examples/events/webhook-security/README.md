@@ -1,8 +1,6 @@
 # Webhook Security in Java Using Conductor
 
-Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## The Problem
+Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task. ## The Problem
 
 You need to verify the authenticity of incoming webhooks using HMAC signatures. The workflow computes an HMAC hash of the payload using the shared secret, compares it to the signature provided by the sender, and routes to processing (if valid) or rejection (if forged). Without signature verification, an attacker can send forged webhooks that trigger unauthorized actions in your system.
 
@@ -12,9 +10,7 @@ Without orchestration, you'd embed HMAC verification in middleware, manually com
 
 **You just write the HMAC-compute, signature-verify, process, and reject workers. Conductor handles SWITCH-based accept/reject routing, guaranteed verification before processing, and a security audit trail for every webhook.**
 
-Each security concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of computing the HMAC, verifying the signature, routing via a SWITCH task to process (valid) or reject (invalid), and tracking every webhook's verification result for security audit. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each security concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of computing the HMAC, verifying the signature, routing via a SWITCH task to process (valid) or reject (invalid), and tracking every webhook's verification result for security audit. ### What You Write: Workers
 
 Four workers verify webhook authenticity: ComputeHmacWorker generates the expected signature, VerifySignatureWorker compares it to the sender's value, ProcessWebhookWorker handles verified payloads, and RejectWebhookWorker blocks forged requests.
 
@@ -31,150 +27,17 @@ Workers implement event processing with realistic payloads so you can trace the 
 
 ```
 ws_compute_hmac
-    │
-    ▼
+ │
+ ▼
 ws_verify_signature
-    │
-    ▼
+ │
+ ▼
 SWITCH (validity_switch_ref)
-    ├── valid: ws_process_webhook
-    ├── invalid: ws_reject_webhook
+ ├── valid: ws_process_webhook
+ ├── invalid: ws_reject_webhook
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/webhook-security-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/webhook-security-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow webhook_security_wf \
-  --version 1 \
-  --input '{"payload": {"key": "value"}, "secret": "sample-secret", "providedSignature": "TEST-001"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w webhook_security_wf -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real HMAC implementation (javax.crypto.Mac with secrets from AWS KMS or Vault), timing-safe signature comparison, and webhook processing logic, the compute-verify-route security workflow stays exactly the same.
-
-- **HMAC computer**: implement HMAC-SHA256 computation using Java's javax.crypto.Mac with the shared secret from your key management service (AWS KMS, HashiCorp Vault)
-- **Signature verifier**: use timing-safe comparison (MessageDigest.isEqual) to prevent timing attacks; support multiple signature algorithms (SHA-256, SHA-512)
-- **Webhook processor**: implement your actual webhook processing logic for verified requests
-- **Rejection handler**: log rejected webhooks with sender IP and payload hash for security monitoring; alert on repeated forgery attempts
-
-Switching the HMAC algorithm or connecting ProcessWebhookWorker to real business logic preserves the compute-verify-route security flow.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-webhook-security/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/webhooksecurity/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── WebhookSecurityExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ComputeHmacWorker.java
-│       ├── ProcessWebhookWorker.java
-│       ├── RejectWebhookWorker.java
-│       └── VerifySignatureWorker.java
-└── src/test/java/webhooksecurity/workers/
-    ├── ComputeHmacWorkerTest.java        # 9 tests
-    ├── ProcessWebhookWorkerTest.java        # 8 tests
-    ├── RejectWebhookWorkerTest.java        # 8 tests
-    └── VerifySignatureWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

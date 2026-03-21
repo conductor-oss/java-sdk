@@ -1,10 +1,8 @@
-# Cross-Region Data Replication in Java Using Conductor :  Replicate, Sync, Verify Consistency
-
-A Java Conductor workflow example for cross-region data replication. copying a dataset from a primary region to a replica region, synchronizing the data and computing checksums, and verifying consistency between the two regions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Cross-Region Data Replication in Java Using Conductor : Replicate, Sync, Verify Consistency
 
 ## Keeping Data Consistent Across Regions
 
-Multi-region architectures improve latency and availability, but replicating data from us-east-1 to eu-west-1 is not a simple copy. You need to initiate the replication, wait for the data to sync, compute checksums on both sides, and verify they match. If the checksums diverge. because a write landed on the primary during sync, or a network partition caused partial replication,  you need to know immediately, not discover it hours later when a user in Europe sees stale data.
+Multi-region architectures improve latency and availability, but replicating data from us-east-1 to eu-west-1 is not a simple copy. You need to initiate the replication, wait for the data to sync, compute checksums on both sides, and verify they match. If the checksums diverge. because a write landed on the primary during sync, or a network partition caused partial replication, you need to know immediately, not discover it hours later when a user in Europe sees stale data.
 
 Manually coordinating replication means writing polling loops to check sync status, implementing checksum verification across regions with different API endpoints, handling transient failures on cross-region network calls, and logging enough context to diagnose consistency drift. Each step depends on the previous one. you can't verify consistency before sync completes, and sync requires a valid replication ID from the initial copy.
 
@@ -16,159 +14,19 @@ Manually coordinating replication means writing polling loops to check sync stat
 
 ### What You Write: Workers
 
-Three workers own the replication lifecycle: data copying between regions, checksum synchronization, and consistency verification, each targeting one phase of cross-region durability.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **XrReplicateWorker** | `xr_replicate` | Copies data from the primary region to the replica region, tracking bytes transferred |
-| **XrSyncWorker** | `xr_sync` | Synchronizes primary and replica by computing checksums and measuring replication lag |
-| **XrVerifyConsistencyWorker** | `xr_verify_consistency` | Compares primary and replica checksums to confirm cross-region data consistency |
-
-Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
-
-### The Workflow
+Three workers own the replication lifecycle: data copying between regions, checksum synchronization, and consistency verification, each targeting one phase of cross-region durability.### The Workflow
 
 ```
 xr_replicate
-    │
-    ▼
+ │
+ ▼
 xr_sync
-    │
-    ▼
+ │
+ ▼
 xr_verify_consistency
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/cross-region-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/cross-region-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow cross_region_demo \
-  --version 1 \
-  --input '{"primaryRegion": "us-east-1", "replicaRegion": "us-east-1", "datasetId": "TEST-001"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w cross_region_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker manages one replication concern. replace the demo cross-region copies with real S3 replication or DynamoDB Global Tables APIs and the sync-and-verify pipeline runs unchanged.
-
-- **XrReplicateWorker** (`xr_replicate`): call AWS S3 Cross-Region Replication API, DynamoDB Global Tables, or `pg_dump`/`pg_restore` across PostgreSQL instances in different regions
-- **XrSyncWorker** (`xr_sync`): poll the replication status endpoint (e.g., `describeTable` for DynamoDB, S3 replication metrics) and compute MD5/SHA-256 checksums on both sides
-- **XrVerifyConsistencyWorker** (`xr_verify_consistency`): query both regions and compare row counts, checksums, or last-modified timestamps; alert via PagerDuty or Slack if drift is detected
-
-The replication and checksum output contract stays fixed. Swap the demo region APIs for real DynamoDB Global Tables or S3 Cross-Region Replication and the consistency pipeline runs unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-cross-region/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/crossregion/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CrossRegionExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── XrReplicateWorker.java
-│       ├── XrSyncWorker.java
-│       └── XrVerifyConsistencyWorker.java
-└── src/test/java/crossregion/workers/
-    ├── XrReplicateWorkerTest.java        # 4 tests
-    ├── XrSyncWorkerTest.java        # 4 tests
-    └── XrVerifyConsistencyWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

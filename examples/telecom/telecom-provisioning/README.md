@@ -1,7 +1,5 @@
 # Telecom Provisioning in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service provisioning. creating a service order for a customer, validating the order against the selected plan, configuring network resources for the service type, activating the service on the network, and sending a confirmation to the customer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
 ## Why Service Provisioning Needs Orchestration
 
 Provisioning a new telecom service requires a strict sequence where each step depends on the previous one. You create a service order with the customer's details and service type. You validate that the order is compatible with the selected plan. You configure the network equipment (switches, routers, HLR/HSS entries) for the service. You activate the configured service so the customer can start using it. Finally, you send a provisioning confirmation to the customer.
@@ -26,160 +24,25 @@ Order creation, validation, network configuration, activation, and confirmation 
 | **OrderWorker** | `tpv_order` | Creates a service order with customer ID and service type, returning an order ID. |
 | **ValidateWorker** | `tpv_validate` | Validates the service order against the selected plan for compatibility and eligibility. |
 
-Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 tpv_order
-    │
-    ▼
+ │
+ ▼
 tpv_validate
-    │
-    ▼
+ │
+ ▼
 tpv_configure
-    │
-    ▼
+ │
+ ▼
 tpv_activate
-    │
-    ▼
+ │
+ ▼
 tpv_confirm
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/telecom-provisioning-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/telecom-provisioning-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow tpv_telecom_provisioning \
-  --version 1 \
-  --input '{"customerId": "TEST-001", "serviceType": "standard", "planId": "TEST-001"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w tpv_telecom_provisioning -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real provisioning stack. your OSS for order management, your NMS for network configuration, your BSS for customer notifications, and the workflow runs identically in production.
-
-- **OrderWorker** (`tpv_order`): create the service order in your BSS/OSS (Amdocs, Netcracker, Oracle BRM) and return the order ID
-- **ValidateWorker** (`tpv_validate`): validate against plan catalogs and customer eligibility rules in your product catalog system
-- **ConfigureWorker** (`tpv_configure`): provision network resources via NETCONF/YANG, vendor NMS APIs, or HLR/HSS provisioning interfaces
-- **ActivateWorker** (`tpv_activate`): activate the service in your OSS activation platform and update the subscriber profile in the network
-- **ConfirmWorker** (`tpv_confirm`): send the customer a confirmation via SMS gateway, email, or push notification through your CRM
-
-Connect your actual network management systems and the provisioning pipeline runs without structural changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-telecom-provisioning-telecom-provisioning/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/telecomprovisioning/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── TelecomProvisioningExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ActivateWorker.java
-│       ├── ConfigureWorker.java
-│       ├── ConfirmWorker.java
-│       ├── OrderWorker.java
-│       └── ValidateWorker.java
-└── src/test/java/telecomprovisioning/workers/
-    ├── ActivateWorkerTest.java        # 1 tests
-    └── OrderWorkerTest.java        # 1 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

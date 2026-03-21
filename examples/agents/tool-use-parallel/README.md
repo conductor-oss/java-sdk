@@ -32,170 +32,21 @@ The demo workers produce realistic, deterministic output shapes so the workflow 
 
 ```
 tp_plan_tools
-    |
-    v
+ |
+ v
 FORK_JOIN
-    +-- tp_call_weather
-    +-- tp_call_news
-    +-- tp_call_stocks
-    |
-    v
+ +-- tp_call_weather
+ +-- tp_call_news
+ +-- tp_call_stocks
+ |
+ v
 JOIN (wait for all branches)
-    |
-    v
+ |
+ v
 tp_combine_results
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/tool-use-parallel-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/tool-use-parallel-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-# Morning briefing for San Francisco
-conductor workflow start \
-  --workflow tool_use_parallel \
-  --version 1 \
-  --input '{"userRequest": "Give me my morning briefing", "location": "San Francisco, CA"}'
-
-# Briefing for New York
-conductor workflow start \
-  --workflow tool_use_parallel \
-  --version 1 \
-  --input '{"userRequest": "What do I need to know today?", "location": "New York, NY"}'
-
-# Market-focused briefing for London
-conductor workflow start \
-  --workflow tool_use_parallel \
-  --version 1 \
-  --input '{"userRequest": "Give me a quick market update with weather", "location": "London, UK"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w tool_use_parallel -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each tool worker wraps one data API. Integrate OpenWeatherMap for weather, NewsAPI for headlines, and Alpha Vantage for stock quotes, and the plan-fork-combine parallel tool workflow runs unchanged.
-
-- **PlanToolsWorker** (`tp_plan_tools`): use OpenAI function calling or Anthropic tool use to dynamically select which tools to invoke based on the user's request, including conditional tool selection (skip stocks on weekends, add calendar on workdays)
-- **CallWeatherWorker** (`tp_call_weather`): integrate with OpenWeatherMap (free tier: 1000 calls/day), WeatherAPI, or NOAA APIs for real weather data with 7-day forecasts and severe weather alerts
-- **CallNewsWorker** (`tp_call_news`): use NewsAPI (free tier: 100 requests/day), Google News RSS feeds, or Bing News Search for real headlines with publication time, source credibility, and article links
-- **CallStocksWorker** (`tp_call_stocks`): connect to Alpha Vantage (free tier: 25 requests/day), Yahoo Finance via yfinance, or Polygon.io for real-time market data with historical charts and technical indicators
-- **Add a new tool**: create a new worker class, add a branch to the `FORK_JOIN` in `workflow.json`, update the `JOIN` on clause, and extend `CombineResultsWorker` to include the new data source. No existing code changes needed.
-
-Plug in OpenWeatherMap, NewsAPI, and Alpha Vantage; the parallel tool pipeline preserves the same plan-dispatch-combine interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-tool-use-parallel/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/tooluseparallel/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ToolUseParallelExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── PlanToolsWorker.java     # Selects tools and configures parameters
-│       ├── CallWeatherWorker.java   # Weather with current, hourly, and high/low
-│       ├── CallNewsWorker.java      # Headlines across technology, business, world
-│       ├── CallStocksWorker.java    # Stock quotes with price changes and sentiment
-│       └── CombineResultsWorker.java # Merges all tool outputs into unified briefing
-└── src/test/java/tooluseparallel/workers/
-    ├── PlanToolsWorkerTest.java     # 8 tests
-    ├── CallWeatherWorkerTest.java   # 8 tests
-    ├── CallNewsWorkerTest.java      # 8 tests
-    ├── CallStocksWorkerTest.java    # 9 tests
-    └── CombineResultsWorkerTest.java # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

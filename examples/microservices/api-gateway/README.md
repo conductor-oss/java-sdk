@@ -25,156 +25,22 @@ The gateway pipeline breaks into four focused workers: authenticating API keys, 
 | **SendResponseWorker** | `ag_send_response` | Sends the final API response to the client. |
 | **TransformResponseWorker** | `ag_transform_response` | Transforms the raw backend response into a client-friendly format. |
 
-Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
-
 ### The Workflow
 
 ```
 ag_authenticate
-    │
-    ▼
+ │
+ ▼
 ag_route_request
-    │
-    ▼
+ │
+ ▼
 ag_transform_response
-    │
-    ▼
+ │
+ ▼
 ag_send_response
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/api-gateway-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/api-gateway-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow api_gateway_292 \
-  --version 1 \
-  --input '{"apiKey": "ak-premium-xyz789", "endpoint": "/api/v1/users", "method": "GET", "payload": {}}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w api_gateway_292 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Replace each demo worker with a call to your identity provider, service mesh, or response-formatting layer, the authenticate-route-transform-respond workflow stays exactly the same.
-
-- **AgAuthenticateWorker** (`ag_authenticate`): validate API keys or JWTs against your identity provider or API-key store
-- **RouteRequestWorker** (`ag_route_request`): make a real HTTP call to the target backend service via service discovery or a load balancer
-- **SendResponseWorker** (`ag_send_response`): write the response to the actual HTTP connection (e.g., via Spring WebFlux or Netty)
-
-As long as each worker accepts the same inputs and returns the same fields, the gateway workflow needs zero changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-api-gateway/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/apigateway/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ApiGatewayExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AgAuthenticateWorker.java
-│       ├── RouteRequestWorker.java
-│       ├── SendResponseWorker.java
-│       └── TransformResponseWorker.java
-└── src/test/java/apigateway/workers/
-    ├── AgAuthenticateWorkerTest.java        # 8 tests
-    ├── RouteRequestWorkerTest.java        # 8 tests
-    ├── SendResponseWorkerTest.java        # 8 tests
-    └── TransformResponseWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

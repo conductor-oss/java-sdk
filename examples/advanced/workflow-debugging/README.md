@@ -1,6 +1,4 @@
-# Workflow Debugging in Java Using Conductor :  Instrument, Execute, Trace, Analyze, Report
-
-A Java Conductor workflow example for workflow debugging. instrumenting a workflow with debug hooks, executing it with tracing enabled, collecting execution traces, analyzing the trace data for anomalies and bottlenecks, and generating a debug report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Workflow Debugging in Java Using Conductor : Instrument, Execute, Trace, Analyze, Report
 
 ## When Workflows Fail, You Need More Than a Stack Trace
 
@@ -24,148 +22,25 @@ Five workers form the debug cycle: instrumentation, traced execution, trace coll
 | `WfdExecuteWorker` | `wfd_execute` | Runs the instrumented workflow and returns an execution ID, total duration in milliseconds, and the number of tasks executed |
 | `WfdCollectTraceWorker` | `wfd_collect_trace` | Gathers trace data from the execution by reading each trace point. captures timestamps and recorded values (timing measurements, branch selections) for every instrumented location |
 | `WfdAnalyzeWorker` | `wfd_analyze` | Examines collected trace data for anomalies (e.g., tasks exceeding duration thresholds), identifies performance bottlenecks, and produces a summary of findings |
-| `WfdReportWorker` | `wfd_report` | Generates a final debug report containing the workflow name, timestamp, anomaly count, and actionable recommendations (e.g., "investigate slow task that exceeded threshold by 1800ms") |
-
-Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
-
-### The Workflow
+| `WfdReportWorker` | `wfd_report` | Generates a final debug report containing the workflow name, timestamp, anomaly count, and actionable recommendations (e.g.### The Workflow
 
 ```
 wfd_instrument
-    │
-    ▼
+ │
+ ▼
 wfd_execute
-    │
-    ▼
+ │
+ ▼
 wfd_collect_trace
-    │
-    ▼
+ │
+ ▼
 wfd_analyze
-    │
-    ▼
+ │
+ ▼
 wfd_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/workflow-debugging-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/workflow-debugging-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow wfd_workflow_debugging \
-  --version 1 \
-  --input '{"workflowName": "test", "debugLevel": "info"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w wfd_workflow_debugging -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker covers one debugging phase. replace the demo trace collection with real distributed tracing APIs like Jaeger or OpenTelemetry and the instrument-analyze-report pipeline runs unchanged.
-
-The trace and report output contract stays fixed. Swap the demo instrumentation for real OpenTelemetry spans or Jaeger traces and the analyze-report pipeline runs unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-workflow-debugging/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/workflowdebugging/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── WorkflowDebuggingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

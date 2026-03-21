@@ -1,8 +1,6 @@
-# Hierarchical Agents in Java Using Conductor :  Manager, Team Leads, and Workers in a Development Org
+# Hierarchical Agents in Java Using Conductor : Manager, Team Leads, and Workers in a Development Org
 
-Hierarchical agents. manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Software Projects Need Hierarchical Coordination
+Hierarchical agents. manager plans, team leads delegate to workers in parallel branches, manager merges results. ## Software Projects Need Hierarchical Coordination
 
 A real development team has a manager who plans the work, team leads who coordinate their teams, and individual contributors who write code. The backend lead assigns API and database tasks; the frontend lead assigns UI and styling tasks. Both teams work simultaneously. The manager reviews everything at the end.
 
@@ -35,149 +33,18 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 hier_manager_plan
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── hier_lead_backend -> hier_worker_api -> hier_worker_db
-    └── hier_lead_frontend -> hier_worker_ui -> hier_worker_styling
-    │
-    ▼
+ ├── hier_lead_backend -> hier_worker_api -> hier_worker_db
+ └── hier_lead_frontend -> hier_worker_ui -> hier_worker_styling
+ │
+ ▼
 JOIN (wait for all branches)
 hier_manager_merge
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/hierarchical-agents-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/hierarchical-agents-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow hierarchical_agents \
-  --version 1 \
-  --input '{"project": "sample-project", "deadline": "sample-deadline"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w hierarchical_agents -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each agent in the hierarchy is self-contained. Connect code generation APIs (Codex, Copilot) for developer workers, LLMs for lead coordination, and integration testing tools for the manager review, and the plan-fork-merge organizational workflow runs unchanged.
-
-- **Worker agents** (`hier_worker_api/db/ui/styling`): connect to real code generation APIs (Codex, Copilot) with repository context, or trigger actual CI/CD pipelines for code generation and testing
-- **Lead agents** (`hier_lead_backend/frontend`): use LLMs with architectural context to produce detailed technical specifications that feed into worker task descriptions
-- **ManagerMergeWorker** (`hier_manager_merge`): use an LLM to detect integration issues between frontend and backend outputs (API contract mismatches, missing error handling) and generate integration test specifications
-
-Swap in real code generation tools; the hierarchical pipeline maintains the same plan-delegate-merge contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-hierarchical-agents/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/hierarchicalagents/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── HierarchicalAgentsExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── LeadBackendWorker.java
-│       ├── LeadFrontendWorker.java
-│       ├── ManagerMergeWorker.java
-│       ├── ManagerPlanWorker.java
-│       ├── WorkerApiWorker.java
-│       ├── WorkerDbWorker.java
-│       ├── WorkerStylingWorker.java
-│       └── WorkerUiWorker.java
-└── src/test/java/hierarchicalagents/workers/
-    ├── LeadBackendWorkerTest.java        # 6 tests
-    ├── LeadFrontendWorkerTest.java        # 6 tests
-    ├── ManagerMergeWorkerTest.java        # 6 tests
-    ├── ManagerPlanWorkerTest.java        # 6 tests
-    ├── WorkerApiWorkerTest.java        # 5 tests
-    ├── WorkerDbWorkerTest.java        # 5 tests
-    ├── WorkerStylingWorkerTest.java        # 5 tests
-    └── WorkerUiWorkerTest.java        # 5 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

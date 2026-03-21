@@ -32,171 +32,21 @@ The demo workers produce realistic, deterministic output shapes so the workflow 
 
 ```
 ap_plan_api_call
-    |
-    v
+ |
+ v
 ap_authenticate
-    |
-    v
+ |
+ v
 ap_call_api
-    |
-    v
+ |
+ v
 ap_parse_response
-    |
-    v
+ |
+ v
 ap_format_output
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/api-calling-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/api-calling-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-# Query a GitHub repository
-conductor workflow start \
-  --workflow api_calling_agent \
-  --version 1 \
-  --input '{"userRequest": "Tell me about the Conductor open-source repository on GitHub", "apiCatalog": [{"name": "github", "baseUrl": "https://api.github.com", "description": "GitHub REST API for repository and user data"}, {"name": "weather", "baseUrl": "https://api.openweathermap.org", "description": "OpenWeatherMap API for weather forecasts"}]}'
-
-# Query weather data
-conductor workflow start \
-  --workflow api_calling_agent \
-  --version 1 \
-  --input '{"userRequest": "What is the weather in Tokyo right now?", "apiCatalog": [{"name": "weather", "baseUrl": "https://api.openweathermap.org", "description": "OpenWeatherMap API for weather forecasts"}]}'
-
-# Query news headlines
-conductor workflow start \
-  --workflow api_calling_agent \
-  --version 1 \
-  --input '{"userRequest": "Show me the top tech news headlines", "apiCatalog": [{"name": "news", "baseUrl": "https://newsapi.org", "description": "News API for top headlines and article search"}]}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w api_calling_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker owns one stage of the API-calling pipeline. Connect GPT-4 for intent-to-endpoint planning, real credential stores (Vault, AWS Secrets Manager) for auth, and OkHttp for execution, and the plan-authenticate-call-parse-format workflow runs unchanged.
-
-- **PlanApiCallWorker** (`ap_plan_api_call`): use GPT-4 function calling to map natural language to API specifications from an OpenAPI/Swagger catalog, with schema-aware parameter extraction and endpoint selection
-- **AuthenticateWorker** (`ap_authenticate`): integrate with real credential stores: AWS Secrets Manager for API keys, Auth0 for OAuth token management, HashiCorp Vault for dynamic credentials, or implement OAuth 2.0 refresh token flows
-- **CallApiWorker** (`ap_call_api`): use OkHttp or Apache HttpClient to make real HTTP calls with proper timeout handling, retry headers (Retry-After), circuit breakers, and response streaming for large payloads
-- **ParseResponseWorker** (`ap_parse_response`): add schema evolution handling for API version changes, JSON Path extraction for deeply nested responses, and error response parsing with actionable error messages
-- **FormatOutputWorker** (`ap_format_output`): use an LLM to generate natural language answers that incorporate the parsed data conversationally, or support multiple output formats (text, markdown, JSON, voice-optimized)
-- **Add error handling**: insert a `SWITCH` task after `CallApiWorker` to route non-200 responses to a retry-with-different-params path or an error-reporting path
-
-Replace with real HTTP calls and LLM planning; the API pipeline preserves the same plan-authenticate-call-parse-format interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-api-calling-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/apicalling/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ApiCallingAgentExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── PlanApiCallWorker.java   # Maps user request to API endpoint and params
-│       ├── AuthenticateWorker.java  # Acquires bearer token for the selected API
-│       ├── CallApiWorker.java       # Executes HTTP request, returns response + status
-│       ├── ParseResponseWorker.java # Extracts fields, validates against schema
-│       └── FormatOutputWorker.java  # Converts parsed data to natural language answer
-└── src/test/java/apicalling/workers/
-    ├── PlanApiCallWorkerTest.java   # 9 tests
-    ├── AuthenticateWorkerTest.java  # 8 tests
-    ├── CallApiWorkerTest.java       # 9 tests
-    ├── ParseResponseWorkerTest.java # 9 tests
-    └── FormatOutputWorkerTest.java  # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

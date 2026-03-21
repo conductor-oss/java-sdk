@@ -33,170 +33,18 @@ The demo workers produce realistic, deterministic output shapes so the workflow 
 
 ```
 cs_classify_ticket
-    |
-    v
+ |
+ v
 SWITCH (route_by_category_ref)
-    +-- bug: cs_knowledge_search -> cs_solution_propose
-    +-- feature: cs_feature_evaluate
-    +-- default: cs_general_respond
-    |
-    v
+ +-- bug: cs_knowledge_search -> cs_solution_propose
+ +-- feature: cs_feature_evaluate
+ +-- default: cs_general_respond
+ |
+ v
 cs_qa_validate
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/multi-agent-support-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/multi-agent-support-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-# Submit a bug report
-conductor workflow start \
-  --workflow multi_agent_customer_support \
-  --version 1 \
-  --input '{"ticketId": "TKT-9182", "subject": "Application crashes on login", "description": "The app crashes with error code 500 when attempting to log in after the latest update.", "customerTier": "premium"}'
-
-# Submit a feature request
-conductor workflow start \
-  --workflow multi_agent_customer_support \
-  --version 1 \
-  --input '{"ticketId": "TKT-9183", "subject": "Add dark mode support", "description": "Please add a dark mode feature to reduce eye strain during evening usage.", "customerTier": "standard"}'
-
-# Submit a general inquiry
-conductor workflow start \
-  --workflow multi_agent_customer_support \
-  --version 1 \
-  --input '{"ticketId": "TKT-9184", "subject": "How do I reset my password?", "description": "I forgot my password and need help resetting it.", "customerTier": "standard"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w multi_agent_customer_support -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each handler specializes in one support category. Integrate a classifier (HuggingFace, GPT-4), Zendesk for knowledge base search, Productboard for roadmap evaluation, and an LLM for QA validation, and the classify-route-solve-validate workflow runs unchanged.
-
-- **ClassifyTicketWorker** (`cs_classify_ticket`): use a fine-tuned classifier (HuggingFace text-classification pipeline) or GPT-4 with few-shot examples from your actual ticket history for accurate multi-label category detection with confidence calibration
-- **KnowledgeSearchWorker** (`cs_knowledge_search`): integrate with Zendesk Guide search API, Confluence search, or build a RAG pipeline over your internal knowledge base using Pinecone/Weaviate for semantic article retrieval
-- **SolutionProposeWorker** (`cs_solution_propose`): use an LLM (GPT-4/Claude) with retrieved KB articles as context to generate step-by-step solutions tailored to the specific error, or integrate with runbook automation tools like PagerDuty Runbook Automation
-- **FeatureEvaluateWorker** (`cs_feature_evaluate`): connect to Productboard or Aha! APIs for roadmap lookup, check for duplicate feature requests, and auto-assign priority based on customer tier and request frequency
-- **QaValidateWorker** (`cs_qa_validate`): use an LLM to check factual accuracy against the knowledge base, tone appropriateness for the customer tier, and completeness of the response. Flag responses that mention internal systems or contain sensitive data.
-- **Add a new category**: create a new worker class, add a case to the `SWITCH` in `workflow.json`, and update the classification keywords. No existing code changes needed.
-
-Swap in Zendesk and LLM-powered responses; the classify-route-validate pipeline maintains the same QA contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-multi-agent-support/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/multiagentsupport/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MultiAgentSupportExample.java # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ClassifyTicketWorker.java # Keyword-based ticket classification
-│       ├── KnowledgeSearchWorker.java # KB article search with relevance scoring
-│       ├── SolutionProposeWorker.java # Fix steps with KB article references
-│       ├── FeatureEvaluateWorker.java # Roadmap evaluation with priority and ETA
-│       ├── GeneralRespondWorker.java  # Helpful response with doc suggestions
-│       └── QaValidateWorker.java    # 4-check quality validation
-└── src/test/java/multiagentsupport/workers/
-    ├── ClassifyTicketWorkerTest.java # 9 tests
-    ├── KnowledgeSearchWorkerTest.java # 8 tests
-    ├── SolutionProposeWorkerTest.java # 7 tests
-    ├── FeatureEvaluateWorkerTest.java # 7 tests
-    ├── GeneralRespondWorkerTest.java  # 7 tests
-    └── QaValidateWorkerTest.java    # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

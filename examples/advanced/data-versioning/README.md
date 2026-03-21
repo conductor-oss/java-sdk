@@ -1,6 +1,4 @@
-# Dataset Versioning in Java Using Conductor :  Snapshot, Tag, Diff, and Rollback
-
-A Java Conductor workflow example for dataset versioning. taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Dataset Versioning in Java Using Conductor : Snapshot, Tag, Diff, and Rollback
 
 ## Datasets Change, and You Need to Track How
 
@@ -12,7 +10,7 @@ Dataset versioning means capturing a snapshot before each update, tagging it (e.
 
 **You write the snapshot and diff logic. Conductor handles the versioning pipeline, retries, and rollback coordination.**
 
-`DvrSnapshotWorker` captures a point-in-time snapshot of the dataset and returns a snapshot ID. `DvrTagWorker` attaches a human-readable tag name (like `v1.0` or `prod-2024-01-15`) to the snapshot. `DvrStoreWorker` persists the snapshot metadata. dataset ID, snapshot ID, and tag,  to the version catalog. `DvrDiffWorker` compares the current tag against the previous tag and produces diff statistics (rows added, removed, changed) plus a flag indicating whether rollback is needed. `DvrRollbackWorker` reverts to the previous version if the diff signals a problem. Conductor records every snapshot ID, tag, and diff result so you have a complete version history.
+`DvrSnapshotWorker` captures a point-in-time snapshot of the dataset and returns a snapshot ID. `DvrTagWorker` attaches a human-readable tag name (like `v1.0` or `prod-2024-01-15`) to the snapshot. `DvrStoreWorker` persists the snapshot metadata. dataset ID, snapshot ID, and tag, to the version catalog. `DvrDiffWorker` compares the current tag against the previous tag and produces diff statistics (rows added, removed, changed) plus a flag indicating whether rollback is needed. `DvrRollbackWorker` reverts to the previous version if the diff signals a problem. Conductor records every snapshot ID, tag, and diff result so you have a complete version history.
 
 ### What You Write: Workers
 
@@ -24,163 +22,25 @@ Five workers manage the version lifecycle: snapshot capture, tag assignment, met
 | **DvrRollbackWorker** | `dvr_rollback` | Rolls back the dataset to the previous version if the diff flagged issues |
 | **DvrSnapshotWorker** | `dvr_snapshot` | Creates a point-in-time snapshot of the dataset with row count and checksum |
 | **DvrStoreWorker** | `dvr_store` | Persists the tagged version to versioned storage (e.g., S3) under the dataset/tag path |
-| **DvrTagWorker** | `dvr_tag` | Applies a version tag (e.g., v1, v2) to the current snapshot for future reference |
-
-Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
-
-### The Workflow
+| **DvrTagWorker** | `dvr_tag` | Applies a version tag (e.g.### The Workflow
 
 ```
 dvr_snapshot
-    │
-    ▼
+ │
+ ▼
 dvr_tag
-    │
-    ▼
+ │
+ ▼
 dvr_store
-    │
-    ▼
+ │
+ ▼
 dvr_diff
-    │
-    ▼
+ │
+ ▼
 dvr_rollback
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/data-versioning-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/data-versioning-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow data_versioning_demo \
-  --version 1 \
-  --input '{"datasetId": "TEST-001", "tagName": "test", "previousTag": "sample-previousTag"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w data_versioning_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker owns one versioning step. replace the demo snapshot and diff calls with real DVC or LakeFS APIs and the tag-diff-rollback pipeline runs unchanged.
-
-- **DvrSnapshotWorker** (`dvr_snapshot`): take real snapshots using DVC (`dvc commit`), LakeFS branches, Delta Lake `DESCRIBE HISTORY`, or S3 versioned object copies
-- **DvrDiffWorker** (`dvr_diff`): compute real diffs using DVC `diff`, LakeFS `diff` API, or SQL queries comparing row counts and checksums between versions
-- **DvrRollbackWorker** (`dvr_rollback`): revert using DVC `checkout`, LakeFS `revert`, or restoring an S3 object version to make the previous dataset active again
-
-The snapshot and diff output contracts stay fixed. Swap the demo storage for real DVC, LakeFS, or Delta Lake and the tag-diff-rollback pipeline runs unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-data-versioning/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/dataversioning/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DataVersioningExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── DvrDiffWorker.java
-│       ├── DvrRollbackWorker.java
-│       ├── DvrSnapshotWorker.java
-│       ├── DvrStoreWorker.java
-│       └── DvrTagWorker.java
-└── src/test/java/dataversioning/workers/
-    ├── DvrDiffWorkerTest.java        # 4 tests
-    ├── DvrRollbackWorkerTest.java        # 4 tests
-    ├── DvrSnapshotWorkerTest.java        # 4 tests
-    ├── DvrStoreWorkerTest.java        # 4 tests
-    └── DvrTagWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

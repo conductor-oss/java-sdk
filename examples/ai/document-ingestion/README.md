@@ -33,152 +33,18 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 ingest_extract_pdf
-    │
-    ▼
+ │
+ ▼
 ingest_chunk_text
-    │
-    ▼
+ │
+ ▼
 ingest_embed_chunks
-    │
-    ▼
+ │
+ ▼
 ingest_store_vectors
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/document-ingestion-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use demo responses. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/document-ingestion-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow document_ingestion_workflow \
-  --version 1 \
-  --input '{"documentUrl": "https://example.com/vector-databases-guide.pdf", "collection": "knowledge_base", "chunkSize": "30", "chunkOverlap": "5"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w document_ingestion_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one ingestion stage. Swap in Apache PDFBox for extraction, OpenAI Embeddings for vectorization, upsert to Pinecone or Weaviate for storage, and the four-step pipeline runs unchanged.
-
-- **IngestExtractPdfWorker** (`ingest_extract_pdf`): swap in Apache PDFBox, Tika, or a cloud document AI service for real PDF text extraction
-- **IngestChunkTextWorker** (`ingest_chunk_text`): integrate LangChain4j's text splitters or implement custom sentence-boundary chunking
-- **IngestEmbedChunksWorker** (`ingest_embed_chunks`): replace fixed embeddings with calls to OpenAI Embeddings, Cohere, or a local sentence-transformers model
-- **IngestStoreVectorsWorker** (`ingest_store_vectors`): swap in real upsert calls to Pinecone, Weaviate, pgvector, Qdrant, or Milvus
-
-Each worker preserves the same chunk/embedding contract, so replacing PDFBox with Tika or swapping Pinecone for Weaviate requires no workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-document-ingestion/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/documentingestion/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DocumentIngestionExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── IngestChunkTextWorker.java
-│       ├── IngestEmbedChunksWorker.java
-│       ├── IngestExtractPdfWorker.java
-│       └── IngestStoreVectorsWorker.java
-└── src/test/java/documentingestion/workers/
-    ├── IngestChunkTextWorkerTest.java        # 6 tests
-    ├── IngestEmbedChunksWorkerTest.java        # 7 tests
-    ├── IngestExtractPdfWorkerTest.java        # 5 tests
-    └── IngestStoreVectorsWorkerTest.java        # 5 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,8 +1,6 @@
-# Tool Use Rate Limiting in Java Using Conductor :  Check Limits, Execute-or-Queue, Delayed Execution
+# Tool Use Rate Limiting in Java Using Conductor : Check Limits, Execute-or-Queue, Delayed Execution
 
-Tool Use Rate Limiting. checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## APIs Have Rate Limits :  Respect Them
+Tool Use Rate Limiting. checks API rate limits before tool execution, queuing and delaying requests when throttled. ## APIs Have Rate Limits : Respect Them
 
 Most external APIs enforce rate limits: OpenAI allows a certain number of requests per minute, Google Maps has a daily quota, and many services return 429 (Too Many Requests) when you exceed the limit. Hitting rate limits causes errors, potential API key suspension, and degraded user experience.
 
@@ -31,137 +29,14 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 rl_check_rate_limit
-    │
-    ▼
+ │
+ ▼
 SWITCH (rate_limit_decision_ref)
-    ├── allowed: rl_execute_tool
-    └── default: rl_queue_request -> rl_delayed_execute
+ ├── allowed: rl_execute_tool
+ └── default: rl_queue_request -> rl_delayed_execute
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/tool-use-rate-limiting-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/tool-use-rate-limiting-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow tool_use_rate_limiting \
-  --version 1 \
-  --input '{"toolName": "test", "toolArgs": "sample-toolArgs", "apiKey": "sample-apiKey"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w tool_use_rate_limiting -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one rate-limiting concern. Implement Redis-based sliding window counters for limit checking, SQS or RabbitMQ for request queuing, and exponential backoff for delayed execution, and the check-route-execute rate-limiting workflow runs unchanged.
-
-- **CheckRateLimitWorker** (`rl_check_rate_limit`): use Redis `INCR` with `EXPIRE` for sliding-window rate limiting, or implement token bucket algorithm for burst-tolerant rate control
-- **QueueRequestWorker** (`rl_queue_request`): use SQS, RabbitMQ, or Redis Streams to queue throttled requests with priority ordering and estimated execution time
-- **DelayedExecuteWorker** (`rl_delayed_execute`): implement exponential backoff for repeated throttling, with circuit breaker pattern if the API is consistently overloaded
-
-Connect to Redis for real quota tracking; the rate-limiting workflow maintains the same allowed/throttled routing interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-tool-use-rate-limiting/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/toolratelimit/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ToolUseRateLimitingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CheckRateLimitWorker.java
-│       ├── DelayedExecuteWorker.java
-│       ├── ExecuteToolWorker.java
-│       └── QueueRequestWorker.java
-└── src/test/java/toolratelimit/workers/
-    ├── CheckRateLimitWorkerTest.java        # 8 tests
-    ├── DelayedExecuteWorkerTest.java        # 9 tests
-    ├── ExecuteToolWorkerTest.java        # 7 tests
-    └── QueueRequestWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

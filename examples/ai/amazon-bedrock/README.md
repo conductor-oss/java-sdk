@@ -1,6 +1,4 @@
-# Amazon Bedrock Integration in Java Using Conductor :  Build Payload, Invoke Model, Parse Output
-
-A Java Conductor workflow example for orchestrating Amazon Bedrock model invocations. building the request payload with the prompt and use-case-specific parameters, invoking the Bedrock model, and parsing the response into a structured output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Amazon Bedrock Integration in Java Using Conductor : Build Payload, Invoke Model, Parse Output
 
 ## Calling Bedrock Models Reliably in Production
 
@@ -30,148 +28,15 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 bedrock_build_payload
-    │
-    ▼
+ │
+ ▼
 bedrock_invoke_model
-    │
-    ▼
+ │
+ ▼
 bedrock_parse_output
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/amazon-bedrock-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `AWS_ACCESS_KEY_ID` | _(none)_ | AWS access key for Bedrock. Live Bedrock calls require AWS SDK v2 with SigV4 signing (not included). Currently always runs in `[DEMO]` mode. |
-| `AWS_SECRET_ACCESS_KEY` | _(none)_ | AWS secret key for Bedrock. See above. |
-| `AWS_REGION` | `us-east-1` | AWS region for Bedrock model invocation. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/amazon-bedrock-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow amazon_bedrock_workflow \
-  --version 1 \
-  --input '{"prompt": "What is workflow orchestration?", "useCase": "sample-useCase"}'": "sample-data viewed by unknown party.'", "useCase": "sample-useCase"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w amazon_bedrock_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one phase of the Bedrock integration. swap in real AWS SDK `BedrockRuntimeClient` calls with IAM auth, build model-specific payloads for Claude or Titan, and the orchestration pipeline runs unchanged.
-
-- **BedrockBuildPayloadWorker** (`bedrock_build_payload`): build real model-specific payloads: Claude Messages API format for `anthropic.claude-3`, Titan `inputText` format, or Llama 2 chat template with system/user roles
-- **BedrockInvokeModelWorker** (`bedrock_invoke_model`): call the real Bedrock API using AWS SDK (`BedrockRuntimeClient.invokeModel()`) with IAM authentication, region selection, and model ID configuration
-- **BedrockParseOutputWorker** (`bedrock_parse_output`): parse real model responses: extract `content[0].text` from Claude, `results[0].outputText` from Titan, or `generation` from Llama, handling model-specific response schemas
-
-Each worker's input/output contract stays fixed. switch between Claude, Titan, or Llama on Bedrock by changing only the payload builder and parser implementations.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-amazon-bedrock/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/amazonbedrock/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AmazonBedrockExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── BedrockBuildPayloadWorker.java
-│       ├── BedrockInvokeModelWorker.java
-│       └── BedrockParseOutputWorker.java
-└── src/test/java/amazonbedrock/workers/
-    ├── BedrockBuildPayloadWorkerTest.java        # 4 tests
-    ├── BedrockInvokeModelWorkerTest.java        # 5 tests
-    └── BedrockParseOutputWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

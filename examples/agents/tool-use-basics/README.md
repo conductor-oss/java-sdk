@@ -1,6 +1,6 @@
 # Tool Use Basics in Java Using Conductor: Analyze Request, Select Tool, Execute, Format Result
 
-Your AI chatbot can eloquently explain how to check the weather in Tokyo. It just can't actually check the weather in Tokyo. It can describe the steps to calculate 15% of 230, but it can't call a calculator. It reasons beautifully about what should happen, then hands back a paragraph of text instead of a result. The gap between "knowing what to do" and "doing it" is the tool-use problem. This example wires an LLM to real tools through a four-step Conductor pipeline: analyze the request, select the right tool, execute it, and format the result into a natural language answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
+Your AI chatbot can eloquently explain how to check the weather in Tokyo. It just can't actually check the weather in Tokyo. It can describe the steps to calculate 15% of 230, but it can't call a calculator. It reasons beautifully about what should happen, then hands back a paragraph of text instead of a result. The gap between "knowing what to do" and "doing it" is the tool-use problem. This example wires an LLM to real tools through a four-step Conductor pipeline: analyze the request, select the right tool, execute it, and format the result into a natural language answer. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Foundation of Tool-Using Agents
 
@@ -31,141 +31,18 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 tu_analyze_request
-    │
-    ▼
+ │
+ ▼
 tu_select_tool
-    │
-    ▼
+ │
+ ▼
 tu_execute_tool
-    │
-    ▼
+ │
+ ▼
 tu_format_result
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/tool-use-basics-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/tool-use-basics-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow tool_use_basics \
-  --version 1 \
-  --input '{"userRequest": "What's the weather like in San Francisco?", "availableTools": [{"name": "weather_api", "description": "Fetches current weather data", "parameters": ["location", "units"]}, {"name": "calculator", "description": "Performs mathematical calculations", "parameters": ["expression", "precision"]}, {"name": "web_search", "description": "Searches the web for information", "parameters": ["query", "maxResults"]}]}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w tool_use_basics -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker wraps one tool-use step. Plug in real APIs (weather services, calculators, search engines), LLM-based tool selection, and natural language formatting, and the analyze-select-execute-format workflow runs unchanged.
-
-- **SelectToolWorker** (`tu_select_tool`): use GPT-4's function calling or Claude's tool use feature for schema-aware tool selection, or implement embedding-based tool matching for large tool registries
-- **ExecuteToolWorker** (`tu_execute_tool`): build a real tool registry with input validation, sandboxed execution, rate limiting per tool, and structured output schemas
-- **AnalyzeRequestWorker** (`tu_analyze_request`): use an LLM with the tool catalog as context for intent classification and parameter extraction, with fallback to clarifying questions when intent is ambiguous
-
-Replace with real tool implementations; the analyze-select-execute-format pipeline keeps the same interface for any tool.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-tool-use-basics/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/tooluse/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ToolUseBasicsExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeRequestWorker.java
-│       ├── ExecuteToolWorker.java
-│       ├── FormatResultWorker.java
-│       └── SelectToolWorker.java
-└── src/test/java/tooluse/workers/
-    ├── AnalyzeRequestWorkerTest.java        # 9 tests
-    ├── ExecuteToolWorkerTest.java        # 9 tests
-    ├── FormatResultWorkerTest.java        # 9 tests
-    └── SelectToolWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

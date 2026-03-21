@@ -31,176 +31,18 @@ Each worker auto-detects its API key from the environment. Set one, two, or all 
 
 ```
 ct_call_gpt4
-    |
-    v
+ |
+ v
 ct_call_claude
-    |
-    v
+ |
+ v
 ct_call_gemini
-    |
-    v
+ |
+ v
 ct_aggregate_costs
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### API Keys (optional)
-
-Set any combination of API keys to enable live mode for individual providers:
-
-```bash
-export CONDUCTOR_OPENAI_API_KEY="sk-..."        # Enables live GPT-4 calls
-export CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." # Enables live Claude calls
-export GOOGLE_API_KEY="AIza..."       # Enables live Gemini calls
-
-```
-
-Without keys, workers run in demo mode with fixed token counts and `` response prefix.
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-To enable live API calls via Docker Compose, set the keys before running:
-
-```bash
-CONDUCTOR_OPENAI_API_KEY="sk-..." CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." GOOGLE_API_KEY="AIza..." docker compose up --build
-
-```
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/llm-cost-tracking-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-# With live API calls:
-CONDUCTOR_OPENAI_API_KEY="sk-..." CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." GOOGLE_API_KEY="AIza..." ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(unset)_ | OpenAI API key. Enables live GPT-4 calls |
-| `CONDUCTOR_ANTHROPIC_API_KEY` | _(unset)_ | Anthropic API key. Enables live Claude calls |
-| `GOOGLE_API_KEY` | _(unset)_ | Google API key. Enables live Gemini calls |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/llm-cost-tracking-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow llm_cost_tracking_workflow \
-  --version 1 \
-  --input '{"prompt": "Summarize the key benefits of microservices architecture"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w llm_cost_tracking_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker calls one LLM provider and reports token usage. The same worker interface supports both live and demo modes. Set the corresponding API key to switch.
-
-- **AggregateCostsWorker** (`ct_aggregate_costs`): update pricing rates as providers change their pricing, or write cost data to a time-series database (InfluxDB, TimescaleDB) or observability platform (Datadog, Grafana) for dashboarding
-- **Run providers in parallel**: replace the sequential task chain with a FORK/JOIN to call all three providers simultaneously, reducing total latency from 3x to 1x
-- **Add a cost-based router**: use the historical cost data to build a SWITCH-based router that sends simple prompts to cheaper models (Gemini) and complex prompts to more capable models (GPT-4, Claude)
-
-Each provider worker returns the same cost/token shape, so adding providers or changing pricing models requires no changes to the aggregation logic.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-llm-cost-tracking/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/llmcosttracking/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── LlmCostTrackingExample.java  # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AggregateCostsWorker.java # Per-model cost calculation with pricing rates
-│       ├── CallClaudeWorker.java     # Claude call (live via Anthropic API or demo)
-│       ├── CallGeminiWorker.java     # Gemini call (live via Google API or demo)
-│       └── CallGpt4Worker.java       # GPT-4 call (live via OpenAI API or demo)
-└── src/test/java/llmcosttracking/workers/
-    ├── AggregateCostsWorkerTest.java # 3 tests. Full cost calculation, small token counts
-    ├── CallClaudeWorkerTest.java
-    ├── CallGeminiWorkerTest.java
-    └── CallGpt4WorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

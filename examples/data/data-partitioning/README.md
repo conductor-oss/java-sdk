@@ -1,6 +1,4 @@
-# Data Partitioning in Java Using Conductor :  Split, Parallel Process, and Merge
-
-A Java Conductor workflow example for data partitioning. splitting a dataset into two partitions based on a configurable partition key, processing both partitions simultaneously using `FORK_JOIN` parallelism, and merging the results back into a unified dataset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Data Partitioning in Java Using Conductor : Split, Parallel Process, and Merge
 
 ## The Problem
 
@@ -31,152 +29,18 @@ Workers implement data processing stages with representative outputs so the pipe
 
 ```
 par_split_data
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── par_process_partition_a
-    └── par_process_partition_b
-    │
-    ▼
+ ├── par_process_partition_a
+ └── par_process_partition_b
+ │
+ ▼
 JOIN (wait for all branches)
 par_merge_results
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/data-partitioning-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/data-partitioning-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow data_partitioning_wf \
-  --version 1 \
-  --input '{"records": "sample-records", "partitionKey": "sample-partitionKey"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w data_partitioning_wf -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Implement real partitioning strategies (hash-based, range-based, or key-based by region), replace the processing workers with your per-record logic, and the parallel split-process-merge workflow runs unchanged.
-
-- **SplitDataWorker** → implement real partitioning strategies (hash-based, range-based, round-robin, or key-based splitting by region/tenant/category)
-- **ProcessPartitionA/BWorkers** → replace with your actual per-record processing logic (database writes, API calls, ML inference, file transformations)
-- **MergeResultsWorker** → combine partition outputs with deduplication, sorting, or aggregation depending on your use case
-
-Implementing hash-based or range-based splitting in the splitter, or replacing the processing logic entirely, leaves the parallel workflow unchanged as long as partition outputs follow the expected structure.
-
-**Scale beyond two partitions** by adding more branches to the `FORK_JOIN` in `workflow.json`, or switch to `FORK_JOIN_DYNAMIC` for runtime-determined partition counts. Add a validation step after merge to verify no records were lost during split-process-merge.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-data-partitioning/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/datapartitioning/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DataPartitioningExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── MergeResultsWorker.java
-│       ├── ProcessPartitionAWorker.java
-│       ├── ProcessPartitionBWorker.java
-│       └── SplitDataWorker.java
-└── src/test/java/datapartitioning/workers/
-    ├── MergeResultsWorkerTest.java        # 9 tests
-    ├── ProcessPartitionAWorkerTest.java        # 9 tests
-    ├── ProcessPartitionBWorkerTest.java        # 9 tests
-    └── SplitDataWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

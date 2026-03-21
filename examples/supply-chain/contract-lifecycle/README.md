@@ -26,163 +26,25 @@ Five workers cover the contract lifecycle: DraftWorker creates agreements, Revie
 | **RenewWorker** | `clf_renew` | Schedules contract renewal based on the term length and expiry date. |
 | **ReviewWorker** | `clf_review` | Routes the draft through legal review for risk and compliance assessment. |
 
-Workers implement supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 clf_draft
-    │
-    ▼
+ │
+ ▼
 clf_review
-    │
-    ▼
+ │
+ ▼
 clf_approve
-    │
-    ▼
+ │
+ ▼
 clf_execute
-    │
-    ▼
+ │
+ ▼
 clf_renew
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/contract-lifecycle-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/contract-lifecycle-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow clf_contract_lifecycle \
-  --version 1 \
-  --input '{"vendor": "GlobalLogistics Corp", "contractType": "service-agreement", "value": 250000, "termMonths": 12}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w clf_contract_lifecycle -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect DraftWorker to your CLM platform (Icertis, Agiloft), ReviewWorker to your legal review queue, and ExecuteWorker to DocuSign for e-signatures. The workflow definition stays exactly the same.
-
-- **DraftWorker** (`clf_draft`): generate contract documents from templates in your CLM platform (Ironclad, Icertis, or DocuSign CLM), pre-populating vendor details, pricing, and standard clauses
-- **ReviewWorker** (`clf_review`): route the draft to the legal team via Slack or your CLM's review queue, collect redline comments, and track review cycles
-- **ApproveWorker** (`clf_approve`): implement multi-tier approval based on contract value (e.g., manager for <$50K, VP for <$250K, C-suite for $250K+) via your approval engine
-- **ExecuteWorker** (`clf_execute`): send for digital signature via DocuSign or Adobe Sign, store the fully executed PDF in your document management system, and update the vendor master record
-- **RenewWorker** (`clf_renew`): calculate renewal date from contract term, create a renewal task in your procurement system, and send advance notice to the contract owner
-
-Connect any worker to your CLM platform while preserving its output fields, and the workflow definition stays unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-contract-lifecycle/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/contractlifecycle/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ContractLifecycleExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ApproveWorker.java
-│       ├── DraftWorker.java
-│       ├── ExecuteWorker.java
-│       ├── RenewWorker.java
-│       └── ReviewWorker.java
-└── src/test/java/contractlifecycle/workers/
-    ├── ApproveWorkerTest.java        # 2 tests
-    ├── DraftWorkerTest.java        # 2 tests
-    ├── ExecuteWorkerTest.java        # 2 tests
-    ├── RenewWorkerTest.java        # 2 tests
-    └── ReviewWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

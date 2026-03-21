@@ -1,8 +1,6 @@
 # Event Choreography in Java Using Conductor
 
-Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## The Problem
+Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service. ## The Problem
 
 You need to coordinate an order fulfillment flow where each service communicates through events. The order service creates an order and emits an event, the payment service processes payment and emits a confirmation event, the inventory service reserves stock and emits a shipment event, and the notification service sends a confirmation to the customer. Each service reacts to the previous service's event rather than being called directly.
 
@@ -34,166 +32,27 @@ Workers implement event processing with realistic payloads so you can trace the 
 
 ```
 ch_order_service
-    │
-    ▼
+ │
+ ▼
 ch_emit_order_event
-    │
-    ▼
+ │
+ ▼
 ch_payment_service
-    │
-    ▼
+ │
+ ▼
 ch_emit_payment_event
-    │
-    ▼
+ │
+ ▼
 ch_inventory_service
-    │
-    ▼
+ │
+ ▼
 ch_emit_inventory_event
-    │
-    ▼
+ │
+ ▼
 ch_notification_service
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/event-choreography-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/event-choreography-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow event_choreography \
-  --version 1 \
-  --input '{"orderId": "TEST-001", "items": [{"id": "ITEM-001", "quantity": 2}], "customerId": "TEST-001"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w event_choreography -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each service worker to your real order database, payment gateway (Stripe, Braintree), warehouse API, and notification service (SES, Twilio), the event-driven order fulfillment workflow stays exactly the same.
-
-- **ChOrderServiceWorker** (`ch_order_service`): create orders in your order management system (Shopify, custom OMS) and persist them to your database
-- **ChPaymentServiceWorker** (`ch_payment_service`): process payments via Stripe, Braintree, or Adyen and handle declined cards with retry logic
-- **ChInventoryServiceWorker** (`ch_inventory_service`): reserve stock in your warehouse management system and trigger pick/pack/ship workflows
-- **ChNotificationServiceWorker** (`ch_notification_service`): send order confirmation via email (SendGrid), SMS (Twilio), or push notification
-
-Connecting each service worker to real APIs and each emit worker to Kafka or RabbitMQ leaves the choreography workflow unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-event-choreography/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/eventchoreography/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── EventChoreographyExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── EmitInventoryEventWorker.java
-│       ├── EmitOrderEventWorker.java
-│       ├── EmitPaymentEventWorker.java
-│       ├── InventoryServiceWorker.java
-│       ├── NotificationServiceWorker.java
-│       ├── OrderServiceWorker.java
-│       └── PaymentServiceWorker.java
-└── src/test/java/eventchoreography/workers/
-    ├── EmitInventoryEventWorkerTest.java        # 8 tests
-    ├── EmitOrderEventWorkerTest.java        # 8 tests
-    ├── EmitPaymentEventWorkerTest.java        # 8 tests
-    ├── InventoryServiceWorkerTest.java        # 8 tests
-    ├── NotificationServiceWorkerTest.java        # 8 tests
-    ├── OrderServiceWorkerTest.java        # 8 tests
-    └── PaymentServiceWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

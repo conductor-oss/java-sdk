@@ -28,141 +28,15 @@ This example demonstrates three common patterns for writing Conductor workers: s
 
 ```
 simple_transform
-    │
-    ▼
+ │
+ ▼
 fetch_data
-    │
-    ▼
+ │
+ ▼
 safe_process
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/creating-workers-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/creating-workers-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow worker_demo_workflow \
-  --version 1 \
-  --input '{"text": "Hello Conductor", "source": "example-api"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w worker_demo_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-- **SimpleTransformWorker** (`simple_transform`): add NLP processing, content sanitization, or format conversion (e.g., Markdown to HTML).
-- **FetchDataWorker** (`fetch_data`): replace demo records with a real REST API call, database query, or message queue read.
-- **SafeProcessWorker** (`safe_process`): implement real scoring/validation logic (e.g., data quality checks, ML inference, business rule evaluation).
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-creating-workers/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/creatingworkers/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── WorkerPatternsExample.java   # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── FetchDataWorker.java
-│       ├── SafeProcessWorker.java
-│       └── SimpleTransformWorker.java
-└── src/test/java/creatingworkers/workers/
-    ├── FetchDataWorkerTest.java
-    ├── SafeProcessWorkerTest.java
-    └── SimpleTransformWorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

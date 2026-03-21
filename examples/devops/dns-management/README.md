@@ -25,153 +25,24 @@ Four workers handle safe DNS changes. Planning the record update, validating aga
 | **ValidateWorker** | `dns_validate` | Checks for conflicts with existing DNS records before applying the change |
 | **VerifyWorker** | `dns_verify` | Confirms DNS propagation by querying resolvers to ensure the new records are live |
 
-Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
+the workflow and rollback logic stay the same.
 
 ### The Workflow
 
 ```
 dns_plan
-    │
-    ▼
+ │
+ ▼
 dns_validate
-    │
-    ▼
+ │
+ ▼
 dns_apply
-    │
-    ▼
+ │
+ ▼
 dns_verify
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/dns-management-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/dns-management-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow dns_management_workflow \
-  --version 1 \
-  --input '{"domain": "sample-domain", "recordType": "standard", "target": "production"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w dns_management_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one DNS lifecycle step. replace the demo calls with Route53, Cloudflare, or Google Cloud DNS APIs, and the management workflow runs unchanged.
-
-- **ApplyWorker** (`dns_apply`): call AWS Route53 ChangeResourceRecordSets, Cloudflare DNS API, or Google Cloud DNS to apply record changes
-- **PlanWorker** (`dns_plan`): query your DNS provider's API to list existing records and generate a diff-based change plan
-- **ValidateWorker** (`dns_validate`): use dnsjava or dig-style lookups to validate the planned records do not conflict with existing entries
-
-Plug in Route53 or Cloudflare APIs and the DNS management workflow runs with the same contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-dns-management-dns-management/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/dnsmanagement/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MainExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ApplyWorker.java
-│       ├── PlanWorker.java
-│       ├── ValidateWorker.java
-│       └── VerifyWorker.java
-└── src/test/java/dnsmanagement/
-    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

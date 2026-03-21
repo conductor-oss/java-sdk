@@ -1,6 +1,4 @@
-# Documentation AI in Java with Conductor :  Auto-Generate Docs from Source Code
-
-A Java Conductor workflow that generates documentation from source code. analyzing a repository to discover modules and their structure, generating raw documentation for each module, formatting the output in the requested format (Markdown, HTML, etc.), and publishing the docs to a hosting platform. Given a `repoPath` and `outputFormat`, the pipeline produces module counts, page counts, formatted documentation, and a publish URL. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the analyze-generate-format-publish pipeline.
+# Documentation AI in Java with Conductor : Auto-Generate Docs from Source Code
 
 ## Keeping Documentation in Sync with Code
 
@@ -25,156 +23,22 @@ AnalyzeCodeWorker discovers modules and function signatures, GenerateDocsWorker 
 | **GenerateDocsWorker** | `doc_generate_docs` | Generates documentation pages for each discovered module with descriptions and usage examples. |
 | **PublishWorker** | `doc_publish` | Uploads formatted documentation to a hosting platform and returns the published URL. |
 
-Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 doc_analyze_code
-    │
-    ▼
+ │
+ ▼
 doc_generate_docs
-    │
-    ▼
+ │
+ ▼
 doc_format
-    │
-    ▼
+ │
+ ▼
 doc_publish
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/documentation-ai-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/documentation-ai-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow doc_documentation_ai \
-  --version 1 \
-  --input '{"repoPath": "sample-repoPath", "outputFormat": "json"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w doc_documentation_ai -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one documentation step. connect your code parser (tree-sitter, JavaParser) for analysis and your docs platform (ReadTheDocs, GitBook, Docusaurus) for publishing, and the auto-docs workflow stays the same.
-
-- **AnalyzeCodeWorker** (`doc_analyze_code`): integrate with tree-sitter or JavaParser for real AST-based code analysis
-- **FormatWorker** (`doc_format`): use Docusaurus, MkDocs, or Sphinx to produce real formatted documentation sites
-- **GenerateDocsWorker** (`doc_generate_docs`): swap in an LLM (GPT-4, Claude) to generate human-readable explanations from parsed code structure
-
-Connect your real codebase scanner and doc hosting platform and the analyze-generate-format-publish pipeline operates unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-documentation-ai/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/documentationai/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DocumentationAiExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeCodeWorker.java
-│       ├── FormatWorker.java
-│       ├── GenerateDocsWorker.java
-│       └── PublishWorker.java
-└── src/test/java/documentationai/workers/
-    ├── AnalyzeCodeWorkerTest.java        # 2 tests
-    ├── FormatWorkerTest.java        # 2 tests
-    ├── GenerateDocsWorkerTest.java        # 2 tests
-    └── PublishWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

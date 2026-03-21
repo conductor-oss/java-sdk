@@ -30,146 +30,15 @@ Workers run in demo mode by default, returning realistic outputs so you can run 
 
 ```
 ai_prepare_prompt
-    │
-    ▼
+ │
+ ▼
 ai_call_llm
-    │
-    ▼
+ │
+ ▼
 ai_parse_response
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/first-ai-workflow-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `AiCallLlmWorker` calls the real OpenAI Chat Completions API. When unset, returns demo responses with `` prefix. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/first-ai-workflow-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow first_ai_workflow \
-  --version 1 \
-  --input '{"question": "What is Orkes Conductor?", "model": "gpt-4"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w first_ai_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker isolates one concern of the LLM call. Swap in any provider (OpenAI, Claude, Gemini, or Ollama) for the API call, customize the prompt formatter, and the three-step workflow runs unchanged.
-
-- **AiPreparePromptWorker** (`ai_prepare_prompt`): add template rendering with Mustache/Jinja-style variables, few-shot examples, or system prompts
-- **AiCallLlmWorker** (`ai_call_llm`): swap in a real API call to OpenAI, Anthropic Claude, Google Gemini, or a local Ollama instance
-- **AiParseResponseWorker** (`ai_parse_response`): add structured output parsing (JSON extraction, field validation) for your specific use case
-
-The prompt-in, parsed-result-out contract stays fixed. Upgrade to any LLM provider or add response post-processing without changing the workflow definition.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-first-ai-workflow/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/firstaiworkflow/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── FirstAiWorkflowExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AiCallLlmWorker.java
-│       ├── AiParseResponseWorker.java
-│       └── AiPreparePromptWorker.java
-└── src/test/java/firstaiworkflow/workers/
-    ├── AiCallLlmWorkerTest.java        # 4 tests
-    ├── AiParseResponseWorkerTest.java        # 4 tests
-    └── AiPreparePromptWorkerTest.java        # 5 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

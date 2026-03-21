@@ -1,6 +1,4 @@
-# Multi-Level Approval Chain in Java Using Conductor :  Manager, Director, VP Sequential WAIT/SWITCH with Early Rejection Termination
-
-A Java Conductor workflow example for sequential multi-level approval. routing a request through Manager, Director, and VP, each using a WAIT task for human input followed by a SWITCH to check the decision. If any level rejects, the workflow terminates immediately without advancing to the next level. All three must approve for finalization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Multi-Level Approval Chain in Java Using Conductor : Manager, Director, VP Sequential WAIT/SWITCH with Early Rejection Termination
 
 ## High-Value Requests Must Pass Through Manager, Director, and VP Approval
 
@@ -30,144 +28,17 @@ Workers implement the approval steps and human decisions so the workflow runs en
 
 ```
 mla_submit
-    │
-    ▼
+ │
+ ▼
 wait_manager_approval [WAIT]
-    │
-    ▼
+ │
+ ▼
 SWITCH (check_manager_decision)
-    ├── false: terminate_manager_rejected
-    └── default: wait_director_approval -> check_director_decision
+ ├── false: terminate_manager_rejected
+ └── default: wait_director_approval -> check_director_decision
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/multi-level-approval-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/multi-level-approval-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow multi_level_approval \
-  --version 1 \
-  --input '{"requestId": "TEST-001", "requestor": "sample-requestor"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w multi_level_approval -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one end of the multi-level chain. connect your request management system for submission and your downstream business system for finalization, and the three-tier approval workflow stays the same.
-
-- **FinalizeWorker** (`mla_finalize`): execute the approved action. Create a purchase order, provision resources, or trigger a downstream workflow with the full approval chain as audit evidence
-- **SubmitWorker** (`mla_submit`): pull request details from your business system, determine the approval chain from the org chart API, and notify the first approver
-
-Connect your org chart and fulfillment system and the Manager-Director-VP sequential approval chain runs without modification.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-multi-level-approval/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/multilevelapproval/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MultiLevelApprovalExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── FinalizeWorker.java
-│       └── SubmitWorker.java
-└── src/test/java/multilevelapproval/workers/
-    ├── FinalizeWorkerTest.java        # 5 tests
-    └── SubmitWorkerTest.java        # 5 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

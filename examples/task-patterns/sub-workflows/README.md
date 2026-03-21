@@ -1,6 +1,6 @@
 # Sub-Workflows in Java with Conductor
 
-SUB_WORKFLOW demo: an order processing workflow that delegates payment handling to a reusable child workflow. The parent calculates the order total, invokes a payment sub-workflow (validate + charge), then confirms the order with the returned transaction ID. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
+SUB_WORKFLOW demo: an order processing workflow that delegates payment handling to a reusable child workflow. The parent calculates the order total, invokes a payment sub-workflow (validate + charge), then confirms the order with the returned transaction ID. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -31,152 +31,17 @@ Workers implement their processing steps so you can see the pattern in action wi
 
 ```
 Parent: sub_order_workflow
-    sub_calc_total
-        │
-        ▼
-    SUB_WORKFLOW (sub_payment_process)
-        │   ├── sub_validate_payment
-        │   └── sub_charge_payment
-        ▼
-    sub_confirm_order
+ sub_calc_total
+ │
+ ▼
+ SUB_WORKFLOW (sub_payment_process)
+ │ ├── sub_validate_payment
+ │ └── sub_charge_payment
+ ▼
+ sub_confirm_order
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/sub-workflows-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/sub-workflows-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow sub_order_workflow \
-  --version 1 \
-  --input '{"orderId": "ORD-042", "items": [{"name": "Widget", "price": 10.0, "qty": 2}, {"name": "Gadget", "price": 25.0, "qty": 1}], "paymentMethod": "credit_card"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w sub_order_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect the order and payment workers to your product catalog, payment gateway (Stripe, Braintree), and OMS, and the SUB_WORKFLOW composition works unchanged.
-
-- **CalcTotalWorker** (`sub_calc_total`): compute the real order total from line items in your product catalog, applying discounts, taxes, and shipping costs
-- **ValidatePaymentWorker** (`sub_validate_payment`): validate the payment method against your payment gateway (Stripe, Braintree), check for expired cards, and verify the billing address
-- **ChargePaymentWorker** (`sub_charge_payment`): process the actual charge via your payment gateway, capture the authorization, and return the transaction ID and receipt
-- **ConfirmOrderWorker** (`sub_confirm_order`): create the order record in your OMS, send a confirmation email, and trigger fulfillment
-- **Reuse the payment sub-workflow**: invoke `sub_payment_process` from a subscription renewal workflow or refund flow; version it independently to add fraud checks without touching the order workflow
-
-Connecting the payment workers to Stripe or Braintree and reusing the payment sub-workflow from other flows (refunds, subscriptions) requires no changes to the parent-child composition, since each worker just returns its expected result fields.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-sub-workflows/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   ├── workflow.json                # Parent workflow (sub_order_workflow)
-│   └── payment-workflow.json        # Child workflow (sub_payment_process)
-├── src/main/java/subworkflows/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── SubWorkflowsExample.java     # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CalcTotalWorker.java
-│       ├── ChargePaymentWorker.java
-│       ├── ConfirmOrderWorker.java
-│       └── ValidatePaymentWorker.java
-└── src/test/java/subworkflows/workers/
-    ├── CalcTotalWorkerTest.java      # 5 tests
-    ├── ChargePaymentWorkerTest.java  # 5 tests
-    ├── ConfirmOrderWorkerTest.java   # 5 tests
-    └── ValidatePaymentWorkerTest.java # 6 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

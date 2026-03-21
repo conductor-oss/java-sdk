@@ -1,6 +1,4 @@
-# Implementing Security Awareness Training in Java with Conductor :  Module Assignment, Phishing Simulation, Evaluation, and Compliance Reporting
-
-A Java Conductor workflow example for automated security awareness campaigns. assigning training modules (e.g., secure coding) to department employees, running phishing exercises to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Implementing Security Awareness Training in Java with Conductor : Module Assignment, Phishing Simulation, Evaluation, and Compliance Reporting
 
 ## The Problem
 
@@ -25,7 +23,7 @@ Four workers run the awareness campaign: StAssignTrainingWorker assigns modules 
 | **StReportComplianceWorker** | `st_report_compliance` | Generates training compliance report. |
 | **StSendPhishingSimWorker** | `st_send_phishing_sim` | Sends phishing simulation to department employees. |
 
-Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
+the workflow logic stays the same.
 
 ### The Workflow
 
@@ -34,136 +32,6 @@ Input -> StAssignTrainingWorker -> StEvaluateResultsWorker -> StReportCompliance
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/security-training-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/security-training-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow security_training \
-  --version 1 \
-  --input '{}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w security_training -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker runs one campaign step. connect StAssignTrainingWorker to KnowBe4 or your LMS, StSendPhishingSimWorker to GoPhish, and the assign-simulate-evaluate-report workflow stays the same.
-
-- **StAssignTrainingWorker** (`st_assign_training`): assign modules via your LMS API (KnowBe4, Proofpoint Security Awareness, or a custom LMS), pulling employee lists from your HR system or Active Directory
-- **StSendPhishingSimWorker** (`st_send_phishing_sim`): launch phishing exercises via KnowBe4's API or GoPhish, tracking which employees receive each test email and their click/report responses
-- **StEvaluateResultsWorker** (`st_evaluate_results`): pull training completion status from the LMS and phishing click rates from the simulation platform, flagging employees who failed both
-- **StReportComplianceWorker** (`st_report_compliance`): generate a PDF or CSV compliance report with per-department pass rates, upload to your GRC platform (Drata, Vanta, ServiceNow GRC) for auditor access
-
-Integrate with KnowBe4 or GoPhish, and the assign-simulate-evaluate-report campaign orchestration works without any workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-security-training/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/securitytraining/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── SecurityTrainingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── StAssignTrainingWorker.java
-│       ├── StEvaluateResultsWorker.java
-│       ├── StReportComplianceWorker.java
-│       └── StSendPhishingSimWorker.java
-└── src/test/java/securitytraining/workers/
-    └── StAssignTrainingWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

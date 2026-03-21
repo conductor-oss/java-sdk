@@ -12,9 +12,7 @@ Without orchestration, you'd write a single method that opens the PDF, extracts 
 
 **You just write the text extraction, section parsing, content analysis, and summary generation workers. Conductor handles sequential document processing, retries when PDF sources are unavailable, and tracking of page count, section count, and word count at every stage.**
 
-Each stage of the PDF pipeline is a simple, independent worker. The text extractor loads the PDF from the source URL and produces raw text along with a page count. The section parser splits the raw text into logical sections by detecting heading patterns (chapter titles, numbered sections, bold headings), producing a structured list of sections with titles and content. The content analyzer scans the parsed sections to compute word counts and extract keywords that characterize each section. The summary generator combines the section structure and analysis results into a concise document summary. Conductor executes them in strict sequence, passes the evolving document representation between stages, retries if the PDF source is temporarily unavailable, and tracks page count, section count, and word count at every stage. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each stage of the PDF pipeline is a simple, independent worker. The text extractor loads the PDF from the source URL and produces raw text along with a page count. The section parser splits the raw text into logical sections by detecting heading patterns (chapter titles, numbered sections, bold headings), producing a structured list of sections with titles and content. The content analyzer scans the parsed sections to compute word counts and extract keywords that characterize each section. The summary generator combines the section structure and analysis results into a concise document summary. Conductor executes them in strict sequence, passes the evolving document representation between stages, retries if the PDF source is temporarily unavailable, and tracks page count, section count, and word count at every stage. ### What You Write: Workers
 
 Four workers handle PDF processing: extracting raw text with page counts, parsing text into logical sections by heading patterns, analyzing content for word counts and keywords, and generating a structured document summary.
 
@@ -31,156 +29,18 @@ Workers implement data processing stages with representative outputs so the pipe
 
 ```
 pd_extract_text
-    │
-    ▼
+ │
+ ▼
 pd_parse_sections
-    │
-    ▼
+ │
+ ▼
 pd_analyze_content
-    │
-    ▼
+ │
+ ▼
 pd_generate_summary
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/pdf-processing-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/pdf-processing-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow pdf_processing \
-  --version 1 \
-  --input '{"pdfPath": "/path/to/your/document.pdf", "options": {"extractImages": false, "ocrFallback": true}}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w pdf_processing -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Use Apache PDFBox for real text extraction, add NLP-based keyword analysis with spaCy or OpenAI, and the document processing workflow runs unchanged.
-
-- **`ExtractTextWorker`**: Use real PDF libraries: Apache PDFBox for text extraction with layout preservation, iText for structured PDF parsing, or Tika for format-agnostic document extraction including embedded images and metadata.
-
-- **`ParseSectionsWorker`**: Implement real section detection: heading font-size analysis via PDFBox, table-of-contents parsing, regex-based section splitting for known document formats (legal contracts, academic papers, financial reports).
-
-- **`AnalyzeContentWorker`**: Run real content analysis: TF-IDF keyword extraction, named entity recognition (NER) for people/organizations/dates, clause classification for contracts, or LLM-based analysis via OpenAI/Anthropic APIs.
-
-- **`GenerateSummaryWorker`**: Generate real summaries using extractive summarization (TextRank, LSA) or abstractive summarization via LLMs, with configurable summary length and focus areas per document type.
-
-Replacing the extractor with Apache PDFBox or adding sentiment analysis to the content analyzer does not alter the extract-parse-analyze-summarize pipeline, as long as each worker outputs the expected section and keyword structures.
-
-**Add new stages** by inserting tasks in `workflow.json`, for example, a table extraction step that detects and parses tabular data within the PDF, a compliance check step that flags missing required sections in regulatory filings, or a comparison step that diffs the current document against a previous version to highlight changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-pdf-processing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/pdfprocessing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── PdfProcessingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeContentWorker.java
-│       ├── ExtractTextWorker.java
-│       ├── GenerateSummaryWorker.java
-│       └── ParseSectionsWorker.java
-└── src/test/java/pdfprocessing/workers/
-    ├── AnalyzeContentWorkerTest.java
-    ├── ExtractTextWorkerTest.java
-    ├── GenerateSummaryWorkerTest.java
-    └── ParseSectionsWorkerTest.java
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

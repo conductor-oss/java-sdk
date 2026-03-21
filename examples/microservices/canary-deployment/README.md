@@ -25,156 +25,22 @@ Four workers drive the canary lifecycle: DeployCanaryWorker provisions the new v
 | **PromoteOrRollbackWorker** | `cd_promote_or_rollback` | Compares the canary error rate against a threshold and decides whether to promote to full rollout or roll back. |
 | **ShiftTrafficWorker** | `cd_shift_traffic` | Shifts a specified percentage of live traffic to the canary instances. |
 
-Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
-
 ### The Workflow
 
 ```
 cd_deploy_canary
-    │
-    ▼
+ │
+ ▼
 cd_shift_traffic
-    │
-    ▼
+ │
+ ▼
 cd_analyze_metrics
-    │
-    ▼
+ │
+ ▼
 cd_promote_or_rollback
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/canary-deployment-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/canary-deployment-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow canary_deployment_workflow \
-  --version 1 \
-  --input '{"serviceName": "user-service", "newVersion": "4.1.0", "canaryPercentage": 10}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w canary_deployment_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Point each worker at your real Kubernetes or ECS deployment API, load balancer weights, and Prometheus/Datadog metrics, the canary deploy-shift-analyze-decide workflow stays exactly the same.
-
-- **AnalyzeMetricsWorker** (`cd_analyze_metrics`): query Prometheus, Datadog, or CloudWatch for real canary vs baseline metrics
-- **DeployCanaryWorker** (`cd_deploy_canary`): call your container orchestrator (Kubernetes, ECS) to create canary pods/tasks with the new image
-- **PromoteOrRollbackWorker** (`cd_promote_or_rollback`): integrate with your deployment API to execute a real full promotion (scale canary to 100%) or rollback (scale canary to 0%)
-
-Pointing AnalyzeMetricsWorker at a different observability backend requires no changes to the canary workflow definition.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-canary-deployment/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/canarydeployment/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CanaryDeploymentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeMetricsWorker.java
-│       ├── DeployCanaryWorker.java
-│       ├── PromoteOrRollbackWorker.java
-│       └── ShiftTrafficWorker.java
-└── src/test/java/canarydeployment/workers/
-    ├── AnalyzeMetricsWorkerTest.java        # 8 tests
-    ├── DeployCanaryWorkerTest.java        # 8 tests
-    ├── PromoteOrRollbackWorkerTest.java        # 9 tests
-    └── ShiftTrafficWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

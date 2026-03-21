@@ -1,8 +1,6 @@
 # Workflow Variables in Java with Conductor
 
-Shows how variables and expressions work across tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## The Problem
+Shows how variables and expressions work across tasks. ## The Problem
 
 You need to accumulate state across multiple tasks in an order pricing pipeline. Calculate the subtotal from items, apply a tier-based discount, compute shipping costs, and build a final summary. Each task depends on results from earlier tasks and the original workflow input. Workflow variables and expressions let you reference any task's output from any subsequent task using `${task_ref.output.field}` syntax.
 
@@ -30,148 +28,18 @@ Workers implement their processing steps so you can see the pattern in action wi
 
 ```
 wv_calc_price
-    │
-    ▼
+ │
+ ▼
 apply_tier_discount [INLINE]
-    │
-    ▼
+ │
+ ▼
 wv_calc_shipping
-    │
-    ▼
+ │
+ ▼
 wv_build_summary
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/workflow-variables-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/workflow-variables-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow workflow_variables_demo \
-  --version 1 \
-  --input '{"orderId": "TEST-001", "items": [{"id": "ITEM-001", "quantity": 2}], "customerTier": "standard"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w workflow_variables_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect the pricing workers to your product catalog, discount service, and shipping rate APIs (UPS, FedEx), and the cross-task variable expressions work unchanged.
-
-- **BuildSummaryWorker** (`wv_build_summary`): generate a real order confirmation by writing to your order database, producing a PDF invoice, or publishing to a notification service (email, SMS) with the final pricing breakdown
-- **CalcPriceWorker** (`wv_calc_price`): query your product catalog or pricing service for current prices, apply quantity-based discounts, and handle tax calculations per jurisdiction
-- **CalcShippingWorker** (`wv_calc_shipping`): call a shipping rate API (UPS, FedEx, USPS) with the order's weight, dimensions, and destination to get real shipping quotes instead of the flat-rate formula
-
-Connecting the pricing workers to real catalog, discount, and shipping rate APIs does not affect the cross-task variable expressions, since each worker's output fields are referenced by subsequent tasks through the workflow definition.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-workflow-variables/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/workflowvariables/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── WorkflowVariablesExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── BuildSummaryWorker.java
-│       ├── CalcPriceWorker.java
-│       └── CalcShippingWorker.java
-└── src/test/java/workflowvariables/workers/
-    ├── BuildSummaryWorkerTest.java        # 6 tests
-    ├── CalcPriceWorkerTest.java        # 6 tests
-    └── CalcShippingWorkerTest.java        # 6 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

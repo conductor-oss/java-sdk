@@ -32,159 +32,16 @@ Workers implement their processing steps so you can see the pattern in action wi
 
 ```
 SWITCH (route_ref)
-    ├── LOW: sw_auto_handle
-    ├── MEDIUM: sw_team_review
-    ├── HIGH: sw_escalate
-    └── default: sw_unknown_priority
-    │
-    ▼
+ ├── LOW: sw_auto_handle
+ ├── MEDIUM: sw_team_review
+ ├── HIGH: sw_escalate
+ └── default: sw_unknown_priority
+ │
+ ▼
 sw_log_action
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/switch-task-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/switch-task-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-# Route a LOW priority ticket (auto-handled)
-conductor workflow start \
-  --workflow switch_demo \
-  --version 1 \
-  --input '{"ticketId": "TKT-101", "priority": "LOW", "description": "Button color is slightly off"}'
-
-# Route a HIGH priority ticket (escalated)
-conductor workflow start \
-  --workflow switch_demo \
-  --version 1 \
-  --input '{"ticketId": "TKT-102", "priority": "HIGH", "description": "Production database unreachable"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w switch_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect the ticket handlers to Zendesk, PagerDuty, and your audit logging system, and the SWITCH-based priority routing works unchanged.
-
-- **AutoHandleWorker** (`sw_auto_handle`): auto-resolve LOW tickets using your knowledge base or chatbot API, send a canned response via Zendesk/Freshdesk, and close the ticket
-- **TeamReviewWorker** (`sw_team_review`): assign MEDIUM tickets to the appropriate support team in your ticketing system based on category, send a Slack notification to the on-call agent
-- **EscalateWorker** (`sw_escalate`): page a manager via PagerDuty or Opsgenie, set the ticket SLA to urgent, and notify the customer that their issue has been escalated
-- **LogActionWorker** (`sw_log_action`): write the ticket action to your audit log, update SLA tracking metrics, and publish the event to your analytics pipeline
-- **Add a new branch**: add a `CRITICAL` case to the SWITCH in workflow.json and create a CriticalHandleWorker; no existing code changes required
-
-Connecting the handlers to real ticketing systems or adding new priority branches does not affect the SWITCH routing structure, since each worker just returns the handler result and the log entry.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-switch-task/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/switchtask/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── SwitchTaskExample.java       # Main entry point (runs all 4 scenarios)
-│   └── workers/
-│       ├── AutoHandleWorker.java
-│       ├── EscalateWorker.java
-│       ├── LogActionWorker.java
-│       ├── TeamReviewWorker.java
-│       └── UnknownPriorityWorker.java
-└── src/test/java/switchtask/workers/
-    ├── AutoHandleWorkerTest.java    # 7 tests
-    ├── EscalateWorkerTest.java      # 7 tests
-    ├── LogActionWorkerTest.java     # 7 tests
-    ├── TeamReviewWorkerTest.java    # 7 tests
-    └── UnknownPriorityWorkerTest.java # 7 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

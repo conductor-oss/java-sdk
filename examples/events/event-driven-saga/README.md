@@ -12,9 +12,7 @@ Without orchestration, you'd implement the saga with nested try/catch blocks, ma
 
 **You just write the order-creation, payment, shipping, and compensation workers. Conductor handles SWITCH-based compensation routing, guaranteed saga completion, and a full audit trail of every saga step and rollback.**
 
-Each saga step is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing the happy path (order, payment, shipping), routing via a SWITCH task to compensation on payment failure, retrying transient failures before triggering compensation, and tracking the entire saga with full audit trail. You get all of that, without writing a single line of orchestration code.
-
-### What You Write: Workers
+Each saga step is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing the happy path (order, payment, shipping), routing via a SWITCH task to compensation on payment failure, retrying transient failures before triggering compensation, and tracking the entire saga with full audit trail. ### What You Write: Workers
 
 Five workers implement the saga: CreateOrderWorker starts the order, ProcessPaymentWorker charges the customer, ShipOrderWorker dispatches the shipment, while CancelOrderWorker and CompensatePaymentWorker handle rollback when payment fails.
 
@@ -32,152 +30,17 @@ Workers implement event processing with realistic payloads so you can trace the 
 
 ```
 ds_create_order
-    │
-    ▼
+ │
+ ▼
 ds_process_payment
-    │
-    ▼
+ │
+ ▼
 SWITCH (switch_ref)
-    ├── success: ds_ship_order
-    ├── failed: ds_compensate_payment -> ds_cancel_order
+ ├── success: ds_ship_order
+ ├── failed: ds_compensate_payment -> ds_cancel_order
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/event-driven-saga-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/event-driven-saga-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow event_driven_saga \
-  --version 1 \
-  --input '{"orderId": "ORD-2001", "amount": 149.99, "shippingAddress": "123 Main St, Springfield, IL"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w event_driven_saga -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect each worker to your real order database, payment gateway (Stripe, Adyen), and shipping API, with real refund logic for compensation, the saga with payment-routing and rollback workflow stays exactly the same.
-
-- **Order creation**: insert orders into your database and reserve inventory in your warehouse management system
-- **Payment processing**: charge via Stripe/Adyen with idempotency keys to prevent double charges during retries
-- **Shipping**: create shipments via carrier APIs and generate tracking numbers
-- **Compensation**: implement rollback logic: refund payment, release inventory holds, cancel shipment, and notify the customer
-
-Wiring ProcessPaymentWorker to a real payment gateway or CompensatePaymentWorker to a refund API preserves the saga routing logic.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-event-driven-saga/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/eventdrivensaga/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── EventDrivenSagaExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CancelOrderWorker.java
-│       ├── CompensatePaymentWorker.java
-│       ├── CreateOrderWorker.java
-│       ├── ProcessPaymentWorker.java
-│       └── ShipOrderWorker.java
-└── src/test/java/eventdrivensaga/workers/
-    ├── CancelOrderWorkerTest.java        # 8 tests
-    ├── CompensatePaymentWorkerTest.java        # 8 tests
-    ├── CreateOrderWorkerTest.java        # 8 tests
-    ├── ProcessPaymentWorkerTest.java        # 8 tests
-    └── ShipOrderWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

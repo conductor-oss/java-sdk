@@ -1,8 +1,6 @@
-# Calculator Agent in Java Using Conductor :  Parse Expressions, Compute Steps, Explain Results
+# Calculator Agent in Java Using Conductor : Parse Expressions, Compute Steps, Explain Results
 
-Calculator Agent. parse a math expression, compute step-by-step following PEMDAS, and explain the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Math Agents Need to Show Their Work
+Calculator Agent. parse a math expression, compute step-by-step following PEMDAS, and explain the result. ## Math Agents Need to Show Their Work
 
 An LLM asked to compute "(15.7 + 3.3) * 2.5 / (1 + 0.1)" will often get the wrong answer. large language models are unreliable at arithmetic. A calculator agent separates understanding from computation: first parse the expression into structured operations (identify operands, operators, and precedence), then compute each step with proper floating-point precision, then explain the solution process so the user understands the reasoning.
 
@@ -30,136 +28,15 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 ca_parse_expression
-    │
-    ▼
+ │
+ ▼
 ca_compute_steps
-    │
-    ▼
+ │
+ ▼
 ca_explain_result
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/calculator-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/calculator-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow calculator_agent \
-  --version 1 \
-  --input '{"expression": "sample-expression", "precision": "sample-precision"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w calculator_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker owns one stage of the computation pipeline. Plug in a real expression parser (ANTLR), arbitrary-precision arithmetic (BigDecimal or SymPy), and an LLM for natural language explanations, and the parse-compute-explain workflow runs unchanged.
-
-- **ParseExpressionWorker** (`ca_parse_expression`): use a proper expression parser (ANTLR or a Pratt parser) to handle complex expressions with nested parentheses, functions (sin, log, sqrt), and variable substitution
-- **ComputeStepsWorker** (`ca_compute_steps`): use Java's BigDecimal for arbitrary-precision arithmetic, or integrate with SymPy (via Jython or subprocess) for symbolic computation and algebraic simplification
-- **ExplainResultWorker** (`ca_explain_result`): use an LLM to generate contextual explanations adapted to the user's level (student vs: engineer), with LaTeX formatting for mathematical notation
-
-Swap in a real math library or LLM parser; the parse-compute-explain pipeline maintains the same interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-calculator-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/calculatoragent/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CalculatorAgentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ComputeStepsWorker.java
-│       ├── ExplainResultWorker.java
-│       └── ParseExpressionWorker.java
-└── src/test/java/calculatoragent/workers/
-    ├── ComputeStepsWorkerTest.java        # 9 tests
-    ├── ExplainResultWorkerTest.java        # 9 tests
-    └── ParseExpressionWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

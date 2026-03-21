@@ -1,8 +1,6 @@
 # Nested Switch in Java with Conductor
 
-Multi-level decision tree using nested SWITCH tasks with value-param. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## The Problem
+Multi-level decision tree using nested SWITCH tasks with value-param. ## The Problem
 
 You need to route a request through a multi-level decision tree based on region and subscription tier. A US premium customer gets different processing than an EU standard customer or a customer from an unlisted region. The first level routes by region (US, EU, or other), and within each region, a second level routes by tier (premium or standard/default). Each combination. US/premium, US/standard, EU/premium, EU/standard, other/any. runs completely different processing logic. After the region-and-tier-specific processing completes, a final completion step runs regardless of which branch was taken.
 
@@ -33,152 +31,15 @@ Workers implement their processing steps so you can see the pattern in action wi
 
 ```
 SWITCH (region_switch_ref)
-    ├── US: route_us_tier
-    ├── EU: route_eu_tier
-    └── default: ns_other_region
-    │
-    ▼
+ ├── US: route_us_tier
+ ├── EU: route_eu_tier
+ └── default: ns_other_region
+ │
+ ▼
 ns_complete
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/nested-switch-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/nested-switch-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow nested_switch_demo \
-  --version 1 \
-  --input '{"region": "us-east-1", "tier": "standard", "amount": 100}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w nested_switch_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Replace the region/tier-specific handlers with your real processing logic for each customer segment, and the multi-level decision tree workflow runs unchanged.
-
-- **NsUsPremiumWorker** (`ns_us_premium`): apply US premium pricing rules, expedited shipping via domestic carriers, and premium support SLA handling
-- **NsEuPremiumWorker** (`ns_eu_premium`): apply EU premium pricing with VAT compliance, GDPR-compliant data handling, and EU-specific carrier routing
-- **NsOtherRegionWorker** (`ns_other_region`): handle international requests with customs documentation, currency conversion, and region-appropriate carrier selection
-- **NsCompleteWorker** (`ns_complete`): finalize the request: send confirmation, update the order record, and trigger downstream fulfillment
-
-Replacing the branch workers with real region-specific processing (tax calculations, compliance checks, etc.) does not alter the nested SWITCH routing, as long as each branch returns its expected processing result.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-nested-switch/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/nestedswitch/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── NestedSwitchExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── NsCompleteWorker.java
-│       ├── NsEuPremiumWorker.java
-│       ├── NsEuStandardWorker.java
-│       ├── NsOtherRegionWorker.java
-│       ├── NsUsPremiumWorker.java
-│       └── NsUsStandardWorker.java
-└── src/test/java/nestedswitch/workers/
-    ├── NsCompleteWorkerTest.java        # 4 tests
-    ├── NsEuPremiumWorkerTest.java        # 4 tests
-    ├── NsEuStandardWorkerTest.java        # 4 tests
-    ├── NsOtherRegionWorkerTest.java        # 4 tests
-    ├── NsUsPremiumWorkerTest.java        # 4 tests
-    └── NsUsStandardWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,7 +1,5 @@
 # Twilio Integration in Java Using Conductor
 
-A Java Conductor workflow that runs a two-way SMS conversation via Twilio. sending an outbound SMS, waiting for the recipient's reply, processing the response to generate contextual follow-up content, and sending a reply SMS back. Given a to/from phone number pair and message body, the pipeline produces the original message SID, the received response, and the reply SID. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the send-wait-process-reply pipeline.
-
 ## Running Two-Way SMS Conversations Through Twilio
 
 Two-way SMS involves more than sending a single message. You send an outbound SMS, wait for the recipient to reply (polling or webhook), process the reply to determine the appropriate response (parsing keywords, looking up context, generating a follow-up), and send the reply back. Each step depends on the previous one. you cannot wait for a reply without a message SID from the send step, and you cannot generate a reply without the response body.
@@ -31,151 +29,18 @@ The workers auto-detect Twilio credentials at startup. When `TWILIO_ACCOUNT_SID`
 
 ```
 twl_send_sms
-    │
-    ▼
+ │
+ ▼
 twl_wait_response
-    │
-    ▼
+ │
+ ▼
 twl_process_response
-    │
-    ▼
+ │
+ ▼
 twl_send_reply
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/twilio-integration-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `TWILIO_ACCOUNT_SID` | _(none)_ | Twilio Account SID. When set with `TWILIO_AUTH_TOKEN`, enables live SMS sending. |
-| `TWILIO_AUTH_TOKEN` | _(none)_ | Twilio Auth Token. When set with `TWILIO_ACCOUNT_SID`, enables live SMS sending. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/twilio-integration-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow twilio_integration_436 \
-  --version 1 \
-  --input '{"toNumber": "sample-toNumber", "fromNumber": "sample-fromNumber", "messageBody": "Process this order for customer C-100"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w twilio_integration_436 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-SendSmsWorker and SendReplyWorker already use the real Twilio Java SDK (Message.creator()) when credentials are provided. The remaining workers are demo:
-
-- **WaitResponseWorker** (`twl_wait_response`): integrate with Twilio webhooks or use the Twilio Messages API to poll for real inbound replies by message SID
-- **ProcessResponseWorker** (`twl_process_response`): add your own business logic for parsing responses, looking up context, or generating follow-up content
-
-Replace each simulation with real API calls while keeping the same output fields, and the conversational pipeline stays unchanged.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-twilio-integration/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/twiliointegration/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── TwilioIntegrationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ProcessResponseWorker.java
-│       ├── SendReplyWorker.java
-│       ├── SendSmsWorker.java
-│       └── WaitResponseWorker.java
-└── src/test/java/twiliointegration/workers/
-    ├── ProcessResponseWorkerTest.java        # 2 tests
-    ├── SendReplyWorkerTest.java        # 2 tests
-    ├── SendSmsWorkerTest.java        # 2 tests
-    └── WaitResponseWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

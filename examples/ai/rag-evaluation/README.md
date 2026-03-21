@@ -1,6 +1,4 @@
-# RAG Evaluation in Java Using Conductor :  Faithfulness, Relevance, and Coherence Scoring in Parallel
-
-A Java Conductor workflow that runs a RAG pipeline and then evaluates the output on three quality dimensions simultaneously. faithfulness (does the answer stick to the retrieved context?), relevance (does it address the question?), and coherence (is it well-structured and readable?). Conductor's `FORK_JOIN` runs all three evaluations in parallel, then aggregates the scores. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate RAG execution, parallel evaluation, and score aggregation as independent workers,  you write the evaluation logic, Conductor handles parallelism, retries, durability, and observability.
+# RAG Evaluation in Java Using Conductor : Faithfulness, Relevance, and Coherence Scoring in Parallel
 
 ## Measuring RAG Quality Systematically
 
@@ -32,156 +30,19 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 re_run_rag
-    │
-    ▼
+ │
+ ▼
 FORK_JOIN
-    ├── re_eval_faithfulness
-    ├── re_eval_relevance
-    └── re_eval_coherence
-    │
-    ▼
+ ├── re_eval_faithfulness
+ ├── re_eval_relevance
+ └── re_eval_coherence
+ │
+ ▼
 JOIN (wait for all branches)
 re_aggregate_scores
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/rag-evaluation-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use demo responses. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/rag-evaluation-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow rag_evaluation_pipeline \
-  --version 1 \
-  --input '{"input": "test"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w rag_evaluation_pipeline -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker scores one quality dimension. swap in LLM-based evaluators for faithfulness, relevance, and coherence checks, and the parallel evaluation-aggregation pipeline runs unchanged.
-
-- **RunRagWorker** (`re_run_rag`): call your production RAG pipeline (retrieve + generate) and capture the answer, retrieved context, and metadata for evaluation
-- **EvalFaithfulnessWorker** (`re_eval_faithfulness`): use an LLM-as-judge (GPT-4, Claude) or DeepEval/RAGAS to score whether the answer is supported by the retrieved context
-- **EvalRelevanceWorker** (`re_eval_relevance`): use an LLM-as-judge or BERTScore to measure whether the answer addresses the original question
-- **EvalCoherenceWorker** (`re_eval_coherence`): use an LLM-as-judge to evaluate logical structure, consistency, and readability of the generated answer
-- **AggregateScoresWorker** (`re_aggregate_scores`): compute weighted overall scores with configurable thresholds, and push results to experiment tracking (MLflow, Weights & Biases) for trend monitoring
-
-Each evaluation worker returns the same score/reasoning shape, so adding new quality dimensions (e.g., completeness, conciseness) requires only a new worker and fork branch.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-rag-evaluation/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/ragevaluation/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── RagEvaluationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AggregateScoresWorker.java
-│       ├── EvalCoherenceWorker.java
-│       ├── EvalFaithfulnessWorker.java
-│       ├── EvalRelevanceWorker.java
-│       └── RunRagWorker.java
-└── src/test/java/ragevaluation/workers/
-    ├── AggregateScoresWorkerTest.java        # 6 tests
-    ├── EvalCoherenceWorkerTest.java        # 3 tests
-    ├── EvalFaithfulnessWorkerTest.java        # 3 tests
-    ├── EvalRelevanceWorkerTest.java        # 3 tests
-    └── RunRagWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

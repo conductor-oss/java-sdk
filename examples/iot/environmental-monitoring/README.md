@@ -1,6 +1,4 @@
-# Environmental Monitoring in Java with Conductor :  Air Quality Sensing, Threshold Alerts, and Compliance Reporting
-
-A Java Conductor workflow example that orchestrates environmental monitoring. collecting air quality readings (PM2.5, PM10, CO2, NO2, ozone), checking pollutant concentrations against regulatory thresholds, triggering alerts when AQI breaches occur, and generating compliance reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+# Environmental Monitoring in Java with Conductor : Air Quality Sensing, Threshold Alerts, and Compliance Reporting
 
 ## Why Air Quality Monitoring Needs Orchestration
 
@@ -25,155 +23,24 @@ Four workers run the monitoring cycle: CollectDataWorker reads pollutant concent
 | **GenerateReportWorker** | `env_generate_report` | Generates a regulatory compliance report with readings, breaches, and alert history. |
 | **TriggerAlertWorker** | `env_trigger_alert` | Sends threshold breach alerts to environmental teams and monitoring dashboards. |
 
-Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs. the workflow and alerting logic stay the same.
+the workflow and alerting logic stay the same.
 
 ### The Workflow
 
 ```
 env_collect_data
-    │
-    ▼
+ │
+ ▼
 env_check_thresholds
-    │
-    ▼
+ │
+ ▼
 env_trigger_alert
-    │
-    ▼
+ │
+ ▼
 env_generate_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/environmental-monitoring-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/environmental-monitoring-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow environmental_monitoring_workflow \
-  --version 1 \
-  --input '{"stationId": "TEST-001", "region": "us-east-1", "monitoringType": "standard"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w environmental_monitoring_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Connect CollectDataWorker to your monitoring station sensors, CheckThresholdsWorker to your regulatory threshold database, and TriggerAlertWorker to your environmental compliance notification system. The workflow definition stays exactly the same.
-
-- **CollectDataWorker** (`env_collect_data`): pull real sensor readings from your monitoring stations via Modbus, OPC-UA, or a sensor API (PurpleAir, AirVisual) to return PM2.5, PM10, CO2, NO2, ozone, temperature, and humidity values
-- **CheckThresholdsWorker** (`env_check_thresholds`): compare readings against EPA/WHO regulatory limits, compute the AQI using the standard breakpoint formula, and return breach counts and severity levels
-- **TriggerAlertWorker** (`env_trigger_alert`): send real notifications via email, SMS, or push to environmental teams and update your monitoring dashboard (Grafana, custom web UI) when thresholds are breached
-- **GenerateReportWorker** (`env_generate_report`): generate regulatory compliance reports in PDF format and submit them to your environmental agency's reporting portal
-
-Replace each worker with a production sensor gateway or alerting system while keeping the same output fields, and the monitoring pipeline runs unmodified.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-environmental-monitoring/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/environmentalmonitoring/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── EnvironmentalMonitoringExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CheckThresholdsWorker.java
-│       ├── CollectDataWorker.java
-│       ├── GenerateReportWorker.java
-│       └── TriggerAlertWorker.java
-└── src/test/java/environmentalmonitoring/workers/
-    ├── CheckThresholdsWorkerTest.java        # 2 tests
-    └── CollectDataWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

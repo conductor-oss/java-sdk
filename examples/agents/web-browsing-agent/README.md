@@ -1,8 +1,6 @@
-# Web Browsing Agent in Java Using Conductor :  Plan Search, Execute, Select Pages, Read, Extract Answer
+# Web Browsing Agent in Java Using Conductor : Plan Search, Execute, Select Pages, Read, Extract Answer
 
-Web Browsing Agent. plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Answering Questions by Actually Reading Web Pages
+Web Browsing Agent. plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. ## Answering Questions by Actually Reading Web Pages
 
 Search engine snippets are often insufficient. "What are the specific system requirements for running Kubernetes 1.29 on bare metal?" requires actually reading the documentation page, not just the snippet. A web browsing agent goes deeper than search: it plans the right query, gets search results, selects which pages are most likely to contain the answer, reads the full page content, and extracts the specific information needed.
 
@@ -32,146 +30,21 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 wb_plan_search
-    │
-    ▼
+ │
+ ▼
 wb_execute_search
-    │
-    ▼
+ │
+ ▼
 wb_select_pages
-    │
-    ▼
+ │
+ ▼
 wb_read_page
-    │
-    ▼
+ │
+ ▼
 wb_extract_answer
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/web-browsing-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/web-browsing-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow web_browsing_agent \
-  --version 1 \
-  --input '{"question": "What is workflow orchestration?", "maxPages": "sample-maxPages"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w web_browsing_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one browsing step. Integrate SerpAPI for search, Playwright or Jina Reader for JavaScript-rendered page reading, and an LLM for answer extraction with source citations, and the plan-search-select-read-extract pipeline runs unchanged.
-
-- **ExecuteSearchWorker** (`wb_execute_search`): integrate with SerpAPI, Bing Search API, or Google Custom Search for real search results with rich snippet extraction
-- **ReadPageWorker** (`wb_read_page`): use Playwright or Selenium for JavaScript-rendered pages, Jsoup for static HTML, or Jina Reader API for clean content extraction from any URL
-- **ExtractAnswerWorker** (`wb_extract_answer`): use an LLM with the page content as context to extract specific answers with source quotes and confidence scores
-
-Connect to real search and page-reading APIs; the browsing pipeline preserves the same search-select-read-extract interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-web-browsing-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/webbrowsing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── WebBrowsingAgentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ExecuteSearchWorker.java
-│       ├── ExtractAnswerWorker.java
-│       ├── PlanSearchWorker.java
-│       ├── ReadPageWorker.java
-│       └── SelectPagesWorker.java
-└── src/test/java/webbrowsing/workers/
-    ├── ExecuteSearchWorkerTest.java        # 9 tests
-    ├── ExtractAnswerWorkerTest.java        # 9 tests
-    ├── PlanSearchWorkerTest.java        # 8 tests
-    ├── ReadPageWorkerTest.java        # 9 tests
-    └── SelectPagesWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,8 +1,6 @@
-# Competitive Agents in Java Using Conductor :  Parallel Solvers, Judge, and Winner Selection
+# Competitive Agents in Java Using Conductor : Parallel Solvers, Judge, and Winner Selection
 
-Competitive Agents. three solvers propose solutions in parallel, a judge scores them, and a winner is selected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Better Solutions Through Competition
+Competitive Agents. three solvers propose solutions in parallel, a judge scores them, and a winner is selected. ## Better Solutions Through Competition
 
 A single AI agent solving a problem gives you one perspective. Three agents solving the same problem independently give you three perspectives, and the best one is almost always better than a random single attempt. Agent 1 might take an analytical approach (data-driven, quantitative). Agent 2 might take a creative approach (novel angles, unconventional solutions). Agent 3 might take a practical approach (implementation-focused, risk-aware).
 
@@ -32,144 +30,19 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 FORK_JOIN
-    ├── comp_solver_1
-    ├── comp_solver_2
-    └── comp_solver_3
-    │
-    ▼
+ ├── comp_solver_1
+ ├── comp_solver_2
+ └── comp_solver_3
+ │
+ ▼
 JOIN (wait for all branches)
 comp_judge_agent
-    │
-    ▼
+ │
+ ▼
 comp_select_winner
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/competitive-agents-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/competitive-agents-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow competitive_agents_demo \
-  --version 1 \
-  --input '{"problem": "sample-problem", "criteria": "sample-criteria"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w competitive_agents_demo -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each solver encapsulates one problem-solving approach. Use different LLM providers (GPT-4, Claude, Gemini) or prompt strategies for genuine diversity, add an impartial LLM judge, and the parallel-compete-evaluate workflow runs unchanged.
-
-- **Solver workers** (`comp_solver_1/2/3`): use different LLM providers (GPT-4, Claude, Gemini) or different temperature/prompt configurations to produce genuinely diverse solutions
-- **JudgeAgentWorker** (`comp_judge_agent`): use a separate LLM (ideally a different provider than the solvers) as the judge to avoid self-serving bias, with rubric-based scoring for objectivity
-- **SelectWinnerWorker** (`comp_select_winner`): implement ensemble methods: instead of picking a single winner, merge the best elements from all three solutions using an LLM-based synthesis step
-
-Swap in LLM calls for real solution generation; the parallel competition workflow preserves the same solve-judge-select interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-competitive-agents/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/competitiveagents/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CompetitiveAgentsExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── JudgeAgentWorker.java
-│       ├── SelectWinnerWorker.java
-│       ├── Solver1Worker.java
-│       ├── Solver2Worker.java
-│       └── Solver3Worker.java
-└── src/test/java/competitiveagents/workers/
-    ├── JudgeAgentWorkerTest.java        # 9 tests
-    ├── SelectWinnerWorkerTest.java        # 7 tests
-    ├── Solver1WorkerTest.java        # 7 tests
-    ├── Solver2WorkerTest.java        # 7 tests
-    └── Solver3WorkerTest.java        # 7 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

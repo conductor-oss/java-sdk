@@ -1,4 +1,4 @@
-# Network Automation in Java with Conductor :  Plan Changes, Apply Config, Audit, Verify Connectivity
+# Network Automation in Java with Conductor : Plan Changes, Apply Config, Audit, Verify Connectivity
 
 Automates network infrastructure changes using [Conductor](https://github.com/conductor-oss/conductor). This workflow audits the current network state (devices, configurations, topology), plans the required configuration changes, applies them to network devices, and verifies connectivity is intact after the changes.
 
@@ -25,7 +25,7 @@ Four workers automate network changes. Planning configurations, applying to devi
 | **PlanChanges** | `na_plan_changes` | Plans network configuration changes based on the audit. |
 | **VerifyConnectivity** | `na_verify_connectivity` | Verifies network connectivity after configuration changes. |
 
-Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
+the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -34,130 +34,6 @@ Input -> ApplyConfig -> AuditNetwork -> PlanChanges -> VerifyConnectivity -> Out
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/network-automation-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/network-automation-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow network_automation \
-  --version 1 \
-  --input '{}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w network_automation -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one network operation. replace the demo calls with Netmiko, NAPALM, or Ansible Network modules for real multi-vendor device configuration, and the automation workflow runs unchanged.
-
-- **PlanChanges** (`na_plan_changes`): generate a network change plan by diffing desired configuration against current device state, identifying which routers, switches, or firewalls need updates
-- **ApplyConfig** (`na_apply_config`): use Netmiko or Napalm (via subprocess) for multi-vendor device configuration, Ansible Network modules for playbook-based automation, or Terraform with the relevant network provider
-- **AuditNetwork** (`na_audit_network`): compare running configs against desired state using Batfish for network verification, or NAPALM's `compare_config()` for per-device compliance checking
-- **VerifyConnectivity** (`na_verify_connectivity`): run automated connectivity tests using Iperf for throughput, traceroute for path verification, and port scanning for firewall rule validation
-
-Replace with NETCONF or vendor APIs for real device configuration; the network automation pipeline preserves the same audit interface.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-network-automation/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/networkautomation/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── NetworkAutomationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ApplyConfig.java
-│       ├── AuditNetwork.java
-│       ├── PlanChanges.java
-│       └── VerifyConnectivity.java
-└── src/test/java/networkautomation/workers/
-    ├── ApplyConfigTest.java        # 8 tests
-    ├── AuditNetworkTest.java        # 8 tests
-    ├── PlanChangesTest.java        # 8 tests
-    └── VerifyConnectivityTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

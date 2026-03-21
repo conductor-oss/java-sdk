@@ -1,6 +1,4 @@
-# Mistral AI in Java Using Conductor :  Document Q&A via Mistral Chat Completions
-
-A Java Conductor workflow that orchestrates Mistral AI chat completion calls for document-based question answering. composing a chat request with a document as context and a user question, calling the Mistral chat API (with configurable model, temperature, max tokens, and safe prompt settings), and extracting the answer from the response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request composition, API invocation, and answer extraction as independent workers,  you write the Mistral-specific logic, Conductor handles retries, durability, and observability.
+# Mistral AI in Java Using Conductor : Document Q&A via Mistral Chat Completions
 
 ## Structured Mistral API Integration
 
@@ -30,146 +28,15 @@ Workers implement LLM API responses with realistic outputs so you can run the fu
 
 ```
 mistral_compose_request
-    │
-    ▼
+ │
+ ▼
 mistral_chat
-    │
-    ▼
+ │
+ ▼
 mistral_extract_answer
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/mistral-ai-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `MISTRAL_API_KEY` | _(none)_ | Mistral API key. When set, `MistralChatWorker` calls the real Mistral Chat Completions API. When unset, returns demo responses with `[DEMO]` prefix. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/mistral-ai-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow mistral_ai_workflow \
-  --version 1 \
-  --input '{"input": "test"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w mistral_ai_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one phase of the Mistral integration. swap in real HTTP calls to `api.mistral.ai/v1/chat/completions` with your API key, customize system prompts and safety settings, and the compose-call-extract pipeline runs unchanged.
-
-- **MistralChatWorker** (`mistral_chat`): swap in a real HTTP call to `https://api.mistral.ai/v1/chat/completions` with your API key
-- **MistralComposeRequestWorker** (`mistral_compose_request`): customize the system prompt, add few-shot examples, or support multi-turn conversations
-- **MistralExtractAnswerWorker** (`mistral_extract_answer`): add structured output parsing, confidence scoring, or citation extraction from the response
-
-The request-in, answer-out contract is fixed at each stage. switch Mistral models, adjust temperature, or add tool use without modifying the workflow.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-mistral-ai/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/mistralai/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MistralAiExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── MistralChatWorker.java
-│       ├── MistralComposeRequestWorker.java
-│       └── MistralExtractAnswerWorker.java
-└── src/test/java/mistralai/workers/
-    ├── MistralChatWorkerTest.java        # 4 tests
-    ├── MistralComposeRequestWorkerTest.java        # 4 tests
-    └── MistralExtractAnswerWorkerTest.java        # 4 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

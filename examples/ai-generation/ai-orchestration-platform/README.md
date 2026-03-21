@@ -1,6 +1,4 @@
-# AI Orchestration Platform in Java Using Conductor :  Receive, Route to Model, Execute, Validate, Respond
-
-A Java Conductor workflow that acts as an AI request gateway. receiving incoming AI requests, routing each to the appropriate model based on request type and priority, executing the model inference, validating the response quality, and returning the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request routing, model execution, and validation as independent workers,  you write the routing and model integration logic, Conductor handles sequencing, retries, durability, and observability.
+# AI Orchestration Platform in Java Using Conductor : Receive, Route to Model, Execute, Validate, Respond
 
 ## Routing AI Requests to the Right Model
 
@@ -32,153 +30,21 @@ Workers implement AI generation stages with realistic outputs so you can see the
 
 ```
 aop_receive_request
-    │
-    ▼
+ │
+ ▼
 aop_route_model
-    │
-    ▼
+ │
+ ▼
 aop_execute
-    │
-    ▼
+ │
+ ▼
 aop_validate
-    │
-    ▼
+ │
+ ▼
 aop_respond
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/ai-orchestration-platform-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI execution and validation (optional. falls back to demo) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/ai-orchestration-platform-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow aop_ai_orchestration_platform \
-  --version 1 \
-  --input '{"requestType": "standard", "payload": {"key": "value"}, "priority": "high"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w aop_ai_orchestration_platform -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Point each worker at your real AI providers. OpenAI, Anthropic, Google, and AWS Bedrock for multi-model execution, your routing rules engine for model selection, custom validators for response quality gates, and the workflow runs identically in production.
-
-- **RouteModelWorker** (`aop_route_model`): implement intelligent routing based on model benchmarks, current latency/availability metrics from health checks, and cost optimization across providers
-- **ExecuteWorker** (`aop_execute`): integrate with multiple providers through a unified interface: OpenAI, Anthropic, Google, AWS Bedrock, and local models via Ollama/vLLM
-- **ValidateWorker** (`aop_validate`): implement response quality gates: JSON schema validation for structured output, confidence thresholds for classification, and LLM-as-judge for open-ended generation quality
-
-Add new model backends or validation rules and the routing layer picks them up without code changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-ai-orchestration-platform-ai-orchestration-platform/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/aiorchestrationplatform/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AiOrchestrationPlatformExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ExecuteWorker.java
-│       ├── ReceiveRequestWorker.java
-│       ├── RespondWorker.java
-│       ├── RouteModelWorker.java
-│       └── ValidateWorker.java
-└── src/test/java/aiorchestrationplatform/workers/
-    ├── ReceiveRequestWorkerTest.java        # 1 tests
-    └── ValidateWorkerTest.java        # 1 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

@@ -1,10 +1,8 @@
-# Commit Analysis in Java with Conductor :  Parse, Classify, and Detect Patterns in Git History
-
-A Java Conductor workflow that analyzes a repository's commit history. parsing commits from a branch over a configurable time window, classifying each commit by type (feature, bugfix, refactor, etc.), detecting development patterns across the classified commits, and generating a summary report. Given a `repoName`, `branch`, and `days`, the pipeline produces commit counts, type breakdowns, detected patterns, and a narrative report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step analysis pipeline.
+# Commit Analysis in Java with Conductor : Parse, Classify, and Detect Patterns in Git History
 
 ## Understanding What Your Team Has Been Building
 
-Raw git log output is a wall of hashes and messages. To understand development trends. whether the team is spending more time on bug fixes than features, whether refactoring is keeping pace with new code, or whether certain components are seeing unusual churn,  you need to parse, classify, and aggregate commits systematically.
+Raw git log output is a wall of hashes and messages. To understand development trends. whether the team is spending more time on bug fixes than features, whether refactoring is keeping pace with new code, or whether certain components are seeing unusual churn, you need to parse, classify, and aggregate commits systematically.
 
 This workflow processes a repository's recent history in four steps. The parser extracts commits from the specified branch and time window. The classifier categorizes each commit by type (feature, bugfix, refactor, chore, etc.) and produces a type distribution summary. The pattern detector analyzes the classified commits for trends like "increasing bug density in module X" or "refactoring sprint in week 3." The reporter compiles patterns and classifications into a readable summary.
 
@@ -25,156 +23,22 @@ ParseCommitsWorker reads git history, ClassifyWorker labels each commit by type,
 | **ParseCommitsWorker** | `cma_parse_commits` | Extracts commits from the specified branch and time window with hashes, authors, and messages. |
 | **ReportWorker** | `cma_report` | Compiles patterns and classifications into a narrative analysis report. |
 
-Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
-
 ### The Workflow
 
 ```
 cma_parse_commits
-    │
-    ▼
+ │
+ ▼
 cma_classify
-    │
-    ▼
+ │
+ ▼
 cma_detect_patterns
-    │
-    ▼
+ │
+ ▼
 cma_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/commit-analysis-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/commit-analysis-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow cma_commit_analysis \
-  --version 1 \
-  --input '{"repoName": "test", "branch": "sample-branch", "days": "sample-days"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w cma_commit_analysis -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one analysis step. connect your Git hosting API (GitHub, GitLab, Bitbucket) for commit parsing and your team dashboard (Sleuth, LinearB) for trend reporting, and the commit-analysis workflow stays the same.
-
-- **ClassifyWorker** (`cma_classify`): use an LLM or Conventional Commits parser to classify commits more accurately than keyword matching
-- **DetectPatternsWorker** (`cma_detect_patterns`): integrate with analytics platforms (Grafana, Datadog) to correlate commit patterns with deployment incidents
-- **ParseCommitsWorker** (`cma_parse_commits`): connect to the GitHub or GitLab API to pull real commit history instead of demo data
-
-Integrate the GitHub or GitLab API for real commit data and the analysis pipeline with pattern detection stays intact.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-commit-analysis/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/commitanalysis/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CommitAnalysisExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ClassifyWorker.java
-│       ├── DetectPatternsWorker.java
-│       ├── ParseCommitsWorker.java
-│       └── ReportWorker.java
-└── src/test/java/commitanalysis/workers/
-    ├── ClassifyWorkerTest.java        # 2 tests
-    ├── DetectPatternsWorkerTest.java        # 2 tests
-    ├── ParseCommitsWorkerTest.java        # 2 tests
-    └── ReportWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

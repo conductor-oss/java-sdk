@@ -1,8 +1,6 @@
-# File Processing Agent in Java Using Conductor :  Detect Type, Extract Content, Analyze, Summarize
+# File Processing Agent in Java Using Conductor : Detect Type, Extract Content, Analyze, Summarize
 
-File Processing Agent. detect file type, extract content, analyze, and generate summary through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## Different File Types Need Different Processing
+File Processing Agent. detect file type, extract content, analyze, and generate summary through a sequential pipeline. ## Different File Types Need Different Processing
 
 A user uploads a file. Is it a PDF contract that needs text extraction and clause identification? A CSV dataset that needs column analysis and statistical summaries? A JSON config file that needs schema validation? An image that needs OCR or object detection? The processing pipeline must adapt to the file type.
 
@@ -31,141 +29,18 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 fp_detect_file_type
-    │
-    ▼
+ │
+ ▼
 fp_extract_content
-    │
-    ▼
+ │
+ ▼
 fp_analyze_content
-    │
-    ▼
+ │
+ ▼
 fp_generate_summary
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/file-processing-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/file-processing-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow file_processing_agent \
-  --version 1 \
-  --input '{"fileName": "test", "fileSize": 10, "mimeType": "standard"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w file_processing_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one file processing stage. Integrate Apache Tika for universal parsing, Tesseract OCR for scanned documents, and NLP libraries for content analysis, and the detect-extract-analyze-summarize workflow runs unchanged.
-
-- **ExtractContentWorker** (`fp_extract_content`): integrate Apache Tika for universal file parsing, Apache PDFBox for PDF text extraction, or Tesseract OCR for scanned documents and images
-- **AnalyzeContentWorker** (`fp_analyze_content`): use domain-specific analyzers: spaCy/Stanford NLP for text entity extraction, pandas-like analysis for CSVs, JSONSchema validation for config files
-- **DetectFileTypeWorker** (`fp_detect_file_type`): use Apache Tika's content detection for accurate MIME type identification beyond file extensions, with magic byte analysis for misnamed files
-
-Swap in real PDF/CSV parsers and NLP analysis; the file processing pipeline maintains the same detect-extract-analyze-summarize contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-file-processing-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/fileprocessing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── FileProcessingAgentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyzeContentWorker.java
-│       ├── DetectFileTypeWorker.java
-│       ├── ExtractContentWorker.java
-│       └── GenerateSummaryWorker.java
-└── src/test/java/fileprocessing/workers/
-    ├── AnalyzeContentWorkerTest.java        # 9 tests
-    ├── DetectFileTypeWorkerTest.java        # 9 tests
-    ├── ExtractContentWorkerTest.java        # 9 tests
-    └── GenerateSummaryWorkerTest.java        # 9 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

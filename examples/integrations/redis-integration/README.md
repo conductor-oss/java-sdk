@@ -1,7 +1,5 @@
 # Redis Integration in Java Using Conductor
 
-A Java Conductor workflow that exercises core Redis operations. connecting to a Redis instance, performing GET/SET key-value operations, managing cache TTL and memory, and publishing a message to a Redis Pub/Sub channel. Given a host, key, value, and channel, the pipeline demonstrates connection management, caching, and messaging. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the connect-cache-pubsub pipeline.
-
 ## Coordinating Redis Operations Across Connection, Cache, and Pub/Sub
 
 Redis workflows often involve multiple operation types that share a connection: connecting to the server, writing and reading cache entries, managing TTL policies, and publishing messages to channels for real-time notifications. Each step depends on the connection established in the first step, and cache management needs to happen before publishing events that reference cached data.
@@ -25,157 +23,24 @@ Four workers exercise Redis operations: RedisConnectWorker establishes the conne
 | **CacheMgmtWorker** | `red_cache_mgmt` | Manages cache TTL and memory. sets expiration times on keys, checks memory usage, and applies eviction policies |
 | **PubSubWorker** | `red_pub_sub` | Publishes a message to a Redis channel. sends the message to the specified Pub/Sub channel for real-time notification of subscribers |
 
-Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
+the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 
 ```
 red_connect
-    │
-    ▼
+ │
+ ▼
 red_get_set
-    │
-    ▼
+ │
+ ▼
 red_pub_sub
-    │
-    ▼
+ │
+ ▼
 red_cache_mgmt
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/redis-integration-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `REDIS_URL` | _(none)_ | Redis connection URL (e.g., `redis://localhost:6379`). Currently unused, all workers run in demo mode with `[DEMO]` output prefix. Swap in Jedis or Lettuce for production. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/redis-integration-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow redis_integration_445 \
-  --version 1 \
-  --input '{"redisHost": "sample-redisHost", "cacheKey": "sample-cacheKey", "cacheValue": "sample-cacheValue", "channel": "email"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w redis_integration_445 -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Swap in Jedis or Lettuce for connection management, Redis commands for caching and TTL, and Pub/Sub for real-time messaging against your real Redis instance. The workflow definition stays exactly the same.
-
-- **RedisConnectWorker** (`red_connect`): use Jedis or Lettuce to establish a real Redis connection with authentication
-- **GetSetWorker** (`red_get_set`): use real Redis GET/SET commands via Jedis or Lettuce
-- **PubSubWorker** (`red_pub_sub`): use Redis PUBLISH command via Jedis or Lettuce for real message publishing
-
-Swap each simulation for real Jedis or Lettuce commands while preserving output fields, and the connect-cache-pubsub pipeline needs no changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-redis-integration/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/redisintegration/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── RedisIntegrationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CacheMgmtWorker.java
-│       ├── GetSetWorker.java
-│       ├── PubSubWorker.java
-│       └── RedisConnectWorker.java
-└── src/test/java/redisintegration/workers/
-    ├── CacheMgmtWorkerTest.java        # 2 tests
-    ├── GetSetWorkerTest.java        # 2 tests
-    ├── PubSubWorkerTest.java        # 2 tests
-    └── RedisConnectWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

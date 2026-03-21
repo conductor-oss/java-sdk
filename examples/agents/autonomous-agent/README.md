@@ -32,145 +32,20 @@ Workers implement agent decisions and tool calls with realistic outputs so you c
 
 ```
 aa_set_goal
-    │
-    ▼
+ │
+ ▼
 aa_create_plan
-    │
-    ▼
+ │
+ ▼
 DO_WHILE
-    └── aa_execute_step
-    └── aa_evaluate_progress
-    │
-    ▼
+ └── aa_execute_step
+ └── aa_evaluate_progress
+ │
+ ▼
 aa_final_report
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/autonomous-agent-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/autonomous-agent-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow autonomous_agent \
-  --version 1 \
-  --input '{"mission": "Set up production monitoring for the platform"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w autonomous_agent -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Each worker handles one phase of the autonomous mission. Use an LLM for dynamic plan generation, connect to real data tools (SQL, web scraping, APIs) for step execution, and add LLM-based quality evaluation, and the goal-plan-execute-evaluate workflow runs unchanged.
-
-- **CreatePlanWorker** (`aa_create_plan`): use an LLM to generate dynamic plans from the mission description, with dependency tracking between steps and estimated completion times
-- **ExecuteStepWorker** (`aa_execute_step`): connect to real tools based on the step type: SQL queries for data gathering, web scraping for competitive intelligence, LLM calls for analysis and writing
-- **EvaluateProgressWorker** (`aa_evaluate_progress`): use an LLM to assess whether each step's output meets the plan's quality criteria, with the ability to request re-execution or plan adjustment
-
-Wire in LLM reasoning for real planning and execution; the autonomous pipeline keeps the same goal-plan-execute-report contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-autonomous-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/autonomousagent/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AutonomousAgentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CreatePlanWorker.java
-│       ├── EvaluateProgressWorker.java
-│       ├── ExecuteStepWorker.java
-│       ├── FinalReportWorker.java
-│       └── SetGoalWorker.java
-└── src/test/java/autonomousagent/workers/
-    ├── CreatePlanWorkerTest.java        # 8 tests
-    ├── EvaluateProgressWorkerTest.java        # 10 tests
-    ├── ExecuteStepWorkerTest.java        # 9 tests
-    ├── FinalReportWorkerTest.java        # 10 tests
-    └── SetGoalWorkerTest.java        # 8 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

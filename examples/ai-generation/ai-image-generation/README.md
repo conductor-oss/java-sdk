@@ -1,6 +1,4 @@
-# AI Image Generation in Java Using Conductor :  Prompt Engineering, Generation, Enhancement, Validation, Delivery
-
-A Java Conductor workflow that generates images from text prompts through a five-stage pipeline. engineering the prompt with style-specific keywords, generating the image with a diffusion model, enhancing resolution and color, validating content safety and quality, and delivering the final output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate prompt engineering, generation, enhancement, validation, and delivery as independent workers,  you write the image generation logic, Conductor handles sequencing, retries, durability, and observability.
+# AI Image Generation in Java Using Conductor : Prompt Engineering, Generation, Enhancement, Validation, Delivery
 
 ## From Text Prompt to Production-Ready Image
 
@@ -34,153 +32,21 @@ The remaining demo workers produce realistic output shapes so the workflow runs 
 
 ```
 aig_prompt
-    │
-    ▼
+ │
+ ▼
 aig_generate
-    │
-    ▼
+ │
+ ▼
 aig_enhance
-    │
-    ▼
+ │
+ ▼
 aig_validate
-    │
-    ▼
+ │
+ ▼
 aig_deliver
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/ai-image-generation-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | *(unset)* | OpenAI API key. When set, `GenerateWorker` calls the real DALL-E 3 API to generate images. When unset, it runs in demo mode. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/ai-image-generation-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow aig_image_generation \
-  --version 1 \
-  --input '{"prompt": "What is workflow orchestration?", "style": "sample-style", "resolution": "sample-resolution"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w aig_image_generation -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Swap each worker for your real image pipeline. Stable Diffusion for generation, Real-ESRGAN for upscaling, AWS Rekognition for content moderation, and the workflow runs identically in production.
-
-- **GenerateWorker** (`aig_generate`): already integrated with DALL-E 3 (set `CONDUCTOR_OPENAI_API_KEY`). For alternatives, swap to Stable Diffusion via Replicate/RunPod, or Midjourney API with model-specific parameter tuning
-- **EnhanceWorker** (`aig_enhance`): use Real-ESRGAN or Topaz Gigapixel APIs for super-resolution, or GFPGAN for face enhancement in portrait images
-- **ValidateWorker** (`aig_validate`): integrate AWS Rekognition for content moderation, CLIP for style/prompt adherence scoring, or custom classifiers for brand-specific content policies
-
-Each worker maintains its contract, so swapping a local model for a cloud API requires no pipeline changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-ai-image-generation-ai-image-generation/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/aiimagegeneration/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AiImageGenerationExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── DeliverWorker.java
-│       ├── EnhanceWorker.java
-│       ├── GenerateWorker.java
-│       ├── PromptWorker.java
-│       └── ValidateWorker.java
-└── src/test/java/aiimagegeneration/workers/
-    ├── PromptWorkerTest.java        # 1 tests
-    └── ValidateWorkerTest.java        # 1 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

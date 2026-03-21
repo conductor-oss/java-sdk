@@ -1,8 +1,6 @@
 # Distributed Tracing in Java with Conductor
 
-Distributed tracing with end-to-end request tracking. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
-
-## The Problem
+Distributed tracing with end-to-end request tracking. ## The Problem
 
 Tracing a request across multiple microservices requires creating a trace context, propagating span IDs through each service call, recording timing for database operations, and exporting the complete trace to a backend like Jaeger or Zipkin. Each span must reference its parent to form a proper trace tree.
 
@@ -25,156 +23,24 @@ Four workers build a trace: CreateTraceWorker generates the root context, Servic
 | **ExportTraceWorker** | `dt_export_trace` | Exports the completed trace (all spans) to a tracing backend like Jaeger. |
 | **ServiceSpanWorker** | `dt_service_span` | Records a child span for a service-to-service call, linking to the parent span. |
 
-Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
+the workflow coordination stays the same.
 
 ### The Workflow
 
 ```
 dt_create_trace
-    │
-    ▼
+ │
+ ▼
 dt_service_span
-    │
-    ▼
+ │
+ ▼
 dt_db_span
-    │
-    ▼
+ │
+ ▼
 dt_export_trace
 
 ```
 
-## Running It
+---
 
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/distributed-tracing-1.0.0.jar
-
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/distributed-tracing-1.0.0.jar --workers
-
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow distributed_tracing_workflow \
-  --version 1 \
-  --input '{"requestId": "TEST-001", "operation": "sample-operation"}'
-
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w distributed_tracing_workflow -s COMPLETED -c 5
-
-```
-
-## How to Extend
-
-Wire each worker to the OpenTelemetry SDK and your tracing backend (Jaeger, Zipkin, Datadog), the trace-creation and span-export workflow stays exactly the same.
-
-- **CreateTraceWorker** (`dt_create_trace`): integrate with OpenTelemetry SDK to create W3C-compliant trace contexts
-- **DbSpanWorker** (`dt_db_span`): use OpenTelemetry JDBC instrumentation to automatically capture database query spans
-- **ExportTraceWorker** (`dt_export_trace`): export via OTLP to Jaeger, Zipkin, Datadog, or AWS X-Ray
-
-Switching the trace exporter from Jaeger to Zipkin or Datadog requires no changes to the trace-building workflow.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-
-```
-
-## Project Structure
-
-```
-distributed-tracing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/distributedtracing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DistributedTracingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CreateTraceWorker.java
-│       ├── DbSpanWorker.java
-│       ├── ExportTraceWorker.java
-│       └── ServiceSpanWorker.java
-└── src/test/java/distributedtracing/workers/
-    ├── CreateTraceWorkerTest.java        # 2 tests
-    ├── DbSpanWorkerTest.java        # 2 tests
-    ├── ExportTraceWorkerTest.java        # 2 tests
-    └── ServiceSpanWorkerTest.java        # 2 tests
-
-```
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
