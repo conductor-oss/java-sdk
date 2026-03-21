@@ -1,6 +1,6 @@
 # Goods Receipt in Java with Conductor :  Shipment Receiving, Quality Inspection, PO Matching, Warehouse Storage, and Inventory Update
 
-A Java Conductor workflow example for inbound goods receipt processing .  receiving a shipment at the dock (e.g., 5,000 M10 bolts and 5,000 M10 nuts against PO-654-001), inspecting items for quality and damage, matching received quantities to the purchase order, assigning storage locations in the warehouse, and updating inventory records. Uses [Conductor](https://github.
+A Java Conductor workflow example for inbound goods receipt processing. receiving a shipment at the dock (e.g., 5,000 M10 bolts and 5,000 M10 nuts against PO-654-001), inspecting items for quality and damage, matching received quantities to the purchase order, assigning storage locations in the warehouse, and updating inventory records. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, the dock team fills out paper receiving forms, a clerk ma
 
 **You just write the receiving workers. Dock receipt, quality inspection, PO matching, bin assignment, and inventory update. Conductor handles sequential gating, automatic retries on ERP failures, and three-way match records for audit compliance.**
 
-Each step of the goods receipt process is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so receiving logs are created before inspection, inspection results gate PO matching, matched goods are stored before inventory is updated, and inventory records only reflect items that passed inspection. If the inventory update worker fails, Conductor retries it without re-inspecting the entire shipment. Every receiving record, inspection result, PO match, storage assignment, and inventory adjustment is tracked for three-way matching and audit compliance.
+Each step of the goods receipt process is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so receiving logs are created before inspection, inspection results gate PO matching, matched goods are stored before inventory is updated, and inventory records only reflect items that passed inspection. If the inventory update worker fails, Conductor retries it without re-inspecting the entire shipment. Every receiving record, inspection result, PO match, storage assignment, and inventory adjustment is tracked for three-way matching and audit compliance.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers handle the receiving dock workflow: ReceiveWorker logs inbound ship
 | **StoreWorker** | `grc_store` | Assigns storage bin locations and records putaway for inspected and matched goods. |
 | **UpdateInventoryWorker** | `grc_update_inventory` | Updates the inventory management system so received stock is available for picking. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

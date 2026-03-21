@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Contract Analysis. Uses [Conduct
 
 A new vendor contract lands on the legal team's desk. You need to parse the document, extract key clauses (termination terms, liability caps, non-compete provisions), assess risk levels across each clause, and produce a consolidated summary for the business team to review before signing. Doing this manually across dozens of contracts per quarter leads to missed risk clauses and inconsistent analysis.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -21,11 +21,11 @@ Clause extraction, risk identification, obligation mapping, and summary generati
 | Worker | Task | What It Does |
 |---|---|---|
 | **ParseWorker** | `cna_parse` | Parses the contract document, extracting page count (42) and section count (18) for downstream analysis |
-| **ExtractWorker** | `cna_extract` | Extracts key clauses from the parsed contract .  termination terms (90-day notice), liability caps, and clause inventory |
+| **ExtractWorker** | `cna_extract` | Extracts key clauses from the parsed contract. termination terms (90-day notice), liability caps, and clause inventory |
 | **AnalyzeWorker** | `cna_analyze` | Evaluates risk across extracted clauses, flags high-risk items (e.g., non-compete clauses), and assigns an overall risk level (low/medium/high) |
 | **SummarizeWorker** | `cna_summarize` | Generates a summary with a unique ID (SUM-694), consolidating parsed data, clause details, and identified risks into a single output |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w cna_contract_analysis -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real contract tools .  your CLM platform for document ingestion, an NLP service for clause extraction, your risk scoring engine for analysis, and the workflow runs identically in production.
+Connect each worker to your real contract tools. your CLM platform for document ingestion, an NLP service for clause extraction, your risk scoring engine for analysis, and the workflow runs identically in production.
 
 - **ParseWorker** (`cna_parse`): use a document parsing service like Adobe PDF Extract API, Amazon Textract, or DocuSign Insight to extract structured text from contract PDFs
 - **ExtractWorker** (`cna_extract`): integrate with a contract intelligence platform like Icertis, Ironclad, or Kira Systems to identify and extract specific clause types (termination, indemnification, liability)

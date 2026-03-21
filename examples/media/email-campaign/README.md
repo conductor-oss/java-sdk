@@ -1,18 +1,18 @@
 # Email Campaign Pipeline in Java Using Conductor :  Audience Segmentation, Personalization, Sending, Engagement Tracking, and Performance Analysis
 
-A Java Conductor workflow example that orchestrates an email marketing campaign .  segmenting subscribers by behavior and demographics with suppression list filtering, personalizing email content with merge fields and A/B variant creation, sending the campaign in batches with bounce tracking, monitoring engagement metrics (open rate, click rate, unsubscribes), and analyzing results against industry benchmarks. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates an email marketing campaign. segmenting subscribers by behavior and demographics with suppression list filtering, personalizing email content with merge fields and A/B variant creation, sending the campaign in batches with bounce tracking, monitoring engagement metrics (open rate, click rate, unsubscribes), and analyzing results against industry benchmarks. Uses [Conductor](https://github.
 
 ## Why Email Campaigns Need Orchestration
 
-Running an email campaign involves a strict pipeline where sending before segmentation or tracking before sending produces incorrect results. You segment your subscriber list into targeted cohorts, suppress unsubscribed users, and count recipients. You personalize the email template with merge fields (first name, purchase history, recommended products) and create A/B variants. You send the campaign in batches, handling bounces in real time. You track engagement .  open rates, click-through rates, unique opens, unique clicks, unsubscribe rates. Finally, you analyze the results against industry benchmarks to measure campaign effectiveness.
+Running an email campaign involves a strict pipeline where sending before segmentation or tracking before sending produces incorrect results. You segment your subscriber list into targeted cohorts, suppress unsubscribed users, and count recipients. You personalize the email template with merge fields (first name, purchase history, recommended products) and create A/B variants. You send the campaign in batches, handling bounces in real time. You track engagement. open rates, click-through rates, unique opens, unique clicks, unsubscribe rates. Finally, you analyze the results against industry benchmarks to measure campaign effectiveness.
 
-If segmentation produces an empty list, you must not send. If the send fails partway through, you need to know which batch completed so you can resume without double-sending. Without orchestration, you'd build a monolithic email system that mixes list management, template rendering, SMTP delivery, event tracking, and analytics .  making it impossible to swap your ESP, test personalization independently, or trace which segment received which variant.
+If segmentation produces an empty list, you must not send. If the send fails partway through, you need to know which batch completed so you can resume without double-sending. Without orchestration, you'd build a monolithic email system that mixes list management, template rendering, SMTP delivery, event tracking, and analytics. making it impossible to swap your ESP, test personalization independently, or trace which segment received which variant.
 
 ## How This Workflow Solves It
 
 **You just write the campaign workers. Audience segmentation, content personalization, batch sending, engagement tracking, and results analysis. Conductor handles batch send sequencing, ESP retries, and a full audit trail from segmentation through delivery metrics.**
 
-Each campaign stage is an independent worker .  segment audience, personalize, send, track engagement, analyze results. Conductor sequences them, passes recipient counts and send IDs between stages, retries if an ESP API times out, and provides a complete audit trail from segmentation through delivery metrics.
+Each campaign stage is an independent worker. segment audience, personalize, send, track engagement, analyze results. Conductor sequences them, passes recipient counts and send IDs between stages, retries if an ESP API times out, and provides a complete audit trail from segmentation through delivery metrics.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers power the campaign pipeline: SegmentAudienceWorker builds targeted 
 | **SendCampaignWorker** | `eml_send_campaign` | Sends the campaign |
 | **TrackEngagementWorker** | `eml_track_engagement` | Tracks the engagement |
 
-Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
+Workers implement media processing stages. transcoding, thumbnail generation, metadata extraction,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
 ### The Workflow
 

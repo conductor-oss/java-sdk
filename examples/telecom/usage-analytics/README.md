@@ -1,12 +1,12 @@
 # Usage Analytics in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom usage analytics .  collecting call detail records (CDRs) for a region and time period, processing raw records into normalized usage events, aggregating metrics and detecting anomalies, generating the usage analytics report, and raising alerts for any anomalies found. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates telecom usage analytics. collecting call detail records (CDRs) for a region and time period, processing raw records into normalized usage events, aggregating metrics and detecting anomalies, generating the usage analytics report, and raising alerts for any anomalies found. Uses [Conductor](https://github.
 
 ## Why Usage Analytics Needs Orchestration
 
-Analyzing telecom usage data requires a pipeline where each transformation depends on the previous one. You collect raw CDRs from network switches and media gateways for a region and time period. You process each record .  normalizing formats, enriching with subscriber metadata, filtering duplicates, and converting to a standard usage event schema. You aggregate the processed records into metrics (total minutes, data volume, peak hours, geographic distribution) and detect anomalies (usage spikes, fraud patterns, revenue leakage). You generate the analytics report for business stakeholders. Finally, you raise alerts for any anomalies that need immediate attention.
+Analyzing telecom usage data requires a pipeline where each transformation depends on the previous one. You collect raw CDRs from network switches and media gateways for a region and time period. You process each record. normalizing formats, enriching with subscriber metadata, filtering duplicates, and converting to a standard usage event schema. You aggregate the processed records into metrics (total minutes, data volume, peak hours, geographic distribution) and detect anomalies (usage spikes, fraud patterns, revenue leakage). You generate the analytics report for business stakeholders. Finally, you raise alerts for any anomalies that need immediate attention.
 
-If processing fails partway through, you need to know which CDRs were already processed to avoid counting them twice in the aggregation. If the report generates successfully but the alert worker fails, fraud patterns go unnotified even though they were detected. Without orchestration, you'd build a batch ETL job that mixes CDR collection, format normalization, aggregation SQL, report generation, and alerting into a single cron script .  making it impossible to reprocess a subset of CDRs, test anomaly detection rules independently, or audit which raw records contributed to which report figures.
+If processing fails partway through, you need to know which CDRs were already processed to avoid counting them twice in the aggregation. If the report generates successfully but the alert worker fails, fraud patterns go unnotified even though they were detected. Without orchestration, you'd build a batch ETL job that mixes CDR collection, format normalization, aggregation SQL, report generation, and alerting into a single cron script. making it impossible to reprocess a subset of CDRs, test anomaly detection rules independently, or audit which raw records contributed to which report figures.
 
 ## The Solution
 
@@ -23,10 +23,10 @@ Data ingestion, pattern analysis, anomaly detection, and report generation worke
 | **AggregateWorker** | `uag_aggregate` | Aggregates processed records into usage metrics and detects anomalies (spikes, fraud patterns, revenue leakage). |
 | **AlertWorker** | `uag_alert` | Raises alerts for detected anomalies that need immediate attention from operations or fraud teams. |
 | **CollectCdrsWorker** | `uag_collect_cdrs` | Collects raw call detail records (CDRs) from network switches for a region and time period. |
-| **ProcessWorker** | `uag_process` | Processes raw CDRs .  normalizing formats, enriching with subscriber metadata, and filtering duplicates. |
+| **ProcessWorker** | `uag_process` | Processes raw CDRs. normalizing formats, enriching with subscriber metadata, and filtering duplicates. |
 | **ReportWorker** | `uag_report` | Generates the usage analytics report with aggregated metrics, trends, and anomaly summaries. |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,10 +136,10 @@ conductor workflow search -w uag_usage_analytics -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real analytics systems .  your mediation platform for CDR collection, your data warehouse for processing and aggregation, your BI tools for report generation and alerting, and the workflow runs identically in production.
+Point each worker at your real analytics systems. your mediation platform for CDR collection, your data warehouse for processing and aggregation, your BI tools for report generation and alerting, and the workflow runs identically in production.
 
 - **CollectCdrsWorker** (`uag_collect_cdrs`): pull raw CDRs from your mediation platform (CSG, Redknee/Optiva) or query CDR storage (Hadoop/Hive, Snowflake, or your data lake) for the specified region and period
-- **ProcessWorker** (`uag_process`): run normalization and enrichment using your ETL platform (Apache Spark, Informatica, Talend) .  deduplicating records, mapping subscriber IDs, and converting to your canonical event schema
+- **ProcessWorker** (`uag_process`): run normalization and enrichment using your ETL platform (Apache Spark, Informatica, Talend). deduplicating records, mapping subscriber IDs, and converting to your canonical event schema
 - **AggregateWorker** (`uag_aggregate`): compute usage aggregations (peak hour analysis, geographic distribution, top-N subscribers) and run anomaly detection models (fraud scoring, Wangiri detection, revenue assurance checks)
 - **ReportWorker** (`uag_report`): generate the analytics report via your BI platform (Tableau, Power BI, Looker) or produce a PDF/dashboard export for stakeholder distribution
 - **AlertWorker** (`uag_alert`): push anomaly alerts to your fraud management system (Subex, TEOCO), NOC dashboard (PagerDuty, Opsgenie), or revenue assurance platform for investigation

@@ -1,10 +1,10 @@
 # Implementing Retry with Jitter in Java with Conductor :  Avoiding Thundering Herd on Retries
 
-A Java Conductor workflow example demonstrating jitter in retry delays .  adding randomized delay before API calls to prevent multiple workers from retrying simultaneously and overwhelming a recovering service (the thundering herd problem).
+A Java Conductor workflow example demonstrating jitter in retry delays. adding randomized delay before API calls to prevent multiple workers from retrying simultaneously and overwhelming a recovering service (the thundering herd problem).
 
 ## The Problem
 
-When a shared dependency fails, all workers retry at the same time .  the dependency recovers, gets slammed by simultaneous retry requests, and fails again. This cycle repeats indefinitely. Jitter adds a random offset to each retry delay so workers spread their retries over time, giving the dependency a chance to handle them gradually.
+When a shared dependency fails, all workers retry at the same time. the dependency recovers, gets slammed by simultaneous retry requests, and fails again. This cycle repeats indefinitely. Jitter adds a random offset to each retry delay so workers spread their retries over time, giving the dependency a chance to handle them gradually.
 
 Without orchestration, implementing jitter means adding Random.nextInt() to Thread.sleep() calculations in every retry loop. Each worker implements jitter differently (or not at all), the jitter range varies, and there's no visibility into the actual delays applied.
 
@@ -18,9 +18,9 @@ JitterApiCallWorker adds a randomized delay before each API call to spread concu
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **JitterApiCallWorker** | `jitter_api_call` | Worker for jitter_api_call .  adds a deterministic jitter delay before processing to avoid the thundering herd problem.. |
+| **JitterApiCallWorker** | `jitter_api_call` | Worker for jitter_api_call. adds a deterministic jitter delay before processing to avoid the thundering herd problem.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,7 +118,7 @@ conductor workflow search -w retry_jitter_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls a real shared dependency .  connect to your external API or database, add jitter to the retry delay, and the thundering-herd prevention stays the same.
+Each worker calls a real shared dependency. connect to your external API or database, add jitter to the retry delay, and the thundering-herd prevention stays the same.
 
 - **JitterApiCallWorker** (`jitter_api_call`): replace with your real API call that's shared across many concurrent workers.  the jitter prevents all workers from retrying a recovering service at the same instant
 

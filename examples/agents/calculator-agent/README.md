@@ -1,12 +1,12 @@
 # Calculator Agent in Java Using Conductor :  Parse Expressions, Compute Steps, Explain Results
 
-Calculator Agent .  parse a math expression, compute step-by-step following PEMDAS, and explain the result. Uses [Conductor](https://github.
+Calculator Agent. parse a math expression, compute step-by-step following PEMDAS, and explain the result. Uses [Conductor](https://github.
 
 ## Math Agents Need to Show Their Work
 
-An LLM asked to compute "(15.7 + 3.3) * 2.5 / (1 + 0.1)" will often get the wrong answer .  large language models are unreliable at arithmetic. A calculator agent separates understanding from computation: first parse the expression into structured operations (identify operands, operators, and precedence), then compute each step with proper floating-point precision, then explain the solution process so the user understands the reasoning.
+An LLM asked to compute "(15.7 + 3.3) * 2.5 / (1 + 0.1)" will often get the wrong answer. large language models are unreliable at arithmetic. A calculator agent separates understanding from computation: first parse the expression into structured operations (identify operands, operators, and precedence), then compute each step with proper floating-point precision, then explain the solution process so the user understands the reasoning.
 
-Without separation, the LLM tries to do all three at once and often makes arithmetic errors that it confidently presents as correct. By externalizing computation to a dedicated worker, the math is always right .  the LLM's role is limited to parsing intent and explaining results, which it does well.
+Without separation, the LLM tries to do all three at once and often makes arithmetic errors that it confidently presents as correct. By externalizing computation to a dedicated worker, the math is always right. the LLM's role is limited to parsing intent and explaining results, which it does well.
 
 ## The Solution
 
@@ -24,7 +24,7 @@ Three workers separate math reasoning from computation. Parsing the expression, 
 | **ExplainResultWorker** | `ca_explain_result` | Generates a human-readable explanation of how a mathematical expression was evaluated, referencing PEMDAS rules. |
 | **ParseExpressionWorker** | `ca_parse_expression` | Parses a mathematical expression into tokens and determines the order of operations following PEMDAS rules. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

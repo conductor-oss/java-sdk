@@ -1,10 +1,10 @@
 # Health Insurance Claims in Java Using Conductor :  Submission, Verification, Adjudication, Payment, and Closure
 
-A Java Conductor workflow example for health insurance claims processing .  submitting claims with procedure codes and amounts, verifying member eligibility and provider credentials, adjudicating the claim against policy rules, issuing payment to the provider, and closing the claim with a final status. Uses [Conductor](https://github.
+A Java Conductor workflow example for health insurance claims processing. submitting claims with procedure codes and amounts, verifying member eligibility and provider credentials, adjudicating the claim against policy rules, issuing payment to the provider, and closing the claim with a final status. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to process health insurance claims from submission through payment. A provider submits a claim with the patient ID, procedure code, and billed amount. The claim must be verified .  confirming the member's active coverage, the provider's network status, and that the procedure is a covered benefit. The verified claim is then adjudicated against the policy's benefit rules, applying deductibles, copays, coinsurance, and out-of-pocket maximums to determine the allowed amount. Payment is issued to the provider for the approved amount. Finally, the claim is closed with an explanation of benefits (EOB). Each step depends on the previous one ,  you cannot adjudicate without verifying eligibility, and you cannot pay without adjudication.
+You need to process health insurance claims from submission through payment. A provider submits a claim with the patient ID, procedure code, and billed amount. The claim must be verified. confirming the member's active coverage, the provider's network status, and that the procedure is a covered benefit. The verified claim is then adjudicated against the policy's benefit rules, applying deductibles, copays, coinsurance, and out-of-pocket maximums to determine the allowed amount. Payment is issued to the provider for the approved amount. Finally, the claim is closed with an explanation of benefits (EOB). Each step depends on the previous one,  you cannot adjudicate without verifying eligibility, and you cannot pay without adjudication.
 
 Without orchestration, you'd build a monolithic claims engine that receives the 837 claim, checks eligibility, runs the adjudication rules, triggers the payment, and generates the EOB. If the eligibility check system is temporarily unavailable, you'd need retry logic. If the process crashes after adjudication but before payment, the provider is not paid and the claim is stuck. State insurance regulators require a complete audit trail of every claim decision for compliance reviews and prompt-pay law enforcement.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic claims engine that receives the 
 
 **You just write the claims workers. Submission intake, eligibility verification, adjudication, payment, and EOB closure. Conductor handles strict step ordering, automatic retries when the eligibility system is temporarily unavailable, and a complete regulatory audit trail from submission to closure.**
 
-Each stage of claims processing is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of verifying before adjudicating, paying only after adjudication approves the claim, retrying if the eligibility system is temporarily unavailable, and maintaining a complete regulatory audit trail from submission to closure. You get all of that, without writing a single line of orchestration code.
+Each stage of claims processing is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of verifying before adjudicating, paying only after adjudication approves the claim, retrying if the eligibility system is temporarily unavailable, and maintaining a complete regulatory audit trail from submission to closure. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,11 +22,11 @@ Five workers manage the claims lifecycle: SubmitClaimWorker intakes the claim, V
 |---|---|---|
 | **SubmitClaimWorker** | `clm_submit` | Receives and registers the incoming claim with procedure code, patient, provider, and billed amount |
 | **VerifyClaimWorker** | `clm_verify` | Verifies member eligibility, provider network status, and benefit coverage for the submitted procedure |
-| **AdjudicateClaimWorker** | `clm_adjudicate` | Applies benefit rules .  deductibles, copays, coinsurance, policy limits ,  to determine the allowed payment amount |
+| **AdjudicateClaimWorker** | `clm_adjudicate` | Applies benefit rules. deductibles, copays, coinsurance, policy limits,  to determine the allowed payment amount |
 | **PayClaimWorker** | `clm_pay` | Issues payment to the provider via EFT/check and generates the remittance advice (835) |
 | **CloseClaimWorker** | `clm_close` | Closes the claim, generates the Explanation of Benefits (EOB), and archives the record |
 
-Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
+Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations. the workflow and compliance logic stay the same.
 
 ### The Workflow
 

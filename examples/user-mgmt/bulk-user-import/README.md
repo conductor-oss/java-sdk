@@ -25,7 +25,7 @@ ParseFileWorker extracts records from CSV/JSON/Excel, ValidateRecordsWorker chec
 | **ReportWorker** | `bui_report` | Generates an import summary report with parsed, valid, and inserted counts, returning a downloadable report URL |
 | **ValidateRecordsWorker** | `bui_validate` | Validates each parsed record for required fields and duplicates, separating valid records from invalid ones with rejection reasons |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w bui_bulk_user_import -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one import step .  connect your file storage for CSV/JSON parsing and your user database for batch insertion, and the bulk-import workflow stays the same.
+Each worker handles one import step. connect your file storage for CSV/JSON parsing and your user database for batch insertion, and the bulk-import workflow stays the same.
 
 - **ParseFileWorker** (`bui_parse_file`): download the file from S3 or GCS and parse it using Apache POI (Excel), OpenCSV (CSV), or Jackson (JSON), mapping columns to your user schema
 - **ValidateRecordsWorker** (`bui_validate`): check email uniqueness against your user database, validate fields against your schema constraints, and flag duplicates or policy violations with specific rejection reasons

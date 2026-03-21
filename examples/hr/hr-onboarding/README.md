@@ -1,6 +1,6 @@
 # Employee Onboarding in Java with Conductor :  Profile Creation, System Provisioning, Mentor Assignment, and Training Plan
 
-A Java Conductor workflow example for employee onboarding .  creating the new hire's profile in the HRIS, provisioning IT systems (laptop, email, Slack, Jira), assigning a department mentor, and generating a personalized training plan. Uses [Conductor](https://github.
+A Java Conductor workflow example for employee onboarding. creating the new hire's profile in the HRIS, provisioning IT systems (laptop, email, Slack, Jira), assigning a department mentor, and generating a personalized training plan. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd coordinate all of this through emails, tickets, and
 
 **You just write the profile creation, system provisioning, mentor assignment, and training plan generation logic. Conductor handles provisioning retries, onboarding step sequencing, and new-hire audit trails.**
 
-Each stage of onboarding is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of creating the profile before provisioning, provisioning before mentor assignment, building the training plan with all prior context, retrying if any system (Active Directory, Slack API) is temporarily unavailable, and giving HR complete visibility into every onboarding's status. You get all of that, without writing a single line of orchestration code.
+Each stage of onboarding is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of creating the profile before provisioning, provisioning before mentor assignment, building the training plan with all prior context, retrying if any system (Active Directory, Slack API) is temporarily unavailable, and giving HR complete visibility into every onboarding's status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -21,11 +21,11 @@ Profile creation, system provisioning, mentor assignment, and training plan work
 | Worker | Task | What It Does |
 |---|---|---|
 | **CreateProfileWorker** | `hro_create_profile` | Creates the employee profile in the HRIS with name, department, role, and start date |
-| **ProvisionWorker** | `hro_provision` | Provisions IT systems .  laptop order, email account, Slack workspace, Jira access, and VPN credentials |
+| **ProvisionWorker** | `hro_provision` | Provisions IT systems. laptop order, email account, Slack workspace, Jira access, and VPN credentials |
 | **AssignMentorWorker** | `hro_assign_mentor` | Selects and assigns a mentor from the same department based on availability and experience |
 | **TrainingWorker** | `hro_training` | Generates a personalized training plan with required compliance courses and department-specific skills |
 
-Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
+Workers implement HR operations. onboarding tasks, approvals, provisioning,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
 ### The Workflow
 

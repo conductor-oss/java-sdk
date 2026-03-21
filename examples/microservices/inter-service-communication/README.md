@@ -12,7 +12,7 @@ Without orchestration, the calling service makes four sequential HTTP calls with
 
 **You just write the order, inventory, shipping, and notification service workers. Conductor handles sequential service coordination, per-call retries with backoff, and end-to-end order traceability.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four service workers chain together for order fulfillment: OrderServiceWorker va
 | **OrderServiceWorker** | `isc_order_service` | Validates and processes the incoming order, returning an order reference number. |
 | **ShippingServiceWorker** | `isc_shipping_service` | Creates a shipment from the assigned warehouse and returns a tracking ID and ETA. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

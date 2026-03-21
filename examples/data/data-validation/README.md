@@ -26,7 +26,7 @@ Five workers implement layered validation: loading records, checking required fi
 | **GenerateReportWorker** | `vd_generate_report` | Generates a validation summary report. |
 | **LoadRecordsWorker** | `vd_load_records` | Loads records for validation. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

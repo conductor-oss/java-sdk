@@ -25,7 +25,7 @@ Four workers form the search pipeline: IndexDocWorker writes documents, SearchWo
 | **AggregateWorker** | `els_aggregate` | Aggregates search results: runs aggregation queries (terms, histogram, stats) on the search hits to find patterns and distributions |
 | **AnalyzeWorker** | `els_analyze` | Analyzes aggregated results. produces analytical insights and summaries from the aggregation data |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

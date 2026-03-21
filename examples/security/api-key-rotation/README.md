@@ -1,6 +1,6 @@
 # Implementing API Key Rotation in Java with Conductor :  Generate, Dual-Active Period, Consumer Migration, and Revocation
 
-A Java Conductor workflow example for API key rotation .  generating a new key, running both old and new keys simultaneously during a dual-active period, migrating consumers to the new key, and revoking the old key once all consumers have migrated.
+A Java Conductor workflow example for API key rotation. generating a new key, running both old and new keys simultaneously during a dual-active period, migrating consumers to the new key, and revoking the old key once all consumers have migrated.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, API key rotation is either avoided entirely (keys never r
 
 **You just write the key generation and consumer migration logic. Conductor handles strict ordering so revocation never happens before migration, retries if a consumer update fails, and tracking of which consumers are still on the old key.**
 
-Each rotation step is an independent worker .  key generation, dual-active activation, consumer migration, and old key revocation. Conductor runs them in strict sequence: generate the new key, activate dual-active mode, migrate consumers, then revoke the old key. Every rotation is tracked with consumer migration status ,  you can see exactly which consumers are still on the old key. You get all of that, without writing a single line of orchestration code.
+Each rotation step is an independent worker. key generation, dual-active activation, consumer migration, and old key revocation. Conductor runs them in strict sequence: generate the new key, activate dual-active mode, migrate consumers, then revoke the old key. Every rotation is tracked with consumer migration status,  you can see exactly which consumers are still on the old key. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers execute zero-downtime rotation: GenerateNewWorker creates a fresh A
 | **MigrateConsumersWorker** | `akr_migrate_consumers` | Migrates all consumers to the new key and confirms each has switched |
 | **RevokeOldWorker** | `akr_revoke_old` | Revokes the old API key after all consumers have been migrated to the new one |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -123,7 +123,7 @@ conductor workflow search -w api_key_rotation -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one rotation phase .  connect GenerateNewWorker to your API gateway (Kong, AWS API Gateway), MigrateConsumersWorker to update consumer configs, and the generate-dual-active-migrate-revoke workflow stays the same.
+Each worker handles one rotation phase. connect GenerateNewWorker to your API gateway (Kong, AWS API Gateway), MigrateConsumersWorker to update consumer configs, and the generate-dual-active-migrate-revoke workflow stays the same.
 
 - **DualActiveWorker** (`akr_dual_active`): configure both old and new keys as valid in your authentication layer during the migration window
 - **GenerateNewWorker** (`akr_generate_new`): generate real API keys in your API gateway (Kong, AWS API Gateway) or key management system

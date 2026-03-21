@@ -1,18 +1,18 @@
 # Graceful Worker Shutdown in Java Using Conductor :  Signal, Drain, Complete, Checkpoint, Stop
 
-A Java Conductor workflow example for graceful worker shutdown .  signaling a worker group to stop accepting new tasks, draining the task queue within a configurable timeout, completing all in-flight tasks, checkpointing the current state, and finally stopping the workers. Uses [Conductor](https://github.
+A Java Conductor workflow example for graceful worker shutdown. signaling a worker group to stop accepting new tasks, draining the task queue within a configurable timeout, completing all in-flight tasks, checkpointing the current state, and finally stopping the workers. Uses [Conductor](https://github.
 
 ## Killing Workers Loses Work
 
-Sending `kill -9` to a worker process terminates it instantly .  any in-flight tasks get orphaned, partial results are lost, and the next worker restart has no idea where the previous instance left off. Messages get redelivered, duplicates appear, and the ops team spends an hour figuring out which tasks need to be manually retried.
+Sending `kill -9` to a worker process terminates it instantly. any in-flight tasks get orphaned, partial results are lost, and the next worker restart has no idea where the previous instance left off. Messages get redelivered, duplicates appear, and the ops team spends an hour figuring out which tasks need to be manually retried.
 
-Graceful shutdown means stopping new task pickup first (signal), giving the queue time to drain (with a configurable timeout so it doesn't hang forever), waiting for in-flight tasks to finish their current execution, checkpointing the state so the next instance knows exactly where to resume, and only then stopping the process. Getting this five-step sequence right .  especially under time pressure during a deploy ,  requires careful orchestration.
+Graceful shutdown means stopping new task pickup first (signal), giving the queue time to drain (with a configurable timeout so it doesn't hang forever), waiting for in-flight tasks to finish their current execution, checkpointing the state so the next instance knows exactly where to resume, and only then stopping the process. Getting this five-step sequence right. especially under time pressure during a deploy,  requires careful orchestration.
 
 ## The Solution
 
 **You write the drain and checkpoint logic. Conductor handles the shutdown sequencing, retries, and state verification.**
 
-`GshSignalWorker` notifies the worker group to stop polling for new tasks. `GshDrainTasksWorker` waits up to the configured `drainTimeoutSec` for the task queue to empty, tracking how many tasks were drained. `GshCompleteInflightWorker` ensures every in-flight task finishes and reports how many were completed. `GshCheckpointWorker` saves the current state .  checkpoint ID, completed task list ,  so the next startup can resume cleanly. `GshStopWorker` performs the final process termination. Conductor sequences these steps strictly, records the drain count, in-flight completion count, and checkpoint ID, and ensures nothing is lost during the shutdown.
+`GshSignalWorker` notifies the worker group to stop polling for new tasks. `GshDrainTasksWorker` waits up to the configured `drainTimeoutSec` for the task queue to empty, tracking how many tasks were drained. `GshCompleteInflightWorker` ensures every in-flight task finishes and reports how many were completed. `GshCheckpointWorker` saves the current state. checkpoint ID, completed task list,  so the next startup can resume cleanly. `GshStopWorker` performs the final process termination. Conductor sequences these steps strictly, records the drain count, in-flight completion count, and checkpoint ID, and ensures nothing is lost during the shutdown.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers enforce the shutdown protocol: signal broadcast, queue draining, in
 | **GshSignalWorker** | `gsh_signal` | Sends the shutdown signal to all worker instances with a timestamp |
 | **GshStopWorker** | `gsh_stop` | Performs the final stop, confirming a clean shutdown with no data loss |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w gsh_graceful_shutdown -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one shutdown phase .  replace the simulated drain and checkpoint calls with real queue APIs and state persistence and the graceful shutdown sequence runs unchanged.
+Each worker manages one shutdown phase. replace the simulated drain and checkpoint calls with real queue APIs and state persistence and the graceful shutdown sequence runs unchanged.
 
 - **GshDrainTasksWorker** (`gsh_drain_tasks`): integrate with Conductor's task queue API to poll remaining tasks and wait for the queue to empty, or monitor SQS `ApproximateNumberOfMessagesNotVisible`
 - **GshCheckpointWorker** (`gsh_checkpoint`): write checkpoint state to Redis, DynamoDB, or a PostgreSQL `worker_checkpoints` table so the next startup can resume from the exact position

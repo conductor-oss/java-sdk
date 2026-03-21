@@ -12,7 +12,7 @@ Without orchestration, you'd spawn threads to poll each stream, synchronize with
 
 **You just write the per-stream collection, merge, and processing workers. Conductor handles parallel stream collection, per-stream timeout isolation, and automatic join before merging.**
 
-Each stream consumer is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting from all three streams in parallel via FORK_JOIN, merging the results after all complete, processing the merged output, retrying any failed stream independently, and tracking every merge operation. You get all of that, without writing a single line of orchestration code.
+Each stream consumer is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting from all three streams in parallel via FORK_JOIN, merging the results after all complete, processing the merged output, retrying any failed stream independently, and tracking every merge operation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers merge multi-source data: CollectStreamAWorker, CollectStreamBWorker
 | **MergeStreamsWorker** | `mg_merge_streams` | Merges events from three streams into a single list. |
 | **ProcessMergedWorker** | `mg_process_merged` | Processes the merged event list. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

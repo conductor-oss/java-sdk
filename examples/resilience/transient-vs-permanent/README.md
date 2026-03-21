@@ -1,10 +1,10 @@
 # Implementing Transient vs Permanent Error Detection in Java with Conductor :  Smart Error Classification for Retry Decisions
 
-A Java Conductor workflow example demonstrating smart error classification .  a worker that distinguishes transient errors (network timeouts, 503s, connection resets) from permanent errors (404s, validation failures, authentication errors) and uses the appropriate failure strategy for each.
+A Java Conductor workflow example demonstrating smart error classification. a worker that distinguishes transient errors (network timeouts, 503s, connection resets) from permanent errors (404s, validation failures, authentication errors) and uses the appropriate failure strategy for each.
 
 ## The Problem
 
-Not all errors are equal. A network timeout is transient .  retry and it will probably work. A 404 Not Found is permanent ,  retrying wastes time and resources. Your workers need to classify errors and signal to Conductor whether a retry makes sense. Retrying permanent errors wastes resources and delays failure detection. Not retrying transient errors causes unnecessary failures.
+Not all errors are equal. A network timeout is transient. retry and it will probably work. A 404 Not Found is permanent,  retrying wastes time and resources. Your workers need to classify errors and signal to Conductor whether a retry makes sense. Retrying permanent errors wastes resources and delays failure detection. Not retrying transient errors causes unnecessary failures.
 
 Without orchestration, error classification lives inside retry loops. Each caller decides independently whether to retry, using inconsistent criteria. Some retry 404s (wasteful), some don't retry 503s (premature failure). There's no centralized view of which errors are transient and which are permanent across the system.
 
@@ -20,7 +20,7 @@ SmartTaskWorker classifies each error as transient (retryable via FAILED) or per
 |---|---|---|
 | **SmartTaskWorker** | `tvp_smart_task` | Smart task worker (tvp_smart_task) that classifies errors as transient or permanent. Behavior based on the "errorType... |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,7 +118,7 @@ conductor workflow search -w transient_vs_permanent_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker classifies real errors .  connect to your external APIs, use FAILED for transient errors (timeouts, 503s) and FAILED_WITH_TERMINAL_ERROR for permanent ones (404s, auth failures), and the smart retry-or-fail-fast behavior stays the same.
+Each worker classifies real errors. connect to your external APIs, use FAILED for transient errors (timeouts, 503s) and FAILED_WITH_TERMINAL_ERROR for permanent ones (404s, auth failures), and the smart retry-or-fail-fast behavior stays the same.
 
 - **SmartTaskWorker** (`tvp_smart_task`): implement real error classification for your domain. HTTP status codes, database error codes, exception types, and return FAILED (retryable) or FAILED_WITH_TERMINAL_ERROR (permanent) accordingly
 

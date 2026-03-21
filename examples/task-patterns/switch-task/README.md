@@ -26,7 +26,7 @@ Five workers cover the priority-based ticket routing: AutoHandleWorker auto-reso
 | **UnknownPriorityWorker** | `sw_unknown_priority` | Handles unrecognized priority values (default case): returns handler="default" and needsClassification=true, flagging the ticket for triage. |
 | **LogActionWorker** | `sw_log_action` | Runs after every SWITCH branch. Logs the ticketId and priority, returns logged=true to confirm the audit trail entry was recorded. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

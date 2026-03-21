@@ -25,7 +25,7 @@ The bulkhead pipeline uses four workers: ClassifyRequestWorker assigns incoming 
 | **ExecuteRequestWorker** | `bh_execute_request` | Executes the request within the allocated pool. |
 | **ReleasePoolWorker** | `bh_release_pool` | Releases the pool slot after request execution. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # RAG with Elasticsearch in Java Using Conductor :  Dense Vector kNN Search and Generation
 
-A Java Conductor workflow that implements RAG using Elasticsearch's native dense vector search (kNN) .  embedding the question, running a kNN query against an Elasticsearch index with dense_vector fields, and generating an answer from the retrieved documents. Elasticsearch's kNN search uses HNSW graphs for approximate nearest neighbor lookup, combining the speed of vector search with Elasticsearch's existing filtering and scoring capabilities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, kNN search, and generation as independent workers ,  you write the Elasticsearch integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG using Elasticsearch's native dense vector search (kNN). embedding the question, running a kNN query against an Elasticsearch index with dense_vector fields, and generating an answer from the retrieved documents. Elasticsearch's kNN search uses HNSW graphs for approximate nearest neighbor lookup, combining the speed of vector search with Elasticsearch's existing filtering and scoring capabilities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, kNN search, and generation as independent workers,  you write the Elasticsearch integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG on Your Existing Elasticsearch Cluster
 
@@ -12,11 +12,11 @@ Each step can fail independently: the embedding API might time out, the Elastics
 
 **You write the embedding and Elasticsearch kNN query logic. Conductor handles the search pipeline, retries, and observability.**
 
-Each stage is an independent worker .  question embedding, Elasticsearch kNN search, and answer generation. Conductor sequences them, retries the Elasticsearch query during cluster rebalancing, and tracks every search with the question, kNN results, and generated answer.
+Each stage is an independent worker. question embedding, Elasticsearch kNN search, and answer generation. Conductor sequences them, retries the Elasticsearch query during cluster rebalancing, and tracks every search with the question, kNN results, and generated answer.
 
 ### What You Write: Workers
 
-Three workers integrate Elasticsearch into the RAG pipeline .  embedding the query, performing kNN dense vector search against an Elasticsearch index, and generating an answer from the matched documents.
+Three workers integrate Elasticsearch into the RAG pipeline. embedding the query, performing kNN dense vector search against an Elasticsearch index, and generating an answer from the matched documents.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers integrate Elasticsearch into the RAG pipeline .  embedding the que
 | **EsGenerateWorker** | `es_generate` | Worker that generates an answer from a question and Elasticsearch search hits. |
 | **EsKnnSearchWorker** | `es_knn_search` | Worker that simulates an Elasticsearch knn vector search. In production, this would issue a POST to /{index}/_search ... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w rag_elasticsearch_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in a real embedding API for vectorization, execute kNN queries against your Elasticsearch `dense_vector` index, and the embed-search-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in a real embedding API for vectorization, execute kNN queries against your Elasticsearch `dense_vector` index, and the embed-search-generate pipeline runs unchanged.
 
 - **EsEmbedWorker** (`es_embed`): call an embedding API (OpenAI text-embedding-3-small, Cohere embed-english-v3) to vectorize the question for Elasticsearch knn search
 - **EsGenerateWorker** (`es_generate`): send Elasticsearch search hits as context to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer with source attribution
 - **EsKnnSearchWorker** (`es_knn_search`): execute a real Elasticsearch knn query against a `dense_vector` field using the Elasticsearch Java client, with configurable k, num_candidates, and metadata filters
 
-The embed/search/generate contract stays fixed .  switch embedding models, tune kNN parameters, or change the LLM provider without altering the workflow definition.
+The embed/search/generate contract stays fixed. switch embedding models, tune kNN parameters, or change the LLM provider without altering the workflow definition.
 
 ## SDK
 

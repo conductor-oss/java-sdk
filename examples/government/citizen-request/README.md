@@ -6,13 +6,13 @@ Processes citizen service requests (pothole repairs, streetlight outages, noise 
 
 You need to process a citizen service request (pothole repair, streetlight outage, noise complaint, etc.). The request is submitted, classified by type and urgency, routed to the appropriate department or crew, resolved by the responsible team, and the citizen is notified of the resolution. Misclassifying a request sends it to the wrong department; failing to notify leaves citizens wondering if their government is responsive.
 
-Without orchestration, you'd manage service requests through a call center or web form, manually classifying and routing them to departments via email, tracking status in spreadsheets, and following up with citizens by phone .  losing requests in inter-department handoffs and missing response-time SLAs.
+Without orchestration, you'd manage service requests through a call center or web form, manually classifying and routing them to departments via email, tracking status in spreadsheets, and following up with citizens by phone. losing requests in inter-department handoffs and missing response-time SLAs.
 
 ## The Solution
 
 **You just write the request submission, classification, department routing, resolution, and citizen notification logic. Conductor handles fulfillment retries, routing logic, and citizen request audit trails.**
 
-Each service request concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, classify, route, resolve, notify), tracking every request with timestamps and department assignments, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each service request concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, classify, route, resolve, notify), tracking every request with timestamps and department assignments, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Request intake, routing, fulfillment, and response workers handle citizen servic
 | **ResolveWorker** | `ctz_resolve` | The assigned department resolves the request and records the resolution (e.g., "Pothole repaired at Main St") |
 | **NotifyWorker** | `ctz_notify` | Sends a notification to the citizen that their request has been resolved |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w ctz_citizen_request -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real 311 systems .  your citizen request portal for intake, your department routing engine for assignment, your work order system for resolution tracking, and the workflow runs identically in production.
+Wire each worker to your real 311 systems. your citizen request portal for intake, your department routing engine for assignment, your work order system for resolution tracking, and the workflow runs identically in production.
 
 - **Request submitter**: accept requests via your 311 system, citizen portal, or mobile app with photo/location attachments
 - **Classifier**: auto-classify request type and urgency using NLP on the description or ML models trained on historical requests

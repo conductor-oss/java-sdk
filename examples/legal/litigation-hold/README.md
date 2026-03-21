@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Litigation Hold. Uses [Conductor
 
 A potential lawsuit triggers a legal hold. You need to identify custodians who may possess relevant evidence, notify them of their preservation obligations, collect and preserve electronic data from email, Slack, and cloud storage, and track acknowledgments until the hold is released. Missing a custodian or losing data can result in sanctions and adverse inferences at trial.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Custodian identification, hold notification, acknowledgment tracking, and releas
 | **PreserveWorker** | `lth_preserve` | Places collected data under preservation with a unique preservation ID (PRSV-{timestamp}) and confirms preservation status |
 | **TrackWorker** | `lth_track` | Creates a tracking record (TRK-{timestamp}) for the hold and reports its current status (active) |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w lth_litigation_hold -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real legal hold tools .  your litigation hold platform for custodian notifications, your email and file systems for preservation, your compliance tracker for acknowledgment collection, and the workflow runs identically in production.
+Point each worker at your real legal hold tools. your litigation hold platform for custodian notifications, your email and file systems for preservation, your compliance tracker for acknowledgment collection, and the workflow runs identically in production.
 
 - **IdentifyWorker** (`lth_identify`): query your HR system (e.g., Workday, BambooHR) or Active Directory to resolve custodian identities and map their data sources automatically
 - **NotifyWorker** (`lth_notify`): send hold notices via email (SendGrid, Microsoft Graph API) or a legal hold platform like Exterro or Zapproved, and track acknowledgment receipts

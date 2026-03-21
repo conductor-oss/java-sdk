@@ -24,7 +24,7 @@ Three workers automate the dependency update cycle. Scanning for outdated packag
 | **ScanOutdatedWorker** | `du_scan_outdated` | Scans the repository for outdated dependencies and identifies available updates |
 | **UpdateDepsWorker** | `du_update_deps` | Updates dependency manifest files to the target versions (2 major, 3 minor, 3 patch) |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -131,7 +131,7 @@ conductor workflow search -w dependency_update_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one update stage .  replace the simulated calls with Maven Versions Plugin, Snyk, or the GitHub PR API for real dependency scanning and pull request creation, and the update workflow runs unchanged.
+Each worker handles one update stage. replace the simulated calls with Maven Versions Plugin, Snyk, or the GitHub PR API for real dependency scanning and pull request creation, and the update workflow runs unchanged.
 
 - **ScanOutdatedWorker** → scan real dependency manifests: Maven `versions-maven-plugin` for Java, `npm outdated` for Node.js, `pip list --outdated` for Python, or Snyk/Dependabot APIs for vulnerability-aware scanning
 - **UpdateDepsWorker** → update real manifests: modify `pom.xml` via Maven Versions Plugin, `package.json` via npm/yarn, or `requirements.txt` via pip-compile, respecting semver constraints
@@ -171,6 +171,6 @@ dependency-update-dependency-update/
 │       ├── ScanOutdatedWorker.java
 │       └── UpdateDepsWorker.java
 └── src/test/java/dependencyupdate/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

@@ -6,13 +6,13 @@ Financial audit: define scope, collect evidence, test controls, generate report,
 
 You need to conduct a financial audit for a business entity. This involves defining the audit scope and objectives, collecting evidence (financial statements, transaction records, supporting documents), testing internal controls for effectiveness, generating the audit report with findings, and tracking remediation of any deficiencies. An audit without proper evidence collection is incomplete; findings without remediation tracking are toothless.
 
-Without orchestration, you'd manage the audit process through spreadsheets and email .  manually tracking which evidence has been collected, scheduling control tests, drafting reports in documents, and following up on remediation through calendar reminders.
+Without orchestration, you'd manage the audit process through spreadsheets and email. manually tracking which evidence has been collected, scheduling control tests, drafting reports in documents, and following up on remediation through calendar reminders.
 
 ## The Solution
 
 **You just write the audit workers. Scope definition, evidence collection, control testing, report generation, and remediation tracking. Conductor handles stage sequencing, automatic retries when a data source is unavailable, and timestamped evidence collection for SOX and regulatory compliance.**
 
-Each audit concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (scope, collect, test, report, remediate), retrying if a data source is unavailable, tracking the entire audit lifecycle with timestamps and evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each audit concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (scope, collect, test, report, remediate), retrying if a data source is unavailable, tracking the entire audit lifecycle with timestamps and evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers cover the audit lifecycle: DefineScopeWorker sets objectives, Colle
 | **GenerateReportWorker** | `fau_generate_report` | Generates the audit report with findings, discrepancies, and recommendations |
 | **RemediateWorker** | `fau_remediate` | Remediate. Computes and returns remediation plan id, actions created, target completion date |
 
-Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations. risk assessment, compliance checks, settlement,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

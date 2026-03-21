@@ -4,15 +4,15 @@ Processes a voter's participation in an election: confirming registration, verif
 
 ## The Problem
 
-You need to process a voter's participation in an election .  from registration verification to vote certification. The voter's registration is confirmed, their identity is verified against the voter roll, they cast their ballot, the vote is counted, and the results are certified. Every step must maintain ballot secrecy while ensuring auditability. Counting a vote from an unverified voter undermines election integrity; failing to count a legitimate vote disenfranchises a citizen.
+You need to process a voter's participation in an election. from registration verification to vote certification. The voter's registration is confirmed, their identity is verified against the voter roll, they cast their ballot, the vote is counted, and the results are certified. Every step must maintain ballot secrecy while ensuring auditability. Counting a vote from an unverified voter undermines election integrity; failing to count a legitimate vote disenfranchises a citizen.
 
-Without orchestration, you'd manage the voting process through a combination of poll books, voting machines, and tally systems .  manually verifying registrations against printed rolls, handling provisional ballots when verification fails, reconciling machine counts with paper trails, and producing certified results under strict legal deadlines.
+Without orchestration, you'd manage the voting process through a combination of poll books, voting machines, and tally systems. manually verifying registrations against printed rolls, handling provisional ballots when verification fails, reconciling machine counts with paper trails, and producing certified results under strict legal deadlines.
 
 ## The Solution
 
 **You just write the registration confirmation, identity verification, ballot casting, vote counting, and result certification logic. Conductor handles verification retries, ballot sequencing, and election audit trails.**
 
-Each voting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (register, verify identity, cast ballot, count, certify), maintaining a complete audit trail while preserving ballot secrecy, tracking every step with timestamps, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each voting concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (register, verify identity, cast ballot, count, certify), maintaining a complete audit trail while preserving ballot secrecy, tracking every step with timestamps, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Voter verification, ballot issuance, vote recording, and tally workers handle el
 | **RegisterWorker** | `vtw_register` | Confirms the voter's registration at their assigned precinct |
 | **VerifyIdentityWorker** | `vtw_verify_identity` | Verifies the voter's identity against the voter roll |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w vtw_voting_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real election systems .  your voter registration database for eligibility, your ballot management system for casting, your tabulation platform for counting and certification, and the workflow runs identically in production.
+Connect each worker to your real election systems. your voter registration database for eligibility, your ballot management system for casting, your tabulation platform for counting and certification, and the workflow runs identically in production.
 
 - **Registration verifier**: check voter registration against your state voter registration database (ERIC, state SOS systems) and verify precinct assignment
 - **Identity verifier**: verify voter identity per state requirements (photo ID, signature match, affidavit) with provisional ballot fallback

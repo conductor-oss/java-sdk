@@ -1,12 +1,12 @@
 # Roaming Management in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom roaming management .  detecting when a subscriber connects to a visited network, validating the inter-carrier roaming agreement between the home and visited networks, rating the roaming usage according to the agreement's tariff schedule, billing the subscriber for roaming charges, and settling the inter-carrier payment between the home and visited operators. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates telecom roaming management. detecting when a subscriber connects to a visited network, validating the inter-carrier roaming agreement between the home and visited networks, rating the roaming usage according to the agreement's tariff schedule, billing the subscriber for roaming charges, and settling the inter-carrier payment between the home and visited operators. Uses [Conductor](https://github.
 
 ## Why Roaming Management Needs Orchestration
 
-Managing roaming events requires a pipeline that spans two independent carrier networks. You detect roaming when a subscriber registers on a visited network .  their device attaches to a foreign PLMN and the visited network sends a location update to the home network. You validate that a roaming agreement exists between the home and visited networks ,  checking that the agreement is active, covers the subscriber's service types, and has not exceeded volume caps. You rate the roaming usage by applying the tariffs defined in the inter-carrier agreement ,  which differ from the subscriber's domestic plan. You bill the subscriber by adding roaming charges to their account. Finally, you settle the inter-carrier amount between the home and visited operators.
+Managing roaming events requires a pipeline that spans two independent carrier networks. You detect roaming when a subscriber registers on a visited network. their device attaches to a foreign PLMN and the visited network sends a location update to the home network. You validate that a roaming agreement exists between the home and visited networks,  checking that the agreement is active, covers the subscriber's service types, and has not exceeded volume caps. You rate the roaming usage by applying the tariffs defined in the inter-carrier agreement,  which differ from the subscriber's domestic plan. You bill the subscriber by adding roaming charges to their account. Finally, you settle the inter-carrier amount between the home and visited operators.
 
-If billing succeeds but settlement fails, the home operator has charged the subscriber but hasn't paid the visited operator .  creating a financial discrepancy that compounds across millions of roaming events. If agreement validation discovers no active agreement, the subscriber should be barred from the visited network before usage accumulates unbillable charges. Without orchestration, you'd build a batch process that collects TAP files weekly, manually reconciles rates, and generates settlement invoices in spreadsheets ,  making it impossible to handle near-real-time roaming events, detect agreement violations before they accumulate, or audit which tariff was applied to which roaming session.
+If billing succeeds but settlement fails, the home operator has charged the subscriber but hasn't paid the visited operator. creating a financial discrepancy that compounds across millions of roaming events. If agreement validation discovers no active agreement, the subscriber should be barred from the visited network before usage accumulates unbillable charges. Without orchestration, you'd build a batch process that collects TAP files weekly, manually reconciles rates, and generates settlement invoices in spreadsheets,  making it impossible to handle near-real-time roaming events, detect agreement violations before they accumulate, or audit which tariff was applied to which roaming session.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Partner agreement lookup, session validation, charge calculation, and settlement
 | **SettleWorker** | `rmg_settle` | Settles the inter-carrier payment between the home and visited operators for the roaming usage. |
 | **ValidateAgreementWorker** | `rmg_validate_agreement` | Validates that an active roaming agreement exists between the home and visited networks. |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w rmg_roaming_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real roaming infrastructure .  your HLR for roaming detection, your IREG platform for agreement validation, your TAP processing system for inter-carrier settlement, and the workflow runs identically in production.
+Swap each worker for your real roaming infrastructure. your HLR for roaming detection, your IREG platform for agreement validation, your TAP processing system for inter-carrier settlement, and the workflow runs identically in production.
 
 - **DetectRoamingWorker** (`rmg_detect_roaming`): consume roaming events from your NRTRDE (Near Real Time Roaming Data Exchange) feed or parse TAP (Transferred Account Procedure) files from the visited network's data clearing house (BICS, Syniverse)
 - **ValidateAgreementWorker** (`rmg_validate_agreement`): query your roaming agreement database or partner management platform (Mobileum, TOMIA) to confirm the agreement is active and covers the service types used

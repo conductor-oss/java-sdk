@@ -1,6 +1,6 @@
 # Compliance Monitoring in Java Using Conductor :  Resource Scanning, Policy Evaluation, Remediation, and Logging
 
-A Java Conductor workflow example for compliance monitoring .  scanning infrastructure resources, evaluating them against compliance policies (CIS, SOC2, HIPAA), automatically remediating violations when possible, and logging compliant resources for audit evidence.
+A Java Conductor workflow example for compliance monitoring. scanning infrastructure resources, evaluating them against compliance policies (CIS, SOC2, HIPAA), automatically remediating violations when possible, and logging compliant resources for audit evidence.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, compliance is a periodic manual audit. Scans run weekly, 
 
 **You just write the policy evaluation rules and remediation actions. Conductor handles the scan-evaluate-remediate cycle with conditional routing, retries when cloud config APIs are unavailable, and timestamped proof of every compliance check and remediation action.**
 
-Each compliance concern is an independent worker .  resource scanning, policy evaluation, remediation, and compliance logging. Conductor runs them in sequence with conditional routing: violations route to remediation, clean resources route to logging. Every compliance check is tracked ,  you can prove exactly when resources were evaluated, which policies were applied, and what remediation was performed. You get all of that, without writing a single line of orchestration code.
+Each compliance concern is an independent worker. resource scanning, policy evaluation, remediation, and compliance logging. Conductor runs them in sequence with conditional routing: violations route to remediation, clean resources route to logging. Every compliance check is tracked,  you can prove exactly when resources were evaluated, which policies were applied, and what remediation was performed. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers run the compliance loop: ScanResourcesWorker inventories infrastruc
 | **RemediateWorker** | `cpm_remediate` | Initiates remediation for violations. Auto-fixes where possible, creates tickets for manual remediation |
 | **ScanResourcesWorker** | `cpm_scan_resources` | Scans infrastructure resources for a given compliance framework, returning resource count and findings |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -131,11 +131,11 @@ conductor workflow search -w compliance_monitoring_428 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one compliance step .  connect the scanner to AWS Config rules, the remediator to infrastructure-as-code (Terraform, CloudFormation), and the scan-evaluate-remediate-log workflow stays the same.
+Each worker handles one compliance step. connect the scanner to AWS Config rules, the remediator to infrastructure-as-code (Terraform, CloudFormation), and the scan-evaluate-remediate-log workflow stays the same.
 
 - **EvaluatePoliciesWorker** (`cpm_evaluate_policies`): evaluate against real policy frameworks using Open Policy Agent (OPA), AWS Config Rules, or custom rule engines
 - **LogCompliantWorker** (`cpm_log_compliant`): record compliance evidence to a GRC platform (Vanta, Drata, Tugboat Logic) or an audit database
-- **RemediateWorker** (`cpm_remediate`): auto-remediate violations .  close open ports, enable encryption, restrict public access ,  via cloud provider APIs
+- **RemediateWorker** (`cpm_remediate`): auto-remediate violations. close open ports, enable encryption, restrict public access,  via cloud provider APIs
 
 Integrate with AWS Config or your cloud provider's compliance tools, and the scan-remediate cycle carries forward without any workflow adjustments.
 

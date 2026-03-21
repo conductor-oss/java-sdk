@@ -1,6 +1,6 @@
 # Worker Pool Management in Java Using Conductor :  Categorize, Assign Pool, Execute, Return
 
-A Java Conductor workflow example for worker pool management .  categorizing incoming tasks by type, assigning them to the appropriate specialized worker pool, executing the task on a worker from that pool, and returning the worker to the pool when done. Uses [Conductor](https://github.
+A Java Conductor workflow example for worker pool management. categorizing incoming tasks by type, assigning them to the appropriate specialized worker pool, executing the task on a worker from that pool, and returning the worker to the pool when done. Uses [Conductor](https://github.
 
 ## Specialized Tasks Need Specialized Workers
 
@@ -12,7 +12,7 @@ Worker pool management means categorizing each task to determine what kind of wo
 
 **You write the categorization and pool assignment logic. Conductor handles task dispatch, retries, and pool utilization tracking.**
 
-`WplCategorizeTaskWorker` examines the task payload and category to determine what resources it needs. `WplAssignPoolWorker` maps the task category to the appropriate worker pool. `WplExecuteTaskWorker` runs the task on a worker from the assigned pool. `WplReturnToPoolWorker` releases the worker back to the pool for reuse. Conductor sequences these steps, retries if execution fails, and records which pool handled each task .  enabling pool utilization analysis.
+`WplCategorizeTaskWorker` examines the task payload and category to determine what resources it needs. `WplAssignPoolWorker` maps the task category to the appropriate worker pool. `WplExecuteTaskWorker` runs the task on a worker from the assigned pool. `WplReturnToPoolWorker` releases the worker back to the pool for reuse. Conductor sequences these steps, retries if execution fails, and records which pool handled each task. enabling pool utilization analysis.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle pool-based dispatch. Task categorization, pool assignment by
 | **WplExecuteTaskWorker** | `wpl_execute_task` | Runs the task on the assigned worker and reports execution duration |
 | **WplReturnToPoolWorker** | `wpl_return_to_pool` | Returns the worker back to its pool after task completion, updating availability |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w wpl_worker_pools -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one pool management step .  replace the simulated pool assignments with real Kubernetes node selectors or cloud instance group APIs and the categorize-assign-execute cycle runs unchanged.
+Each worker handles one pool management step. replace the simulated pool assignments with real Kubernetes node selectors or cloud instance group APIs and the categorize-assign-execute cycle runs unchanged.
 
 - **WplCategorizeTaskWorker** (`wpl_categorize_task`): classify tasks based on real resource needs: parse Docker image requirements, inspect task metadata for GPU/memory/CPU annotations, or look up task-to-pool mappings in a config database
 - **WplAssignPoolWorker** (`wpl_assign_pool`): query real pool availability via Kubernetes node pools (`kubectl get nodes -l pool=gpu`), AWS Auto Scaling groups, or a custom pool broker with capacity tracking

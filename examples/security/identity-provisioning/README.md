@@ -1,18 +1,18 @@
 # Implementing Identity Provisioning in Java with Conductor :  Create Identity, Assign Roles, Provision Access, and Verify Setup
 
-A Java Conductor workflow example for identity provisioning .  creating a user identity, assigning department-appropriate roles, provisioning access to required systems, and verifying the complete setup.
+A Java Conductor workflow example for identity provisioning. creating a user identity, assigning department-appropriate roles, provisioning access to required systems, and verifying the complete setup.
 
 ## The Problem
 
 When a new employee joins, they need an identity (corporate email, SSO account), department-specific roles (engineering gets GitHub, sales gets Salesforce), provisioned access to all required systems, and verification that everything was set up correctly. If role assignment happens before identity creation, it fails. If verification is skipped, the new hire discovers on day one that they can't access the tools they need.
 
-Without orchestration, identity provisioning is a manual checklist. IT creates accounts in 8 different systems, HR assigns roles in a spreadsheet, and nobody verifies the setup. New hires spend their first day filing IT tickets for missing access. Offboarding is even worse .  accounts are left active for months after departure.
+Without orchestration, identity provisioning is a manual checklist. IT creates accounts in 8 different systems, HR assigns roles in a spreadsheet, and nobody verifies the setup. New hires spend their first day filing IT tickets for missing access. Offboarding is even worse. accounts are left active for months after departure.
 
 ## The Solution
 
 **You just write the IdP account creation and SCIM provisioning calls. Conductor handles strict sequencing so roles are assigned only after identity creation, retries on SCIM failures, and a compliance audit trail for every provisioning action.**
 
-Each provisioning step is an independent worker .  identity creation, role assignment, access provisioning, and setup verification. Conductor runs them in strict sequence: create the identity first, then assign roles, then provision access, then verify everything. Every provisioning action is tracked for compliance audit. You get all of that, without writing a single line of orchestration code.
+Each provisioning step is an independent worker. identity creation, role assignment, access provisioning, and setup verification. Conductor runs them in strict sequence: create the identity first, then assign roles, then provision access, then verify everything. Every provisioning action is tracked for compliance audit. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ The provisioning pipeline sequences four workers: CreateIdentityWorker sets up t
 | **ProvisionAccessWorker** | `ip_provision_access` | Provisions access to required systems (e.g., GitHub, AWS, Slack, Jira) based on assigned role |
 | **VerifySetupWorker** | `ip_verify_setup` | Verifies the user can successfully access all provisioned systems |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w identity_provisioning_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one provisioning step .  connect CreateIdentityWorker to Okta or Azure AD, ProvisionAccessWorker to SCIM-enabled SaaS apps, and the identity lifecycle workflow stays the same.
+Each worker handles one provisioning step. connect CreateIdentityWorker to Okta or Azure AD, ProvisionAccessWorker to SCIM-enabled SaaS apps, and the identity lifecycle workflow stays the same.
 
 - **AssignRolesWorker** (`ip_assign_roles`): assign roles based on department/title in your IdP, map to application-specific groups (GitHub teams, Slack channels)
 - **CreateIdentityWorker** (`ip_create_identity`): create accounts in your identity provider (Okta, Azure AD, Google Workspace) and email system
@@ -172,6 +172,6 @@ identity-provisioning-identity-provisioning/
 │       ├── ProvisionAccessWorker.java
 │       └── VerifySetupWorker.java
 └── src/test/java/identityprovisioning/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

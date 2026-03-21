@@ -1,20 +1,20 @@
 # LLM Retry in Java Using Conductor :  Exponential Backoff for Transient API Failures
 
-A Java Conductor workflow that demonstrates Conductor's built-in retry mechanism for LLM API calls. The LLM call task is configured with `retryCount: 3` and `EXPONENTIAL_BACKOFF` retry logic .  if the LLM API returns a rate-limit error or times out, Conductor automatically retries with increasing delays (1s, 2s, 4s) without any retry code in the worker. A reporting step tracks how many attempts were needed. Uses [Conductor](https://github.com/conductor-oss/conductor) to handle retries declaratively ,  you write the LLM call, Conductor retries it with backoff.
+A Java Conductor workflow that demonstrates Conductor's built-in retry mechanism for LLM API calls. The LLM call task is configured with `retryCount: 3` and `EXPONENTIAL_BACKOFF` retry logic. if the LLM API returns a rate-limit error or times out, Conductor automatically retries with increasing delays (1s, 2s, 4s) without any retry code in the worker. A reporting step tracks how many attempts were needed. Uses [Conductor](https://github.com/conductor-oss/conductor) to handle retries declaratively,  you write the LLM call, Conductor retries it with backoff.
 
 ## LLM APIs Fail Transiently :  A Lot
 
-LLM APIs are notorious for transient failures. OpenAI returns 429 (rate limited) when you exceed your tokens-per-minute quota. Anthropic returns 529 (overloaded) during peak usage. Google Gemini times out when model loading takes too long. These failures are temporary .  the same request succeeds seconds later.
+LLM APIs are notorious for transient failures. OpenAI returns 429 (rate limited) when you exceed your tokens-per-minute quota. Anthropic returns 529 (overloaded) during peak usage. Google Gemini times out when model loading takes too long. These failures are temporary. the same request succeeds seconds later.
 
 Writing retry logic by hand means wrapping every API call in a loop with exponential backoff, tracking attempt counts, handling different error codes, and deciding when to give up. That logic gets duplicated across every LLM call in your codebase, is easy to get wrong (forgetting to cap the backoff, retrying non-retryable errors), and obscures the actual business logic.
 
 ## The Solution
 
-The LLM call worker contains only the API call logic .  no retry loops, no backoff calculations, no attempt counting. Retry behavior is declared in the workflow definition: `retryCount: 3`, `retryLogic: EXPONENTIAL_BACKOFF`, `retryDelaySeconds: 1`. Conductor handles the rest. Every attempt is tracked with its inputs, outputs, and timing, so you can see exactly how many retries a specific call needed and why each attempt failed.
+The LLM call worker contains only the API call logic. no retry loops, no backoff calculations, no attempt counting. Retry behavior is declared in the workflow definition: `retryCount: 3`, `retryLogic: EXPONENTIAL_BACKOFF`, `retryDelaySeconds: 1`. Conductor handles the rest. Every attempt is tracked with its inputs, outputs, and timing, so you can see exactly how many retries a specific call needed and why each attempt failed.
 
 ### What You Write: Workers
 
-Two workers demonstrate retry resilience .  an LLM call worker that may fail transiently, and a report worker that records the outcome ,  with Conductor's built-in exponential backoff handling the retries automatically.
+Two workers demonstrate retry resilience. an LLM call worker that may fail transiently, and a report worker that records the outcome,  with Conductor's built-in exponential backoff handling the retries automatically.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -123,12 +123,12 @@ conductor workflow search -w llm_retry_wf -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker contains only the API call logic with zero retry code .  swap in a real OpenAI, Claude, or Gemini API call, and Conductor's declarative retry configuration handles exponential backoff automatically with the workflow unchanged.
+Each worker contains only the API call logic with zero retry code. swap in a real OpenAI, Claude, or Gemini API call, and Conductor's declarative retry configuration handles exponential backoff automatically with the workflow unchanged.
 
 - **RetryLlmCallWorker** (`retry_llm_call`): swap in a real LLM API call (OpenAI, Claude, Gemini); throw `RuntimeException` on transient errors so Conductor triggers its retry logic
 - **RetryReportWorker** (`retry_report`): write retry metrics to a monitoring system (Datadog, Prometheus) to track retry rates over time
 
-The call/report contract stays fixed .  replace the simulated LLM call with a real API client and Conductor's retry configuration handles transient failures without any worker code changes.
+The call/report contract stays fixed. replace the simulated LLM call with a real API client and Conductor's retry configuration handles transient failures without any worker code changes.
 
 ## SDK
 

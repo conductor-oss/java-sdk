@@ -1,10 +1,10 @@
 # Distributed Trace Collection in Java Using Conductor :  Instrument, Collect Spans, Assemble Traces, and Store
 
-A Java Conductor workflow example for distributed trace collection .  instrumenting services, collecting spans from each service, assembling complete traces, and storing them in a trace backend for analysis.
+A Java Conductor workflow example for distributed trace collection. instrumenting services, collecting spans from each service, assembling complete traces, and storing them in a trace backend for analysis.
 
 ## The Problem
 
-Your microservices produce distributed traces .  spans from each service that must be collected, assembled into complete request traces, and stored for debugging and performance analysis. Instrumentation must be configured, spans collected from each service's collector, assembled by trace ID into a full picture of the request path, and stored in a durable trace backend.
+Your microservices produce distributed traces. spans from each service that must be collected, assembled into complete request traces, and stored for debugging and performance analysis. Instrumentation must be configured, spans collected from each service's collector, assembled by trace ID into a full picture of the request path, and stored in a durable trace backend.
 
 Without orchestration, trace collection relies entirely on sidecar agents and backend infrastructure (Jaeger, Zipkin). When instrumentation fails for one service, traces are incomplete. When the backend is overloaded, spans are dropped. There's no pipeline to verify instrumentation, validate span completeness, or manage trace sampling rates.
 
@@ -12,7 +12,7 @@ Without orchestration, trace collection relies entirely on sidecar agents and ba
 
 **You just write the span collection and trace assembly logic. Conductor handles the instrument-collect-assemble-store pipeline, retries when span collectors or trace backends are temporarily unavailable, and a complete record of every collection run with span counts and trace completeness.**
 
-Each trace collection step is an independent worker .  instrumentation, span collection, trace assembly, and storage. Conductor runs them in sequence: configure instrumentation, collect spans, assemble into traces, then store. Every collection run is tracked with span counts, trace completeness, and storage confirmation. You get all of that, without writing a single line of orchestration code.
+Each trace collection step is an independent worker. instrumentation, span collection, trace assembly, and storage. Conductor runs them in sequence: configure instrumentation, collect spans, assemble into traces, then store. Every collection run is tracked with span counts, trace completeness, and storage confirmation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ InstrumentWorker configures tracing on target services, CollectSpansWorker gathe
 | **InstrumentWorker** | `trc_instrument` | Configures tracing instrumentation on target services with the specified sampling rate, returning the count of instrumented services |
 | **StoreTraceWorker** | `trc_store_trace` | Persists assembled traces to the trace backend (e.g., Jaeger) for querying and analysis |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w trace_collection_416 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one tracing step .  connect the span collector to your OpenTelemetry agents, the storage worker to Jaeger or Zipkin, and the instrument-collect-assemble-store workflow stays the same.
+Each worker handles one tracing step. connect the span collector to your OpenTelemetry agents, the storage worker to Jaeger or Zipkin, and the instrument-collect-assemble-store workflow stays the same.
 
 - **AssembleTraceWorker** (`trc_assemble_trace`): merge spans by trace ID into complete traces, detect missing spans, and compute trace metrics
 - **CollectSpansWorker** (`trc_collect_spans`): pull spans from OpenTelemetry Collector, Jaeger Collector, or Kafka trace topics

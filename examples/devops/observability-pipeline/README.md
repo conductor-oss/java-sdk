@@ -25,7 +25,7 @@ Four workers build the observability pipeline. Collecting metrics, correlating t
 | **CorrelateTracesWorker** | `op_correlate_traces` | Links distributed traces across microservices to build end-to-end request flow |
 | **DetectAnomaliesWorker** | `op_detect_anomalies` | Identifies anomalies in the correlated data (latency spikes, error rate increases) |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w observability_pipeline_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one observability concern .  plug in Prometheus, Jaeger, or PagerDuty for real metrics scraping, trace correlation, and alerting, and the pipeline runs unchanged.
+Each worker handles one observability concern. plug in Prometheus, Jaeger, or PagerDuty for real metrics scraping, trace correlation, and alerting, and the pipeline runs unchanged.
 
 - **CollectMetricsWorker** (`op_collect_metrics`): scrape Prometheus exporters for CPU/memory/request rate, query Datadog Metrics API for custom business metrics, or pull structured telemetry from OpenTelemetry collectors
 - **CorrelateTracesWorker** (`op_correlate_traces`): query Jaeger, Zipkin, or AWS X-Ray to correlate distributed traces by trace ID, building end-to-end request flow maps across microservices
@@ -173,6 +173,6 @@ observability-pipeline-observability-pipeline/
 │       ├── CorrelateTracesWorker.java
 │       └── DetectAnomaliesWorker.java
 └── src/test/java/observabilitypipeline/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

@@ -1,18 +1,18 @@
 # Worker Auto-Scaling in Java Using Conductor :  Monitor Queue, Calculate Capacity, Scale, Verify
 
-A Java Conductor workflow example for worker auto-scaling .  monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.
+A Java Conductor workflow example for worker auto-scaling. monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.
 
 ## Fixed Worker Counts Waste Money or Miss SLAs
 
 Your task queue processes 100 messages per second during business hours and 5 per second overnight. Running enough workers for peak load 24/7 wastes 95% of compute during off-hours. Running for average load means queue depth explodes during peaks and latency exceeds your SLA. You need to dynamically scale workers based on current queue depth and target latency.
 
-Auto-scaling means monitoring the queue to measure current depth and processing rate, calculating how many workers are needed to drain the queue within the target latency, scaling the fleet to match, and verifying that the new worker count actually reduced queue depth and latency. Each step feeds the next .  you can't calculate without monitoring data, and you can't verify without knowing what scaling action was taken.
+Auto-scaling means monitoring the queue to measure current depth and processing rate, calculating how many workers are needed to drain the queue within the target latency, scaling the fleet to match, and verifying that the new worker count actually reduced queue depth and latency. Each step feeds the next. you can't calculate without monitoring data, and you can't verify without knowing what scaling action was taken.
 
 ## The Solution
 
 **You write the monitoring and scaling logic. Conductor handles the scaling cycle, retries, and capacity verification.**
 
-`WksMonitorQueueWorker` samples the queue depth and current worker count for the specified queue. `WksCalculateNeededWorker` computes the required worker count based on the current depth, processing rate, and target latency SLA. `WksScaleWorkersWorker` adjusts the worker fleet to the calculated count .  scaling up or down. `WksVerifyScalingWorker` checks that the scaling action took effect and the queue is draining toward the target latency. Conductor records the monitoring snapshot, scaling decision, and verification result for every scaling cycle.
+`WksMonitorQueueWorker` samples the queue depth and current worker count for the specified queue. `WksCalculateNeededWorker` computes the required worker count based on the current depth, processing rate, and target latency SLA. `WksScaleWorkersWorker` adjusts the worker fleet to the calculated count. scaling up or down. `WksVerifyScalingWorker` checks that the scaling action took effect and the queue is draining toward the target latency. Conductor records the monitoring snapshot, scaling decision, and verification result for every scaling cycle.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers form the auto-scaling loop. Queue monitoring, capacity calculation 
 | **WksScaleWorkersWorker** | `wks_scale_workers` | Scales the worker pool up or down to match the desired count, reporting the scaling action |
 | **WksVerifyScalingWorker** | `wks_verify_scaling` | Confirms all scaled workers are healthy and ready to process tasks |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w wks_worker_scaling -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one auto-scaling concern .  replace the simulated queue monitoring with real CloudWatch or Prometheus metrics APIs and the monitor-calculate-scale loop runs unchanged.
+Each worker covers one auto-scaling concern. replace the simulated queue monitoring with real CloudWatch or Prometheus metrics APIs and the monitor-calculate-scale loop runs unchanged.
 
 - **WksMonitorQueueWorker** (`wks_monitor_queue`): query real queue metrics: SQS `getQueueAttributes()` for depth, CloudWatch for processing rate, or Conductor's own task queue metrics via the API
 - **WksScaleWorkersWorker** (`wks_scale_workers`): call real scaling APIs: Kubernetes HPA (`kubectl scale`), AWS Auto Scaling `setDesiredCapacity()`, or ECS `updateService()` to adjust task count

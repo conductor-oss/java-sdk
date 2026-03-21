@@ -1,10 +1,10 @@
 # RAG with Qdrant in Java Using Conductor :  Vector Search with Payload Filtering
 
-A Java Conductor workflow that implements RAG using Qdrant .  embedding the question, searching a Qdrant collection with vector similarity and payload filtering (filtering by metadata fields like category, date, or access level alongside vector distance), and generating an answer from the results. Qdrant is an open-source vector database with rich payload filtering and gRPC/REST APIs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Qdrant search, and generation as independent workers ,  you write the Qdrant integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG using Qdrant. embedding the question, searching a Qdrant collection with vector similarity and payload filtering (filtering by metadata fields like category, date, or access level alongside vector distance), and generating an answer from the results. Qdrant is an open-source vector database with rich payload filtering and gRPC/REST APIs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Qdrant search, and generation as independent workers,  you write the Qdrant integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG with Payload-Filtered Vector Search
 
-Qdrant distinguishes itself with flexible payload filtering .  you can combine vector similarity with structured filters on metadata fields. A query can find the most similar vectors that are also in category "engineering" and were created after "2024-01-01." This is essential for access-controlled or scoped RAG where not all documents should be searchable by all users.
+Qdrant distinguishes itself with flexible payload filtering. you can combine vector similarity with structured filters on metadata fields. A query can find the most similar vectors that are also in category "engineering" and were created after "2024-01-01." This is essential for access-controlled or scoped RAG where not all documents should be searchable by all users.
 
 The pipeline embeds the question, searches Qdrant with both the vector and payload filters, and generates from the filtered results.
 
@@ -12,11 +12,11 @@ The pipeline embeds the question, searches Qdrant with both the vector and paylo
 
 **You write the embedding and Qdrant payload-filtered search logic. Conductor handles the RAG pipeline, retries, and observability.**
 
-Each stage is an independent worker .  question embedding, Qdrant collection search (with payload filtering), and answer generation. Conductor sequences them, retries the Qdrant query if the server is temporarily unavailable, and tracks every search with the question, collection, filters, and results.
+Each stage is an independent worker. question embedding, Qdrant collection search (with payload filtering), and answer generation. Conductor sequences them, retries the Qdrant query if the server is temporarily unavailable, and tracks every search with the question, collection, filters, and results.
 
 ### What You Write: Workers
 
-Three workers integrate Qdrant into the RAG pipeline .  embedding the query, searching a Qdrant collection with payload filtering and configurable score thresholds, and generating an answer from the matched points.
+Three workers integrate Qdrant into the RAG pipeline. embedding the query, searching a Qdrant collection with payload filtering and configurable score thresholds, and generating an answer from the matched points.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers integrate Qdrant into the RAG pipeline .  embedding the query, sea
 | **QdrantGenerateWorker** | `qdrant_generate` | Worker that generates an answer from a question and retrieved Qdrant points. Builds a deterministic answer by combini... |
 | **QdrantSearchWorker** | `qdrant_search` | Worker that searches a Qdrant collection with an embedding vector. Returns fixed points with payload data for determi... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w rag_qdrant_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in a real embedding model, search a Qdrant collection with payload filters for scoped access, and the embed-search-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in a real embedding model, search a Qdrant collection with payload filters for scoped access, and the embed-search-generate pipeline runs unchanged.
 
 - **QdrantEmbedWorker** (`qdrant_embed`): call an embedding API (OpenAI text-embedding-ada-002, Cohere embed-english-v3) to vectorize the question for Qdrant search
 - **QdrantGenerateWorker** (`qdrant_generate`): send Qdrant search results as context to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer
 - **QdrantSearchWorker** (`qdrant_search`): POST to the real Qdrant `/collections/{collection}/points/search` endpoint with vector, limit, score_threshold, and payload filters
 
-The embed/search/generate contract stays fixed .  adjust payload filters, switch HNSW parameters, or swap embedding models without modifying the workflow.
+The embed/search/generate contract stays fixed. adjust payload filters, switch HNSW parameters, or swap embedding models without modifying the workflow.
 
 ## SDK
 

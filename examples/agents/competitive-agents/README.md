@@ -1,6 +1,6 @@
 # Competitive Agents in Java Using Conductor :  Parallel Solvers, Judge, and Winner Selection
 
-Competitive Agents .  three solvers propose solutions in parallel, a judge scores them, and a winner is selected. Uses [Conductor](https://github.
+Competitive Agents. three solvers propose solutions in parallel, a judge scores them, and a winner is selected. Uses [Conductor](https://github.
 
 ## Better Solutions Through Competition
 
@@ -12,7 +12,7 @@ The challenge is running all three simultaneously (sequential execution triples 
 
 **You write the solver strategies and judging criteria. Conductor handles parallel execution, result collection, and comparative scoring.**
 
-`FORK_JOIN` dispatches `Solver1Worker`, `Solver2Worker`, and `Solver3Worker` to tackle the problem simultaneously .  each takes a different approach (analytical, creative, practical) and produces a solution with rationale. After `JOIN` collects all three solutions, `JudgeAgentWorker` evaluates each against the specified criteria (accuracy, creativity, feasibility, clarity) and assigns scores. `SelectWinnerWorker` picks the highest-scoring solution and produces the final output with the winning solution, scores for all three, and the judge's reasoning. Conductor runs all three solvers in parallel, so total time equals the slowest solver, not the sum of all three.
+`FORK_JOIN` dispatches `Solver1Worker`, `Solver2Worker`, and `Solver3Worker` to tackle the problem simultaneously. each takes a different approach (analytical, creative, practical) and produces a solution with rationale. After `JOIN` collects all three solutions, `JudgeAgentWorker` evaluates each against the specified criteria (accuracy, creativity, feasibility, clarity) and assigns scores. `SelectWinnerWorker` picks the highest-scoring solution and produces the final output with the winning solution, scores for all three, and the judge's reasoning. Conductor runs all three solvers in parallel, so total time equals the slowest solver, not the sum of all three.
 
 ### What You Write: Workers
 
@@ -20,13 +20,13 @@ Five workers run the competition. Three solvers propose solutions in parallel us
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **JudgeAgentWorker** | `comp_judge_agent` | Judge agent .  evaluates all three solver solutions, scores each on cost, innovation, and risk, then ranks them to det.. |
-| **SelectWinnerWorker** | `comp_select_winner` | Select winner .  takes the judge's judgment and all solutions, produces a winner map and a ranked list of all solutions. |
-| **Solver1Worker** | `comp_solver_1` | Creative solver .  proposes an innovative, AI-powered adaptive solution. Uses a "creative" approach with higher innova.. |
-| **Solver2Worker** | `comp_solver_2` | Analytical solver .  proposes a data-driven optimization framework. Uses an "analytical" approach with balanced innova.. |
-| **Solver3Worker** | `comp_solver_3` | Practical solver .  proposes an incremental process improvement. Uses a "practical" approach with low cost, low risk.. |
+| **JudgeAgentWorker** | `comp_judge_agent` | Judge agent. evaluates all three solver solutions, scores each on cost, innovation, and risk, then ranks them to det.. |
+| **SelectWinnerWorker** | `comp_select_winner` | Select winner. takes the judge's judgment and all solutions, produces a winner map and a ranked list of all solutions. |
+| **Solver1Worker** | `comp_solver_1` | Creative solver. proposes an innovative, AI-powered adaptive solution. Uses a "creative" approach with higher innova.. |
+| **Solver2Worker** | `comp_solver_2` | Analytical solver. proposes a data-driven optimization framework. Uses an "analytical" approach with balanced innova.. |
+| **Solver3Worker** | `comp_solver_3` | Practical solver. proposes an incremental process improvement. Uses a "practical" approach with low cost, low risk.. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

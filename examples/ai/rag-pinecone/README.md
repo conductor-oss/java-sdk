@@ -1,6 +1,6 @@
 # RAG with Pinecone in Java Using Conductor :  Embed, Query Vectors with Namespace and Metadata Filtering, Generate
 
-A Java Conductor workflow that implements RAG using Pinecone .  embedding the question, querying a Pinecone index with namespace isolation, topK control, and metadata filtering, and generating an answer from the matched vectors. Pinecone is a fully managed vector database with built-in namespacing for multi-tenancy and metadata filtering for scoped queries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Pinecone querying, and generation as independent workers ,  you write the Pinecone integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG using Pinecone. embedding the question, querying a Pinecone index with namespace isolation, topK control, and metadata filtering, and generating an answer from the matched vectors. Pinecone is a fully managed vector database with built-in namespacing for multi-tenancy and metadata filtering for scoped queries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Pinecone querying, and generation as independent workers,  you write the Pinecone integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG with Pinecone's Managed Vector Infrastructure
 
@@ -12,11 +12,11 @@ Each step can fail independently: the embedding API might time out, Pinecone mig
 
 **You write the embedding and Pinecone query logic with namespace and metadata filters. Conductor handles the RAG pipeline, retries, and observability.**
 
-Each stage is an independent worker .  question embedding, Pinecone vector query (with namespace and filter support), and answer generation. Conductor sequences them, retries the Pinecone query during scaling events, and tracks every search with the question, namespace, filter, retrieved vectors, and generated answer.
+Each stage is an independent worker. question embedding, Pinecone vector query (with namespace and filter support), and answer generation. Conductor sequences them, retries the Pinecone query during scaling events, and tracks every search with the question, namespace, filter, retrieved vectors, and generated answer.
 
 ### What You Write: Workers
 
-Three workers integrate Pinecone into the RAG pipeline .  embedding the query, querying a Pinecone index with namespace isolation and metadata filtering, and generating an answer from the top-k results.
+Three workers integrate Pinecone into the RAG pipeline. embedding the query, querying a Pinecone index with namespace isolation and metadata filtering, and generating an answer from the top-k results.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers integrate Pinecone into the RAG pipeline .  embedding the query, q
 | **PineGenerateWorker** | `pine_generate` | Worker that generates an answer from a question and retrieved Pinecone matches. Builds a deterministic answer by comb... |
 | **PineQueryWorker** | `pine_query` | Worker that queries a Pinecone index with an embedding vector. Returns fixed matches for deterministic behavior. |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w rag_pinecone_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in a real embedding model, query Pinecone with namespace isolation and metadata filters for multi-tenant retrieval, and the embed-query-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in a real embedding model, query Pinecone with namespace isolation and metadata filters for multi-tenant retrieval, and the embed-query-generate pipeline runs unchanged.
 
 - **PineEmbedWorker** (`pine_embed`): call an embedding API (OpenAI text-embedding-ada-002, Cohere embed-english-v3) to vectorize the question for Pinecone search
 - **PineGenerateWorker** (`pine_generate`): send Pinecone matches as context to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer with source attribution
 - **PineQueryWorker** (`pine_query`): query a real Pinecone index using the Pinecone Java/Python SDK with namespace selection, metadata filters, and configurable top_k
 
-The embed/query/generate contract is fixed .  adjust namespaces, add metadata filters, or swap embedding models without changing the workflow definition.
+The embed/query/generate contract is fixed. adjust namespaces, add metadata filters, or swap embedding models without changing the workflow definition.
 
 ## SDK
 

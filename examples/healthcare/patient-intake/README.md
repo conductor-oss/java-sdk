@@ -25,7 +25,7 @@ Four workers handle the intake process: RegisterWorker captures demographics and
 | **TriageWorker** | `pit_triage` | Performs triage assessment based on chief complaint and vitals, assigns acuity level (ESI 1-5) |
 | **AssignWorker** | `pit_assign` | Assigns the patient to an available provider based on triage acuity and provider panel capacity |
 
-Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
+Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
 
 ### The Workflow
 

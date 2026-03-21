@@ -6,7 +6,7 @@ Expense reporting: collect, categorize, submit, approve, reimburse. Uses [Conduc
 
 You need to process a travel expense report from receipt collection through reimbursement. An employee returns from a trip with receipts for flights, hotels, meals, and transportation. You collect all receipts and line items. You categorize each expense (airfare, lodging, meals, ground transport, miscellaneous). You submit the categorized report for approval. The manager reviews and approves or rejects it. Finally, approved expenses are reimbursed to the employee's payroll or bank account.
 
-If categorization misclassifies a meal as lodging, the report totals are wrong and the employee gets audited. If approval succeeds but the reimbursement payment fails, the employee is out of pocket with no visibility into when they'll be paid. Without orchestration, you'd build a monolithic expense handler that mixes OCR receipt parsing, category rules, approval workflows, and payment processing .  making it impossible to update categorization rules, test approval logic independently, or audit which receipts drove which reimbursement amounts.
+If categorization misclassifies a meal as lodging, the report totals are wrong and the employee gets audited. If approval succeeds but the reimbursement payment fails, the employee is out of pocket with no visibility into when they'll be paid. Without orchestration, you'd build a monolithic expense handler that mixes OCR receipt parsing, category rules, approval workflows, and payment processing. making it impossible to update categorization rules, test approval logic independently, or audit which receipts drove which reimbursement amounts.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Receipt capture, categorization, policy validation, and reimbursement workers ea
 | **ReimburseWorker** | `exr_reimburse` | Processing expense reporting step |
 | **SubmitWorker** | `exr_submit` | Processing expense reporting step |
 
-Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w exr_expense_reporting -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real expense systems .  an OCR service for receipt parsing, your ERP for categorization rules, your payroll system for reimbursement, and the workflow runs identically in production.
+Wire each worker to your real expense systems. an OCR service for receipt parsing, your ERP for categorization rules, your payroll system for reimbursement, and the workflow runs identically in production.
 
 - **CollectWorker** (`exr_collect`): pull receipts from your expense management system (SAP Concur, Expensify, Brex) or OCR-scan uploaded receipt images via Google Vision or AWS Textract
 - **CategorizeWorker** (`exr_categorize`): apply your company's expense categorization rules, matching merchant codes to categories and flagging out-of-policy items

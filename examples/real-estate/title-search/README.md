@@ -1,18 +1,18 @@
 # Title Search in Java with Conductor :  Record Search, Ownership Verification, Lien Check, and Certification
 
-A Java Conductor workflow example for performing property title searches .  searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.
+A Java Conductor workflow example for performing property title searches. searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to confirm that a property's title is clear before a sale can close. County records must be searched for the complete chain of title, current ownership must be verified against the recorded deeds, any outstanding liens (tax liens, mechanic's liens, HOA liens, judgments) must be identified, and only if ownership is verified and liens are clear can a title certificate be issued. If the certification step runs before lien checks complete, the buyer risks purchasing a property with hidden encumbrances. Missing a single lien can cost hundreds of thousands of dollars.
 
-Without orchestration, title searches are manual and error-prone. A paralegal searches county records, another person checks for liens, and a title officer issues the certification .  all coordinated via email. When the county records system is slow, the search stalls. When a lien check is missed, the title is certified incorrectly. Nobody can tell whether a search is in progress, stuck, or complete.
+Without orchestration, title searches are manual and error-prone. A paralegal searches county records, another person checks for liens, and a title officer issues the certification. all coordinated via email. When the county records system is slow, the search stalls. When a lien check is missed, the title is certified incorrectly. Nobody can tell whether a search is in progress, stuck, or complete.
 
 ## The Solution
 
 **You just write the record search, ownership verification, lien check, and title certification logic. Conductor handles lien search retries, ownership verification, and title audit trails.**
 
-Each title search step is a simple, independent worker .  one searches county records, one verifies current ownership, one checks for liens, one issues the certification. Conductor takes care of executing them in strict order so no certification is issued without a lien check, retrying if the county records system is temporarily unavailable, and maintaining a complete audit trail that title insurance underwriters can rely on. You get all of that, without writing a single line of orchestration code.
+Each title search step is a simple, independent worker. one searches county records, one verifies current ownership, one checks for liens, one issues the certification. Conductor takes care of executing them in strict order so no certification is issued without a lien check, retrying if the county records system is temporarily unavailable, and maintaining a complete audit trail that title insurance underwriters can rely on. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,10 +22,10 @@ Ownership history research, lien search, encumbrance analysis, and title report 
 |---|---|---|
 | **SearchRecordsWorker** | `tts_search` | Searches county recorder and assessor records for the property's chain of title |
 | **VerifyOwnershipWorker** | `tts_verify_ownership` | Confirms current ownership by matching recorded deeds against the seller's identity |
-| **CheckLiensWorker** | `tts_check_liens` | Searches for outstanding liens .  tax, mechanic's, HOA, judgment, and federal liens |
+| **CheckLiensWorker** | `tts_check_liens` | Searches for outstanding liens. tax, mechanic's, HOA, judgment, and federal liens |
 | **CertifyTitleWorker** | `tts_certify` | Issues the title certification if ownership is verified and all liens are cleared |
 
-Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
+Workers implement property transaction steps. listing, inspection, escrow, closing,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w tts_title_search -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real title systems .  county recorder APIs for deed searches, lien search databases for encumbrance checks, your title plant for certification issuance, and the workflow runs identically in production.
+Wire each worker to your real title systems. county recorder APIs for deed searches, lien search databases for encumbrance checks, your title plant for certification issuance, and the workflow runs identically in production.
 
 - **SearchRecordsWorker** (`tts_search`): query county recorder APIs or title plant databases (DataTrace, TitlePoint) for deed and document history
 - **VerifyOwnershipWorker** (`tts_verify_ownership`): cross-reference recorded deeds with tax assessor data and identity verification services

@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Nonprofit Donation. Uses [Conduc
 
 A donor submits a donation through your nonprofit's website. The donation processing team needs to receive and validate the donation details, process the payment and obtain a transaction ID, generate a tax-deductible receipt, send a personalized thank-you message tied to the campaign, and record the completed donation in the donor database. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Gift intake, payment processing, receipt generation, and donor acknowledgment wo
 | **RecordWorker** | `don_record` | Records the completed donation in the donor database with donor name, amount, and transaction ID |
 | **ThankYouWorker** | `don_thank_you` | Sends a personalized thank-you message to the donor tied to the specific campaign |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 

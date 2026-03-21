@@ -25,7 +25,7 @@ Four workers handle the incident lifecycle. Creating the ticket, paging the resp
 | `GatherDiagnosticsWorker` | `ir_gather_diagnostics` | Collects live metrics from the affected service. Returns CPU usage (95%) and error rate (5%) |
 | `AutoRemediateWorker` | `ir_auto_remediate` | Attempts automated recovery (scales up 2 replicas) and reports whether remediation succeeded |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### The Workflow
 

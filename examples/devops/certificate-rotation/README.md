@@ -25,7 +25,7 @@ Four workers manage the certificate lifecycle. Discovering expiring certs, gener
 | `DeployWorker` | `cr_deploy` | Deploys the newly generated certificate to load balancers and reverse proxies |
 | `VerifyWorker` | `cr_verify` | Performs a TLS handshake against the domain to confirm the new certificate is active and valid |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### The Workflow
 

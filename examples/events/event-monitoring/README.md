@@ -6,13 +6,13 @@ Sequential event monitoring workflow that collects metrics, analyzes throughput,
 
 You need to monitor the health of your event processing pipeline. This means collecting throughput, latency, and error rate metrics over a specified time range, analyzing those metrics for anomalies (throughput drops, latency spikes, error rate increases), and generating a monitoring report. Without monitoring, you only learn about pipeline problems when downstream systems start failing.
 
-Without orchestration, you'd build a monitoring script that queries multiple metrics sources, runs analysis logic inline, generates reports, and sends alerts .  manually handling metrics API timeouts, correlating data across different monitoring systems, and scheduling the monitoring job itself.
+Without orchestration, you'd build a monitoring script that queries multiple metrics sources, runs analysis logic inline, generates reports, and sends alerts. manually handling metrics API timeouts, correlating data across different monitoring systems, and scheduling the monitoring job itself.
 
 ## The Solution
 
 **You just write the metrics-collection, throughput/latency/error analysis, and report-generation workers. Conductor handles sequential metric analysis, retry on metrics API timeouts, and a historical record of every monitoring run.**
 
-Each monitoring concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting metrics, analyzing them for anomalies, and generating the report ,  retrying if a metrics API times out, tracking every monitoring run, and providing a complete history of pipeline health assessments. You get all of that, without writing a single line of orchestration code.
+Each monitoring concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting metrics, analyzing them for anomalies, and generating the report,  retrying if a metrics API times out, tracking every monitoring run, and providing a complete history of pipeline health assessments. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers power the monitoring pipeline: CollectMetricsWorker gathers raw dat
 | **CollectMetricsWorker** | `em_collect_metrics` | Collects raw metrics for a given pipeline and time range. |
 | **GenerateReportWorker** | `em_generate_report` | Generates a monitoring report from throughput, latency, and error analysis. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

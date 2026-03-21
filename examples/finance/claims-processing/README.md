@@ -26,7 +26,7 @@ Five workers handle the claims lifecycle: SubmitClaimWorker intakes the claim, V
 | **SubmitClaimWorker** | `clp_submit_claim` | Submits an insurance claim and returns policy metadata. |
 | **VerifyDetailsWorker** | `clp_verify_details` | Verifies policy details for a claim. |
 
-Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

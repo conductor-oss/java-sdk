@@ -1,6 +1,6 @@
 # Workflow Migration in Java Using Conductor :  Export from Legacy, Transform, Import to New, Verify
 
-A Java Conductor workflow example for workflow migration .  exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.
+A Java Conductor workflow example for workflow migration. exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.
 
 ## Migrating from Legacy Orchestration Without Losing History
 
@@ -12,7 +12,7 @@ Doing this manually per workflow is tedious and error-prone. Automating it as a 
 
 **You write the export and transformation logic. Conductor handles the migration pipeline, retries, and verification tracking.**
 
-`WmExportOldWorker` extracts workflow definitions and execution history from the source system. `WmTransformWorker` converts the exported data into the target system's format .  mapping task names, translating input/output schemas, and adjusting configuration. `WmImportNewWorker` loads the transformed definitions into the new orchestration platform. `WmVerifyWorker` runs test executions on the migrated workflows and compares outputs against the legacy system's results. Conductor records the export, transformation, import, and verification for each migrated workflow.
+`WmExportOldWorker` extracts workflow definitions and execution history from the source system. `WmTransformWorker` converts the exported data into the target system's format. mapping task names, translating input/output schemas, and adjusting configuration. `WmImportNewWorker` loads the transformed definitions into the new orchestration platform. `WmVerifyWorker` runs test executions on the migrated workflows and compares outputs against the legacy system's results. Conductor records the export, transformation, import, and verification for each migrated workflow.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the migration pipeline: legacy system export, schema transfo
 | **WmTransformWorker** | `wm_transform` | Converts the exported legacy format into the new Conductor workflow schema |
 | **WmVerifyWorker** | `wm_verify` | Compares original and imported task counts to confirm migration completeness |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w workflow_migration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one migration phase .  replace the simulated legacy exports with real Airflow or Jenkins API calls and the export-transform-import-verify pipeline runs unchanged.
+Each worker handles one migration phase. replace the simulated legacy exports with real Airflow or Jenkins API calls and the export-transform-import-verify pipeline runs unchanged.
 
 - **WmExportOldWorker** (`wm_export_old`): export from real systems: Airflow `dag export` API, Jenkins job config XML, or Conductor's own `workflow/metadata` API for cross-cluster migration
 - **WmTransformWorker** (`wm_transform`): implement real format transformation: JOLT for JSON-to-JSON mapping, custom translators for Airflow DAG Python to Conductor JSON, or XSLT for XML-based legacy systems

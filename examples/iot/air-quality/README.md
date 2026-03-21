@@ -1,18 +1,18 @@
 # Air Quality in Java with Conductor
 
-A Java Conductor workflow example that orchestrates air quality monitoring .  collecting pollutant readings (PM2.5, PM10, ozone, CO) from monitoring stations, evaluating concentrations against air quality standards to compute an AQI category, and routing to different response handlers via SWITCH based on whether conditions are good, moderate, or poor. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates air quality monitoring. collecting pollutant readings (PM2.5, PM10, ozone, CO) from monitoring stations, evaluating concentrations against air quality standards to compute an AQI category, and routing to different response handlers via SWITCH based on whether conditions are good, moderate, or poor. Uses [Conductor](https://github.
 
 ## Why Air Quality Monitoring Needs Orchestration
 
 Monitoring air quality requires a pipeline that collects pollutant data, evaluates it against standards, and takes different actions depending on the result. You collect readings from a monitoring station. PM2.5, PM10, ozone, and CO concentrations for a given region. You check those readings against air quality standards to compute an AQI score and categorize conditions as good, moderate, or poor. Based on the category, you route to entirely different response handlers: log a routine checkpoint for good air, issue a sensitive-groups advisory for moderate conditions, or broadcast a public health warning for poor air quality.
 
-This is a natural fit for conditional routing. The same set of readings can lead to routine logging, targeted advisories, or emergency health warnings .  each with different notification recipients and follow-up actions. Without orchestration, you'd build a monolithic air quality processor that mixes sensor polling, AQI calculation, and multi-tier notification dispatch in one class, using if/else chains to decide which alert to send. Adding new response tiers (hazardous, very unhealthy) would require modifying the core processor.
+This is a natural fit for conditional routing. The same set of readings can lead to routine logging, targeted advisories, or emergency health warnings. each with different notification recipients and follow-up actions. Without orchestration, you'd build a monolithic air quality processor that mixes sensor polling, AQI calculation, and multi-tier notification dispatch in one class, using if/else chains to decide which alert to send. Adding new response tiers (hazardous, very unhealthy) would require modifying the core processor.
 
 ## The Solution
 
 **You just write the air quality workers. Pollutant collection, AQI evaluation, and tier-specific response handlers. Conductor handles AQI-based conditional routing, sensor polling retries, and complete records linking each reading to its response action.**
 
-Each worker handles one IoT operation .  data ingestion, threshold analysis, device command, or alert dispatch. Conductor manages the telemetry pipeline, device state tracking, and alert escalation.
+Each worker handles one IoT operation. data ingestion, threshold analysis, device command, or alert dispatch. Conductor manages the telemetry pipeline, device state tracking, and alert escalation.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers monitor air quality: CollectReadingsWorker gathers pollutant concen
 | **CheckStandardsWorker** | `aq_check_standards` | Evaluates PM2.5, PM10, ozone, and CO concentrations against air quality standards to compute an AQI score and category. |
 | **CollectReadingsWorker** | `aq_collect_readings` | Collects pollutant readings (PM2.5, PM10, ozone, CO) from a monitoring station. |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
+Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs. the workflow and alerting logic stay the same.
 
 ### The Workflow
 

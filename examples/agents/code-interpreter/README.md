@@ -1,12 +1,12 @@
 # Code Interpreter Agent in Java Using Conductor :  Analyze, Generate, Execute, Interpret
 
-Code Interpreter Agent .  analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. Uses [Conductor](https://github.
+Code Interpreter Agent. analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. Uses [Conductor](https://github.
 
 ## Answering Data Questions Requires Running Code, Not Just Generating It
 
-"What's the correlation between marketing spend and revenue in Q3?" can't be answered by an LLM alone .  it requires loading the dataset, computing a Pearson correlation coefficient, and possibly generating a scatter plot. The LLM can generate the code, but someone needs to run it, capture the output (including any charts), and explain what the results mean.
+"What's the correlation between marketing spend and revenue in Q3?" can't be answered by an LLM alone. it requires loading the dataset, computing a Pearson correlation coefficient, and possibly generating a scatter plot. The LLM can generate the code, but someone needs to run it, capture the output (including any charts), and explain what the results mean.
 
-A code interpreter agent separates these concerns: analyze the question to determine what computation is needed (statistical analysis, data aggregation, visualization), generate the code, execute it in a sandbox where it can't access production systems, and interpret the raw output ("The correlation coefficient is 0.87, indicating a strong positive relationship between marketing spend and revenue"). Each step has different failure modes .  the code might have a syntax error, the sandbox might timeout, the output might need re-interpretation.
+A code interpreter agent separates these concerns: analyze the question to determine what computation is needed (statistical analysis, data aggregation, visualization), generate the code, execute it in a sandbox where it can't access production systems, and interpret the raw output ("The correlation coefficient is 0.87, indicating a strong positive relationship between marketing spend and revenue"). Each step has different failure modes. the code might have a syntax error, the sandbox might timeout, the output might need re-interpretation.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Four workers form the code interpreter pipeline. Analyzing the question, generat
 | **GenerateCodeWorker** | `ci_generate_code` | Generates Python code based on the analysis plan and data schema. Produces a pandas-based script that performs group-... |
 | **InterpretResultWorker** | `ci_interpret_result` | Interprets the execution results in the context of the original question. Provides a human-readable answer, a structu... |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

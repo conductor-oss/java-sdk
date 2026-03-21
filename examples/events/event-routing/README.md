@@ -26,7 +26,7 @@ Five workers implement domain-based routing: ReceiveEventWorker ingests the even
 | **SystemProcessorWorker** | `eo_system_processor` | Default processor for events that do not match user or order domains. Passes through the domain and marks the event a |
 | **UserProcessorWorker** | `eo_user_processor` | Processes user-domain events. Returns a result indicating the user event was handled: profile updated, notifica |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
 ### The Workflow
 

@@ -4,15 +4,15 @@ Processes a food order from menu browsing through payment, kitchen preparation, 
 
 ## The Problem
 
-You need to process a food order from browsing to delivery. The customer browses the restaurant's menu, places an order with selected items, pays for the order, the kitchen prepares the food, and it is delivered (or picked up). Each step depends on the previous .  you cannot prepare food without a confirmed, paid order; you cannot deliver without prepared food.
+You need to process a food order from browsing to delivery. The customer browses the restaurant's menu, places an order with selected items, pays for the order, the kitchen prepares the food, and it is delivered (or picked up). Each step depends on the previous. you cannot prepare food without a confirmed, paid order; you cannot deliver without prepared food.
 
-Without orchestration, you'd build a monolithic ordering app that handles menu display, cart management, payment processing, kitchen dispatch, and delivery coordination in one service .  manually managing order state through each phase, retrying failed payment attempts, and handling the handoff between payment confirmation and kitchen preparation.
+Without orchestration, you'd build a monolithic ordering app that handles menu display, cart management, payment processing, kitchen dispatch, and delivery coordination in one service. manually managing order state through each phase, retrying failed payment attempts, and handling the handoff between payment confirmation and kitchen preparation.
 
 ## The Solution
 
 **You just write the menu selection, payment processing, kitchen preparation, and delivery dispatch logic. Conductor handles payment retries, kitchen dispatch sequencing, and order lifecycle tracking.**
 
-Each ordering concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (browse, order, pay, prepare, deliver), retrying if the payment gateway is temporarily unavailable, tracking every order from menu to doorstep, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each ordering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (browse, order, pay, prepare, deliver), retrying if the payment gateway is temporarily unavailable, tracking every order from menu to doorstep, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Menu browsing, cart assembly, payment, and kitchen dispatch workers handle the o
 | **PayWorker** | `fod_pay` | Processes payment for the order total and returns a transaction ID |
 | **PrepareWorker** | `fod_prepare` | Prepares the order in the kitchen and returns prep time and readiness status |
 
-Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
+Workers implement food service operations. order processing, kitchen routing, delivery coordination,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w food_ordering_731 -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real ordering stack .  your POS for menu browsing, Stripe for payment, your KDS for kitchen prep, your delivery platform for dispatch, and the workflow runs identically in production.
+Point each worker at your real ordering stack. your POS for menu browsing, Stripe for payment, your KDS for kitchen prep, your delivery platform for dispatch, and the workflow runs identically in production.
 
 - **Menu browser**: fetch real-time menu data from your restaurant platform (Toast, Square, custom POS) with pricing and availability
 - **Order placer**: validate item availability, apply modifiers (extra cheese, no onions), and calculate order total with taxes

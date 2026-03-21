@@ -1,18 +1,18 @@
 # Hybrid Cloud Data Routing in Java Using Conductor :  Classify Sensitivity, Route to On-Prem or Cloud
 
-A Java Conductor workflow example for hybrid cloud data routing .  classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.
+A Java Conductor workflow example for hybrid cloud data routing. classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.
 
 ## Sensitive Data Can't Leave Your Data Center
 
-Regulations like GDPR, HIPAA, and PCI-DSS require that certain data .  patient records, financial transactions, PII ,  stays within controlled environments. But running everything on-premises wastes cloud elasticity for workloads that have no compliance constraints. The challenge is automatically determining which data must stay on-prem and which can be processed in the cloud, then routing each record to the right infrastructure.
+Regulations like GDPR, HIPAA, and PCI-DSS require that certain data. patient records, financial transactions, PII,  stays within controlled environments. But running everything on-premises wastes cloud elasticity for workloads that have no compliance constraints. The challenge is automatically determining which data must stay on-prem and which can be processed in the cloud, then routing each record to the right infrastructure.
 
-Without automated classification and routing, engineers make manual decisions about where data should go, or worse, everything runs in one place .  either overpaying for on-prem infrastructure for non-sensitive workloads, or risking compliance violations by sending sensitive data to the cloud.
+Without automated classification and routing, engineers make manual decisions about where data should go, or worse, everything runs in one place. either overpaying for on-prem infrastructure for non-sensitive workloads, or risking compliance violations by sending sensitive data to the cloud.
 
 ## The Solution
 
 **You write the classification and processing logic. Conductor handles the sensitivity-based routing, retries, and compliance audit trail.**
 
-`HybClassifyDataWorker` examines the data type and content to determine its sensitivity classification and target environment .  `onprem` for sensitive data that must stay in the data center, `cloud` for everything else. A `SWITCH` task routes based on this classification: `HybProcessOnpremWorker` handles sensitive records within the on-premises environment, while `HybProcessCloudWorker` sends non-sensitive records to AWS for elastic processing. Conductor's conditional routing makes this classification-based split declarative, and every execution records the data ID, classification, and which path was taken ,  giving you an audit trail for compliance.
+`HybClassifyDataWorker` examines the data type and content to determine its sensitivity classification and target environment. `onprem` for sensitive data that must stay in the data center, `cloud` for everything else. A `SWITCH` task routes based on this classification: `HybProcessOnpremWorker` handles sensitive records within the on-premises environment, while `HybProcessCloudWorker` sends non-sensitive records to AWS for elastic processing. Conductor's conditional routing makes this classification-based split declarative, and every execution records the data ID, classification, and which path was taken,  giving you an audit trail for compliance.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers handle the classification-and-routing split. Sensitivity classific
 | **HybProcessCloudWorker** | `hyb_process_cloud` | Processes non-sensitive data in the cloud (e.g., AWS us-east-1) with auto-scaled instances |
 | **HybProcessOnpremWorker** | `hyb_process_onprem` | Processes sensitive/regulated data on-premises in the private datacenter with encryption |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -127,7 +127,7 @@ conductor workflow search -w hybrid_cloud_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker addresses one routing concern .  replace the simulated data classification with real DLP or Macie APIs and the on-prem-vs-cloud routing logic runs unchanged.
+Each worker addresses one routing concern. replace the simulated data classification with real DLP or Macie APIs and the on-prem-vs-cloud routing logic runs unchanged.
 
 - **HybClassifyDataWorker** (`hyb_classify_data`): integrate AWS Macie for PII detection, Google Cloud DLP for sensitive data discovery, or custom regex/NLP classifiers for domain-specific sensitivity rules
 - **HybProcessOnpremWorker** (`hyb_process_onprem`): process data on local Kubernetes clusters, call on-prem database APIs, or invoke services behind a VPN/private link

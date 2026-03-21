@@ -1,10 +1,10 @@
 # Multi-Model Compare in Java Using Conductor :  GPT-4 vs Claude vs Gemini Side-by-Side Evaluation
 
-A Java Conductor workflow that sends the same prompt to GPT-4, Claude, and Gemini in parallel, then compares their responses .  scoring each on quality metrics and picking a winner. Conductor's `FORK_JOIN` calls all three models simultaneously so the total latency is the speed of the slowest model, not the sum of all three. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel model calls and comparison as independent workers ,  you write the API integrations and scoring logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that sends the same prompt to GPT-4, Claude, and Gemini in parallel, then compares their responses. scoring each on quality metrics and picking a winner. Conductor's `FORK_JOIN` calls all three models simultaneously so the total latency is the speed of the slowest model, not the sum of all three. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel model calls and comparison as independent workers,  you write the API integrations and scoring logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Choosing the Right Model with Data
 
-Picking an LLM provider for your application is usually based on vibes .  "GPT-4 feels smarter" or "Claude is better at code." A data-driven approach sends the same prompts to all three models, compares their responses on objective criteria (relevance, coherence, completeness), and builds a dataset showing which model performs best for your specific use cases.
+Picking an LLM provider for your application is usually based on vibes. "GPT-4 feels smarter" or "Claude is better at code." A data-driven approach sends the same prompts to all three models, compares their responses on objective criteria (relevance, coherence, completeness), and builds a dataset showing which model performs best for your specific use cases.
 
 Running this comparison manually means sequential API calls (3x the latency), ad-hoc comparison in a spreadsheet, and no historical record. If one provider's API is slow or rate-limited, it blocks the other comparisons.
 
@@ -12,11 +12,11 @@ Running this comparison manually means sequential API calls (3x the latency), ad
 
 **You write the per-model API calls and the comparison scoring logic. Conductor handles the parallel execution, retries, and observability.**
 
-Each model call is an independent worker. GPT-4, Claude, Gemini. Conductor's `FORK_JOIN` runs all three in parallel and waits for all to complete. A comparison worker scores each response and picks a winner. If Claude's API is rate-limited, Conductor retries it independently without re-calling GPT-4 or Gemini. Every execution records all three responses, scores, and the winner .  building an evaluation dataset over time.
+Each model call is an independent worker. GPT-4, Claude, Gemini. Conductor's `FORK_JOIN` runs all three in parallel and waits for all to complete. A comparison worker scores each response and picks a winner. If Claude's API is rate-limited, Conductor retries it independently without re-calling GPT-4 or Gemini. Every execution records all three responses, scores, and the winner. building an evaluation dataset over time.
 
 ### What You Write: Workers
 
-Four workers run a model comparison .  calling GPT-4, Claude, and Gemini in parallel via FORK_JOIN, then scoring and ranking all three responses for quality, speed, and cost in a single comparison worker.
+Four workers run a model comparison. calling GPT-4, Claude, and Gemini in parallel via FORK_JOIN, then scoring and ranking all three responses for quality, speed, and cost in a single comparison worker.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -25,7 +25,7 @@ Four workers run a model comparison .  calling GPT-4, Claude, and Gemini in para
 | **McCallGeminiWorker** | `mc_call_gemini` | Calls Gemini via Google Generative AI API. Uses `GOOGLE_API_KEY` env var; falls back to simulated when unset. | Both |
 | **McCompareWorker** | `mc_compare` | Compares results from GPT-4, Claude, and Gemini model calls. Determines the winner (highest quality), fastest, cheapest. | N/A |
 
-Each worker auto-detects its API key at startup. When a key is present, the worker makes real API calls; when absent, it returns a deterministic simulated response prefixed with `[SIMULATED]`. You can set any combination .  for example, set only `CONDUCTOR_OPENAI_API_KEY` to get live GPT-4 results alongside simulated Claude and Gemini.
+Each worker auto-detects its API key at startup. When a key is present, the worker makes real API calls; when absent, it returns a deterministic simulated response prefixed with `[SIMULATED]`. You can set any combination. for example, set only `CONDUCTOR_OPENAI_API_KEY` to get live GPT-4 results alongside simulated Claude and Gemini.
 
 ### The Workflow
 
@@ -133,14 +133,14 @@ conductor workflow search -w multi_model_compare -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker already includes real API integration .  set the corresponding env var to enable live mode. Customize the scoring logic, add new models, or implement LLM-as-judge evaluation while the parallel compare-and-rank workflow runs unchanged.
+Each worker already includes real API integration. set the corresponding env var to enable live mode. Customize the scoring logic, add new models, or implement LLM-as-judge evaluation while the parallel compare-and-rank workflow runs unchanged.
 
 - **McCallGpt4Worker** (`mc_call_gpt4`): calls OpenAI Chat Completions API (`gpt-4`); customize the model, max_tokens, or pricing in the worker
 - **McCallClaudeWorker** (`mc_call_claude`): calls Anthropic Messages API (`claude-sonnet-4-6`); adjust model version or parameters as needed
 - **McCallGeminiWorker** (`mc_call_gemini`): calls Google Generative AI API (`gemini-2.0-flash`); swap model or tune generation config
 - **McCompareWorker** (`mc_compare`): implement custom scoring rubrics (factual accuracy, code quality, response length) or use an LLM-as-judge pattern
 
-Each model worker returns the same response shape, so adding new models to the comparison requires only a new worker and fork branch .  the comparison logic stays unchanged.
+Each model worker returns the same response shape, so adding new models to the comparison requires only a new worker and fork branch. the comparison logic stays unchanged.
 
 ## SDK
 

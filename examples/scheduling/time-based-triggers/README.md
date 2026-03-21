@@ -1,10 +1,10 @@
 # Time-Based Triggers in Java Using Conductor :  Route Jobs by Time Window (Morning, Afternoon, Evening)
 
-A Java Conductor workflow example for time-based triggering .  checking the current time and routing to different jobs based on the time window (morning batch jobs, afternoon reports, evening maintenance tasks).
+A Java Conductor workflow example for time-based triggering. checking the current time and routing to different jobs based on the time window (morning batch jobs, afternoon reports, evening maintenance tasks).
 
 ## The Problem
 
-Different jobs should run at different times of day .  morning is for data ingestion and ETL, afternoon for report generation and distribution, evening for maintenance and cleanup. You need to check the current time window and route to the appropriate job. This is more flexible than cron (which fires at exact times) because it handles late triggers, catch-up runs, and timezone-aware routing.
+Different jobs should run at different times of day. morning is for data ingestion and ETL, afternoon for report generation and distribution, evening for maintenance and cleanup. You need to check the current time window and route to the appropriate job. This is more flexible than cron (which fires at exact times) because it handles late triggers, catch-up runs, and timezone-aware routing.
 
 Without orchestration, time-based routing is hardcoded in cron schedules or manual if/else checks at the top of scripts. When the morning job runs late, it doesn't automatically become an afternoon job. Adding a new time window means restructuring the schedule.
 
@@ -25,7 +25,7 @@ CheckTimeWorker determines the current time window (morning, afternoon, or eveni
 | **EveningJobWorker** | `tb_evening_job` | Runs evening tasks (e.g., cleanup and maintenance), returning the count of files cleaned up |
 | **MorningJobWorker** | `tb_morning_job` | Runs morning tasks (e.g., data sync and ETL), returning the count of records synced |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -129,11 +129,11 @@ conductor workflow search -w time_based_triggers_405 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker runs one time-window job .  connect the morning worker to your ETL pipeline, the afternoon worker to report generation, the evening worker to maintenance scripts, and the check-time-then-route workflow stays the same.
+Each worker runs one time-window job. connect the morning worker to your ETL pipeline, the afternoon worker to report generation, the evening worker to maintenance scripts, and the check-time-then-route workflow stays the same.
 
-- **AfternoonJobWorker** (`tb_afternoon_job`): run afternoon tasks .  generate daily reports, send summary emails, sync CRM data
+- **AfternoonJobWorker** (`tb_afternoon_job`): run afternoon tasks. generate daily reports, send summary emails, sync CRM data
 - **CheckTimeWorker** (`tb_check_time`): determine the time window using configurable hour ranges and timezone support for global teams
-- **EveningJobWorker** (`tb_evening_job`): run evening tasks .  database maintenance, log rotation, cache warm-up for the next day
+- **EveningJobWorker** (`tb_evening_job`): run evening tasks. database maintenance, log rotation, cache warm-up for the next day
 
 Point each time-window worker at your real ETL, reporting, or maintenance systems and the routing logic requires no changes.
 

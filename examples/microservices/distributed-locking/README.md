@@ -12,7 +12,7 @@ Without orchestration, distributed locking is implemented inline with try/finall
 
 **You just write the lock-acquire, critical-section, and lock-release workers. Conductor handles ordered lock lifecycle, crash-safe state so locks are eventually freed, and full audit of lock acquisitions.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers enforce mutual exclusion: AcquireLockWorker obtains a distributed 
 | **ExecuteCriticalWorker** | `dl_execute_critical` | Executes the critical-section operation on the locked resource (e.g., update a shared counter). |
 | **ReleaseLockWorker** | `dl_release_lock` | Releases the distributed lock using the lock token. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

@@ -1,12 +1,12 @@
 # Knowledge Graph RAG in Java Using Conductor :  Graph Traversal + Vector Search for Enriched Context
 
-A Java Conductor workflow that combines knowledge graph traversal with vector similarity search .  extracting entities from the question, running graph traversal and vector search in parallel, merging the structured (graph) and unstructured (vector) results, and generating an answer from the enriched context. The graph provides explicit relationships ("Company X acquired Company Y in 2023") while the vector store provides relevant passages. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate entity extraction, parallel retrieval, context merging, and generation as independent workers ,  you write the graph and search logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that combines knowledge graph traversal with vector similarity search. extracting entities from the question, running graph traversal and vector search in parallel, merging the structured (graph) and unstructured (vector) results, and generating an answer from the enriched context. The graph provides explicit relationships ("Company X acquired Company Y in 2023") while the vector store provides relevant passages. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate entity extraction, parallel retrieval, context merging, and generation as independent workers,  you write the graph and search logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## When Vector Search Alone Misses Relationships
 
 Vector search finds semantically similar text, but it doesn't understand relationships. A question like "Who are the competitors of Company X's parent company?" requires traversing entity relationships (Company X -> parent company -> competitors) that aren't captured in embedding similarity. Knowledge graph RAG extracts entities from the question, traverses the graph to find related entities and facts, and combines those structured results with vector search results for richer context.
 
-The graph traversal and vector search are independent .  they can run in parallel, and their results are complementary (structured facts + relevant passages). After both complete, a merge step combines them into a unified context for generation.
+The graph traversal and vector search are independent. they can run in parallel, and their results are complementary (structured facts + relevant passages). After both complete, a merge step combines them into a unified context for generation.
 
 ## The Solution
 
@@ -16,7 +16,7 @@ Entity extraction runs first. Then Conductor's `FORK_JOIN` runs graph traversal 
 
 ### What You Write: Workers
 
-Five workers combine graph and vector retrieval .  extracting entities from the question, traversing the knowledge graph and searching the vector store in parallel via FORK_JOIN, merging both context types, and generating an answer from the unified graph-plus-vector context.
+Five workers combine graph and vector retrieval. extracting entities from the question, traversing the knowledge graph and searching the vector store in parallel via FORK_JOIN, merging both context types, and generating an answer from the unified graph-plus-vector context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -26,7 +26,7 @@ Five workers combine graph and vector retrieval .  extracting entities from the 
 | **MergeContextWorker** | `kg_merge_context` | Worker that merges context from graph traversal and vector search. Combines graphFacts, graphRelations, and vectorDoc... |
 | **VectorSearchWorker** | `kg_vector_search` | Worker that performs vector similarity search using the question and entity hints. Returns 4 documents with id, text,... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w rag_knowledge_graph_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one retrieval source .  swap in Neo4j or Amazon Neptune for graph traversal, connect a vector store for semantic search, merge structured facts with relevant passages, and the parallel graph-plus-vector pipeline runs unchanged.
+Each worker handles one retrieval source. swap in Neo4j or Amazon Neptune for graph traversal, connect a vector store for semantic search, merge structured facts with relevant passages, and the parallel graph-plus-vector pipeline runs unchanged.
 
 - **ExtractEntitiesWorker** (`kg_extract_entities`): use an NER model (spaCy, Hugging Face NER pipeline) or an LLM (GPT-4, Claude) to extract named entities from the user's question
 - **GraphTraverseWorker** (`kg_graph_traverse`): query a graph database (Neo4j via Cypher, Amazon Neptune via Gremlin, or ArangoDB) starting from extracted entities to discover relationships and facts

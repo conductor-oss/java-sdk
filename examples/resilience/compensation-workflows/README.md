@@ -36,7 +36,7 @@ Three forward workers. CompStepAWorker, CompStepBWorker, and CompStepCWorker. Ex
 | **CompUndoAWorker** | `comp_undo_a` | Compensation: reverses Step A by deleting the created resource. Receives the `original` value from Step A's output. Returns `{undone: true}`. |
 | **CompUndoBWorker** | `comp_undo_b` | Compensation: reverses Step B by removing the inserted record. Receives the `original` value from Step B's output. Returns `{undone: true}`. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflows
 

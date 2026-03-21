@@ -1,18 +1,18 @@
 # Content Moderation Pipeline in Java Using Conductor :  Auto-Check, Toxicity Scoring, Human Review, and Policy Enforcement
 
-A Java Conductor workflow example that orchestrates content moderation .  submitting user content for review, running automated toxicity and policy violation checks with confidence scores, routing via SWITCH to approve safe content, escalate flagged content to human reviewers, or immediately block clearly violating content, and finalizing the decision with an audit log. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates content moderation. submitting user content for review, running automated toxicity and policy violation checks with confidence scores, routing via SWITCH to approve safe content, escalate flagged content to human reviewers, or immediately block clearly violating content, and finalizing the decision with an audit log. Uses [Conductor](https://github.
 
 ## Why Content Moderation Needs Orchestration
 
-Moderating user content requires a decision pipeline with multiple possible outcomes. You receive a submission and queue it. You run automated checks .  toxicity scoring, policy violation detection, confidence assessment. Based on the auto-check results, you route to three different paths: safe content (high confidence, low toxicity) is approved automatically; flagged content (medium confidence, potential violations) goes to a human moderator for manual review; clearly violating content (high toxicity, obvious violations) is blocked immediately with user notification and appeal options.
+Moderating user content requires a decision pipeline with multiple possible outcomes. You receive a submission and queue it. You run automated checks. toxicity scoring, policy violation detection, confidence assessment. Based on the auto-check results, you route to three different paths: safe content (high confidence, low toxicity) is approved automatically; flagged content (medium confidence, potential violations) goes to a human moderator for manual review; clearly violating content (high toxicity, obvious violations) is blocked immediately with user notification and appeal options.
 
-This is exactly the kind of conditional routing that becomes unmanageable in a monolithic system. Each moderation decision involves different downstream actions .  approval publishes the content, human review assigns a moderator and waits for their verdict, blocking notifies the user and records a block ID. Without orchestration, you'd build a monolithic moderation engine with nested if/else chains handling every combination of toxicity scores and confidence levels, mixing ML inference, queue management, human task assignment, and notification logic in one class.
+This is exactly the kind of conditional routing that becomes unmanageable in a monolithic system. Each moderation decision involves different downstream actions. approval publishes the content, human review assigns a moderator and waits for their verdict, blocking notifies the user and records a block ID. Without orchestration, you'd build a monolithic moderation engine with nested if/else chains handling every combination of toxicity scores and confidence levels, mixing ML inference, queue management, human task assignment, and notification logic in one class.
 
 ## How This Workflow Solves It
 
 **You just write the moderation workers. Content submission, auto-check scoring, human review, blocking, and finalization. Conductor handles three-way SWITCH routing, ML service retries, and a tamper-evident audit log for every moderation decision.**
 
-Each moderation concern is an independent worker .  submit content, auto-check, approve, human review, block, finalize. Conductor sequences the initial submission and auto-check, then uses a SWITCH task to route to the correct action based on the moderation verdict. Every decision is recorded in the audit log, and adding a new moderation outcome (e.g., "restrict visibility") means adding a new SWITCH case and worker.
+Each moderation concern is an independent worker. submit content, auto-check, approve, human review, block, finalize. Conductor sequences the initial submission and auto-check, then uses a SWITCH task to route to the correct action based on the moderation verdict. Every decision is recorded in the audit log, and adding a new moderation outcome (e.g., "restrict visibility") means adding a new SWITCH case and worker.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Six workers cover the moderation lifecycle: SubmitContentWorker queues submissio
 | **HumanReviewWorker** | `mod_human_review` | Handles human review |
 | **SubmitContentWorker** | `mod_submit_content` | Handles submit content |
 
-Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
+Workers implement media processing stages. transcoding, thumbnail generation, metadata extraction,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
 ### The Workflow
 

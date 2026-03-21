@@ -26,7 +26,7 @@ Five workers handle the parallel export pipeline: preparing the data from a sour
 | **ExportJsonWorker** | `dx_export_json` | Exports data to JSON format. |
 | **PrepareDataWorker** | `dx_prepare_data` | Prepares data for export by querying the data source. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

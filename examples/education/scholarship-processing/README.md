@@ -1,18 +1,18 @@
 # Scholarship Processing in Java with Conductor :  Application, Evaluation, Ranking, Award, and Notification
 
-A Java Conductor workflow example for scholarship processing .  accepting student applications, evaluating them based on GPA and financial need, ranking applicants competitively, awarding the scholarship to qualified recipients, and notifying students of the outcome. Uses [Conductor](https://github.
+A Java Conductor workflow example for scholarship processing. accepting student applications, evaluating them based on GPA and financial need, ranking applicants competitively, awarding the scholarship to qualified recipients, and notifying students of the outcome. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to process scholarship applications from submission to award. A student applies for a specific scholarship, the financial aid office evaluates their eligibility based on GPA and demonstrated financial need, applicants are ranked against the competition, an award decision is made based on ranking and available funds, and the student is notified whether they received the scholarship and for how much. Awarding without proper evaluation risks compliance violations; ranking without consistent criteria leads to unfair outcomes.
 
-Without orchestration, you'd build a single batch-processing script that pulls applications from a database, scores them inline, sorts by rank, updates award status, and sends notification emails .  manually handling ties in ranking, retrying failed email deliveries, and logging every decision to satisfy audit requirements from donors and federal financial aid regulations.
+Without orchestration, you'd build a single batch-processing script that pulls applications from a database, scores them inline, sorts by rank, updates award status, and sends notification emails. manually handling ties in ranking, retrying failed email deliveries, and logging every decision to satisfy audit requirements from donors and federal financial aid regulations.
 
 ## The Solution
 
 **You just write the application intake, eligibility evaluation, competitive ranking, award decision, and student notification logic. Conductor handles financial analysis retries, award routing, and application audit trails.**
 
-Each scholarship concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (apply, evaluate, rank, award, notify), retrying if the financial aid system is temporarily unavailable, maintaining a complete audit trail of every application's journey from submission to decision, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each scholarship concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (apply, evaluate, rank, award, notify), retrying if the financial aid system is temporarily unavailable, maintaining a complete audit trail of every application's journey from submission to decision, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Application review, financial analysis, award determination, and disbursement wo
 | **AwardWorker** | `scp_award` | Decides whether to award the scholarship based on rank and available funds |
 | **NotifyWorker** | `scp_notify` | Notifies the student of the award decision and amount |
 
-Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
+Workers implement educational operations. enrollment, grading, notifications,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w scp_scholarship_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real financial aid stack .  your aid system (PowerFAIDS, Banner) for applications, FAFSA/ISIR data for need verification, your packaging system for fund allocation, and the workflow runs identically in production.
+Connect each worker to your real financial aid stack. your aid system (PowerFAIDS, Banner) for applications, FAFSA/ISIR data for need verification, your packaging system for fund allocation, and the workflow runs identically in production.
 
 - **ApplyWorker** (`scp_apply`): persist the application to your financial aid system (PowerFAIDS, Banner Financial Aid) and validate required documents
 - **EvaluateWorker** (`scp_evaluate`): pull verified GPA from your SIS, check FAFSA/ISIR data for financial need, and apply scholarship-specific eligibility rules

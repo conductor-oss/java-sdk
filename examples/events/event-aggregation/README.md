@@ -6,13 +6,13 @@ Event Aggregation Pipeline: collect events from a time window, aggregate metrics
 
 You need to aggregate events from a time window into summary metrics. The pipeline must collect all events within a specified window, compute aggregate statistics (counts, sums, averages, percentiles), generate a human-readable summary report, and publish the aggregated batch downstream. Without aggregation, downstream systems are overwhelmed by high-volume raw events; without windowing, you lose temporal context.
 
-Without orchestration, you'd build a stateful aggregation service with in-memory buffers, manual window management, and ad-hoc metric calculations .  handling buffer overflows when event volume spikes, recovering lost state after crashes, and debugging why a window's metrics do not add up.
+Without orchestration, you'd build a stateful aggregation service with in-memory buffers, manual window management, and ad-hoc metric calculations. handling buffer overflows when event volume spikes, recovering lost state after crashes, and debugging why a window's metrics do not add up.
 
 ## The Solution
 
 **You just write the event-collection, metrics-aggregation, summary-generation, and batch-publish workers. Conductor handles window lifecycle management, retry on publish failure, and a durable record of every aggregation window.**
 
-Each aggregation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect, aggregate, summarize, publish), retrying if the downstream publish fails, tracking every aggregation window with full input/output details, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each aggregation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect, aggregate, summarize, publish), retrying if the downstream publish fails, tracking every aggregation window with full input/output details, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers drive the aggregation pipeline: CollectEventsWorker gathers events 
 | **GenerateSummaryWorker** | `eg_generate_summary` | Generates a human-readable summary report from the aggregated metrics, including highlights and a destination for the... |
 | **PublishBatchWorker** | `eg_publish_batch` | Publishes the aggregated summary batch to the configured destination. Returns a fixed batch ID and publish timestamp. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

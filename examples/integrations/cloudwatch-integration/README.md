@@ -1,10 +1,10 @@
 # Cloudwatch Integration in Java Using Conductor
 
-A Java Conductor workflow that sets up CloudWatch monitoring .  publishing a custom metric, creating an alarm with a threshold, checking the alarm status against the current value, and sending a notification if the alarm triggers. Given a namespace, metric name, value, threshold, and notification email, the pipeline produces a published metric, alarm ARN, alarm state, and notification status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the metric-alarm-check-notify pipeline.
+A Java Conductor workflow that sets up CloudWatch monitoring. publishing a custom metric, creating an alarm with a threshold, checking the alarm status against the current value, and sending a notification if the alarm triggers. Given a namespace, metric name, value, threshold, and notification email, the pipeline produces a published metric, alarm ARN, alarm state, and notification status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the metric-alarm-check-notify pipeline.
 
 ## Setting Up Metric Monitoring with Alerting
 
-CloudWatch monitoring involves a chain of dependent steps: publish a metric data point, create an alarm that watches that metric against a threshold, evaluate whether the current value triggers the alarm, and send a notification if it does. Each step depends on the previous one .  you cannot create an alarm without a metric namespace, and you cannot notify without knowing the alarm state.
+CloudWatch monitoring involves a chain of dependent steps: publish a metric data point, create an alarm that watches that metric against a threshold, evaluate whether the current value triggers the alarm, and send a notification if it does. Each step depends on the previous one. you cannot create an alarm without a metric namespace, and you cannot notify without knowing the alarm state.
 
 Without orchestration, you would chain CloudWatch API calls manually, manage alarm ARNs between steps, and build custom notification logic. Conductor sequences the four steps and routes metric names, alarm ARNs, and alarm states between them automatically.
 
@@ -20,12 +20,12 @@ Four workers build the monitoring pipeline: PutMetricWorker publishes data point
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **PutMetricWorker** | `cw_put_metric` | Publishes a metric data point to CloudWatch .  writes the value to the specified namespace and metric name, returns published=true |
-| **CreateAlarmWorker** | `cw_create_alarm` | Creates a CloudWatch alarm .  sets up monitoring for the metric against the specified threshold and returns the alarmName and alarm ARN |
-| **CheckStatusWorker** | `cw_check_status` | Checks the alarm status .  evaluates the current metric value against the alarm threshold and returns the alarm state (OK or ALARM) |
-| **CwNotifyWorker** | `cw_notify` | Sends an alarm notification .  dispatches an alert email to the notifyEmail address with the alarm name and state (triggered only when the alarm is in ALARM state) |
+| **PutMetricWorker** | `cw_put_metric` | Publishes a metric data point to CloudWatch. writes the value to the specified namespace and metric name, returns published=true |
+| **CreateAlarmWorker** | `cw_create_alarm` | Creates a CloudWatch alarm. sets up monitoring for the metric against the specified threshold and returns the alarmName and alarm ARN |
+| **CheckStatusWorker** | `cw_check_status` | Checks the alarm status. evaluates the current metric value against the alarm threshold and returns the alarm state (OK or ALARM) |
+| **CwNotifyWorker** | `cw_notify` | Sends an alarm notification. dispatches an alert email to the notifyEmail address with the alarm name and state (triggered only when the alarm is in ALARM state) |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

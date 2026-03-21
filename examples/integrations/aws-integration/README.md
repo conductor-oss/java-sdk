@@ -1,10 +1,10 @@
 # AWS Integration in Java Using Conductor
 
-A Java Conductor workflow that coordinates writes across three AWS services in parallel .  uploading an object to S3, writing an item to DynamoDB, and publishing a notification to SNS ,  then verifying all three completed successfully. Uses a FORK_JOIN to run the three service calls simultaneously, followed by a verification step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parallel fan-out and verification.
+A Java Conductor workflow that coordinates writes across three AWS services in parallel. uploading an object to S3, writing an item to DynamoDB, and publishing a notification to SNS,  then verifying all three completed successfully. Uses a FORK_JOIN to run the three service calls simultaneously, followed by a verification step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parallel fan-out and verification.
 
 ## Writing to Multiple AWS Services Reliably
 
-When an event arrives, you often need to persist it across multiple AWS services simultaneously .  store the raw payload in S3 for archival, write a record to DynamoDB for querying, and publish a notification to SNS for downstream consumers. These three operations are independent of each other and can run in parallel, but all three must succeed for the operation to be considered complete. If any one fails, you need visibility into which service failed and the ability to retry just that step.
+When an event arrives, you often need to persist it across multiple AWS services simultaneously. store the raw payload in S3 for archival, write a record to DynamoDB for querying, and publish a notification to SNS for downstream consumers. These three operations are independent of each other and can run in parallel, but all three must succeed for the operation to be considered complete. If any one fails, you need visibility into which service failed and the ability to retry just that step.
 
 Without orchestration, you would manage three async calls manually, implement your own fan-out/join logic, handle partial failures, and build retry loops for each service. Conductor's FORK_JOIN handles all of this declaratively.
 
@@ -20,12 +20,12 @@ Four workers coordinate AWS writes: AwsS3UploadWorker stores objects, AwsDynamoD
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **AwsS3UploadWorker** | `aws_s3_upload` | Uploads the payload to S3 .  stores the object at `data/{id}.json` in the specified bucket and returns the s3Key |
-| **AwsDynamoDbWriteWorker** | `aws_dynamodb_write` | Writes the payload as a DynamoDB item .  inserts the document into the specified table and returns the itemId |
-| **AwsSnsNotifyWorker** | `aws_sns_notify` | Publishes a notification to SNS .  sends the payload as a message to the specified topicArn and returns the messageId |
-| **AwsVerifyWorker** | `aws_verify` | Verifies all three services completed .  checks the s3Key, DynamoDB itemId, and SNS messageId from the parallel branches and confirms the fan-out succeeded |
+| **AwsS3UploadWorker** | `aws_s3_upload` | Uploads the payload to S3. stores the object at `data/{id}.json` in the specified bucket and returns the s3Key |
+| **AwsDynamoDbWriteWorker** | `aws_dynamodb_write` | Writes the payload as a DynamoDB item. inserts the document into the specified table and returns the itemId |
+| **AwsSnsNotifyWorker** | `aws_sns_notify` | Publishes a notification to SNS. sends the payload as a message to the specified topicArn and returns the messageId |
+| **AwsVerifyWorker** | `aws_verify` | Verifies all three services completed. checks the s3Key, DynamoDB itemId, and SNS messageId from the parallel branches and confirms the fan-out succeeded |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

@@ -25,7 +25,7 @@ Four workers form the citation lifecycle. Document retrieval, cited answer gener
 | **ExtractCitationsWorker** | `cr_extract_citations` | Parses the generated answer text for citation markers, checks whether each marker actually appears in the answer, and reports the count of citations found vs, claimed |
 | **VerifyCitationsWorker** | `cr_verify_citations` | Cross-references each citation's `docId` against the retrieved document set, flagging any citation that references a non-existent document; returns per-citation verification status and an `allVerified` boolean |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 
 ### The Workflow
 

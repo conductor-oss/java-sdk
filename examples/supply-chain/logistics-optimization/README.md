@@ -1,6 +1,6 @@
 # Logistics Optimization in Java with Conductor :  Demand Analysis, Route Optimization, Vehicle Scheduling, and Fleet Dispatch
 
-A Java Conductor workflow example for logistics optimization .  analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.
+A Java Conductor workflow example for logistics optimization. analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, the logistics planner manually groups orders by region, e
 
 **You just write the logistics workers. Demand analysis, route computation, vehicle scheduling, and fleet dispatch. Conductor handles data flow between stages, optimizer retries on timeout, and recorded route solutions for continuous improvement.**
 
-Each phase of the logistics optimization pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so demand analysis feeds route optimization, optimized routes drive vehicle scheduling, and scheduling results determine dispatch assignments. If the route optimizer times out on a large order set, Conductor retries without re-analyzing demand. Every demand cluster, route solution, schedule assignment, and dispatch confirmation is recorded for cost analysis and continuous improvement.
+Each phase of the logistics optimization pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so demand analysis feeds route optimization, optimized routes drive vehicle scheduling, and scheduling results determine dispatch assignments. If the route optimizer times out on a large order set, Conductor retries without re-analyzing demand. Every demand cluster, route solution, schedule assignment, and dispatch confirmation is recorded for cost analysis and continuous improvement.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers optimize the logistics pipeline: AnalyzeDemandWorker clusters order
 | **OptimizeRoutesWorker** | `lo_optimize_routes` | Computes optimal delivery routes across all delivery points to minimize total mileage. |
 | **ScheduleWorker** | `lo_schedule` | Schedules vehicles based on load capacity, driver hours-of-service, and time windows. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

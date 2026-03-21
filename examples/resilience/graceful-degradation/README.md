@@ -35,7 +35,7 @@ CoreProcessWorker handles the required order creation that must always succeed, 
 | **AnalyticsWorker** | `gd_analytics` | Optional analytics tracking step. When `available=true` (or not specified), returns `{tracked: true}`. When `available=false`, returns `{tracked: false}` (simulating the analytics service being down). |
 | **FinalizeWorker** | `gd_finalize` | Checks enrichment and analytics results. Sets `degraded=true` if either `enriched` or `analytics` is false. Returns `{enriched, analytics, degraded}`. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 

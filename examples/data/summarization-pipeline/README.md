@@ -1,18 +1,18 @@
 # Summarization Pipeline in Java with Conductor :  Extract Sections, Compress, and Generate Summaries
 
-A Java Conductor workflow that summarizes long documents .  extracting logical sections from the input, compressing each section to its key points, and generating a cohesive summary within a specified maximum length. Given a `document` and `maxLength`, the pipeline produces extracted sections, compressed content, and a final summary. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the three-step summarization pipeline.
+A Java Conductor workflow that summarizes long documents. extracting logical sections from the input, compressing each section to its key points, and generating a cohesive summary within a specified maximum length. Given a `document` and `maxLength`, the pipeline produces extracted sections, compressed content, and a final summary. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the three-step summarization pipeline.
 
 ## Turning Long Documents into Actionable Summaries
 
-Long documents .  reports, articles, meeting transcripts, legal filings ,  contain important information buried in pages of text. Reading every word is impractical when you need the key points. Effective summarization requires structure: first identify the document's logical sections (introduction, findings, recommendations), then compress each section to its essential points, and finally generate a cohesive summary that stays within a target length.
+Long documents. reports, articles, meeting transcripts, legal filings,  contain important information buried in pages of text. Reading every word is impractical when you need the key points. Effective summarization requires structure: first identify the document's logical sections (introduction, findings, recommendations), then compress each section to its essential points, and finally generate a cohesive summary that stays within a target length.
 
-This workflow processes a document through three summarization steps. The section extractor identifies logical segments in the text. The compressor reduces each section to its key points while preserving meaning. The summary generator combines the compressed sections into a final summary that respects the `maxLength` constraint. Each step builds on the previous one .  you cannot compress sections that have not been identified, and you cannot generate a summary without compressed content.
+This workflow processes a document through three summarization steps. The section extractor identifies logical segments in the text. The compressor reduces each section to its key points while preserving meaning. The summary generator combines the compressed sections into a final summary that respects the `maxLength` constraint. Each step builds on the previous one. you cannot compress sections that have not been identified, and you cannot generate a summary without compressed content.
 
 ## The Solution
 
 **You just write the section-extraction, compression, and summary-generation workers. Conductor handles the summarization pipeline and content flow.**
 
-Three workers form the summarization pipeline .  section extraction, compression, and summary generation. The extractor identifies logical document sections. The compressor reduces each section to its essential points. The generator produces a final summary within the specified length. Conductor sequences the three steps and passes sections and compressed content between them via JSONPath.
+Three workers form the summarization pipeline. section extraction, compression, and summary generation. The extractor identifies logical document sections. The compressor reduces each section to its essential points. The generator produces a final summary within the specified length. Conductor sequences the three steps and passes sections and compressed content between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ ExtractSectionsWorker identifies logical document segments, CompressWorker reduc
 | **ExtractSectionsWorker** | `sum_extract_sections` | Identifies and extracts logical sections (intro, findings, recommendations, etc.) from the input document. |
 | **GenerateSummaryWorker** | `sum_generate_summary` | Combines compressed sections into a final cohesive summary within the specified maximum length. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -128,7 +128,7 @@ conductor workflow search -w sum_summarization_pipeline -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one summarization stage .  connect your LLM (Claude, GPT-4) for section compression and final generation, and the summarization workflow stays the same.
+Each worker handles one summarization stage. connect your LLM (Claude, GPT-4) for section compression and final generation, and the summarization workflow stays the same.
 
 - **CompressWorker** (`sum_compress`): use an LLM (GPT-4, Claude) for intelligent content compression that preserves key details
 - **ExtractSectionsWorker** (`sum_extract_sections`): integrate with document parsers (Apache Tika, PDF.js) for real section extraction from PDFs and Word docs

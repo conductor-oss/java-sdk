@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating E Discovery. Uses [Conductor](ht
 
 Litigation is underway and opposing counsel has served discovery requests. You need to identify relevant data sources (email, Slack), collect 45,000+ items totaling 120 GB, de-duplicate and process them down to 28,000 unique documents, have attorneys review for responsiveness and privilege (8,500 responsive, 320 privileged), and produce the final set to opposing counsel. Each stage depends on the prior one, and a missed step can lead to spoliation sanctions or waiver of privilege.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Data collection, processing, review, and production workers handle electronic di
 | **ReviewWorker** | `edc_review` | Runs attorney review on processed documents, classifying 8,500 as responsive and flagging 320 as privileged |
 | **ProduceWorker** | `edc_produce` | Packages the final production set (8,180 non-privileged responsive documents) in the agreed-upon format for delivery to opposing counsel |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 

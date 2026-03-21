@@ -1,10 +1,10 @@
 # EHR Integration in Java Using Conductor :  Patient Record Query, Cross-System Merge, Validation, and Master Record Update
 
-A Java Conductor workflow example for EHR integration .  querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.
+A Java Conductor workflow example for EHR integration. querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to integrate patient records across multiple EHR systems. When a patient has data in more than one system (e.g., hospital Epic, clinic Cerner, lab system), the records must be queried by patient ID, merged into a unified view that reconciles demographics, medications, allergies, and diagnoses, validated against data quality rules (missing fields, conflicting entries, duplicate records), and then written back to the master patient index. Each step depends on the previous one .  you cannot merge without querying, and you cannot update the master record with unvalidated data. A bad merge that promotes incorrect allergy data or drops a medication can directly harm the patient.
+You need to integrate patient records across multiple EHR systems. When a patient has data in more than one system (e.g., hospital Epic, clinic Cerner, lab system), the records must be queried by patient ID, merged into a unified view that reconciles demographics, medications, allergies, and diagnoses, validated against data quality rules (missing fields, conflicting entries, duplicate records), and then written back to the master patient index. Each step depends on the previous one. you cannot merge without querying, and you cannot update the master record with unvalidated data. A bad merge that promotes incorrect allergy data or drops a medication can directly harm the patient.
 
 Without orchestration, you'd build a monolithic ETL service that queries each source system, runs the merge logic, validates the output, and writes to the master record. If one EHR system is down during the query phase, you'd need to retry without re-querying systems that already responded. If the process crashes after merging but before validation, you'd have an unvalidated record in an intermediate state. HIPAA and Meaningful Use require a complete audit trail of every data exchange for compliance.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic ETL service that queries each so
 
 **You just write the EHR integration workers. Patient record query, cross-system merge, validation, and master record update. Conductor handles pipeline ordering, automatic retries when an EHR endpoint is temporarily down, and a healthcare-pattern audit trail of every data exchange.**
 
-Each stage of the integration pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of querying before merging, validating before updating, retrying if an EHR endpoint is temporarily unavailable, and maintaining a healthcare-pattern audit trail of every data exchange. You get all of that, without writing a single line of orchestration code.
+Each stage of the integration pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of querying before merging, validating before updating, retrying if an EHR endpoint is temporarily unavailable, and maintaining a healthcare-pattern audit trail of every data exchange. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the integration pipeline: QueryPatientWorker pulls records f
 | **ValidateRecordWorker** | `ehr_validate` | Validates the merged record for completeness, consistency, and data quality (missing fields, duplicates, conflicts) |
 | **UpdateRecordWorker** | `ehr_update` | Writes the validated, merged record to the master patient index |
 
-Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
+Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations. the workflow and compliance logic stay the same.
 
 ### The Workflow
 

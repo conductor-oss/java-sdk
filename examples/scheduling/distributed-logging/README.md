@@ -1,6 +1,6 @@
 # Distributed Logging in Java Using Conductor :  Multi-Service Log Collection and Correlation
 
-A Java Conductor workflow example for distributed logging .  collecting logs from multiple services in parallel via FORK/JOIN, then correlating them by trace ID into a unified timeline for debugging distributed transactions.
+A Java Conductor workflow example for distributed logging. collecting logs from multiple services in parallel via FORK/JOIN, then correlating them by trace ID into a unified timeline for debugging distributed transactions.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, log correlation is a manual process using grep across mul
 
 **You just write the log collection queries and trace correlation logic. Conductor handles parallel log collection across services, retries when individual log stores are slow, and timing data showing how long each service's collection took.**
 
-Conductor's FORK/JOIN collects logs from all three services in parallel .  if one service's log store is slow, the others don't wait. A correlation worker then stitches the logs together by trace ID into a unified timeline. Every collection and correlation run is tracked with timing ,  you can see which services responded and how long each took. You get all of that, without writing a single line of orchestration code.
+Conductor's FORK/JOIN collects logs from all three services in parallel. if one service's log store is slow, the others don't wait. A correlation worker then stitches the logs together by trace ID into a unified timeline. Every collection and correlation run is tracked with timing,  you can see which services responded and how long each took. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Three per-service collectors (CollectSvc1Worker, CollectSvc2Worker, CollectSvc3W
 | **CollectSvc3Worker** | `dg_collect_svc3` | Collects logs from service 3 for a given trace ID, returning the log count |
 | **CorrelateWorker** | `dg_correlate` | Correlates logs from all three services by trace ID into a unified timeline, identifying the request flow across services |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -130,11 +130,11 @@ conductor workflow search -w distributed_logging_415 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one logging concern .  connect the service log collectors to Elasticsearch or CloudWatch Logs, the correlator to stitch entries by trace ID, and the parallel-collect-then-correlate workflow stays the same.
+Each worker handles one logging concern. connect the service log collectors to Elasticsearch or CloudWatch Logs, the correlator to stitch entries by trace ID, and the parallel-collect-then-correlate workflow stays the same.
 
 - **CollectSvc1Worker** (`dg_collect_svc1`): query Elasticsearch, CloudWatch Logs, or Splunk for service 1's logs filtered by trace ID and time range
-- **CollectSvc2Worker** (`dg_collect_svc2`): query the second service's log store .  potentially a different system or region
-- **CollectSvc3Worker** (`dg_collect_svc3`): query the third service's log store .  may use a different log format requiring parsing
+- **CollectSvc2Worker** (`dg_collect_svc2`): query the second service's log store. potentially a different system or region
+- **CollectSvc3Worker** (`dg_collect_svc3`): query the third service's log store. may use a different log format requiring parsing
 
 Point each collector at your real log backends (Elasticsearch, CloudWatch, Splunk), and the parallel collection and correlation pipeline runs unchanged.
 

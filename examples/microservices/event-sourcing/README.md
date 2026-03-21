@@ -12,7 +12,7 @@ Without orchestration, the validate-append-rebuild-publish pipeline is implement
 
 **You just write the event validation, append, state-rebuild, and publish workers. Conductor handles append ordering, state-rebuild retry on failure, and a durable record of every event lifecycle.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers maintain the event-sourced aggregate: ValidateEventWorker checks bu
 | **RebuildStateWorker** | `es_rebuild_state` | Replays all events for the aggregate to rebuild the current state (e.g., balance, status). |
 | **ValidateEventWorker** | `es_validate_event` | Validates the incoming event against business rules for the aggregate and produces a timestamped event payload. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

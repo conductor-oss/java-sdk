@@ -1,10 +1,10 @@
 # Email Agent in Java Using Conductor :  Analyze Intent, Draft, Review Tone, Send
 
-Email Agent .  analyze request, draft email, review tone, and send through a sequential pipeline. Uses [Conductor](https://github.
+Email Agent. analyze request, draft email, review tone, and send through a sequential pipeline. Uses [Conductor](https://github.
 
 ## Writing the Right Email in the Right Tone
 
-"Send a follow-up to Sarah about the Q4 proposal, keep it professional but warm." This requires understanding the intent (follow-up), identifying the context (Q4 proposal discussion), drafting content that addresses the topic, and then separately reviewing the tone .  is it actually professional but warm, or did it come across as cold and transactional?
+"Send a follow-up to Sarah about the Q4 proposal, keep it professional but warm." This requires understanding the intent (follow-up), identifying the context (Q4 proposal discussion), drafting content that addresses the topic, and then separately reviewing the tone. is it actually professional but warm, or did it come across as cold and transactional?
 
 Tone review is a separate cognitive task from drafting. The same content can be delivered in drastically different tones, and getting the tone wrong (too casual in a formal context, too stiff in a friendly exchange) undermines the message. By separating drafting from tone review, you can iterate on tone without regenerating the entire email, and you can catch tone mismatches before sending.
 
@@ -25,7 +25,7 @@ Four workers handle the email workflow. Analyzing the request intent, drafting t
 | **ReviewToneWorker** | `ea_review_tone` | Reviews the drafted email's tone against the desired tone. Returns a tone score, approval status, analysis breakdown,... |
 | **SendEmailWorker** | `ea_send_email` | Simulates sending the approved email. Returns a fixed message ID, timestamp, and delivery status. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 
@@ -144,7 +144,7 @@ Plug in an LLM for drafting and a real SMTP/SES sender; the email pipeline keeps
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
 
-A Java Conductor workflow that handles email composition end-to-end .  analyzing the user's intent and context, drafting the email with appropriate content, reviewing and adjusting the tone (formal, friendly, urgent), and sending the final version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step email pipeline as independent workers ,  you write the drafting and tone-review logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that handles email composition end-to-end. analyzing the user's intent and context, drafting the email with appropriate content, reviewing and adjusting the tone (formal, friendly, urgent), and sending the final version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step email pipeline as independent workers,  you write the drafting and tone-review logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Project Structure
 

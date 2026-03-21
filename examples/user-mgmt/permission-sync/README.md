@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Permission Sync. Uses [Conductor
 
 Your identity provider is the source of truth for user permissions, but roles and access levels have drifted out of sync with downstream systems. The operations team needs to scan the source system and all target systems to capture current permission states, diff the permissions to identify discrepancies (missing roles, extra grants), apply the corrections to bring targets into alignment, and verify that all systems now match the source of truth. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ ScanSystemsWorker captures permission states from source and targets, DiffWorker
 | **SyncWorker** | `pms_sync` | Applies the detected permission changes to target systems, tracking success and failure counts |
 | **VerifyWorker** | `pms_verify` | Re-checks all systems to confirm permissions are now in sync, recording the verification timestamp |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w pms_permission_sync -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one sync step .  connect your identity provider (Okta, Azure AD) as the source of truth and your downstream systems (database ACLs, API gateway, SaaS apps) as targets, and the permission-sync workflow stays the same.
+Each worker handles one sync step. connect your identity provider (Okta, Azure AD) as the source of truth and your downstream systems (database ACLs, API gateway, SaaS apps) as targets, and the permission-sync workflow stays the same.
 
 - **ScanSystemsWorker** (`pms_scan_systems`): query role and permission data from your identity provider (Auth0, Okta, Cognito) and target systems (database ACLs, API gateway policies, cloud IAM)
 - **DiffWorker** (`pms_diff`): compare permission sets between source and targets, identifying missing grants, stale permissions, and role mismatches

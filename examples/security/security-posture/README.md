@@ -1,12 +1,12 @@
 # Implementing Security Posture Assessment in Java with Conductor :  Infrastructure, Application, and Compliance Scoring
 
-A Java Conductor workflow example for security posture assessment .  evaluating infrastructure security, application security, and compliance status in parallel via FORK/JOIN, then computing a unified security posture score.
+A Java Conductor workflow example for security posture assessment. evaluating infrastructure security, application security, and compliance status in parallel via FORK/JOIN, then computing a unified security posture score.
 
 ## The Problem
 
-You need a unified view of your organization's security posture .  not just infrastructure (firewalls, encryption, patching) or application security (code vulnerabilities, dependency risks) or compliance (SOC2, HIPAA controls) in isolation, but all three combined into a single score that executives can understand and track over time.
+You need a unified view of your organization's security posture. not just infrastructure (firewalls, encryption, patching) or application security (code vulnerabilities, dependency risks) or compliance (SOC2, HIPAA controls) in isolation, but all three combined into a single score that executives can understand and track over time.
 
-Without orchestration, security posture is measured in silos .  the infrastructure team has their metrics, the application security team has theirs, and compliance has a separate assessment. Nobody can answer "how secure are we overall?" because the data isn't consolidated.
+Without orchestration, security posture is measured in silos. the infrastructure team has their metrics, the application security team has theirs, and compliance has a separate assessment. Nobody can answer "how secure are we overall?" because the data isn't consolidated.
 
 ## The Solution
 
@@ -20,12 +20,12 @@ Four domain-specific assessors run in parallel: AssessInfrastructureWorker evalu
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **AssessApplicationWorker** | `sp_assess_application` | Scores application security .  counts critical vulnerabilities in production code and dependencies |
+| **AssessApplicationWorker** | `sp_assess_application` | Scores application security. counts critical vulnerabilities in production code and dependencies |
 | **AssessComplianceWorker** | `sp_assess_compliance` | Scores compliance status against frameworks (SOC2, HIPAA) and flags overdue reviews |
-| **AssessInfrastructureWorker** | `sp_assess_infrastructure` | Scores infrastructure security .  evaluates firewall rules, encryption, and patching gaps |
+| **AssessInfrastructureWorker** | `sp_assess_infrastructure` | Scores infrastructure security. evaluates firewall rules, encryption, and patching gaps |
 | **CalculateScoreWorker** | `sp_calculate_score` | Computes a unified security posture score (letter grade and numeric) from all domain assessments |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,11 +132,11 @@ conductor workflow search -w security_posture_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker assesses one security domain .  connect AssessInfrastructureWorker to AWS Config, AssessApplicationWorker to your SAST/DAST tools, AssessComplianceWorker to your GRC platform, and the parallel assessment workflow stays the same.
+Each worker assesses one security domain. connect AssessInfrastructureWorker to AWS Config, AssessApplicationWorker to your SAST/DAST tools, AssessComplianceWorker to your GRC platform, and the parallel assessment workflow stays the same.
 
 - **AssessApplicationWorker** (`sp_assess_application`): assess application security. SAST/DAST findings, dependency vulnerabilities, security header configuration
 - **AssessComplianceWorker** (`sp_assess_compliance`): check compliance status against SOC2, HIPAA, PCI-DSS, or ISO 27001 using your GRC platform or manual controls
-- **AssessInfrastructureWorker** (`sp_assess_infrastructure`): evaluate real infrastructure security .  firewall rules, encryption at rest/transit, patching status, network segmentation
+- **AssessInfrastructureWorker** (`sp_assess_infrastructure`): evaluate real infrastructure security. firewall rules, encryption at rest/transit, patching status, network segmentation
 
 Connect each assessor to your real security tools, and the parallel assessment-to-score pipeline continues functioning unmodified.
 
@@ -172,6 +172,6 @@ security-posture-security-posture/
 │       ├── AssessInfrastructureWorker.java
 │       └── CalculateScoreWorker.java
 └── src/test/java/securityposture/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

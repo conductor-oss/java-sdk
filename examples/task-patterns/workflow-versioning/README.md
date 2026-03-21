@@ -1,6 +1,6 @@
 # Workflow Versioning in Java with Conductor
 
-Run multiple versions of the same workflow side by side .  version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.
+Run multiple versions of the same workflow side by side. version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -24,7 +24,7 @@ Three workers support side-by-side workflow versioning: VerCalcWorker performs a
 | **VerBonusWorker** | `ver_bonus` | Bonus worker for the versioned workflow. Takes a base result and adds 10. |
 | **VerCalcWorker** | `ver_calc` | Calculation worker for the versioned workflow. Takes a numeric value and returns value * 2. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

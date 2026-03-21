@@ -6,13 +6,13 @@ Webhook delivery workflow with DO_WHILE retry loop. Prepares the webhook, attemp
 
 You need to deliver webhook payloads to external URLs with automatic retry on failure. The workflow prepares the webhook payload, attempts delivery to the target URL, and retries up to a configurable number of times with backoff if delivery fails (network error, timeout, non-2xx response). After all attempts, the final outcome is recorded. Without retry, transient network issues cause permanent webhook delivery failures.
 
-Without orchestration, you'd build a retry loop with exponential backoff, manually tracking attempt counts, handling different failure modes (connection refused vs. 500 vs: timeout), and persisting delivery status .  hoping the retry process itself does not crash and lose track of pending deliveries.
+Without orchestration, you'd build a retry loop with exponential backoff, manually tracking attempt counts, handling different failure modes (connection refused vs. 500 vs: timeout), and persisting delivery status. hoping the retry process itself does not crash and lose track of pending deliveries.
 
 ## The Solution
 
 **You just write the payload-prepare, delivery-attempt, result-check, and outcome-recording workers. Conductor handles DO_WHILE retry loops, durable delivery state across attempts, and a complete record of every delivery attempt and final outcome.**
 
-Each delivery concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of preparing the payload, attempting delivery in a DO_WHILE retry loop, checking each result, and recording the final outcome ,  with durable state that survives crashes and full visibility into every delivery attempt. You get all of that, without writing a single line of orchestration code.
+Each delivery concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of preparing the payload, attempting delivery in a DO_WHILE retry loop, checking each result, and recording the final outcome,  with durable state that survives crashes and full visibility into every delivery attempt. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage retry-based delivery: PrepareWebhookWorker packages the payl
 | **PrepareWebhookWorker** | `wr_prepare_webhook` | Prepares webhook delivery by validating and packaging the URL and payload. |
 | **RecordOutcomeWorker** | `wr_record_outcome` | Records the final outcome of the webhook delivery process. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

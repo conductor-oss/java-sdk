@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Regulatory Filing. Uses [Conduct
 
 A regulatory filing deadline is approaching. You need to prepare the filing package with required disclosures and attachments for the specific entity and jurisdiction, validate that the package meets all regulatory requirements (no missing fields or documents), submit it to the regulatory body, track the submission through processing (typically 15 days), and confirm receipt. A missed or defective filing can trigger penalties, enforcement actions, or loss of business licenses.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Data compilation, form population, validation, and submission workers each handl
 | **TrackWorker** | `rgf_track` | Monitors the submission status (e.g., "received") and reports the estimated processing time (15 days) |
 | **ConfirmWorker** | `rgf_confirm` | Confirms the filing was accepted by the regulatory body, generating a confirmation number (CNF-{timestamp}) and a confirmed flag |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w rgf_regulatory_filing -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real regulatory systems .  your compliance platform for requirement tracking, your document generator for filing preparation, the regulator's submission portal for filing, and the workflow runs identically in production.
+Connect each worker to your real regulatory systems. your compliance platform for requirement tracking, your document generator for filing preparation, the regulator's submission portal for filing, and the workflow runs identically in production.
 
 - **PrepareWorker** (`rgf_prepare`): pull entity data and required disclosures from your ERP or legal entity management system (e.g., Diligent Entities, CT Corporation) and auto-populate filing templates
 - **ValidateWorker** (`rgf_validate`): integrate with regulatory body validation APIs (e.g., SEC EDGAR validation, state SOS filing rules) to catch errors before submission

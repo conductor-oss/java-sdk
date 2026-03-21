@@ -6,13 +6,13 @@ Automates GitOps reconciliation using [Conductor](https://github.com/conductor-o
 
 Someone ran `kubectl edit` on the production deployment and changed the replica count. Now the cluster does not match what is in Git. GitOps reconciliation detects this drift, plans the sync to restore the desired state, applies the changes, and verifies the cluster is back in alignment. Without this, manual changes accumulate silently until the next Git-based deploy overwrites them, or worse, they persist and nobody knows the cluster differs from what the repo says.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the drift detection and sync logic. Conductor handles the detect-plan-apply-verify reconciliation loop and records every sync operation.**
 
-`DetectDriftWorker` compares the desired state in the Git repository against the live cluster state, identifying resources that have drifted (modified, missing, or extra). `PlanSyncWorker` generates a sync plan listing the specific operations needed .  create, update, or delete ,  with a preview of each change. `ApplySyncWorker` executes the sync plan, applying changes to bring the cluster back to the desired state. `VerifyStateWorker` confirms every resource in the cluster matches the Git-defined specification after sync. Conductor records every drift detection and sync operation for GitOps audit trails.
+`DetectDriftWorker` compares the desired state in the Git repository against the live cluster state, identifying resources that have drifted (modified, missing, or extra). `PlanSyncWorker` generates a sync plan listing the specific operations needed. create, update, or delete,  with a preview of each change. `ApplySyncWorker` executes the sync plan, applying changes to bring the cluster back to the desired state. `VerifyStateWorker` confirms every resource in the cluster matches the Git-defined specification after sync. Conductor records every drift detection and sync operation for GitOps audit trails.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle GitOps reconciliation. Detecting drift between Git and the c
 | **PlanSyncWorker** | `go_plan_sync` | Plans the synchronization actions needed to reconcile drift. |
 | **VerifyStateWorker** | `go_verify_state` | Verifies that the cluster state matches the Git repository after sync. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w gitops_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one reconciliation step .  replace the simulated calls with ArgoCD sync APIs, Flux reconciliation, or kubectl diff for real Git-to-cluster state management, and the GitOps workflow runs unchanged.
+Each worker handles one reconciliation step. replace the simulated calls with ArgoCD sync APIs, Flux reconciliation, or kubectl diff for real Git-to-cluster state management, and the GitOps workflow runs unchanged.
 
 - **DetectDriftWorker** (`go_detect_drift`): use `kubectl diff` or ArgoCD's drift detection API to compare live state against Git manifests, with structured output showing exactly what changed
 - **PlanSyncWorker** (`go_plan_sync`): generate a sync plan showing which resources will be created, updated, or deleted, similar to `terraform plan` output, for review before applying

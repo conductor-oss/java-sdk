@@ -1,6 +1,6 @@
 # Workflow Archival in Java with Conductor
 
-Archival demo workflow .  single task for demonstrating cleanup policies. Uses [Conductor](https://github.
+Archival demo workflow. single task for demonstrating cleanup policies. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -22,7 +22,7 @@ One minimal worker demonstrates the archival lifecycle: ArchivalTaskWorker proce
 |---|---|---|
 | **ArchivalTaskWorker** | `arch_task` | Worker for the archival demo workflow. Takes a batch identifier and returns done: true. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

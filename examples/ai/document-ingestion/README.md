@@ -27,7 +27,7 @@ Four workers form the ingestion pipeline. PDF text extraction, word-based chunki
 | **IngestExtractPdfWorker** | `ingest_extract_pdf` | Worker 1: Extracts text from a PDF document. Simulates PDF parsing by returning fixed text about vector databases. |
 | **IngestStoreVectorsWorker** | `ingest_store_vectors` | Worker 4: Stores embedding vectors in a vector database collection. Simulates upserting vectors and returns the count |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 
 ### The Workflow
 

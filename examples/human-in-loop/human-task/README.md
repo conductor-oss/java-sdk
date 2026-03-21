@@ -1,6 +1,6 @@
 # Human Task with Form Input in Java Using Conductor :  Data Collection, WAIT for Structured Form Submission, and Form Processing
 
-A Java Conductor workflow example demonstrating human task forms .  collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.
+A Java Conductor workflow example demonstrating human task forms. collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.
 
 ## Workflows Need to Pause for Human Input via Forms
 
@@ -10,7 +10,7 @@ Some workflows require a human to fill out a form. Reviewing an application, ent
 
 **You just write the data-collection and form-processing workers. Conductor handles the durable pause for structured human input via the form schema.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,11 +18,11 @@ CollectDataWorker gathers context for the form, and ProcessFormWorker interprets
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CollectDataWorker** | `ht_collect_data` | Collects initial data before the human review .  gathers context needed for the form and signals readiness for human input |
-| *WAIT task* | `ht_human_review` | Pauses with a form schema for the reviewer; completed via `POST /tasks/{taskId}` with structured form data (name, email, decision, comments) | Built-in Conductor WAIT .  no worker needed |
-| **ProcessFormWorker** | `ht_process_form` | Processes the submitted form data .  reads the approved flag and form fields, determines the outcome (approved or rejected), and triggers downstream actions |
+| **CollectDataWorker** | `ht_collect_data` | Collects initial data before the human review. gathers context needed for the form and signals readiness for human input |
+| *WAIT task* | `ht_human_review` | Pauses with a form schema for the reviewer; completed via `POST /tasks/{taskId}` with structured form data (name, email, decision, comments) | Built-in Conductor WAIT. no worker needed |
+| **ProcessFormWorker** | `ht_process_form` | Processes the submitted form data. reads the approved flag and form fields, determines the outcome (approved or rejected), and triggers downstream actions |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -126,7 +126,7 @@ conductor workflow search -w human_task_form_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one side of the form interaction .  connect your data source for initial collection and your application processing backend for form responses, and the human-task workflow stays the same.
+Each worker handles one side of the form interaction. connect your data source for initial collection and your application processing backend for form responses, and the human-task workflow stays the same.
 
 - **CollectDataWorker** (`ht_collect_data`): gather application data from a database or CRM, and prepare the form schema with pre-populated fields and validation rules
 - **ProcessFormWorker** (`ht_process_form`): route the form decision to downstream systems. Approved applications go to onboarding, rejected ones trigger a notification to the applicant

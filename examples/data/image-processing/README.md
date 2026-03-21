@@ -26,7 +26,7 @@ Five workers handle image processing: loading from a URL, then running resize, w
 | **ResizeWorker** | `ip_resize` | Resizes an image to multiple variants. |
 | **WatermarkWorker** | `ip_watermark` | Applies a watermark to an image. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

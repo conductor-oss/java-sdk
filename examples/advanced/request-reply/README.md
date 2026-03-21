@@ -1,10 +1,10 @@
 # Request-Reply in Java Using Conductor :  Send Request, Wait for Response, Correlate, Deliver
 
-A Java Conductor workflow example for the request-reply pattern .  sending an asynchronous request to a target service, waiting for the response with a configurable timeout, correlating the response back to the original request, and delivering the result to the caller. Uses [Conductor](https://github.
+A Java Conductor workflow example for the request-reply pattern. sending an asynchronous request to a target service, waiting for the response with a configurable timeout, correlating the response back to the original request, and delivering the result to the caller. Uses [Conductor](https://github.
 
 ## Asynchronous Request-Reply Needs Correlation and Timeout Handling
 
-You send a credit check request to an external bureau, but the response comes back asynchronously .  minutes later, on a different channel (a callback webhook or a reply queue). Your system needs to hold the request context, wait for the response within a timeout window, match the response to the original request using a correlation ID, and deliver the result. If the response never arrives, you need to handle the timeout gracefully rather than waiting forever.
+You send a credit check request to an external bureau, but the response comes back asynchronously. minutes later, on a different channel (a callback webhook or a reply queue). Your system needs to hold the request context, wait for the response within a timeout window, match the response to the original request using a correlation ID, and deliver the result. If the response never arrives, you need to handle the timeout gracefully rather than waiting forever.
 
 Building request-reply manually means storing pending requests in a database, implementing a timeout mechanism (scheduled tasks, TTLs), matching responses to requests by correlation ID, and handling edge cases like duplicate responses or responses that arrive after the timeout.
 
@@ -12,7 +12,7 @@ Building request-reply manually means storing pending requests in a database, im
 
 **You write the send and correlate logic. Conductor handles timeout management, retries, and response matching.**
 
-`RqrSendRequestWorker` dispatches the request to the target service with a correlation ID and the configured timeout. `RqrWaitResponseWorker` waits for the response, respecting the timeout window. `RqrCorrelateWorker` matches the incoming response to the original request using the correlation ID, verifying they belong together. `RqrDeliverWorker` returns the correlated result to the caller. Conductor manages the timeout, retries the send if it fails, and records the full request-response lifecycle .  send time, wait duration, correlation match, and delivery status.
+`RqrSendRequestWorker` dispatches the request to the target service with a correlation ID and the configured timeout. `RqrWaitResponseWorker` waits for the response, respecting the timeout window. `RqrCorrelateWorker` matches the incoming response to the original request using the correlation ID, verifying they belong together. `RqrDeliverWorker` returns the correlated result to the caller. Conductor manages the timeout, retries the send if it fails, and records the full request-response lifecycle. send time, wait duration, correlation match, and delivery status.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the request-response lifecycle: sending with a correlation I
 | **RqrSendRequestWorker** | `rqr_send_request` | Sends the request with a unique correlation ID and reply queue address |
 | **RqrWaitResponseWorker** | `rqr_wait_response` | Waits for a response on the reply queue and returns it with latency measurements |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w rqr_request_reply -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one phase of the request-response lifecycle .  replace the simulated send and wait calls with real HTTP or callback-based service integrations and the correlation logic runs unchanged.
+Each worker manages one phase of the request-response lifecycle. replace the simulated send and wait calls with real HTTP or callback-based service integrations and the correlation logic runs unchanged.
 
 - **RqrSendRequestWorker** (`rqr_send_request`): send real HTTP requests to external services (credit bureaus, payment processors), publish to a request queue (SQS, RabbitMQ), or call gRPC endpoints
 - **RqrWaitResponseWorker** (`rqr_wait_response`): use Conductor's WAIT task type for real async waiting, or poll a response queue/webhook callback store with configurable timeout

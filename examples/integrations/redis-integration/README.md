@@ -1,6 +1,6 @@
 # Redis Integration in Java Using Conductor
 
-A Java Conductor workflow that exercises core Redis operations .  connecting to a Redis instance, performing GET/SET key-value operations, managing cache TTL and memory, and publishing a message to a Redis Pub/Sub channel. Given a host, key, value, and channel, the pipeline demonstrates connection management, caching, and messaging. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the connect-cache-pubsub pipeline.
+A Java Conductor workflow that exercises core Redis operations. connecting to a Redis instance, performing GET/SET key-value operations, managing cache TTL and memory, and publishing a message to a Redis Pub/Sub channel. Given a host, key, value, and channel, the pipeline demonstrates connection management, caching, and messaging. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the connect-cache-pubsub pipeline.
 
 ## Coordinating Redis Operations Across Connection, Cache, and Pub/Sub
 
@@ -20,12 +20,12 @@ Four workers exercise Redis operations: RedisConnectWorker establishes the conne
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **RedisConnectWorker** | `red_connect` | Connects to the Redis instance .  establishes a connection to the specified host and returns the connectionId for use by subsequent operations |
-| **GetSetWorker** | `red_get_set` | Performs GET/SET operations .  writes the key-value pair and reads it back to confirm, returning the stored value |
-| **CacheMgmtWorker** | `red_cache_mgmt` | Manages cache TTL and memory .  sets expiration times on keys, checks memory usage, and applies eviction policies |
-| **PubSubWorker** | `red_pub_sub` | Publishes a message to a Redis channel .  sends the message to the specified Pub/Sub channel for real-time notification of subscribers |
+| **RedisConnectWorker** | `red_connect` | Connects to the Redis instance. establishes a connection to the specified host and returns the connectionId for use by subsequent operations |
+| **GetSetWorker** | `red_get_set` | Performs GET/SET operations. writes the key-value pair and reads it back to confirm, returning the stored value |
+| **CacheMgmtWorker** | `red_cache_mgmt` | Manages cache TTL and memory. sets expiration times on keys, checks memory usage, and applies eviction policies |
+| **PubSubWorker** | `red_pub_sub` | Publishes a message to a Redis channel. sends the message to the specified Pub/Sub channel for real-time notification of subscribers |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

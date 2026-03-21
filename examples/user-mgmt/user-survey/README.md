@@ -1,10 +1,10 @@
 # User Survey in Java Using Conductor :  Creation, Distribution, Collection, Analysis, and Reporting
 
-A Java Conductor workflow example for running user satisfaction surveys end-to-end .  creating a survey with custom questions, distributing it to a target audience, collecting responses, analyzing results (average satisfaction, top themes, sentiment breakdown), and generating a summary report. Uses [Conductor](https://github.
+A Java Conductor workflow example for running user satisfaction surveys end-to-end. creating a survey with custom questions, distributing it to a target audience, collecting responses, analyzing results (average satisfaction, top themes, sentiment breakdown), and generating a summary report. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to gather structured feedback from users through surveys. That means creating a survey with a title and question set, sending it to a specific audience segment, collecting the responses, running analysis to extract satisfaction scores, recurring themes (ease of use, performance, pricing), and sentiment distribution (positive/neutral/negative), and finally producing a report that stakeholders can act on. Each step depends on the previous one .  you can't distribute a survey before it's created, you can't analyze responses before they're collected, and the report needs both the survey ID and the analysis results.
+You need to gather structured feedback from users through surveys. That means creating a survey with a title and question set, sending it to a specific audience segment, collecting the responses, running analysis to extract satisfaction scores, recurring themes (ease of use, performance, pricing), and sentiment distribution (positive/neutral/negative), and finally producing a report that stakeholders can act on. Each step depends on the previous one. you can't distribute a survey before it's created, you can't analyze responses before they're collected, and the report needs both the survey ID and the analysis results.
 
 Without orchestration, you'd build a monolithic survey service that handles creation, email blasts, response aggregation, and analysis in a single codebase. If distribution fails for some recipients, the entire pipeline stalls. If the analysis step takes longer than expected, there's no timeout protection. When you need to rerun just the report generation with updated analysis, you have to replay the whole flow manually.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic survey service that handles crea
 
 **You just write the survey-creation, distribution, collection, analysis, and reporting workers. Conductor handles the survey lifecycle and response data flow.**
 
-Each survey lifecycle phase .  creation, distribution, collection, analysis, reporting ,  is a simple, independent worker. Conductor runs them in sequence, threads the generated survey ID from creation through every downstream step, feeds collected responses into the analyzer, and passes the analysis output into the report generator. If distribution times out or the analysis service fails, Conductor retries automatically and resumes from exactly where it left off. You get all of that, without writing a single line of orchestration code.
+Each survey lifecycle phase. creation, distribution, collection, analysis, reporting,  is a simple, independent worker. Conductor runs them in sequence, threads the generated survey ID from creation through every downstream step, feeds collected responses into the analyzer, and passes the analysis output into the report generator. If distribution times out or the analysis service fails, Conductor retries automatically and resumes from exactly where it left off. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ CreateSurveyWorker generates a survey ID, DistributeSurveyWorker sends it to the
 | **AnalyzeSurveyWorker** | `usv_analyze` | Computes average satisfaction score, extracts top themes, and breaks down sentiment (positive/neutral/negative percentages) |
 | **SurveyReportWorker** | `usv_report` | Generates a summary report from the analysis results, tied to the survey ID |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w usv_user_survey -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one survey phase .  connect your survey platform (SurveyMonkey, Typeform, Google Forms) for distribution and your analytics backend for result analysis, and the survey workflow stays the same.
+Each worker handles one survey phase. connect your survey platform (SurveyMonkey, Typeform, Google Forms) for distribution and your analytics backend for result analysis, and the survey workflow stays the same.
 
 - **CreateSurveyWorker** (`usv_create`): persist surveys to a database, or create them via SurveyMonkey/Typeform API with custom branding and logic branching
 - **DistributeSurveyWorker** (`usv_distribute`): send real survey invitations via SendGrid/SES for email, Twilio for SMS, or Firebase for push notifications, with audience segmentation

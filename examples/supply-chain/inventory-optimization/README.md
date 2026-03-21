@@ -1,6 +1,6 @@
 # Inventory Optimization in Java with Conductor :  Stock Analysis, Reorder Point Calculation, Multi-SKU Optimization, and Replenishment Execution
 
-A Java Conductor workflow example for inventory optimization .  analyzing current stock levels across multiple SKUs in a warehouse (e.g., WIDGET-A through CABLE-E in WH-Central), calculating reorder points based on demand velocity and lead times, optimizing order quantities to minimize carrying costs while preventing stockouts, and executing replenishment orders. Uses [Conductor](https://github.
+A Java Conductor workflow example for inventory optimization. analyzing current stock levels across multiple SKUs in a warehouse (e.g., WIDGET-A through CABLE-E in WH-Central), calculating reorder points based on demand velocity and lead times, optimizing order quantities to minimize carrying costs while preventing stockouts, and executing replenishment orders. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, inventory planners run the analysis in a spreadsheet, man
 
 **You just write the inventory workers. Stock analysis, reorder calculation, multi-SKU optimization, and replenishment execution. Conductor handles pipeline sequencing, ERP retry logic, and recorded optimization decisions for supply chain analytics.**
 
-Each stage of the optimization pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so stock analysis feeds reorder calculation, reorder points feed the multi-SKU optimizer, and optimization results drive replenishment execution. If the ERP integration fails when placing a purchase order, Conductor retries without re-running the analysis. Every stock snapshot, reorder calculation, optimization decision, and order execution is recorded for supply chain analytics and audit.
+Each stage of the optimization pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so stock analysis feeds reorder calculation, reorder points feed the multi-SKU optimizer, and optimization results drive replenishment execution. If the ERP integration fails when placing a purchase order, Conductor retries without re-running the analysis. Every stock snapshot, reorder calculation, optimization decision, and order execution is recorded for supply chain analytics and audit.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers optimize inventory across SKUs: AnalyzeStockWorker reads current le
 | **ExecuteWorker** | `io_execute` | Triggers replenishment purchase orders for items below their reorder threshold. |
 | **OptimizeWorker** | `io_optimize` | Optimizes order quantities across all SKUs to minimize total cost (ordering + holding + stockout). |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

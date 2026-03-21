@@ -25,7 +25,7 @@ CollectSignalsWorker gathers page visits and email engagement, ScoreWorker compu
 | **RouteWorker** | `ls_route` | Routes a lead to the appropriate sales rep based on classification. |
 | **ScoreWorker** | `ls_score` | Calculates lead score from collected signals. |
 
-Workers simulate CRM operations: lead scoring, contact enrichment, deal updates, with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement CRM operations: lead scoring, contact enrichment, deal updates, with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 

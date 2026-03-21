@@ -26,7 +26,7 @@ Five workers cover the intelligent compression pipeline: profiling data characte
 | **ReportSavingsWorker** | `cmp_report_savings` | Reports compression savings. |
 | **VerifyIntegrityWorker** | `cmp_verify_integrity` | Verifies the integrity of compressed data. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # Serverless Function Chain in Java Using Conductor :  Parse, Enrich, Score, Aggregate
 
-A Java Conductor workflow example for serverless function orchestration .  invoking a parse function to extract structured data from an event, enriching it with external context, scoring the enriched data, and aggregating the final results. Uses [Conductor](https://github.
+A Java Conductor workflow example for serverless function orchestration. invoking a parse function to extract structured data from an event, enriching it with external context, scoring the enriched data, and aggregating the final results. Uses [Conductor](https://github.
 
 ## Chaining Lambda Functions Without Losing Control
 
@@ -25,7 +25,7 @@ Four workers chain serverless invocations: event parsing, external enrichment, s
 | **SvlInvokeParseWorker** | `svl_invoke_parse` | Invokes the parse serverless function for an incoming event. |
 | **SvlInvokeScoreWorker** | `svl_invoke_score` | Invokes the score serverless function to compute engagement score. |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w serverless_orchestration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker wraps one serverless function invocation .  replace the simulated Lambda calls with real AWS Lambda or Cloud Functions APIs and the function chain runs unchanged.
+Each worker wraps one serverless function invocation. replace the simulated Lambda calls with real AWS Lambda or Cloud Functions APIs and the function chain runs unchanged.
 
 - **SvlInvokeParseWorker** (`svl_invoke_parse`): invoke a real AWS Lambda function (`lambda.invoke()`), Google Cloud Function, or Azure Function to parse event payloads
 - **SvlInvokeEnrichWorker** (`svl_invoke_enrich`): call real enrichment APIs: Clearbit for company data, MaxMind for geo-IP, or your own microservice for domain-specific context

@@ -12,7 +12,7 @@ The pipeline collects behavioral signals (what did this user view, purchase, and
 
 **You just write the behavior collection, similarity computation, candidate ranking, and personalization logic. Conductor handles scoring retries, candidate pipeline sequencing, and recommendation audit trails.**
 
-`CollectBehaviorWorker` gathers the user's recent activity .  page views, purchases, search queries, wishlist additions, and cart interactions ,  as behavioral signals. `ComputeSimilarityWorker` calculates item-to-item similarity using collaborative filtering (co-purchase patterns) and content-based features (category, price range, attributes). `RankCandidatesWorker` scores candidate products by predicted relevance for this user, combining collaborative and content-based signals. `PersonalizeWorker` adjusts the final ranking based on context ,  boosting items matching the current session, applying diversity rules (don't show 5 similar items), and filtering already-purchased items. Conductor records which recommendations were generated and, combined with click/purchase tracking, enables recommendation quality measurement.
+`CollectBehaviorWorker` gathers the user's recent activity. page views, purchases, search queries, wishlist additions, and cart interactions,  as behavioral signals. `ComputeSimilarityWorker` calculates item-to-item similarity using collaborative filtering (co-purchase patterns) and content-based features (category, price range, attributes). `RankCandidatesWorker` scores candidate products by predicted relevance for this user, combining collaborative and content-based signals. `PersonalizeWorker` adjusts the final ranking based on context,  boosting items matching the current session, applying diversity rules (don't show 5 similar items), and filtering already-purchased items. Conductor records which recommendations were generated and, combined with click/purchase tracking, enables recommendation quality measurement.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Profile analysis, candidate generation, scoring, and delivery workers each own o
 | **PersonalizeWorker** | `rec_personalize` | Personalizes the top-ranked products for the user's context, returning the top 3 with a reason string. |
 | **RankCandidatesWorker** | `rec_rank_candidates` | Ranks candidate products by similarity score and assigns a rank number. |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 

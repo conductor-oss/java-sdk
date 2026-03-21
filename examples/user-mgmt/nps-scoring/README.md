@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating NPS Scoring. Uses [Conductor](ht
 
 Your product team wants to measure user satisfaction after a quarterly release. The team needs to collect NPS survey responses (scores 0-10) from the user base, calculate the NPS score by categorizing respondents into promoters, passives, and detractors, segment users into actionable groups with tailored follow-up strategies, and trigger the appropriate actions for each segment (referral programs for promoters, engagement campaigns for passives, outreach calls for detractors). Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ CollectResponsesWorker gathers survey scores, CalculateNpsWorker computes the pr
 | **CollectResponsesWorker** | `nps_collect_responses` | Collects NPS survey responses for a campaign and period, returning individual user scores |
 | **SegmentWorker** | `nps_segment` | Segments respondents into promoter, passive, and detractor groups with assigned follow-up actions |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w nps_scoring -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one NPS step .  connect your survey platform (Delighted, SurveyMonkey, Typeform) for collection and your CRM (Salesforce, HubSpot) for segment-based follow-up actions, and the NPS workflow stays the same.
+Each worker handles one NPS step. connect your survey platform (Delighted, SurveyMonkey, Typeform) for collection and your CRM (Salesforce, HubSpot) for segment-based follow-up actions, and the NPS workflow stays the same.
 
 - **CollectResponsesWorker** (`nps_collect_responses`): pull survey responses from your survey platform (Delighted, SurveyMonkey, Typeform) or query your database for in-app NPS submissions
 - **CalculateNpsWorker** (`nps_calculate`): compute the NPS score using standard methodology and store historical scores in your analytics database for trend tracking

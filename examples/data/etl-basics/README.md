@@ -26,7 +26,7 @@ Five workers form the classic ETL pipeline: extracting records from a source, tr
 | `LoadDataWorker` | `el_load_data` | Writes the validated records to the destination and returns a loaded count |
 | `ConfirmLoadWorker` | `el_confirm_load` | Confirms the load completed by returning status `ETL_COMPLETE` with the final loaded count |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

@@ -1,10 +1,10 @@
 # SNS SQS Integration in Java Using Conductor
 
-A Java Conductor workflow that runs an AWS SNS/SQS messaging pipeline end-to-end .  publishing a message to an SNS topic, subscribing an SQS queue to that topic, receiving the delivered message from the queue, and processing and deleting it. Given a topic ARN, queue URL, and message body, the pipeline produces publish confirmation, subscription ARN, and processing status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the publish-subscribe-receive-process pipeline.
+A Java Conductor workflow that runs an AWS SNS/SQS messaging pipeline end-to-end. publishing a message to an SNS topic, subscribing an SQS queue to that topic, receiving the delivered message from the queue, and processing and deleting it. Given a topic ARN, queue URL, and message body, the pipeline produces publish confirmation, subscription ARN, and processing status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the publish-subscribe-receive-process pipeline.
 
 ## Publishing Messages Through SNS to SQS
 
-Fan-out messaging with SNS and SQS involves a strict sequence: publish a message to an SNS topic, ensure the target SQS queue is subscribed to that topic, poll the queue for the delivered message, and process it (which typically includes parsing the SNS envelope and deleting the message from the queue). Each step depends on the previous one .  you cannot receive a message that has not been published, and you need the subscription in place before messages will flow to the queue.
+Fan-out messaging with SNS and SQS involves a strict sequence: publish a message to an SNS topic, ensure the target SQS queue is subscribed to that topic, poll the queue for the delivered message, and process it (which typically includes parsing the SNS envelope and deleting the message from the queue). Each step depends on the previous one. you cannot receive a message that has not been published, and you need the subscription in place before messages will flow to the queue.
 
 Without orchestration, you would chain AWS SDK calls manually, manage message IDs, subscription ARNs, and receipt handles between steps, and handle partial failures like a message published but not yet delivered. Conductor sequences the pipeline and routes topic ARNs, message IDs, and receipt handles between workers automatically.
 
@@ -25,7 +25,7 @@ Four workers run the messaging pipeline: SnsPublishWorker sends to an SNS topic,
 | **SnsPublishWorker** | `sns_publish` | Publishes a message to an SNS topic. |
 | **SubscribeQueueWorker** | `sns_subscribe_queue` | Subscribes an SQS queue to an SNS topic. |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

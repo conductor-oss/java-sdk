@@ -12,7 +12,7 @@ Without orchestration, these steps are strung together in CI/CD scripts where a 
 
 **You just write the deploy, validate, traffic-switch, and monitor workers. Conductor handles step ordering, durable state across the multi-step cutover, and automatic rollback visibility.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the rollout lifecycle: DeployGreenWorker provisions the new 
 | **SwitchTrafficWorker** | `bg_switch_traffic` | Switches traffic from blue to green environment. |
 | **ValidateGreenWorker** | `bg_validate_green` | Validates the green environment with smoke tests. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

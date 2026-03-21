@@ -1,10 +1,10 @@
 # Chatbot Orchestration in Java with Conductor :  Intent Detection and Response Generation Pipeline
 
-A Java Conductor workflow that processes a chatbot conversation turn .  receiving the user message with session context, detecting intent (refund requests, cancellation, general inquiry), generating an appropriate response, and delivering it back to the user. Given a `userId`, `message`, and `sessionId`, the pipeline classifies intent with confidence scores, extracts entities (product names, amounts), and produces a contextual response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the receive-understand-generate-deliver pipeline.
+A Java Conductor workflow that processes a chatbot conversation turn. receiving the user message with session context, detecting intent (refund requests, cancellation, general inquiry), generating an appropriate response, and delivering it back to the user. Given a `userId`, `message`, and `sessionId`, the pipeline classifies intent with confidence scores, extracts entities (product names, amounts), and produces a contextual response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the receive-understand-generate-deliver pipeline.
 
 ## Turning a User Message into an Intelligent Response
 
-A chatbot needs to do more than echo text back. Each incoming message must be received with its session context, analyzed for intent (is this a refund request? a cancellation? a general question?), used to generate a relevant response, and delivered back to the user's channel. These steps must happen in sequence .  you cannot generate a response without knowing the intent, and you cannot deliver without a response.
+A chatbot needs to do more than echo text back. Each incoming message must be received with its session context, analyzed for intent (is this a refund request? a cancellation? a general question?), used to generate a relevant response, and delivered back to the user's channel. These steps must happen in sequence. you cannot generate a response without knowing the intent, and you cannot deliver without a response.
 
 This workflow models a single conversation turn. The receive step captures the message and loads session context. The intent classifier analyzes the message text, detecting intents like `request_refund`, `cancel_subscription`, or `general_inquiry` with a confidence score, and extracts entities (product name, dollar amount). The response generator uses the detected intent and entities to craft a reply. The delivery step sends the response back to the user's session.
 
@@ -12,7 +12,7 @@ This workflow models a single conversation turn. The receive step captures the m
 
 **You just write the message-receiving, intent-detection, response-generation, and delivery workers. Conductor handles the conversation-turn pipeline.**
 
-Four workers handle one chatbot turn .  message receiving, intent understanding, response generation, and delivery. The intent worker scans for keywords like "refund" and "cancel" to classify the message and extract entities like product names and amounts. The response generator uses the classified intent and extracted entities to produce a relevant reply. Conductor sequences the four steps and tracks every conversation turn with full input/output visibility.
+Four workers handle one chatbot turn. message receiving, intent understanding, response generation, and delivery. The intent worker scans for keywords like "refund" and "cancel" to classify the message and extract entities like product names and amounts. The response generator uses the classified intent and extracted entities to produce a relevant reply. Conductor sequences the four steps and tracks every conversation turn with full input/output visibility.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ ReceiveWorker captures the message with session context, UnderstandIntentWorker 
 | **ReceiveWorker** | `cbo_receive` | Captures the incoming user message and loads session context. |
 | **UnderstandIntentWorker** | `cbo_understand_intent` | Classifies the message intent (refund, cancellation, inquiry) and extracts entities (product name, amount). |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w cbo_chatbot_orchestration -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the conversation turn .  connect your NLU service (Dialogflow, Rasa, Amazon Lex) for intent detection and your messaging platform (Intercom, Zendesk Chat) for delivery, and the chatbot workflow stays the same.
+Each worker handles one stage of the conversation turn. connect your NLU service (Dialogflow, Rasa, Amazon Lex) for intent detection and your messaging platform (Intercom, Zendesk Chat) for delivery, and the chatbot workflow stays the same.
 
 - **DeliverWorker** (`cbo_deliver`): connect to messaging platforms (Slack, WhatsApp Business API, Intercom) for real delivery
 - **GenerateResponseWorker** (`cbo_generate_response`): swap in an LLM (GPT-4, Claude) for dynamic, context-aware response generation

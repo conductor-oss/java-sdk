@@ -1,12 +1,12 @@
 # Billing Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates the telecom billing cycle .  collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates the telecom billing cycle. collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.
 
 ## Why Telecom Billing Needs Orchestration
 
 Running a billing cycle requires a strict pipeline where each step depends on the previous one. You collect all usage records (CDRs, IPDRs) for the customer's billing period. You rate each record by applying the correct tariff based on the customer's plan, time of day, destination, and any bundled allowances. You generate an invoice that itemizes the rated charges and calculates the total. You send the invoice to the customer via their preferred channel. Finally, you collect payment by charging the customer's payment method on file.
 
-If rating fails partway through, you need to know which records were already rated so you don't double-charge. If the invoice is generated but delivery fails, you have a valid invoice the customer never sees and payment never comes. Without orchestration, you'd build a monolithic billing script that mixes CDR collection, tariff lookups, invoice generation, and payment processing .  making it impossible to swap rating engines, test invoice formatting independently, or audit which usage records drove which charges.
+If rating fails partway through, you need to know which records were already rated so you don't double-charge. If the invoice is generated but delivery fails, you have a valid invoice the customer never sees and payment never comes. Without orchestration, you'd build a monolithic billing script that mixes CDR collection, tariff lookups, invoice generation, and payment processing. making it impossible to swap rating engines, test invoice formatting independently, or audit which usage records drove which charges.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Usage collection, charge calculation, invoice generation, and payment processing
 | **RateWorker** | `btl_rate` | Rates each usage record against the customer's plan tariffs, applying time-of-day and destination rules. |
 | **SendWorker** | `btl_send` | Delivers the invoice to the customer via their preferred channel (email, postal, in-app). |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w btl_billing_telecom -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real billing systems .  your mediation platform for CDR collection, your rating engine for tariff application, your BSS for invoice delivery and payment collection, and the workflow runs identically in production.
+Connect each worker to your real billing systems. your mediation platform for CDR collection, your rating engine for tariff application, your BSS for invoice delivery and payment collection, and the workflow runs identically in production.
 
 - **CollectUsageWorker** (`btl_collect_usage`): query your mediation platform or CDR storage (e.g., Oracle BRM, CSG Singleview, or a data lake) for all usage records in the billing period
 - **RateWorker** (`btl_rate`): apply tariffs from your rating engine (e.g., Ericsson Charging System, Huawei CBS, or Oracle BRM rating module) to each CDR/IPDR based on the subscriber's plan

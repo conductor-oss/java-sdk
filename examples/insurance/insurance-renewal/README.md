@@ -1,16 +1,16 @@
 # Insurance Renewal in Java with Conductor :  Notify, Review Risk, Reprice, Route Decision
 
-A Java Conductor workflow example for automated insurance policy renewal .  sending a renewal notice to the policyholder, reviewing the policy's claims history and computing a risk score, repricing the premium based on that risk score, then using a SWITCH to route the policy to either renewal processing (with the new premium) or cancellation (with the reason). The review step analyzes the claims count and produces a riskScore that feeds into repricing, and the reprice step outputs the decision ("renew" or "cancel") and the new premium amount that determines the SWITCH path. Uses [Conductor](https://github.
+A Java Conductor workflow example for automated insurance policy renewal. sending a renewal notice to the policyholder, reviewing the policy's claims history and computing a risk score, repricing the premium based on that risk score, then using a SWITCH to route the policy to either renewal processing (with the new premium) or cancellation (with the reason). The review step analyzes the claims count and produces a riskScore that feeds into repricing, and the reprice step outputs the decision ("renew" or "cancel") and the new premium amount that determines the SWITCH path. Uses [Conductor](https://github.
 
 ## Policy Renewals Require Claims Review, Repricing, and Conditional Routing
 
-When an insurance policy approaches its renewal date, the insurer must review the policyholder's claims history, calculate a risk score, reprice the premium accordingly, and decide whether to renew or non-renew the policy. If the risk is acceptable, the policy renews at the adjusted premium. If the claims history is too costly, the policy is cancelled with a stated reason. The repricing step must use the risk score from the review .  if repricing fails, you need to retry it without re-reviewing the entire claims history.
+When an insurance policy approaches its renewal date, the insurer must review the policyholder's claims history, calculate a risk score, reprice the premium accordingly, and decide whether to renew or non-renew the policy. If the risk is acceptable, the policy renews at the adjusted premium. If the claims history is too costly, the policy is cancelled with a stated reason. The repricing step must use the risk score from the review. if repricing fails, you need to retry it without re-reviewing the entire claims history.
 
 ## The Solution
 
 **You just write the renewal notification, risk review, premium repricing, and renew-or-cancel routing logic. Conductor handles repricing retries, decision routing, and renewal audit trails for every policy.**
 
-`NotifyWorker` sends the renewal notice to the policyholder with the current policy details and renewal timeline. `ReviewWorker` examines the policy's claims history, loss ratio, risk factor changes, and market conditions for the coverage area. `RepriceWorker` calculates the updated premium based on the risk review .  applying experience rating, inflation adjustments, and regulatory rate changes. Conductor's `SWITCH` routes to renewal (issue at the new premium) or non-renewal (send non-renewal notice with reason) based on the repricing results and underwriting guidelines. Conductor records the complete renewal decision chain for regulatory compliance.
+`NotifyWorker` sends the renewal notice to the policyholder with the current policy details and renewal timeline. `ReviewWorker` examines the policy's claims history, loss ratio, risk factor changes, and market conditions for the coverage area. `RepriceWorker` calculates the updated premium based on the risk review. applying experience rating, inflation adjustments, and regulatory rate changes. Conductor's `SWITCH` routes to renewal (issue at the new premium) or non-renewal (send non-renewal notice with reason) based on the repricing results and underwriting guidelines. Conductor records the complete renewal decision chain for regulatory compliance.
 
 ### What You Write: Workers
 
@@ -18,14 +18,14 @@ Notification, risk review, repricing, and renewal processing workers each addres
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **NotifyWorker** | `irn_notify` | Sends a renewal notice to the policyholder .  identifies the policy and customer, then dispatches the renewal communication |
-| **ReviewWorker** | `irn_review` | Reviews the policy's claims history .  analyzes past claims for the policyId and outputs a riskScore (0.35) and claimsCount (1) that determine repricing |
-| **RepriceWorker** | `irn_reprice` | Reprices the premium based on the risk score .  adjusts the annual premium ($1,200/year) and outputs a decision ("renew" or "cancel") along with the newPremium that the SWITCH uses for routing |
-| *SWITCH* | `route_decision` | Routes based on the reprice decision: "renew" advances to renewal processing with the new premium, "cancel" routes to cancellation processing with the reason | Built-in Conductor SWITCH .  no worker needed |
-| **ProcessRenewWorker** | `irn_process_renew` | Processes the renewal .  issues the renewed policy at the new premium amount and updates the policy term |
-| **ProcessCancelWorker** | `irn_process_cancel` | Processes the cancellation .  records the non-renewal reason and triggers required regulatory notices to the policyholder |
+| **NotifyWorker** | `irn_notify` | Sends a renewal notice to the policyholder. identifies the policy and customer, then dispatches the renewal communication |
+| **ReviewWorker** | `irn_review` | Reviews the policy's claims history. analyzes past claims for the policyId and outputs a riskScore (0.35) and claimsCount (1) that determine repricing |
+| **RepriceWorker** | `irn_reprice` | Reprices the premium based on the risk score. adjusts the annual premium ($1,200/year) and outputs a decision ("renew" or "cancel") along with the newPremium that the SWITCH uses for routing |
+| *SWITCH* | `route_decision` | Routes based on the reprice decision: "renew" advances to renewal processing with the new premium, "cancel" routes to cancellation processing with the reason | Built-in Conductor SWITCH. no worker needed |
+| **ProcessRenewWorker** | `irn_process_renew` | Processes the renewal. issues the renewed policy at the new premium amount and updates the policy term |
+| **ProcessCancelWorker** | `irn_process_cancel` | Processes the cancellation. records the non-renewal reason and triggers required regulatory notices to the policyholder |
 
-Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
+Workers implement insurance operations. claim intake, assessment, settlement,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -134,7 +134,7 @@ conductor workflow search -w irn_insurance_renewal -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real insurance systems .  your policy admin system for renewal notices, your claims database for risk scoring, your rating engine for premium repricing, and the workflow runs identically in production.
+Connect each worker to your real insurance systems. your policy admin system for renewal notices, your claims database for risk scoring, your rating engine for premium repricing, and the workflow runs identically in production.
 
 - **ReviewWorker** (`irn_review`): query claims management systems (Guidewire ClaimCenter, Duck Creek) for loss history, and external data sources (LexisNexis, CLUE reports) for undisclosed claims
 - **RepriceWorker** (`irn_reprice`): implement actuarial rating algorithms with territory factors, loss experience modification, and regulatory rate caps per state

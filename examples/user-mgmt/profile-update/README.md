@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Profile Update. Uses [Conductor]
 
 A user changes their display name and email address in their account settings. The system needs to validate the submitted fields for format and constraints, apply the updates to the user's profile record, sync the changed fields to downstream services (CRM, analytics, email platform), and notify the user that their profile was updated. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ ValidateFieldsWorker checks format constraints, UpdateProfileWorker applies the 
 | **UpdateProfileWorker** | `pfu_update` | Applies the validated field changes to the user's profile record and timestamps the update |
 | **ValidateFieldsWorker** | `pfu_validate` | Validates the submitted profile fields for format and constraints, returning whether all fields passed |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w pfu_profile_update -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one update step .  connect your user database for profile writes and your downstream services (CRM, analytics, email platform) for field sync, and the profile-update workflow stays the same.
+Each worker handles one update step. connect your user database for profile writes and your downstream services (CRM, analytics, email platform) for field sync, and the profile-update workflow stays the same.
 
 - **ValidateFieldsWorker** (`pfu_validate`): validate field formats, length constraints, and uniqueness checks (e.g., email uniqueness) against your database or Auth0/Cognito user store
 - **UpdateProfileWorker** (`pfu_update`): persist the validated changes to your user database and update the user's attributes in your identity provider (Auth0, Cognito, Okta)

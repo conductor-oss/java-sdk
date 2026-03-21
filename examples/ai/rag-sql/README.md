@@ -1,22 +1,22 @@
 # SQL RAG in Java Using Conductor :  Natural Language to SQL Query Execution
 
-A Java Conductor workflow that turns natural language questions into SQL .  parsing the question to extract intent and entities, generating a SQL query from the question and database schema, validating the SQL for safety and correctness, executing it against the database, and formatting the results into a human-readable answer. This is text-to-SQL RAG where the "retrieval" is a SQL query instead of a vector search. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate NL parsing, SQL generation, validation, execution, and formatting as independent workers ,  you write the SQL generation and validation logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that turns natural language questions into SQL. parsing the question to extract intent and entities, generating a SQL query from the question and database schema, validating the SQL for safety and correctness, executing it against the database, and formatting the results into a human-readable answer. This is text-to-SQL RAG where the "retrieval" is a SQL query instead of a vector search. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate NL parsing, SQL generation, validation, execution, and formatting as independent workers,  you write the SQL generation and validation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Querying Databases with Natural Language
 
 Not all knowledge lives in documents. Revenue numbers, user counts, and order histories live in SQL databases. Text-to-SQL RAG lets users ask "What were our top 5 products by revenue last quarter?" and get a precise answer by generating and executing a SQL query against the actual database.
 
-The pipeline has five safety-critical steps: parse the question, generate SQL from the schema and intent, validate the SQL (no DROP TABLE, no unbounded SELECTs), execute the query, and format the results. Each step must succeed in order .  you can't execute unvalidated SQL, and you can't format results from a failed query.
+The pipeline has five safety-critical steps: parse the question, generate SQL from the schema and intent, validate the SQL (no DROP TABLE, no unbounded SELECTs), execute the query, and format the results. Each step must succeed in order. you can't execute unvalidated SQL, and you can't format results from a failed query.
 
 ## The Solution
 
 **You write the SQL generation, validation, and execution logic. Conductor handles the safety-critical pipeline, retries, and observability.**
 
-Each stage is an independent worker. NL parsing, SQL generation (given the database schema), SQL validation (safety checks), query execution, and result formatting. Conductor sequences them, ensuring SQL is validated before execution. Every query is tracked with the original question, generated SQL, validation result, and query output .  creating an audit trail of all natural language queries against your database.
+Each stage is an independent worker. NL parsing, SQL generation (given the database schema), SQL validation (safety checks), query execution, and result formatting. Conductor sequences them, ensuring SQL is validated before execution. Every query is tracked with the original question, generated SQL, validation result, and query output. creating an audit trail of all natural language queries against your database.
 
 ### What You Write: Workers
 
-Five workers implement natural language to SQL .  parsing the question for intent and entities, generating a SQL query, validating it for safety, executing against the database, and formatting the results into a readable answer.
+Five workers implement natural language to SQL. parsing the question for intent and entities, generating a SQL query, validating it for safety, executing against the database, and formatting the results into a readable answer.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -26,7 +26,7 @@ Five workers implement natural language to SQL .  parsing the question for inten
 | **ParseNlWorker** | `sq_parse_nl` | Worker that parses a natural-language question against a database schema. Extracts intent and structured entities. |
 | **ValidateSqlWorker** | `sq_validate_sql` | Worker that validates a SQL query against a schema, checking for dangerous operations (DROP, DELETE, TRUNCATE, ALTER,... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w sql_rag_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one text-to-SQL step .  swap in an LLM for SQL generation from natural language, connect your database schema for validation, execute against a real database, and the parse-generate-validate-execute-format pipeline runs unchanged.
+Each worker handles one text-to-SQL step. swap in an LLM for SQL generation from natural language, connect your database schema for validation, execute against a real database, and the parse-generate-validate-execute-format pipeline runs unchanged.
 
 - **ParseNlWorker** (`sq_parse_nl`): use an LLM (GPT-4, Claude) or a text-to-SQL model to extract intent, entities, and query structure from natural-language questions
 - **GenerateSqlWorker** (`sq_generate_sql`): use an LLM with schema-aware prompting (table definitions, column types, foreign keys) to generate valid SQL from the parsed intent
@@ -145,7 +145,7 @@ Each worker handles one text-to-SQL step .  swap in an LLM for SQL generation fr
 - **ExecuteSqlWorker** (`sq_execute_sql`): execute the validated SQL against a real database (PostgreSQL, MySQL) via JDBC with parameterized queries and result size limits
 - **FormatResultsWorker** (`sq_format_results`): use an LLM to convert SQL result rows into a natural-language answer, or format as a table/chart for the frontend
 
-Each worker's contract is fixed .  swap the SQL generator model, add new validation rules, or change the target database without altering the pipeline structure.
+Each worker's contract is fixed. swap the SQL generator model, add new validation rules, or change the target database without altering the pipeline structure.
 
 ## SDK
 

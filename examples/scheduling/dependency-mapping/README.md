@@ -1,10 +1,10 @@
 # Dependency Mapping in Java Using Conductor :  Service Discovery, Call Tracing, Graph Building, and Visualization
 
-A Java Conductor workflow example for mapping service dependencies .  discovering services in an environment, tracing inter-service calls, building a dependency graph, and visualizing the architecture.
+A Java Conductor workflow example for mapping service dependencies. discovering services in an environment, tracing inter-service calls, building a dependency graph, and visualizing the architecture.
 
 ## The Problem
 
-You need to understand how your microservices connect .  which services call which, what the critical paths are, and where single points of failure exist. This requires discovering all services, tracing the actual call patterns between them, building a directed graph of dependencies, and rendering it into a visual map that engineers and architects can use.
+You need to understand how your microservices connect. which services call which, what the critical paths are, and where single points of failure exist. This requires discovering all services, tracing the actual call patterns between them, building a directed graph of dependencies, and rendering it into a visual map that engineers and architects can use.
 
 Without orchestration, dependency mapping is either a manual Confluence diagram that's always outdated or a one-off script that queries service mesh data and dumps JSON. The discovery, tracing, graph construction, and visualization are disconnected steps that someone runs ad hoc when an incident makes them realize they don't know what depends on what.
 
@@ -12,7 +12,7 @@ Without orchestration, dependency mapping is either a manual Confluence diagram 
 
 **You just write the service discovery and call tracing logic. Conductor handles the discover-trace-build sequence, retries when service mesh endpoints are unavailable, and versioned tracking of dependency graph changes over time.**
 
-Each mapping concern is an independent worker .  service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time. You get all of that, without writing a single line of orchestration code.
+Each mapping concern is an independent worker. service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ The mapping pipeline chains DiscoverServicesWorker to enumerate active services,
 | **TraceCallsWorker** | `dep_trace_calls` | Traces inter-service call patterns across discovered services, returning directed edges (caller-to-callee) |
 | **VisualizeWorker** | `dep_visualize` | Renders the dependency graph into a visual format and generates a shareable visualization URL |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w dependency_mapping_426 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker tackles one mapping phase .  connect the service discovery worker to your service mesh (Istio, Linkerd) or Kubernetes API, the visualizer to generate real architecture diagrams, and the discover-trace-graph-visualize workflow stays the same.
+Each worker tackles one mapping phase. connect the service discovery worker to your service mesh (Istio, Linkerd) or Kubernetes API, the visualizer to generate real architecture diagrams, and the discover-trace-graph-visualize workflow stays the same.
 
 - **BuildGraphWorker** (`dep_build_graph`): construct a directed graph using JGraphT or Neo4j, computing metrics like PageRank and betweenness centrality
 - **DiscoverServicesWorker** (`dep_discover_services`): query Kubernetes service registry, Consul, AWS ECS/EKS, or your CMDB for active services

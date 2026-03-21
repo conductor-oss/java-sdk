@@ -6,13 +6,13 @@ Product catalog management: add, validate, enrich, publish, and index products. 
 
 A merchant adds a product: "Blue Widget, $24.99, Gadgets category." Before this listing goes live, it needs validation (price within category range, required images present, description meets minimum length), enrichment (generate SEO-optimized title and meta description, suggest related products, extract keywords for search), publication (make available on the storefront with correct routing and category placement), and search indexing (update the search engine so customers can find it).
 
-Each step transforms the product data. Validation catches errors (negative price, missing category). Enrichment adds value (SEO metadata, related products). Publication makes it visible. Indexing makes it findable. If the search index update fails, the product is still published .  customers can browse to it but can't search for it, so the indexing step should be retried independently.
+Each step transforms the product data. Validation catches errors (negative price, missing category). Enrichment adds value (SEO metadata, related products). Publication makes it visible. Indexing makes it findable. If the search index update fails, the product is still published. customers can browse to it but can't search for it, so the indexing step should be retried independently.
 
 ## The Solution
 
 **You just write the product validation, SEO enrichment, publishing, and search indexing logic. Conductor handles enrichment retries, publication sequencing, and catalog change tracking.**
 
-`AddProductWorker` creates the product entry with SKU, name, price, category, description, and images. `ValidateWorker` checks data quality .  required fields present, price within category norms, image dimensions and format, description length, and category validity. `EnrichWorker` generates SEO-optimized content ,  meta title, meta description, keyword tags, and related product suggestions. `PublishWorker` makes the product available on the storefront with proper category placement and URL routing. `IndexWorker` updates the search index so the product appears in customer searches. Conductor chains these five steps and records each transformation for catalog audit.
+`AddProductWorker` creates the product entry with SKU, name, price, category, description, and images. `ValidateWorker` checks data quality. required fields present, price within category norms, image dimensions and format, description length, and category validity. `EnrichWorker` generates SEO-optimized content,  meta title, meta description, keyword tags, and related product suggestions. `PublishWorker` makes the product available on the storefront with proper category placement and URL routing. `IndexWorker` updates the search index so the product appears in customer searches. Conductor chains these five steps and records each transformation for catalog audit.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Catalog workers handle product ingestion, enrichment, categorization, and publis
 | **PublishProductWorker** | `prd_publish` | Publishes a product to the storefront. |
 | **ValidateProductWorker** | `prd_validate` | Validates product SKU and price. |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w product_catalog -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real catalog stack .  your PIM for validation, GPT-4 for SEO enrichment, Algolia or Elasticsearch for indexing, and the workflow runs identically in production.
+Wire each worker to your real catalog stack. your PIM for validation, GPT-4 for SEO enrichment, Algolia or Elasticsearch for indexing, and the workflow runs identically in production.
 
 - **EnrichWorker** (`prd_enrich`): use GPT-4 to generate SEO-optimized product descriptions from specifications, or integrate with Google Shopping Content API for rich product data
 - **IndexWorker** (`prd_index`): update Algolia, Elasticsearch, or Typesense search indices for instant product discoverability with faceted search support

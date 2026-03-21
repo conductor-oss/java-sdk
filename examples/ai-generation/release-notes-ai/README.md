@@ -1,18 +1,18 @@
 # Release Notes AI in Java with Conductor :  Generate Release Notes from Git Commits Between Tags
 
-A Java Conductor workflow that generates release notes automatically .  collecting commits between two git tags, categorizing them by type (feature, bugfix, improvement, breaking change), generating human-readable release notes from the categorized commits, and publishing the notes. Given a `repoName`, `fromTag`, and `toTag`, the pipeline produces commit lists, categorized changes, formatted release notes, and a publish URL. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the collect-categorize-generate-publish pipeline.
+A Java Conductor workflow that generates release notes automatically. collecting commits between two git tags, categorizing them by type (feature, bugfix, improvement, breaking change), generating human-readable release notes from the categorized commits, and publishing the notes. Given a `repoName`, `fromTag`, and `toTag`, the pipeline produces commit lists, categorized changes, formatted release notes, and a publish URL. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the collect-categorize-generate-publish pipeline.
 
 ## Writing Release Notes That No One Wants to Write
 
-Release notes are essential for users but tedious for developers. Manually scanning git log output, deciding which commits matter, grouping them into categories, and writing user-facing descriptions takes time that developers would rather spend coding. The information is already in the commit history .  it just needs to be extracted, organized, and rewritten for a non-developer audience.
+Release notes are essential for users but tedious for developers. Manually scanning git log output, deciding which commits matter, grouping them into categories, and writing user-facing descriptions takes time that developers would rather spend coding. The information is already in the commit history. it just needs to be extracted, organized, and rewritten for a non-developer audience.
 
-This workflow automates release note generation. The commit collector gathers all commits between the `fromTag` and `toTag`. The categorizer labels each commit as a feature, bugfix, improvement, or breaking change. The notes generator transforms the categorized commits into polished, user-facing release notes grouped by category. The publisher posts the generated notes to the appropriate platform. Each step's output feeds the next .  commits feed categorization, categories feed note generation, and generated notes feed publishing.
+This workflow automates release note generation. The commit collector gathers all commits between the `fromTag` and `toTag`. The categorizer labels each commit as a feature, bugfix, improvement, or breaking change. The notes generator transforms the categorized commits into polished, user-facing release notes grouped by category. The publisher posts the generated notes to the appropriate platform. Each step's output feeds the next. commits feed categorization, categories feed note generation, and generated notes feed publishing.
 
 ## The Solution
 
 **You just write the commit-collection, categorization, notes-generation, and publishing workers. Conductor handles the release-notes pipeline and tag-range data flow.**
 
-Four workers handle the release notes pipeline .  commit collection, categorization, note generation, and publishing. The collector pulls commits between tags. The categorizer labels each commit by type. The generator produces human-readable notes grouped by category. The publisher posts the final document. Conductor sequences the four steps and passes commit lists, categories, and formatted notes between them via JSONPath.
+Four workers handle the release notes pipeline. commit collection, categorization, note generation, and publishing. The collector pulls commits between tags. The categorizer labels each commit by type. The generator produces human-readable notes grouped by category. The publisher posts the final document. Conductor sequences the four steps and passes commit lists, categories, and formatted notes between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ CollectCommitsWorker gathers commits between tags, CategorizeWorker labels each 
 | **GenerateNotesWorker** | `rna_generate_notes` | Transforms categorized commits into polished, user-facing release notes grouped by category. |
 | **PublishWorker** | `rna_publish` | Publishes the generated release notes to a configured platform. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w rna_release_notes -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one release-notes step .  connect your Git API (GitHub, GitLab) for commit collection and your publishing platform (GitHub Releases, Notion, Confluence) for output, and the release-notes workflow stays the same.
+Each worker handles one release-notes step. connect your Git API (GitHub, GitLab) for commit collection and your publishing platform (GitHub Releases, Notion, Confluence) for output, and the release-notes workflow stays the same.
 
 - **CategorizeWorker** (`rna_categorize`): use Conventional Commits parsing or an LLM for more accurate commit classification
 - **CollectCommitsWorker** (`rna_collect_commits`): integrate with the GitHub/GitLab API to pull real commits between release tags

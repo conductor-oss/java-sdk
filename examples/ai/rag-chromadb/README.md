@@ -1,10 +1,10 @@
 # RAG with ChromaDB in Java Using Conductor :  Embed, Query, Generate
 
-A Java Conductor workflow that implements a RAG pipeline using ChromaDB as the vector store .  embedding the user question, querying a ChromaDB collection for relevant documents, and generating an answer grounded in the retrieved context. ChromaDB provides a lightweight, open-source vector database that runs locally or in Docker. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, ChromaDB querying, and LLM generation as independent workers ,  you write the embedding and ChromaDB integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements a RAG pipeline using ChromaDB as the vector store. embedding the user question, querying a ChromaDB collection for relevant documents, and generating an answer grounded in the retrieved context. ChromaDB provides a lightweight, open-source vector database that runs locally or in Docker. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, ChromaDB querying, and LLM generation as independent workers,  you write the embedding and ChromaDB integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG with ChromaDB
 
-ChromaDB is a popular choice for RAG prototyping and production .  it's open-source, runs locally without cloud dependencies, supports metadata filtering, and has a simple Python/REST API. A RAG pipeline against ChromaDB follows three steps: embed the question into a vector, query the ChromaDB collection for nearest neighbors, and pass the retrieved documents as context to an LLM.
+ChromaDB is a popular choice for RAG prototyping and production. it's open-source, runs locally without cloud dependencies, supports metadata filtering, and has a simple Python/REST API. A RAG pipeline against ChromaDB follows three steps: embed the question into a vector, query the ChromaDB collection for nearest neighbors, and pass the retrieved documents as context to an LLM.
 
 Each step can fail independently: the embedding model might time out, the ChromaDB connection might drop, or the LLM might be rate-limited. Without orchestration, a ChromaDB connection error means restarting from embedding, and there's no record of which documents were retrieved for which questions.
 
@@ -12,11 +12,11 @@ Each step can fail independently: the embedding model might time out, the Chroma
 
 **You write the embedding and ChromaDB query logic. Conductor handles the RAG pipeline, retries, and observability.**
 
-Each stage is an independent worker .  question embedding, ChromaDB collection query, and answer generation. Conductor sequences them, retries the ChromaDB query if the connection drops, and tracks every execution with the question, retrieved documents, and generated answer.
+Each stage is an independent worker. question embedding, ChromaDB collection query, and answer generation. Conductor sequences them, retries the ChromaDB query if the connection drops, and tracks every execution with the question, retrieved documents, and generated answer.
 
 ### What You Write: Workers
 
-Three workers integrate ChromaDB into the RAG pipeline .  embedding the query, querying the ChromaDB collection with metadata filtering, and generating an answer from the retrieved documents.
+Three workers integrate ChromaDB into the RAG pipeline. embedding the query, querying the ChromaDB collection with metadata filtering, and generating an answer from the retrieved documents.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers integrate ChromaDB into the RAG pipeline .  embedding the query, q
 | **ChromaGenerateWorker** | `chroma_generate` | Worker that generates an answer from ChromaDB query results. In production this would send the retrieved documents as... |
 | **ChromaQueryWorker** | `chroma_query` | Worker that simulates querying a ChromaDB collection. In production this would use: ChromaClient client = new ChromaC... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w rag_chromadb_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in ChromaDB's built-in embedding function or an external embedding API, query a real ChromaDB collection with metadata filters, and the embed-query-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in ChromaDB's built-in embedding function or an external embedding API, query a real ChromaDB collection with metadata filters, and the embed-query-generate pipeline runs unchanged.
 
 - **ChromaEmbedWorker** (`chroma_embed`): call ChromaDB's built-in embedding function or an external embedding API (OpenAI text-embedding-3-small, Cohere embed-english-v3) to vectorize the question
 - **ChromaGenerateWorker** (`chroma_generate`): send the retrieved ChromaDB documents as context to an LLM (OpenAI GPT-4, Anthropic Claude) to produce a grounded answer
 - **ChromaQueryWorker** (`chroma_query`): query a real ChromaDB collection using the Python client via HTTP (`ChromaClient.get_collection().query()`) with metadata filters and configurable n_results
 
-The embed/query/generate contract is fixed .  upgrade embedding models, adjust ChromaDB collection settings, or swap the LLM provider without modifying the workflow.
+The embed/query/generate contract is fixed. upgrade embedding models, adjust ChromaDB collection settings, or swap the LLM provider without modifying the workflow.
 
 ## SDK
 

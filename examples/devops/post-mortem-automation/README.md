@@ -25,7 +25,7 @@ Four workers assemble the post-mortem. Gathering the incident timeline, collecti
 | **GatherTimelineWorker** | `pm_gather_timeline` | Builds the incident timeline by collecting alert triggers, response actions, and resolution events |
 | **ScheduleReviewWorker** | `pm_schedule_review` | Schedules a blameless post-mortem review meeting with the involved team |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w post_mortem_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one post-mortem stage .  replace the simulated calls with PagerDuty timeline APIs, Datadog incident metrics, or Google Calendar scheduling, and the post-mortem workflow runs unchanged.
+Each worker handles one post-mortem stage. replace the simulated calls with PagerDuty timeline APIs, Datadog incident metrics, or Google Calendar scheduling, and the post-mortem workflow runs unchanged.
 
 - **GatherTimelineWorker** (`pm_gather_timeline`): query PagerDuty Incidents API for alert and acknowledgment timestamps, pull Slack message history for the incident channel, and correlate with deploy events from CI/CD to build a chronological event sequence
 - **CollectMetricsWorker** (`pm_collect_metrics`): query Datadog or Prometheus for error rates, latency, and availability during the incident window, and pull affected user counts from application logs or analytics APIs
@@ -173,6 +173,6 @@ post-mortem-automation-post-mortem-automation/
 │       ├── GatherTimelineWorker.java
 │       └── ScheduleReviewWorker.java
 └── src/test/java/postmortemautomation/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

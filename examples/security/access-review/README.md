@@ -1,10 +1,10 @@
 # Implementing Access Review in Java with Conductor :  Entitlement Collection, Anomaly Detection, Certification, and Enforcement
 
-A Java Conductor workflow example for access review .  collecting user entitlements across systems, identifying anomalous access (excessive permissions, dormant accounts), requesting manager certification, and enforcing revocation decisions.
+A Java Conductor workflow example for access review. collecting user entitlements across systems, identifying anomalous access (excessive permissions, dormant accounts), requesting manager certification, and enforcing revocation decisions.
 
 ## The Problem
 
-Compliance frameworks (SOX, SOC2, ISO 27001) require periodic access reviews .  verifying that every user's permissions are still appropriate. You must collect entitlements from all systems (Active Directory, AWS IAM, SaaS apps), identify anomalies (users with admin access who changed roles, dormant accounts still provisioned), send certification requests to managers, and revoke access for denied items.
+Compliance frameworks (SOX, SOC2, ISO 27001) require periodic access reviews. verifying that every user's permissions are still appropriate. You must collect entitlements from all systems (Active Directory, AWS IAM, SaaS apps), identify anomalies (users with admin access who changed roles, dormant accounts still provisioned), send certification requests to managers, and revoke access for denied items.
 
 Without orchestration, access reviews are quarterly spreadsheet exercises. Someone exports user lists from each system, manually highlights anomalies, emails managers for certification, and hopes they respond before the deadline. Revocation is manual and often forgotten.
 
@@ -12,7 +12,7 @@ Without orchestration, access reviews are quarterly spreadsheet exercises. Someo
 
 **You just write the entitlement queries and revocation calls. Conductor handles the multi-step review sequence, retries when identity providers are unavailable, and a compliance-ready record of every entitlement reviewed and decision made.**
 
-Each review step is an independent worker .  entitlement collection, anomaly detection, certification requests, and enforcement. Conductor runs them in sequence with conditional routing: anomalous access gets flagged for extra scrutiny. Every review cycle is tracked with entitlements collected, anomalies found, certifications received, and revocations applied. You get all of that, without writing a single line of orchestration code.
+Each review step is an independent worker. entitlement collection, anomaly detection, certification requests, and enforcement. Conductor runs them in sequence with conditional routing: anomalous access gets flagged for extra scrutiny. Every review cycle is tracked with entitlements collected, anomalies found, certifications received, and revocations applied. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ The review pipeline uses CollectEntitlementsWorker to gather permissions across 
 | **IdentifyAnomaliesWorker** | `ar_identify_anomalies` | Detects excessive access grants and dormant accounts that need review |
 | **RequestCertificationWorker** | `ar_request_certification` | Sends certification requests to managers and records their approve/deny decisions |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w access_review_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one review phase .  connect CollectEntitlementsWorker to Active Directory and Okta, EnforceDecisionsWorker to your IAM APIs, and the entitlement-review-certification workflow stays the same.
+Each worker covers one review phase. connect CollectEntitlementsWorker to Active Directory and Okta, EnforceDecisionsWorker to your IAM APIs, and the entitlement-review-certification workflow stays the same.
 
 - **CollectEntitlementsWorker** (`ar_collect_entitlements`): query Active Directory, AWS IAM, Okta, and SaaS apps for user permissions and group memberships
 - **EnforceDecisionsWorker** (`ar_enforce_decisions`): revoke access via identity provider APIs, remove IAM policies, and deactivate SaaS accounts for denied items
@@ -172,6 +172,6 @@ access-review-access-review/
 │       ├── IdentifyAnomaliesWorker.java
 │       └── RequestCertificationWorker.java
 └── src/test/java/accessreview/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

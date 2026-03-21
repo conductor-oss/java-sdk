@@ -1,10 +1,10 @@
 # Performance Review in Java with Conductor :  Self-Evaluation, Manager Evaluation, Calibration, and Finalization
 
-A Java Conductor workflow example for performance reviews .  collecting the employee's self-evaluation, gathering the manager's evaluation with competency ratings, running cross-team calibration to normalize ratings, and finalizing the review with a composite score and development plan. Uses [Conductor](https://github.
+A Java Conductor workflow example for performance reviews. collecting the employee's self-evaluation, gathering the manager's evaluation with competency ratings, running cross-team calibration to normalize ratings, and finalizing the review with a composite score and development plan. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to run the annual performance review cycle. Each employee writes a self-evaluation covering goal progress, accomplishments, and development areas. Their manager completes an evaluation with competency ratings, goal achievement scores, and narrative feedback. The calibration step normalizes ratings across teams to ensure consistent standards .  preventing rating inflation in lenient teams or deflation in strict ones. Finally, the review is finalized with a composite rating that feeds into compensation, promotion, and development decisions. Each step must complete before the next ,  you cannot calibrate without both evaluations, and you cannot finalize without calibration.
+You need to run the annual performance review cycle. Each employee writes a self-evaluation covering goal progress, accomplishments, and development areas. Their manager completes an evaluation with competency ratings, goal achievement scores, and narrative feedback. The calibration step normalizes ratings across teams to ensure consistent standards. preventing rating inflation in lenient teams or deflation in strict ones. Finally, the review is finalized with a composite rating that feeds into compensation, promotion, and development decisions. Each step must complete before the next,  you cannot calibrate without both evaluations, and you cannot finalize without calibration.
 
 Without orchestration, you'd manage this through email reminders, spreadsheet trackers, and manual follow-ups. HR sends reminder emails, managers submit evaluations at different times, calibration happens on whiteboards, and final ratings are entered one by one. If a manager misses their deadline, the entire team's calibration is delayed. HR has no real-time visibility into which of hundreds of reviews are stuck at which stage.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd manage this through email reminders, spreadsheet tr
 
 **You just write the self-evaluation, manager evaluation, calibration, and review finalization logic. Conductor handles review routing, calibration sequencing, and evaluation cycle audit trails.**
 
-Each stage of the review cycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting the self-eval before the manager eval, calibrating only after both evaluations are in, finalizing after calibration, and giving HR complete real-time visibility into every review's progress across the organization. You get all of that, without writing a single line of orchestration code.
+Each stage of the review cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting the self-eval before the manager eval, calibrating only after both evaluations are in, finalizing after calibration, and giving HR complete real-time visibility into every review's progress across the organization. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Goal retrieval, self-assessment collection, manager review, and calibration work
 | **CalibrateWorker** | `pfr_calibrate` | Normalizes ratings across teams against organizational standards and distribution guidelines |
 | **FinalizeWorker** | `pfr_finalize` | Finalizes the review with composite rating, development plan, and compensation recommendation |
 
-Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
+Workers implement HR operations. onboarding tasks, approvals, provisioning,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w pfr_performance_review -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real review systems .  your HRIS for evaluation forms, your calibration platform for cross-team normalization, your talent management system for development plans, and the workflow runs identically in production.
+Connect each worker to your real review systems. your HRIS for evaluation forms, your calibration platform for cross-team normalization, your talent management system for development plans, and the workflow runs identically in production.
 
 - **SelfEvalWorker** → integrate with your performance management platform (Lattice, Culture Amp, 15Five) to collect employee self-assessments
 - **ManagerEvalWorker** → pull manager evaluations from your HRIS with competency frameworks and goal tracking data

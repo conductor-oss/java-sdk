@@ -6,13 +6,13 @@ Automates on-demand feature environment provisioning using [Conductor](https://g
 
 A developer opens a pull request for `feature-auth-v2`. Reviewers want to click a link and see it running. Not read diffs. The workflow provisions a namespace, deploys the branch, sets up a preview URL like `feature-auth-v2.preview.example.com`, and comments the link on the PR. When the PR is merged, the environment gets torn down.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the provisioning and deployment logic. Conductor handles namespace-to-notification sequencing, retries, and environment lifecycle tracking.**
 
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging .  your workers call the infrastructure APIs.
+Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. your workers call the infrastructure APIs.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers provision the preview environment. Creating the namespace, deployin
 | **NotifyWorker** | `fe_notify` | Posts the preview URL as a comment on the pull request so reviewers can access it |
 | **ProvisionWorker** | `fe_provision` | Creates an isolated Kubernetes namespace (or VM/container) for the feature branch |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w feature_environment_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one provisioning step .  replace the simulated calls with Kubernetes namespace APIs, Helm deployments, or GitHub PR comment APIs, and the environment workflow runs unchanged.
+Each worker handles one provisioning step. replace the simulated calls with Kubernetes namespace APIs, Helm deployments, or GitHub PR comment APIs, and the environment workflow runs unchanged.
 
 - **ProvisionWorker** (`fe_provision`): create Kubernetes namespaces via the K8s API, Terraform workspaces for cloud-native isolation, or Vercel/Netlify preview deployments for frontend branches
 - **DeployBranchWorker** (`fe_deploy_branch`): build Docker images from the branch, push to a registry, and deploy via Helm upgrade, kubectl apply, or Argo CD ApplicationSets targeting the preview namespace
@@ -173,6 +173,6 @@ feature-environment-feature-environment/
 │       ├── NotifyWorker.java
 │       └── ProvisionWorker.java
 └── src/test/java/featureenvironment/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

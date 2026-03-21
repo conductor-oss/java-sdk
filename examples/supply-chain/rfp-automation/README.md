@@ -1,6 +1,6 @@
 # RFP Automation in Java with Conductor :  RFP Creation, Vendor Distribution, Response Collection, Evaluation, and Vendor Selection
 
-A Java Conductor workflow example for request-for-proposal automation .  creating an RFP for a project (e.g., "Cloud Infrastructure Migration" requiring scalability, security, and 24/7 support), distributing it to qualified vendors, collecting responses by deadline, evaluating proposals against requirements, and selecting the winning vendor. Uses [Conductor](https://github.
+A Java Conductor workflow example for request-for-proposal automation. creating an RFP for a project (e.g., "Cloud Infrastructure Migration" requiring scalability, security, and 24/7 support), distributing it to qualified vendors, collecting responses by deadline, evaluating proposals against requirements, and selecting the winning vendor. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, procurement creates RFPs in Word documents, emails them t
 
 **You just write the RFP workers. Creation, vendor distribution, response collection, evaluation scoring, and vendor selection. Conductor handles vendor notification retries, consistent scoring sequencing, and traceable evaluation records for protest defense.**
 
-Each phase of the RFP process is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so the RFP is finalized before distribution, all vendors are notified before collection begins, responses are complete before evaluation, and evaluation scores drive selection. If the distribution worker fails for one vendor, Conductor retries without re-sending to vendors already notified. Every RFP version, distribution receipt, response submission, evaluation score, and selection decision is recorded for procurement audit and vendor protest defense.
+Each phase of the RFP process is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so the RFP is finalized before distribution, all vendors are notified before collection begins, responses are complete before evaluation, and evaluation scores drive selection. If the distribution worker fails for one vendor, Conductor retries without re-sending to vendors already notified. Every RFP version, distribution receipt, response submission, evaluation score, and selection decision is recorded for procurement audit and vendor protest defense.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers automate the RFP process: CreateWorker defines requirements and cri
 | **EvaluateWorker** | `rfp_evaluate` | Scores each vendor response against the stated requirements with consistent criteria. |
 | **SelectWorker** | `rfp_select` | Selects the winning vendor based on evaluation scores. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

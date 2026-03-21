@@ -1,6 +1,6 @@
 # Azure Integration in Java Using Conductor
 
-A Java Conductor workflow that coordinates writes across three Azure services in parallel .  uploading a blob to Azure Blob Storage, writing a document to CosmosDB, and publishing an event to Event Hub ,  then verifying all three completed successfully. Uses a FORK_JOIN to run the three service calls simultaneously. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parallel fan-out and verification.
+A Java Conductor workflow that coordinates writes across three Azure services in parallel. uploading a blob to Azure Blob Storage, writing a document to CosmosDB, and publishing an event to Event Hub,  then verifying all three completed successfully. Uses a FORK_JOIN to run the three service calls simultaneously. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parallel fan-out and verification.
 
 ## Writing to Multiple Azure Services Reliably
 
@@ -20,12 +20,12 @@ Four workers coordinate Azure writes: AzBlobUploadWorker stores blobs, AzCosmosD
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **AzBlobUploadWorker** | `az_blob_upload` | Uploads the payload to Azure Blob Storage .  stores the data at `events/{id}.json` in the specified container and returns the blobUrl |
-| **AzCosmosDbWriteWorker** | `az_cosmosdb_write` | Writes the payload as a CosmosDB document .  inserts the document into the specified database and returns the documentId |
-| **AzEventHubPublishWorker** | `az_eventhub_publish` | Publishes the event to Azure Event Hub .  sends the payload to the specified event hub and returns the sequenceNumber |
-| **AzVerifyWorker** | `az_verify` | Verifies all three Azure services completed .  checks the blobUrl, CosmosDB documentId, and Event Hub sequenceNumber from the parallel branches |
+| **AzBlobUploadWorker** | `az_blob_upload` | Uploads the payload to Azure Blob Storage. stores the data at `events/{id}.json` in the specified container and returns the blobUrl |
+| **AzCosmosDbWriteWorker** | `az_cosmosdb_write` | Writes the payload as a CosmosDB document. inserts the document into the specified database and returns the documentId |
+| **AzEventHubPublishWorker** | `az_eventhub_publish` | Publishes the event to Azure Event Hub. sends the payload to the specified event hub and returns the sequenceNumber |
+| **AzVerifyWorker** | `az_verify` | Verifies all three Azure services completed. checks the blobUrl, CosmosDB documentId, and Event Hub sequenceNumber from the parallel branches |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

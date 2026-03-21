@@ -1,6 +1,6 @@
 # RAG with LangChain in Java Using Conductor :  Load, Split, Embed, Retrieve, Generate
 
-A Java Conductor workflow that implements the full LangChain-style RAG pipeline .  loading documents, splitting text into chunks, embedding chunks, retrieving relevant chunks for a question, and generating an answer. Each LangChain stage (document loader, text splitter, embedder, retriever, generator) maps to an independent Conductor worker. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage pipeline as independent workers ,  you write the LangChain integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements the full LangChain-style RAG pipeline. loading documents, splitting text into chunks, embedding chunks, retrieving relevant chunks for a question, and generating an answer. Each LangChain stage (document loader, text splitter, embedder, retriever, generator) maps to an independent Conductor worker. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage pipeline as independent workers,  you write the LangChain integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## The Full LangChain Pipeline as a Workflow
 
@@ -12,11 +12,11 @@ If the embedding API rate-limits you during chunk embedding, Conductor retries t
 
 **You write each LangChain stage as a worker. Conductor handles the five-step pipeline, retries, and observability.**
 
-Each LangChain stage is an independent worker .  document loading, text splitting, chunk embedding, retrieval, and generation. Conductor sequences them, retries any stage that fails, and tracks every execution from raw document through final answer.
+Each LangChain stage is an independent worker. document loading, text splitting, chunk embedding, retrieval, and generation. Conductor sequences them, retries any stage that fails, and tracks every execution from raw document through final answer.
 
 ### What You Write: Workers
 
-Five workers mirror the LangChain document processing pattern .  loading documents from a source, splitting text into chunks, embedding the chunks, retrieving relevant passages, and generating an answer from the retrieved context.
+Five workers mirror the LangChain document processing pattern. loading documents from a source, splitting text into chunks, embedding the chunks, retrieving relevant passages, and generating an answer from the retrieved context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -26,7 +26,7 @@ Five workers mirror the LangChain document processing pattern .  loading documen
 | **RetrieveWorker** | `lc_retrieve` | Worker that retrieves the most relevant documents for a question using FAISS. Assigns decreasing similarity scores (0... |
 | **SplitTextWorker** | `lc_split_text` | Worker that splits documents into chunks using sentence-based splitting. Simulates RecursiveCharacterTextSplitter fro... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w rag_langchain -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker maps to one LangChain stage .  swap in LangChain4j document loaders, text splitters, and embedding models, connect a real retriever, and the load-split-embed-retrieve-generate pipeline runs unchanged.
+Each worker maps to one LangChain stage. swap in LangChain4j document loaders, text splitters, and embedding models, connect a real retriever, and the load-split-embed-retrieve-generate pipeline runs unchanged.
 
 - **LoadDocumentsWorker** (`lc_load_documents`): use LangChain document loaders (WebBaseLoader, PyPDFLoader, UnstructuredFileLoader) to ingest documents from URLs, PDFs, or file systems
 - **SplitTextWorker** (`lc_split_text`): use LangChain's RecursiveCharacterTextSplitter or SentenceTransformers-based semantic chunking for context-aware document splitting

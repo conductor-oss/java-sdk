@@ -12,7 +12,7 @@ Without orchestration, tenant isolation logic is scattered across middleware and
 
 **You just write the tenant-resolution, request-processing, and usage-logging workers. Conductor handles per-tenant routing, usage tracking across every request, and durable execution state per tenant.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers isolate tenant concerns: ResolveTenantWorker maps a tenant ID to i
 | **ProcessRequestWorker** | `mt_process_request` | Processes the tenant's request using tier-appropriate resources and returns the result with cost. |
 | **ResolveTenantWorker** | `mt_resolve_tenant` | Resolves a tenant ID to its configuration: tier (enterprise/standard), region, and isolation level. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

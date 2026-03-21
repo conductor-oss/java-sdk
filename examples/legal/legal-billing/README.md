@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Legal Billing. Uses [Conductor](
 
 The billing period has closed. You need to collect time entries from attorneys across matters (e.g., 4.5 hours of contract review by J. Smith, 2.0 hours of research by A. Jones), review them for billing guideline compliance, generate an invoice with the correct total ($3,250.00), send it to the client, and track payment until collected. Manual billing processes lead to write-offs from missed time entries, rejected invoices from guideline violations, and delayed collections.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Time entry collection, rate application, invoice generation, and payment trackin
 | **SendWorker** | `lgb_send` | Delivers the invoice to the client via their preferred channel and records the sent timestamp |
 | **CollectWorker** | `lgb_collect` | Tracks payment status for the invoice, recording the payment date and marking the invoice as "paid" upon receipt |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w lgb_legal_billing -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real billing systems .  your time tracking platform for hour collection, your rate engine for fee calculation, your accounting system for invoice delivery, and the workflow runs identically in production.
+Connect each worker to your real billing systems. your time tracking platform for hour collection, your rate engine for fee calculation, your accounting system for invoice delivery, and the workflow runs identically in production.
 
 - **TrackTimeWorker** (`lgb_track_time`): integrate with a legal time tracking system like Clio, Aderant, or Elite 3E to pull attorney time entries for the billing period
 - **ReviewWorker** (`lgb_review`): connect to LEDES/UTBMS billing guideline engines or outside counsel guideline (OCG) validation tools like Brightflag or CounselLink to auto-check compliance

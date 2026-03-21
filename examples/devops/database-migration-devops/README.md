@@ -6,13 +6,13 @@ Automates database schema migrations using [Conductor](https://github.com/conduc
 
 You need to add a column to the orders table in production. A wrong ALTER statement could lock the table, corrupt data, or leave the application pointing at a schema that no longer matches its code. The safe path: snapshot the database first, apply the migration, validate that every expected table and column exists, then deploy the app version that knows about the new schema. If validation fails, you have the backup to restore from.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the migration and validation logic. Conductor handles backup-before-migrate sequencing, schema verification gates, and migration audit trails.**
 
-`BackupWorker` creates a point-in-time backup of the database before any schema changes .  enabling rollback if the migration fails. `MigrateWorker` applies the schema migration. ALTER TABLE, CREATE INDEX, data transformation ,  using the appropriate migration tool and strategy. `ValidateSchemaWorker` verifies the migration succeeded ,  checking table structures, column types, constraint integrity, and data consistency. `UpdateAppWorker` deploys or configures the application to use the new schema ,  updating connection strings, enabling new features that depend on the schema changes. Conductor sequences these four steps and records the migration outcome for audit.
+`BackupWorker` creates a point-in-time backup of the database before any schema changes. enabling rollback if the migration fails. `MigrateWorker` applies the schema migration. ALTER TABLE, CREATE INDEX, data transformation,  using the appropriate migration tool and strategy. `ValidateSchemaWorker` verifies the migration succeeded,  checking table structures, column types, constraint integrity, and data consistency. `UpdateAppWorker` deploys or configures the application to use the new schema,  updating connection strings, enabling new features that depend on the schema changes. Conductor sequences these four steps and records the migration outcome for audit.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers execute the migration safely. Creating a pre-migration backup, appl
 | **UpdateAppWorker** | `dbm_update_app` | Deploys the application with updated schema mapping. |
 | **ValidateSchemaWorker** | `dbm_validate_schema` | Validates that schema matches expected state after migration. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w database_migration_devops_workflow -s COMPLETED -c 
 
 ## How to Extend
 
-Each worker handles one migration phase .  replace the simulated calls with Flyway, Liquibase, or pt-online-schema-change for real schema changes and validation, and the migration workflow runs unchanged.
+Each worker handles one migration phase. replace the simulated calls with Flyway, Liquibase, or pt-online-schema-change for real schema changes and validation, and the migration workflow runs unchanged.
 
 - **BackupWorker** (`dbm_backup`): take automated backups via pg_dump, RDS snapshots, or Cloud SQL export before every migration, with automatic restoration on migration failure
 - **MigrateWorker** (`dbm_migrate`): use Flyway or Liquibase for versioned migrations, pt-online-schema-change for zero-downtime MySQL migrations, or Alembic for Python/SQLAlchemy projects

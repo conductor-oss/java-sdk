@@ -1,18 +1,18 @@
 # Competing Consumers in Java Using Conductor :  Publish, Compete, Process, Acknowledge
 
-A Java Conductor workflow example for the competing consumers pattern .  publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.
+A Java Conductor workflow example for the competing consumers pattern. publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.
 
 ## Scaling Throughput with Multiple Consumers
 
 When a single consumer can't keep up with the message rate on a queue, you add more consumers. But multiple consumers reading from the same queue introduces coordination problems: two consumers might grab the same message, a consumer might crash after claiming a message but before processing it, and you need to know which consumer actually handled each task for debugging and audit.
 
-The competing consumers pattern formalizes this: publish a message to a queue, let multiple consumers compete for it (only one wins), process the task with the winner, and acknowledge completion so the message is removed. Getting the compete-process-acknowledge lifecycle right .  especially with retries and crash recovery ,  requires careful coordination that's easy to get wrong in hand-rolled code.
+The competing consumers pattern formalizes this: publish a message to a queue, let multiple consumers compete for it (only one wins), process the task with the winner, and acknowledge completion so the message is removed. Getting the compete-process-acknowledge lifecycle right. especially with retries and crash recovery,  requires careful coordination that's easy to get wrong in hand-rolled code.
 
 ## The Solution
 
 **You write the publish and consume logic. Conductor handles the competition coordination, retries, and audit trail.**
 
-`CcsPublishWorker` places the task payload on the queue and returns a message ID. `CcsCompeteWorker` simulates the consumer competition .  given the consumer count, it determines which consumer instance wins the race to claim the message. `CcsProcessWorker` executes the actual business logic with the winning consumer's context. `CcsAcknowledgeWorker` confirms the message was processed and removes it from the queue. Conductor ensures these steps run in sequence, retries if the processing step fails, and records which consumer won and what result it produced.
+`CcsPublishWorker` places the task payload on the queue and returns a message ID. `CcsCompeteWorker` simulates the consumer competition. given the consumer count, it determines which consumer instance wins the race to claim the message. `CcsProcessWorker` executes the actual business logic with the winning consumer's context. `CcsAcknowledgeWorker` confirms the message was processed and removes it from the queue. Conductor ensures these steps run in sequence, retries if the processing step fails, and records which consumer won and what result it produced.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the compete-and-process lifecycle. Publishing to a shared qu
 | **CcsProcessWorker** | `ccs_process` | Executes the message payload using the winning consumer and reports processing time |
 | **CcsPublishWorker** | `ccs_publish` | Publishes a message with a unique ID to the shared queue for consumers to compete over |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w ccs_competing_consumers -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one phase of the compete-process-acknowledge cycle .  replace the simulated queue operations with real SQS or RabbitMQ consumer group APIs and the competing consumer logic runs unchanged.
+Each worker manages one phase of the compete-process-acknowledge cycle. replace the simulated queue operations with real SQS or RabbitMQ consumer group APIs and the competing consumer logic runs unchanged.
 
 - **CcsPublishWorker** (`ccs_publish`): publish to a real SQS queue (`sqs.sendMessage()`), RabbitMQ exchange, or Kafka topic instead of simulating the message send
 - **CcsCompeteWorker** (`ccs_compete`): implement real consumer group coordination using Kafka consumer groups, SQS visibility timeout with `receiveMessage()`, or Redis-based distributed locking (Redisson)

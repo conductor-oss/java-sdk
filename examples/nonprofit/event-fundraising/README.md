@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Event Fundraising. Uses [Conduct
 
 Your nonprofit is hosting a gala dinner to raise funds. The events team needs to plan the event by booking a venue and setting capacity, promote it across email, social media, and partner channels to drive registrations, execute the event and track attendance and satisfaction, collect ticket revenue and additional donations, and reconcile the finances to produce a net-raised figure. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Event planning, registration, donation collection, and impact reporting workers 
 | **PromoteWorker** | `efr_promote` | Promotes the event across email, social media, and partner channels, returning registration count |
 | **ReconcileWorker** | `efr_reconcile` | Reconciles revenue against expenses to compute net funds raised and marks the event as reconciled |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 

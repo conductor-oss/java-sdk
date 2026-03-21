@@ -1,10 +1,10 @@
 # Feature Store Pipeline in Java Using Conductor :  Compute, Validate, Register, Serve
 
-A Java Conductor workflow example for feature store management .  computing features from a source table, validating them against quality constraints, registering the validated feature group in the feature registry, and enabling the features for online serving. Uses [Conductor](https://github.
+A Java Conductor workflow example for feature store management. computing features from a source table, validating them against quality constraints, registering the validated feature group in the feature registry, and enabling the features for online serving. Uses [Conductor](https://github.
 
 ## Features Rot Without a Pipeline
 
-ML models depend on features .  user_lifetime_value, avg_session_duration, days_since_last_purchase ,  that are computed from raw data. When a data scientist computes features in a notebook, they work for that one training run. But serving those same features in production requires computing them on a schedule, validating that distributions haven't drifted, registering the new version in a catalog so models know where to find them, and enabling low-latency serving for real-time inference.
+ML models depend on features. user_lifetime_value, avg_session_duration, days_since_last_purchase,  that are computed from raw data. When a data scientist computes features in a notebook, they work for that one training run. But serving those same features in production requires computing them on a schedule, validating that distributions haven't drifted, registering the new version in a catalog so models know where to find them, and enabling low-latency serving for real-time inference.
 
 Without a pipeline, feature computation lives in ad-hoc scripts, validation is skipped, and the registry is a spreadsheet. The model in production reads stale features because nobody updated the serving layer, or worse, serves features computed with a bug that validation would have caught.
 
@@ -12,7 +12,7 @@ Without a pipeline, feature computation lives in ad-hoc scripts, validation is s
 
 **You write the feature computation and validation logic. Conductor handles the registry pipeline, retries, and serving coordination.**
 
-`FstComputeFeaturesWorker` reads the source table, computes the feature group by entity key, and produces feature vectors with statistics (mean, stddev, null rates). `FstValidateWorker` checks the computed features against quality constraints .  no null rates above threshold, distributions within expected ranges, schema matches the registered definition. `FstRegisterWorker` writes the validated features to the feature registry with a version number. `FstServeWorker` enables the registered feature group for online serving so models can query features by entity key in real time. Conductor ensures features are never served before validation passes, and records the version, validation results, and serving status for every run.
+`FstComputeFeaturesWorker` reads the source table, computes the feature group by entity key, and produces feature vectors with statistics (mean, stddev, null rates). `FstValidateWorker` checks the computed features against quality constraints. no null rates above threshold, distributions within expected ranges, schema matches the registered definition. `FstRegisterWorker` writes the validated features to the feature registry with a version number. `FstServeWorker` enables the registered feature group for online serving so models can query features by entity key in real time. Conductor ensures features are never served before validation passes, and records the version, validation results, and serving status for every run.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the feature lifecycle: computation from raw data, quality va
 | **FstServeWorker** | `fst_serve` | Enables online serving for the feature group and returns the serving endpoint URL |
 | **FstValidateWorker** | `fst_validate` | Validates computed features for schema correctness and assigns a version |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w feature_store_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one feature lifecycle step .  replace the simulated compute and validation with real Feast or Tecton APIs and the feature registration pipeline runs unchanged.
+Each worker manages one feature lifecycle step. replace the simulated compute and validation with real Feast or Tecton APIs and the feature registration pipeline runs unchanged.
 
 - **FstComputeFeaturesWorker** (`fst_compute_features`): run real feature engineering with Feast (`feast materialize`), Spark SQL queries against your data warehouse, or Tecton feature pipelines
 - **FstValidateWorker** (`fst_validate`): use Great Expectations or Deequ for data quality validation, checking for distribution drift, null rates, and schema conformance

@@ -6,13 +6,13 @@ Conducts a government property inspection: scheduling the visit, performing the 
 
 You need to conduct a government property inspection (building code, fire safety, health, environmental). The inspection is scheduled, the inspector visits the property and conducts the assessment, findings are documented with photos and notes, and the result is recorded as pass or fail with specific code violations cited. Passing a property without thorough inspection creates safety risks; failing without documented evidence invites legal challenges.
 
-Without orchestration, you'd manage inspections with paper checklists, phone-scheduled appointments, handwritten notes, and manual data entry back at the office .  losing inspector notes between field and office, missing scheduled inspections, and struggling to produce evidence when a building owner contests a violation.
+Without orchestration, you'd manage inspections with paper checklists, phone-scheduled appointments, handwritten notes, and manual data entry back at the office. losing inspector notes between field and office, missing scheduled inspections, and struggling to produce evidence when a building owner contests a violation.
 
 ## The Solution
 
 **You just write the scheduling, on-site assessment, findings documentation, and pass/fail determination logic. Conductor handles scheduling retries, findings routing, and inspection audit trails.**
 
-Each inspection concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, inspect, document, record pass/fail), routing via a SWITCH task based on the inspection result, tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each inspection concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, inspect, document, record pass/fail), routing via a SWITCH task based on the inspection result, tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Scheduling, on-site inspection, findings recording, and compliance determination
 | **RecordPassWorker** | `inw_record_pass` | Records a passed inspection result and issues a compliance certificate for the property |
 | **ScheduleWorker** | `inw_schedule` | Schedules the inspection for the property, assigning a date and inspector |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -135,7 +135,7 @@ conductor workflow search -w inw_inspection_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real inspection systems .  your scheduling platform for inspector dispatch, your mobile inspection app for on-site assessment, your code enforcement database for violation tracking, and the workflow runs identically in production.
+Point each worker at your real inspection systems. your scheduling platform for inspector dispatch, your mobile inspection app for on-site assessment, your code enforcement database for violation tracking, and the workflow runs identically in production.
 
 - **Scheduler**: integrate with your inspection management system to schedule visits based on inspector availability and geographic routing
 - **Inspector**: provide mobile inspection checklists (iAuditor, GoCanvas) with offline capability for field use

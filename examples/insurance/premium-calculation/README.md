@@ -1,16 +1,16 @@
 # Premium Calculation in Java with Conductor :  Collect Rating Factors, Calculate Base, Apply Modifiers, Finalize
 
-A Java Conductor workflow example for multi-step insurance premium calculation .  collecting rating factors (policy type, applicant age), computing the base premium from those factors and the coverage amount, applying discount and surcharge modifiers (good driver -10%, multi-policy -5%), and finalizing the adjusted premium. Each step builds on the previous: collected factors feed into the base rate calculation, the base premium and factors together determine which modifiers apply, and the adjusted premium is finalized into the quoted amount ($1,530/year from a $1,800 base). Uses [Conductor](https://github.
+A Java Conductor workflow example for multi-step insurance premium calculation. collecting rating factors (policy type, applicant age), computing the base premium from those factors and the coverage amount, applying discount and surcharge modifiers (good driver -10%, multi-policy -5%), and finalizing the adjusted premium. Each step builds on the previous: collected factors feed into the base rate calculation, the base premium and factors together determine which modifiers apply, and the adjusted premium is finalized into the quoted amount ($1,530/year from a $1,800 base). Uses [Conductor](https://github.
 
 ## Premium Calculation Requires Sequential Factor Collection, Base Rating, and Modifier Application
 
-Insurance premiums are not a single calculation .  they require gathering rating factors (age, location, coverage type), computing a base premium from actuarial rate tables, applying eligible discounts and surcharges, and finalizing the quoted amount. Each step depends on the previous: you cannot apply modifiers without knowing the base premium, and you cannot calculate the base without collecting the factors. If the modifier step fails, you need to retry it without recalculating the base premium.
+Insurance premiums are not a single calculation. they require gathering rating factors (age, location, coverage type), computing a base premium from actuarial rate tables, applying eligible discounts and surcharges, and finalizing the quoted amount. Each step depends on the previous: you cannot apply modifiers without knowing the base premium, and you cannot calculate the base without collecting the factors. If the modifier step fails, you need to retry it without recalculating the base premium.
 
 ## The Solution
 
 **You just write the rating factor collection, base premium calculation, modifier application, and quote finalization logic. Conductor handles rate lookup retries, adjustment sequencing, and premium calculation audit trails.**
 
-`CollectFactorsWorker` gathers all rating factors .  applicant demographics, property characteristics, coverage selections, deductible choices, and territory data. `CalculateBaseWorker` looks up the base premium from actuarial rate tables using the collected factors ,  applying filed rates for the state and policy type. `ApplyModifiersWorker` adjusts the base premium with applicable discounts and surcharges ,  multi-policy bundles, claims-free discounts, protective device credits, and experience surcharges. `FinalizeWorker` produces the final premium with regulatory fees, taxes, and payment plan options. Conductor records the full calculation chain for rate filing compliance and audit.
+`CollectFactorsWorker` gathers all rating factors. applicant demographics, property characteristics, coverage selections, deductible choices, and territory data. `CalculateBaseWorker` looks up the base premium from actuarial rate tables using the collected factors,  applying filed rates for the state and policy type. `ApplyModifiersWorker` adjusts the base premium with applicable discounts and surcharges,  multi-policy bundles, claims-free discounts, protective device credits, and experience surcharges. `FinalizeWorker` produces the final premium with regulatory fees, taxes, and payment plan options. Conductor records the full calculation chain for rate filing compliance and audit.
 
 ### What You Write: Workers
 
@@ -18,12 +18,12 @@ Risk factor collection, rate lookup, adjustment application, and quote generatio
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CollectFactorsWorker** | `pmc_collect_factors` | Collects rating factors for premium calculation .  gathers the policy type, applicant age, driving history, location, and other underwriting attributes needed for rate lookup |
-| **CalculateBaseWorker** | `pmc_calculate_base` | Calculates the base premium .  applies actuarial rate tables to the collected factors and coverage amount to produce the base annual premium ($1,800/year) |
-| **ApplyModifiersWorker** | `pmc_apply_modifiers` | Applies discount and surcharge modifiers to the base premium .  good driver discount (-10%), multi-policy bundle discount (-5%), and any applicable surcharges based on the rating factors |
-| **FinalizeWorker** | `pmc_finalize` | Finalizes the premium quote .  rounds the adjusted premium to the final quoted amount ($1,530/year), applies any minimum premium floors or regulatory rate caps, and prepares the quote for presentation |
+| **CollectFactorsWorker** | `pmc_collect_factors` | Collects rating factors for premium calculation. gathers the policy type, applicant age, driving history, location, and other underwriting attributes needed for rate lookup |
+| **CalculateBaseWorker** | `pmc_calculate_base` | Calculates the base premium. applies actuarial rate tables to the collected factors and coverage amount to produce the base annual premium ($1,800/year) |
+| **ApplyModifiersWorker** | `pmc_apply_modifiers` | Applies discount and surcharge modifiers to the base premium. good driver discount (-10%), multi-policy bundle discount (-5%), and any applicable surcharges based on the rating factors |
+| **FinalizeWorker** | `pmc_finalize` | Finalizes the premium quote. rounds the adjusted premium to the final quoted amount ($1,530/year), applies any minimum premium floors or regulatory rate caps, and prepares the quote for presentation |
 
-Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
+Workers implement insurance operations. claim intake, assessment, settlement,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w pmc_premium_calculation -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real rating systems .  your actuarial tables for base rates, your rating engine for discount and surcharge modifiers, your quoting platform for premium finalization, and the workflow runs identically in production.
+Point each worker at your real rating systems. your actuarial tables for base rates, your rating engine for discount and surcharge modifiers, your quoting platform for premium finalization, and the workflow runs identically in production.
 
 - **CalculateBaseWorker** (`pmc_calculate_base`): integrate with actuarial rating engines (Earnix, Guidewire Rating) or implement ISO/AAIS rate table lookups for standard lines
 - **CollectFactorsWorker** (`pmc_collect_factors`): query property data from CoreLogic, credit scores from TransUnion Insurance Bureau, and geo-risk data from Verisk for accurate territory rating

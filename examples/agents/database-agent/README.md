@@ -26,7 +26,7 @@ Five workers form the text-to-SQL pipeline. Parsing the question, generating SQL
 | **ParseQuestionWorker** | `db_parse_question` | Parses a natural-language question against a database schema. Extracts the user's intent, relevant entities (metric,  |
 | **ValidateQueryWorker** | `db_validate_query` | Validates a generated SQL query for safety and correctness. Runs five validation checks (syntax, tables exist, no mut |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

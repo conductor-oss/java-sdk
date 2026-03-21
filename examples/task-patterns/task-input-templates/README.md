@@ -24,7 +24,7 @@ Three workers form a user-action pipeline wired together by input templates: Loo
 | **ExecuteActionWorker** | `tpl_execute_action` | Executes an action, checking permissions from the enriched context. |
 | **LookupUserWorker** | `tpl_lookup_user` | Looks up a user by ID and returns their profile. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

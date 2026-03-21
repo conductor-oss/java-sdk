@@ -12,7 +12,7 @@ Without orchestration, outbox polling is implemented as a scheduled job with no 
 
 **You just write the outbox-write, poll, event-publish, and mark-published workers. Conductor handles ordered outbox processing, guaranteed delivery via retries, and a durable record of every publish attempt.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers implement the transactional outbox: WriteWithOutboxWorker atomicall
 | **PublishEventWorker** | `ob_publish_event` | Publishes the event to the message broker (e.g., Kafka topic) and returns a message ID. |
 | **WriteWithOutboxWorker** | `ob_write_with_outbox` | Writes the entity change and an outbox entry in a single atomic database transaction. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

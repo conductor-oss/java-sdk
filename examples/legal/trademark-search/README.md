@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Trademark Search. Uses [Conducto
 
 A business team wants to launch a new product under a proposed brand name. Before committing to marketing spend, you need to search trademark databases for existing registrations, analyze any conflicts (e.g., a mark with 65% similarity), assess the overall registration risk level, and recommend whether to proceed, modify, or abandon the name. Skipping this step can result in cease-and-desist letters, costly rebranding, or trademark infringement litigation.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Mark analysis, database search, conflict identification, and availability report
 | **AssessWorker** | `tmk_assess` | Evaluates overall trademark registration risk based on conflicts, returning a risk level (e.g., "moderate") and an assessment summary |
 | **RecommendWorker** | `tmk_recommend` | Generates a go/no-go recommendation (e.g., "proceed-with-caution") and suggests alternative names (e.g., {name}Plus, {name}Pro) if conflicts exist |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w tmk_trademark_search -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real trademark tools .  the USPTO TESS database for mark searches, your similarity scoring engine for conflict detection, your legal review platform for clearance opinions, and the workflow runs identically in production.
+Wire each worker to your real trademark tools. the USPTO TESS database for mark searches, your similarity scoring engine for conflict detection, your legal review platform for clearance opinions, and the workflow runs identically in production.
 
 - **SearchWorker** (`tmk_search`): query the USPTO TESS database, WIPO Global Brand Database, or commercial services like TrademarkNow or Corsearch for registered and pending marks
 - **ConflictsWorker** (`tmk_conflicts`): use a trademark similarity engine like CompuMark or Corsearch to compute phonetic, visual, and conceptual similarity scores against found marks

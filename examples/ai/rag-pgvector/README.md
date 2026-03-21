@@ -1,10 +1,10 @@
 # RAG with pgvector in Java Using Conductor :  Vector Search in PostgreSQL
 
-A Java Conductor workflow that implements RAG using pgvector .  the PostgreSQL extension that adds vector similarity search to your existing Postgres database. The pipeline embeds the question, queries a pgvector-enabled table using cosine distance or inner product operators, and generates an answer from the retrieved rows. If you already run PostgreSQL, pgvector gives you vector search without adding a separate database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, pgvector queries, and generation as independent workers ,  you write the SQL and embedding logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG using pgvector. the PostgreSQL extension that adds vector similarity search to your existing Postgres database. The pipeline embeds the question, queries a pgvector-enabled table using cosine distance or inner product operators, and generates an answer from the retrieved rows. If you already run PostgreSQL, pgvector gives you vector search without adding a separate database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, pgvector queries, and generation as independent workers,  you write the SQL and embedding logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG Without a Separate Vector Database
 
-pgvector turns any PostgreSQL table into a vector store. You add a `vector(1536)` column to your existing table, create an ivfflat or HNSW index, and query with `ORDER BY embedding <=> $1 LIMIT 10`. Your documents, metadata, and vectors live in the same database .  no data synchronization between a document store and a vector store.
+pgvector turns any PostgreSQL table into a vector store. You add a `vector(1536)` column to your existing table, create an ivfflat or HNSW index, and query with `ORDER BY embedding <=> $1 LIMIT 10`. Your documents, metadata, and vectors live in the same database. no data synchronization between a document store and a vector store.
 
 The RAG pipeline embeds the question, runs the pgvector similarity query, and generates from the results. Each step can fail independently, and you want the Postgres query retried during temporary connection issues without re-embedding.
 
@@ -12,11 +12,11 @@ The RAG pipeline embeds the question, runs the pgvector similarity query, and ge
 
 **You write the embedding and pgvector SQL query logic. Conductor handles the RAG pipeline, retries, and observability.**
 
-Each stage is an independent worker .  question embedding, pgvector SQL query (specifying the table), and answer generation. Conductor sequences them, retries the database query during connection blips, and tracks every search with the question, retrieved rows, and generated answer.
+Each stage is an independent worker. question embedding, pgvector SQL query (specifying the table), and answer generation. Conductor sequences them, retries the database query during connection blips, and tracks every search with the question, retrieved rows, and generated answer.
 
 ### What You Write: Workers
 
-Three workers integrate pgvector into the RAG pipeline .  embedding the query, running SQL-based vector similarity queries against a PostgreSQL table with the pgvector extension, and generating an answer from the results.
+Three workers integrate pgvector into the RAG pipeline. embedding the query, running SQL-based vector similarity queries against a PostgreSQL table with the pgvector extension, and generating an answer from the results.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers integrate pgvector into the RAG pipeline .  embedding the query, r
 | **PgvecGenerateWorker** | `pgvec_generate` | Worker that generates an answer from a question and retrieved pgvector rows. In production this would call an LLM (e.... |
 | **PgvecQueryWorker** | `pgvec_query` | Worker that builds a pgvector SQL query and returns simulated result rows. Takes embedding, table name, limit, and di... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w rag_pgvector_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in a real embedding API, query your PostgreSQL table with pgvector's cosine distance operator, and the embed-search-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in a real embedding API, query your PostgreSQL table with pgvector's cosine distance operator, and the embed-search-generate pipeline runs unchanged.
 
 - **PgvecEmbedWorker** (`pgvec_embed`): call an embedding API (OpenAI text-embedding-3-small, Cohere embed-english-v3) to vectorize the question for pgvector search
 - **PgvecGenerateWorker** (`pgvec_generate`): send pgvector query results as context to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer
 - **PgvecQueryWorker** (`pgvec_query`): execute real pgvector SQL queries against PostgreSQL using the appropriate distance operator (`<=>` cosine, `<->` L2, `<#>` inner product) with JDBC
 
-The embed/query/generate contract stays fixed .  switch between cosine and inner product distance, add WHERE clause filters, or swap embedding models without modifying the workflow.
+The embed/query/generate contract stays fixed. switch between cosine and inner product distance, add WHERE clause filters, or swap embedding models without modifying the workflow.
 
 ## SDK
 

@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Beneficiary Tracking. Uses [Cond
 
 A community health nonprofit enrolls a new beneficiary into a housing-assistance program. The intake team needs to register the person's demographics and location, assess their needs across housing, food security, education, and health, match them with appropriate services like food assistance, health screenings, and tutoring, monitor their progress over time, and produce a case report summarizing outcomes. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Registration, needs assessment, service provision, and monitoring workers each t
 | **RegisterWorker** | `btr_register` | Registers the beneficiary with their name and location, assigning a unique beneficiary ID |
 | **ReportWorker** | `btr_report` | Generates a case report summarizing the beneficiary's services received and outcome status |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w beneficiary_tracking_758 -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real program systems .  your case management platform for intake, your outcomes database for progress tracking, your reporting tools for impact metrics, and the workflow runs identically in production.
+Connect each worker to your real program systems. your case management platform for intake, your outcomes database for progress tracking, your reporting tools for impact metrics, and the workflow runs identically in production.
 
 - **RegisterWorker** (`btr_register`): create the beneficiary record in Salesforce NPSP or Bloomerang via their REST API, returning the CRM contact ID
 - **AssessNeedsWorker** (`btr_assess_needs`): pull intake assessment data from your case management system (e.g., Apricot, Penelope) and map responses to standardized need categories

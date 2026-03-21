@@ -1,12 +1,12 @@
 # Workflow Optimization in Java Using Conductor :  Analyze Execution, Find Waste, Parallelize, Benchmark
 
-A Java Conductor workflow example for workflow optimization .  analyzing execution history to measure task durations, identifying wasted time (sequential tasks that could run in parallel, unnecessary waits), recommending parallelization opportunities, and benchmarking the optimized version against the original. Uses [Conductor](https://github.
+A Java Conductor workflow example for workflow optimization. analyzing execution history to measure task durations, identifying wasted time (sequential tasks that could run in parallel, unnecessary waits), recommending parallelization opportunities, and benchmarking the optimized version against the original. Uses [Conductor](https://github.
 
 ## Slow Workflows Need Data-Driven Optimization, Not Guessing
 
-Your order fulfillment workflow takes 45 seconds end-to-end, but the SLA is 30 seconds. Which tasks are the bottleneck? Are there sequential tasks with no data dependency that could run in parallel? Is there a task that always takes 10 seconds but only does a simple lookup .  suggesting it's waiting on a slow dependency?
+Your order fulfillment workflow takes 45 seconds end-to-end, but the SLA is 30 seconds. Which tasks are the bottleneck? Are there sequential tasks with no data dependency that could run in parallel? Is there a task that always takes 10 seconds but only does a simple lookup. suggesting it's waiting on a slow dependency?
 
-Workflow optimization means analyzing real execution data (not guessing), identifying specific waste .  tasks that could be parallelized, unnecessary sequential dependencies, slow tasks that should be cached ,  recommending changes, and benchmarking the optimized workflow to measure actual improvement.
+Workflow optimization means analyzing real execution data (not guessing), identifying specific waste. tasks that could be parallelized, unnecessary sequential dependencies, slow tasks that should be cached,  recommending changes, and benchmarking the optimized workflow to measure actual improvement.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Four workers drive the optimization cycle: execution analysis, waste identificat
 | **WfoIdentifyWasteWorker** | `wfo_identify_waste` | Finds sequential tasks that could run in parallel and calculates wasted time |
 | **WfoParallelizeWorker** | `wfo_parallelize` | Generates an optimized execution plan that groups independent tasks into parallel stages |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w wfo_workflow_optimization -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker tackles one optimization concern .  replace the simulated execution analysis with real Conductor API metrics and the analyze-identify-benchmark pipeline runs unchanged.
+Each worker tackles one optimization concern. replace the simulated execution analysis with real Conductor API metrics and the analyze-identify-benchmark pipeline runs unchanged.
 
 - **WfoAnalyzeExecutionWorker** (`wfo_analyze_execution`): query real execution data from Conductor's `workflow/execution` API, parse task timing from OpenTelemetry traces, or aggregate metrics from Prometheus/Datadog
 - **WfoIdentifyWasteWorker** (`wfo_identify_waste`): implement real dependency analysis: build a DAG of data dependencies between tasks and identify tasks with no incoming data edges that are currently sequential

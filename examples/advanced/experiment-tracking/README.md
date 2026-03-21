@@ -1,18 +1,18 @@
 # ML Experiment Tracking in Java Using Conductor :  Define, Run, Log Metrics, Compare, Decide
 
-A Java Conductor workflow example for ML experiment tracking .  defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.
+A Java Conductor workflow example for ML experiment tracking. defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.
 
 ## Experiments Without Reproducibility Are Guesswork
 
-You tuned a hyperparameter, retrained the model, and accuracy went up 2%. Was it the hyperparameter change, or did the training data shift? Without a structured experiment record .  hypothesis, configuration, metrics, baseline comparison ,  you can't answer that question. Teams run dozens of experiments a week, and without systematic tracking, knowledge about what was tried and what worked lives in Slack threads and Jupyter notebooks that nobody can find six months later.
+You tuned a hyperparameter, retrained the model, and accuracy went up 2%. Was it the hyperparameter change, or did the training data shift? Without a structured experiment record. hypothesis, configuration, metrics, baseline comparison,  you can't answer that question. Teams run dozens of experiments a week, and without systematic tracking, knowledge about what was tried and what worked lives in Slack threads and Jupyter notebooks that nobody can find six months later.
 
-Experiment tracking means defining the experiment upfront (name, hypothesis, baseline metric), running it with recorded configuration, logging the resulting metrics, comparing against the baseline with statistical significance testing, and making a recorded decision to adopt or reject the change. Each step produces data the next step needs .  you can't compare without metrics, and you can't decide without the comparison.
+Experiment tracking means defining the experiment upfront (name, hypothesis, baseline metric), running it with recorded configuration, logging the resulting metrics, comparing against the baseline with statistical significance testing, and making a recorded decision to adopt or reject the change. Each step produces data the next step needs. you can't compare without metrics, and you can't decide without the comparison.
 
 ## The Solution
 
 **You write the training and comparison logic. Conductor handles experiment sequencing, retries, and reproducibility tracking.**
 
-`ExtDefineExperimentWorker` creates the experiment record with an ID and configuration based on the hypothesis. `ExtRunExperimentWorker` executes the training job and produces metrics (accuracy, loss, latency). `ExtLogMetricsWorker` persists those metrics to the experiment tracking store. `ExtCompareWorker` compares the primary metric against the baseline and determines whether the improvement is statistically significant. `ExtDecideWorker` makes the final adopt/reject decision based on the improvement percentage and significance. Conductor records the full chain .  from hypothesis to decision ,  so every experiment is reproducible and auditable.
+`ExtDefineExperimentWorker` creates the experiment record with an ID and configuration based on the hypothesis. `ExtRunExperimentWorker` executes the training job and produces metrics (accuracy, loss, latency). `ExtLogMetricsWorker` persists those metrics to the experiment tracking store. `ExtCompareWorker` compares the primary metric against the baseline and determines whether the improvement is statistically significant. `ExtDecideWorker` makes the final adopt/reject decision based on the improvement percentage and significance. Conductor records the full chain. from hypothesis to decision,  so every experiment is reproducible and auditable.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers cover the experiment lifecycle: definition, training execution, met
 | **ExtLogMetricsWorker** | `ext_log_metrics` | Records experiment metrics to a tracking server and returns the run URL |
 | **ExtRunExperimentWorker** | `ext_run_experiment` | Executes the training run and produces accuracy, precision, and recall metrics |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w experiment_tracking_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one experiment lifecycle step .  replace the simulated training runs with real MLflow or Weights & Biases APIs and the define-run-compare-decide pipeline runs unchanged.
+Each worker handles one experiment lifecycle step. replace the simulated training runs with real MLflow or Weights & Biases APIs and the define-run-compare-decide pipeline runs unchanged.
 
 - **ExtRunExperimentWorker** (`ext_run_experiment`): trigger a real training job via SageMaker `createTrainingJob()`, Weights & Biases run, or MLflow `mlflow.start_run()` and collect actual metrics
 - **ExtLogMetricsWorker** (`ext_log_metrics`): log metrics to MLflow Tracking (`mlflow.log_metrics`), Weights & Biases (`wandb.log`), or a custom metrics database

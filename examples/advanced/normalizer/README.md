@@ -1,18 +1,18 @@
 # Data Format Normalizer in Java Using Conductor :  Detect Format, Convert JSON/XML/CSV, Output Canonical Form
 
-A Java Conductor workflow example for data normalization .  detecting the input format of incoming data (JSON, XML, or CSV), routing to the appropriate format-specific converter via a `SWITCH` task, and producing a canonical output regardless of the source format. Uses [Conductor](https://github.
+A Java Conductor workflow example for data normalization. detecting the input format of incoming data (JSON, XML, or CSV), routing to the appropriate format-specific converter via a `SWITCH` task, and producing a canonical output regardless of the source format. Uses [Conductor](https://github.
 
 ## Every Source System Speaks a Different Format
 
 Your ERP sends XML, your CRM sends JSON, and your partner's FTP drop is CSV. Downstream analytics expects a single canonical format. Each integration point needs its own parser, and when a new source system joins with YAML or fixed-width files, you add another branch to a growing if/else chain.
 
-The normalizer pattern detects the incoming format, routes to the correct converter, and produces the same canonical output structure regardless of how the data arrived. Adding a new format means adding one converter worker and one SWITCH case .  not touching the rest of the pipeline.
+The normalizer pattern detects the incoming format, routes to the correct converter, and produces the same canonical output structure regardless of how the data arrived. Adding a new format means adding one converter worker and one SWITCH case. not touching the rest of the pipeline.
 
 ## The Solution
 
 **You write the format converters. Conductor handles detection routing, retries, and canonical output delivery.**
 
-`NrmDetectFormatWorker` examines the raw input and source system metadata to determine whether the data is JSON, XML, or CSV. A `SWITCH` task routes to the matching converter: `NrmConvertJsonWorker` normalizes JSON payloads, `NrmConvertXmlWorker` transforms XML documents, and `NrmConvertCsvWorker` parses CSV rows .  each producing the same canonical output structure. `NrmOutputWorker` emits the normalized result. Conductor's declarative routing means adding a new format is a one-worker, one-case change.
+`NrmDetectFormatWorker` examines the raw input and source system metadata to determine whether the data is JSON, XML, or CSV. A `SWITCH` task routes to the matching converter: `NrmConvertJsonWorker` normalizes JSON payloads, `NrmConvertXmlWorker` transforms XML documents, and `NrmConvertCsvWorker` parses CSV rows. each producing the same canonical output structure. `NrmOutputWorker` emits the normalized result. Conductor's declarative routing means adding a new format is a one-worker, one-case change.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers cover the normalization pipeline: format detection, and three forma
 | **NrmDetectFormatWorker** | `nrm_detect_format` | Inspects the raw input to detect its format (JSON, CSV, or XML) for routing |
 | **NrmOutputWorker** | `nrm_output` | Produces the final normalized output, recording the original and canonical formats |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -134,7 +134,7 @@ conductor workflow search -w nrm_normalizer -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker converts one input format .  replace the simulated parsers with real JAXB, Jackson, or Apache Commons CSV libraries and the detect-convert-output pipeline runs unchanged.
+Each worker converts one input format. replace the simulated parsers with real JAXB, Jackson, or Apache Commons CSV libraries and the detect-convert-output pipeline runs unchanged.
 
 - **NrmDetectFormatWorker** (`nrm_detect_format`): use Apache Tika for real format detection, or inspect Content-Type headers and file magic bytes to classify input format automatically
 - **NrmConvertXmlWorker** (`nrm_convert_xml`): parse real XML using JAXB, Jackson XML, or DOM4j and transform to your canonical JSON schema

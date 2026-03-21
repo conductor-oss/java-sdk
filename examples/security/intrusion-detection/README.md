@@ -1,10 +1,10 @@
 # Implementing Intrusion Detection in Java with Conductor :  Event Analysis, Threat Correlation, Severity Assessment, and Response
 
-A Java Conductor workflow example for intrusion detection .  analyzing security events, correlating them with known threat patterns, assessing severity, and triggering automated response actions.
+A Java Conductor workflow example for intrusion detection. analyzing security events, correlating them with known threat patterns, assessing severity, and triggering automated response actions.
 
 ## The Problem
 
-You detect a suspicious event .  an SSH login from an unusual IP, a port scan, an anomalous database query pattern. You need to analyze the event in context, correlate it with other events and known threat indicators (is this IP on a threat feed?), assess the severity (isolated event vs coordinated attack), and trigger the appropriate response (block IP, isolate host, alert SOC).
+You detect a suspicious event. an SSH login from an unusual IP, a port scan, an anomalous database query pattern. You need to analyze the event in context, correlate it with other events and known threat indicators (is this IP on a threat feed?), assess the severity (isolated event vs coordinated attack), and trigger the appropriate response (block IP, isolate host, alert SOC).
 
 Without orchestration, intrusion detection is either a SIEM that generates thousands of uncorrelated alerts or a manual investigation process. Security analysts manually check threat feeds, correlate events across tools, and copy-paste IOCs between systems. Response is delayed because each step depends on the previous one and they're done sequentially by a human.
 
@@ -12,7 +12,7 @@ Without orchestration, intrusion detection is either a SIEM that generates thous
 
 **You just write the event analysis and threat correlation logic. Conductor handles sequential execution, automatic retries if a threat feed is down, and a complete forensic timeline of every detection.**
 
-Each detection step is an independent worker .  event analysis, threat correlation, severity assessment, and automated response. Conductor runs them in sequence: analyze the event, correlate with threat intelligence, assess severity, then trigger the response. Every detection is tracked with full context ,  event details, correlation results, severity score, and actions taken. You get all of that, without writing a single line of orchestration code.
+Each detection step is an independent worker. event analysis, threat correlation, severity assessment, and automated response. Conductor runs them in sequence: analyze the event, correlate with threat intelligence, assess severity, then trigger the response. Every detection is tracked with full context,  event details, correlation results, severity score, and actions taken. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -23,9 +23,9 @@ The detection pipeline chains four focused workers: AnalyzeEventsWorker parses s
 | **AnalyzeEventsWorker** | `id_analyze_events` | Analyzes security events from a source IP, identifying suspicious patterns like repeated auth failures |
 | **AssessSeverityWorker** | `id_assess_severity` | Assesses threat severity (e.g., active brute-force from a known malicious IP) |
 | **CorrelateThreatsWorker** | `id_correlate_threats` | Correlates the event IP against threat intelligence feeds for known indicators |
-| **RespondWorker** | `id_respond` | Executes automated response actions .  blocks the IP and notifies the security team |
+| **RespondWorker** | `id_respond` | Executes automated response actions. blocks the IP and notifies the security team |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w intrusion_detection_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the detection pipeline .  connect AnalyzeEventsWorker to your SIEM (Splunk, Elastic), CorrelateThreatsWorker to threat feeds like VirusTotal, and the detection-to-response workflow stays the same.
+Each worker handles one stage of the detection pipeline. connect AnalyzeEventsWorker to your SIEM (Splunk, Elastic), CorrelateThreatsWorker to threat feeds like VirusTotal, and the detection-to-response workflow stays the same.
 
 - **AnalyzeEventsWorker** (`id_analyze_events`): parse security events from your SIEM (Splunk, Elastic SIEM, QRadar) or log aggregator
 - **AssessSeverityWorker** (`id_assess_severity`): compute severity using MITRE ATT&CK mapping, asset criticality, and attack chain analysis
@@ -172,6 +172,6 @@ intrusion-detection-intrusion-detection/
 │       ├── CorrelateThreatsWorker.java
 │       └── RespondWorker.java
 └── src/test/java/intrusiondetection/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

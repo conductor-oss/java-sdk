@@ -1,6 +1,6 @@
 # Batch ML Model Training in Java Using Conductor :  Prepare Data, Train in Parallel, Evaluate
 
-A Java Conductor workflow example for batch ML training .  loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.
+A Java Conductor workflow example for batch ML training. loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.
 
 ## Running ML Experiments Without Losing Your Mind
 
@@ -12,7 +12,7 @@ Doing this manually means managing parallel training threads, ensuring both mode
 
 **You write the data prep and training logic. Conductor handles parallel execution, retries, and experiment lineage.**
 
-`BmlPrepareDataWorker` loads and cleans the dataset. `BmlSplitDataWorker` partitions it into train and test sets at the configured ratio (default 80/20). A `FORK_JOIN` then trains both models in parallel .  `BmlTrainModel1Worker` fits a random forest while `BmlTrainModel2Worker` fits a gradient boosting model on the same training data. Once both finish, `BmlEvaluateWorker` compares their accuracy scores against the test set and declares the winner. Every step's inputs and outputs are recorded, so you can trace exactly which dataset version, split, and hyperparameters produced each accuracy number.
+`BmlPrepareDataWorker` loads and cleans the dataset. `BmlSplitDataWorker` partitions it into train and test sets at the configured ratio (default 80/20). A `FORK_JOIN` then trains both models in parallel. `BmlTrainModel1Worker` fits a random forest while `BmlTrainModel2Worker` fits a gradient boosting model on the same training data. Once both finish, `BmlEvaluateWorker` compares their accuracy scores against the test set and declares the winner. Every step's inputs and outputs are recorded, so you can trace exactly which dataset version, split, and hyperparameters produced each accuracy number.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers cover the training pipeline: data preparation, splitting, two paral
 | **BmlTrainModel1Worker** | `bml_train_model_1` | Trains a Random Forest model on the training split and reports accuracy/F1 metrics |
 | **BmlTrainModel2Worker** | `bml_train_model_2` | Trains a Gradient Boosting model on the training split and reports accuracy/F1 metrics |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w batch_ml_training_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker encapsulates one ML lifecycle step .  replace the simulated training calls with real SageMaker or MLflow APIs and the parallel-train-then-evaluate pipeline runs unchanged.
+Each worker encapsulates one ML lifecycle step. replace the simulated training calls with real SageMaker or MLflow APIs and the parallel-train-then-evaluate pipeline runs unchanged.
 
 - **BmlPrepareDataWorker** (`bml_prepare_data`): load real datasets from S3, BigQuery, or a feature store; run cleaning and feature engineering with Apache Spark or pandas via a subprocess
 - **BmlTrainModel1Worker / BmlTrainModel2Worker**: invoke SageMaker training jobs, submit MLflow runs, or call scikit-learn/XGBoost via a Python subprocess to train on actual data

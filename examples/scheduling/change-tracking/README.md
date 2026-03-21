@@ -1,10 +1,10 @@
 # Change Tracking in Java Using Conductor :  Detect, Diff, Classify, and Record Infrastructure Changes
 
-A Java Conductor workflow example for tracking infrastructure changes .  detecting when a resource changes, computing the diff against its previous state, classifying the change type (configuration, scaling, deployment), and recording it for audit and rollback purposes.
+A Java Conductor workflow example for tracking infrastructure changes. detecting when a resource changes, computing the diff against its previous state, classifying the change type (configuration, scaling, deployment), and recording it for audit and rollback purposes.
 
 ## The Problem
 
-You need to know when infrastructure changes .  a security group rule was modified, an instance type was changed, a deployment rolled out a new version. For each change, you need to compute what exactly changed (diff the before/after state), classify whether it was a configuration change, scaling event, or deployment, and record everything for compliance audits and rollback capability.
+You need to know when infrastructure changes. a security group rule was modified, an instance type was changed, a deployment rolled out a new version. For each change, you need to compute what exactly changed (diff the before/after state), classify whether it was a configuration change, scaling event, or deployment, and record everything for compliance audits and rollback capability.
 
 Without orchestration, change tracking is either absent (you discover changes after incidents) or incomplete (you detect changes but don't record the diff). Classification is manual, diffs are computed inconsistently, and there's no centralized audit trail connecting change detection to change details.
 
@@ -12,7 +12,7 @@ Without orchestration, change tracking is either absent (you discover changes af
 
 **You just write the change detection and diff computation logic. Conductor handles the detect-diff-classify-record pipeline, retries when version control APIs are temporarily down, and a centralized audit trail connecting every change to its diff and risk classification.**
 
-Each tracking concern is an independent worker .  change detection, diff computation, classification, and recording. Conductor runs them in sequence: detect a change, compute the diff, classify it, then record it. Every change event is tracked with full context ,  you can see exactly what changed, when, and how it was classified. You get all of that, without writing a single line of orchestration code.
+Each tracking concern is an independent worker. change detection, diff computation, classification, and recording. Conductor runs them in sequence: detect a change, compute the diff, classify it, then record it. Every change event is tracked with full context,  you can see exactly what changed, when, and how it was classified. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers track infrastructure changes: DetectChangeWorker spots version diff
 | **DiffWorker** | `chg_diff` | Computes the diff between resource versions, returning lines added/removed, files changed, and a summary |
 | **RecordChangeWorker** | `chg_record` | Records the classified change to the audit trail with a unique change ID for tracking and rollback |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w change_tracking_427 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one tracking step .  connect the change detector to AWS Config or CloudTrail, the recorder to your CMDB, and the detect-diff-classify-record workflow stays the same.
+Each worker covers one tracking step. connect the change detector to AWS Config or CloudTrail, the recorder to your CMDB, and the detect-diff-classify-record workflow stays the same.
 
 - **ClassifyChangeWorker** (`chg_classify`): categorize changes by type (security, scaling, deployment, configuration) and risk level using rules or ML
 - **DetectChangeWorker** (`chg_detect_change`): watch AWS Config, Kubernetes events, Terraform state, or CloudTrail for infrastructure changes in real time

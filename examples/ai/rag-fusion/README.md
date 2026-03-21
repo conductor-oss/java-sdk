@@ -1,10 +1,10 @@
 # RAG Fusion in Java Using Conductor :  Multi-Query Parallel Search with Reciprocal Rank Fusion
 
-A Java Conductor workflow that implements RAG Fusion .  rewriting the user's question into multiple search queries (different phrasings, perspectives, and specificity levels), searching the vector store with each query in parallel, and fusing the results using reciprocal rank fusion (RRF) to produce a better-ranked document set than any single query would yield. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query rewriting, parallel search, result fusion, and generation as independent workers ,  you write the rewriting and fusion logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that implements RAG Fusion. rewriting the user's question into multiple search queries (different phrasings, perspectives, and specificity levels), searching the vector store with each query in parallel, and fusing the results using reciprocal rank fusion (RRF) to produce a better-ranked document set than any single query would yield. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query rewriting, parallel search, result fusion, and generation as independent workers,  you write the rewriting and fusion logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Why One Query Is Not Enough
 
-A single search query captures one perspective on the user's question. Rephrasing the same question in different ways .  more specific, more general, using synonyms, from different angles ,  retrieves different relevant documents. RAG Fusion rewrites the original question into multiple queries, searches with each one in parallel, and merges the results using reciprocal rank fusion, which gives higher scores to documents that appear in multiple result sets.
+A single search query captures one perspective on the user's question. Rephrasing the same question in different ways. more specific, more general, using synonyms, from different angles,  retrieves different relevant documents. RAG Fusion rewrites the original question into multiple queries, searches with each one in parallel, and merges the results using reciprocal rank fusion, which gives higher scores to documents that appear in multiple result sets.
 
 The parallel search step is critical: three sequential searches take 3x the latency, but three parallel searches take 1x. After fusion, the merged results feed into generation for a more comprehensive answer.
 
@@ -16,7 +16,7 @@ A query rewriter generates multiple query variants. Conductor's `FORK_JOIN` sear
 
 ### What You Write: Workers
 
-Six workers implement RAG fusion .  rewriting the original query into multiple variants, running three parallel searches via FORK_JOIN, fusing the results with Reciprocal Rank Fusion, and generating an answer from the combined context.
+Six workers implement RAG fusion. rewriting the original query into multiple variants, running three parallel searches via FORK_JOIN, fusing the results with Reciprocal Rank Fusion, and generating an answer from the combined context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -27,7 +27,7 @@ Six workers implement RAG fusion .  rewriting the original query into multiple v
 | **SearchV2Worker** | `rf_search_v2` | Search engine V2 worker. Takes a query and variantIndex, returns ranked results with id, text, and rank. Simulates a ... |
 | **SearchV3Worker** | `rf_search_v3` | Search engine V3 worker. Takes a query and variantIndex, returns ranked results with id, text, and rank. Simulates a ... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -139,7 +139,7 @@ conductor workflow search -w rag_fusion_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one fusion stage .  swap in an LLM for query rewriting, connect a real vector store for parallel multi-query search, implement reciprocal rank fusion for merging, and the rewrite-search-fuse-generate pipeline runs unchanged.
+Each worker handles one fusion stage. swap in an LLM for query rewriting, connect a real vector store for parallel multi-query search, implement reciprocal rank fusion for merging, and the rewrite-search-fuse-generate pipeline runs unchanged.
 
 - **RewriteQueriesWorker** (`rf_rewrite_queries`): use an LLM (GPT-4, Claude) to rephrase the original question into multiple query variants for multi-perspective retrieval
 - **SearchV1Worker** (`rf_search_v1`): query a keyword-based search engine (Elasticsearch BM25, Apache Solr) with the rewritten query variant

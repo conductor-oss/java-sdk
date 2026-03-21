@@ -25,7 +25,7 @@ The gateway pipeline breaks into four focused workers: authenticating API keys, 
 | **SendResponseWorker** | `ag_send_response` | Sends the final API response to the client. |
 | **TransformResponseWorker** | `ag_transform_response` | Transforms the raw backend response into a client-friendly format. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### The Workflow
 

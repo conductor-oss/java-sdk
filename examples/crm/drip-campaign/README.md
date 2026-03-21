@@ -1,18 +1,18 @@
 # Drip Campaign in Java with Conductor :  Enroll, Send, Track, and Graduate Contacts Through an Email Series
 
-A Java Conductor workflow that runs a drip email campaign for a contact .  enrolling them in a campaign, sending a series of timed emails, tracking engagement (opens, clicks, replies), and graduating the contact when the series completes. Given a `contactId`, `campaignId`, and `email`, the pipeline produces an enrollment ID, email send count, and graduation status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step drip campaign lifecycle.
+A Java Conductor workflow that runs a drip email campaign for a contact. enrolling them in a campaign, sending a series of timed emails, tracking engagement (opens, clicks, replies), and graduating the contact when the series completes. Given a `contactId`, `campaignId`, and `email`, the pipeline produces an enrollment ID, email send count, and graduation status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step drip campaign lifecycle.
 
 ## Nurturing Leads with Automated Email Sequences
 
-Drip campaigns send a sequence of emails over time to nurture a lead toward conversion. Each contact needs to be enrolled, receive the right emails in the right order, have their engagement tracked (did they open? click? reply?), and eventually graduate from the campaign .  either because they converted or completed the series. Managing this manually across thousands of contacts is impossible.
+Drip campaigns send a sequence of emails over time to nurture a lead toward conversion. Each contact needs to be enrolled, receive the right emails in the right order, have their engagement tracked (did they open? click? reply?), and eventually graduate from the campaign. either because they converted or completed the series. Managing this manually across thousands of contacts is impossible.
 
-This workflow models the drip campaign lifecycle for a single contact. The enroll worker registers the contact in the campaign and creates an enrollment record. The send worker delivers the email series to the contact's address. The engagement tracker measures how the contact interacted with the emails and produces an engagement score. The graduation worker evaluates the engagement score and decides whether the contact has graduated (converted or completed the series). Each step depends on the previous one .  you cannot track engagement before sending, and you cannot graduate before measuring engagement.
+This workflow models the drip campaign lifecycle for a single contact. The enroll worker registers the contact in the campaign and creates an enrollment record. The send worker delivers the email series to the contact's address. The engagement tracker measures how the contact interacted with the emails and produces an engagement score. The graduation worker evaluates the engagement score and decides whether the contact has graduated (converted or completed the series). Each step depends on the previous one. you cannot track engagement before sending, and you cannot graduate before measuring engagement.
 
 ## The Solution
 
 **You just write the enrollment, email-sending, engagement-tracking, and graduation workers. Conductor handles the drip sequence and lifecycle tracking.**
 
-Four workers handle the drip lifecycle .  enrollment, email sending, engagement tracking, and graduation. The enroller creates a campaign enrollment record. The sender delivers the email series and reports the count. The tracker monitors opens, clicks, and replies to compute an engagement score. The graduation worker uses the score to determine if the contact should graduate. Conductor sequences the steps and routes enrollment IDs and engagement scores between them automatically.
+Four workers handle the drip lifecycle. enrollment, email sending, engagement tracking, and graduation. The enroller creates a campaign enrollment record. The sender delivers the email series and reports the count. The tracker monitors opens, clicks, and replies to compute an engagement score. The graduation worker uses the score to determine if the contact should graduate. Conductor sequences the steps and routes enrollment IDs and engagement scores between them automatically.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ EnrollWorker registers the contact, SendSeriesWorker delivers timed emails, Trac
 | **SendSeriesWorker** | `drp_send_series` | Delivers the sequence of timed drip emails to the contact's email address. |
 | **TrackEngagementWorker** | `drp_track_engagement` | Measures email engagement: open rates, click-through rates, and replies across the series. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w drp_drip_campaign -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one drip phase .  connect your email platform (SendGrid, Mailchimp, Customer.io) for delivery and your CRM (Salesforce, HubSpot) for engagement tracking, and the drip-campaign workflow stays the same.
+Each worker handles one drip phase. connect your email platform (SendGrid, Mailchimp, Customer.io) for delivery and your CRM (Salesforce, HubSpot) for engagement tracking, and the drip-campaign workflow stays the same.
 
 - **EnrollWorker** (`drp_enroll`): integrate with your CRM (Salesforce, HubSpot) to create real campaign enrollment records
 - **GraduateWorker** (`drp_graduate`): connect to your CRM to update lead status and trigger sales handoff workflows

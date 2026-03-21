@@ -1,22 +1,22 @@
 # RAG Quality Gates in Java Using Conductor :  Relevance and Faithfulness Checks Before Serving Answers
 
-A Java Conductor workflow that adds two quality gates to a RAG pipeline .  a relevance gate after retrieval (are the documents relevant to the question?) and a faithfulness gate after generation (is the answer supported by the retrieved context?). If either gate fails, the answer is rejected instead of served. Conductor's `SWITCH` tasks implement the gates as conditional routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate retrieval, quality checking, generation, and gating as independent workers ,  you write the quality check logic, Conductor handles conditional routing, retries, durability, and observability.
+A Java Conductor workflow that adds two quality gates to a RAG pipeline. a relevance gate after retrieval (are the documents relevant to the question?) and a faithfulness gate after generation (is the answer supported by the retrieved context?). If either gate fails, the answer is rejected instead of served. Conductor's `SWITCH` tasks implement the gates as conditional routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate retrieval, quality checking, generation, and gating as independent workers,  you write the quality check logic, Conductor handles conditional routing, retries, durability, and observability.
 
 ## Don't Serve Bad Answers
 
 A standard RAG pipeline retrieves and generates without checking quality. If the retrieved documents are irrelevant (the vector store returned noise), the LLM generates a hallucinated answer from bad context. If the answer contradicts the retrieved documents (the LLM went off-script), the user gets incorrect information. Quality gates catch both: a relevance check rejects bad retrievals before generation, and a faithfulness check rejects unfaithful answers before serving.
 
-This creates a pipeline with two conditional branch points .  retrieve, check relevance (pass or reject), generate, check faithfulness (pass or reject). Without orchestration, this is nested if/else logic with no visibility into which gate rejected which query.
+This creates a pipeline with two conditional branch points. retrieve, check relevance (pass or reject), generate, check faithfulness (pass or reject). Without orchestration, this is nested if/else logic with no visibility into which gate rejected which query.
 
 ## The Solution
 
 **You write the relevance and faithfulness check logic. Conductor handles the quality-gated routing, retries, and observability.**
 
-Each step is an independent worker .  retrieval, relevance checking, generation, faithfulness checking, rejection. Conductor's `SWITCH` tasks route to rejection when a quality gate fails. Every execution records which gates passed and which rejected, building a dataset for quality monitoring.
+Each step is an independent worker. retrieval, relevance checking, generation, faithfulness checking, rejection. Conductor's `SWITCH` tasks route to rejection when a quality gate fails. Every execution records which gates passed and which rejected, building a dataset for quality monitoring.
 
 ### What You Write: Workers
 
-Five workers implement a dual quality gate .  retrieving documents, checking relevance (first SWITCH gate), generating an answer, checking faithfulness (second SWITCH gate), and rejecting answers that fail either check.
+Five workers implement a dual quality gate. retrieving documents, checking relevance (first SWITCH gate), generating an answer, checking faithfulness (second SWITCH gate), and rejecting answers that fail either check.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -26,7 +26,7 @@ Five workers implement a dual quality gate .  retrieving documents, checking rel
 | **RejectWorker** | `qg_reject` | Worker that handles rejection when a quality gate fails. Takes a reason and score, and returns rejected=true along wi... |
 | **RetrieveWorker** | `qg_retrieve` | Worker that retrieves documents for the given question. Returns 3 fixed documents with id, text, and relevance score.... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -133,7 +133,7 @@ conductor workflow search -w rag_quality_gates_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one quality gate .  swap in LLM-based relevance scoring after retrieval, add faithfulness verification after generation, and the gated serve-or-reject pipeline runs unchanged.
+Each worker handles one quality gate. swap in LLM-based relevance scoring after retrieval, add faithfulness verification after generation, and the gated serve-or-reject pipeline runs unchanged.
 
 - **RetrieveWorker** (`qg_retrieve`): query a vector database (Pinecone, Weaviate, pgvector) to retrieve relevant documents for the question
 - **GenerateWorker** (`qg_generate`): call an LLM (OpenAI GPT-4, Anthropic Claude) with retrieved context to generate an answer

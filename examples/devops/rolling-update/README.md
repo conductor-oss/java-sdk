@@ -4,7 +4,7 @@ Orchestrates zero-downtime rolling updates by analyzing current state, planning 
 
 ## Zero-Downtime Updates Need Careful Orchestration
 
-Updating 20 instances of a service simultaneously causes a full outage while the new version starts up. A rolling update replaces instances in batches .  update 2, verify they're healthy, update the next 2, and so on. If a batch fails health checks, the rollout stops before affecting more instances.
+Updating 20 instances of a service simultaneously causes a full outage while the new version starts up. A rolling update replaces instances in batches. update 2, verify they're healthy, update the next 2, and so on. If a batch fails health checks, the rollout stops before affecting more instances.
 
 The batch size and health check interval determine the trade-off between speed and safety. Updating 1 at a time is safest but slow (20 rounds). Updating 5 at a time is faster but riskier (a bad version affects 25% of capacity before detection). The plan step should consider current traffic levels, resource headroom, and the service's tolerance for reduced capacity during the update.
 
@@ -12,7 +12,7 @@ The batch size and health check interval determine the trade-off between speed a
 
 **You write the batch update and health check logic. Conductor handles rollout sequencing, batch-by-batch verification, and automatic rollback triggers.**
 
-`AnalyzeWorker` examines the current deployment .  instance count, health status, traffic distribution, and resource utilization ,  to determine the starting state. `PlanWorker` calculates the rollout strategy ,  batch size, health check wait time between batches, rollback triggers, and success criteria. `ExecuteWorker` performs the rolling update in batches ,  updating instances, waiting for health checks, and proceeding to the next batch. `VerifyWorker` confirms the full rollout completed ,  all instances running the new version, health checks passing, and metrics stable. Conductor sequences these steps and records each batch's execution for rollout audit.
+`AnalyzeWorker` examines the current deployment. instance count, health status, traffic distribution, and resource utilization,  to determine the starting state. `PlanWorker` calculates the rollout strategy,  batch size, health check wait time between batches, rollback triggers, and success criteria. `ExecuteWorker` performs the rolling update in batches,  updating instances, waiting for health checks, and proceeding to the next batch. `VerifyWorker` confirms the full rollout completed,  all instances running the new version, health checks passing, and metrics stable. Conductor sequences these steps and records each batch's execution for rollout audit.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the rolling update. Analyzing current state, planning the ba
 | **PlanUpdate** | `ru_plan` | Plans the rolling update strategy (batch size, max unavailable, etc.). |
 | **VerifyUpdate** | `ru_verify` | Verifies all replicas are healthy after the rolling update. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w rolling_update_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one rollout phase .  replace the simulated calls with Kubernetes rollout controls, AWS ECS rolling updates, or custom Ansible playbooks, and the update workflow runs unchanged.
+Each worker handles one rollout phase. replace the simulated calls with Kubernetes rollout controls, AWS ECS rolling updates, or custom Ansible playbooks, and the update workflow runs unchanged.
 
 - **Analyze** (`ru_analyze`): examine the current deployment state: how many instances are running, which version they're on, current traffic levels, and whether it's safe to begin the update
 - **PlanUpdate** (`ru_plan`): implement dynamic batch sizing based on current traffic and error budget, with automatic rollback triggers if error rate exceeds threshold during any batch

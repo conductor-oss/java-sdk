@@ -25,7 +25,7 @@ Four workers form the log analysis pipeline: ingesting raw entries from a source
 | **IngestLogsWorker** | `lp_ingest_logs` | Ingests raw log entries from a specified source. |
 | **ParseEntriesWorker** | `lp_parse_entries` | Parses raw log entries into structured format. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

@@ -1,12 +1,12 @@
 # AI Fine-Tuning Pipeline in Java Using Conductor :  Prepare Dataset, Configure, Train, Evaluate, Deploy
 
-A Java Conductor workflow that orchestrates model fine-tuning end-to-end .  preparing the training dataset (formatting, splitting, validation), configuring hyperparameters, running the training job, evaluating the fine-tuned model against the base model, and deploying if the evaluation passes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage fine-tuning pipeline as independent workers ,  you write the ML pipeline logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that orchestrates model fine-tuning end-to-end. preparing the training dataset (formatting, splitting, validation), configuring hyperparameters, running the training job, evaluating the fine-tuned model against the base model, and deploying if the evaluation passes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage fine-tuning pipeline as independent workers,  you write the ML pipeline logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Fine-Tuning Is a Pipeline, Not a Single Step
 
 Fine-tuning an LLM on your domain data involves five distinct stages, each with different requirements and failure modes. Dataset preparation (formatting to chat/instruction format, train/val split, deduplication) is CPU-bound. Configuration (learning rate, batch size, LoRA rank, epochs) requires domain knowledge. Training is GPU-bound and can take hours. Evaluation compares the fine-tuned model against the base model on held-out data. Deployment makes the model available for inference.
 
-If training crashes after 3 hours (GPU out of memory, training divergence), you need to adjust configuration and restart training .  not re-prepare the dataset. If evaluation shows the fine-tuned model is worse than the base model (catastrophic forgetting), you need to try different hyperparameters. Each stage needs independent retry and tracking.
+If training crashes after 3 hours (GPU out of memory, training divergence), you need to adjust configuration and restart training. not re-prepare the dataset. If evaluation shows the fine-tuned model is worse than the base model (catastrophic forgetting), you need to try different hyperparameters. Each stage needs independent retry and tracking.
 
 ## The Solution
 
@@ -22,11 +22,11 @@ The fine-tuning pipeline uses separate workers for dataset prep, hyperparameter 
 |---|---|---|
 | **ConfigureWorker** | `aft_configure` | Configures and returns config, learning rate, epochs |
 | **DeployWorker** | `aft_deploy` | Deploys the fine-tuned model to a production endpoint with 3 replicas for serving |
-| **EvaluateWorker** | `aft_evaluate` | Evaluates the training checkpoint on the validation set .  accuracy: 0.952, determines if quality threshold is met |
-| **PrepareDatasetWorker** | `aft_prepare_dataset` | Prepares the training dataset .  formats 10K samples with 80/20 train/validation split |
+| **EvaluateWorker** | `aft_evaluate` | Evaluates the training checkpoint on the validation set. accuracy: 0.952, determines if quality threshold is met |
+| **PrepareDatasetWorker** | `aft_prepare_dataset` | Prepares the training dataset. formats 10K samples with 80/20 train/validation split |
 | **TrainWorker** | `aft_train` | Trains the input and returns model id, checkpoint id, final loss, training time |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI evaluation (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI evaluation (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 

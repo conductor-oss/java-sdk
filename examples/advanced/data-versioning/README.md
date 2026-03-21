@@ -1,18 +1,18 @@
 # Dataset Versioning in Java Using Conductor :  Snapshot, Tag, Diff, and Rollback
 
-A Java Conductor workflow example for dataset versioning .  taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.
+A Java Conductor workflow example for dataset versioning. taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.
 
 ## Datasets Change, and You Need to Track How
 
-A data pipeline updates your ML training dataset daily. Yesterday's model performed well, but today's retrained model has degraded accuracy. Was it the new data? Which rows changed? Can you roll back to yesterday's version and retrain? Without versioning, you're guessing .  there's no snapshot to compare against, no diff to show what changed, and no tag to identify which version produced the good model.
+A data pipeline updates your ML training dataset daily. Yesterday's model performed well, but today's retrained model has degraded accuracy. Was it the new data? Which rows changed? Can you roll back to yesterday's version and retrain? Without versioning, you're guessing. there's no snapshot to compare against, no diff to show what changed, and no tag to identify which version produced the good model.
 
-Dataset versioning means capturing a snapshot before each update, tagging it (e.g., `v2.3-daily-2024-01-15`), comparing it against the previous tag to see additions, deletions, and schema changes, and rolling back if the diff crosses a threshold .  too many deleted rows, unexpected column changes, or data quality regressions. Coordinating snapshot, tag, store, diff, and rollback as a reliable pipeline is where manual scripts fall apart.
+Dataset versioning means capturing a snapshot before each update, tagging it (e.g., `v2.3-daily-2024-01-15`), comparing it against the previous tag to see additions, deletions, and schema changes, and rolling back if the diff crosses a threshold. too many deleted rows, unexpected column changes, or data quality regressions. Coordinating snapshot, tag, store, diff, and rollback as a reliable pipeline is where manual scripts fall apart.
 
 ## The Solution
 
 **You write the snapshot and diff logic. Conductor handles the versioning pipeline, retries, and rollback coordination.**
 
-`DvrSnapshotWorker` captures a point-in-time snapshot of the dataset and returns a snapshot ID. `DvrTagWorker` attaches a human-readable tag name (like `v1.0` or `prod-2024-01-15`) to the snapshot. `DvrStoreWorker` persists the snapshot metadata .  dataset ID, snapshot ID, and tag ,  to the version catalog. `DvrDiffWorker` compares the current tag against the previous tag and produces diff statistics (rows added, removed, changed) plus a flag indicating whether rollback is needed. `DvrRollbackWorker` reverts to the previous version if the diff signals a problem. Conductor records every snapshot ID, tag, and diff result so you have a complete version history.
+`DvrSnapshotWorker` captures a point-in-time snapshot of the dataset and returns a snapshot ID. `DvrTagWorker` attaches a human-readable tag name (like `v1.0` or `prod-2024-01-15`) to the snapshot. `DvrStoreWorker` persists the snapshot metadata. dataset ID, snapshot ID, and tag,  to the version catalog. `DvrDiffWorker` compares the current tag against the previous tag and produces diff statistics (rows added, removed, changed) plus a flag indicating whether rollback is needed. `DvrRollbackWorker` reverts to the previous version if the diff signals a problem. Conductor records every snapshot ID, tag, and diff result so you have a complete version history.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage the version lifecycle: snapshot capture, tag assignment, met
 | **DvrStoreWorker** | `dvr_store` | Persists the tagged version to versioned storage (e.g., S3) under the dataset/tag path |
 | **DvrTagWorker** | `dvr_tag` | Applies a version tag (e.g., v1, v2) to the current snapshot for future reference |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w data_versioning_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one versioning step .  replace the simulated snapshot and diff calls with real DVC or LakeFS APIs and the tag-diff-rollback pipeline runs unchanged.
+Each worker owns one versioning step. replace the simulated snapshot and diff calls with real DVC or LakeFS APIs and the tag-diff-rollback pipeline runs unchanged.
 
 - **DvrSnapshotWorker** (`dvr_snapshot`): take real snapshots using DVC (`dvc commit`), LakeFS branches, Delta Lake `DESCRIBE HISTORY`, or S3 versioned object copies
 - **DvrDiffWorker** (`dvr_diff`): compute real diffs using DVC `diff`, LakeFS `diff` API, or SQL queries comparing row counts and checksums between versions

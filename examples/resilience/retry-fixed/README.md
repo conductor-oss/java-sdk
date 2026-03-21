@@ -1,10 +1,10 @@
 # Implementing Fixed Retry in Java with Conductor :  Constant-Delay Retries for Transient Failures
 
-A Java Conductor workflow example demonstrating fixed retry strategy .  retrying a failing task with a constant 1-second delay between attempts, suitable for transient errors where the recovery time is predictable.
+A Java Conductor workflow example demonstrating fixed retry strategy. retrying a failing task with a constant 1-second delay between attempts, suitable for transient errors where the recovery time is predictable.
 
 ## The Problem
 
-You have a task that fails due to transient issues .  a database connection dropped, a file lock is temporarily held, a service is restarting. The recovery time is predictable (1-2 seconds), so exponential backoff would waste time with unnecessarily long delays. You need simple, fixed-interval retries: try, wait 1 second, try again.
+You have a task that fails due to transient issues. a database connection dropped, a file lock is temporarily held, a service is restarting. The recovery time is predictable (1-2 seconds), so exponential backoff would waste time with unnecessarily long delays. You need simple, fixed-interval retries: try, wait 1 second, try again.
 
 Without orchestration, fixed retries mean a for-loop with Thread.sleep(1000) inside every task that might fail. The retry count is hardcoded, changing the delay requires a code change, and there's no record of how many retries were needed for a given execution.
 
@@ -18,9 +18,9 @@ RetryFixedWorker performs the task and reports success or failure, while Conduct
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **RetryFixedWorker** | `retry_fixed_task` | Worker for retry_fixed_task .  simulates transient failures. Uses an attempt counter keyed by workflow ID. Fails the f.. |
+| **RetryFixedWorker** | `retry_fixed_task` | Worker for retry_fixed_task. simulates transient failures. Uses an attempt counter keyed by workflow ID. Fails the f.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,9 +118,9 @@ conductor workflow search -w retry_fixed_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls a real service .  connect to your database or internal API, configure the fixed retry delay in the task definition, and the constant-interval retry behavior stays the same.
+Each worker calls a real service. connect to your database or internal API, configure the fixed retry delay in the task definition, and the constant-interval retry behavior stays the same.
 
-- **RetryFixedWorker** (`retry_fixed_task`): replace with any task that experiences predictable transient failures .  database reconnection, file lock contention, service restart detection
+- **RetryFixedWorker** (`retry_fixed_task`): replace with any task that experiences predictable transient failures. database reconnection, file lock contention, service restart detection
 
 Connect to your real database or internal service, and the fixed-interval retry behavior is purely a task definition setting requiring no code changes.
 

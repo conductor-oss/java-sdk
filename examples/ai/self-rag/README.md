@@ -1,22 +1,22 @@
 # Self-RAG in Java Using Conductor :  Self-Reflective Retrieval with Hallucination and Usefulness Grading
 
-A Java Conductor workflow that implements Self-RAG .  a pipeline that retrieves documents, grades them for relevance, generates an answer, then self-reflects by grading the answer for hallucination (is it supported by the context?) and usefulness (does it address the question?). If the answer fails either quality check, the workflow routes to a refinement step instead of serving the answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate retrieval, document grading, generation, self-reflection grading, and conditional routing as independent workers ,  you write the grading logic, Conductor handles the quality-gated routing, retries, durability, and observability.
+A Java Conductor workflow that implements Self-RAG. a pipeline that retrieves documents, grades them for relevance, generates an answer, then self-reflects by grading the answer for hallucination (is it supported by the context?) and usefulness (does it address the question?). If the answer fails either quality check, the workflow routes to a refinement step instead of serving the answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate retrieval, document grading, generation, self-reflection grading, and conditional routing as independent workers,  you write the grading logic, Conductor handles the quality-gated routing, retries, durability, and observability.
 
 ## A RAG Pipeline That Checks Its Own Work
 
-Standard RAG generates and serves .  no self-reflection. Self-RAG adds three grading steps: after retrieval, grade documents for relevance. After generation, grade the answer for hallucination (does it go beyond what the context supports?) and usefulness (does it actually answer the question?). If the answer passes both checks, format and return it. If it fails, route to a refinement step that retries with adjusted parameters.
+Standard RAG generates and serves. no self-reflection. Self-RAG adds three grading steps: after retrieval, grade documents for relevance. After generation, grade the answer for hallucination (does it go beyond what the context supports?) and usefulness (does it actually answer the question?). If the answer passes both checks, format and return it. If it fails, route to a refinement step that retries with adjusted parameters.
 
-This creates a conditional pipeline with a quality gate after generation: retrieve, grade docs, generate, grade hallucination, grade usefulness, then branch .  format output on success, refine and retry on failure.
+This creates a conditional pipeline with a quality gate after generation: retrieve, grade docs, generate, grade hallucination, grade usefulness, then branch. format output on success, refine and retry on failure.
 
 ## The Solution
 
 **You write the retrieval grading, hallucination detection, and usefulness scoring logic. Conductor handles the self-reflective routing, retries, and observability.**
 
-Each grading step is an independent worker .  document grading, hallucination grading, usefulness grading. Conductor's `SWITCH` task routes to either the output formatter or the refinement step based on quality scores. Every execution records all grading scores, making it easy to see which questions trigger refinement and why.
+Each grading step is an independent worker. document grading, hallucination grading, usefulness grading. Conductor's `SWITCH` task routes to either the output formatter or the refinement step based on quality scores. Every execution records all grading scores, making it easy to see which questions trigger refinement and why.
 
 ### What You Write: Workers
 
-Seven workers implement the self-reflective pipeline .  retrieval, document grading, generation, hallucination grading, usefulness grading, output formatting on pass, and query refinement on fail ,  with a SWITCH gate after the quality checks.
+Seven workers implement the self-reflective pipeline. retrieval, document grading, generation, hallucination grading, usefulness grading, output formatting on pass, and query refinement on fail,  with a SWITCH gate after the quality checks.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -28,7 +28,7 @@ Seven workers implement the self-reflective pipeline .  retrieval, document grad
 | **RefineRetryWorker** | `sr_refine_retry` | Refines the query when quality gate fails. Returns {refinedQuery}. |
 | **RetrieveWorker** | `sr_retrieve` | Retrieves documents relevant to a question. Returns 4 docs: 3 relevant (score >= 0.5) and 1 irrelevant (0.22). |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -150,7 +150,7 @@ conductor workflow search -w self_rag -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one self-reflection step .  swap in LLM-based graders for hallucination and usefulness checks, add refinement logic for failed answers, and the retrieve-grade-generate-reflect pipeline runs unchanged.
+Each worker handles one self-reflection step. swap in LLM-based graders for hallucination and usefulness checks, add refinement logic for failed answers, and the retrieve-grade-generate-reflect pipeline runs unchanged.
 
 - **RetrieveWorker** (`sr_retrieve`): query a vector database (Pinecone, Weaviate, pgvector) to retrieve candidate documents for the question
 - **GradeDocsWorker** (`sr_grade_docs`): use an LLM-as-judge or a relevance classifier to filter retrieved documents, keeping only those above a relevance threshold

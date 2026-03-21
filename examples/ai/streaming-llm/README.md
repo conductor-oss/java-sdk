@@ -1,6 +1,6 @@
 # Streaming LLM in Java Using Conductor :  Prepare, Collect Chunks, Post-Process
 
-A Java Conductor workflow that handles LLM streaming responses .  preparing the request, collecting server-sent event (SSE) chunks into a complete response, and post-processing the assembled output. While Conductor tasks are request-response based, this pattern lets you integrate streaming LLM APIs by collecting all chunks in a worker and producing the complete response as output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate stream preparation, chunk collection, and post-processing as independent workers ,  you write the streaming integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that handles LLM streaming responses. preparing the request, collecting server-sent event (SSE) chunks into a complete response, and post-processing the assembled output. While Conductor tasks are request-response based, this pattern lets you integrate streaming LLM APIs by collecting all chunks in a worker and producing the complete response as output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate stream preparation, chunk collection, and post-processing as independent workers,  you write the streaming integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## Integrating Streaming LLMs into Workflows
 
@@ -12,11 +12,11 @@ If the stream breaks mid-generation, the worker can signal failure and Conductor
 
 **You write the stream collection and chunk assembly logic. Conductor handles the pipeline sequencing, retries, and observability.**
 
-Each concern is an independent worker .  stream preparation (building the request with streaming enabled), chunk collection (consuming SSE events and assembling the complete response), and post-processing (formatting, token counting, or content filtering). Conductor sequences them and retries the chunk collector if the stream disconnects mid-generation.
+Each concern is an independent worker. stream preparation (building the request with streaming enabled), chunk collection (consuming SSE events and assembling the complete response), and post-processing (formatting, token counting, or content filtering). Conductor sequences them and retries the chunk collector if the stream disconnects mid-generation.
 
 ### What You Write: Workers
 
-Three workers handle LLM streaming .  preparing the SSE connection parameters, collecting streamed chunks into a complete response, and post-processing the assembled text with token counts and timing.
+Three workers handle LLM streaming. preparing the SSE connection parameters, collecting streamed chunks into a complete response, and post-processing the assembled text with token counts and timing.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers handle LLM streaming .  preparing the SSE connection parameters, c
 | **StreamPostProcessWorker** | `stream_post_process` | Post-processes the assembled LLM response: counts words and marks the result as processed. |
 | **StreamPrepareWorker** | `stream_prepare` | Formats a raw prompt into a system/user prompt pair for the LLM. |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w streaming_llm_wf -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one streaming concern .  swap in a real SSE connection to OpenAI or Claude's streaming API, collect chunks into a complete response, and the prepare-collect-postprocess pipeline runs unchanged.
+Each worker handles one streaming concern. swap in a real SSE connection to OpenAI or Claude's streaming API, collect chunks into a complete response, and the prepare-collect-postprocess pipeline runs unchanged.
 
 - **StreamCollectChunksWorker** (`stream_collect_chunks`): call an LLM streaming endpoint (OpenAI streaming, Anthropic streaming, Ollama streaming) and collect SSE chunks into a complete response
 - **StreamPostProcessWorker** (`stream_post_process`): apply post-processing to the assembled response: Markdown rendering, token counting, content filtering, or structured extraction
 - **StreamPrepareWorker** (`stream_prepare`): format the raw user prompt into system/user message pairs with model-specific templates (ChatML, Llama format, Claude XML)
 
-The prepare/collect/post-process contract is fixed .  switch from OpenAI streaming to Claude streaming or change the chunk assembly strategy without modifying the workflow.
+The prepare/collect/post-process contract is fixed. switch from OpenAI streaming to Claude streaming or change the chunk assembly strategy without modifying the workflow.
 
 ## SDK
 

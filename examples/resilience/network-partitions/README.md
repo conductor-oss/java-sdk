@@ -1,16 +1,16 @@
 # Implementing Network Partition Handling in Java with Conductor :  Resilient Workers with Reconnection Tracking
 
-A Java Conductor workflow example demonstrating resilience to network partitions .  a worker that tracks connection attempts and handles reconnection gracefully when network connectivity is interrupted between the worker and the Conductor server.
+A Java Conductor workflow example demonstrating resilience to network partitions. a worker that tracks connection attempts and handles reconnection gracefully when network connectivity is interrupted between the worker and the Conductor server.
 
 ## The Problem
 
-In distributed systems, network partitions happen .  the worker loses connectivity to the Conductor server due to infrastructure issues, DNS failures, or cloud provider outages. During a partition, the worker can't poll for tasks or report results. When connectivity resumes, the worker must reconnect and resume processing without duplicating work or losing progress.
+In distributed systems, network partitions happen. the worker loses connectivity to the Conductor server due to infrastructure issues, DNS failures, or cloud provider outages. During a partition, the worker can't poll for tasks or report results. When connectivity resumes, the worker must reconnect and resume processing without duplicating work or losing progress.
 
 Without orchestration, network partition handling means custom reconnection logic, heartbeat monitoring, and manual state reconciliation. Each worker implements its own retry-on-disconnect behavior. Some workers crash on disconnect, some silently stop processing, and some lose in-flight work.
 
 ## The Solution
 
-The worker tracks connection attempts and handles reconnection state. Conductor's polling model is inherently partition-tolerant .  when the network heals, the worker simply resumes polling. Tasks that timed out during the partition are retried automatically. The full history of connection attempts and task executions is preserved. You get all of that, without writing a single line of orchestration code.
+The worker tracks connection attempts and handles reconnection state. Conductor's polling model is inherently partition-tolerant. when the network heals, the worker simply resumes polling. Tasks that timed out during the partition are retried automatically. The full history of connection attempts and task executions is preserved. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -20,7 +20,7 @@ NetworkPartitionWorker tracks connection attempts and processes tasks resilientl
 |---|---|---|
 | **NetworkPartitionWorker** | `np_resilient_task` | Worker for np_resilient_task. Demonstrates handling network partitions. Tracks attempt count using an AtomicInteger.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,7 +118,7 @@ conductor workflow search -w network_partitions_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker processes real tasks with built-in partition tolerance .  connect to your actual business services, and the automatic reconnection and task resumption after network interruptions stays the same.
+Each worker processes real tasks with built-in partition tolerance. connect to your actual business services, and the automatic reconnection and task resumption after network interruptions stays the same.
 
 - **NetworkPartitionWorker** (`np_resilient_task`): add real health checks (ping Conductor, verify DNS resolution, test network routes) and reconnection logic with circuit breaker state
 

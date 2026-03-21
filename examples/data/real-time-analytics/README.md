@@ -25,7 +25,7 @@ Four workers power the real-time analytics pipeline: ingesting and normalizing e
 | **ProcessStreamWorker** | `ry_process_stream` | Processes the event stream: computes window metrics, flags anomalies. |
 | **UpdateAggregatesWorker** | `ry_update_aggregates` | Updates running aggregates with the latest window metrics. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

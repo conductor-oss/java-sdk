@@ -1,18 +1,18 @@
 # Tutoring Match in Java with Conductor :  Request Intake, Tutor Matching, Session Scheduling, and Confirmation
 
-A Java Conductor workflow example for matching students with tutors .  receiving a tutoring request with subject and time preferences, finding an available tutor qualified in that subject, scheduling a session at the preferred time, and confirming the booking with both student and tutor. Uses [Conductor](https://github.
+A Java Conductor workflow example for matching students with tutors. receiving a tutoring request with subject and time preferences, finding an available tutor qualified in that subject, scheduling a session at the preferred time, and confirming the booking with both student and tutor. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to connect students who need help with qualified tutors. A student requests tutoring in a specific subject at a preferred time, the system must find a tutor who is both qualified in that subject and available during that time slot, a session is scheduled, and both parties need confirmation with the session details. Matching a student with a tutor who is unavailable wastes everyone's time; scheduling without confirming availability leads to no-shows.
 
-Without orchestration, you'd build a single matching service that queries the tutor database, checks availability calendars, creates calendar events, and sends confirmation emails .  manually handling the case where a tutor's availability changes between matching and scheduling, retrying failed calendar API calls, and logging every step to investigate complaints about missed or double-booked sessions.
+Without orchestration, you'd build a single matching service that queries the tutor database, checks availability calendars, creates calendar events, and sends confirmation emails. manually handling the case where a tutor's availability changes between matching and scheduling, retrying failed calendar API calls, and logging every step to investigate complaints about missed or double-booked sessions.
 
 ## The Solution
 
 **You just write the request intake, tutor matching, session scheduling, and booking confirmation logic. Conductor handles availability retries, match scoring, and session scheduling audit trails.**
 
-Each tutoring-match concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (request, match, schedule, confirm), retrying if the calendar service is temporarily unavailable, tracking every tutoring request from intake to confirmed session, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each tutoring-match concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (request, match, schedule, confirm), retrying if the calendar service is temporarily unavailable, tracking every tutoring request from intake to confirmed session, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Student profiling, tutor availability checking, compatibility scoring, and sessi
 | **ScheduleWorker** | `tut_schedule` | Creates a tutoring session at the agreed time for the matched student-tutor pair |
 | **ConfirmWorker** | `tut_confirm` | Sends session confirmation to both the student and the tutor |
 
-Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
+Workers implement educational operations. enrollment, grading, notifications,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w tut_tutoring_match -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real tutoring systems .  your tutor roster database for matching, Google Calendar or Calendly for availability and scheduling, Twilio or SendGrid for confirmation notifications, and the workflow runs identically in production.
+Point each worker at your real tutoring systems. your tutor roster database for matching, Google Calendar or Calendly for availability and scheduling, Twilio or SendGrid for confirmation notifications, and the workflow runs identically in production.
 
 - **StudentRequestWorker** (`tut_student_request`): persist the request to your tutoring center database and validate the student's eligibility for tutoring services
 - **MatchTutorWorker** (`tut_match_tutor`): query your tutor roster database for subject-qualified tutors, check their availability via Google Calendar API or Calendly, and apply matching preferences (rating, language, past sessions)

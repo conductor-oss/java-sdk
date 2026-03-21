@@ -6,13 +6,13 @@ Automates multi-region deployments using [Conductor](https://github.com/conducto
 
 You run your payment service in us-east-1, eu-west-1, and ap-southeast-1. A new version needs to go out, but deploying to all three regions simultaneously is risky. If the release has a bug, all regions go down at once. The safe approach: deploy to the primary region first, verify it is healthy, then fan out to the secondary regions, and finally run a global check to confirm every region is serving traffic. If the primary deployment fails health checks, the secondary regions never get the bad version.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the regional deploy and verification logic. Conductor handles primary-first sequencing, health gates before secondary rollout, and cross-region consistency checks.**
 
-`DeployPrimaryWorker` deploys the new version to the primary region with canary or blue-green strategy. `VerifyPrimaryWorker` monitors the primary region for a stabilization period .  checking error rates, latency, and business metrics against baselines. `DeploySecondaryWorker` deploys to all remaining regions once the primary is verified healthy. `VerifyGlobalWorker` confirms cross-region consistency ,  same version running everywhere, inter-region traffic routing correctly, and global health checks passing. Conductor sequences these steps, halting secondary deployment if primary verification fails.
+`DeployPrimaryWorker` deploys the new version to the primary region with canary or blue-green strategy. `VerifyPrimaryWorker` monitors the primary region for a stabilization period. checking error rates, latency, and business metrics against baselines. `DeploySecondaryWorker` deploys to all remaining regions once the primary is verified healthy. `VerifyGlobalWorker` confirms cross-region consistency,  same version running everywhere, inter-region traffic routing correctly, and global health checks passing. Conductor sequences these steps, halting secondary deployment if primary verification fails.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the multi-region rollout. Deploying to the primary region fi
 | **VerifyGlobalWorker** | `mrd_verify_global` | Verifies all regions are healthy and serving traffic. |
 | **VerifyPrimaryWorker** | `mrd_verify_primary` | Verifies health of the primary region deployment. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w multi_region_deploy_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one deployment phase .  replace the simulated calls with AWS CodeDeploy, ArgoCD multi-cluster sync, or Kubernetes rolling updates per region, and the multi-region workflow runs unchanged.
+Each worker handles one deployment phase. replace the simulated calls with AWS CodeDeploy, ArgoCD multi-cluster sync, or Kubernetes rolling updates per region, and the multi-region workflow runs unchanged.
 
 - **DeployPrimaryWorker** (`mrd_deploy_primary`): deploy via AWS CodeDeploy with blue-green or canary, ArgoCD sync to the primary cluster, or Kubernetes rolling update with deployment strategy
 - **VerifyPrimaryWorker** (`mrd_verify_primary`): compare error rates and latency against pre-deployment baselines using Datadog, New Relic, or CloudWatch anomaly detection

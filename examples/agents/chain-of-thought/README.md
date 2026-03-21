@@ -26,7 +26,7 @@ Five workers externalize the reasoning chain. Understanding the problem, choosin
 | **Step3VerifyWorker** | `ct_step_3_verify` | Verifies the calculation result using fixed (hardcoded) verification values. No year-by-year computation is performed. |
 | **UnderstandProblemWorker** | `ct_understand_problem` | Analyzes the incoming problem and produces a structured understanding including the problem type and known values. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

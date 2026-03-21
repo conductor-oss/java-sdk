@@ -1,6 +1,6 @@
 # Tool Use Rate Limiting in Java Using Conductor :  Check Limits, Execute-or-Queue, Delayed Execution
 
-Tool Use Rate Limiting .  checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.
+Tool Use Rate Limiting. checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.
 
 ## APIs Have Rate Limits :  Respect Them
 
@@ -25,7 +25,7 @@ Four workers manage rate limits. Checking the quota, routing allowed requests to
 | **ExecuteToolWorker** | `rl_execute_tool` | Executes the tool immediately when the rate limit allows it. Returns a simulated translation result with executedImme... |
 | **QueueRequestWorker** | `rl_queue_request` | Queues a throttled request for later execution. Returns a fixed queueId and the estimated wait time. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

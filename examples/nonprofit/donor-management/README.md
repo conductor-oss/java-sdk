@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Donor Management. Uses [Conducto
 
 A new donor makes their first gift to your nonprofit. The development team needs to acquire the donor by recording their contact information, begin stewardship with engagement touchpoints, send a tax-deductible donation acknowledgment letter, create a retention plan based on their giving level, and evaluate whether they qualify for upgrade to major-donor status. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Donor intake, gift processing, acknowledgment, and stewardship workers each mana
 | **StewardWorker** | `dnr_steward` | Manages donor engagement touchpoints, tracking contact history and sentiment for the donor's first gift |
 | **UpgradeWorker** | `dnr_upgrade` | Evaluates whether the donor qualifies for upgrade from their current level to major-donor status |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 

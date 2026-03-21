@@ -1,18 +1,18 @@
 # Sentiment Analysis in Java with Conductor :  Preprocess, Analyze, Classify, and Aggregate Customer Sentiment
 
-A Java Conductor workflow that analyzes sentiment in customer text .  preprocessing the input (cleaning, normalizing, tokenizing), running sentiment analysis to score each text, classifying the overall sentiment as positive/negative/neutral, and aggregating results across multiple texts for trend reporting. Given `texts` and a `source` identifier, the pipeline produces cleaned text, sentiment scores, classifications, and aggregate metrics. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step sentiment pipeline.
+A Java Conductor workflow that analyzes sentiment in customer text. preprocessing the input (cleaning, normalizing, tokenizing), running sentiment analysis to score each text, classifying the overall sentiment as positive/negative/neutral, and aggregating results across multiple texts for trend reporting. Given `texts` and a `source` identifier, the pipeline produces cleaned text, sentiment scores, classifications, and aggregate metrics. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step sentiment pipeline.
 
 ## Understanding How Customers Feel at Scale
 
-One angry email is anecdotal. A thousand support tickets with declining sentiment is a trend. Analyzing customer sentiment manually does not scale .  you need to preprocess the text (remove noise, normalize formatting), score sentiment for each piece of text, classify it into actionable categories, and aggregate the results to spot trends. Individual scores are useful for routing (flag negative feedback for urgent follow-up), but the aggregate view reveals whether satisfaction is improving or declining over time.
+One angry email is anecdotal. A thousand support tickets with declining sentiment is a trend. Analyzing customer sentiment manually does not scale. you need to preprocess the text (remove noise, normalize formatting), score sentiment for each piece of text, classify it into actionable categories, and aggregate the results to spot trends. Individual scores are useful for routing (flag negative feedback for urgent follow-up), but the aggregate view reveals whether satisfaction is improving or declining over time.
 
-This workflow processes a batch of customer texts through the sentiment pipeline. The preprocessor cleans and normalizes the text (removing HTML, fixing encoding, normalizing case). The analyzer scores each text for sentiment polarity and intensity. The classifier maps scores to categories (positive, negative, neutral) with confidence levels. The aggregator computes batch-level metrics .  average sentiment, distribution across categories, and trend indicators.
+This workflow processes a batch of customer texts through the sentiment pipeline. The preprocessor cleans and normalizes the text (removing HTML, fixing encoding, normalizing case). The analyzer scores each text for sentiment polarity and intensity. The classifier maps scores to categories (positive, negative, neutral) with confidence levels. The aggregator computes batch-level metrics. average sentiment, distribution across categories, and trend indicators.
 
 ## The Solution
 
 **You just write the preprocessing, scoring, classification, and aggregation workers. Conductor handles the sentiment pipeline and batch data flow.**
 
-Four workers form the sentiment pipeline .  preprocessing, analysis, classification, and aggregation. The preprocessor cleans raw text. The analyzer scores sentiment. The classifier labels each text. The aggregator computes batch metrics and trends. Conductor sequences the four steps and passes cleaned text, scores, classifications, and aggregate metrics between them via JSONPath.
+Four workers form the sentiment pipeline. preprocessing, analysis, classification, and aggregation. The preprocessor cleans raw text. The analyzer scores sentiment. The classifier labels each text. The aggregator computes batch metrics and trends. Conductor sequences the four steps and passes cleaned text, scores, classifications, and aggregate metrics between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ PreprocessWorker cleans and normalizes text, AnalyzeWorker scores sentiment pola
 | **ClassifyWorker** | `snt_classify` | Maps sentiment scores to labels (positive, negative, neutral) with confidence levels. |
 | **PreprocessWorker** | `snt_preprocess` | Cleans and normalizes raw text: lowercasing, stopword removal, and encoding normalization. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w snt_sentiment_analysis -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one sentiment step .  connect your NLP service (AWS Comprehend, Google NLP, MonkeyLearn) for scoring and your analytics platform for trend aggregation, and the sentiment workflow stays the same.
+Each worker handles one sentiment step. connect your NLP service (AWS Comprehend, Google NLP, MonkeyLearn) for scoring and your analytics platform for trend aggregation, and the sentiment workflow stays the same.
 
 - **AggregateWorker** (`snt_aggregate`): push aggregated sentiment metrics to dashboards (Grafana, Datadog) or data warehouses (BigQuery)
 - **AnalyzeWorker** (`snt_analyze`): swap in a real NLP model (VADER, TextBlob) or LLM for more nuanced sentiment scoring

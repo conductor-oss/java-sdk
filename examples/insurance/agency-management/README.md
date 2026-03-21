@@ -6,13 +6,13 @@ A Java Conductor workflow example demonstrating agency-management Agency Managem
 
 Bringing on a new insurance agent requires onboarding (background check, E&O insurance verification, appointment paperwork), licensing verification (state license active, lines of authority match, continuing education current), territory assignment (geographic boundaries, product lines, no overlap with existing agents), performance tracking (premium volume, policy count, loss ratio, retention rate), and periodic review (compensation adjustments, territory changes, license renewals).
 
-Licensing is the critical compliance step .  an agent selling without a valid license exposes the insurer to regulatory penalties and coverage disputes. License status must be verified at onboarding and monitored continuously. Territory assignment must avoid conflicts with existing agents while ensuring market coverage.
+Licensing is the critical compliance step. an agent selling without a valid license exposes the insurer to regulatory penalties and coverage disputes. License status must be verified at onboarding and monitored continuously. Territory assignment must avoid conflicts with existing agents while ensuring market coverage.
 
 ## The Solution
 
 **You just write the agent onboarding, license verification, territory assignment, performance tracking, and review logic. Conductor handles licensing retries, territory assignment, and agency lifecycle audit trails.**
 
-`OnboardWorker` processes the new agent application .  background checks, E&O insurance verification, and carrier appointment paperwork. `LicenseWorker` verifies state insurance licenses ,  active status, correct lines of authority, continuing education compliance. `AssignTerritoryWorker` assigns the agent's sales territory ,  geographic boundaries, eligible product lines, and commission schedules. `TrackWorker` monitors ongoing performance ,  premium volume, policy count, loss ratio, customer retention, and complaint rate. `ReviewWorker` conducts periodic performance reviews with compensation adjustments and territory modifications. Conductor tracks the complete agent lifecycle for regulatory compliance.
+`OnboardWorker` processes the new agent application. background checks, E&O insurance verification, and carrier appointment paperwork. `LicenseWorker` verifies state insurance licenses,  active status, correct lines of authority, continuing education compliance. `AssignTerritoryWorker` assigns the agent's sales territory,  geographic boundaries, eligible product lines, and commission schedules. `TrackWorker` monitors ongoing performance,  premium volume, policy count, loss ratio, customer retention, and complaint rate. `ReviewWorker` conducts periodic performance reviews with compensation adjustments and territory modifications. Conductor tracks the complete agent lifecycle for regulatory compliance.
 
 ### What You Write: Workers
 
@@ -20,13 +20,13 @@ Agent onboarding, licensing verification, territory assignment, and performance 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **OnboardWorker** | `agm_onboard` | Onboards the new agent .  processes the application, verifies E&O insurance, runs background checks, and returns the onboarded status and start date |
-| **LicenseWorker** | `agm_license` | Verifies the agent's insurance license .  checks the state license status, lines of authority, and continuing education compliance, returning the license number and expiration date |
-| **AssignTerritoryWorker** | `agm_assign_territory` | Assigns the agent's sales territory .  determines geographic boundaries, eligible product lines, and commission schedules based on the agent's state and qualifications |
-| **TrackWorker** | `agm_track` | Monitors agent performance .  tracks premium volume, policy count (12 policies written), loss ratio, and retention rate within the assigned territory |
-| **ReviewWorker** | `agm_review` | Conducts the performance review .  evaluates the agent's tracked performance metrics against territory benchmarks and assigns a rating (exceeds expectations) |
+| **OnboardWorker** | `agm_onboard` | Onboards the new agent. processes the application, verifies E&O insurance, runs background checks, and returns the onboarded status and start date |
+| **LicenseWorker** | `agm_license` | Verifies the agent's insurance license. checks the state license status, lines of authority, and continuing education compliance, returning the license number and expiration date |
+| **AssignTerritoryWorker** | `agm_assign_territory` | Assigns the agent's sales territory. determines geographic boundaries, eligible product lines, and commission schedules based on the agent's state and qualifications |
+| **TrackWorker** | `agm_track` | Monitors agent performance. tracks premium volume, policy count (12 policies written), loss ratio, and retention rate within the assigned territory |
+| **ReviewWorker** | `agm_review` | Conducts the performance review. evaluates the agent's tracked performance metrics against territory benchmarks and assigns a rating (exceeds expectations) |
 
-Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
+Workers implement insurance operations. claim intake, assessment, settlement,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w agm_agency_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real agency systems .  your licensing database for credential checks, your territory management platform, your performance analytics for production reviews, and the workflow runs identically in production.
+Point each worker at your real agency systems. your licensing database for credential checks, your territory management platform, your performance analytics for production reviews, and the workflow runs identically in production.
 
 - **LicenseWorker** (`agm_license`): query NIPR (National Insurance Producer Registry) for real-time license verification, or state DOI databases for license status and continuing education compliance
 - **TrackWorker** (`agm_track`): pull production data from the policy administration system, calculate commission earned and loss ratios, and compare against territory benchmarks

@@ -26,7 +26,7 @@ Five workers cover the procure-to-pay cycle: RequisitionWorker creates the reque
 | **ReceiveWorker** | `prw_receive` | Confirms goods receipt. |
 | **RequisitionWorker** | `prw_requisition` | Creates a purchase requisition. |
 
-Workers simulate supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

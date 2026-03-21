@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Social Login. Uses [Conductor](h
 
 A user clicks "Sign in with Google" on your login page. The system needs to detect which OAuth provider was selected, validate the OAuth token against the provider's API to retrieve the user's profile, link the social identity to an existing account or create a new one, and issue a session token so the user can access the application. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ DetectProviderWorker identifies Google/GitHub/Facebook, OAuthWorker validates th
 | **LinkAccountWorker** | `slo_link_account` | Links the social identity to an existing user account or creates a new account, tracking linked providers |
 | **OAuthWorker** | `slo_auth` | Validates the OAuth token against the provider's API and retrieves the user's profile (name, avatar) |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w slo_social_login -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one login step .  connect your OAuth providers (Google, GitHub, Apple) for token validation and your user store for account linking, and the social-login workflow stays the same.
+Each worker handles one login step. connect your OAuth providers (Google, GitHub, Apple) for token validation and your user store for account linking, and the social-login workflow stays the same.
 
 - **DetectProviderWorker** (`slo_detect_provider`): look up the provider configuration from your Auth0 social connections or Cognito identity providers to resolve the correct OAuth endpoints and client credentials
 - **OAuthWorker** (`slo_auth`): exchange the authorization code for tokens via the provider's OAuth endpoint (Google, GitHub, Facebook) and fetch the user profile using the access token

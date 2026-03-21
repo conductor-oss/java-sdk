@@ -1,18 +1,18 @@
 # ML Model Registry in Java Using Conductor :  Register, Version, Validate, Approve, Deploy
 
-A Java Conductor workflow example for ML model lifecycle management .  registering a trained model with its artifact and metrics, assigning a version number, validating performance against quality gates, routing through an approval process, and deploying the approved model to production. Uses [Conductor](https://github.
+A Java Conductor workflow example for ML model lifecycle management. registering a trained model with its artifact and metrics, assigning a version number, validating performance against quality gates, routing through an approval process, and deploying the approved model to production. Uses [Conductor](https://github.
 
 ## Models Without a Registry Are Unmanageable
 
 Your team trains dozens of models a month. Without a registry, model artifacts live in S3 buckets with names like `model-final-v2-FIXED.pkl`, nobody knows which version is in production, and deploying a new model means SSH-ing into a server and swapping a file. When the new model degrades accuracy, there's no way to roll back to the previous version because nobody recorded which artifact, metrics, or approval was associated with it.
 
-A model registry formalizes the lifecycle: register the artifact with its training metrics, assign a monotonically increasing version, validate that accuracy/latency meet the deployment threshold, get human or automated approval, and deploy to the serving infrastructure. Each step depends on the previous one .  you can't deploy an unapproved model, and you can't approve without validation results.
+A model registry formalizes the lifecycle: register the artifact with its training metrics, assign a monotonically increasing version, validate that accuracy/latency meet the deployment threshold, get human or automated approval, and deploy to the serving infrastructure. Each step depends on the previous one. you can't deploy an unapproved model, and you can't approve without validation results.
 
 ## The Solution
 
 **You write the registration and validation logic. Conductor handles the approval pipeline, retries, and model lineage tracking.**
 
-`MrgRegisterWorker` stores the model artifact and its training metrics in the registry. `MrgVersionWorker` assigns a version number to the registered model. `MrgValidateWorker` checks the metrics against quality gates .  minimum accuracy, maximum latency, no data leakage indicators. `MrgApproveWorker` routes through the approval process (automated or human-in-the-loop). `MrgDeployWorker` pushes the approved, validated model version to the serving infrastructure. Conductor records the full lineage ,  which artifact, what metrics, which version, who approved, when deployed.
+`MrgRegisterWorker` stores the model artifact and its training metrics in the registry. `MrgVersionWorker` assigns a version number to the registered model. `MrgValidateWorker` checks the metrics against quality gates. minimum accuracy, maximum latency, no data leakage indicators. `MrgApproveWorker` routes through the approval process (automated or human-in-the-loop). `MrgDeployWorker` pushes the approved, validated model version to the serving infrastructure. Conductor records the full lineage,  which artifact, what metrics, which version, who approved, when deployed.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage the model lifecycle: artifact registration, version assignme
 | **MrgValidateWorker** | `mrg_validate` | Runs schema checks, performance regression tests, and bias audits on the model |
 | **MrgVersionWorker** | `mrg_version` | Assigns a semantic version to the model, tracking the previous version for rollback |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w model_registry_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one model lifecycle gate .  replace the simulated registry operations with real MLflow or SageMaker Model Registry APIs and the version-validate-approve-deploy pipeline runs unchanged.
+Each worker manages one model lifecycle gate. replace the simulated registry operations with real MLflow or SageMaker Model Registry APIs and the version-validate-approve-deploy pipeline runs unchanged.
 
 - **MrgRegisterWorker** (`mrg_register`): store model artifacts in MLflow Model Registry, SageMaker Model Registry, or Vertex AI Model Registry with associated training metadata
 - **MrgValidateWorker** (`mrg_validate`): run real validation: load the model, score against a held-out dataset, check accuracy/latency/fairness metrics against configurable thresholds

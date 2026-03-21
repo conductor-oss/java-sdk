@@ -1,10 +1,10 @@
 # S3 Integration in Java Using Conductor
 
-A Java Conductor workflow that manages an S3 file upload lifecycle .  uploading an object to a bucket, setting metadata on the uploaded object, generating a presigned URL for temporary access, and notifying a user about the upload with the presigned link. Given a bucket, key, content type, and email, the pipeline produces an upload confirmation, metadata, presigned URL, and notification status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the upload-metadata-presign-notify pipeline.
+A Java Conductor workflow that manages an S3 file upload lifecycle. uploading an object to a bucket, setting metadata on the uploaded object, generating a presigned URL for temporary access, and notifying a user about the upload with the presigned link. Given a bucket, key, content type, and email, the pipeline produces an upload confirmation, metadata, presigned URL, and notification status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the upload-metadata-presign-notify pipeline.
 
 ## Managing S3 Uploads with Metadata, Presigned URLs, and Notifications
 
-Uploading a file to S3 is rarely the end of the story. After the upload, you typically need to tag it with metadata (content type, upload source, processing status), generate a time-limited presigned URL so authorized users can access it without AWS credentials, and notify the intended recipient with the download link. Each step depends on the previous one .  you cannot set metadata on an object that has not been uploaded, and you cannot generate a presigned URL without knowing the bucket and key.
+Uploading a file to S3 is rarely the end of the story. After the upload, you typically need to tag it with metadata (content type, upload source, processing status), generate a time-limited presigned URL so authorized users can access it without AWS credentials, and notify the intended recipient with the download link. Each step depends on the previous one. you cannot set metadata on an object that has not been uploaded, and you cannot generate a presigned URL without knowing the bucket and key.
 
 Without orchestration, you would chain S3 SDK calls manually and manage bucket names, keys, and ETags between steps. Conductor sequences the pipeline and passes these values between workers automatically.
 
@@ -20,12 +20,12 @@ Four workers manage the S3 upload lifecycle: S3UploadWorker stores the object, S
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **S3UploadWorker** | `s3_upload` | Uploads the object to S3 .  writes the content to the specified bucket and key, returns the ETag and upload confirmation |
-| **SetMetadataWorker** | `s3_set_metadata` | Sets metadata on the uploaded object .  tags it with content type, upload source, processing status, and custom metadata |
-| **GenerateUrlWorker** | `s3_generate_url` | Generates a presigned URL .  creates a time-limited download URL for the object that works without AWS credentials |
-| **S3NotifyWorker** | `s3_notify` | Notifies the user about the upload .  sends the presigned download link to the specified email address |
+| **S3UploadWorker** | `s3_upload` | Uploads the object to S3. writes the content to the specified bucket and key, returns the ETag and upload confirmation |
+| **SetMetadataWorker** | `s3_set_metadata` | Sets metadata on the uploaded object. tags it with content type, upload source, processing status, and custom metadata |
+| **GenerateUrlWorker** | `s3_generate_url` | Generates a presigned URL. creates a time-limited download URL for the object that works without AWS credentials |
+| **S3NotifyWorker** | `s3_notify` | Notifies the user about the upload. sends the presigned download link to the specified email address |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

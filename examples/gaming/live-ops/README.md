@@ -4,15 +4,15 @@ Runs a time-limited live ops event in a game: scheduling the event, configuring 
 
 ## The Problem
 
-You need to run a live operations event in your game .  a time-limited in-game event with special content, challenges, and rewards. The workflow schedules the event for a start/end date, configures the event parameters (rewards, difficulty, matchmaking rules), deploys the configuration to game servers, monitors player engagement and server health during the event, and closes the event when it ends. Deploying without proper configuration breaks the player experience; not monitoring means missing critical issues during the event.
+You need to run a live operations event in your game. a time-limited in-game event with special content, challenges, and rewards. The workflow schedules the event for a start/end date, configures the event parameters (rewards, difficulty, matchmaking rules), deploys the configuration to game servers, monitors player engagement and server health during the event, and closes the event when it ends. Deploying without proper configuration breaks the player experience; not monitoring means missing critical issues during the event.
 
-Without orchestration, you'd manage live ops events through a combination of admin tools, manual server config pushes, monitoring dashboards, and calendar reminders .  risking missed deployment times, misconfigured events, and undetected server issues during peak player activity.
+Without orchestration, you'd manage live ops events through a combination of admin tools, manual server config pushes, monitoring dashboards, and calendar reminders. risking missed deployment times, misconfigured events, and undetected server issues during peak player activity.
 
 ## The Solution
 
 **You just write the event scheduling, reward configuration, server deployment, engagement monitoring, and reward distribution logic. Conductor handles deployment retries, event scheduling, and live ops campaign tracking.**
 
-Each live-ops concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, configure, deploy, monitor, close), retrying if a server deployment fails, tracking every live event's lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each live-ops concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, configure, deploy, monitor, close), retrying if a server deployment fails, tracking every live event's lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Event scheduling, content deployment, player targeting, and metrics collection w
 | **MonitorWorker** | `lop_monitor` | Monitors the live event tracking participant count, engagement level, and server issues |
 | **ScheduleEventWorker** | `lop_schedule_event` | Schedules the event with name and start/end dates, and assigns an event ID |
 
-Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
+Workers implement game backend operations. matchmaking, score processing, reward distribution,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w live_ops_748 -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real live ops tools .  your event management system for scheduling, your CDN for content deployment, your analytics platform for engagement monitoring, and the workflow runs identically in production.
+Wire each worker to your real live ops tools. your event management system for scheduling, your CDN for content deployment, your analytics platform for engagement monitoring, and the workflow runs identically in production.
 
 - **Scheduler**: create the event schedule in your live-ops platform (PlayFab, AccelByte, custom admin) with timezone-aware start/end times
 - **Configurator**: set event parameters (reward tables, difficulty curves, matchmaking pools) in your game config service

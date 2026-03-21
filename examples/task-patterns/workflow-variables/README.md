@@ -24,7 +24,7 @@ Three workers form an order pricing pipeline connected by variable expressions: 
 | **CalcPriceWorker** | `wv_calc_price` | Calculates the base price (subtotal) from a list of order items. Each item has a name, price, and qty. Returns the su... |
 | **CalcShippingWorker** | `wv_calc_shipping` | Calculates shipping cost based on the discounted subtotal, item count, and customer tier. Gold tier or orders over $1... |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # Workflow Composition in Java Using Conductor :  Compose Sub-Workflows into a Unified Order Pipeline
 
-A Java Conductor workflow example for workflow composition .  combining two independent sub-workflows (payment processing and inventory management) into a single unified order pipeline, where each sub-workflow has its own steps and the results are merged at the end. Uses [Conductor](https://github.
+A Java Conductor workflow example for workflow composition. combining two independent sub-workflows (payment processing and inventory management) into a single unified order pipeline, where each sub-workflow has its own steps and the results are merged at the end. Uses [Conductor](https://github.
 
 ## Complex Processes Are Made of Simpler Ones
 
@@ -26,7 +26,7 @@ Five workers span two sub-workflows. Order validation and processing in sub-work
 | **WcpSubBStep1Worker** | `wcp_sub_b_step1` | Looks up the customer profile (tier, tenure) by ID in sub-workflow B |
 | **WcpSubBStep2Worker** | `wcp_sub_b_step2` | Enriches the customer data with discount eligibility in sub-workflow B |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w workflow_composition_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker implements one step of a sub-workflow .  replace the simulated payment and inventory calls with real Stripe and warehouse APIs and the composed order pipeline runs unchanged.
+Each worker implements one step of a sub-workflow. replace the simulated payment and inventory calls with real Stripe and warehouse APIs and the composed order pipeline runs unchanged.
 
 - **WcpSubAStep1Worker / WcpSubAStep2Worker**: implement real payment processing: Stripe `paymentIntents.create()` for card validation and `paymentIntents.capture()` for charging
 - **WcpSubBStep1Worker / WcpSubBStep2Worker**: implement real inventory management: query warehouse API for stock availability and call reservation service to hold items

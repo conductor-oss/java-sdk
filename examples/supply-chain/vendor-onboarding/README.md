@@ -1,10 +1,10 @@
 # Vendor Onboarding in Java with Conductor :  Application, Credential Verification, Evaluation, Approval, and System Activation
 
-A Java Conductor workflow example for vendor onboarding .  receiving a new vendor application with business details, verifying their credentials (business licenses, insurance, certifications), evaluating the vendor on financial stability and capability, approving or rejecting based on the evaluation score, and activating approved vendors in the procurement system so they can receive purchase orders. Uses [Conductor](https://github.
+A Java Conductor workflow example for vendor onboarding. receiving a new vendor application with business details, verifying their credentials (business licenses, insurance, certifications), evaluating the vendor on financial stability and capability, approving or rejecting based on the evaluation score, and activating approved vendors in the procurement system so they can receive purchase orders. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to onboard new vendors into your supply chain. A prospective vendor submits an application with their business details, category, and country of operation. Their credentials must be verified .  business registration, insurance coverage, industry certifications (ISO, SOC 2). The vendor must be evaluated on financial health (D&B rating, credit check) and operational capability. Based on the evaluation score, procurement approves or rejects the application. Approved vendors must be activated in the ERP vendor master so buyers can issue purchase orders to them.
+You need to onboard new vendors into your supply chain. A prospective vendor submits an application with their business details, category, and country of operation. Their credentials must be verified. business registration, insurance coverage, industry certifications (ISO, SOC 2). The vendor must be evaluated on financial health (D&B rating, credit check) and operational capability. Based on the evaluation score, procurement approves or rejects the application. Approved vendors must be activated in the ERP vendor master so buyers can issue purchase orders to them.
 
 Without orchestration, vendor applications arrive via email, sit in someone's inbox for weeks, and credential checks happen over phone calls with no record. Vendors get activated in the ERP before their insurance is verified, exposing the company to liability risk. When compliance asks which vendors were onboarded last quarter and what checks were performed, nobody can produce the documentation without hours of email archaeology.
 
@@ -12,7 +12,7 @@ Without orchestration, vendor applications arrive via email, sit in someone's in
 
 **You just write the onboarding workers. Application intake, credential verification, evaluation, approval, and system activation. Conductor handles credential verification retries, enforced approval gates, and timestamped records for compliance audits.**
 
-Each stage of the vendor onboarding process is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so applications are received before verification, credentials are verified before evaluation, evaluation gates approval, and activation only happens for approved vendors. If the credential verification API is temporarily unavailable, Conductor retries without losing the application data. Every application, verification result, evaluation score, approval decision, and activation timestamp is recorded for compliance audits and vendor management analytics.
+Each stage of the vendor onboarding process is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so applications are received before verification, credentials are verified before evaluation, evaluation gates approval, and activation only happens for approved vendors. If the credential verification API is temporarily unavailable, Conductor retries without losing the application data. Every application, verification result, evaluation score, approval decision, and activation timestamp is recorded for compliance audits and vendor management analytics.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage vendor onboarding: ApplyWorker receives the application, Ver
 | **EvaluateWorker** | `von_evaluate` | Evaluates the vendor and assigns a score. |
 | **VerifyWorker** | `von_verify` | Verifies vendor credentials. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

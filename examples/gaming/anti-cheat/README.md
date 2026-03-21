@@ -6,13 +6,13 @@ Detects and acts on cheating in an online game: monitoring player behavior, runn
 
 You need to detect and act on cheating in an online game. The workflow monitors a player's in-game behavior during a match, runs anomaly detection algorithms on metrics like aim accuracy, movement speed, and reaction time, and routes to one of three outcomes: clean (no action), suspect (flag for manual review), or confirmed cheat (ban or penalty). Failing to detect cheats ruins the experience for honest players; false positives unfairly punish legitimate players.
 
-Without orchestration, you'd build a single anti-cheat service that collects telemetry, runs detection heuristics, makes verdicts, and applies penalties .  manually tuning detection thresholds, handling appeals for false bans, and logging every decision to defend against community backlash.
+Without orchestration, you'd build a single anti-cheat service that collects telemetry, runs detection heuristics, makes verdicts, and applies penalties. manually tuning detection thresholds, handling appeals for false bans, and logging every decision to defend against community backlash.
 
 ## The Solution
 
 **You just write the behavior monitoring, anomaly detection, and clean/suspect/cheat response logic. Conductor handles detection retries, verdict routing, and enforcement audit trails for every flagged session.**
 
-Each anti-cheat concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of monitoring behavior, running anomaly detection, routing via a SWITCH task to the correct outcome (clean, suspect, cheat), applying the action, and tracking every detection decision with full evidence. You get all of that, without writing a single line of orchestration code.
+Each anti-cheat concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of monitoring behavior, running anomaly detection, routing via a SWITCH task to the correct outcome (clean, suspect, cheat), applying the action, and tracking every detection decision with full evidence. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Telemetry collection, anomaly detection, cheat confirmation, and enforcement wor
 | **MonitorWorker** | `ach_monitor` | Collects in-game telemetry (aim accuracy, movement speed, reaction time) for a player during a match |
 | **SuspectWorker** | `ach_suspect` | Flags a player for manual review by the trust and safety team |
 
-Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
+Workers implement game backend operations. matchmaking, score processing, reward distribution,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w anti_cheat_746 -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real anti-cheat stack .  your telemetry pipeline for behavior data, your ML models for anomaly detection, your game admin API for ban enforcement, and the workflow runs identically in production.
+Connect each worker to your real anti-cheat stack. your telemetry pipeline for behavior data, your ML models for anomaly detection, your game admin API for ban enforcement, and the workflow runs identically in production.
 
 - **Behavior monitor**: collect in-game telemetry (aim vectors, input timing, position data) from your game server via real-time streaming
 - **Anomaly detector**: run ML-based detection models (neural networks trained on labeled cheat/clean datasets) or statistical heuristics for known cheat patterns

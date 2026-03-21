@@ -12,7 +12,7 @@ Without orchestration, each service must manually propagate trace headers, and i
 
 **You just write the trace-creation, service-span, db-span, and trace-export workers. Conductor handles span sequencing, durable trace assembly, and automatic retry if the export step fails.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers build a trace: CreateTraceWorker generates the root context, Servic
 | **ExportTraceWorker** | `dt_export_trace` | Exports the completed trace (all spans) to a tracing backend like Jaeger. |
 | **ServiceSpanWorker** | `dt_service_span` | Records a child span for a service-to-service call, linking to the parent span. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

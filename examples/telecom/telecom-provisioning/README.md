@@ -1,12 +1,12 @@
 # Telecom Provisioning in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service provisioning .  creating a service order for a customer, validating the order against the selected plan, configuring network resources for the service type, activating the service on the network, and sending a confirmation to the customer. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates telecom service provisioning. creating a service order for a customer, validating the order against the selected plan, configuring network resources for the service type, activating the service on the network, and sending a confirmation to the customer. Uses [Conductor](https://github.
 
 ## Why Service Provisioning Needs Orchestration
 
 Provisioning a new telecom service requires a strict sequence where each step depends on the previous one. You create a service order with the customer's details and service type. You validate that the order is compatible with the selected plan. You configure the network equipment (switches, routers, HLR/HSS entries) for the service. You activate the configured service so the customer can start using it. Finally, you send a provisioning confirmation to the customer.
 
-If configuration fails partway through, you need to know exactly which network elements were already configured so you can retry without creating duplicate entries. If activation succeeds but the confirmation fails, the customer has working service but no notification. Without orchestration, you'd build a monolithic provisioning script that mixes order management, network configuration, and notification logic .  making it impossible to swap network vendors, test activation independently, or audit which order triggered which network changes.
+If configuration fails partway through, you need to know exactly which network elements were already configured so you can retry without creating duplicate entries. If activation succeeds but the confirmation fails, the customer has working service but no notification. Without orchestration, you'd build a monolithic provisioning script that mixes order management, network configuration, and notification logic. making it impossible to swap network vendors, test activation independently, or audit which order triggered which network changes.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Order creation, validation, network configuration, activation, and confirmation 
 | **OrderWorker** | `tpv_order` | Creates a service order with customer ID and service type, returning an order ID. |
 | **ValidateWorker** | `tpv_validate` | Validates the service order against the selected plan for compatibility and eligibility. |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w tpv_telecom_provisioning -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real provisioning stack .  your OSS for order management, your NMS for network configuration, your BSS for customer notifications, and the workflow runs identically in production.
+Connect each worker to your real provisioning stack. your OSS for order management, your NMS for network configuration, your BSS for customer notifications, and the workflow runs identically in production.
 
 - **OrderWorker** (`tpv_order`): create the service order in your BSS/OSS (Amdocs, Netcracker, Oracle BRM) and return the order ID
 - **ValidateWorker** (`tpv_validate`): validate against plan catalogs and customer eligibility rules in your product catalog system

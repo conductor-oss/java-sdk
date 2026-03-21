@@ -1,10 +1,10 @@
 # Lambda Integration in Java Using Conductor
 
-A Java Conductor workflow that orchestrates an AWS Lambda invocation .  preparing the payload, invoking the Lambda function, processing the response, and logging the execution result. Given a function name, qualifier, and input data, the pipeline produces the Lambda response, execution duration, and a log entry. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the prepare-invoke-process-log pipeline.
+A Java Conductor workflow that orchestrates an AWS Lambda invocation. preparing the payload, invoking the Lambda function, processing the response, and logging the execution result. Given a function name, qualifier, and input data, the pipeline produces the Lambda response, execution duration, and a log entry. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the prepare-invoke-process-log pipeline.
 
 ## Invoking Lambda Functions with Proper Orchestration
 
-Invoking a Lambda function is more than a single API call. The payload needs to be prepared and validated, the function needs to be invoked with the right qualifier (version/alias), the response needs to be parsed and processed for downstream use, and the execution needs to be logged for auditing. Each step depends on the previous one .  you cannot invoke without a payload, and you cannot process without a response.
+Invoking a Lambda function is more than a single API call. The payload needs to be prepared and validated, the function needs to be invoked with the right qualifier (version/alias), the response needs to be parsed and processed for downstream use, and the execution needs to be logged for auditing. Each step depends on the previous one. you cannot invoke without a payload, and you cannot process without a response.
 
 Without orchestration, you would chain AWS SDK calls manually, manage payloads and response objects between steps, and build custom logging. Conductor sequences the pipeline and passes function names, payloads, and execution results between workers automatically.
 
@@ -20,12 +20,12 @@ Four workers orchestrate Lambda invocations: PreparePayloadWorker validates and 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **PreparePayloadWorker** | `lam_prepare_payload` | Prepares the Lambda invocation payload .  validates input data, formats the JSON payload, and determines the function name and qualifier (version/alias) |
-| **InvokeLambdaWorker** | `lam_invoke` | Invokes the AWS Lambda function .  calls the specified function with the prepared payload and returns the response body and execution duration |
-| **ProcessResponseWorker** | `lam_process_response` | Processes the Lambda response .  parses the response body, extracts relevant fields, and prepares the output for downstream use |
-| **LogResultWorker** | `lam_log_result` | Logs the execution result .  records the function name, duration, status, and processed output for auditing |
+| **PreparePayloadWorker** | `lam_prepare_payload` | Prepares the Lambda invocation payload. validates input data, formats the JSON payload, and determines the function name and qualifier (version/alias) |
+| **InvokeLambdaWorker** | `lam_invoke` | Invokes the AWS Lambda function. calls the specified function with the prepared payload and returns the response body and execution duration |
+| **ProcessResponseWorker** | `lam_process_response` | Processes the Lambda response. parses the response body, extracts relevant fields, and prepares the output for downstream use |
+| **LogResultWorker** | `lam_log_result` | Logs the execution result. records the function name, duration, status, and processed output for auditing |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

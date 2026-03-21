@@ -25,7 +25,7 @@ Four workers drive the canary lifecycle: DeployCanaryWorker provisions the new v
 | **PromoteOrRollbackWorker** | `cd_promote_or_rollback` | Compares the canary error rate against a threshold and decides whether to promote to full rollout or roll back. |
 | **ShiftTrafficWorker** | `cd_shift_traffic` | Shifts a specified percentage of live traffic to the canary instances. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### The Workflow
 

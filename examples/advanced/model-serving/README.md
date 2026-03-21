@@ -1,12 +1,12 @@
 # Model Serving Pipeline in Java Using Conductor :  Load, Validate, Deploy, Test, Promote
 
-A Java Conductor workflow example for deploying ML models to production serving .  loading a model from storage, validating it against test inputs, deploying to a staging endpoint, running smoke tests, and promoting to production. Uses [Conductor](https://github.
+A Java Conductor workflow example for deploying ML models to production serving. loading a model from storage, validating it against test inputs, deploying to a staging endpoint, running smoke tests, and promoting to production. Uses [Conductor](https://github.
 
 ## Deploying Models to Production Is Not Just Copying a File
 
 A data scientist trains a model and hands off a `.pt` file. Getting that file into production serving means loading it into the inference framework, validating that it produces expected outputs for known inputs (no NaN predictions, correct tensor shapes), deploying it to a staging endpoint, running smoke tests against real traffic patterns, and only then promoting it to handle production traffic. Skip any step and you risk serving garbage predictions.
 
-When the smoke test fails .  maybe the model expects a different feature schema than what production sends ,  you need to see exactly which step failed, what the model's outputs looked like, and roll back without affecting the live endpoint.
+When the smoke test fails. maybe the model expects a different feature schema than what production sends,  you need to see exactly which step failed, what the model's outputs looked like, and roll back without affecting the live endpoint.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Four workers manage the serving rollout: model loading, validation against test 
 | **MsvPromoteWorker** | `msv_promote` | Promotes the model from staging to production if all validation tests passed |
 | **MsvValidateWorker** | `msv_validate` | Validates the loaded model for correctness and reports any warnings |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -135,7 +135,7 @@ conductor workflow search -w model_serving_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one deployment gate .  replace the simulated model loading with real TorchServe or SageMaker endpoint APIs and the load-validate-deploy-promote pipeline runs unchanged.
+Each worker covers one deployment gate. replace the simulated model loading with real TorchServe or SageMaker endpoint APIs and the load-validate-deploy-promote pipeline runs unchanged.
 
 - **MsvLoadModelWorker** (`msv_load_model`): load real models from S3/GCS using TorchServe, TensorFlow Serving, or ONNX Runtime model loading APIs
 - **MsvDeployWorker** (`msv_deploy`): create real inference endpoints via SageMaker `createEndpoint()`, Kubernetes deployments (Seldon Core, KServe), or Google Cloud AI Platform

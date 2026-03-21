@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Session Management. Uses [Conduc
 
 A user logs in and the system must manage their session lifecycle end-to-end. The system needs to create a new session with a JWT token and expiration, validate that the session is still active and has sufficient remaining TTL, refresh the session by extending its expiration before it lapses, and revoke the session when the user logs out or the session is terminated. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ CreateSessionWorker generates a JWT with expiration, ValidateSessionWorker check
 | **RevokeSessionWorker** | `ses_revoke` | Revokes the session by invalidating the token and recording the revocation timestamp |
 | **ValidateSessionWorker** | `ses_validate` | Checks that the session is still valid and returns the remaining TTL |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w ses_session_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one session operation .  connect your session store (Redis, DynamoDB, Memcached) for token management and your auth provider for JWT validation, and the session-management workflow stays the same.
+Each worker handles one session operation. connect your session store (Redis, DynamoDB, Memcached) for token management and your auth provider for JWT validation, and the session-management workflow stays the same.
 
 - **CreateSessionWorker** (`ses_create`): generate a JWT via your identity provider (Auth0, Cognito) and store the session in Redis with a configurable TTL for fast validation
 - **ValidateSessionWorker** (`ses_validate`): look up the session in Redis and verify the JWT signature and claims against your Auth0/Cognito JWKS endpoint

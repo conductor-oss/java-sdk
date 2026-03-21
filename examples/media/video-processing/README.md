@@ -26,7 +26,7 @@ Five workers process each video: UploadWorker ingests the source with codec dete
 | **MetadataWorker** | `vid_metadata` | Assembles a metadata index from upstream outputs: title, duration, resolution list, content type, for search and discovery. Returns a `metadata` map. |
 | **PublishWorker** | `vid_publish` | Publishes the video with its HLS manifest, thumbnail, and metadata to a live watch URL. Returns `publishUrl`, `publishedAt`, `status`. |
 
-Workers simulate media processing stages: transcoding, thumbnail generation, metadata extraction, with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
+Workers implement media processing stages: transcoding, thumbnail generation, metadata extraction, with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
 ### The Workflow
 

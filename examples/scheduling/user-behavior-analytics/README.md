@@ -1,6 +1,6 @@
 # User Behavior Analytics in Java Using Conductor :  Event Collection, Sessionization, Pattern Analysis, and Anomaly Flagging
 
-A Java Conductor workflow example for user behavior analytics .  collecting user events, sessionizing them into coherent sessions, analyzing behavioral patterns, and flagging anomalies that may indicate fraud or account compromise.
+A Java Conductor workflow example for user behavior analytics. collecting user events, sessionizing them into coherent sessions, analyzing behavioral patterns, and flagging anomalies that may indicate fraud or account compromise.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, user behavior analytics is either a batch job in a data w
 
 **You just write the sessionization logic and behavioral anomaly rules. Conductor handles the collect-sessionize-analyze-flag sequence, retries when event streams or analytics services are temporarily down, and a complete audit of every analysis run with session counts, risk scores, and anomaly flags.**
 
-Each analytics step is an independent worker .  event collection, sessionization, pattern analysis, and anomaly flagging. Conductor runs them in sequence: collect events, group into sessions, analyze patterns, then flag anomalies. Every analysis run is tracked with session counts, pattern metrics, and anomaly flags. You get all of that, without writing a single line of orchestration code.
+Each analytics step is an independent worker. event collection, sessionization, pattern analysis, and anomaly flagging. Conductor runs them in sequence: collect events, group into sessions, analyze patterns, then flag anomalies. Every analysis run is tracked with session counts, pattern metrics, and anomaly flags. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ CollectEventsWorker ingests raw user events, SessionizeWorker groups them into c
 | **FlagAnomaliesWorker** | `uba_flag_anomalies` | Flags users whose risk score exceeds the configured threshold and triggers an alert for security review |
 | **SessionizeWorker** | `uba_sessionize` | Groups raw events into user sessions by time proximity, returning session count and average duration |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -132,9 +132,9 @@ conductor workflow search -w user_behavior_analytics_429 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one analytics phase .  connect the event collector to your clickstream pipeline (Segment, Snowplow), the anomaly flagger to your fraud detection rules, and the collect-sessionize-analyze-flag workflow stays the same.
+Each worker manages one analytics phase. connect the event collector to your clickstream pipeline (Segment, Snowplow), the anomaly flagger to your fraud detection rules, and the collect-sessionize-analyze-flag workflow stays the same.
 
-- **AnalyzePatternsWorker** (`uba_analyze_patterns`): compute behavioral baselines .  session duration distributions, navigation path frequencies, transaction velocity
+- **AnalyzePatternsWorker** (`uba_analyze_patterns`): compute behavioral baselines. session duration distributions, navigation path frequencies, transaction velocity
 - **CollectEventsWorker** (`uba_collect_events`): pull events from Kafka/Kinesis event streams, Segment, or your application's event log
 - **FlagAnomaliesWorker** (`uba_flag_anomalies`): detect anomalies against baselines using statistical methods or ML models, trigger fraud review workflows or account locks
 

@@ -12,7 +12,7 @@ Without orchestration, you'd build a priority classifier with a switch statement
 
 **You just write the priority-classification, per-lane processing, and result-recording workers. Conductor handles SWITCH-based priority routing, per-lane processing guarantees, and a complete audit of every priority decision.**
 
-Each priority lane is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of classifying the event, routing via a SWITCH task to the appropriate lane (critical, normal, low), processing the event, recording the result, and retrying if processing fails. You get all of that, without writing a single line of orchestration code.
+Each priority lane is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of classifying the event, routing via a SWITCH task to the appropriate lane (critical, normal, low), processing the event, recording the result, and retrying if processing fails. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers implement priority lanes: ClassifyPriorityWorker assigns a level, t
 | **ProcessUrgentWorker** | `pr_process_urgent` | Processes high-priority events in the urgent lane. |
 | **RecordProcessingWorker** | `pr_record_processing` | Records the processing result for auditing. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

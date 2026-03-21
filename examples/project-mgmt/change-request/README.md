@@ -1,10 +1,10 @@
 # Change Request Management in Java with Conductor :  Submit, Impact Assessment, Approval, Implementation, and Verification
 
-A Java Conductor workflow example for managing project change requests end-to-end .  from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.
+A Java Conductor workflow example for managing project change requests end-to-end. from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to manage change requests across your project. When someone submits a change .  "swap the payment provider," "extend the timeline by two weeks," "add a new integration requirement" ,  the request must go through a controlled process: log the change formally, assess its impact on scope, timeline, and budget, get approval from the change control board, implement the approved change, and verify the result. Each step depends on the previous one, and you need a complete audit trail for compliance.
+You need to manage change requests across your project. When someone submits a change. "swap the payment provider," "extend the timeline by two weeks," "add a new integration requirement",  the request must go through a controlled process: log the change formally, assess its impact on scope, timeline, and budget, get approval from the change control board, implement the approved change, and verify the result. Each step depends on the previous one, and you need a complete audit trail for compliance.
 
 Without orchestration, change management devolves into email threads and spreadsheets. Impact assessments get lost, approvals happen out of order, implementations proceed without sign-off, and nobody can reconstruct the timeline when an audit asks "who approved this scope change and when?" Building this as a monolithic script means any failure in the approval step silently skips verification.
 
@@ -12,7 +12,7 @@ Without orchestration, change management devolves into email threads and spreads
 
 **You just write the change submission, impact assessment, approval gating, implementation, and verification logic. Conductor handles impact analysis retries, approval routing, and change control audit trails.**
 
-Each step in the change request lifecycle is a simple, independent worker .  one submits and logs the request, one assesses impact, one handles the approval gate, one implements the change, one verifies the outcome. Conductor takes care of executing them in strict sequence, ensuring no step is skipped, retrying if an external system is temporarily down, and maintaining a complete execution history that serves as your audit trail. You get all of that, without writing a single line of orchestration code.
+Each step in the change request lifecycle is a simple, independent worker. one submits and logs the request, one assesses impact, one handles the approval gate, one implements the change, one verifies the outcome. Conductor takes care of executing them in strict sequence, ensuring no step is skipped, retrying if an external system is temporarily down, and maintaining a complete execution history that serves as your audit trail. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -23,10 +23,10 @@ Request intake, impact analysis, approval routing, and implementation tracking w
 | **SubmitWorker** | `chr_submit` | Logs the change request with a unique ID, captures description, requester, and affected areas |
 | **AssessImpactWorker** | `chr_assess_impact` | Evaluates the change's impact on scope, timeline, budget, and resource allocation |
 | **ApproveWorker** | `chr_approve` | Processes the approval decision based on impact assessment (approve, reject, or request revision) |
-| **ImplementWorker** | `chr_implement` | Executes the approved change .  updates project plans, reassigns resources, adjusts milestones |
+| **ImplementWorker** | `chr_implement` | Executes the approved change. updates project plans, reassigns resources, adjusts milestones |
 | **VerifyWorker** | `chr_verify` | Confirms the change was implemented correctly and project artifacts are consistent |
 
-Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
+Workers implement project management operations. task creation, status updates, notifications,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w change_request_change-request -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real change management systems .  your PM tool for request logging, your impact analysis framework, your approval platform for CCB sign-off, and the workflow runs identically in production.
+Point each worker at your real change management systems. your PM tool for request logging, your impact analysis framework, your approval platform for CCB sign-off, and the workflow runs identically in production.
 
 - **SubmitWorker** (`chr_submit`): create a ticket in Jira or ServiceNow with the change request details, attach supporting documents via their APIs
 - **AssessImpactWorker** (`chr_assess_impact`): query your project schedule (MS Project, Smartsheet) to calculate timeline impact, pull budget data to estimate cost delta

@@ -1,12 +1,12 @@
 # Service Activation in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service activation .  validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates telecom service activation. validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.
 
 ## Why Service Activation Needs Orchestration
 
-Activating a new telecom service requires a strict sequence where each step must succeed before proceeding. You validate the service order .  confirming the order exists, the customer's account is in good standing, and the requested service type is available at their location. You provision the network resources ,  creating subscriber profiles in the HLR/HSS, configuring access ports, and allocating bandwidth. You test the provisioned service by running automated checks to confirm connectivity and quality. You activate the service so the customer can start using it. Finally, you notify the customer with their service ID and activation details.
+Activating a new telecom service requires a strict sequence where each step must succeed before proceeding. You validate the service order. confirming the order exists, the customer's account is in good standing, and the requested service type is available at their location. You provision the network resources,  creating subscriber profiles in the HLR/HSS, configuring access ports, and allocating bandwidth. You test the provisioned service by running automated checks to confirm connectivity and quality. You activate the service so the customer can start using it. Finally, you notify the customer with their service ID and activation details.
 
-If provisioning succeeds but the test reveals a quality issue, you need the provisioned service ID to troubleshoot without re-provisioning. If activation succeeds but notification fails, the customer has working service but no confirmation. Without orchestration, you'd build a monolithic activation script that mixes order validation, network provisioning, test automation, and CRM notification .  making it impossible to swap provisioning platforms, test service quality independently, or audit which order triggered which network changes.
+If provisioning succeeds but the test reveals a quality issue, you need the provisioned service ID to troubleshoot without re-provisioning. If activation succeeds but notification fails, the customer has working service but no confirmation. Without orchestration, you'd build a monolithic activation script that mixes order validation, network provisioning, test automation, and CRM notification. making it impossible to swap provisioning platforms, test service quality independently, or audit which order triggered which network changes.
 
 ## The Solution
 
@@ -22,10 +22,10 @@ Order validation, resource allocation, configuration deployment, and service ver
 |---|---|---|
 | **ActivateWorker** | `sac_activate` | Activates the provisioned and tested service on the network so the customer can start using it. |
 | **NotifyWorker** | `sac_notify` | Sends activation confirmation to the customer with service ID and connection details. |
-| **ProvisionWorker** | `sac_provision` | Provisions network resources for the service type .  subscriber profiles, access ports, bandwidth allocation. |
-| **ValidateOrderWorker** | `sac_validate_order` | Validates the service order against the customer's account .  checking order existence, account status, and availability. |
+| **ProvisionWorker** | `sac_provision` | Provisions network resources for the service type. subscriber profiles, access ports, bandwidth allocation. |
+| **ValidateOrderWorker** | `sac_validate_order` | Validates the service order against the customer's account. checking order existence, account status, and availability. |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -135,9 +135,9 @@ conductor workflow search -w sac_service_activation -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real activation systems .  your CRM for order validation, your HLR/HSS for subscriber provisioning, your test automation platform for service verification, and the workflow runs identically in production.
+Wire each worker to your real activation systems. your CRM for order validation, your HLR/HSS for subscriber provisioning, your test automation platform for service verification, and the workflow runs identically in production.
 
-- **ValidateOrderWorker** (`sac_validate_order`): validate the order in your BSS/OSS (Amdocs, Netcracker, Oracle BRM) .  checking customer account status, credit, and service availability at the location
+- **ValidateOrderWorker** (`sac_validate_order`): validate the order in your BSS/OSS (Amdocs, Netcracker, Oracle BRM). checking customer account status, credit, and service availability at the location
 - **ProvisionWorker** (`sac_provision`): provision the service in your OSS activation platform by creating subscriber profiles in HLR/HSS, configuring access equipment via NETCONF/YANG, and allocating bandwidth
 - **TestWorker** (`sac_test`): run automated service quality tests using your test automation platform (e.g., EXFO, Spirent) to verify connectivity, throughput, and latency meet service-level targets
 - **ActivateWorker** (`sac_activate`): flip the service to active in your OSS inventory, enabling traffic flow and updating the subscriber's profile status in the HLR/HSS

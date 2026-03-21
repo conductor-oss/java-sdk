@@ -25,7 +25,7 @@ Four workers manage the release lifecycle. Preparing the version, gating through
 | **DeployWorker** | `rm_deploy` | Deploys the approved version to the production environment |
 | **PrepareWorker** | `rm_prepare` | Gathers changelogs, feature counts, and bug fixes into a release summary (e.g., "12 changes, 3 fixes") |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w release_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one release lifecycle stage .  replace the simulated calls with GitHub Actions, ArgoCD, or Statuspage.io APIs for real builds, deployments, and announcements, and the release workflow runs unchanged.
+Each worker owns one release lifecycle stage. replace the simulated calls with GitHub Actions, ArgoCD, or Statuspage.io APIs for real builds, deployments, and announcements, and the release workflow runs unchanged.
 
 - **PrepareWorker** → automate real release prep: tag Git commits via GitHub/GitLab API, trigger CI builds in Jenkins/GitHub Actions/CircleCI, generate changelogs from conventional commits, and publish artifacts to Artifactory/Nexus
 - **ApproveWorker** → implement real approval gates: use Conductor's WAIT task for manual sign-off, check Jira release tickets for approval status, or enforce automated gates (all tests green, no P0 bugs open, security scan passed)
@@ -173,6 +173,6 @@ release-management-release-management/
 │       ├── DeployWorker.java
 │       └── PrepareWorker.java
 └── src/test/java/releasemanagement/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Volunteer Coordination. Uses [Co
 
 A new volunteer signs up to help at your nonprofit. The volunteer coordination team needs to register the volunteer with their skills and availability, match them to an appropriate opportunity (e.g., food bank sorting), schedule their shift at a specific location and time, track their hours worked and events attended, and send a personalized thank-you acknowledging their contribution. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Recruitment, screening, assignment, and hour tracking workers each manage one as
 | **ThankWorker** | `vol_thank` | Sends a personalized thank-you to the volunteer acknowledging their hours contributed |
 | **TrackWorker** | `vol_track` | Logs the volunteer's hours for the session and updates their cumulative total hours and events attended |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w volunteer_coordination_753 -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real volunteer systems .  your volunteer management platform for registration, your scheduling tool for shift assignment, your communications service for notifications, and the workflow runs identically in production.
+Connect each worker to your real volunteer systems. your volunteer management platform for registration, your scheduling tool for shift assignment, your communications service for notifications, and the workflow runs identically in production.
 
 - **RegisterWorker** (`vol_register`): create the volunteer record in your volunteer management platform (VolunteerHub, Galaxy Digital) or Salesforce Volunteers, capturing skills and availability
 - **MatchWorker** (`vol_match`): query open opportunities from your volunteer management system and match based on skills, location, and availability using your matching algorithm

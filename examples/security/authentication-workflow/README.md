@@ -1,18 +1,18 @@
 # Implementing Authentication Workflow in Java with Conductor :  Credential Validation, MFA Verification, Risk Assessment, and Token Issuance
 
-A Java Conductor workflow example implementing a multi-step authentication pipeline .  validating user credentials (password, biometric, API key), verifying a second factor via MFA, assessing login risk based on device and location signals, and issuing a signed JWT session token only after all checks pass. Uses [Conductor](https://github.
+A Java Conductor workflow example implementing a multi-step authentication pipeline. validating user credentials (password, biometric, API key), verifying a second factor via MFA, assessing login risk based on device and location signals, and issuing a signed JWT session token only after all checks pass. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to authenticate users through multiple verification layers before granting access. First, the submitted credentials (password hash, biometric template, or API key) must be validated against the identity store. Then, if MFA is enabled, a second factor (TOTP, SMS code, hardware key) must be verified. Before issuing a token, a risk assessment must evaluate whether the login attempt looks suspicious .  new device, unusual geolocation, impossible travel, or velocity anomalies. Only after all three checks pass should a JWT be minted with the appropriate claims, scopes, and expiration. If any step fails, the login must be denied and the failure recorded for security monitoring.
+You need to authenticate users through multiple verification layers before granting access. First, the submitted credentials (password hash, biometric template, or API key) must be validated against the identity store. Then, if MFA is enabled, a second factor (TOTP, SMS code, hardware key) must be verified. Before issuing a token, a risk assessment must evaluate whether the login attempt looks suspicious. new device, unusual geolocation, impossible travel, or velocity anomalies. Only after all three checks pass should a JWT be minted with the appropriate claims, scopes, and expiration. If any step fails, the login must be denied and the failure recorded for security monitoring.
 
-Without orchestration, authentication logic is a deeply nested chain of if/else blocks .  validate credentials, then check MFA, then assess risk, then issue a token. Each step calls a different backend (identity provider, MFA service, risk engine, token service), and a failure in one requires careful cleanup of the others. When the MFA provider times out, users get stuck in a half-authenticated state. When the risk engine is slow, login latency spikes. Nobody can tell from logs which step actually failed for a given login attempt, making it impossible to debug "why can't I log in?" support tickets.
+Without orchestration, authentication logic is a deeply nested chain of if/else blocks. validate credentials, then check MFA, then assess risk, then issue a token. Each step calls a different backend (identity provider, MFA service, risk engine, token service), and a failure in one requires careful cleanup of the others. When the MFA provider times out, users get stuck in a half-authenticated state. When the risk engine is slow, login latency spikes. Nobody can tell from logs which step actually failed for a given login attempt, making it impossible to debug "why can't I log in?" support tickets.
 
 ## The Solution
 
 **You just write the credential validation, MFA check, and token signing logic. Conductor handles strict ordering so no token is minted without MFA and risk checks, retries when the MFA provider is temporarily unavailable, and a full audit trail of every login attempt.**
 
-Each authentication concern is a simple, independent worker .  one validates credentials against the identity store, one verifies the MFA challenge, one scores login risk from device and location signals, one mints the JWT with appropriate claims. Conductor takes care of executing them in strict order so no token is issued without MFA verification and risk assessment, retrying if the MFA provider is temporarily unavailable, and maintaining a complete audit trail of every login attempt with inputs, outputs, and timing for each verification step. You get all of that, without writing a single line of orchestration code.
+Each authentication concern is a simple, independent worker. one validates credentials against the identity store, one verifies the MFA challenge, one scores login risk from device and location signals, one mints the JWT with appropriate claims. Conductor takes care of executing them in strict order so no token is issued without MFA verification and risk assessment, retrying if the MFA provider is temporarily unavailable, and maintaining a complete audit trail of every login attempt with inputs, outputs, and timing for each verification step. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,10 +22,10 @@ The authentication pipeline sequences ValidateCredentialsWorker to check passwor
 |---|---|---|
 | **ValidateCredentialsWorker** | `auth_validate_credentials` | Validates the submitted credentials (password hash, biometric template, or API key) against the identity store and returns a success/failure result with the user ID |
 | **CheckMfaWorker** | `auth_check_mfa` | Verifies the second authentication factor. TOTP code, SMS one-time password, or hardware security key challenge, and confirms MFA status |
-| **RiskAssessmentWorker** | `auth_risk_assessment` | Scores the login attempt for risk signals .  device fingerprint, geolocation, impossible travel, login velocity, and returns a risk level (low/medium/high) |
+| **RiskAssessmentWorker** | `auth_risk_assessment` | Scores the login attempt for risk signals. device fingerprint, geolocation, impossible travel, login velocity, and returns a risk level (low/medium/high) |
 | **IssueTokenWorker** | `auth_issue_token` | Mints a signed JWT with user claims, scopes, and expiration after all verification steps have passed |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w authentication_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one authentication layer .  connect ValidateCredentialsWorker to Auth0 or Okta, CheckMfaWorker to Duo Security, and the credential-MFA-risk-token workflow stays the same.
+Each worker handles one authentication layer. connect ValidateCredentialsWorker to Auth0 or Okta, CheckMfaWorker to Duo Security, and the credential-MFA-risk-token workflow stays the same.
 
 - **ValidateCredentialsWorker** (`auth_validate_credentials`): verify credentials against your identity provider (Auth0, Okta, AWS Cognito, Active Directory) using their authentication APIs
 - **CheckMfaWorker** (`auth_check_mfa`): integrate with Duo Security, Google Authenticator TOTP verification, or Twilio Verify for SMS/voice second-factor challenges

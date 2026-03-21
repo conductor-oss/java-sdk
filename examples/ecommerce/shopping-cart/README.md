@@ -1,6 +1,6 @@
 # Shopping Cart in Java Using Conductor :  Add Items, Calculate Total, Apply Discounts, Reserve Inventory
 
-A Java Conductor workflow example for shopping cart processing .  adding items to a cart, calculating the subtotal, applying coupon-code discounts, and reserving inventory so items are not oversold before checkout. Uses [Conductor](https://github.
+A Java Conductor workflow example for shopping cart processing. adding items to a cart, calculating the subtotal, applying coupon-code discounts, and reserving inventory so items are not oversold before checkout. Uses [Conductor](https://github.
 
 ## Shopping Carts Are More Complex Than They Look
 
@@ -12,7 +12,7 @@ The order matters: items must be added before totals can be calculated, totals m
 
 **You just write the item validation, total calculation, discount application, and inventory reservation logic. Conductor handles pricing retries, cart state durability, and complete cart lifecycle tracking.**
 
-`AddItemsWorker` validates and adds items to the cart .  checking availability, enforcing quantity limits, and confirming current pricing. `CalculateTotalWorker` computes the subtotal from item prices and quantities, applying any quantity-based or bundle pricing rules. `ApplyDiscountsWorker` processes coupon codes and promotional discounts ,  validating eligibility, calculating the discount amount, and applying it to the subtotal. `ReserveInventoryWorker` places soft holds on the cart items to prevent overselling during the checkout window. Conductor chains these four steps and records the cart state at each stage for conversion analytics.
+`AddItemsWorker` validates and adds items to the cart. checking availability, enforcing quantity limits, and confirming current pricing. `CalculateTotalWorker` computes the subtotal from item prices and quantities, applying any quantity-based or bundle pricing rules. `ApplyDiscountsWorker` processes coupon codes and promotional discounts,  validating eligibility, calculating the discount amount, and applying it to the subtotal. `ReserveInventoryWorker` places soft holds on the cart items to prevent overselling during the checkout window. Conductor chains these four steps and records the cart state at each stage for conversion analytics.
 
 ### What You Write: Workers
 
@@ -22,7 +22,7 @@ Cart creation, item management, pricing, and checkout-readiness workers operate 
 |---|---|---|
 | **AddItemsWorker** | `cart_add_items` | Validates items and adds them to the cart, assigning a cart ID and line item IDs |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -129,7 +129,7 @@ conductor workflow search -w shopping_cart -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real commerce stack .  your inventory API for item validation, your pricing engine for totals, your coupon database for discounts, and the workflow runs identically in production.
+Point each worker at your real commerce stack. your inventory API for item validation, your pricing engine for totals, your coupon database for discounts, and the workflow runs identically in production.
 
 - **CalculateTotalWorker** (`cart_calculate_total`): implement complex pricing: tiered quantity discounts, bundle pricing, member pricing, and multi-currency support with real-time exchange rates
 - **ApplyDiscountsWorker** (`cart_apply_discounts`): integrate with your coupon engine for code validation, support stackable promotions, and calculate the optimal discount combination when multiple promotions apply

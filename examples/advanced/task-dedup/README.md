@@ -1,12 +1,12 @@
 # Task Deduplication in Java Using Conductor :  Hash Input, Check Cache, Execute or Return Cached
 
-A Java Conductor workflow example for task deduplication .  hashing the task input to create a fingerprint, checking whether that fingerprint has been seen before, and routing via `SWITCH` to either execute the task for the first time or return the cached result from a previous execution. Uses [Conductor](https://github.
+A Java Conductor workflow example for task deduplication. hashing the task input to create a fingerprint, checking whether that fingerprint has been seen before, and routing via `SWITCH` to either execute the task for the first time or return the cached result from a previous execution. Uses [Conductor](https://github.
 
 ## Identical Inputs Should Produce Cached Results, Not Redundant Computation
 
-A report generation request comes in with the same parameters as yesterday's run .  same date range, same filters, same output format. Regenerating the report takes 15 minutes and produces identical output. If you could detect that the input hasn't changed, you'd return yesterday's result in milliseconds instead of burning compute.
+A report generation request comes in with the same parameters as yesterday's run. same date range, same filters, same output format. Regenerating the report takes 15 minutes and produces identical output. If you could detect that the input hasn't changed, you'd return yesterday's result in milliseconds instead of burning compute.
 
-Task deduplication means hashing the input to create a deterministic fingerprint, looking up that hash in a cache, and short-circuiting execution if a cached result exists. The `SWITCH` task makes the decision explicit .  new inputs go to the execute path, seen inputs go to the cache-return path.
+Task deduplication means hashing the input to create a deterministic fingerprint, looking up that hash in a cache, and short-circuiting execution if a cached result exists. The `SWITCH` task makes the decision explicit. new inputs go to the execute path, seen inputs go to the cache-return path.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Four workers implement the cache-or-compute pattern: input hashing, cache lookup
 | **HashInputWorker** | `tdd_hash_input` | Hashes the input payload to produce a deterministic deduplication key. |
 | **ReturnCachedWorker** | `tdd_return_cached` | Returns a previously cached result for a duplicate task. |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w tdd_task_dedup -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one deduplication concern .  replace the simulated hash cache with a real Redis or DynamoDB lookup and the execute-or-return-cached routing runs unchanged.
+Each worker handles one deduplication concern. replace the simulated hash cache with a real Redis or DynamoDB lookup and the execute-or-return-cached routing runs unchanged.
 
 - **HashInputWorker** (`tdd_hash_input`): compute real content hashes using SHA-256 (`MessageDigest`), or use MurmurHash3 for faster non-cryptographic fingerprinting of large payloads
 - **CheckSeenWorker** (`tdd_check_seen`): look up hashes in a real cache: Redis `EXISTS`/`GET`, DynamoDB `getItem`, or a Bloom filter for space-efficient probabilistic dedup

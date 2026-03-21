@@ -1,10 +1,10 @@
 # Commit Analysis in Java with Conductor :  Parse, Classify, and Detect Patterns in Git History
 
-A Java Conductor workflow that analyzes a repository's commit history .  parsing commits from a branch over a configurable time window, classifying each commit by type (feature, bugfix, refactor, etc.), detecting development patterns across the classified commits, and generating a summary report. Given a `repoName`, `branch`, and `days`, the pipeline produces commit counts, type breakdowns, detected patterns, and a narrative report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step analysis pipeline.
+A Java Conductor workflow that analyzes a repository's commit history. parsing commits from a branch over a configurable time window, classifying each commit by type (feature, bugfix, refactor, etc.), detecting development patterns across the classified commits, and generating a summary report. Given a `repoName`, `branch`, and `days`, the pipeline produces commit counts, type breakdowns, detected patterns, and a narrative report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step analysis pipeline.
 
 ## Understanding What Your Team Has Been Building
 
-Raw git log output is a wall of hashes and messages. To understand development trends .  whether the team is spending more time on bug fixes than features, whether refactoring is keeping pace with new code, or whether certain components are seeing unusual churn ,  you need to parse, classify, and aggregate commits systematically.
+Raw git log output is a wall of hashes and messages. To understand development trends. whether the team is spending more time on bug fixes than features, whether refactoring is keeping pace with new code, or whether certain components are seeing unusual churn,  you need to parse, classify, and aggregate commits systematically.
 
 This workflow processes a repository's recent history in four steps. The parser extracts commits from the specified branch and time window. The classifier categorizes each commit by type (feature, bugfix, refactor, chore, etc.) and produces a type distribution summary. The pattern detector analyzes the classified commits for trends like "increasing bug density in module X" or "refactoring sprint in week 3." The reporter compiles patterns and classifications into a readable summary.
 
@@ -12,7 +12,7 @@ This workflow processes a repository's recent history in four steps. The parser 
 
 **You just write the commit-parsing, classification, pattern-detection, and reporting workers. Conductor handles the analysis pipeline and data routing.**
 
-Four workers form the analysis pipeline .  commit parsing, classification, pattern detection, and reporting. The parser reads the git history for the specified branch and time range. The classifier labels each commit and produces a summary distribution. The pattern detector examines the classified data for trends and anomalies. The reporter merges patterns and classifications into a final report. Conductor sequences the steps and routes commits, classifications, and patterns between them via JSONPath.
+Four workers form the analysis pipeline. commit parsing, classification, pattern detection, and reporting. The parser reads the git history for the specified branch and time range. The classifier labels each commit and produces a summary distribution. The pattern detector examines the classified data for trends and anomalies. The reporter merges patterns and classifications into a final report. Conductor sequences the steps and routes commits, classifications, and patterns between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ ParseCommitsWorker reads git history, ClassifyWorker labels each commit by type,
 | **ParseCommitsWorker** | `cma_parse_commits` | Extracts commits from the specified branch and time window with hashes, authors, and messages. |
 | **ReportWorker** | `cma_report` | Compiles patterns and classifications into a narrative analysis report. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w cma_commit_analysis -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one analysis step .  connect your Git hosting API (GitHub, GitLab, Bitbucket) for commit parsing and your team dashboard (Sleuth, LinearB) for trend reporting, and the commit-analysis workflow stays the same.
+Each worker handles one analysis step. connect your Git hosting API (GitHub, GitLab, Bitbucket) for commit parsing and your team dashboard (Sleuth, LinearB) for trend reporting, and the commit-analysis workflow stays the same.
 
 - **ClassifyWorker** (`cma_classify`): use an LLM or Conventional Commits parser to classify commits more accurately than keyword matching
 - **DetectPatternsWorker** (`cma_detect_patterns`): integrate with analytics platforms (Grafana, Datadog) to correlate commit patterns with deployment incidents

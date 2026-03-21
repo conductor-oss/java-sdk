@@ -1,18 +1,18 @@
 # ETL Workflow Templating in Java Using Conductor :  Extract, Transform, Load, Verify
 
-A Java Conductor workflow example for ETL workflow templating .  extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job ,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.
+A Java Conductor workflow example for ETL workflow templating. extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.
 
 ## Every ETL Job Is Extract-Transform-Load, but the Details Differ
 
 Your company runs 50 ETL jobs. Each extracts from a different source (PostgreSQL, Salesforce API, S3 CSV files), transforms differently (currency conversion, deduplication, schema mapping), and loads to a different destination (Snowflake, Redshift, BigQuery). But the structure is always the same: extract, transform, load, verify. Without a template, each ETL job is built from scratch, duplicating retry logic, error handling, and verification.
 
-Workflow templating means defining the ETL structure once (extract-transform-load-verify) and swapping in different worker implementations for different jobs. The template handles the orchestration .  retries, failure routing, observability ,  while each job's workers handle the source-specific extraction, job-specific transformation, and destination-specific loading.
+Workflow templating means defining the ETL structure once (extract-transform-load-verify) and swapping in different worker implementations for different jobs. The template handles the orchestration. retries, failure routing, observability,  while each job's workers handle the source-specific extraction, job-specific transformation, and destination-specific loading.
 
 ## The Solution
 
 **You write the extract, transform, and load logic. Conductor handles the ETL template, batch retries, and verification tracking.**
 
-`WtmExtractWorker` pulls data from the source system for the specified batch. `WtmTransformWorker` applies the configured transformation rules .  cleaning, mapping, enriching. `WtmLoadWorker` writes the transformed data to the destination. `WtmVerifyWorker` confirms the load succeeded ,  checking row counts, running data quality assertions, and validating that the destination has the expected data. Conductor runs this template for every batch, retries failed extracts or loads, and records the row counts and verification results for every ETL run.
+`WtmExtractWorker` pulls data from the source system for the specified batch. `WtmTransformWorker` applies the configured transformation rules. cleaning, mapping, enriching. `WtmLoadWorker` writes the transformed data to the destination. `WtmVerifyWorker` confirms the load succeeded,  checking row counts, running data quality assertions, and validating that the destination has the expected data. Conductor runs this template for every batch, retries failed extracts or loads, and records the row counts and verification results for every ETL run.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers implement the reusable ETL template: source extraction, rule-based 
 | **WtmTransformWorker** | `wtm_transform` | Applies the template's transformation rules to the extracted data |
 | **WtmVerifyWorker** | `wtm_verify` | Verifies that extracted and loaded record counts match for data integrity |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w wtm_etl_postgres_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker implements one ETL stage .  replace the simulated extracts and loads with real database connectors or data warehouse APIs and the extract-transform-load-verify template runs unchanged.
+Each worker implements one ETL stage. replace the simulated extracts and loads with real database connectors or data warehouse APIs and the extract-transform-load-verify template runs unchanged.
 
 - **WtmExtractWorker** (`wtm_extract`): connect to real data sources: JDBC queries against PostgreSQL/MySQL, Salesforce SOQL via the REST API, S3 `getObject()` for CSV/Parquet files, or Kafka consumer for streaming ETL
 - **WtmTransformWorker** (`wtm_transform`): apply real transformations: Apache Spark for large-scale transforms, dbt models for SQL-based transformations, or custom Jackson/JOLT mappings for JSON restructuring

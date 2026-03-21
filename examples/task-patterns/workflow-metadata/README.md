@@ -22,7 +22,7 @@ One worker demonstrates metadata-driven categorization: MetadataTaskWorker recei
 |---|---|---|
 | **MetadataTaskWorker** | `md_task` | Simple metadata task worker. Receives category and priority inputs, returns processed: true. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

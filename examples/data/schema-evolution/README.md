@@ -25,7 +25,7 @@ Four workers manage schema evolution: comparing current and target schemas to de
 | **GenerateTransformWorker** | `sh_generate_transform` | Generates transform operations from detected schema changes. |
 | **ValidateSchemaWorker** | `sh_validate_schema` | Validates transformed data against the target schema. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

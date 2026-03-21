@@ -1,18 +1,18 @@
 # Analytics Reporting Pipeline in Java Using Conductor :  Event Collection, Data Aggregation, KPI Computation, and Dashboard Generation
 
-A Java Conductor workflow example that orchestrates an analytics reporting pipeline .  collecting raw user events from multiple data sources into Parquet files, aggregating them into session-level metrics (total sessions, unique users, page views), computing business KPIs (DAU, WAU, MAU, bounce rate, conversion rate, revenue per user), and generating interactive dashboard reports with scheduled delivery via email and Slack. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates an analytics reporting pipeline. collecting raw user events from multiple data sources into Parquet files, aggregating them into session-level metrics (total sessions, unique users, page views), computing business KPIs (DAU, WAU, MAU, bounce rate, conversion rate, revenue per user), and generating interactive dashboard reports with scheduled delivery via email and Slack. Uses [Conductor](https://github.
 
 ## Why Analytics Pipelines Need Orchestration
 
-Building an analytics report requires a strict data pipeline. You collect 1.25 million raw events from multiple sources and write them to a staging area. You aggregate those events into session-level summaries .  85K total sessions, 42K unique users, 320K page views, 245-second average session duration. You compute business-critical KPIs from the aggregated data: daily/weekly/monthly active users, 38.5% bounce rate, 4.2% conversion rate. Finally, you generate an interactive dashboard report and schedule delivery to stakeholders.
+Building an analytics report requires a strict data pipeline. You collect 1.25 million raw events from multiple sources and write them to a staging area. You aggregate those events into session-level summaries. 85K total sessions, 42K unique users, 320K page views, 245-second average session duration. You compute business-critical KPIs from the aggregated data: daily/weekly/monthly active users, 38.5% bounce rate, 4.2% conversion rate. Finally, you generate an interactive dashboard report and schedule delivery to stakeholders.
 
-Each stage depends on clean output from the previous one .  aggregation needs complete event data, KPI computation needs accurate aggregates, and the report needs final metrics. If the event collection fails partway through, you do not want to compute KPIs on incomplete data. Without orchestration, you'd build a monolithic ETL script that mixes data ingestion, aggregation queries, metric calculations, and report rendering ,  making it impossible to rerun just the KPI computation when a formula changes, or to swap your event source without touching the report generator.
+Each stage depends on clean output from the previous one. aggregation needs complete event data, KPI computation needs accurate aggregates, and the report needs final metrics. If the event collection fails partway through, you do not want to compute KPIs on incomplete data. Without orchestration, you'd build a monolithic ETL script that mixes data ingestion, aggregation queries, metric calculations, and report rendering,  making it impossible to rerun just the KPI computation when a formula changes, or to swap your event source without touching the report generator.
 
 ## How This Workflow Solves It
 
 **You just write the analytics workers. Event collection, data aggregation, KPI computation, and dashboard generation. Conductor handles stage ordering, data source retries, and per-stage timing metrics for pipeline optimization.**
 
-Each pipeline stage is an independent worker .  collect events, aggregate data, compute metrics, generate report. Conductor sequences them, passes raw data paths and aggregated metrics between stages, retries if a data source query times out, and tracks exactly how long each ETL stage takes for pipeline optimization.
+Each pipeline stage is an independent worker. collect events, aggregate data, compute metrics, generate report. Conductor sequences them, passes raw data paths and aggregated metrics between stages, retries if a data source query times out, and tracks exactly how long each ETL stage takes for pipeline optimization.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers form the analytics pipeline: CollectEventsWorker ingests raw user e
 | **ComputeMetricsWorker** | `anr_compute_metrics` | Computes metrics |
 | **GenerateReportWorker** | `anr_generate_report` | Generates the report |
 
-Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
+Workers implement media processing stages. transcoding, thumbnail generation, metadata extraction,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
 ### The Workflow
 

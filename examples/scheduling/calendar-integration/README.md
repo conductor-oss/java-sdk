@@ -1,10 +1,10 @@
 # Calendar Integration in Java Using Conductor :  Event Sync, Schedule Comparison, Change Propagation, and Notification
 
-A Java Conductor workflow example for calendar integration .  fetching events from a calendar, comparing against the canonical schedule, syncing changes bidirectionally, and notifying stakeholders of schedule updates.
+A Java Conductor workflow example for calendar integration. fetching events from a calendar, comparing against the canonical schedule, syncing changes bidirectionally, and notifying stakeholders of schedule updates.
 
 ## The Problem
 
-You need to keep calendars in sync .  when a meeting is added to Google Calendar, it needs to appear in your internal scheduling system, and vice versa. Events must be fetched from the source, compared against the target to find additions/deletions/changes, synced with conflict resolution, and stakeholders notified of any changes. If the sync step fails, changes are lost. If notifications fail, people miss schedule updates.
+You need to keep calendars in sync. when a meeting is added to Google Calendar, it needs to appear in your internal scheduling system, and vice versa. Events must be fetched from the source, compared against the target to find additions/deletions/changes, synced with conflict resolution, and stakeholders notified of any changes. If the sync step fails, changes are lost. If notifications fail, people miss schedule updates.
 
 Without orchestration, calendar sync is a fragile cron job that overwrites one calendar with another. Conflict detection is minimal, notification is an afterthought, and a failure in the sync step leaves calendars permanently out of sync with no record of what went wrong.
 
@@ -12,7 +12,7 @@ Without orchestration, calendar sync is a fragile cron job that overwrites one c
 
 **You just write the calendar API calls and conflict resolution rules. Conductor handles the fetch-compare-sync-notify sequence, retries when calendar APIs are temporarily unavailable, and a complete record of every sync operation and conflict resolved.**
 
-Each sync concern is an independent worker .  event fetching, schedule comparison, change sync, and notification. Conductor runs them in sequence with retry logic, ensuring a temporary API failure doesn't cause permanent sync drift. Every sync operation is tracked ,  you can see what changed, what was synced, and who was notified. You get all of that, without writing a single line of orchestration code.
+Each sync concern is an independent worker. event fetching, schedule comparison, change sync, and notification. Conductor runs them in sequence with retry logic, ensuring a temporary API failure doesn't cause permanent sync drift. Every sync operation is tracked,  you can see what changed, what was synced, and who was notified. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle bidirectional sync: FetchEventsWorker pulls events from the 
 | **NotifyStakeholdersWorker** | `cal_notify_stakeholders` | Notifies stakeholders about synced schedule changes, returning the recipient count |
 | **SyncChangesWorker** | `cal_sync_changes` | Applies additions, updates, and deletions to synchronize the target calendar with the source |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w calendar_integration_406 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one sync phase .  connect the event fetcher to Google Calendar or Outlook API, the notifier to Slack or email, and the fetch-compare-sync-notify workflow stays the same.
+Each worker manages one sync phase. connect the event fetcher to Google Calendar or Outlook API, the notifier to Slack or email, and the fetch-compare-sync-notify workflow stays the same.
 
 - **CompareSchedulesWorker** (`cal_compare_schedules`): diff events by time, title, and attendees to find additions, deletions, and modifications
 - **FetchEventsWorker** (`cal_fetch_events`): pull events from Google Calendar, Microsoft Outlook, or Apple Calendar via their APIs

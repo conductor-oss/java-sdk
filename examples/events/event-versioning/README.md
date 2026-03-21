@@ -12,7 +12,7 @@ Without orchestration, you'd embed version detection and transformation logic in
 
 **You just write the version-detection, schema-transform, and event-processing workers. Conductor handles version-based SWITCH routing, per-version transformation retries, and full version lineage tracking for every event.**
 
-Each versioning concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of detecting the event version, routing via a SWITCH task to the appropriate version transformer, processing the event in its canonical format, and tracking every event's version and transformation. You get all of that, without writing a single line of orchestration code.
+Each versioning concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of detecting the event version, routing via a SWITCH task to the appropriate version transformer, processing the event in its canonical format, and tracking every event's version and transformation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers handle schema evolution: DetectVersionWorker identifies the event's
 | **TransformV1Worker** | `vr_transform_v1` | Transforms a v1 event to the latest (v3) schema format. |
 | **TransformV2Worker** | `vr_transform_v2` | Transforms a v2 event to the latest (v3) schema format. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

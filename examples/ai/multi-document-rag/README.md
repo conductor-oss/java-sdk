@@ -1,24 +1,24 @@
 # Multi-Document RAG in Java Using Conductor :  Parallel Search Across API Docs, Tutorials, and Forums
 
-A Java Conductor workflow that searches three document collections simultaneously. API documentation, tutorials, and community forums .  merges the results by relevance, and generates an answer grounded in all three sources. Conductor's `FORK_JOIN` runs the three searches in parallel, cutting latency to the speed of the slowest collection instead of the sum of all three. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel search, result merging, and generation as independent workers ,  you write the search and generation logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that searches three document collections simultaneously. API documentation, tutorials, and community forums. merges the results by relevance, and generates an answer grounded in all three sources. Conductor's `FORK_JOIN` runs the three searches in parallel, cutting latency to the speed of the slowest collection instead of the sum of all three. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel search, result merging, and generation as independent workers,  you write the search and generation logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Answers That Span Multiple Knowledge Sources
 
 A developer question like "How do I paginate API results?" might have the answer spread across three places: the API reference (parameter names and types), a tutorial (step-by-step walkthrough), and a forum thread (common gotchas and workarounds). Searching a single collection misses context. Searching all three sequentially triples the latency.
 
-The solution is parallel search: embed the question once, then search API docs, tutorials, and forums simultaneously. After all three searches complete, merge the results by relevance score .  giving priority to API docs for technical accuracy while including tutorial context and forum insights. The merged context feeds into the LLM for a comprehensive answer that cites multiple source types.
+The solution is parallel search: embed the question once, then search API docs, tutorials, and forums simultaneously. After all three searches complete, merge the results by relevance score. giving priority to API docs for technical accuracy while including tutorial context and forum insights. The merged context feeds into the LLM for a comprehensive answer that cites multiple source types.
 
-Without orchestration, parallel search means managing thread pools, handling partial failures (forums are down but API docs responded), and waiting for all results before merging .  code that's hard to get right and impossible to observe.
+Without orchestration, parallel search means managing thread pools, handling partial failures (forums are down but API docs responded), and waiting for all results before merging. code that's hard to get right and impossible to observe.
 
 ## The Solution
 
 **You write the per-collection search and merge logic. Conductor handles the parallel execution, retries, and observability.**
 
-Each search is an independent worker .  one per collection. Conductor's `FORK_JOIN` runs all three in parallel and waits for all to complete. A merge worker combines the results, and a generation worker produces the answer. If the forum search times out, Conductor retries it independently without re-running the API docs or tutorial searches.
+Each search is an independent worker. one per collection. Conductor's `FORK_JOIN` runs all three in parallel and waits for all to complete. A merge worker combines the results, and a generation worker produces the answer. If the forum search times out, Conductor retries it independently without re-running the API docs or tutorial searches.
 
 ### What You Write: Workers
 
-Six workers implement cross-collection RAG .  embedding the query, then searching API docs, tutorials, and forums in parallel via FORK_JOIN, merging the ranked results, and generating an answer from the unified context.
+Six workers implement cross-collection RAG. embedding the query, then searching API docs, tutorials, and forums in parallel via FORK_JOIN, merging the ranked results, and generating an answer from the unified context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -29,7 +29,7 @@ Six workers implement cross-collection RAG .  embedding the query, then searchin
 | **SearchForumsWorker** | `mdrag_search_forums` | Worker that searches the forums collection and returns 1 result. |
 | **SearchTutorialsWorker** | `mdrag_search_tutorials` | Worker that searches the tutorials collection and returns 2 results. |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -147,14 +147,14 @@ conductor workflow search -w multi_document_rag_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker searches one knowledge source .  connect each to its own vector store collection or search index, implement reciprocal rank fusion for merging, and the parallel search-merge-generate workflow runs unchanged.
+Each worker searches one knowledge source. connect each to its own vector store collection or search index, implement reciprocal rank fusion for merging, and the parallel search-merge-generate workflow runs unchanged.
 
 - **EmbedWorker** (`mdrag_embed`): swap in a real embedding model (OpenAI, Cohere, sentence-transformers)
-- **SearchApiDocsWorker** / **SearchTutorialsWorker** / **SearchForumsWorker** .  connect each to its own vector store collection or search index
+- **SearchApiDocsWorker** / **SearchTutorialsWorker** / **SearchForumsWorker**. connect each to its own vector store collection or search index
 - **MergeResultsWorker** (`mdrag_merge_results`): implement reciprocal rank fusion or weighted scoring to combine results across collections
 - **GenerateWorker** (`mdrag_generate`): swap in a real LLM call with source attribution in the prompt
 
-Each search worker returns the same result shape, so adding new document collections or swapping search backends requires only a new worker and a fork branch .  no changes to existing workers.
+Each search worker returns the same result shape, so adding new document collections or swapping search backends requires only a new worker and a fork branch. no changes to existing workers.
 
 ## SDK
 

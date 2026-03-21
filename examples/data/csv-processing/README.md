@@ -25,7 +25,7 @@ Four workers handle the CSV lifecycle: parsing raw text into rows, validating na
 | **TransformFieldsWorker** | `cv_transform_fields` | Transforms validated rows: normalizes names, lowercases emails, uppercases departments, parses salaries to doubles. |
 | **ValidateRowsWorker** | `cv_validate_rows` | Validates parsed CSV rows: each row must have a non-empty name and an email containing "@". |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

@@ -1,10 +1,10 @@
 # Implementing Failure Workflow in Java with Conductor :  Automatic Error Handling When a Workflow Fails
 
-A Java Conductor workflow example demonstrating Conductor's failure workflow feature .  when the main processing workflow fails, a separate error handler workflow runs automatically to perform cleanup and send notifications.
+A Java Conductor workflow example demonstrating Conductor's failure workflow feature. when the main processing workflow fails, a separate error handler workflow runs automatically to perform cleanup and send notifications.
 
 ## The Problem
 
-You have a processing pipeline that can fail. When it does, you need automatic cleanup .  release held resources, rollback partial changes, notify the team. The cleanup must happen reliably even if the main process crashed unexpectedly. And you need it to happen automatically, not rely on someone manually triggering a recovery script.
+You have a processing pipeline that can fail. When it does, you need automatic cleanup. release held resources, rollback partial changes, notify the team. The cleanup must happen reliably even if the main process crashed unexpectedly. And you need it to happen automatically, not rely on someone manually triggering a recovery script.
 
 Without orchestration, failure handling lives in finally blocks and shutdown hooks that may not run if the process crashes. Cleanup logic is interleaved with business logic, making both harder to understand and test. Nobody can tell whether cleanup ran for a given failure.
 
@@ -12,7 +12,7 @@ Without orchestration, failure handling lives in finally blocks and shutdown hoo
 
 **You just write the processing logic and error cleanup handlers. Conductor handles automatic failure detection, triggering the cleanup workflow with full error context, retries on cleanup steps, and tracking of every failure with its cleanup outcome.**
 
-The main workflow runs the processing step. Conductor's failure workflow feature automatically triggers a separate error handler workflow when the main one fails .  running cleanup and notification workers without any manual intervention. The failure workflow receives the original workflow's context (what failed, why, at which step), so cleanup workers have full information. You get all of that, without writing a single line of orchestration code.
+The main workflow runs the processing step. Conductor's failure workflow feature automatically triggers a separate error handler workflow when the main one fails. running cleanup and notification workers without any manual intervention. The failure workflow receives the original workflow's context (what failed, why, at which step), so cleanup workers have full information. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,9 +22,9 @@ ProcessWorker executes the main business logic, and when it fails, Conductor's f
 |---|---|---|
 | **CleanupWorker** | `fw_cleanup` | Cleanup worker for the failure handler workflow. Runs after the main workflow fails, performing cleanup operations. R... |
 | **NotifyFailureWorker** | `fw_notify_failure` | Notification worker for the failure handler workflow. Sends a failure alert after cleanup is done. Returns { notified... |
-| **ProcessWorker** | `fw_process` | Processes the main workflow task. Takes a shouldFail flag .  if true, fails the task to trigger the failure workflow. .. |
+| **ProcessWorker** | `fw_process` | Processes the main workflow task. Takes a shouldFail flag. if true, fails the task to trigger the failure workflow. .. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -122,11 +122,11 @@ conductor workflow search -w main_with_failure_handler -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one concern .  connect the processing worker to your real business logic, the cleanup worker to release held resources, the notifier to Slack or PagerDuty, and the process-plus-auto-cleanup-on-failure workflow stays the same.
+Each worker handles one concern. connect the processing worker to your real business logic, the cleanup worker to release held resources, the notifier to Slack or PagerDuty, and the process-plus-auto-cleanup-on-failure workflow stays the same.
 
 - **CleanupWorker** (`fw_cleanup`): release held resources (database locks, reserved inventory, temporary files), rollback partial transactions
 - **NotifyFailureWorker** (`fw_notify_failure`): send real failure alerts via Slack, PagerDuty, or email with the original workflow's error context and stack trace
-- **ProcessWorker** (`fw_process`): replace with your real processing logic .  data transformation, order fulfillment, batch job execution
+- **ProcessWorker** (`fw_process`): replace with your real processing logic. data transformation, order fulfillment, batch job execution
 
 Connect the processing worker to your real business logic and the cleanup worker to your resource management system, and the automatic failure handling works without modification.
 

@@ -1,10 +1,10 @@
 # Event Windowing in Java Using Conductor
 
-Event Windowing .  collect events into a time window, compute aggregate statistics, and emit the windowed result. Uses [Conductor](https://github.
+Event Windowing. collect events into a time window, compute aggregate statistics, and emit the windowed result. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to group events into time-based windows and compute aggregate statistics per window. Events arrive continuously, but analysis requires bounded windows .  computing event count, sum, average, min, max, and standard deviation across all events within a configurable time window (e.g., 5 seconds, 1 minute). Without windowing, you either process events one at a time (losing temporal context) or accumulate unbounded state.
+You need to group events into time-based windows and compute aggregate statistics per window. Events arrive continuously, but analysis requires bounded windows. computing event count, sum, average, min, max, and standard deviation across all events within a configurable time window (e.g., 5 seconds, 1 minute). Without windowing, you either process events one at a time (losing temporal context) or accumulate unbounded state.
 
 Without orchestration, you'd manage window boundaries with timers, buffer events in memory, trigger window closure on timeout, compute aggregates inline, and handle late-arriving events that fall into an already-closed window.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd manage window boundaries with timers, buffer events
 
 **You just write the window-collection, stats-computation, and result-emission workers. Conductor handles window lifecycle management, retry on emission failure, and a durable record of every windowed computation.**
 
-Each windowing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting events into the window, computing aggregates, and emitting the windowed result ,  retrying if aggregation fails, tracking every window computation, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each windowing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting events into the window, computing aggregates, and emitting the windowed result,  retrying if aggregation fails, tracking every window computation, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers implement time-based windowing: CollectWindowWorker gathers events
 | **ComputeStatsWorker** | `ew_compute_stats` | Computes aggregate statistics (count, min, max, sum, avg) over the value field of windowed events. Returns fixed dete... |
 | **EmitResultWorker** | `ew_emit_result` | Emits the final windowed result, confirming the window was successfully processed and published. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

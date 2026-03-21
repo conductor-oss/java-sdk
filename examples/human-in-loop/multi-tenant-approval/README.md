@@ -1,6 +1,6 @@
 # Multi-Tenant Approval in Java Using Conductor :  Tenant Config Loading, Amount-Based SWITCH to Manager or Manager+Executive WAIT Chains, and Tenant-Scoped Finalization
 
-A Java Conductor workflow example for multi-tenant SaaS approval routing .  loading each tenant's approval configuration (auto-approve limits, required approval levels), using a SWITCH to route requests to the correct WAIT chain based on the tenant's rules (manager-only for single-level tenants, manager-then-executive for enterprise tenants, auto-approve for tenants below threshold), and finalizing with tenant-scoped post-approval logic. Each tenant (startup-co, enterprise-corp, small-biz) has its own auto-approve limit and approval chain depth, so the same workflow handles all tenants without per-tenant workflow definitions. Uses [Conductor](https://github.
+A Java Conductor workflow example for multi-tenant SaaS approval routing. loading each tenant's approval configuration (auto-approve limits, required approval levels), using a SWITCH to route requests to the correct WAIT chain based on the tenant's rules (manager-only for single-level tenants, manager-then-executive for enterprise tenants, auto-approve for tenants below threshold), and finalizing with tenant-scoped post-approval logic. Each tenant (startup-co, enterprise-corp, small-biz) has its own auto-approve limit and approval chain depth, so the same workflow handles all tenants without per-tenant workflow definitions. Uses [Conductor](https://github.
 
 ## Different Tenants Have Different Approval Rules and Thresholds
 
@@ -10,7 +10,7 @@ In a multi-tenant SaaS application, each tenant has its own approval configurati
 
 **You just write the tenant-config-loading and tenant-scoped finalization workers. Conductor handles the per-tenant routing to the correct approval chain.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,12 +18,12 @@ MtaLoadConfigWorker loads each tenant's approval thresholds and required levels,
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **MtaLoadConfigWorker** | `mta_load_config` | Loads the tenant's approval configuration .  looks up the auto-approve limit and approval levels for the tenantId, compares against the request amount, and outputs the approvalLevel (none, manager, or executive) that determines the SWITCH path |
-| *SWITCH* | `approval_switch` | Routes based on the tenant's approvalLevel: "manager" goes to a single manager WAIT, "executive" goes to sequential manager + executive WAITs, "none" skips directly to finalization | Built-in Conductor SWITCH .  no worker needed |
-| *WAIT task(s)* | Manager / Executive | Pauses for each required approval level .  manager WAIT pauses until a manager approves via `POST /tasks/{taskId}`, executive WAIT (if required) pauses for a second executive approval | Built-in Conductor WAIT ,  no worker needed |
-| **MtaFinalizeWorker** | `mta_finalize` | Finalizes the approved request with tenant context .  records which approval chain was used, the tenant and amount, and triggers tenant-specific post-approval logic |
+| **MtaLoadConfigWorker** | `mta_load_config` | Loads the tenant's approval configuration. looks up the auto-approve limit and approval levels for the tenantId, compares against the request amount, and outputs the approvalLevel (none, manager, or executive) that determines the SWITCH path |
+| *SWITCH* | `approval_switch` | Routes based on the tenant's approvalLevel: "manager" goes to a single manager WAIT, "executive" goes to sequential manager + executive WAITs, "none" skips directly to finalization | Built-in Conductor SWITCH. no worker needed |
+| *WAIT task(s)* | Manager / Executive | Pauses for each required approval level. manager WAIT pauses until a manager approves via `POST /tasks/{taskId}`, executive WAIT (if required) pauses for a second executive approval | Built-in Conductor WAIT,  no worker needed |
+| **MtaFinalizeWorker** | `mta_finalize` | Finalizes the approved request with tenant context. records which approval chain was used, the tenant and amount, and triggers tenant-specific post-approval logic |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -129,7 +129,7 @@ conductor workflow search -w multi_tenant_approval_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one part of the tenant flow .  connect your SaaS config store for tenant rules and your per-tenant approval backend for finalization, and the multi-tenant routing workflow stays the same.
+Each worker handles one part of the tenant flow. connect your SaaS config store for tenant rules and your per-tenant approval backend for finalization, and the multi-tenant routing workflow stays the same.
 
 - **MtaFinalizeWorker** (`mta_finalize`): execute tenant-specific post-approval logic. Update the tenant's ledger, send branded notifications, or trigger tenant-specific downstream workflows
 - **MtaLoadConfigWorker** (`mta_load_config`): load tenant configuration from a database, feature flag service like LaunchDarkly, or a tenant management API

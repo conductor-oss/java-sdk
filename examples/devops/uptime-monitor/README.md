@@ -31,7 +31,7 @@ Eight workers cover the monitoring lifecycle, from parallel endpoint checks thro
 | **RecordHealthy** | Logs healthy status when all endpoints pass |
 | **StoreMetrics** | Writes monitoring data points |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 Example, the entire CheckEndpoint worker is just a class that makes HTTP/DNS/TLS calls and returns the result:
 

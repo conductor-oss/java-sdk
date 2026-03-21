@@ -25,7 +25,7 @@ Four workers run the cost optimization cycle. Collecting billing data, analyzing
 | **CollectBillingWorker** | `co_collect_billing` | Pulls billing and spend data for the specified account and period from the cloud cost API |
 | **RecommendWorker** | `co_recommend` | Generates prioritized savings recommendations with estimated dollar impact per optimization |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w cost_optimization_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one optimization stage .  plug in AWS Cost Explorer, CloudWatch utilization metrics, or Trusted Advisor for real billing analysis and rightsizing, and the cost workflow runs unchanged.
+Each worker handles one optimization stage. plug in AWS Cost Explorer, CloudWatch utilization metrics, or Trusted Advisor for real billing analysis and rightsizing, and the cost workflow runs unchanged.
 
 - **CollectBillingWorker** → pull real billing data: AWS Cost Explorer API, GCP Billing Export to BigQuery, Azure Cost Management API, or multi-cloud aggregators like CloudHealth or Spot.io
 - **AnalyzeUsageWorker** → correlate real utilization: CloudWatch metrics for EC2/RDS, GCP Monitoring for Compute Engine, or Kubernetes metrics-server for pod-level CPU/memory analysis
@@ -175,6 +175,6 @@ cost-optimization-cost-optimization/
 │       ├── CollectBillingWorker.java
 │       └── RecommendWorker.java
 └── src/test/java/costoptimization/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

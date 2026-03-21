@@ -25,7 +25,7 @@ Four workers run the CI/CD pipeline. Building from a commit, running tests in pa
 | **DeployStaging** | `cicd_deploy_staging` | Deploys the build to staging environment. |
 | **SecurityScan** | `cicd_security_scan` | Runs security scan for the build. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### The Workflow
 

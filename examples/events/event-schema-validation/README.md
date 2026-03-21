@@ -1,6 +1,6 @@
 # Event Schema Validation in Java Using Conductor
 
-Event Schema Validation .  validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. Uses [Conductor](https://github.
+Event Schema Validation. validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd embed validation logic in every consumer, duplicate
 
 **You just write the schema-validation, valid-event processing, and dead-letter workers. Conductor handles valid/invalid SWITCH routing, guaranteed DLQ delivery for bad events, and schema compliance tracking for every event.**
 
-Each validation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of validating the event against the named schema, routing via a SWITCH task to processing (valid) or dead-letter (invalid), retrying if the schema registry is unavailable, and tracking every event's validation result. You get all of that, without writing a single line of orchestration code.
+Each validation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of validating the event against the named schema, routing via a SWITCH task to processing (valid) or dead-letter (invalid), retrying if the schema registry is unavailable, and tracking every event's validation result. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers enforce schema compliance: ValidateSchemaWorker checks the event a
 | **ProcessValidWorker** | `sv_process_valid` | Processes a valid event that has passed schema validation. |
 | **ValidateSchemaWorker** | `sv_validate_schema` | Validate Schema. Computes and returns errors, schema used |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

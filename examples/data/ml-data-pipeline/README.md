@@ -26,7 +26,7 @@ Five workers implement the end-to-end ML training pipeline: collecting labeled d
 | **SplitDataWorker** | `ml_split_data` | Split Data. Computes and returns train data, test data, train size, test size |
 | **TrainModelWorker** | `ml_train_model` | Train Model. Computes and returns model, training loss |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

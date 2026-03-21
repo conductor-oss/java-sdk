@@ -12,7 +12,7 @@ Without orchestration, multi-stage rollouts require chaining CI/CD jobs with man
 
 **You just write the canary deploy, monitor, traffic-increase, and rollout workers. Conductor handles multi-stage progression, durable pause between stages, and crash-safe recovery mid-rollout.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ This progressive release uses four workers: DeployCanaryWorker starts the canary
 | **IncreaseTrafficWorker** | `cy_increase_traffic` | Increases the canary traffic percentage to the next stage (e.g., 50%) and scales up canary instances. |
 | **MonitorCanaryWorker** | `cy_monitor_canary` | Monitors error rate, p99 latency, and anomalies during a configured monitoring window. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

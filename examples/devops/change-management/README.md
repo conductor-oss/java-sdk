@@ -6,13 +6,13 @@ Automates ITIL-style change management using [Conductor](https://github.com/cond
 
 An engineer wants to modify the production database connection pool settings. Without a process, they SSH in and change it. With change management, the request is submitted and tracked, risk is assessed (is this a low-risk config change or a high-risk schema migration?), CAB approval is obtained for anything above low risk, and only then is the change implemented. If the approval is denied or the risk assessment flags concerns, the workflow stops cleanly.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the risk assessment and approval logic. Conductor handles the submit-assess-approve-implement pipeline and the full change audit trail.**
 
-`SubmitChangeWorker` creates the change request with description, justification, affected systems, implementation plan, and rollback procedure. `AssessRiskWorker` evaluates the change's risk level based on affected systems, blast radius, change complexity, and historical failure rates for similar changes. `ApproveChangeWorker` routes the change through the approval process .  auto-approving low-risk changes or queuing for CAB review. `ImplementChangeWorker` executes the approved change with monitoring and records the outcome. Conductor tracks the full change lifecycle for compliance auditing.
+`SubmitChangeWorker` creates the change request with description, justification, affected systems, implementation plan, and rollback procedure. `AssessRiskWorker` evaluates the change's risk level based on affected systems, blast radius, change complexity, and historical failure rates for similar changes. `ApproveChangeWorker` routes the change through the approval process. auto-approving low-risk changes or queuing for CAB review. `ImplementChangeWorker` executes the approved change with monitoring and records the outcome. Conductor tracks the full change lifecycle for compliance auditing.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers implement the change process. Submitting the request, assessing ris
 | **ImplementChange** | `cm_implement` | Implements the approved change. |
 | **SubmitChange** | `cm_submit` | Submits a change request and generates a tracking ID. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -123,7 +123,7 @@ conductor workflow search -w change_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one ITIL change stage .  replace the simulated calls with ServiceNow, Jira Service Management, or Ansible for real ticketing, approval gates, and change execution, and the management workflow runs unchanged.
+Each worker handles one ITIL change stage. replace the simulated calls with ServiceNow, Jira Service Management, or Ansible for real ticketing, approval gates, and change execution, and the management workflow runs unchanged.
 
 - **SubmitChange** (`cm_submit_change`): create change records in ServiceNow, Jira Service Management, or a custom change tracking system with description, risk category, and affected services
 - **AssessRisk** (`cm_assess_risk`): use historical change data from ServiceNow or Jira to score risk based on similar past changes and their success/failure rates

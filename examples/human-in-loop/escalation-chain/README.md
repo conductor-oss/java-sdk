@@ -24,7 +24,7 @@ EscSubmitWorker prepares the request for the analyst-manager-VP chain, and EscFi
 | *WAIT task* | `esc_approval` | Pauses the workflow until someone in the escalation chain (analyst, manager, or VP) makes a final decision, completing it via `POST /tasks/{taskId}` with the decision and the level at which it was made | Built-in Conductor WAIT.; no worker needed |
 | **EscFinalizeWorker** | `esc_finalize` | Finalizes the escalation: records the decision, who made it, and at which level (analyst/manager/VP), then triggers downstream actions |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### The Workflow
 

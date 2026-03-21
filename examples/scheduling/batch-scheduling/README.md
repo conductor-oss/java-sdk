@@ -24,7 +24,7 @@ Three workers manage each batch run: PrioritizeJobsWorker orders the queue by ur
 | **ExecuteBatchWorker** | `bs_execute_batch` | Executes the batch with allocated resources. |
 | **PrioritizeJobsWorker** | `bs_prioritize_jobs` | Prioritizes jobs in a batch based on priority weighting. |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 

@@ -12,7 +12,7 @@ Without orchestration, distributed transactions are implemented with ad-hoc comp
 
 **You just write the order-prepare, payment-prepare, inventory-prepare, and commit workers. Conductor handles parallel prepare execution, atomic commit-or-rollback routing, and durable transaction state.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers implement a prepare-commit saga: PrepareOrderWorker, PreparePayment
 | **PreparePaymentWorker** | `dtx_prepare_payment` | Authorizes the payment method and holds the charge, returning a transaction ID. |
 | **RollbackAllWorker** | `dtx_rollback_all` | Rolls back all prepared transactions if any prepare step failed. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

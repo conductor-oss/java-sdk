@@ -1,18 +1,18 @@
 # Workflow Inheritance in Java Using Conductor :  Base Workflow with Init, Validate, Process, Finalize
 
-A Java Conductor workflow example for workflow inheritance .  defining a base workflow pattern (init, validate, process, finalize) that can be specialized for different processing tiers. The standard variant processes requests with standard logic, while other variants (premium, enterprise) can override the processing step while keeping the same init/validate/finalize structure. Uses [Conductor](https://github.
+A Java Conductor workflow example for workflow inheritance. defining a base workflow pattern (init, validate, process, finalize) that can be specialized for different processing tiers. The standard variant processes requests with standard logic, while other variants (premium, enterprise) can override the processing step while keeping the same init/validate/finalize structure. Uses [Conductor](https://github.
 
 ## Different Customer Tiers Need Different Processing, Same Structure
 
 Every customer request follows the same lifecycle: initialize the processing context, validate the input, process the request, and finalize (cleanup, notifications). But premium customers get faster processing with dedicated resources, enterprise customers get custom transformation logic, and standard customers get the default path. Without inheritance, you'd duplicate the entire workflow for each tier, copy-pasting the init/validate/finalize steps and only changing the processing step.
 
-Workflow inheritance lets you define the common structure once (init-validate-process-finalize) and override just the processing step per tier. This is the template method pattern applied to workflows .  same skeleton, different specializations.
+Workflow inheritance lets you define the common structure once (init-validate-process-finalize) and override just the processing step per tier. This is the template method pattern applied to workflows. same skeleton, different specializations.
 
 ## The Solution
 
 **You write the tier-specific processing step. Conductor handles the shared lifecycle, retries, and variant tracking.**
 
-`WiInitWorker` initializes the processing context for the request. `WiValidateWorker` validates the input against business rules. `WiProcessStandardWorker` (in this variant) processes the request with standard logic .  other workflow variants can swap this step for `WiProcessPremiumWorker` or a custom processor. `WiFinalizeWorker` handles cleanup, notifications, and status updates. Conductor runs the same init-validate-finalize structure for every tier, and each execution records which processing variant was used.
+`WiInitWorker` initializes the processing context for the request. `WiValidateWorker` validates the input against business rules. `WiProcessStandardWorker` (in this variant) processes the request with standard logic. other workflow variants can swap this step for `WiProcessPremiumWorker` or a custom processor. `WiFinalizeWorker` handles cleanup, notifications, and status updates. Conductor runs the same init-validate-finalize structure for every tier, and each execution records which processing variant was used.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers implement the template method pattern: shared init, validation, and
 | **WiProcessStandardWorker** | `wi_process_standard` | Processes the request using the standard path with a 24-hour SLA |
 | **WiValidateWorker** | `wi_validate` | Validates the input data before routing to the variant-specific processor |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -133,7 +133,7 @@ conductor workflow search -w workflow_inheritance_standard_demo -s COMPLETED -c 
 
 ## How to Extend
 
-Each worker implements one lifecycle phase .  replace the simulated tier-specific processing with real premium or enterprise service integrations and the init-validate-process-finalize skeleton runs unchanged.
+Each worker implements one lifecycle phase. replace the simulated tier-specific processing with real premium or enterprise service integrations and the init-validate-process-finalize skeleton runs unchanged.
 
 - **WiProcessStandardWorker** (`wi_process_standard`): implement real tier-specific processing: standard database queries tier, dedicated Redis cache lookups for premium, or custom ML inference for enterprise
 - **WiValidateWorker** (`wi_validate`): run real input validation: JSON Schema validation, business rule engines (Drools), or tier-specific validation rules from a config database

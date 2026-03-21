@@ -25,7 +25,7 @@ Four workers manage the issue lifecycle: CreateIssueWorker opens tickets, Transi
 | **TrackStatusWorker** | `jra_track_status` | Tracks the issue status: queries the current status, assignee, and last update timestamp for the issue |
 | **NotifyWorker** | `jra_notify` | Notifies the assignee. sends a notification about the status change with the issue key and new status |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

@@ -12,7 +12,7 @@ Without orchestration, version routing is embedded in API gateway config or appl
 
 **You just write the version-resolver, versioned API handlers, and usage-logging workers. Conductor handles version-based routing via SWITCH, per-version retries, and usage analytics for deprecation decisions.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage API versioning: ResolveVersionWorker maps aliases like 'late
 | **LogVersionUsageWorker** | `sv_log_version_usage` | Logs which API version was requested and resolved, for deprecation tracking. |
 | **ResolveVersionWorker** | `sv_resolve_version` | Resolves the requested API version to a concrete version (e.g., 'latest' -> 'v2') and flags deprecated versions. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

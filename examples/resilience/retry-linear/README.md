@@ -1,6 +1,6 @@
 # Implementing Linear Backoff Retry in Java with Conductor :  Linearly Increasing Delays Between Retries
 
-A Java Conductor workflow example demonstrating linear backoff retry .  delays increase linearly with each attempt (delay * attempt number), providing a middle ground between fixed retries and aggressive exponential backoff.
+A Java Conductor workflow example demonstrating linear backoff retry. delays increase linearly with each attempt (delay * attempt number), providing a middle ground between fixed retries and aggressive exponential backoff.
 
 ## The Problem
 
@@ -20,7 +20,7 @@ RetryLinearWorker makes the service call and returns success or failure, while C
 |---|---|---|
 | **RetryLinearWorker** | `retry_linear_task` | Worker that simulates a service that is unavailable for the first 3 attempts and succeeds on the 4th attempt, demonst... |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,9 +118,9 @@ conductor workflow search -w retry_linear_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls a real service .  connect to your API or database, configure LINEAR_BACKOFF in the task definition, and the linearly increasing retry delays stay the same.
+Each worker calls a real service. connect to your API or database, configure LINEAR_BACKOFF in the task definition, and the linearly increasing retry delays stay the same.
 
-- **RetryLinearWorker** (`retry_linear_task`): replace with your API call where linear backoff is the right strategy .  services with predictable recovery curves, batch job queues, rate-limited endpoints with known cooldown periods
+- **RetryLinearWorker** (`retry_linear_task`): replace with your API call where linear backoff is the right strategy. services with predictable recovery curves, batch job queues, rate-limited endpoints with known cooldown periods
 
 Replace with your real API call, and switching between linear, fixed, or exponential backoff is a single config change in the task definition.
 

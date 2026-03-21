@@ -1,18 +1,18 @@
 # Implementing Threat Intelligence in Java with Conductor :  Feed Ingestion, Context Enrichment, IOC Correlation, and Intel Distribution
 
-A Java Conductor workflow example for threat intelligence .  ingesting threat feeds, enriching indicators with context, correlating IOCs against your environment, and distributing actionable intelligence to security tools.
+A Java Conductor workflow example for threat intelligence. ingesting threat feeds, enriching indicators with context, correlating IOCs against your environment, and distributing actionable intelligence to security tools.
 
 ## The Problem
 
-You subscribe to threat intelligence feeds (VirusTotal, AlienVault OTX, government CERTs) that provide indicators of compromise (IOCs) .  malicious IPs, domains, file hashes. Each IOC must be ingested, enriched with context (who reported it, what malware family, confidence level), correlated against your environment (have we seen this IP in our logs?), and distributed to security tools (firewall blocklists, SIEM rules, EDR policies).
+You subscribe to threat intelligence feeds (VirusTotal, AlienVault OTX, government CERTs) that provide indicators of compromise (IOCs). malicious IPs, domains, file hashes. Each IOC must be ingested, enriched with context (who reported it, what malware family, confidence level), correlated against your environment (have we seen this IP in our logs?), and distributed to security tools (firewall blocklists, SIEM rules, EDR policies).
 
-Without orchestration, threat intelligence is consumed manually .  a security analyst reads feed emails, searches indicators in the SIEM, and manually adds block rules. By the time a malicious IP is blocked, it's been active in the environment for hours.
+Without orchestration, threat intelligence is consumed manually. a security analyst reads feed emails, searches indicators in the SIEM, and manually adds block rules. By the time a malicious IP is blocked, it's been active in the environment for hours.
 
 ## The Solution
 
 **You just write the feed parsers and IOC correlation queries. Conductor handles feed polling, retries when threat APIs are rate-limited, and tracking of every IOC ingested, correlated, and distributed.**
 
-Each intelligence step is an independent worker .  feed ingestion, enrichment, correlation, and distribution. Conductor runs them in sequence: ingest IOCs from feeds, enrich with context, correlate against your logs, then distribute to security tools. Every intelligence cycle is tracked with IOC counts, correlation hits, and distribution status. You get all of that, without writing a single line of orchestration code.
+Each intelligence step is an independent worker. feed ingestion, enrichment, correlation, and distribution. Conductor runs them in sequence: ingest IOCs from feeds, enrich with context, correlate against your logs, then distribute to security tools. Every intelligence cycle is tracked with IOC counts, correlation hits, and distribution status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers process threat data: IngestFeedsWorker pulls IOCs from external fee
 | **EnrichContextWorker** | `ti_enrich_context` | Adds MITRE ATT&CK mapping and threat actor attribution to correlated indicators |
 | **IngestFeedsWorker** | `ti_ingest_feeds` | Ingests indicators of compromise from multiple threat intelligence feeds |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w threat_intelligence_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one intel stage .  connect IngestFeedsWorker to AlienVault OTX or MISP, DistributeIntelWorker to your firewall and SIEM APIs, and the ingest-correlate-distribute workflow stays the same.
+Each worker handles one intel stage. connect IngestFeedsWorker to AlienVault OTX or MISP, DistributeIntelWorker to your firewall and SIEM APIs, and the ingest-correlate-distribute workflow stays the same.
 
 - **CorrelateIocsWorker** (`ti_correlate_iocs`): search your SIEM (Splunk, Elastic) for IOC matches in firewall logs, DNS queries, and endpoint telemetry
 - **DistributeIntelWorker** (`ti_distribute_intel`): push blocklists to firewalls, create SIEM correlation rules, update EDR detection policies, and notify SOC analysts
@@ -172,6 +172,6 @@ threat-intelligence-threat-intelligence/
 │       ├── EnrichContextWorker.java
 │       └── IngestFeedsWorker.java
 └── src/test/java/threatintelligence/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

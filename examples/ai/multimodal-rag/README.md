@@ -1,10 +1,10 @@
 # Multimodal RAG in Java Using Conductor :  Text, Image, and Audio Processing in Parallel
 
-A Java Conductor workflow that handles questions with mixed-media attachments .  detecting which modalities are present (text, images, audio), processing each modality in parallel (text embedding, image feature extraction, audio transcription), searching across a multimodal index, and generating an answer that incorporates all modalities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate modality detection, parallel processing, search, and generation as independent workers ,  you write the modality-specific logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that handles questions with mixed-media attachments. detecting which modalities are present (text, images, audio), processing each modality in parallel (text embedding, image feature extraction, audio transcription), searching across a multimodal index, and generating an answer that incorporates all modalities. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate modality detection, parallel processing, search, and generation as independent workers,  you write the modality-specific logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## When Questions Include More Than Text
 
-Users don't just ask text questions. A support ticket might include a screenshot of an error dialog, a voice memo describing the problem, and a text description. A product review might have photos alongside written feedback. Answering these questions requires processing each modality .  extracting text embeddings, image features (via CLIP or a vision model), and audio features (via Whisper transcription) ,  then searching a multimodal index that spans all content types.
+Users don't just ask text questions. A support ticket might include a screenshot of an error dialog, a voice memo describing the problem, and a text description. A product review might have photos alongside written feedback. Answering these questions requires processing each modality. extracting text embeddings, image features (via CLIP or a vision model), and audio features (via Whisper transcription),  then searching a multimodal index that spans all content types.
 
 Each modality processor is independent: text embedding can run simultaneously with image feature extraction and audio transcription. But all three must complete before the multimodal search can run. If the image processor fails (corrupt image, model timeout), you need to retry it without re-processing the text and audio that already succeeded.
 
@@ -14,11 +14,11 @@ Without orchestration, parallel multimodal processing means managing thread pool
 
 **You write the modality-specific processors and cross-modal search logic. Conductor handles the parallel processing, retries, and observability.**
 
-Each modality processor is an independent worker .  text embedding, image feature extraction, audio processing. Conductor's `FORK_JOIN` runs all three in parallel and waits for all to complete. A multimodal search worker combines all feature vectors for a cross-modal search, and a generation worker produces an answer citing text, image, and audio sources. If the audio processor times out, Conductor retries it independently.
+Each modality processor is an independent worker. text embedding, image feature extraction, audio processing. Conductor's `FORK_JOIN` runs all three in parallel and waits for all to complete. A multimodal search worker combines all feature vectors for a cross-modal search, and a generation worker produces an answer citing text, image, and audio sources. If the audio processor times out, Conductor retries it independently.
 
 ### What You Write: Workers
 
-Six workers handle multi-modal content .  detecting input modality, processing text, image, and audio in parallel via FORK_JOIN, searching across all modalities, and generating an answer from the unified multi-modal context.
+Six workers handle multi-modal content. detecting input modality, processing text, image, and audio in parallel via FORK_JOIN, searching across all modalities, and generating an answer from the unified multi-modal context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -29,7 +29,7 @@ Six workers handle multi-modal content .  detecting input modality, processing t
 | **ProcessImageWorker** | `mm_process_image` | Worker that processes image references by extracting visual features. Returns a list of features for each image, incl... |
 | **ProcessTextWorker** | `mm_process_text` | Worker that processes text content by generating an embedding vector and extracting keywords. Returns an 8-dimensiona... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -141,7 +141,7 @@ conductor workflow search -w multimodal_rag_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker processes one modality .  swap in CLIP for image features, Whisper for audio transcription, OpenAI Embeddings for text, and a multimodal LLM like GPT-4V for generation, and the parallel processing pipeline runs unchanged.
+Each worker processes one modality. swap in CLIP for image features, Whisper for audio transcription, OpenAI Embeddings for text, and a multimodal LLM like GPT-4V for generation, and the parallel processing pipeline runs unchanged.
 
 - **DetectModalityWorker** (`mm_detect_modality`): add MIME type detection and content extraction for PDFs, videos, or other media types
 - **ProcessTextWorker** (`mm_process_text`): swap in a real embedding model (OpenAI, Cohere) for text vectorization

@@ -1,6 +1,6 @@
 # Implementing Security Orchestration (SOAR) in Java with Conductor :  Alert Ingestion, Enrichment, Decision, and Playbook Execution
 
-A Java Conductor workflow example for security orchestration .  ingesting security alerts, enriching with threat intelligence and asset context, making a triage decision, and executing automated response playbooks.
+A Java Conductor workflow example for security orchestration. ingesting security alerts, enriching with threat intelligence and asset context, making a triage decision, and executing automated response playbooks.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, SOAR is a collection of scripts that run independently. E
 
 **You just write the alert enrichment and response playbooks. Conductor handles the alert-to-playbook pipeline, retries when enrichment APIs are unavailable, and tracks mean time to respond for every incident from ingestion to resolution.**
 
-Each SOAR step is an independent worker .  alert ingestion, enrichment, triage decision, and playbook execution. Conductor runs them in sequence: ingest the alert, enrich with context, decide on action, then execute the playbook. Every alert is tracked from ingestion to resolution ,  you can measure mean time to respond and audit every automated action. You get all of that, without writing a single line of orchestration code.
+Each SOAR step is an independent worker. alert ingestion, enrichment, triage decision, and playbook execution. Conductor runs them in sequence: ingest the alert, enrich with context, decide on action, then execute the playbook. Every alert is tracked from ingestion to resolution,  you can measure mean time to respond and audit every automated action. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,10 +22,10 @@ The SOAR pipeline chains IngestAlertWorker to receive alerts from SIEM/EDR sourc
 |---|---|---|
 | **DecideActionWorker** | `soar_decide_action` | Determines the response actions based on enriched alert data (e.g., isolate host, block C2 domain) |
 | **EnrichWorker** | `soar_enrich` | Adds threat intelligence, asset context, and user history to the raw alert |
-| **ExecutePlaybookWorker** | `soar_execute_playbook` | Executes the decided response playbook .  host isolation, domain blocking, forensic collection |
+| **ExecutePlaybookWorker** | `soar_execute_playbook` | Executes the decided response playbook. host isolation, domain blocking, forensic collection |
 | **IngestAlertWorker** | `soar_ingest_alert` | Ingests a security alert from an external source (e.g., CrowdStrike, Splunk) |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,11 +132,11 @@ conductor workflow search -w security_orchestration_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one SOAR stage .  connect IngestAlertWorker to CrowdStrike or Splunk, ExecutePlaybookWorker to your firewall and EDR APIs for automated response, and the alert-enrich-decide-respond workflow stays the same.
+Each worker handles one SOAR stage. connect IngestAlertWorker to CrowdStrike or Splunk, ExecutePlaybookWorker to your firewall and EDR APIs for automated response, and the alert-enrich-decide-respond workflow stays the same.
 
 - **DecideActionWorker** (`soar_decide_action`): apply triage rules based on severity, confidence, asset criticality, and historical false positive rates
 - **EnrichWorker** (`soar_enrich`): enrich with VirusTotal reputation, asset ownership from your CMDB, user context from your IdP, and geo-IP data
-- **ExecutePlaybookWorker** (`soar_execute_playbook`): run automated response .  block IPs via firewall API, isolate hosts via EDR, reset passwords, create tickets
+- **ExecutePlaybookWorker** (`soar_execute_playbook`): run automated response. block IPs via firewall API, isolate hosts via EDR, reset passwords, create tickets
 
 Connect to your CrowdStrike and Splunk APIs for real alerts, and the alert-to-response orchestration stays intact.
 
@@ -172,6 +172,6 @@ security-orchestration-security-orchestration/
 │       ├── ExecutePlaybookWorker.java
 │       └── IngestAlertWorker.java
 └── src/test/java/securityorchestration/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

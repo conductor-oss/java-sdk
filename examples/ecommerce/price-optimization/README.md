@@ -4,15 +4,15 @@ A Java Conductor workflow example demonstrating Price Optimization. Uses [Conduc
 
 ## Static Prices Leave Money on the Table
 
-Your competitor just dropped their price by 15%. Your demand hasn't changed yet, but it will. A product priced at $49.99 might sell 100 units/week, but at $44.99 it might sell 150 units .  increasing total revenue despite the lower price. Or at $54.99 it might sell 80 units with higher margins. The optimal price depends on competitor pricing, demand elasticity, inventory levels, and margin targets.
+Your competitor just dropped their price by 15%. Your demand hasn't changed yet, but it will. A product priced at $49.99 might sell 100 units/week, but at $44.99 it might sell 150 units. increasing total revenue despite the lower price. Or at $54.99 it might sell 80 units with higher margins. The optimal price depends on competitor pricing, demand elasticity, inventory levels, and margin targets.
 
-Dynamic pricing requires current market data (what are competitors charging right now?), demand analysis (how does price affect sales volume for this product?), optimization (what price maximizes the chosen objective .  revenue, profit, or market share?), and execution (updating the price in the catalog without disrupting active carts). Each step uses different data sources and algorithms, and the pipeline should run regularly to keep prices competitive.
+Dynamic pricing requires current market data (what are competitors charging right now?), demand analysis (how does price affect sales volume for this product?), optimization (what price maximizes the chosen objective. revenue, profit, or market share?), and execution (updating the price in the catalog without disrupting active carts). Each step uses different data sources and algorithms, and the pipeline should run regularly to keep prices competitive.
 
 ## The Solution
 
 **You just write the market data collection, demand analysis, price optimization, and catalog update logic. Conductor handles data pipeline retries, model execution ordering, and pricing decision audit trails.**
 
-`CollectMarketDataWorker` gathers competitor prices, market trends, and current inventory levels for the product. `AnalyzeDemandWorker` computes demand elasticity from historical sales data .  how sensitive is demand to price changes for this product category? `OptimizePriceWorker` calculates the optimal price point using the market data, demand curve, margin constraints, and the chosen optimization objective (maximize revenue, profit, or unit volume). `UpdatePriceWorker` applies the new price to the product catalog and records the price change with justification. Conductor records every pricing decision with its inputs for price audit trails.
+`CollectMarketDataWorker` gathers competitor prices, market trends, and current inventory levels for the product. `AnalyzeDemandWorker` computes demand elasticity from historical sales data. how sensitive is demand to price changes for this product category? `OptimizePriceWorker` calculates the optimal price point using the market data, demand curve, margin constraints, and the chosen optimization objective (maximize revenue, profit, or unit volume). `UpdatePriceWorker` applies the new price to the product catalog and records the price change with justification. Conductor records every pricing decision with its inputs for price audit trails.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Data ingestion, competitor analysis, demand forecasting, and pricing workers eac
 | **OptimizePriceWorker** | `prz_optimize_price` | Optimize Price. Computes and returns new price, adjustment percent, confidence |
 | **UpdatePriceWorker** | `prz_update_price` | Updates the product price and computes the price change delta. |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w price_optimization_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real pricing tools .  competitor scraping APIs for market data, your demand forecasting model for elasticity analysis, your catalog API for price updates, and the workflow runs identically in production.
+Swap each worker for your real pricing tools. competitor scraping APIs for market data, your demand forecasting model for elasticity analysis, your catalog API for price updates, and the workflow runs identically in production.
 
 - **CollectMarketDataWorker** (`prz_collect_market_data`): scrape competitor prices via Bright Data or Oxylabs, pull market trends from Google Trends API, and check inventory levels from your WMS
 - **AnalyzeDemandWorker** (`prz_analyze_demand`): implement price elasticity models using historical sales data from your data warehouse, or use Prophet/ARIMA for demand forecasting

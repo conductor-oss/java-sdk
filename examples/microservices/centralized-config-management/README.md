@@ -12,7 +12,7 @@ Without orchestration, config changes are pushed ad-hoc via scripts or manual ku
 
 **You just write the config validation, rollout planning, and config-apply workers. Conductor handles validation gating, staged execution, and a durable record of every config change across the fleet.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the config lifecycle: CfgValidateWorker checks the key-value
 | **CfgValidateWorker** | `cfg_validate` | Validates the config key/value pair against schema rules and type constraints. |
 | **CfgVerifyWorker** | `cfg_verify` | Verifies all services are running with the updated config and are healthy. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

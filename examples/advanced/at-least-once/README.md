@@ -1,6 +1,6 @@
 # At-Least-Once Message Delivery in Java Using Conductor :  Receive, Process, Acknowledge, Verify
 
-A Java Conductor workflow example for at-least-once message delivery .  receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.
+A Java Conductor workflow example for at-least-once message delivery. receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.
 
 ## Guaranteeing Every Message Gets Processed
 
@@ -12,7 +12,7 @@ Manually coordinating receive, process, acknowledge, and verify steps means trac
 
 **You write the receive and acknowledge logic. Conductor handles retries, delivery verification, and execution history.**
 
-Each stage of the delivery pipeline is a separate worker. `AloReceiveWorker` ingests the message and produces a receipt handle with a visibility timeout. `AloProcessWorker` handles the business logic for the payload. `AloAcknowledgeWorker` deletes the message from the queue using the receipt handle, confirming successful processing. `AloVerifyDeliveryWorker` checks that the acknowledgment was recorded, closing the loop. If any step fails .  the process call times out, the acknowledge call gets a transient error. Conductor retries it automatically, and the full execution history shows exactly where things stand.
+Each stage of the delivery pipeline is a separate worker. `AloReceiveWorker` ingests the message and produces a receipt handle with a visibility timeout. `AloProcessWorker` handles the business logic for the payload. `AloAcknowledgeWorker` deletes the message from the queue using the receipt handle, confirming successful processing. `AloVerifyDeliveryWorker` checks that the acknowledgment was recorded, closing the loop. If any step fails. the process call times out, the acknowledge call gets a transient error. Conductor retries it automatically, and the full execution history shows exactly where things stand.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers own the delivery lifecycle: receive, process, acknowledge, and veri
 | **AloReceiveWorker** | `alo_receive` | Ingests a message from the queue, producing a receipt handle, delivery count, and visibility timeout |
 | **AloVerifyDeliveryWorker** | `alo_verify_delivery` | Checks that the acknowledgment was recorded and confirms the at-least-once delivery guarantee |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w alo_at_least_once -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one step of the receive-process-acknowledge lifecycle .  swap the simulated SQS calls for real queue APIs and the delivery guarantee logic runs unchanged.
+Each worker owns one step of the receive-process-acknowledge lifecycle. swap the simulated SQS calls for real queue APIs and the delivery guarantee logic runs unchanged.
 
 - **AloReceiveWorker** (`alo_receive`): pull messages from a real SQS queue (`sqs.receiveMessage()`) or Kafka consumer, returning the actual receipt handle and delivery count
 - **AloAcknowledgeWorker** (`alo_acknowledge`): call `sqs.deleteMessage()` with the receipt handle, or commit the Kafka offset, to remove the message from the queue

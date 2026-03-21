@@ -1,10 +1,10 @@
 # Pipeline Pattern in Java Using Conductor :  Sequential Data Processing Through Stages
 
-A Java Conductor workflow example for the pipeline pattern .  passing raw data through a series of sequential processing stages where each stage transforms the data and passes its output to the next. Uses [Conductor](https://github.
+A Java Conductor workflow example for the pipeline pattern. passing raw data through a series of sequential processing stages where each stage transforms the data and passes its output to the next. Uses [Conductor](https://github.
 
 ## Data Transformation Requires a Clean Stage-by-Stage Flow
 
-Raw sensor data arrives as unstructured readings. Stage 1 parses the binary payload into structured fields. Stage 2 converts units (Fahrenheit to Celsius, PSI to bar). Stage 3 applies calibration offsets. Stage 4 writes the calibrated data to the time-series database. Each stage must receive the exact output of the previous stage .  feeding uncalibrated data to the database stage produces incorrect readings.
+Raw sensor data arrives as unstructured readings. Stage 1 parses the binary payload into structured fields. Stage 2 converts units (Fahrenheit to Celsius, PSI to bar). Stage 3 applies calibration offsets. Stage 4 writes the calibrated data to the time-series database. Each stage must receive the exact output of the previous stage. feeding uncalibrated data to the database stage produces incorrect readings.
 
 Building a pipeline as a monolithic function tangles parsing, conversion, calibration, and storage into a single class. When you need to add a fifth stage (anomaly detection), you're editing a 500-line method instead of adding a standalone worker.
 
@@ -12,7 +12,7 @@ Building a pipeline as a monolithic function tangles parsing, conversion, calibr
 
 **You write each transformation stage. Conductor handles stage ordering, retries, and data flow between stages.**
 
-`PipStage1Worker` handles initial parsing or ingestion. `PipStage2Worker` applies the first transformation. `PipStage3Worker` performs the next processing step, using the previous stage's output. `PipStage4Worker` completes the pipeline and produces the final result. Each stage is a standalone worker that receives input, transforms it, and passes the result to the next stage. Conductor guarantees strict ordering, retries any failed stage, and records every stage's input and output .  so you can inspect the data at any point in the pipeline.
+`PipStage1Worker` handles initial parsing or ingestion. `PipStage2Worker` applies the first transformation. `PipStage3Worker` performs the next processing step, using the previous stage's output. `PipStage4Worker` completes the pipeline and produces the final result. Each stage is a standalone worker that receives input, transforms it, and passes the result to the next stage. Conductor guarantees strict ordering, retries any failed stage, and records every stage's input and output. so you can inspect the data at any point in the pipeline.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four stage workers form a sequential transformation chain: validation, format tr
 | **PipStage3Worker** | `pip_stage_3` | Enriches the transformed data with contextual metadata (region, currency) |
 | **PipStage4Worker** | `pip_stage_4` | Finalizes the enriched data and produces the timestamped output record |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w pip_pipeline_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker is one stage in the transformation chain .  replace the simulated parsing and conversion with real sensor data parsers or unit conversion libraries and the sequential pipeline runs unchanged.
+Each worker is one stage in the transformation chain. replace the simulated parsing and conversion with real sensor data parsers or unit conversion libraries and the sequential pipeline runs unchanged.
 
 - **PipStage1Worker** (`pip_stage_1`): parse real input formats: binary sensor data via ByteBuffer, protocol buffers via protobuf-java, or raw log lines via regex/Grok patterns
 - **PipStage2Worker** (`pip_stage_2`): apply real transformations: unit conversion libraries, data normalization (z-score, min-max), or schema mapping with Jackson/JOLT

@@ -24,7 +24,7 @@ Three workers implement scatter-gather: PrepareWorker generates one task per ima
 | **ProcessImageWorker** | `fo_process_image` | Processes a single image: compresses to processedSize = originalSize / 3, converts to WebP format, and computes a deterministic processingTime based on name length and index. Returns name, originalSize, processedSize, format, and processingTime. |
 | **AggregateWorker** | `fo_aggregate` | Collects all per-image results from the JOIN output, sorted by reference name. Computes processedCount, totalOriginal, totalProcessed, and savings percentage. Ignores non-image keys in the join output. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

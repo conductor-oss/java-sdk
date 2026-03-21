@@ -26,7 +26,7 @@ Five workers handle the warehouse loading pipeline: staging records to a tempora
 | **UpdateMetadataWorker** | `wh_update_metadata` | Updates warehouse metadata after a successful load. |
 | **UpsertTargetWorker** | `wh_upsert_target` | Upserts records from staging into the target table. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

@@ -1,10 +1,10 @@
 # Implementing Error Classification in Java with Conductor :  Retryable vs Non-Retryable Error Routing
 
-A Java Conductor workflow example demonstrating error classification .  distinguishing retryable errors (429 Too Many Requests, 503 Service Unavailable) from non-retryable errors (security-posture Bad Request) and routing each to the appropriate handling path. Uses [Conductor](https://github.
+A Java Conductor workflow example demonstrating error classification. distinguishing retryable errors (429 Too Many Requests, 503 Service Unavailable) from non-retryable errors (security-posture Bad Request) and routing each to the appropriate handling path. Uses [Conductor](https://github.
 
 ## The Problem
 
-You call an external API that returns different error codes .  429 (rate limited), 503 (service temporarily down), security-posture (bad request data). Each error type demands a different response: retryable errors should be retried with backoff, while non-retryable errors should be routed to an error handler that logs the issue, alerts the team, and prevents wasted retry attempts on requests that will never succeed.
+You call an external API that returns different error codes. 429 (rate limited), 503 (service temporarily down), security-posture (bad request data). Each error type demands a different response: retryable errors should be retried with backoff, while non-retryable errors should be routed to an error handler that logs the issue, alerts the team, and prevents wasted retry attempts on requests that will never succeed.
 
 Without orchestration, error classification is buried in nested if/else chains inside every API caller. Each service classifies errors differently, retries non-retryable errors wastefully, or fails to retry retryable ones. When a new error code appears, every caller must be updated independently.
 
@@ -12,7 +12,7 @@ Without orchestration, error classification is buried in nested if/else chains i
 
 **You just write the API call and error classification logic. Conductor handles SWITCH-based routing by error type, automatic retries for transient failures, and a full record of every classification decision showing which errors were retried and which were sent to the handler.**
 
-The API call worker makes the request and classifies errors. Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to a dedicated error handler. Every error classification decision is recorded .  you can see exactly which errors were retried, which were routed to the handler, and what the outcome was. You get all of that, without writing a single line of orchestration code.
+The API call worker makes the request and classifies errors. Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to a dedicated error handler. Every error classification decision is recorded. you can see exactly which errors were retried, which were routed to the handler, and what the outcome was. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -20,10 +20,10 @@ ApiCallWorker makes the external request and classifies the response error type,
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ApiCallWorker** | `ec_api_call` | Worker for ec_api_call .  simulates different HTTP error codes based on the simulateError input parameter. Behavior by.. |
-| **ErrorHandlerWorker** | `ec_handle_error` | Worker for ec_handle_error .  logs the error type and details from the upstream API call, then completes with a handle.. |
+| **ApiCallWorker** | `ec_api_call` | Worker for ec_api_call. simulates different HTTP error codes based on the simulateError input parameter. Behavior by.. |
+| **ErrorHandlerWorker** | `ec_handle_error` | Worker for ec_handle_error. logs the error type and details from the upstream API call, then completes with a handle.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -125,7 +125,7 @@ conductor workflow search -w error_classification_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one error path .  connect the API caller to your real external service, the error handler to log to Splunk or alert via PagerDuty, and the call-classify-route workflow stays the same.
+Each worker handles one error path. connect the API caller to your real external service, the error handler to log to Splunk or alert via PagerDuty, and the call-classify-route workflow stays the same.
 
 - **ApiCallWorker** (`ec_api_call`): call your real HTTP/gRPC service, returning the actual HTTP status code and error type (retryable vs non-retryable) for Conductor to route
 - **ErrorHandlerWorker** (`ec_handle_error`): log errors to your observability stack (Datadog, PagerDuty), create incident tickets, or send alerts based on error type and severity

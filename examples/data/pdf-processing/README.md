@@ -25,7 +25,7 @@ Four workers handle PDF processing: extracting raw text with page counts, parsin
 | `AnalyzeContentWorker` | `pd_analyze_content` | Counts words across all sections, extracts keywords (data, processing, architecture, pipelines, analytics), and computes average words per section |
 | `GenerateSummaryWorker` | `pd_generate_summary` | Combines section titles and analysis metrics into a one-line summary like "Document contains 3 chapters covering..." |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # Multi-Level Approval Chain in Java Using Conductor :  Manager, Director, VP Sequential WAIT/SWITCH with Early Rejection Termination
 
-A Java Conductor workflow example for sequential multi-level approval .  routing a request through Manager, Director, and VP, each using a WAIT task for human input followed by a SWITCH to check the decision. If any level rejects, the workflow terminates immediately without advancing to the next level. All three must approve for finalization. Uses [Conductor](https://github.
+A Java Conductor workflow example for sequential multi-level approval. routing a request through Manager, Director, and VP, each using a WAIT task for human input followed by a SWITCH to check the decision. If any level rejects, the workflow terminates immediately without advancing to the next level. All three must approve for finalization. Uses [Conductor](https://github.
 
 ## High-Value Requests Must Pass Through Manager, Director, and VP Approval
 
@@ -10,7 +10,7 @@ Some requests require sequential approval from multiple levels of management. Fi
 
 **You just write the request-submission and finalization workers. Conductor handles the sequential Manager-Director-VP approval chain and the early rejection short-circuit.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,13 +18,13 @@ SubmitWorker identifies the Manager, Director, and VP in the chain, and Finalize
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **SubmitWorker** | `mla_submit` | Submits the request for multi-level approval .  validates the request and identifies the Manager, Director, and VP in the approval chain |
-| *WAIT + SWITCH* | Manager level | WAIT pauses for the Manager's decision; SWITCH checks if approved (advance to Director) or rejected (terminate workflow) | Built-in Conductor WAIT + SWITCH .  no worker needed |
-| *WAIT + SWITCH* | Director level | WAIT pauses for the Director's decision; SWITCH checks if approved (advance to VP) or rejected (terminate workflow) | Built-in Conductor WAIT + SWITCH .  no worker needed |
-| *WAIT + SWITCH* | VP level | WAIT pauses for the VP's decision; SWITCH checks if approved (proceed to finalization) or rejected (terminate workflow) | Built-in Conductor WAIT + SWITCH .  no worker needed |
-| **FinalizeWorker** | `mla_finalize` | Finalizes the request after all three levels approve .  records the complete approval chain and triggers downstream fulfillment |
+| **SubmitWorker** | `mla_submit` | Submits the request for multi-level approval. validates the request and identifies the Manager, Director, and VP in the approval chain |
+| *WAIT + SWITCH* | Manager level | WAIT pauses for the Manager's decision; SWITCH checks if approved (advance to Director) or rejected (terminate workflow) | Built-in Conductor WAIT + SWITCH. no worker needed |
+| *WAIT + SWITCH* | Director level | WAIT pauses for the Director's decision; SWITCH checks if approved (advance to VP) or rejected (terminate workflow) | Built-in Conductor WAIT + SWITCH. no worker needed |
+| *WAIT + SWITCH* | VP level | WAIT pauses for the VP's decision; SWITCH checks if approved (proceed to finalization) or rejected (terminate workflow) | Built-in Conductor WAIT + SWITCH. no worker needed |
+| **FinalizeWorker** | `mla_finalize` | Finalizes the request after all three levels approve. records the complete approval chain and triggers downstream fulfillment |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w multi_level_approval -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one end of the multi-level chain .  connect your request management system for submission and your downstream business system for finalization, and the three-tier approval workflow stays the same.
+Each worker handles one end of the multi-level chain. connect your request management system for submission and your downstream business system for finalization, and the three-tier approval workflow stays the same.
 
 - **FinalizeWorker** (`mla_finalize`): execute the approved action. Create a purchase order, provision resources, or trigger a downstream workflow with the full approval chain as audit evidence
 - **SubmitWorker** (`mla_submit`): pull request details from your business system, determine the approval chain from the org chart API, and notify the first approver

@@ -1,6 +1,6 @@
 # Endorsement Processing in Java with Conductor :  Request Change, Assess Impact, Price, Approve, Apply
 
-A Java Conductor workflow example for mid-term policy endorsement processing .  receiving a change request (adding a driver, changing coverage limits, updating a vehicle), assessing the impact on the policy, repricing the premium adjustment (+$150/year), approving the endorsement, and applying the amendment to the active policy. Each step depends on the previous: the impact assessment feeds into repricing, the premium change feeds into approval, and the endorsement is only applied after approval. Uses [Conductor](https://github.
+A Java Conductor workflow example for mid-term policy endorsement processing. receiving a change request (adding a driver, changing coverage limits, updating a vehicle), assessing the impact on the policy, repricing the premium adjustment (+$150/year), approving the endorsement, and applying the amendment to the active policy. Each step depends on the previous: the impact assessment feeds into repricing, the premium change feeds into approval, and the endorsement is only applied after approval. Uses [Conductor](https://github.
 
 ## Mid-Term Policy Changes Require Impact Assessment, Repricing, and Approval Before Amendment
 
@@ -10,7 +10,7 @@ When a policyholder requests a mid-term change (adding a driver, increasing cove
 
 **You just write the change request intake, impact assessment, repricing, approval, and policy amendment logic. Conductor handles coverage evaluation retries, amendment routing, and endorsement audit trails.**
 
-`RequestChangeWorker` captures the endorsement request .  what's changing, effective date, and supporting documentation. `AssessWorker` evaluates the impact on risk exposure, coverage adequacy, and underwriting acceptability. `PriceWorker` calculates the pro-rated premium change ,  additional premium for increased coverage or refund for reduced coverage. `ApproveWorker` routes the endorsement through approval ,  auto-approving standard changes or escalating exceptions to underwriters. `ApplyWorker` updates the active policy ,  modifying coverage terms, issuing an updated declarations page, and adjusting the billing schedule. Conductor tracks the endorsement from request to application.
+`RequestChangeWorker` captures the endorsement request. what's changing, effective date, and supporting documentation. `AssessWorker` evaluates the impact on risk exposure, coverage adequacy, and underwriting acceptability. `PriceWorker` calculates the pro-rated premium change,  additional premium for increased coverage or refund for reduced coverage. `ApproveWorker` routes the endorsement through approval,  auto-approving standard changes or escalating exceptions to underwriters. `ApplyWorker` updates the active policy,  modifying coverage terms, issuing an updated declarations page, and adjusting the billing schedule. Conductor tracks the endorsement from request to application.
 
 ### What You Write: Workers
 
@@ -18,13 +18,13 @@ Change request intake, coverage evaluation, premium adjustment, and policy amend
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **RequestChangeWorker** | `edp_request_change` | Receives the endorsement request .  logs the policyId and changeType, creates an endorsementId, and initiates the change process |
-| **AssessWorker** | `edp_assess` | Assesses the impact of the requested change on the policy .  evaluates how the change type and details affect coverage, limits, and risk profile |
-| **PriceWorker** | `edp_price` | Calculates the premium adjustment for the endorsement .  uses the impact assessment to determine the pro-rata premium change (+$150/year) for the remaining policy term |
-| **ApproveWorker** | `edp_approve` | Approves the endorsement .  reviews the policyId and premium change amount, then authorizes the amendment to the active policy |
-| **ApplyWorker** | `edp_apply` | Applies the endorsement to the active policy .  amends the policy record with the approved changes using the endorsementId, updates the declarations page, and triggers billing adjustment |
+| **RequestChangeWorker** | `edp_request_change` | Receives the endorsement request. logs the policyId and changeType, creates an endorsementId, and initiates the change process |
+| **AssessWorker** | `edp_assess` | Assesses the impact of the requested change on the policy. evaluates how the change type and details affect coverage, limits, and risk profile |
+| **PriceWorker** | `edp_price` | Calculates the premium adjustment for the endorsement. uses the impact assessment to determine the pro-rata premium change (+$150/year) for the remaining policy term |
+| **ApproveWorker** | `edp_approve` | Approves the endorsement. reviews the policyId and premium change amount, then authorizes the amendment to the active policy |
+| **ApplyWorker** | `edp_apply` | Applies the endorsement to the active policy. amends the policy record with the approved changes using the endorsementId, updates the declarations page, and triggers billing adjustment |
 
-Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
+Workers implement insurance operations. claim intake, assessment, settlement,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -134,7 +134,7 @@ conductor workflow search -w edp_endorsement_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real endorsement systems .  your policy admin for change requests, your rating engine for premium adjustments, your approval platform for underwriter sign-off, and the workflow runs identically in production.
+Swap each worker for your real endorsement systems. your policy admin for change requests, your rating engine for premium adjustments, your approval platform for underwriter sign-off, and the workflow runs identically in production.
 
 - **PriceWorker** (`edp_price`): implement pro-rata premium calculation with short-rate tables for mid-term changes, minimum earned premium rules, and endorsement-specific rate factors
 - **ApplyWorker** (`edp_apply`): update policies in Guidewire PolicyCenter or Duck Creek Policy, generate amended declarations pages, and trigger billing adjustments in the billing system

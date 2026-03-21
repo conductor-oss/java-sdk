@@ -1,18 +1,18 @@
 # Implementing Certificate Management in Java with Conductor :  Inventory, Expiry Assessment, Renewal, and Distribution
 
-A Java Conductor workflow example for TLS certificate management .  inventorying all certificates, assessing which are approaching expiry, renewing certificates before they expire, and distributing renewed certificates to servers.
+A Java Conductor workflow example for TLS certificate management. inventorying all certificates, assessing which are approaching expiry, renewing certificates before they expire, and distributing renewed certificates to servers.
 
 ## The Problem
 
-You manage TLS certificates across your infrastructure .  web servers, APIs, load balancers, internal services. Certificates expire, and expired certificates cause outages and security warnings. You need to inventory all certificates, identify those approaching expiry within a renewal window, renew them (via Let's Encrypt, internal CA, or commercial CA), and distribute the renewed certificates to every server that uses them.
+You manage TLS certificates across your infrastructure. web servers, APIs, load balancers, internal services. Certificates expire, and expired certificates cause outages and security warnings. You need to inventory all certificates, identify those approaching expiry within a renewal window, renew them (via Let's Encrypt, internal CA, or commercial CA), and distribute the renewed certificates to every server that uses them.
 
-Without orchestration, certificate management is a calendar reminder that someone set once and that nobody maintains. Certificates expire without warning, causing 3 AM outages. Renewal is manual .  generate CSR, submit to CA, wait, download cert, deploy to 15 servers. Miss one server and users get security errors.
+Without orchestration, certificate management is a calendar reminder that someone set once and that nobody maintains. Certificates expire without warning, causing 3 AM outages. Renewal is manual. generate CSR, submit to CA, wait, download cert, deploy to 15 servers. Miss one server and users get security errors.
 
 ## The Solution
 
 **You just write the CA renewal and cert deployment logic. Conductor handles the renewal sequence, retries when CAs are temporarily unreachable, and a complete record of every certificate inventoried, renewed, and deployed.**
 
-Each certificate step is an independent worker .  inventory, expiry assessment, renewal, and distribution. Conductor runs them in sequence: inventory all certs, assess which need renewal, renew them, then distribute. Every certificate operation is tracked with cert details, expiry dates, renewal status, and deployment targets. You get all of that, without writing a single line of orchestration code.
+Each certificate step is an independent worker. inventory, expiry assessment, renewal, and distribution. Conductor runs them in sequence: inventory all certs, assess which need renewal, renew them, then distribute. Every certificate operation is tracked with cert details, expiry dates, renewal status, and deployment targets. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers cover the certificate lifecycle: InventoryWorker discovers all TLS 
 | **InventoryWorker** | `cm_inventory` | Scans all environments to discover and inventory every certificate |
 | **RenewWorker** | `cm_renew` | Renews expiring certificates through the certificate authority |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w certificate_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one certificate lifecycle step .  connect RenewWorker to Let's Encrypt or your internal CA, DistributeWorker to deploy certs across nginx and Kubernetes Secrets, and the inventory-renew-distribute workflow stays the same.
+Each worker manages one certificate lifecycle step. connect RenewWorker to Let's Encrypt or your internal CA, DistributeWorker to deploy certs across nginx and Kubernetes Secrets, and the inventory-renew-distribute workflow stays the same.
 
 - **AssessExpiryWorker** (`cm_assess_expiry`): check certificate expiry dates via OpenSSL or cloud provider APIs, flag those within the renewal window
 - **DistributeWorker** (`cm_distribute`): deploy renewed certificates to nginx, Apache, HAProxy, Kubernetes Secrets, and cloud load balancers
@@ -172,6 +172,6 @@ certificate-management-certificate-management/
 │       ├── InventoryWorker.java
 │       └── RenewWorker.java
 └── src/test/java/certificatemanagement/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

@@ -25,7 +25,7 @@ PresentOptionsWorker loads consent categories, RecordConsentWorker saves choices
 | **RecordConsentWorker** | `gdc_record_consent` | Records the user's consent choices with a versioned timestamp, storing the full consent record |
 | **UpdateSystemsWorker** | `gdc_update_systems` | Propagates consent preferences to 4 downstream systems: analytics, email, ads, and DMP |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w gdc_gdpr_consent -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one consent step .  connect your consent management platform (OneTrust, Cookiebot, TrustArc) for preference recording and your downstream systems for opt-out propagation, and the GDPR workflow stays the same.
+Each worker handles one consent step. connect your consent management platform (OneTrust, Cookiebot, TrustArc) for preference recording and your downstream systems for opt-out propagation, and the GDPR workflow stays the same.
 
 - **PresentOptionsWorker** (`gdc_present_options`): load consent categories from your consent management platform (OneTrust, Cookiebot, TrustArc) or a configuration store, returning the current options for the user's jurisdiction
 - **RecordConsentWorker** (`gdc_record_consent`): persist the consent record in your consent database with cryptographic signing for tamper-proof storage, including the exact text the user agreed to and the timestamp

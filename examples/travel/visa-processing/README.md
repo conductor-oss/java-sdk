@@ -4,9 +4,9 @@ Visa processing: collect docs, validate, submit, track, receive. Uses [Conductor
 
 ## The Problem
 
-You need to process a visa application for an employee traveling internationally .  collecting required documents (passport, photos, invitation letter, financial statements), validating that all documents meet the destination country's requirements, submitting the application to the consulate or visa service, tracking the application's progress through processing phases, and receiving the approved visa and returning the passport to the employee. Each step depends on the previous one's completion.
+You need to process a visa application for an employee traveling internationally. collecting required documents (passport, photos, invitation letter, financial statements), validating that all documents meet the destination country's requirements, submitting the application to the consulate or visa service, tracking the application's progress through processing phases, and receiving the approved visa and returning the passport to the employee. Each step depends on the previous one's completion.
 
-If validation fails because a document is missing or expired, you need to notify the employee before submission to avoid consulate rejection. If the application is submitted but tracking stops polling, the employee misses their visa pickup window and the trip is cancelled. Without orchestration, you'd build a monolithic handler that mixes document management, consulate API integration, status polling, and employee notifications .  making it impossible to support different visa types, test document validation rules independently, or audit which documents were submitted for which application.
+If validation fails because a document is missing or expired, you need to notify the employee before submission to avoid consulate rejection. If the application is submitted but tracking stops polling, the employee misses their visa pickup window and the trip is cancelled. Without orchestration, you'd build a monolithic handler that mixes document management, consulate API integration, status polling, and employee notifications. making it impossible to support different visa types, test document validation rules independently, or audit which documents were submitted for which application.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Document collection, eligibility verification, application submission, and statu
 | **TrackWorker** | `vsp_track` | Track. Computes and returns phase, estimated date |
 | **ValidateWorker** | `vsp_validate` | All documents verified |
 
-Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w vsp_visa_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real visa services .  your document management system for collection, a visa service API like CIBT for submission, consulate tracking portals for status updates, and the workflow runs identically in production.
+Swap each worker for your real visa services. your document management system for collection, a visa service API like CIBT for submission, consulate tracking portals for status updates, and the workflow runs identically in production.
 
 - **CollectWorker** (`vsp_collect`): pull document records from your document management system or prompt the employee to upload via your travel portal
 - **ValidateWorker** (`vsp_validate`): check passport expiry (must be 6+ months), photo specs against ICAO standards, and completeness of supporting documents for the specific visa type

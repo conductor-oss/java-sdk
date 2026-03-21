@@ -1,18 +1,18 @@
 # Building Energy Management in Java with Conductor :  Consumption Monitoring, Pattern Analysis, and Optimization
 
-A Java Conductor workflow example that orchestrates building energy management .  collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates building energy management. collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.
 
 ## Why Energy Optimization Needs Orchestration
 
-Managing energy consumption in a building involves a pipeline where each step depends on what came before. You pull meter readings over a time period to get per-hour kW consumption and total kWh. You feed those readings into pattern analysis to identify when demand spikes .  midday HVAC peaks, overnight baseline loads, equipment-dominant periods. Those patterns drive optimization recommendations: shift HVAC schedules, reduce lighting during low-occupancy hours, project dollar savings. Finally, you compile everything into a report for facilities management.
+Managing energy consumption in a building involves a pipeline where each step depends on what came before. You pull meter readings over a time period to get per-hour kW consumption and total kWh. You feed those readings into pattern analysis to identify when demand spikes. midday HVAC peaks, overnight baseline loads, equipment-dominant periods. Those patterns drive optimization recommendations: shift HVAC schedules, reduce lighting during low-occupancy hours, project dollar savings. Finally, you compile everything into a report for facilities management.
 
-If the meter data pull fails partway through, you need to know exactly where to resume. If the pattern analysis discovers an anomaly, that needs to propagate to the optimizer. Without orchestration, you'd build a monolithic energy analysis script that mixes data fetching, statistical analysis, optimization logic, and report generation .  making it impossible to swap out your meter data source, test pattern detection independently, or observe which step is the bottleneck.
+If the meter data pull fails partway through, you need to know exactly where to resume. If the pattern analysis discovers an anomaly, that needs to propagate to the optimizer. Without orchestration, you'd build a monolithic energy analysis script that mixes data fetching, statistical analysis, optimization logic, and report generation. making it impossible to swap out your meter data source, test pattern detection independently, or observe which step is the bottleneck.
 
 ## How This Workflow Solves It
 
 **You just write the energy management workers. Consumption monitoring, pattern analysis, optimization recommendation, and reporting. Conductor handles meter-to-report sequencing, data fetch retries, and per-stage timing metrics for pipeline performance analysis.**
 
-Each stage of the energy analysis pipeline is an independent worker .  monitor consumption, analyze patterns, generate optimizations, produce reports. Conductor sequences them, threads consumption readings and pattern data between steps, retries if a meter data fetch times out, and tracks exactly how long each analysis stage takes. You get a reliable energy management pipeline without writing state-passing or retry logic.
+Each stage of the energy analysis pipeline is an independent worker. monitor consumption, analyze patterns, generate optimizations, produce reports. Conductor sequences them, threads consumption readings and pattern data between steps, retries if a meter data fetch times out, and tracks exactly how long each analysis stage takes. You get a reliable energy management pipeline without writing state-passing or retry logic.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers analyze building energy: MonitorConsumptionWorker reads kWh meter d
 | **OptimizeWorker** | `erg_optimize` | Generates optimization recommendations and projected savings. |
 | **ReportWorker** | `erg_report` | Generates an energy report. |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
+Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs. the workflow and alerting logic stay the same.
 
 ### The Workflow
 

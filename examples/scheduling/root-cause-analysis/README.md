@@ -1,18 +1,18 @@
 # Root Cause Analysis in Java Using Conductor :  Issue Detection, Evidence Collection, Analysis, and Root Cause Identification
 
-A Java Conductor workflow example for automated root cause analysis .  detecting an issue, collecting evidence from logs/metrics/traces, analyzing correlations, and identifying the most likely root cause.
+A Java Conductor workflow example for automated root cause analysis. detecting an issue, collecting evidence from logs/metrics/traces, analyzing correlations, and identifying the most likely root cause.
 
 ## The Problem
 
-An incident is happening .  high error rate, latency spike, service degradation. You need to find the root cause fast. This requires detecting the specific issue, collecting evidence from multiple sources (logs, metrics, traces, recent deployments), analyzing correlations (did the error rate spike after a deployment? does the latency correlate with CPU usage?), and identifying the root cause. Each step feeds the next ,  you can't analyze without evidence, and evidence collection depends on knowing what issue to investigate.
+An incident is happening. high error rate, latency spike, service degradation. You need to find the root cause fast. This requires detecting the specific issue, collecting evidence from multiple sources (logs, metrics, traces, recent deployments), analyzing correlations (did the error rate spike after a deployment? does the latency correlate with CPU usage?), and identifying the root cause. Each step feeds the next,  you can't analyze without evidence, and evidence collection depends on knowing what issue to investigate.
 
-Without orchestration, root cause analysis is manual .  an engineer opens 5 dashboards, searches logs, checks recent deployments, and pieces together the story. This takes 30-60 minutes per incident. Automated RCA scripts exist but don't coordinate: one collects metrics, another parses logs, but they don't feed results to a common analysis step.
+Without orchestration, root cause analysis is manual. an engineer opens 5 dashboards, searches logs, checks recent deployments, and pieces together the story. This takes 30-60 minutes per incident. Automated RCA scripts exist but don't coordinate: one collects metrics, another parses logs, but they don't feed results to a common analysis step.
 
 ## The Solution
 
 **You just write the evidence collection queries and correlation analysis logic. Conductor handles the detect-collect-analyze-identify sequence, retries when log or metric sources are temporarily unavailable, and a complete record of every RCA session's evidence and conclusions.**
 
-Each RCA step is an independent worker .  issue detection, evidence collection, correlation analysis, and root cause identification. Conductor runs them in sequence: detect the issue, collect evidence, analyze correlations, then identify the root cause. Every RCA run is tracked ,  you can see what evidence was collected, what correlations were found, and what root cause was identified. You get all of that, without writing a single line of orchestration code.
+Each RCA step is an independent worker. issue detection, evidence collection, correlation analysis, and root cause identification. Conductor runs them in sequence: detect the issue, collect evidence, analyze correlations, then identify the root cause. Every RCA run is tracked,  you can see what evidence was collected, what correlations were found, and what root cause was identified. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers automate RCA: DetectIssueWorker identifies the incident scope, Coll
 | **IdentifyRootCauseWorker** | `rca_identify_root_cause` | Confirms the top candidate root cause based on confidence score and suggests a remediation action |
 | **RcaAnalyzeWorker** | `rca_analyze` | Analyzes collected logs and metrics to identify the most likely root cause candidate with a confidence percentage |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w root_cause_analysis_425 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RCA phase .  connect the evidence collector to Splunk and CloudWatch, the analyzer to correlate metrics with recent deployments, and the detect-collect-analyze-identify workflow stays the same.
+Each worker handles one RCA phase. connect the evidence collector to Splunk and CloudWatch, the analyzer to correlate metrics with recent deployments, and the detect-collect-analyze-identify workflow stays the same.
 
 - **CollectEvidenceWorker** (`rca_collect_evidence`): pull logs from Elasticsearch, metrics from Prometheus, traces from Jaeger, and recent deployments from CI/CD
 - **DetectIssueWorker** (`rca_detect_issue`): query your monitoring system (Datadog, PagerDuty, Prometheus alerts) for the active incident details

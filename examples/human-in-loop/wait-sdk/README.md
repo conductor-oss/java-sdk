@@ -1,6 +1,6 @@
 # WAIT Task Completion via SDK (TaskClient) in Java Using Conductor :  Ticket Initialization, WAIT for Programmatic Resolution, and Ticket Finalization
 
-A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from Java code using the Conductor SDK's TaskClient .  initializing a support ticket with status "open", pausing at a WAIT task until a separate Java process (a background service, scheduled job, or another microservice) completes it via the SDK, then finalizing and closing the ticket. Unlike the REST API approach, the SDK method provides type-safe Java objects and integrates naturally into existing Java services without HTTP client setup. Uses [Conductor](https://github.
+A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from Java code using the Conductor SDK's TaskClient. initializing a support ticket with status "open", pausing at a WAIT task until a separate Java process (a background service, scheduled job, or another microservice) completes it via the SDK, then finalizing and closing the ticket. Unlike the REST API approach, the SDK method provides type-safe Java objects and integrates naturally into existing Java services without HTTP client setup. Uses [Conductor](https://github.
 
 ## Programmatic Workflow Resumption via the Conductor SDK
 
@@ -10,7 +10,7 @@ Instead of using REST APIs directly, the Conductor SDK's TaskClient can complete
 
 **You just write the ticket-initialization and finalization workers. Conductor handles the durable pause and the type-safe SDK-based task completion.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,11 +18,11 @@ InitWorker opens the support ticket, and FinalizeWorker closes it after resoluti
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **InitWorker** | `wsdk_init` | Initializes a support ticket .  takes the ticketId from workflow input and sets its status to "open", making the ticket available for resolution |
-| *WAIT task* | `WAIT` | Pauses with the ticketId until a separate Java service completes this task using the Conductor SDK's TaskClient .  the resolving service calls `taskClient.updateTask(...)` to resume the workflow | Built-in Conductor WAIT ,  no worker needed |
-| **FinalizeWorker** | `wsdk_finalize` | Closes the ticket after the WAIT task is resolved .  marks the ticket as complete and returns the final result |
+| **InitWorker** | `wsdk_init` | Initializes a support ticket. takes the ticketId from workflow input and sets its status to "open", making the ticket available for resolution |
+| *WAIT task* | `WAIT` | Pauses with the ticketId until a separate Java service completes this task using the Conductor SDK's TaskClient. the resolving service calls `taskClient.updateTask(...)` to resume the workflow | Built-in Conductor WAIT,  no worker needed |
+| **FinalizeWorker** | `wsdk_finalize` | Closes the ticket after the WAIT task is resolved. marks the ticket as complete and returns the final result |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -126,7 +126,7 @@ conductor workflow search -w wait_sdk_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one end of the ticket lifecycle .  connect your support ticketing system (Jira, ServiceNow) for initialization and your resolution backend for closure, and the SDK-driven workflow stays the same.
+Each worker handles one end of the ticket lifecycle. connect your support ticketing system (Jira, ServiceNow) for initialization and your resolution backend for closure, and the SDK-driven workflow stays the same.
 
 - **FinalizeWorker** (`wsdk_finalize`): close the ticket in your helpdesk system, send resolution confirmation, and update SLA metrics
 - **InitWorker** (`wsdk_init`): create tickets in a helpdesk system like Zendesk or Jira Service Management, and set up monitoring for SLA deadlines

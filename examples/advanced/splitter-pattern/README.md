@@ -1,10 +1,10 @@
 # Splitter Pattern in Java Using Conductor :  Receive Composite Message, Split, Process Parts in Parallel, Combine
 
-A Java Conductor workflow example for the splitter pattern .  receiving a composite message containing multiple items, splitting it into individual parts, processing each part independently and in parallel via `FORK_JOIN`, and combining the per-part results into a single unified response. Uses [Conductor](https://github.
+A Java Conductor workflow example for the splitter pattern. receiving a composite message containing multiple items, splitting it into individual parts, processing each part independently and in parallel via `FORK_JOIN`, and combining the per-part results into a single unified response. Uses [Conductor](https://github.
 
 ## Composite Messages Contain Independent Items That Can Be Processed in Parallel
 
-An order arrives with three line items .  a laptop, a monitor, and a keyboard. Each item needs independent processing: inventory check, pricing lookup, tax calculation. Processing them sequentially triples the latency. Processing them in parallel requires splitting the order into individual items, dispatching each to its own processing pipeline, waiting for all three to complete, and reassembling the results into a single order response.
+An order arrives with three line items. a laptop, a monitor, and a keyboard. Each item needs independent processing: inventory check, pricing lookup, tax calculation. Processing them sequentially triples the latency. Processing them in parallel requires splitting the order into individual items, dispatching each to its own processing pipeline, waiting for all three to complete, and reassembling the results into a single order response.
 
 The splitter pattern decomposes a composite message into its constituent parts, processes each part independently (and in parallel when possible), then combines the results. This is fundamental to any system that receives batch requests, multi-item orders, or composite events.
 
@@ -12,7 +12,7 @@ The splitter pattern decomposes a composite message into its constituent parts, 
 
 **You write the per-item processing logic. Conductor handles the split, parallel execution, per-item retries, and recombination.**
 
-`SplReceiveCompositeWorker` ingests the composite message. `SplSplitWorker` decomposes it into individual parts. A `FORK_JOIN` processes all three parts in parallel .  `SplProcessPart1Worker`, `SplProcessPart2Worker`, and `SplProcessPart3Worker` each handle one item independently. The `JOIN` waits for all parts to finish. `SplCombineWorker` reassembles the per-part results into a single response. Conductor handles the split, parallel processing, and recombination, retrying any failed part without affecting the others.
+`SplReceiveCompositeWorker` ingests the composite message. `SplSplitWorker` decomposes it into individual parts. A `FORK_JOIN` processes all three parts in parallel. `SplProcessPart1Worker`, `SplProcessPart2Worker`, and `SplProcessPart3Worker` each handle one item independently. The `JOIN` waits for all parts to finish. `SplCombineWorker` reassembles the per-part results into a single response. Conductor handles the split, parallel processing, and recombination, retrying any failed part without affecting the others.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Six workers implement the split-and-recombine pattern: composite message recepti
 | **SplReceiveCompositeWorker** | `spl_receive_composite` | Receives the composite order message containing multiple line items |
 | **SplSplitWorker** | `spl_split` | Splits the composite order into individual line items (SKU, quantity, price) for parallel processing |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -138,10 +138,10 @@ conductor workflow search -w spl_splitter_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker processes one item from the composite message .  replace the simulated per-item handlers with real inventory, pricing, or tax service calls and the split-process-combine pipeline runs unchanged.
+Each worker processes one item from the composite message. replace the simulated per-item handlers with real inventory, pricing, or tax service calls and the split-process-combine pipeline runs unchanged.
 
 - **SplSplitWorker** (`spl_split`): parse real composite messages: split multi-item orders from your e-commerce API, extract individual records from a batch CSV upload, or decompose a multi-part MIME message
-- **SplProcessPart*Workers** (`spl_process_part_1/2/3`) .  run real per-item processing: inventory checks via your warehouse API, pricing lookups from a product catalog, or tax calculations via Avalara/TaxJar
+- **SplProcessPart*Workers** (`spl_process_part_1/2/3`). run real per-item processing: inventory checks via your warehouse API, pricing lookups from a product catalog, or tax calculations via Avalara/TaxJar
 - **SplCombineWorker** (`spl_combine`): reassemble into a real response: build an order confirmation with per-item status, generate a batch processing report, or create a composite API response
 
 The per-item result contract stays fixed. Swap simulated fulfillment for real inventory and pricing APIs and the split-process-combine pipeline runs unchanged.

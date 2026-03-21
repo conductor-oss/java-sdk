@@ -12,7 +12,7 @@ Without orchestration, the calling service manually fans out HTTP calls to each 
 
 **You just write the per-database query workers and the view-composition worker. Conductor handles parallel fan-out, per-query retries and timeouts, and automatic join before composition.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers span isolated databases: QueryUserDbWorker, QueryOrderDbWorker, and
 | **QueryProductDbWorker** | `dps_query_product_db` | Queries the product database for recently viewed products. |
 | **QueryUserDbWorker** | `dps_query_user_db` | Queries the user database for profile data (name, tier) by userId. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

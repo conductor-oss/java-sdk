@@ -25,7 +25,7 @@ Four workers run the chaos experiment. Defining the fault parameters, injecting 
 | **ObserveWorker** | `ce_observe` | Monitors system behavior during the experiment and checks SLO compliance (e.g., p99 < 2s) |
 | **RecoverWorker** | `ce_recover` | Removes the injected fault and verifies the system has returned to nominal operation |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w chaos_engineering_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one experiment phase .  replace the simulated calls with Gremlin, LitmusChaos, or Toxiproxy for real fault injection and system observation, and the chaos workflow runs unchanged.
+Each worker handles one experiment phase. replace the simulated calls with Gremlin, LitmusChaos, or Toxiproxy for real fault injection and system observation, and the chaos workflow runs unchanged.
 
 - **DefineExperimentWorker** → load experiment definitions from a catalog: Gremlin experiment templates, LitmusChaos experiment CRDs, or a custom experiment registry with pre-approved blast radius limits
 - **InjectFailureWorker** → inject real faults: Chaos Monkey for random pod kills, Toxiproxy for network latency/packet loss, stress-ng for CPU/memory pressure, or tc (traffic control) for bandwidth throttling
@@ -173,6 +173,6 @@ chaos-engineering-chaos-engineering/
 │       ├── ObserveWorker.java
 │       └── RecoverWorker.java
 └── src/test/java/chaosengineering/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

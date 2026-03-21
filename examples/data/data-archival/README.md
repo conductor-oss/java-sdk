@@ -26,7 +26,7 @@ Five workers implement the archival safety chain: identifying stale records, cre
 | **TransferToColdWorker** | `arc_transfer_to_cold` | Transfers snapshot to cold storage. |
 | **VerifyArchiveWorker** | `arc_verify_archive` | Verifies the archive integrity. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

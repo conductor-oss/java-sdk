@@ -1,10 +1,10 @@
 # Stripe Integration in Java Using Conductor
 
-A Java Conductor workflow that processes a Stripe payment end-to-end .  creating a customer in Stripe, creating a payment intent for the specified amount, confirming the charge, and sending a receipt email. Given a customer email, amount, currency, and description, the pipeline produces a Stripe customer ID, charge confirmation, and receipt delivery status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the customer-intent-charge-receipt pipeline.
+A Java Conductor workflow that processes a Stripe payment end-to-end. creating a customer in Stripe, creating a payment intent for the specified amount, confirming the charge, and sending a receipt email. Given a customer email, amount, currency, and description, the pipeline produces a Stripe customer ID, charge confirmation, and receipt delivery status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the customer-intent-charge-receipt pipeline.
 
 ## Processing Payments Through Stripe
 
-Collecting a payment through Stripe involves a strict sequence: create a customer record (or look up an existing one), create a payment intent that captures the amount and currency, confirm the charge against the payment intent, and send a receipt to the customer. Each step depends on the previous one .  you cannot create a payment intent without a customer ID, and you cannot charge without a payment intent ID. If the charge succeeds but the receipt fails, you need visibility into exactly what happened.
+Collecting a payment through Stripe involves a strict sequence: create a customer record (or look up an existing one), create a payment intent that captures the amount and currency, confirm the charge against the payment intent, and send a receipt to the customer. Each step depends on the previous one. you cannot create a payment intent without a customer ID, and you cannot charge without a payment intent ID. If the charge succeeds but the receipt fails, you need visibility into exactly what happened.
 
 Without orchestration, you would chain Stripe API calls manually, pass customer IDs and payment intent IDs between steps, and handle idempotency and partial failures (like a charge that succeeds but a receipt that fails to send). Conductor sequences the pipeline and routes customer IDs, payment intent IDs, and charge IDs between workers automatically.
 

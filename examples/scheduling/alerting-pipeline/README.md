@@ -1,18 +1,18 @@
 # Alerting Pipeline in Java Using Conductor :  Metric Evaluation, Anomaly Detection, Suppression, and Alert Dispatch
 
-A Java Conductor workflow example for building an alerting pipeline .  evaluating metric rules against thresholds, detecting anomalies, suppressing duplicate or flapping alerts, and dispatching notifications to the right channels.
+A Java Conductor workflow example for building an alerting pipeline. evaluating metric rules against thresholds, detecting anomalies, suppressing duplicate or flapping alerts, and dispatching notifications to the right channels.
 
 ## The Problem
 
 You need to evaluate incoming metrics against alerting rules. When a metric exceeds its threshold, you need to detect whether it's a genuine anomaly (not just noise), suppress duplicate alerts if the same condition was already flagged recently, and send notifications to the appropriate channel. A naive threshold check fires too many alerts; a proper pipeline requires anomaly detection and suppression logic.
 
-Without orchestration, alerting logic is scattered .  threshold checks in one script, suppression in another, notification dispatch in a third. Alerts fire for every metric sample above threshold instead of once per incident. Engineers suffer alert fatigue from duplicates and false positives.
+Without orchestration, alerting logic is scattered. threshold checks in one script, suppression in another, notification dispatch in a third. Alerts fire for every metric sample above threshold instead of once per incident. Engineers suffer alert fatigue from duplicates and false positives.
 
 ## The Solution
 
 **You just write the threshold evaluation and notification dispatch logic. Conductor handles sequential evaluation with conditional routing, retries on notification delivery failures, and a full record of every alert evaluated, suppressed, or dispatched.**
 
-Each alerting concern is an independent worker .  rule evaluation, anomaly detection, suppression checking, and alert dispatch. Conductor runs them in sequence, ensuring suppression is checked before any alert is sent. Every alert evaluation is tracked with full context ,  you can see which metrics triggered, which were suppressed, and which actually fired. You get all of that, without writing a single line of orchestration code.
+Each alerting concern is an independent worker. rule evaluation, anomaly detection, suppression checking, and alert dispatch. Conductor runs them in sequence, ensuring suppression is checked before any alert is sent. Every alert evaluation is tracked with full context,  you can see which metrics triggered, which were suppressed, and which actually fired. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -21,11 +21,11 @@ The alerting pipeline chains DetectAnomalyWorker to flag metric deviations, Eval
 | Worker | Task | What It Does |
 |---|---|---|
 | **DetectAnomalyWorker** | `alt_detect_anomaly` | Compares a metric's current value against its threshold and flags anomalies, returning severity and a deviation score |
-| **EvaluateRulesWorker** | `alt_evaluate_rules` | Evaluates alerting rules based on severity .  decides whether to fire or suppress the alert and selects the notification channel |
+| **EvaluateRulesWorker** | `alt_evaluate_rules` | Evaluates alerting rules based on severity. decides whether to fire or suppress the alert and selects the notification channel |
 | **SendAlertWorker** | `alt_send_alert` | Dispatches the alert to the selected channel (e.g., PagerDuty) and returns an alert ID for tracking |
 | **SuppressAlertWorker** | `alt_suppress_alert` | Suppresses alerts that don't meet firing criteria, logging the suppression reason for audit |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -131,11 +131,11 @@ conductor workflow search -w alerting_pipeline_413 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one alerting stage .  connect the rule evaluator to Prometheus or Datadog metrics, the dispatch worker to PagerDuty or Slack, and the evaluate-detect-suppress-dispatch workflow stays the same.
+Each worker handles one alerting stage. connect the rule evaluator to Prometheus or Datadog metrics, the dispatch worker to PagerDuty or Slack, and the evaluate-detect-suppress-dispatch workflow stays the same.
 
 - **DetectAnomalyWorker** (`alt_detect_anomaly`): implement statistical anomaly detection (z-score, MAD, DBSCAN) or call an ML-based anomaly detection service
 - **EvaluateRulesWorker** (`alt_evaluate_rules`): check metrics against real thresholds from your alerting config (Prometheus alerting rules, Datadog monitors, PagerDuty thresholds)
-- **SendAlertWorker** (`alt_send_alert`): dispatch to real channels. PagerDuty, Slack, OpsGenie, email .  with severity-based routing
+- **SendAlertWorker** (`alt_send_alert`): dispatch to real channels. PagerDuty, Slack, OpsGenie, email. with severity-based routing
 
 Plug in Prometheus metrics and PagerDuty dispatch, and the detect-evaluate-route orchestration transfers directly to production.
 

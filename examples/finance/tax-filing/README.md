@@ -6,13 +6,13 @@ Tax filing: collect data, calculate tax, validate, file return, confirm. Uses [C
 
 You need to prepare and file a tax return. The workflow collects income, deduction, and credit data from source systems, calculates the tax liability using current tax tables and rules, validates the return for accuracy and completeness, files it electronically with the tax authority, and confirms acceptance. Incorrect calculations result in penalties; late filing incurs interest charges and potential audits.
 
-Without orchestration, you'd build a tax preparation service that aggregates data from W-2s, 1099s, and other sources, applies tax logic inline, validates against IRS rules, transmits via MeF, and checks for acknowledgment .  manually handling data discrepancies, retrying failed transmissions, and meeting the April 15 deadline.
+Without orchestration, you'd build a tax preparation service that aggregates data from W-2s, 1099s, and other sources, applies tax logic inline, validates against IRS rules, transmits via MeF, and checks for acknowledgment. manually handling data discrepancies, retrying failed transmissions, and meeting the April 15 deadline.
 
 ## The Solution
 
 **You just write the tax workers. Income data collection, liability calculation, return validation, electronic filing, and acceptance confirmation. Conductor handles step sequencing, automatic retries when the e-filing system is unavailable, and complete return preparation tracking for audit defense.**
 
-Each tax-filing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect data, calculate tax, validate, file, confirm), retrying if the e-filing system is unavailable, tracking every return's preparation lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each tax-filing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect data, calculate tax, validate, file, confirm), retrying if the e-filing system is unavailable, tracking every return's preparation lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage the filing lifecycle: CollectDataWorker aggregates income an
 | **FileReturnWorker** | `txf_file_return` | File Return. Computes and returns filing id, confirmation number, filed at |
 | **ValidateFilingWorker** | `txf_validate_filing` | Validate Filing. Computes and returns validated, validation checks, warnings |
 
-Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations. risk assessment, compliance checks, settlement,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

@@ -1,18 +1,18 @@
 # GPU Job Orchestration in Java Using Conductor :  Check, Allocate, Submit, Collect, Release
 
-A Java Conductor workflow example for GPU resource orchestration .  checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.
+A Java Conductor workflow example for GPU resource orchestration. checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.
 
 ## GPUs Are Expensive and Scarce
 
-A team of ML engineers shares a cluster of 8 A100 GPUs. Without resource management, jobs compete for the same GPU, one engineer's runaway training job holds a GPU for 12 hours while others wait, and when a job crashes the GPU isn't released .  it sits idle until someone manually frees it. At $30+/hour per GPU, wasted allocation is real money.
+A team of ML engineers shares a cluster of 8 A100 GPUs. Without resource management, jobs compete for the same GPU, one engineer's runaway training job holds a GPU for 12 hours while others wait, and when a job crashes the GPU isn't released. it sits idle until someone manually frees it. At $30+/hour per GPU, wasted allocation is real money.
 
-GPU orchestration means checking which GPUs of the requested type are available, allocating one exclusively for the job, submitting the workload to the allocated GPU, collecting the output (model checkpoints, inference results) when the job finishes, and releasing the GPU so the next job can use it. If the job crashes after allocation but before release, you need guaranteed cleanup .  otherwise the GPU is leaked.
+GPU orchestration means checking which GPUs of the requested type are available, allocating one exclusively for the job, submitting the workload to the allocated GPU, collecting the output (model checkpoints, inference results) when the job finishes, and releasing the GPU so the next job can use it. If the job crashes after allocation but before release, you need guaranteed cleanup. otherwise the GPU is leaked.
 
 ## The Solution
 
 **You write the GPU allocation and job submission logic. Conductor handles sequencing, guaranteed cleanup, and resource tracking.**
 
-`GpuCheckAvailabilityWorker` queries the GPU cluster for available devices of the requested type (A100, V100, T4). `GpuAllocateWorker` reserves one of the available GPUs and returns a GPU ID. `GpuSubmitJobWorker` launches the workload .  loading the model from the specified path onto the allocated GPU, and returns the output path where results will be written. `GpuCollectResultsWorker` retrieves the results from the output path. `GpuReleaseWorker` frees the GPU back to the pool. Conductor ensures the release step always runs after the job completes (or fails), preventing GPU leaks. Every execution records which GPU was used, for how long, and what output it produced.
+`GpuCheckAvailabilityWorker` queries the GPU cluster for available devices of the requested type (A100, V100, T4). `GpuAllocateWorker` reserves one of the available GPUs and returns a GPU ID. `GpuSubmitJobWorker` launches the workload. loading the model from the specified path onto the allocated GPU, and returns the output path where results will be written. `GpuCollectResultsWorker` retrieves the results from the output path. `GpuReleaseWorker` frees the GPU back to the pool. Conductor ensures the release step always runs after the job completes (or fails), preventing GPU leaks. Every execution records which GPU was used, for how long, and what output it produced.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage the GPU resource lifecycle: availability check, allocation, 
 | **GpuReleaseWorker** | `gpu_release` | Returns the allocated GPU back to the pool after the job completes |
 | **GpuSubmitJobWorker** | `gpu_submit_job` | Gpus Submit Job and computes output path, epochs, loss val |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w gpu_orchestration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one GPU lifecycle phase .  replace the simulated NVIDIA queries with real SLURM or Kubernetes device plugin APIs and the allocate-run-release pipeline runs unchanged.
+Each worker handles one GPU lifecycle phase. replace the simulated NVIDIA queries with real SLURM or Kubernetes device plugin APIs and the allocate-run-release pipeline runs unchanged.
 
 - **GpuCheckAvailabilityWorker** (`gpu_check_availability`): query NVIDIA DCGM (`nvidia-smi`), Kubernetes device plugin (`kubectl describe node`), or SLURM (`sinfo -g gpu`) for real GPU availability
 - **GpuSubmitJobWorker** (`gpu_submit_job`): submit real training jobs via SLURM (`sbatch`), Kubernetes Job with GPU resource requests, or AWS Batch with `p4d.24xlarge` instances

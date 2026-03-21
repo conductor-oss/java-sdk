@@ -26,7 +26,7 @@ Five workers drive the ReAct loop. Initializing the question, then iterating thr
 | **ObserveWorker** | `rx_observe` | Observes the result of the action and determines whether the information is useful for answering the question. Always |
 | **ReasonWorker** | `rx_reason` | Reasons about the question and decides what action to take next. Produces a thought, an action type, and a query for  |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

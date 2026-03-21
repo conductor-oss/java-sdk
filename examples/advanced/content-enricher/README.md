@@ -25,7 +25,7 @@ Four workers form the enrichment pipeline: message reception, external data look
 | **EnrichWorker** | `enr_enrich` | Merges lookup fields into the original message, producing a single enriched payload with full customer context |
 | **ForwardWorker** | `enr_forward` | Delivers the enriched message to the downstream queue (e.g., `order_processing_queue`) for fulfillment or analytics |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 

@@ -25,7 +25,7 @@ Four workers demonstrate parallel data aggregation: GetProductWorker, GetInvento
 | **GetReviewsWorker** | `fj_get_reviews` | Returns review data (productId, averageRating, totalReviews, topReview text) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. |
 | **MergeResultsWorker** | `fj_merge_results` | Combines product, inventory, and review data into a single product page with name, price, availability, stock count, rating, and review count. Handles null inputs gracefully with safe defaults. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

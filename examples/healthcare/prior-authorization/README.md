@@ -1,6 +1,6 @@
 # Prior Authorization in Java Using Conductor :  Request Submission, Clinical Criteria Review, Three-Way Decision Routing, and Provider Notification
 
-A Java Conductor workflow example for prior authorization .  submitting authorization requests with clinical justification, reviewing against medical necessity criteria, routing to auto-approve, auto-deny, or manual clinical review via SWITCH, and notifying the provider of the determination. Uses [Conductor](https://github.
+A Java Conductor workflow example for prior authorization. submitting authorization requests with clinical justification, reviewing against medical necessity criteria, routing to auto-approve, auto-deny, or manual clinical review via SWITCH, and notifying the provider of the determination. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic prior auth engine that receives 
 
 **You just write the prior auth workers. Request submission, criteria review, approve/deny/review routing, and provider notification. Conductor handles conditional SWITCH routing between approve, deny, and manual review paths, automatic retries, and timestamped records for regulatory compliance.**
 
-Each stage of the prior authorization process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of submitting before reviewing criteria, routing to the correct decision path (approve, deny, or manual review) via SWITCH, always notifying the provider regardless of which path was taken, and maintaining a complete audit trail with regulatory timeframes. You get all of that, without writing a single line of orchestration code.
+Each stage of the prior authorization process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of submitting before reviewing criteria, routing to the correct decision path (approve, deny, or manual review) via SWITCH, always notifying the provider regardless of which path was taken, and maintaining a complete audit trail with regulatory timeframes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Six workers cover the prior auth process: SubmitRequestWorker intakes the reques
 | **ManualReviewWorker** | `pa_manual_review` | Escalates ambiguous cases to a medical director for peer-to-peer clinical review |
 | **NotifyWorker** | `pa_notify` | Sends the determination (approval with auth number, or denial with reason) to the requesting provider |
 
-Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
+Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations. the workflow and compliance logic stay the same.
 
 ### The Workflow
 

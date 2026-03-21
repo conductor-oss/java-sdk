@@ -1,6 +1,6 @@
 # Implementing SOC2 Automation in Java with Conductor :  Control Collection, Effectiveness Testing, Exception Identification, and Evidence Generation
 
-A Java Conductor workflow example for automating SOC2 compliance .  collecting control implementations, testing their effectiveness, identifying exceptions, and generating example evidence collection workflow.
+A Java Conductor workflow example for automating SOC2 compliance. collecting control implementations, testing their effectiveness, identifying exceptions, and generating example evidence collection workflow.
 
 ## The Problem
 
@@ -10,7 +10,7 @@ Without orchestration, SOC2 compliance is a frantic evidence-gathering exercise 
 
 ## The Solution
 
-Each SOC2 step is an independent worker .  control collection, effectiveness testing, exception identification, and evidence generation. Conductor runs them in sequence: collect controls, test effectiveness, identify exceptions, then generate evidence. Every compliance cycle is tracked, building a continuous compliance record rather than a point-in-time snapshot. You get all of that, without writing a single line of orchestration code.
+Each SOC2 step is an independent worker. control collection, effectiveness testing, exception identification, and evidence generation. Conductor runs them in sequence: collect controls, test effectiveness, identify exceptions, then generate evidence. Every compliance cycle is tracked, building a continuous compliance record rather than a point-in-time snapshot. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,7 +22,7 @@ Three workers automate the SOC2 cycle: CollectControlsWorker gathers control imp
 | **GenerateEvidenceWorker** | `soc2_generate_evidence` | Generates an evidence package for auditors from test results and exception data |
 | **IdentifyExceptionsWorker** | `soc2_identify_exceptions` | Identifies control exceptions (e.g., MFA enforcement gap, backup testing overdue) |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -129,10 +129,10 @@ conductor workflow search -w soc2_automation_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker tackles one compliance phase .  connect CollectControlsWorker to pull from AWS Config and Kubernetes policies, GenerateEvidenceWorker to compile packages in Vanta or Drata, and the collect-test-evidence workflow stays the same.
+Each worker tackles one compliance phase. connect CollectControlsWorker to pull from AWS Config and Kubernetes policies, GenerateEvidenceWorker to compile packages in Vanta or Drata, and the collect-test-evidence workflow stays the same.
 
-- **CollectControlsWorker** (`soc2_collect_controls`): query real control implementations. AWS Config rules, Kubernetes policies, IAM configurations .  via their APIs
-- **GenerateEvidenceWorker** (`soc2_generate_evidence`): compile evidence packages for auditors .  screenshots, configuration exports, test results ,  in a GRC platform (Vanta, Drata)
+- **CollectControlsWorker** (`soc2_collect_controls`): query real control implementations. AWS Config rules, Kubernetes policies, IAM configurations. via their APIs
+- **GenerateEvidenceWorker** (`soc2_generate_evidence`): compile evidence packages for auditors. screenshots, configuration exports, test results,  in a GRC platform (Vanta, Drata)
 - **IdentifyExceptionsWorker** (`soc2_identify_exceptions`): compare test results against SOC2 criteria, flag gaps, and compute a compliance score per trust service criterion
 
 Wire each worker to your GRC platform and cloud config APIs, and the continuous compliance orchestration keeps running with no workflow adjustments.
@@ -168,6 +168,6 @@ soc2-automation-soc2-automation/
 │       ├── GenerateEvidenceWorker.java
 │       └── IdentifyExceptionsWorker.java
 └── src/test/java/soc2automation/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

@@ -25,7 +25,7 @@ Four workers form the CDC pipeline: DetectChangesWorker polls a source table for
 | **PublishDownstreamWorker** | `cd_publish_downstream` | Publishes transformed CDC changes to a downstream topic. Returns fixed message IDs for deterministic behavior. |
 | **TransformChangesWorker** | `cd_transform_changes` | Transforms raw CDC change records into structured event payloads with eventType, entityId, payload, previousPayload,  |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
 ### The Workflow
 

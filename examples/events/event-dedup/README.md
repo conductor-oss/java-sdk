@@ -1,6 +1,6 @@
 # Event Dedup in Java Using Conductor
 
-Event deduplication workflow .  computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. Uses [Conductor](https://github.
+Event deduplication workflow. computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd maintain a deduplication cache (in-memory set, Redi
 
 **You just write the hash-computation, seen-check, event-processing, and skip workers. Conductor handles SWITCH-based duplicate routing, guaranteed dedup decisions, and a full record of every event's dedup outcome.**
 
-Each deduplication concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of computing the hash, checking the dedup store, routing via a SWITCH task to process or skip, and tracking every event's dedup decision. You get all of that, without writing a single line of orchestration code.
+Each deduplication concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of computing the hash, checking the dedup store, routing via a SWITCH task to process or skip, and tracking every event's dedup decision. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers enforce exactly-once event processing: ComputeHashWorker generates 
 | **ProcessEventWorker** | `dd_process_event` | Processes a new (non-duplicate) event. |
 | **SkipEventWorker** | `dd_skip_event` | Skips a duplicate (or unknown-status) event. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

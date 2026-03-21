@@ -39,7 +39,7 @@ Six workers form the saga: ReserveHotelWorker, BookFlightWorker, and ChargePayme
 | **RefundPaymentWorker** | `saga_refund_payment` | Compensation: refunds a previously charged payment. Returns `{refunded: true}`. Registered but not used in the current workflow (payment failure prevents a charge from existing). |
 | **ReserveHotelWorker** | `saga_reserve_hotel` | Reserves a hotel room for the given tripId, returns a reservation ID like `HTL-TRIP-001`. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 

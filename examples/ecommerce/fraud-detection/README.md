@@ -26,7 +26,7 @@ Risk signal workers run in parallel. Rule checks, ML scoring, and velocity detec
 | `VelocityCheckWorker` | `frd_velocity_check` | Checks transaction velocity patterns: rapid succession, unusual volume, and geographic anomaly flags. Returns overall `velocityResult` (`normal` / `elevated` / `suspicious`) and per-flag details |
 | `DecideWorker` | `frd_decide` | Combines rule result, ML fraud score, and velocity result into a final APPROVE / REVIEW / BLOCK decision with risk score and reason |
 
-Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### Decision Semantics
 

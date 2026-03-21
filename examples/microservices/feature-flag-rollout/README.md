@@ -12,7 +12,7 @@ Without orchestration, feature flag rollouts are ad-hoc: an engineer creates a f
 
 **You just write the flag creation, segment targeting, impact monitoring, and rollout workers. Conductor handles staged flag lifecycle execution, durable monitoring windows, and a complete rollout audit trail.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the flag lifecycle: CreateFlagWorker provisions the flag, En
 | **FullRolloutWorker** | `ff_full_rollout` | Fully activates the flag for all users if monitoring shows healthy metrics, or rolls back if not. |
 | **MonitorImpactWorker** | `ff_monitor_impact` | Monitors the flag's impact on conversion rate and error rate during a timed window. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

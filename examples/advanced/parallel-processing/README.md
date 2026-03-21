@@ -1,10 +1,10 @@
 # Parallel Chunk Processing in Java Using Conductor :  Split, Process in Parallel, Merge
 
-A Java Conductor workflow example for parallel data processing .  splitting a dataset into chunks based on a configurable chunk size, processing each chunk simultaneously via `FORK_JOIN`, and merging the per-chunk results into a single output. Uses [Conductor](https://github.
+A Java Conductor workflow example for parallel data processing. splitting a dataset into chunks based on a configurable chunk size, processing each chunk simultaneously via `FORK_JOIN`, and merging the per-chunk results into a single output. Uses [Conductor](https://github.
 
 ## Processing Large Datasets Sequentially Wastes Time
 
-A 10 GB CSV file needs to be processed .  parsing rows, applying transformations, computing aggregates. Doing it sequentially takes an hour. Splitting it into three chunks and processing them in parallel takes 20 minutes, but you need to manage the chunking logic, wait for all three to finish, handle a chunk that fails while the others succeed, and merge the partial results into a coherent whole.
+A 10 GB CSV file needs to be processed. parsing rows, applying transformations, computing aggregates. Doing it sequentially takes an hour. Splitting it into three chunks and processing them in parallel takes 20 minutes, but you need to manage the chunking logic, wait for all three to finish, handle a chunk that fails while the others succeed, and merge the partial results into a coherent whole.
 
 Building parallel processing with raw threads means managing a thread pool, implementing a barrier to wait for all chunks, retrying failed chunks without redoing successful ones, and merging heterogeneous partial results. Each concern is simple alone, but combining them reliably is where the complexity lives.
 
@@ -12,7 +12,7 @@ Building parallel processing with raw threads means managing a thread pool, impl
 
 **You write the chunking and per-partition logic. Conductor handles parallel execution, per-chunk retries, and result merging.**
 
-`PprSplitWorkWorker` divides the dataset into chunks based on the configured chunk size. A `FORK_JOIN` processes all three chunks in parallel .  `PprChunk1Worker`, `PprChunk2Worker`, and `PprChunk3Worker` each handle their assigned partition independently. The `JOIN` waits for all three to complete. `PprMergeWorker` combines the per-chunk outputs into a single merged result. Conductor handles the parallel fan-out, retries any failed chunk independently, and tracks per-chunk timing so you can identify slow partitions.
+`PprSplitWorkWorker` divides the dataset into chunks based on the configured chunk size. A `FORK_JOIN` processes all three chunks in parallel. `PprChunk1Worker`, `PprChunk2Worker`, and `PprChunk3Worker` each handle their assigned partition independently. The `JOIN` waits for all three to complete. `PprMergeWorker` combines the per-chunk outputs into a single merged result. Conductor handles the parallel fan-out, retries any failed chunk independently, and tracks per-chunk timing so you can identify slow partitions.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers implement the split-process-merge pattern: data chunking, three par
 | **PprMergeWorker** | `ppr_merge` | Combines results from all three parallel chunks into a single merged output |
 | **PprSplitWorkWorker** | `ppr_split_work` | Divides the input data into three equal chunks for parallel processing |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -134,10 +134,10 @@ conductor workflow search -w ppr_parallel_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker processes one data chunk independently .  replace the simulated transformations with real ETL or batch processing logic and the parallel split-process-merge pipeline runs unchanged.
+Each worker processes one data chunk independently. replace the simulated transformations with real ETL or batch processing logic and the parallel split-process-merge pipeline runs unchanged.
 
 - **PprSplitWorkWorker** (`ppr_split_work`): implement real chunking: split files by byte offset, partition database tables by ID range, or use Spark's partitioning to create balanced chunks
-- **PprChunk*Workers** (`ppr_chunk_1/2/3`) .  run real per-chunk processing: ETL transformations, image resizing batches, or ML inference on data partitions using your compute framework of choice
+- **PprChunk*Workers** (`ppr_chunk_1/2/3`). run real per-chunk processing: ETL transformations, image resizing batches, or ML inference on data partitions using your compute framework of choice
 - **PprMergeWorker** (`ppr_merge`): merge real outputs: concatenate processed CSV files, union database result sets, or aggregate per-chunk metrics into global totals
 
 The per-chunk result contract stays fixed. Swap the simulated transformation for real Spark or pandas processing and the split-merge pipeline runs unchanged.

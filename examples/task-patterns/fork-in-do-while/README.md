@@ -1,6 +1,6 @@
 # Fork In Do While in Java with Conductor
 
-FORK inside DO_WHILE demo .  iterative parallel processing. Each iteration forks parallel batch-processing tasks, then a summary task reports after the loop. Uses [Conductor](https://github.
+FORK inside DO_WHILE demo. iterative parallel processing. Each iteration forks parallel batch-processing tasks, then a summary task reports after the loop. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd write a for-loop around a thread pool, submitting p
 
 **You just write the per-batch processing and summary workers. Conductor handles the loop iteration, parallel forking within each iteration, and checkpointing.**
 
-This example demonstrates combining Conductor's DO_WHILE loop with FORK_JOIN inside the loop body .  iterative parallel processing. Each iteration of the loop forks parallel batch-processing tasks via FORK_JOIN, and a JOIN task waits for all parallel branches to complete before the loop condition is evaluated. The ProcessBatchWorker handles each parallel task within an iteration, returning a batchId and processing status. After the loop exits (when iteration >= totalBatches), the SummaryWorker aggregates results from all iterations into a final report. Conductor checkpoints every iteration, so if the process crashes on batch 3 of 5, it resumes from batch 3 ,  batches 1 and 2 are not re-processed.
+This example demonstrates combining Conductor's DO_WHILE loop with FORK_JOIN inside the loop body. iterative parallel processing. Each iteration of the loop forks parallel batch-processing tasks via FORK_JOIN, and a JOIN task waits for all parallel branches to complete before the loop condition is evaluated. The ProcessBatchWorker handles each parallel task within an iteration, returning a batchId and processing status. After the loop exits (when iteration >= totalBatches), the SummaryWorker aggregates results from all iterations into a final report. Conductor checkpoints every iteration, so if the process crashes on batch 3 of 5, it resumes from batch 3,  batches 1 and 2 are not re-processed.
 
 ### What You Write: Workers
 
@@ -23,7 +23,7 @@ Two workers handle iterative parallel processing: ProcessBatchWorker runs within
 | **ProcessBatchWorker** | `fl_process_batch` | Processes a batch within the DO_WHILE loop. Takes the current iteration number and returns a batchId along with a pro... |
 | **SummaryWorker** | `fl_summary` | Summarizes the results after the DO_WHILE loop completes. Takes the iterations count and produces a summary string. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

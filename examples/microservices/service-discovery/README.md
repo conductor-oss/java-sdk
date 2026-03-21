@@ -12,7 +12,7 @@ Without orchestration, service discovery is embedded in each client using librar
 
 **You just write the discovery, instance-selection, service-call, and failover workers. Conductor handles discovery-to-call sequencing, per-call timeout enforcement, and a full record of instance selection decisions.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle dynamic service resolution: DiscoverServicesWorker queries t
 | **HandleFailoverWorker** | `sd_handle_failover` | Handles failover if the service call failed. |
 | **SelectInstanceWorker** | `sd_select_instance` | Selects the best service instance based on strategy (least-connections). |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

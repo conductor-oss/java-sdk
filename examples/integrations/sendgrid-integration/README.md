@@ -1,10 +1,10 @@
 # Sendgrid Integration in Java Using Conductor
 
-A Java Conductor workflow that sends personalized emails via SendGrid .  composing an email from a template, personalizing it for a specific recipient, sending it through the SendGrid API, and enabling open tracking. Given a template ID, campaign ID, and recipient details, the pipeline produces a personalized email, delivery confirmation, and tracking status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the compose-personalize-send-track pipeline.
+A Java Conductor workflow that sends personalized emails via SendGrid. composing an email from a template, personalizing it for a specific recipient, sending it through the SendGrid API, and enabling open tracking. Given a template ID, campaign ID, and recipient details, the pipeline produces a personalized email, delivery confirmation, and tracking status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the compose-personalize-send-track pipeline.
 
 ## Sending Personalized Campaign Emails with Tracking
 
-Sending a marketing email involves more than calling a send API. You need to load the email template, personalize it for the recipient (inserting their name, customizing the subject line, tailoring the content), send it through SendGrid, and set up tracking so you know who opens the email. Each step depends on the previous one .  you cannot personalize without a template, and you cannot track without a message ID from the send step.
+Sending a marketing email involves more than calling a send API. You need to load the email template, personalize it for the recipient (inserting their name, customizing the subject line, tailoring the content), send it through SendGrid, and set up tracking so you know who opens the email. Each step depends on the previous one. you cannot personalize without a template, and you cannot track without a message ID from the send step.
 
 Without orchestration, you would chain SendGrid API calls manually, manage template objects and message IDs between steps, and build custom tracking setup logic. Conductor sequences the pipeline and routes templates, personalized content, and message IDs between workers automatically.
 

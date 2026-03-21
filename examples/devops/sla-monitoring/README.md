@@ -25,7 +25,7 @@ Four workers run the SLA monitoring cycle. Measuring service level indicators, c
 | **EvaluateComplianceWorker** | `sla_evaluate_compliance` | Determines whether the service is currently within SLA compliance based on error budget |
 | **ReportWorker** | `sla_report` | Generates an SLA compliance report for stakeholders with budget status and trend data |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w sla_monitoring_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one SLA monitoring step .  plug in Prometheus for SLI collection, Datadog for error budget tracking, or Grafana for stakeholder dashboards, and the monitoring workflow runs unchanged.
+Each worker handles one SLA monitoring step. plug in Prometheus for SLI collection, Datadog for error budget tracking, or Grafana for stakeholder dashboards, and the monitoring workflow runs unchanged.
 
 - **CollectSlisWorker** (`sla_collect_slis`): query Prometheus for availability and latency SLIs, pull from Datadog SLI API, or aggregate CloudWatch metrics for uptime and response time measurements
 - **CalculateBudgetWorker** (`sla_calculate_budget`): compute error budgets using Prometheus recording rules, Datadog SLO widgets, or Google Cloud SLO Monitoring, tracking burn rate against the monthly/quarterly budget window
@@ -173,6 +173,6 @@ sla-monitoring-sla-monitoring/
 │       ├── EvaluateComplianceWorker.java
 │       └── ReportWorker.java
 └── src/test/java/slamonitoring/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

@@ -25,7 +25,7 @@ Four workers handle the ML feature pipeline: extracting raw features from source
 | **TransformFeaturesWorker** | `fe_transform_features` | Transforms features by adding derived features (log, polynomial, ratio). |
 | **ValidateFeaturesWorker** | `fe_validate_features` | Validates normalized features are in [0,1] range with no nulls. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

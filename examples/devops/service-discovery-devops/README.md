@@ -25,7 +25,7 @@ Four workers manage service registration. Registering the instance, running heal
 | `UpdateRoutingWorker` | `sd_update_routing` | Updates load balancer and routing tables to include the new healthy instance |
 | `NotifyConsumersWorker` | `sd_notify_consumers` | Notifies downstream consumers via webhook that a new service endpoint is available |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### The Workflow
 

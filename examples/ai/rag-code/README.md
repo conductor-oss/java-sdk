@@ -1,6 +1,6 @@
 # Code RAG in Java Using Conductor :  Language-Aware Code Search and Answer Generation
 
-A Java Conductor workflow that implements RAG specifically for code .  parsing the natural language question to identify programming language and intent, embedding the query with code-aware representations, searching a code index for relevant functions/classes/snippets, and generating a code-grounded answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query parsing, code embedding, index search, and generation as independent workers ,  you write the code search logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG specifically for code. parsing the natural language question to identify programming language and intent, embedding the query with code-aware representations, searching a code index for relevant functions/classes/snippets, and generating a code-grounded answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate query parsing, code embedding, index search, and generation as independent workers,  you write the code search logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Code Search Is Not Text Search
 
@@ -12,11 +12,11 @@ The pipeline has four steps: parse the natural language query to extract languag
 
 **You write the query parsing, code-aware embedding, and code index search logic. Conductor handles the pipeline, retries, and observability.**
 
-Each stage is an independent worker .  query parsing (extracting language and intent), code-aware embedding, code index search, and answer generation with code snippets. Conductor sequences them, retries the search if the index is temporarily unavailable, and tracks every query with the parsed intent, retrieved code snippets, and generated answer.
+Each stage is an independent worker. query parsing (extracting language and intent), code-aware embedding, code index search, and answer generation with code snippets. Conductor sequences them, retries the search if the index is temporarily unavailable, and tracks every query with the parsed intent, retrieved code snippets, and generated answer.
 
 ### What You Write: Workers
 
-Four workers handle code-aware retrieval .  parsing the natural language query for language and intent, embedding the code-specific query, searching a code index with language-aware filtering, and generating an answer that includes code snippets with syntax context.
+Four workers handle code-aware retrieval. parsing the natural language query for language and intent, embedding the code-specific query, searching a code index with language-aware filtering, and generating an answer that includes code snippets with syntax context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -25,7 +25,7 @@ Four workers handle code-aware retrieval .  parsing the natural language query f
 | **ParseQueryWorker** | `cr_parse_query` | Worker that parses a code-related question to extract intent, keywords, and language. Returns a fixed parsed intent o... |
 | **SearchCodeIndexWorker** | `cr_search_code_index` | Worker that searches a code index using the embedding vector and code filter. Returns 3 fixed code snippets with id, ... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -133,14 +133,14 @@ conductor workflow search -w code_rag_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one code search concern .  swap in code-specific embeddings like CodeBERT or StarCoder, connect a code index with language and framework metadata, and the parse-embed-search-generate pipeline runs unchanged.
+Each worker handles one code search concern. swap in code-specific embeddings like CodeBERT or StarCoder, connect a code index with language and framework metadata, and the parse-embed-search-generate pipeline runs unchanged.
 
 - **ParseQueryWorker** (`cr_parse_query`): use an LLM (GPT-4, Claude) or spaCy NER to extract programming intent, language, and keywords from natural-language code questions
 - **EmbedCodeQueryWorker** (`cr_embed_code_query`): embed code queries using a code-specialized model (OpenAI Codex embeddings, Voyage Code, or StarCoder embeddings) for better code search relevance
 - **SearchCodeIndexWorker** (`cr_search_code_index`): query a code search index (Sourcegraph, GitHub Code Search API, or a custom tree-sitter + vector DB index) to retrieve relevant code snippets with AST context
 - **GenerateCodeAnswerWorker** (`cr_generate_code_answer`): call a code-specialized LLM (GPT-4, Claude, or CodeLlama) with retrieved code snippets as context to generate accurate, runnable code answers
 
-Each worker's code-search contract is fixed .  add support for new languages, swap the code embedding model, or change the index backend without modifying the workflow.
+Each worker's code-search contract is fixed. add support for new languages, swap the code embedding model, or change the index backend without modifying the workflow.
 
 ## SDK
 

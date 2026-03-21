@@ -26,7 +26,7 @@ Five workers cover the full aggregation lifecycle: loading records, grouping by 
 | **GroupByDimensionWorker** | `agg_group_by_dimension` | Groups records by a specified dimension field. |
 | **LoadDataWorker** | `agg_load_data` | Loads input records and passes them through with a count. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

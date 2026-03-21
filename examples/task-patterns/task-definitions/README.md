@@ -1,6 +1,6 @@
 # Task Definitions in Java with Conductor
 
-Task definitions test .  runs td_fast_task to verify task definition configuration. Uses [Conductor](https://github.
+Task definitions test. runs td_fast_task to verify task definition configuration. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -22,7 +22,7 @@ One intentionally trivial worker demonstrates task definition configuration: Fas
 |---|---|---|
 | **FastTaskWorker** | `td_fast_task` | Fast task worker for the task_def_test workflow. Simply returns { done: true } to confirm the task definition is work... |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

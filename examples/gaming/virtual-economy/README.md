@@ -4,15 +4,15 @@ Processes virtual economy transactions: recording the transaction, validating ba
 
 ## The Problem
 
-You need to process a virtual economy transaction in your game .  a purchase, sale, trade, or currency conversion. The transaction must be recorded, validated for sufficient balance and item ownership, the sender and receiver balances updated atomically, an audit record created for fraud detection, and a transaction report generated. Processing transactions without validation enables item duplication and currency exploits; missing audit records makes fraud investigation impossible.
+You need to process a virtual economy transaction in your game. a purchase, sale, trade, or currency conversion. The transaction must be recorded, validated for sufficient balance and item ownership, the sender and receiver balances updated atomically, an audit record created for fraud detection, and a transaction report generated. Processing transactions without validation enables item duplication and currency exploits; missing audit records makes fraud investigation impossible.
 
-Without orchestration, you'd handle transactions in a single database transaction with validation, balance updates, and audit logging .  manually ensuring atomicity across player accounts, handling concurrent transactions on the same account, and maintaining economy health metrics.
+Without orchestration, you'd handle transactions in a single database transaction with validation, balance updates, and audit logging. manually ensuring atomicity across player accounts, handling concurrent transactions on the same account, and maintaining economy health metrics.
 
 ## The Solution
 
 **You just write the transaction recording, balance validation, currency transfer, audit logging, and settlement reporting logic. Conductor handles transaction validation retries, balance reconciliation, and economy audit trails.**
 
-Each economy concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (transaction, validate, update balance, audit, report), retrying if the database is temporarily unavailable, tracking every transaction with full audit trail, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each economy concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (transaction, validate, update balance, audit, report), retrying if the database is temporarily unavailable, tracking every transaction with full audit trail, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Currency minting, transaction validation, balance updates, and audit logging wor
 | **UpdateBalanceWorker** | `vec_update_balance` | Updates the player's balance by adding the transaction amount and returns old and new balances |
 | **ValidateWorker** | `vec_validate` | Validates the transaction by checking rate limits and value limits for the currency |
 
-Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
+Workers implement game backend operations. matchmaking, score processing, reward distribution,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w virtual_economy_750 -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real economy services .  your transaction ledger for recording, your balance service for atomic updates, your fraud detection system for audit trails, and the workflow runs identically in production.
+Wire each worker to your real economy services. your transaction ledger for recording, your balance service for atomic updates, your fraud detection system for audit trails, and the workflow runs identically in production.
 
 - **Transaction handler**: record the transaction request with type (purchase, sale, trade, gift) and involved currencies/items
 - **Validator**: check sufficient balance, item ownership, trade restrictions, and anti-fraud rules (velocity checks, value limits)

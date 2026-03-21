@@ -28,7 +28,7 @@ Five workers orchestrate the test lifecycle. Fixture setup, workflow execution a
 | **TeardownWorker** | `wft_teardown` | Releases all fixture resources: mockDb, mockApi, testData. Reports cleanup status. |
 | **ReportWorker** | `wft_report` | Computes the test report from the assertion list: counts total and passed assertions, determines overall PASSED/FAILED verdict, includes teardown status. |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 

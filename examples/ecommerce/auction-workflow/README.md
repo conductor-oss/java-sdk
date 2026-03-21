@@ -4,7 +4,7 @@ Auction workflow: open bidding, collect bids, close, determine winner, settle. U
 
 ## Auctions Have Strict Lifecycle Rules
 
-An auction for a vintage watch starts at $500. Bids arrive over the next 24 hours. The auction must close at exactly the scheduled time .  not a second early or late. The highest valid bid wins, but only if it meets the reserve price. The winner's payment must be processed, the seller must be notified with the final price, and the item must be marked as sold.
+An auction for a vintage watch starts at $500. Bids arrive over the next 24 hours. The auction must close at exactly the scheduled time. not a second early or late. The highest valid bid wins, but only if it meets the reserve price. The winner's payment must be processed, the seller must be notified with the final price, and the item must be marked as sold.
 
 Each stage has specific timing and validation requirements. Bidding can only happen during the open period. Each bid must be validated (is the bidder registered? Does the bid exceed the current highest?). The closing must be deterministic. Winner determination must handle edge cases (tied bids, reserve not met). Settlement must charge the winner and release the item to escrow. If payment fails, the next highest bidder should be contacted.
 
@@ -12,7 +12,7 @@ Each stage has specific timing and validation requirements. Bidding can only hap
 
 **You just write the bidding, auction closing, winner determination, and settlement logic. Conductor handles bid timing, settlement retries, and complete auction audit trails.**
 
-`OpenBiddingWorker` initializes the auction with item details, starting price, reserve price, and duration. `CollectBidsWorker` accepts and validates bids during the bidding period .  checking bidder eligibility, bid amount validity, and incrementing the current price. `CloseAuctionWorker` closes bidding at the scheduled time and locks the bid list. `DetermineWinnerWorker` identifies the highest valid bid, checks against the reserve price, and declares the winner. `SettleWorker` processes payment from the winner, notifies all parties, and updates the item status. Conductor sequences these stages and records every bid for auction transparency.
+`OpenBiddingWorker` initializes the auction with item details, starting price, reserve price, and duration. `CollectBidsWorker` accepts and validates bids during the bidding period. checking bidder eligibility, bid amount validity, and incrementing the current price. `CloseAuctionWorker` closes bidding at the scheduled time and locks the bid list. `DetermineWinnerWorker` identifies the highest valid bid, checks against the reserve price, and declares the winner. `SettleWorker` processes payment from the winner, notifies all parties, and updates the item status. Conductor sequences these stages and records every bid for auction transparency.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Bidding, closing, winner determination, and settlement workers operate on auctio
 | **OpenBiddingWorker** | `auc_open_bidding` | Performs the open bidding operation |
 | **SettleAuctionWorker** | `auc_settle` | Performs the settle auction operation |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w auction_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real auction systems .  your bidding engine for real-time bid processing, Stripe for winner payment, your notification service for party alerts, and the workflow runs identically in production.
+Connect each worker to your real auction systems. your bidding engine for real-time bid processing, Stripe for winner payment, your notification service for party alerts, and the workflow runs identically in production.
 
 - **OpenBiddingWorker** (`auc_open_bidding`): publish the auction listing to the marketplace, set the opening price and reserve, and start accepting bids via the bidding API
 - **CollectBidsWorker** (`auc_collect_bids`): integrate with a real-time WebSocket server for live bid updates, or use Redis sorted sets for atomic bid comparison and insertion

@@ -1,6 +1,6 @@
 # Claim Check Pattern in Java Using Conductor :  Offload Large Payloads, Pass by Reference
 
-A Java Conductor workflow example for the claim check pattern .  storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.
+A Java Conductor workflow example for the claim check pattern. storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.
 
 ## Keeping Large Payloads Out of Your Message Bus
 
@@ -12,7 +12,7 @@ The challenge is coordinating the store-reference-retrieve lifecycle reliably. I
 
 **You write the storage and retrieval logic. Conductor handles the reference passing, retries, and payload lineage.**
 
-`StorePayloadWorker` writes the large payload to external storage and returns a lightweight claim check ID plus the storage location and payload size in bytes. `PassReferenceWorker` forwards just the claim check ID through the pipeline .  no bulky data, just a pointer. `RetrieveWorker` fetches the full payload from storage using the claim check reference. `ProcessWorker` operates on the retrieved data (e.g., computing metric averages). Conductor ensures the chain executes in order, retries any failed retrieve or store operation, and records the claim check ID at every step so you can trace payload lineage.
+`StorePayloadWorker` writes the large payload to external storage and returns a lightweight claim check ID plus the storage location and payload size in bytes. `PassReferenceWorker` forwards just the claim check ID through the pipeline. no bulky data, just a pointer. `RetrieveWorker` fetches the full payload from storage using the claim check reference. `ProcessWorker` operates on the retrieved data (e.g., computing metric averages). Conductor ensures the chain executes in order, retries any failed retrieve or store operation, and records the claim check ID at every step so you can trace payload lineage.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the store-reference-retrieve lifecycle: payload storage, ref
 | **RetrieveWorker** | `clc_retrieve` | Retrieves the full payload from storage using the claim check reference. |
 | **StorePayloadWorker** | `clc_store_payload` | Stores a large payload in external storage and returns a lightweight claim check reference. |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w clc_claim_check -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one part of the store-reference-retrieve lifecycle .  replace the simulated blob storage calls with real S3 or Azure Blob APIs and the claim check pipeline runs unchanged.
+Each worker handles one part of the store-reference-retrieve lifecycle. replace the simulated blob storage calls with real S3 or Azure Blob APIs and the claim check pipeline runs unchanged.
 
 - **StorePayloadWorker** (`clc_store_payload`): upload to S3 (`s3.putObject()`), Azure Blob Storage, or GCS and return the object key as the claim check ID
 - **RetrieveWorker** (`clc_retrieve`): download from S3 (`s3.getObject()`), generate a presigned URL, or stream the payload directly to the processing step

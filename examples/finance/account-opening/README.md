@@ -26,7 +26,7 @@ Five workers cover the onboarding pipeline: CollectInfoWorker gathers identity d
 | **VerifyIdentityWorker** | `acc_verify_identity` | Verifies the applicant's identity using KYC document checks |
 | **WelcomeWorker** | `acc_welcome` | Sends the welcome package to the new account holder. Includes debit card, checks, online banking enrollment, and mobile app setup |
 
-Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # Escalation Timer in Java Using Conductor :  Request Submission, WAIT with Timeout for Auto-Approval, and Decision Processing
 
-A Java Conductor workflow example demonstrating timeout-based auto-approval .  submitting a request, pausing at a WAIT task for human approval, and auto-approving if the approver does not respond within the configured deadline. The process worker handles both human-approved and auto-approved decisions identically, recording the method (human vs, auto) for audit purposes. Uses [Conductor](https://github.
+A Java Conductor workflow example demonstrating timeout-based auto-approval. submitting a request, pausing at a WAIT task for human approval, and auto-approving if the approver does not respond within the configured deadline. The process worker handles both human-approved and auto-approved decisions identically, recording the method (human vs, auto) for audit purposes. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -10,7 +10,7 @@ Pending approvals that sit indefinitely block business processes. If an approver
 
 **You just write the request-submission and decision-processing workers. Conductor handles the timed wait and the auto-approval when the deadline expires.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,11 +18,11 @@ SubmitWorker prepares the request with a deadline, and ProcessWorker handles bot
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **SubmitWorker** | `et_submit` | Submits the request for approval .  validates the request ID, records the auto-approve deadline, and marks it as ready for the WAIT task |
-| *WAIT task* | `approval_wait` | Pauses for the approver's decision; an external timer checks the deadline and auto-completes the task with `{ "decision": "approved", "method": "auto" }` if no human acts in time | Built-in Conductor WAIT .  no worker needed |
-| **ProcessWorker** | `et_process` | Processes the approval decision .  records whether it came from a human or auto-approval, flags auto-approved items for audit review, and triggers downstream actions |
+| **SubmitWorker** | `et_submit` | Submits the request for approval. validates the request ID, records the auto-approve deadline, and marks it as ready for the WAIT task |
+| *WAIT task* | `approval_wait` | Pauses for the approver's decision; an external timer checks the deadline and auto-completes the task with `{ "decision": "approved", "method": "auto" }` if no human acts in time | Built-in Conductor WAIT. no worker needed |
+| **ProcessWorker** | `et_process` | Processes the approval decision. records whether it came from a human or auto-approval, flags auto-approved items for audit review, and triggers downstream actions |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -126,7 +126,7 @@ conductor workflow search -w escalation_timer_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one end of the timeout flow .  swap in your request system for submission and your SLA enforcement service for decision processing, and the auto-approval-on-timeout workflow stays the same.
+Each worker handles one end of the timeout flow. swap in your request system for submission and your SLA enforcement service for decision processing, and the auto-approval-on-timeout workflow stays the same.
 
 - **ProcessWorker** (`et_process`): route the decision to downstream systems. If auto-approved, flag it for audit review; if human-approved, proceed with standard fulfillment
 - **SubmitWorker** (`et_submit`): enrich the submission with SLA deadlines from a configuration database and notify the approver via email/Slack/push notification

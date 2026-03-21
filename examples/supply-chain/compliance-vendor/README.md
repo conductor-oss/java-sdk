@@ -1,6 +1,6 @@
 # Vendor Compliance Management in Java with Conductor :  Assessment, Audit, Certification, and Ongoing Monitoring
 
-A Java Conductor workflow example for vendor compliance management .  assessing a vendor's adherence to standards like ISO 27001, conducting formal audits of their controls and practices, issuing or renewing compliance certifications, and setting up ongoing monitoring for compliance drift. Uses [Conductor](https://github.
+A Java Conductor workflow example for vendor compliance management. assessing a vendor's adherence to standards like ISO 27001, conducting formal audits of their controls and practices, issuing or renewing compliance certifications, and setting up ongoing monitoring for compliance drift. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, compliance assessments live in spreadsheets, audit findin
 
 **You just write the compliance workers. Posture assessment, controls audit, certification issuance, and drift monitoring. Conductor handles step sequencing, automatic retries, and tamper-evident records for regulatory evidence.**
 
-Each stage of the vendor compliance lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so assessment results feed the audit scope, audit findings determine certification eligibility, and monitoring is configured based on the certification terms. If the audit worker fails mid-evaluation, Conductor retries without losing assessment data. Every assessment score, audit finding, certification decision, and monitoring configuration is recorded with timestamps for regulatory evidence.
+Each stage of the vendor compliance lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so assessment results feed the audit scope, audit findings determine certification eligibility, and monitoring is configured based on the certification terms. If the audit worker fails mid-evaluation, Conductor retries without losing assessment data. Every assessment score, audit finding, certification decision, and monitoring configuration is recorded with timestamps for regulatory evidence.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the vendor compliance lifecycle: AssessWorker evaluates post
 | **CertifyWorker** | `vcm_certify` | Issues or renews a compliance certification based on audit results. |
 | **MonitorWorker** | `vcm_monitor` | Configures ongoing monitoring to detect compliance drift before the next audit cycle. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

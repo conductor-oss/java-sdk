@@ -1,10 +1,10 @@
 # Implementing Fallback Tasks in Java with Conductor :  Primary API, Secondary API, and Cache Lookup
 
-A Java Conductor workflow example demonstrating tiered fallback .  trying a primary API first, falling back to a secondary API if the primary is unavailable, and ultimately serving from cache if both APIs are down.
+A Java Conductor workflow example demonstrating tiered fallback. trying a primary API first, falling back to a secondary API if the primary is unavailable, and ultimately serving from cache if both APIs are down.
 
 ## The Problem
 
-You depend on an external API for critical data, but it's not always available. You need a tiered fallback strategy: try the primary API first, fall back to a secondary API (different provider, different region) if the primary is down, and serve cached/stale data as a last resort. The user should always get a response .  the quality may degrade, but the system never returns an error.
+You depend on an external API for critical data, but it's not always available. You need a tiered fallback strategy: try the primary API first, fall back to a secondary API (different provider, different region) if the primary is down, and serve cached/stale data as a last resort. The user should always get a response. the quality may degrade, but the system never returns an error.
 
 Without orchestration, fallback logic nests into deeply indented try/catch chains. The secondary API call is buried inside the primary's catch block, and the cache lookup is inside the secondary's catch block. Each layer adds complexity, and it's impossible to tell at a glance which data source actually served a given request.
 
@@ -12,7 +12,7 @@ Without orchestration, fallback logic nests into deeply indented try/catch chain
 
 **You just write the primary, secondary, and cache lookup logic. Conductor handles SWITCH-based fallback routing through the tiered chain, retries at each level, and a record of every request showing which data source ultimately served the response.**
 
-The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked .  you can see which data source served each response and how far down the fallback chain it went. You get all of that, without writing a single line of orchestration code.
+The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked. you can see which data source served each response and how far down the fallback chain it went. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ PrimaryApiWorker tries the preferred data source first, SecondaryApiWorker serve
 | **PrimaryApiWorker** | `fb_primary_api` | Primary API worker (fb_primary_api). Calls the primary data source. |
 | **SecondaryApiWorker** | `fb_secondary_api` | Secondary API worker (fb_secondary_api). Fallback API data source. Always succeeds. Returns: source = "secondary" d.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -127,9 +127,9 @@ conductor workflow search -w fallback_tasks_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls one data source .  connect the primary worker to your main API, the secondary worker to a backup provider or different region, the cache worker to Redis or Memcached, and the primary-secondary-cache fallback chain stays the same.
+Each worker calls one data source. connect the primary worker to your main API, the secondary worker to a backup provider or different region, the cache worker to Redis or Memcached, and the primary-secondary-cache fallback chain stays the same.
 
-- **CacheLookupWorker** (`fb_cache_lookup`): serve from Redis/Memcached/local cache .  stale data is better than no data for most read operations
+- **CacheLookupWorker** (`fb_cache_lookup`): serve from Redis/Memcached/local cache. stale data is better than no data for most read operations
 - **PrimaryApiWorker** (`fb_primary_api`): call your primary data provider (production database, main API endpoint, preferred vendor)
 - **SecondaryApiWorker** (`fb_secondary_api`): call your backup data source (read replica, secondary vendor, different AWS region)
 

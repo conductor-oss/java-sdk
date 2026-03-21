@@ -1,10 +1,10 @@
 # Multi-Cluster Processing in Java Using Conductor :  Partition Data, Process in Parallel Across Clusters, Aggregate
 
-A Java Conductor workflow example for multi-cluster data processing .  preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.
+A Java Conductor workflow example for multi-cluster data processing. preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.
 
 ## One Cluster Is Not Enough
 
-Your dataset has grown beyond what a single cluster can process in the required time window. You need to split the workload across clusters in different regions .  sending partition A to us-east-1 and partition B to us-west-2 ,  then merge the results. This cuts processing time in half, adds geographic redundancy, and keeps data closer to regional users.
+Your dataset has grown beyond what a single cluster can process in the required time window. You need to split the workload across clusters in different regions. sending partition A to us-east-1 and partition B to us-west-2,  then merge the results. This cuts processing time in half, adds geographic redundancy, and keeps data closer to regional users.
 
 Coordinating multi-cluster processing means partitioning the data correctly, dispatching each partition to the right cluster, waiting for both to finish (while handling the case where one cluster is slower or fails), and merging results that may have different schemas or record counts. Building this with scripts that SSH into different clusters becomes unmanageable.
 
@@ -12,7 +12,7 @@ Coordinating multi-cluster processing means partitioning the data correctly, dis
 
 **You write the per-cluster processing logic. Conductor handles parallel dispatch, cross-region retries, and result aggregation.**
 
-`MclPrepareWorker` takes the dataset size, partitions it into two halves, and returns the partition references. A `FORK_JOIN` dispatches both partitions simultaneously .  `MclClusterEastWorker` processes partition A on us-east-1 while `MclClusterWestWorker` processes partition B on us-west-2. The `JOIN` waits for both clusters to complete. `MclAggregateWorker` merges the per-cluster results and record counts into a single output. Conductor handles the parallel dispatch, retries if one cluster's processing fails, and records per-cluster metrics so you can compare processing times and identify regional bottlenecks.
+`MclPrepareWorker` takes the dataset size, partitions it into two halves, and returns the partition references. A `FORK_JOIN` dispatches both partitions simultaneously. `MclClusterEastWorker` processes partition A on us-east-1 while `MclClusterWestWorker` processes partition B on us-west-2. The `JOIN` waits for both clusters to complete. `MclAggregateWorker` merges the per-cluster results and record counts into a single output. Conductor handles the parallel dispatch, retries if one cluster's processing fails, and records per-cluster metrics so you can compare processing times and identify regional bottlenecks.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the multi-cluster pipeline. Data partitioning, parallel per-
 | **MclClusterWestWorker** | `mcl_cluster_west` | Processes the assigned data partition on the us-west-2 cluster and reports record count and latency |
 | **MclPrepareWorker** | `mcl_prepare` | Splits the dataset into two equal partitions for distribution across clusters |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w multi_cluster_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker targets one cluster region .  replace the simulated processing with real EMR or Spark job submissions to regional clusters and the partition-process-aggregate pipeline runs unchanged.
+Each worker targets one cluster region. replace the simulated processing with real EMR or Spark job submissions to regional clusters and the partition-process-aggregate pipeline runs unchanged.
 
 - **MclClusterEastWorker / MclClusterWestWorker**: submit jobs to real compute clusters via Kubernetes API (cross-cluster kubectl), AWS EMR `addJobFlowSteps()`, or Spark `spark-submit` against regional clusters
 - **MclPrepareWorker** (`mcl_prepare`): implement real data partitioning using Hadoop InputSplit, Spark partitionBy, or S3 prefix-based sharding across regions

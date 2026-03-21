@@ -26,7 +26,7 @@ Five workers track an order from creation through validation, fulfillment, shipp
 | **ShipOrderWorker** | `ord_ship` | Ships the order |
 | **ValidateOrderWorker** | `ord_validate` | Performs the validate order operation |
 
-Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 

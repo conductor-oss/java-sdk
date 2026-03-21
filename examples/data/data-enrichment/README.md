@@ -26,7 +26,7 @@ Five workers handle multi-source enrichment: loading customer records, resolving
 | **LookupGeoWorker** | `dr_lookup_geo` | Enriches records with geographic data based on zip code lookup. |
 | **MergeEnrichedWorker** | `dr_merge_enriched` | Merges all enriched data and produces a summary. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

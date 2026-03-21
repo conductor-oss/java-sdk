@@ -6,13 +6,13 @@ Wire transfer workflow: validate, verify sender, compliance check, execute, and 
 
 You need to execute a wire transfer between bank accounts. The workflow validates the transfer details (amount, currency, account numbers), verifies the sender's identity and account balance, runs compliance checks (sanctions screening, transaction monitoring), executes the wire through the payment network, and confirms completion. Executing a wire without compliance checks exposes the bank to regulatory penalties; insufficient balance checks result in overdrafts.
 
-Without orchestration, you'd build a single wire service that validates, authenticates, screens, transmits via SWIFT/Fedwire, and confirms .  manually handling the two-phase nature of wire execution (reserve funds, then release), retrying failed network transmissions, and maintaining an audit trail for BSA/AML compliance.
+Without orchestration, you'd build a single wire service that validates, authenticates, screens, transmits via SWIFT/Fedwire, and confirms. manually handling the two-phase nature of wire execution (reserve funds, then release), retrying failed network transmissions, and maintaining an audit trail for BSA/AML compliance.
 
 ## The Solution
 
 **You just write the wire transfer workers. Detail validation, sender verification, sanctions screening, network execution, and confirmation. Conductor handles sequential execution, automatic retries when the payment network is temporarily unavailable, and a complete audit trail for BSA/AML compliance.**
 
-Each wire transfer concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (validate, verify sender, compliance check, execute, confirm), retrying if the payment network is temporarily unavailable, tracking every wire with complete audit trail for regulatory compliance, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each wire transfer concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (validate, verify sender, compliance check, execute, confirm), retrying if the payment network is temporarily unavailable, tracking every wire with complete audit trail for regulatory compliance, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers handle the wire lifecycle: ValidateWorker checks transfer details a
 | **ValidateWorker** | `wir_validate` | Validates the input data and computes valid, routing valid, recipient bank verified, swift code |
 | **VerifySenderWorker** | `wir_verify_sender` | Verifying account |
 
-Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations. risk assessment, compliance checks, settlement,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

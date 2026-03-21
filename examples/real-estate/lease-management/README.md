@@ -1,6 +1,6 @@
 # Lease Management in Java with Conductor :  Create, Sign, Activate, Renew, or Terminate
 
-A Java Conductor workflow example for managing the full lease lifecycle .  creating a lease agreement, collecting signatures, activating the lease, and then routing to renewal or termination based on the requested action. Uses [Conductor](https://github.
+A Java Conductor workflow example for managing the full lease lifecycle. creating a lease agreement, collecting signatures, activating the lease, and then routing to renewal or termination based on the requested action. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, lease management is a tangle of manual steps. Property ma
 
 **You just write the lease creation, signature collection, activation, and renewal or termination logic. Conductor handles notification retries, payment scheduling, and lease lifecycle audit trails.**
 
-Each lease lifecycle step is a simple, independent worker .  one creates the lease, one handles signing, one activates it, and then a SWITCH task routes to either renewal or termination based on the requested action. Conductor takes care of executing them in order, ensuring no lease is activated without a signature, routing to the correct end-of-lease path, and maintaining a complete history of every lease action. You get all of that, without writing a single line of orchestration code.
+Each lease lifecycle step is a simple, independent worker. one creates the lease, one handles signing, one activates it, and then a SWITCH task routes to either renewal or termination based on the requested action. Conductor takes care of executing them in order, ensuring no lease is activated without a signature, routing to the correct end-of-lease path, and maintaining a complete history of every lease action. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,11 +22,11 @@ Lease drafting, tenant notification, payment scheduling, and renewal tracking wo
 |---|---|---|
 | **CreateLeaseWorker** | `lse_create` | Generates a lease agreement with terms (rent, duration, deposit) for the tenant/property pair |
 | **SignLeaseWorker** | `lse_sign` | Records lease signatures from tenant and landlord, producing a fully executed agreement |
-| **ActivateLeaseWorker** | `lse_activate` | Activates the lease .  starts the tenancy, enables rent collection, sets key dates |
+| **ActivateLeaseWorker** | `lse_activate` | Activates the lease. starts the tenancy, enables rent collection, sets key dates |
 | **RenewLeaseWorker** | `lse_renew` | Processes lease renewal with updated terms and rent escalation (renew path) |
-| **TerminateLeaseWorker** | `lse_terminate` | Handles lease termination .  schedules move-out inspection, initiates deposit return (terminate path) |
+| **TerminateLeaseWorker** | `lse_terminate` | Handles lease termination. schedules move-out inspection, initiates deposit return (terminate path) |
 
-Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
+Workers implement property transaction steps. listing, inspection, escrow, closing,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -135,7 +135,7 @@ conductor workflow search -w lse_lease_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real property management stack .  your lease generation system, DocuSign for e-signatures, your accounting platform for rent activation and deposit handling, and the workflow runs identically in production.
+Point each worker at your real property management stack. your lease generation system, DocuSign for e-signatures, your accounting platform for rent activation and deposit handling, and the workflow runs identically in production.
 
 - **CreateLeaseWorker** (`lse_create`): generate lease documents from templates using a document assembly API, pull property details from your MLS/property management system
 - **SignLeaseWorker** (`lse_sign`): integrate with DocuSign or HelloSign for legally binding e-signatures

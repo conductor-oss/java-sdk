@@ -25,7 +25,7 @@ Four workers implement hybrid search. Running vector similarity and BM25 keyword
 | **RrfMergeWorker** | `hs_rrf_merge` | Reciprocal Rank Fusion (RRF) merge worker. Deduplicates results from vector and keyword searches by document id, keep |
 | **VectorSearchWorker** | `hs_vector_search` | Vector similarity search worker. Simulates embedding the query and searching an HNSW index (cosine similarity). |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 
 ### The Workflow
 

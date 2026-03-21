@@ -1,18 +1,18 @@
 # Shipping Workflow in Java Using Conductor :  Select Carrier, Create Label, Track, Deliver, Confirm
 
-A Java Conductor workflow example for end-to-end shipment fulfillment .  selecting the optimal carrier based on package weight and dimensions, generating a shipping label, tracking the parcel in transit, confirming delivery, and closing out the order. Uses [Conductor](https://github.
+A Java Conductor workflow example for end-to-end shipment fulfillment. selecting the optimal carrier based on package weight and dimensions, generating a shipping label, tracking the parcel in transit, confirming delivery, and closing out the order. Uses [Conductor](https://github.
 
 ## Shipping Involves Multiple Carriers and Real-Time Tracking
 
 A 5 lb package going from New York to Los Angeles with next-day shipping. FedEx quotes $32, UPS quotes $29, USPS doesn't offer next-day for this weight. The system must compare rates across carriers, select the cheapest qualifying option, generate a shipping label with barcode and customs information (for international), track the package through pickup, transit, and delivery, and confirm delivery with signature verification if required.
 
-Carrier APIs are notoriously unreliable .  rate requests timeout, label generation returns errors during peak season, and tracking updates arrive out of order. If label creation fails with FedEx, the system should try UPS without re-running the rate comparison. Delivery confirmation may take days, requiring the workflow to wait for carrier webhooks or polling updates.
+Carrier APIs are notoriously unreliable. rate requests timeout, label generation returns errors during peak season, and tracking updates arrive out of order. If label creation fails with FedEx, the system should try UPS without re-running the rate comparison. Delivery confirmation may take days, requiring the workflow to wait for carrier webhooks or polling updates.
 
 ## The Solution
 
 **You just write the carrier selection, label creation, tracking, and delivery confirmation logic. Conductor handles carrier retries, label generation sequencing, and shipment tracking across providers.**
 
-`SelectCarrierWorker` compares rates across carriers for the given weight, dimensions, origin, destination, and speed requirement, selecting the optimal option. `CreateLabelWorker` generates the shipping label with the selected carrier .  including barcode, tracking number, and any customs documentation. `TrackWorker` monitors the package through transit milestones (picked up, in transit, out for delivery). `DeliverWorker` confirms final delivery with signature verification and proof of delivery. `ConfirmWorker` closes the shipment record and sends delivery notification to the customer. Conductor sequences these stages and records every tracking update for shipment analytics.
+`SelectCarrierWorker` compares rates across carriers for the given weight, dimensions, origin, destination, and speed requirement, selecting the optimal option. `CreateLabelWorker` generates the shipping label with the selected carrier. including barcode, tracking number, and any customs documentation. `TrackWorker` monitors the package through transit milestones (picked up, in transit, out for delivery). `DeliverWorker` confirms final delivery with signature verification and proof of delivery. `ConfirmWorker` closes the shipment record and sends delivery notification to the customer. Conductor sequences these stages and records every tracking update for shipment analytics.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Label creation, carrier selection, tracking setup, and delivery confirmation wor
 | **DeliverShipmentWorker** | `shp_deliver` | Records the delivery event at the destination address |
 | **ConfirmDeliveryWorker** | `shp_confirm` | Confirms delivery back to the order system and closes out the shipment |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 

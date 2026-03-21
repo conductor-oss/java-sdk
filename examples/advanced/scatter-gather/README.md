@@ -26,7 +26,7 @@ Five workers implement the scatter-gather: query broadcasting, three parallel so
 | **SgrGather2Worker** | `sgr_gather_2` | Queries price service B and returns its price quote with currency |
 | **SgrGather3Worker** | `sgr_gather_3` | Queries price service C and returns its price quote with currency |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 

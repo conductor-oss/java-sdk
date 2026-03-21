@@ -1,18 +1,18 @@
 # Plagiarism Detection in Java with Conductor :  Submission, Scanning, Comparison, Verdict Routing, and Reporting
 
-A Java Conductor workflow example for academic plagiarism detection .  ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.
+A Java Conductor workflow example for academic plagiarism detection. ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to check student submissions for plagiarism before grades are assigned. The document must be ingested, scanned to extract textual fingerprints and n-grams, compared against a database of published papers, web content, and prior student submissions, and then a similarity score determines the verdict. If the submission is clean, it proceeds to grading; if flagged, it must be routed to the academic integrity office for review. Either way, an originality report is generated for the instructor's records.
 
-Without orchestration, you'd chain document ingestion, text analysis, corpus comparison, and conditional notification in a single service .  manually handling timeouts when the similarity engine takes too long on large documents, writing if/else routing for clean vs: flagged results, and logging every check to defend decisions during student appeals.
+Without orchestration, you'd chain document ingestion, text analysis, corpus comparison, and conditional notification in a single service. manually handling timeouts when the similarity engine takes too long on large documents, writing if/else routing for clean vs: flagged results, and logging every check to defend decisions during student appeals.
 
 ## The Solution
 
 **You just write the document scanning, corpus comparison, clean/flagged verdict routing, and originality reporting logic. Conductor handles source comparison retries, similarity scoring, and detection audit trails.**
 
-Each plagiarism-check concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (submit, scan, compare), then routing via a SWITCH task to the correct outcome (clean or flagged), and finally generating the report ,  retrying if the similarity engine times out, maintaining an audit trail for every submission, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each plagiarism-check concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, scan, compare), then routing via a SWITCH task to the correct outcome (clean or flagged), and finally generating the report,  retrying if the similarity engine times out, maintaining an audit trail for every submission, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Document ingestion, source comparison, similarity scoring, and report generation
 | **HandleFlaggedWorker** | `plg_handle_flagged` | Flags the submission for academic integrity review with the similarity score |
 | **ReportWorker** | `plg_report` | Generates an originality report for the instructor's records |
 
-Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
+Workers implement educational operations. enrollment, grading, notifications,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
 ### The Workflow
 

@@ -12,7 +12,7 @@ Scaling too aggressively wastes money (spinning up 10 instances for a 2-minute s
 
 **You write the metric analysis and scaling logic. Conductor handles the analyze-plan-execute-verify sequence and records every scaling decision.**
 
-`AnalyzeWorker` examines current metrics (CPU utilization, memory pressure, request rate, queue depth) and their trends over the analysis window to determine if scaling is needed. `PlanWorker` determines the scaling action .  scale up (add instances), scale down (remove instances), or maintain ,  with the target instance count based on the metric analysis. `ExecuteWorker` performs the scaling operation ,  launching new instances or terminating excess ones. `VerifyWorker` confirms the scaled service is healthy ,  new instances passing health checks, traffic being distributed, and metrics improving. Conductor records every scaling decision with its metric context for capacity planning analysis.
+`AnalyzeWorker` examines current metrics (CPU utilization, memory pressure, request rate, queue depth) and their trends over the analysis window to determine if scaling is needed. `PlanWorker` determines the scaling action. scale up (add instances), scale down (remove instances), or maintain,  with the target instance count based on the metric analysis. `ExecuteWorker` performs the scaling operation,  launching new instances or terminating excess ones. `VerifyWorker` confirms the scaled service is healthy,  new instances passing health checks, traffic being distributed, and metrics improving. Conductor records every scaling decision with its metric context for capacity planning analysis.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the scaling decision. Analyzing current metrics, planning th
 | **Plan** | `as_plan` | Plans the scaling action based on current load analysis. |
 | **Verify** | `as_verify` | Verifies that the scaling action achieved the desired result. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w auto_scaling_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one scaling phase .  replace the simulated calls with CloudWatch metrics, AWS Auto Scaling Groups, or Kubernetes HPA for real trend analysis and instance management, and the scaling workflow runs unchanged.
+Each worker handles one scaling phase. replace the simulated calls with CloudWatch metrics, AWS Auto Scaling Groups, or Kubernetes HPA for real trend analysis and instance management, and the scaling workflow runs unchanged.
 
 - **Analyze** (`as_analyze`): query Prometheus, CloudWatch, or Datadog for real-time metrics with trend analysis and anomaly detection to distinguish genuine load increases from transient spikes
 - **Plan** (`as_plan`): compute the optimal target instance count based on metric trends, time-of-day patterns, and business context, choosing between scale-up, scale-down, or maintain

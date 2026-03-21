@@ -12,7 +12,7 @@ Without orchestration, you'd build an approval service with if/else routing for 
 
 **You just write the budget workers. Request submission, review, and three-way routing for approve, revise, or reject decisions. Conductor handles three-way SWITCH routing for approve, revise, and reject decisions, automatic retries, and a complete audit trail for budget governance.**
 
-Each approval concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of submitting the request, routing via a SWITCH task to the correct outcome (approve, revise, reject), retrying if the review system is unavailable, and tracking every budget request's lifecycle with full audit trail. You get all of that, without writing a single line of orchestration code.
+Each approval concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of submitting the request, routing via a SWITCH task to the correct outcome (approve, revise, reject), retrying if the review system is unavailable, and tracking every budget request's lifecycle with full audit trail. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Six workers manage the approval lifecycle: SubmitBudgetWorker captures the reque
 | **ReviseBudgetWorker** | `bgt_revise_budget` | Revise Budget. Computes and returns revised, revised amount, revision id |
 | **SubmitBudgetWorker** | `bgt_submit_budget` | Handles submit budget |
 
-Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations. risk assessment, compliance checks, settlement,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

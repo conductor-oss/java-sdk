@@ -26,7 +26,7 @@ Five workers manage the trial enrollment pipeline: ScreenWorker checks eligibili
 | **MonitorWorker** | `clt_monitor` | Tracks the participant through the trial for adverse events, protocol deviations, and study visits |
 | **AnalyzeTrialWorker** | `clt_analyze` | Runs the statistical analysis on collected trial data and generates outcome reports |
 
-Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
+Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
 
 ### The Workflow
 

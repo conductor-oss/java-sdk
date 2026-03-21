@@ -1,10 +1,10 @@
 # Training Management in Java with Conductor :  Course Assignment, Progress Tracking, Assessment, Certification, and Record Keeping
 
-A Java Conductor workflow example for employee training management .  assigning a course to an employee with a due date, tracking their progress through the learning material, administering the final assessment, issuing a certification if they pass, and recording the completed training in their permanent employee record. Uses [Conductor](https://github.
+A Java Conductor workflow example for employee training management. assigning a course to an employee with a due date, tracking their progress through the learning material, administering the final assessment, issuing a certification if they pass, and recording the completed training in their permanent employee record. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to manage employee training from assignment through certification. An employee is assigned to a course .  whether mandatory compliance training (OSHA, HIPAA, anti-harassment), role-specific skills training, or professional development. The system must track the employee's progress through the course modules and verify completion. Upon finishing the material, the employee takes an assessment; a passing score (e.g., 80%+) earns a certification with an issue date and expiration. The certification must be recorded in the employee's permanent training record for audit purposes. Each step depends on the previous ,  you cannot assess without tracking completion, and you cannot certify without a passing assessment score. Missed compliance training exposes the organization to regulatory fines and liability.
+You need to manage employee training from assignment through certification. An employee is assigned to a course. whether mandatory compliance training (OSHA, HIPAA, anti-harassment), role-specific skills training, or professional development. The system must track the employee's progress through the course modules and verify completion. Upon finishing the material, the employee takes an assessment; a passing score (e.g., 80%+) earns a certification with an issue date and expiration. The certification must be recorded in the employee's permanent training record for audit purposes. Each step depends on the previous,  you cannot assess without tracking completion, and you cannot certify without a passing assessment score. Missed compliance training exposes the organization to regulatory fines and liability.
 
 Without orchestration, you'd manage training through spreadsheets and LMS reports. HR assigns courses, manually checks who completed them, reviews assessment results, and updates certification records one by one. If the LMS is down when recording certifications, the employee completed the training but has no record of it. If someone completes a course but the assessment results are not linked to the certification, they may be counted as non-compliant. Auditors for OSHA, HIPAA, and SOX compliance require proof that every employee completed their required training within the mandated timeframe.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd manage training through spreadsheets and LMS report
 
 **You just write the course assignment, progress tracking, assessment administration, certification, and record keeping logic. Conductor handles enrollment retries, progress tracking, and certification audit trails.**
 
-Each stage of training management is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of tracking progress only after assignment, assessing only after course completion, certifying only if the assessment score meets the passing threshold, recording the certification as the final step, retrying if the LMS or HRIS is temporarily unavailable, and maintaining a complete audit trail for compliance reporting. You get all of that, without writing a single line of orchestration code.
+Each stage of training management is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of tracking progress only after assignment, assessing only after course completion, certifying only if the assessment score meets the passing threshold, recording the certification as the final step, retrying if the LMS or HRIS is temporarily unavailable, and maintaining a complete audit trail for compliance reporting. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Course assignment, enrollment, progress tracking, and certification workers each
 | **CertifyWorker** | `trm_certify` | Issues a certification based on the assessment score, with an issue date and expiration date for recertification tracking |
 | **RecordWorker** | `trm_record` | Records the completed certification in the employee's permanent training record in the HRIS for compliance audits |
 
-Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
+Workers implement HR operations. onboarding tasks, approvals, provisioning,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w trm_training_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real training systems .  your LMS for course assignment and progress tracking, your assessment platform for testing, your HRIS for certification records, and the workflow runs identically in production.
+Point each worker at your real training systems. your LMS for course assignment and progress tracking, your assessment platform for testing, your HRIS for certification records, and the workflow runs identically in production.
 
 - **AssignWorker** → enroll employees in real LMS courses (Cornerstone, Docebo, Lessonly) with automatic assignment based on role, department, or compliance requirements
 - **TrackWorker** → poll your LMS for real-time SCORM/xAPI completion data, send reminder emails for approaching due dates, and escalate overdue courses to the employee's manager

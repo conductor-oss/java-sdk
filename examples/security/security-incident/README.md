@@ -1,10 +1,10 @@
 # Implementing Security Incident Response in Java with Conductor :  Triage, Containment, Investigation, and Remediation
 
-A Java Conductor workflow example for security incident response .  triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.
+A Java Conductor workflow example for security incident response. triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to respond to security incidents .  unauthorized access attempts, data exfiltration, compromised credentials ,  following a structured playbook: triage the alert to determine severity (P1 through P4), contain the threat by isolating the affected system (e.g., an API gateway), investigate to identify root cause and blast radius, and remediate by patching the vulnerability or revoking compromised credentials. Mean time to containment directly impacts breach severity.
+You need to respond to security incidents. unauthorized access attempts, data exfiltration, compromised credentials,  following a structured playbook: triage the alert to determine severity (P1 through P4), contain the threat by isolating the affected system (e.g., an API gateway), investigate to identify root cause and blast radius, and remediate by patching the vulnerability or revoking compromised credentials. Mean time to containment directly impacts breach severity.
 
 Without orchestration, your incident response is a runbook document that engineers follow manually at 2 AM. Steps get skipped under pressure, containment is delayed while waiting for approvals, and there is no reliable record of what was done or when. If the on-call engineer's laptop crashes mid-investigation, the incident state lives in their browser tabs and terminal history.
 
@@ -12,7 +12,7 @@ Without orchestration, your incident response is a runbook document that enginee
 
 **You just write the triage rules and containment actions. Conductor handles the ordered response playbook, retries containment if the first attempt fails, and a complete incident timeline for post-mortem review and regulatory reporting.**
 
-Each phase of the incident response playbook is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so triage output drives containment scope, containment completes before investigation begins, and remediation only runs after root cause is confirmed. If containment fails on the first attempt, Conductor retries automatically. Every action, decision, and timing is recorded ,  giving you a complete incident timeline for post-mortem review and regulatory reporting.
+Each phase of the incident response playbook is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so triage output drives containment scope, containment completes before investigation begins, and remediation only runs after root cause is confirmed. If containment fails on the first attempt, Conductor retries automatically. Every action, decision, and timing is recorded,  giving you a complete incident timeline for post-mortem review and regulatory reporting.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers execute the incident response playbook: TriageWorker classifies sev
 | **RemediateWorker** | `si_remediate` | Remediates a security incident by applying fixes. |
 | **TriageWorker** | `si_triage` | Triages a security incident based on type and severity. |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -123,7 +123,7 @@ conductor workflow search -w security_incident -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one IR phase .  connect TriageWorker to your SIEM (Splunk, Elastic Security), ContainWorker to CrowdStrike's network containment API, and the triage-contain-investigate-remediate workflow stays the same.
+Each worker handles one IR phase. connect TriageWorker to your SIEM (Splunk, Elastic Security), ContainWorker to CrowdStrike's network containment API, and the triage-contain-investigate-remediate workflow stays the same.
 
 - **TriageWorker** (`si_triage`): pull alert details from your SIEM (Splunk, Sentinel, Elastic Security) and classify severity based on IOC matching and affected asset criticality
 - **ContainWorker** (`si_contain`): isolate the compromised host via AWS Security Groups, CrowdStrike network containment API, or firewall rule injection to stop lateral movement

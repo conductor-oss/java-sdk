@@ -1,10 +1,10 @@
 # Returns Processing in Java Using Conductor :  Receive, Inspect, Route Decision via SWITCH
 
-A Java Conductor workflow example for e-commerce returns .  receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.
+A Java Conductor workflow example for e-commerce returns. receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.
 
 ## Return Outcomes Depend on Product Condition and Policy
 
-A customer returns a pair of shoes they bought 10 days ago. The outcome depends on several factors: Is it within the 30-day return window? What's the product condition .  unworn with tags (full refund eligible), worn but undamaged (store credit only), or damaged (rejection)? Is the return reason covered by policy (wrong size vs, changed mind vs, defective)?
+A customer returns a pair of shoes they bought 10 days ago. The outcome depends on several factors: Is it within the 30-day return window? What's the product condition. unworn with tags (full refund eligible), worn but undamaged (store credit only), or damaged (rejection)? Is the return reason covered by policy (wrong size vs, changed mind vs, defective)?
 
 The inspection step determines the condition, and the routing step maps condition + reason + policy to the right resolution. A defective item within warranty gets a full refund regardless of condition. A changed-mind return with a worn product gets store credit at best. Damaged items outside warranty get rejected. Each resolution path has different downstream steps (refund to original payment method, generate store credit code, or send rejection notification).
 
@@ -12,7 +12,7 @@ The inspection step determines the condition, and the routing step maps conditio
 
 **You just write the return intake, inspection, and resolution (refund/exchange/reject) logic. Conductor handles refund retries, inspection routing, and return lifecycle audit trails.**
 
-`ReceiveWorker` logs the return request with order ID, return reason, items, and customer ID, and generates a return merchandise authorization (RMA) number. `InspectWorker` evaluates the product condition .  checking for damage, wear, missing components, and original packaging, and produces a condition grade. Conductor's `SWITCH` routes based on the inspection result and return policy: full refund (unworn, within window), exchange (wrong size/color), store credit (worn but acceptable), or rejection (damaged, outside window). Each resolution path processes the appropriate outcome. Conductor records the inspection results and routing decision for return analytics.
+`ReceiveWorker` logs the return request with order ID, return reason, items, and customer ID, and generates a return merchandise authorization (RMA) number. `InspectWorker` evaluates the product condition. checking for damage, wear, missing components, and original packaging, and produces a condition grade. Conductor's `SWITCH` routes based on the inspection result and return policy: full refund (unworn, within window), exchange (wrong size/color), store credit (worn but acceptable), or rejection (damaged, outside window). Each resolution path processes the appropriate outcome. Conductor records the inspection results and routing decision for return analytics.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Return authorization, inspection, refund processing, and restocking workers hand
 | **ExchangeWorker** | `ret_exchange` | Creates a replacement order and ships the exchange item |
 | **RejectWorker** | `ret_reject` | Rejects the return and notifies the customer with the reason |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 

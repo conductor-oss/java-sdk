@@ -25,7 +25,7 @@ Each worker handles one runbook stage. Loading the procedure, executing remediat
 | `VerifyStepWorker` | `ra_verify_step` | Validates that the remediation succeeded (e.g., confirms the new primary is accepting connections) |
 | `LogOutcomeWorker` | `ra_log_outcome` | Records the final execution outcome and duration (45s) for audit and post-mortem review |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
 ### The Workflow
 

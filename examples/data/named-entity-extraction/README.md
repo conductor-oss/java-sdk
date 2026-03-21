@@ -1,10 +1,10 @@
 # Named Entity Extraction in Java with Conductor :  Tokenize, Tag, Extract, and Link Entities from Text
 
-A Java Conductor workflow that extracts named entities from text .  tokenizing the input into words, tagging each token with part-of-speech and entity labels, extracting recognized entities (persons, organizations, locations, dates), and linking those entities to knowledge base records. Given raw `text`, the pipeline produces tokens, tagged sequences, extracted entities, and linked references. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step NER pipeline.
+A Java Conductor workflow that extracts named entities from text. tokenizing the input into words, tagging each token with part-of-speech and entity labels, extracting recognized entities (persons, organizations, locations, dates), and linking those entities to knowledge base records. Given raw `text`, the pipeline produces tokens, tagged sequences, extracted entities, and linked references. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step NER pipeline.
 
 ## Finding the People, Places, and Organizations in Unstructured Text
 
-Unstructured text .  emails, support tickets, news articles, legal documents ,  contains valuable structured information buried in natural language. Extracting entities like person names, company names, locations, and dates transforms text into actionable data. But NER is a pipeline: you need to tokenize the text into words, tag each word with its grammatical role and entity type, group tagged words into complete entities, and resolve those entities against a knowledge base to disambiguate (e.g., "Apple" the company vs. "apple" the fruit).
+Unstructured text. emails, support tickets, news articles, legal documents,  contains valuable structured information buried in natural language. Extracting entities like person names, company names, locations, and dates transforms text into actionable data. But NER is a pipeline: you need to tokenize the text into words, tag each word with its grammatical role and entity type, group tagged words into complete entities, and resolve those entities against a knowledge base to disambiguate (e.g., "Apple" the company vs. "apple" the fruit).
 
 This workflow processes text through the full NER pipeline. The tokenizer splits text into individual tokens. The tagger labels each token with part-of-speech tags and entity type indicators (B-PER, I-ORG, etc.). The entity extractor groups tagged tokens into complete entity spans. The linker resolves extracted entities against a knowledge base, matching "Microsoft" to its canonical record and "Seattle" to its geographic entry.
 
@@ -12,7 +12,7 @@ This workflow processes text through the full NER pipeline. The tokenizer splits
 
 **You just write the tokenization, tagging, entity-extraction, and linking workers. Conductor handles the NER pipeline sequencing and token flow.**
 
-Four workers form the NER pipeline .  tokenization, tagging, entity extraction, and entity linking. The tokenizer splits raw text into word tokens. The tagger assigns part-of-speech and entity labels. The extractor groups labeled tokens into entity spans. The linker resolves entities against a knowledge base. Conductor sequences the four steps and passes tokens, tags, and entity lists between them via JSONPath.
+Four workers form the NER pipeline. tokenization, tagging, entity extraction, and entity linking. The tokenizer splits raw text into word tokens. The tagger assigns part-of-speech and entity labels. The extractor groups labeled tokens into entity spans. The linker resolves entities against a knowledge base. Conductor sequences the four steps and passes tokens, tags, and entity lists between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ TokenizeWorker splits text into words, TagWorker assigns entity labels like B-PE
 | **TagWorker** | `ner_tag` | Labels each token with part-of-speech and entity type indicators (B-PER, I-ORG, B-LOC, etc.). |
 | **TokenizeWorker** | `ner_tokenize` | Splits the raw input text into individual word tokens. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w ner_named_entity_extraction -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one NER stage .  connect your NLP service (spaCy, Stanford NER, AWS Comprehend) for tagging and your knowledge graph (Wikidata, internal KB) for entity linking, and the extraction workflow stays the same.
+Each worker handles one NER stage. connect your NLP service (spaCy, Stanford NER, AWS Comprehend) for tagging and your knowledge graph (Wikidata, internal KB) for entity linking, and the extraction workflow stays the same.
 
 - **ExtractEntitiesWorker** (`ner_extract_entities`): use spaCy, Stanford NER, or an LLM for example-grade entity extraction
 - **LinkWorker** (`ner_link`): connect to Wikidata, DBpedia, or your CRM's contact database for real entity resolution

@@ -25,7 +25,7 @@ The order flow chains four domain workers: PlaceOrderWorker creates the order, R
 | **ReserveInventoryWorker** | `cvo_reserve_inventory` | Reserves the ordered items in the warehouse and returns the warehouse ID for shipping. |
 | **ShipOrderWorker** | `cvo_ship_order` | Creates a shipment from the assigned warehouse and returns a tracking ID. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
 ### The Workflow
 

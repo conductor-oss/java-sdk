@@ -1,6 +1,6 @@
 # SLA Scheduling in Java Using Conductor :  Ticket Prioritization, Execution, and Compliance Tracking
 
-A Java Conductor workflow example for SLA-aware scheduling .  prioritizing tickets by SLA urgency, executing tasks in priority order, and tracking SLA compliance to prevent breaches.
+A Java Conductor workflow example for SLA-aware scheduling. prioritizing tickets by SLA urgency, executing tasks in priority order, and tracking SLA compliance to prevent breaches.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, SLA prioritization is a manual sort in a ticketing system
 
 **You just write the SLA prioritization rules and compliance calculations. Conductor handles the prioritize-execute-track sequence, retries on ticket system failures, and SLA compliance metrics with per-ticket timing for every scheduling cycle.**
 
-Each SLA concern is an independent worker .  prioritization by SLA urgency, task execution in priority order, and compliance tracking. Conductor runs them in sequence: prioritize the queue, execute in order, then track compliance. Every scheduling run is tracked with priority assignments, execution timing, and SLA compliance metrics. You get all of that, without writing a single line of orchestration code.
+Each SLA concern is an independent worker. prioritization by SLA urgency, task execution in priority order, and compliance tracking. Conductor runs them in sequence: prioritize the queue, execute in order, then track compliance. Every scheduling run is tracked with priority assignments, execution timing, and SLA compliance metrics. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers enforce SLA discipline: PrioritizeWorker sorts tickets by SLA urge
 | **PrioritizeWorker** | `sla_prioritize` | Sorts tickets by SLA urgency (1h, 4h, 24h deadlines), returning an ordered list with priority rankings |
 | **TrackComplianceWorker** | `sla_track_compliance` | Calculates SLA compliance rate, counting on-time completions vs, breaches and average resolution time |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -128,7 +128,7 @@ conductor workflow search -w sla_scheduling_409 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one SLA phase .  connect the prioritizer to your ticketing system (Jira, ServiceNow), the compliance tracker to your SLA dashboard, and the prioritize-execute-track workflow stays the same.
+Each worker manages one SLA phase. connect the prioritizer to your ticketing system (Jira, ServiceNow), the compliance tracker to your SLA dashboard, and the prioritize-execute-track workflow stays the same.
 
 - **ExecuteTasksWorker** (`sla_execute_tasks`): route tasks to the right team/agent based on skills and availability, update ticket status in your PM tool
 - **PrioritizeWorker** (`sla_prioritize`): pull tickets from Jira/ServiceNow/Zendesk, compute SLA urgency scores based on remaining time and business impact

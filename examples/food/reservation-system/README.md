@@ -6,13 +6,13 @@ Manages restaurant reservations end-to-end: checking table availability, booking
 
 You need to manage restaurant reservations from booking to seating. The workflow checks table availability for the requested date, time, and party size, creates the reservation, sends a confirmation to the guest, sends a reminder before the reservation, and seats the party when they arrive. Double-booking a table ruins the dining experience; forgetting to send reminders leads to no-shows.
 
-Without orchestration, you'd build a single reservation service that queries availability, inserts bookings, sends confirmation emails, schedules reminder jobs, and updates table status .  manually handling overlapping reservations, cancellations, waitlist management, and the timing of reminder notifications.
+Without orchestration, you'd build a single reservation service that queries availability, inserts bookings, sends confirmation emails, schedules reminder jobs, and updates table status. manually handling overlapping reservations, cancellations, waitlist management, and the timing of reminder notifications.
 
 ## The Solution
 
 **You just write the availability check, booking, confirmation, reminder, and seating logic. Conductor handles availability retries, table assignment, and reservation lifecycle tracking.**
 
-Each reservation concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (check availability, book, confirm, remind, seat), retrying if the notification service is unavailable, tracking every reservation from booking to seating, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each reservation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (check availability, book, confirm, remind, seat), retrying if the notification service is unavailable, tracking every reservation from booking to seating, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Availability checking, table assignment, confirmation, and reminder workers hand
 | **RemindWorker** | `rsv_remind` | Sends a reminder to the guest before the reservation via SMS |
 | **SeatWorker** | `rsv_seat` | Seats the party at the assigned table and marks the reservation as seated |
 
-Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
+Workers implement food service operations. order processing, kitchen routing, delivery coordination,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
 ### The Workflow
 

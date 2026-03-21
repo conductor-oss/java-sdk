@@ -1,10 +1,10 @@
 # Message Correlation in Java Using Conductor :  Group Related Messages by ID and Process Together
 
-A Java Conductor workflow example for message correlation .  receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.
+A Java Conductor workflow example for message correlation. receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.
 
 ## Linking Messages That Belong Together
 
-A single customer order generates events from the payment service, the inventory service, and the shipping service. Each event arrives independently with its own schema, but they all share an order ID. To build a complete order view .  payment confirmed, items reserved, label printed ,  you need to match these messages by their correlation field, group them, and process each group as a whole.
+A single customer order generates events from the payment service, the inventory service, and the shipping service. Each event arrives independently with its own schema, but they all share an order ID. To build a complete order view. payment confirmed, items reserved, label printed,  you need to match these messages by their correlation field, group them, and process each group as a whole.
 
 Without orchestration, you'd build a stateful correlator that buffers incoming messages, maintains a lookup table keyed by the correlation field, handles late-arriving messages, and decides when a group is complete enough to process. That's a lot of in-memory state management, timeout logic, and concurrency control for what's fundamentally a match-and-group operation.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a stateful correlator that buffers incoming m
 
 **You write the matching and aggregation logic. Conductor handles sequencing, retries, and correlation tracking.**
 
-`CrpReceiveMessagesWorker` ingests the batch of messages and counts them. `CrpMatchByIdWorker` groups the messages by the specified correlation field (e.g., `orderId`), producing correlated groups where each group contains all messages sharing the same ID. `CrpAggregateWorker` combines each group into a single aggregated result .  merging payment status with inventory status with shipping status. `CrpProcessWorker` acts on the aggregated groups, producing a final outcome per correlated set. Conductor tracks how many messages were received, how many groups were formed, and how many were successfully processed.
+`CrpReceiveMessagesWorker` ingests the batch of messages and counts them. `CrpMatchByIdWorker` groups the messages by the specified correlation field (e.g., `orderId`), producing correlated groups where each group contains all messages sharing the same ID. `CrpAggregateWorker` combines each group into a single aggregated result. merging payment status with inventory status with shipping status. `CrpProcessWorker` acts on the aggregated groups, producing a final outcome per correlated set. Conductor tracks how many messages were received, how many groups were formed, and how many were successfully processed.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the match-and-group flow: message ingestion, correlation-ID 
 | **CrpProcessWorker** | `crp_process` | Processes each correlated group and produces per-group outcome records |
 | **CrpReceiveMessagesWorker** | `crp_receive_messages` | Ingests incoming messages from input and counts the total for downstream matching |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w crp_correlation_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker tackles one correlation concern .  replace the simulated message matching with real Kafka or event stream consumers and the group-and-process logic runs unchanged.
+Each worker tackles one correlation concern. replace the simulated message matching with real Kafka or event stream consumers and the group-and-process logic runs unchanged.
 
 - **CrpReceiveMessagesWorker** (`crp_receive_messages`): consume real messages from Kafka, SQS, or a webhook endpoint instead of accepting them as workflow input
 - **CrpMatchByIdWorker** (`crp_match_by_id`): look up additional context from a database while correlating, or use Redis to track cross-workflow correlation state for messages arriving in separate workflow runs

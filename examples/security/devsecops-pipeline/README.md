@@ -1,10 +1,10 @@
 # Implementing DevSecOps Pipeline in Java with Conductor :  SAST, SCA, Container Scan, and Security Gate
 
-A Java Conductor workflow example for a DevSecOps pipeline .  running SAST (static analysis), SCA (dependency scanning), and container security scans against a commit, then evaluating a security gate to approve or block the deployment.
+A Java Conductor workflow example for a DevSecOps pipeline. running SAST (static analysis), SCA (dependency scanning), and container security scans against a commit, then evaluating a security gate to approve or block the deployment.
 
 ## The Problem
 
-You need to integrate security into your CI/CD pipeline. Every commit must be scanned for code vulnerabilities (SAST), dependency CVEs (SCA), and container image vulnerabilities before deployment. The scans run in parallel for speed, and a security gate evaluates the combined results .  blocking deployment if critical or high-severity findings exist, warning for medium, and passing for low.
+You need to integrate security into your CI/CD pipeline. Every commit must be scanned for code vulnerabilities (SAST), dependency CVEs (SCA), and container image vulnerabilities before deployment. The scans run in parallel for speed, and a security gate evaluates the combined results. blocking deployment if critical or high-severity findings exist, warning for medium, and passing for low.
 
 Without orchestration, security scans are bolted onto CI/CD as optional stages that developers skip when they're in a hurry. Results from different scanners aren't consolidated, there's no unified security gate, and critical vulnerabilities make it to production because the SCA scan ran but nobody checked the results.
 
@@ -25,7 +25,7 @@ Three security scanners and a gate worker form the pipeline: SastScanWorker find
 | **ScaScanWorker** | `dso_sca_scan` | Runs software composition analysis to detect vulnerable dependencies |
 | **SecurityGateWorker** | `dso_security_gate` | Evaluates all scan results against policy thresholds and passes or blocks the deployment |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w devsecops_pipeline_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker wraps one security scanner .  connect SastScanWorker to Semgrep or CodeQL, ScaScanWorker to Snyk, ContainerScanWorker to Trivy, and the parallel scan-then-gate workflow stays the same.
+Each worker wraps one security scanner. connect SastScanWorker to Semgrep or CodeQL, ScaScanWorker to Snyk, ContainerScanWorker to Trivy, and the parallel scan-then-gate workflow stays the same.
 
 - **ContainerScanWorker** (`dso_container_scan`): scan container images using Trivy, Grype, or Prisma Cloud before they're pushed to the registry
 - **SastScanWorker** (`dso_sast_scan`): run real SAST scans using Semgrep, CodeQL, SonarQube, or Checkmarx against the committed code
@@ -172,6 +172,6 @@ devsecops-pipeline-devsecops-pipeline/
 │       ├── ScaScanWorker.java
 │       └── SecurityGateWorker.java
 └── src/test/java/devsecopspipeline/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

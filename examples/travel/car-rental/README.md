@@ -21,12 +21,12 @@ Availability lookup, rate comparison, reservation, and pickup confirmation worke
 | Worker | Task | What It Does |
 |---|---|---|
 | **BookWorker** | `crl_book` | Books the input and computes reservation id, confirmation code |
-| **PickupWorker** | `crl_pickup` | Vehicle picked up .  reservation |
+| **PickupWorker** | `crl_pickup` | Vehicle picked up. reservation |
 | **ReturnWorker** | `crl_return` | Processes the vehicle return. Records the reservation as returned, calculates total cost, and captures ending mileage |
 | **SearchWorker** | `crl_search` | Searching rentals at |
 | **SelectWorker** | `crl_select` | Selected midsize vehicle |
 
-Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 

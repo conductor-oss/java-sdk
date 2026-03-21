@@ -1,12 +1,12 @@
 # Number Porting in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates phone number porting between carriers .  submitting a port request for a phone number, validating the number's eligibility with the losing carrier, coordinating the port window between both carriers, executing the number port in the routing database, and verifying the number is reachable on the new carrier. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates phone number porting between carriers. submitting a port request for a phone number, validating the number's eligibility with the losing carrier, coordinating the port window between both carriers, executing the number port in the routing database, and verifying the number is reachable on the new carrier. Uses [Conductor](https://github.
 
 ## Why Number Porting Needs Orchestration
 
-Porting a phone number between carriers requires precise coordination across independent systems. You submit a port request with the subscriber's phone number and destination carrier. You validate that the number is portable .  confirming the number exists on the losing carrier's network and is not under contract lock. You coordinate with both the gaining and losing carriers to agree on a port window. You execute the actual port by updating routing tables in the Number Portability Administration Center (NPAC). Finally, you verify the number is reachable on the new carrier's network.
+Porting a phone number between carriers requires precise coordination across independent systems. You submit a port request with the subscriber's phone number and destination carrier. You validate that the number is portable. confirming the number exists on the losing carrier's network and is not under contract lock. You coordinate with both the gaining and losing carriers to agree on a port window. You execute the actual port by updating routing tables in the Number Portability Administration Center (NPAC). Finally, you verify the number is reachable on the new carrier's network.
 
-If the port execution succeeds but verification fails, the subscriber has a number that routes incorrectly and can't receive calls. If coordination fails after validation, you need to know exactly which carrier acknowledged the port window so you can cancel cleanly. Without orchestration, you'd build a fragile script that mixes NPAC API calls, carrier-to-carrier messaging, and routing database updates .  making it impossible to retry a failed port execution without re-running the entire process from scratch.
+If the port execution succeeds but verification fails, the subscriber has a number that routes incorrectly and can't receive calls. If coordination fails after validation, you need to know exactly which carrier acknowledged the port window so you can cancel cleanly. Without orchestration, you'd build a fragile script that mixes NPAC API calls, carrier-to-carrier messaging, and routing database updates. making it impossible to retry a failed port execution without re-running the entire process from scratch.
 
 ## The Solution
 
@@ -23,10 +23,10 @@ Port request validation, carrier coordination, number assignment, and activation
 | **CoordinateWorker** | `npt_coordinate` | Coordinates the port window between the gaining and losing carriers using the port ID. |
 | **PortWorker** | `npt_port` | Executes the number port by updating routing tables so the phone number routes to the new carrier. |
 | **RequestWorker** | `npt_request` | Submits the port request for a phone number to the destination carrier and returns a port ID. |
-| **ValidateWorker** | `npt_validate` | Validates the phone number's portability with the losing carrier .  checking eligibility and contract status. |
+| **ValidateWorker** | `npt_validate` | Validates the phone number's portability with the losing carrier. checking eligibility and contract status. |
 | **VerifyWorker** | `npt_verify` | Verifies the ported number is reachable on the new carrier's network after the port completes. |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w npt_number_porting -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real porting systems .  the NPAC API for eligibility checks, your inter-carrier messaging platform for port coordination, your routing database for number activation, and the workflow runs identically in production.
+Wire each worker to your real porting systems. the NPAC API for eligibility checks, your inter-carrier messaging platform for port coordination, your routing database for number activation, and the workflow runs identically in production.
 
 - **RequestWorker** (`npt_request`): submit the port request to your local number portability clearinghouse (e.g., NPAC via SOA/LSMS API, or the equivalent national porting system)
 - **ValidateWorker** (`npt_validate`): query the losing carrier's Customer Service Record (CSR) via LSR/ASR interfaces to confirm the number is eligible for porting

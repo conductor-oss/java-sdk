@@ -1,6 +1,6 @@
 # Real Estate Listing in Java with Conductor :  Create, Verify, Enrich, Publish, and Distribute
 
-A Java Conductor workflow example for publishing property listings .  creating the listing with address and price, verifying data accuracy, enriching with photos and neighborhood data, publishing to the MLS, and distributing to syndication channels (Zillow, Realtor.com, Redfin). Uses [Conductor](https://github.
+A Java Conductor workflow example for publishing property listings. creating the listing with address and price, verifying data accuracy, enriching with photos and neighborhood data, publishing to the MLS, and distributing to syndication channels (Zillow, Realtor.com, Redfin). Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, listing creation is a manual process across multiple syst
 
 **You just write the listing creation, data verification, photo enrichment, MLS publishing, and portal syndication logic. Conductor handles photo processing retries, MLS publication, and listing audit trails.**
 
-Each listing step is a simple, independent worker .  one creates the listing record, one verifies accuracy, one enriches with supplementary data, one publishes to the MLS, one distributes to syndication channels. Conductor takes care of executing them in order, retrying if a portal API is temporarily unavailable, and tracking the listing lifecycle from creation through full distribution. You get all of that, without writing a single line of orchestration code.
+Each listing step is a simple, independent worker. one creates the listing record, one verifies accuracy, one enriches with supplementary data, one publishes to the MLS, one distributes to syndication channels. Conductor takes care of executing them in order, retrying if a portal API is temporarily unavailable, and tracking the listing lifecycle from creation through full distribution. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -21,12 +21,12 @@ Property intake, photo processing, listing composition, and MLS publication work
 | Worker | Task | What It Does |
 |---|---|---|
 | **CreateListingWorker** | `rel_create` | Creates the listing record with address, price, bedrooms, bathrooms, and agent details |
-| **VerifyListingWorker** | `rel_verify` | Validates data accuracy .  correct address format, reasonable price range, no duplicate MLS entries |
+| **VerifyListingWorker** | `rel_verify` | Validates data accuracy. correct address format, reasonable price range, no duplicate MLS entries |
 | **EnrichListingWorker** | `rel_enrich` | Adds photos, virtual tour links, school ratings, walk scores, and neighborhood demographics |
 | **PublishListingWorker** | `rel_publish` | Publishes the enriched listing to the MLS and assigns a listing ID |
 | **DistributeListingWorker** | `rel_distribute` | Syndicates the listing to consumer portals (Zillow, Realtor.com, Redfin, Trulia) |
 
-Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
+Workers implement property transaction steps. listing, inspection, escrow, closing,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w rel_real_estate_listing -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real listing systems .  your MLS feed for publishing, Zillow and Realtor.com APIs for syndication, a photo hosting service for media enrichment, and the workflow runs identically in production.
+Point each worker at your real listing systems. your MLS feed for publishing, Zillow and Realtor.com APIs for syndication, a photo hosting service for media enrichment, and the workflow runs identically in production.
 
 - **CreateListingWorker** (`rel_create`): accept listing data from your CRM or agent portal, validate against MLS data standards (RESO/RETS)
 - **VerifyListingWorker** (`rel_verify`): query county assessor records to validate address and square footage, check MLS for duplicate listings

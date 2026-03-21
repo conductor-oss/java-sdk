@@ -1,10 +1,10 @@
 # Property Maintenance Request in Java with Conductor :  Submit, Classify, Assign, Complete, and Invoice
 
-A Java Conductor workflow example for handling tenant maintenance requests end-to-end .  submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.
+A Java Conductor workflow example for handling tenant maintenance requests end-to-end. submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to handle maintenance requests from tenants across your property portfolio. A tenant reports "kitchen faucet leaking" .  the request must be logged, classified by category (plumbing, electrical, HVAC, general) and priority (emergency, urgent, routine), assigned to an available technician with the right skills, tracked through completion with labor hours recorded, and invoiced for billing. Each step depends on the previous one: you can't assign a technician without knowing the category, and you can't invoice without knowing the labor hours.
+You need to handle maintenance requests from tenants across your property portfolio. A tenant reports "kitchen faucet leaking". the request must be logged, classified by category (plumbing, electrical, HVAC, general) and priority (emergency, urgent, routine), assigned to an available technician with the right skills, tracked through completion with labor hours recorded, and invoiced for billing. Each step depends on the previous one: you can't assign a technician without knowing the category, and you can't invoice without knowing the labor hours.
 
 Without orchestration, maintenance requests pile up in email inboxes. Property managers manually classify and assign them, lose track of which requests are pending, and forget to invoice completed work. Building this as a monolithic script means a failure in the assignment step silently prevents invoicing, and tenants never get updates on their request status.
 
@@ -12,7 +12,7 @@ Without orchestration, maintenance requests pile up in email inboxes. Property m
 
 **You just write the request intake, classification, technician assignment, completion tracking, and invoicing logic. Conductor handles dispatch retries, priority routing, and maintenance audit trails.**
 
-Each maintenance step is a simple, independent worker .  one logs the request, one classifies category and priority, one assigns the right technician, one records completion details, one generates the invoice. Conductor takes care of executing them in order, retrying if the technician scheduling system is temporarily down, and tracking every request from submission through invoicing so nothing falls through the cracks. You get all of that, without writing a single line of orchestration code.
+Each maintenance step is a simple, independent worker. one logs the request, one classifies category and priority, one assigns the right technician, one records completion details, one generates the invoice. Conductor takes care of executing them in order, retrying if the technician scheduling system is temporarily down, and tracking every request from submission through invoicing so nothing falls through the cracks. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -23,10 +23,10 @@ Request intake, priority assessment, vendor dispatch, and completion verificatio
 | **SubmitWorker** | `mtr_submit` | Logs the maintenance request from the tenant with a unique request ID and description |
 | **ClassifyWorker** | `mtr_classify` | Determines the request category (plumbing, electrical, HVAC) and priority (emergency, urgent, routine) |
 | **AssignWorker** | `mtr_assign` | Selects and assigns an available technician with the right skills based on category and priority |
-| **CompleteWorker** | `mtr_complete` | Records work completion .  labor hours, parts used, and resolution notes from the technician |
+| **CompleteWorker** | `mtr_complete` | Records work completion. labor hours, parts used, and resolution notes from the technician |
 | **InvoiceWorker** | `mtr_invoice` | Generates an invoice for labor and materials, calculating total cost from completion data |
 
-Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
+Workers implement property transaction steps. listing, inspection, escrow, closing,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w mtr_maintenance_request -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real maintenance systems .  your property management portal for ticket intake, your workforce scheduler for technician dispatch, your accounting system for invoicing, and the workflow runs identically in production.
+Connect each worker to your real maintenance systems. your property management portal for ticket intake, your workforce scheduler for technician dispatch, your accounting system for invoicing, and the workflow runs identically in production.
 
 - **SubmitWorker** (`mtr_submit`): accept requests via a tenant portal API or integrate with your property management platform (AppFolio, Buildium)
 - **ClassifyWorker** (`mtr_classify`): use NLP or an LLM to auto-classify free-text descriptions ("water dripping from ceiling" maps to plumbing/emergency)

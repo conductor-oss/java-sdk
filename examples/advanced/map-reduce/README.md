@@ -27,7 +27,7 @@ Six workers implement the map-reduce pattern: corpus splitting, three parallel p
 | **MprReduceWorker** | `mpr_reduce` | Combines map results from all partitions, ranking documents by match count and summing totals |
 | **MprSplitInputWorker** | `mpr_split_input` | Splits the document corpus into three partitions for parallel map processing |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 

@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Legal Case Management. Uses [Con
 
 A new client matter arrives at the firm. You need to intake the case and assign it a tracking number, assess its complexity to determine staffing needs, assign the right attorney, track the case through phases like discovery and resolution, and eventually close it with a recorded outcome (e.g., settled). Without a structured workflow, cases fall through the cracks, deadlines get missed, and attorneys are assigned unevenly.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Case intake, party management, deadline tracking, and disposition workers handle
 | **TrackWorker** | `lcm_track` | Monitors the case through its lifecycle phases (e.g., discovery, trial, resolution) and reports the current phase |
 | **CloseWorker** | `lcm_close` | Closes the case with a recorded outcome (e.g., "settled", "dismissed", "verdict") and finalizes all case records |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w lcm_legal_case_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real case systems .  your case management platform for matter intake, your calendar system for deadline tracking, your document store for filing management, and the workflow runs identically in production.
+Wire each worker to your real case systems. your case management platform for matter intake, your calendar system for deadline tracking, your document store for filing management, and the workflow runs identically in production.
 
 - **IntakeWorker** (`lcm_intake`): integrate with a legal case management system like Clio, Litify, or PracticePanther to create new matters and run conflict checks
 - **AssessWorker** (`lcm_assess`): connect to your firm's matter scoring rules or an AI triage model to automatically evaluate case complexity and estimated value

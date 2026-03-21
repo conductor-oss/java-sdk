@@ -1,10 +1,10 @@
 # Publish-Subscribe in Java Using Conductor :  Publish Event, Fan Out to Subscribers in Parallel, Confirm
 
-A Java Conductor workflow example for publish-subscribe .  publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.
+A Java Conductor workflow example for publish-subscribe. publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.
 
 ## One Event, Multiple Subscribers, All Must Succeed
 
-A user signs up and three things need to happen: the welcome email service sends an onboarding email, the analytics service records the signup event, and the provisioning service creates the user's workspace. These are independent subscribers .  none depends on the others; but all three must eventually succeed. If the email service is down, the signup shouldn't block provisioning, and you need to know which subscribers processed the event and which didn't.
+A user signs up and three things need to happen: the welcome email service sends an onboarding email, the analytics service records the signup event, and the provisioning service creates the user's workspace. These are independent subscribers. none depends on the others; but all three must eventually succeed. If the email service is down, the signup shouldn't block provisioning, and you need to know which subscribers processed the event and which didn't.
 
 Building pub-sub fan-out manually means spawning threads for each subscriber, implementing independent retry logic for each, tracking which subscribers acknowledged, and deciding what to do when one fails permanently while the others succeeded.
 
@@ -12,7 +12,7 @@ Building pub-sub fan-out manually means spawning threads for each subscriber, im
 
 **You write each subscriber's handler. Conductor handles parallel fan-out, per-subscriber retries, and delivery confirmation.**
 
-`PbsPublishWorker` accepts the event and topic, preparing it for distribution. A `FORK_JOIN` fans the event out to all three subscribers in parallel .  `PbsSubscriber1Worker`, `PbsSubscriber2Worker`, and `PbsSubscriber3Worker` each process the event independently. The `JOIN` waits for all subscribers to complete. `PbsConfirmWorker` verifies that every subscriber processed the event and produces a confirmation summary. Conductor retries any subscriber that fails without affecting the others, and records which subscribers succeeded and which needed retries.
+`PbsPublishWorker` accepts the event and topic, preparing it for distribution. A `FORK_JOIN` fans the event out to all three subscribers in parallel. `PbsSubscriber1Worker`, `PbsSubscriber2Worker`, and `PbsSubscriber3Worker` each process the event independently. The `JOIN` waits for all subscribers to complete. `PbsConfirmWorker` verifies that every subscriber processed the event and produces a confirmation summary. Conductor retries any subscriber that fails without affecting the others, and records which subscribers succeeded and which needed retries.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers implement the pub-sub fan-out: event publishing, three parallel sub
 | **PbsSubscriber2Worker** | `pbs_subscriber_2` | Receives the event and sends a notification |
 | **PbsSubscriber3Worker** | `pbs_subscriber_3` | Receives the event and writes an audit log entry |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -134,10 +134,10 @@ conductor workflow search -w pbs_publish_subscribe -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker represents one subscriber's processing logic .  replace the simulated event handlers with real email, analytics, or provisioning service calls and the fan-out pipeline runs unchanged.
+Each worker represents one subscriber's processing logic. replace the simulated event handlers with real email, analytics, or provisioning service calls and the fan-out pipeline runs unchanged.
 
 - **PbsPublishWorker** (`pbs_publish`): publish to a real SNS topic, Kafka topic, or Redis Pub/Sub channel instead of simulating the event publish
-- **PbsSubscriber*Workers** (`pbs_subscriber_1/2/3`) .  implement real subscriber logic: send emails via SES, write analytics events to Segment/Mixpanel, provision resources via cloud APIs
+- **PbsSubscriber*Workers** (`pbs_subscriber_1/2/3`). implement real subscriber logic: send emails via SES, write analytics events to Segment/Mixpanel, provision resources via cloud APIs
 - **PbsConfirmWorker** (`pbs_confirm`): query subscriber acknowledgment stores (DynamoDB, Redis) to verify all subscribers processed the event, and alert on permanent failures
 
 Each subscriber's output contract stays fixed. Adding a new subscriber means adding one fork branch and one worker, not modifying existing subscribers.

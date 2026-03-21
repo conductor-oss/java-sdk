@@ -6,13 +6,13 @@ Risk assessment workflow with parallel market, credit, and operational risk anal
 
 You need to assess the total risk exposure of a portfolio across multiple risk dimensions simultaneously. Market risk (price volatility, interest rate sensitivity), credit risk (counterparty default probability), and operational risk (process failures, fraud) must all be analyzed in parallel since they are independent calculations. The combined results provide a holistic view of the portfolio's risk profile. Running these assessments sequentially wastes time when each can take minutes to compute.
 
-Without orchestration, you'd spawn threads for each risk model, synchronize completion with barriers, aggregate results from different risk engines, and handle partial failures when one model crashes while others succeed .  all while ensuring each risk calculation uses consistent market data as of the same assessment date.
+Without orchestration, you'd spawn threads for each risk model, synchronize completion with barriers, aggregate results from different risk engines, and handle partial failures when one model crashes while others succeed. all while ensuring each risk calculation uses consistent market data as of the same assessment date.
 
 ## The Solution
 
 **You just write the risk analysis workers. Factor collection and parallel market, credit, and operational risk scoring, plus aggregation. Conductor handles parallel FORK_JOIN execution of market, credit, and operational risk analyses, automatic retries on any failed dimension, and complete assessment tracking.**
 
-Each risk dimension is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running market, credit, and operational risk analyses in parallel via FORK_JOIN, waiting for all to complete, aggregating the combined risk profile, retrying any failed analysis independently, and tracking every assessment. You get all of that, without writing a single line of orchestration code.
+Each risk dimension is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running market, credit, and operational risk analyses in parallel via FORK_JOIN, waiting for all to complete, aggregating the combined risk profile, retrying any failed analysis independently, and tracking every assessment. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers span the risk assessment: CollectFactorsWorker gathers portfolio ri
 | **MarketRiskWorker** | `rsk_market_risk` | Analyzes market risk using volatility, beta, and correlation data. |
 | **OperationalRiskWorker** | `rsk_operational_risk` | Analyzes operational risk from incident, control gap, and maturity data. |
 
-Workers simulate financial operations .  risk assessment, compliance checks, settlement ,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations. risk assessment, compliance checks, settlement,  with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

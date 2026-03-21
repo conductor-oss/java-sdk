@@ -12,7 +12,7 @@ Without orchestration, mesh setup is a series of kubectl apply commands in a run
 
 **You just write the sidecar-deploy, mTLS-config, traffic-policy, and validation workers. Conductor handles ordered mesh setup, crash-safe resume between sidecar deploy and mTLS configuration, and a full audit of mesh enrollment.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers onboard a service into the mesh: DeploySidecarWorker injects the pr
 | **SetTrafficPolicyWorker** | `mesh_set_traffic_policy` | Sets traffic policy for a service mesh. |
 | **ValidateWorker** | `mesh_validate` | Validates connectivity after mesh configuration. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

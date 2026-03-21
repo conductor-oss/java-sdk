@@ -1,6 +1,6 @@
 # Leave Management in Java with Conductor :  Request, Balance Check, Manager Approval, Accrual Update, and Notification
 
-A Java Conductor workflow example for leave management .  submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.
+A Java Conductor workflow example for leave management. submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic leave system that queries the ac
 
 **You just write the leave request, balance checking, manager approval, accrual update, and notification logic. Conductor handles approval routing, balance updates, and leave request audit trails.**
 
-Each stage of the leave request is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking balances before approval, updating accruals only after approval, sending notifications as the final step, retrying if the payroll or HRIS system is temporarily unavailable, and maintaining a complete audit trail for labor law compliance. You get all of that, without writing a single line of orchestration code.
+Each stage of the leave request is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking balances before approval, updating accruals only after approval, sending notifications as the final step, retrying if the payroll or HRIS system is temporarily unavailable, and maintaining a complete audit trail for labor law compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Request intake, balance checking, approval routing, and calendar update workers 
 | **UpdateWorker** | `lvm_update` | Debits the leave balance, updates the payroll calendar, and records the approved absence |
 | **NotifyWorker** | `lvm_notify` | Sends confirmation to the employee and updates the team calendar with the approved absence |
 
-Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
+Workers implement HR operations. onboarding tasks, approvals, provisioning,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w lvm_leave_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real leave systems .  your HRIS for balance lookups, your approval platform for manager routing, your payroll system for accrual updates, and the workflow runs identically in production.
+Wire each worker to your real leave systems. your HRIS for balance lookups, your approval platform for manager routing, your payroll system for accrual updates, and the workflow runs identically in production.
 
 - **RequestWorker** → create leave requests in your HRIS (Workday, BambooHR, ADP) with attachment support for medical documentation
 - **CheckBalanceWorker** → query real-time accrual balances from your payroll system, including carryover and FMLA entitlements

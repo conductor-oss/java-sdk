@@ -1,6 +1,6 @@
 # Training Data Labeling in Java Using Conductor :  Batch Preparation, Parallel Annotator WAIT Tasks via FORK_JOIN, Inter-Annotator Agreement Computation, and Label Storage
 
-A Java Conductor workflow example for ML training data quality .  preparing a labeling batch, using FORK_JOIN to run two parallel WAIT tasks so independent annotators label the same items simultaneously, computing inter-annotator agreement (matching vs: differing labels, agreement percentage) after both annotators complete, and storing the final labels with quality metrics. The FORK_JOIN ensures neither annotator sees the other's labels, and the agreement computation compares label arrays element-by-element to produce agreements, disagreements, total, and agreementPct. Uses [Conductor](https://github.
+A Java Conductor workflow example for ML training data quality. preparing a labeling batch, using FORK_JOIN to run two parallel WAIT tasks so independent annotators label the same items simultaneously, computing inter-annotator agreement (matching vs: differing labels, agreement percentage) after both annotators complete, and storing the final labels with quality metrics. The FORK_JOIN ensures neither annotator sees the other's labels, and the agreement computation compares label arrays element-by-element to produce agreements, disagreements, total, and agreementPct. Uses [Conductor](https://github.
 
 ## Training Data Labeling Needs Parallel Annotators and Agreement Computation
 
@@ -10,7 +10,7 @@ High-quality training data requires multiple annotators to label the same items 
 
 **You just write the batch-preparation, agreement-computation, and label-storage workers. Conductor handles the parallel annotator waits and the join.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,12 +18,12 @@ PrepareBatchWorker identifies items to label, ComputeAgreementWorker compares an
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **PrepareBatchWorker** | `tdl_prepare_batch` | Prepares a batch of unlabeled data items for annotation .  identifies the items to label and signals the batch is ready for annotators |
-| *FORK_JOIN + WAIT* | `annotator1_wait` / `annotator2_wait` | Two parallel WAIT tasks .  each annotator independently labels the batch items and submits their labels array via `POST /tasks/{taskId}`; the JOIN waits for both to complete before proceeding | Built-in Conductor FORK_JOIN + WAIT ,  no worker needed |
-| **ComputeAgreementWorker** | `tdl_compute_agreement` | Compares the two annotators' label arrays element-by-element .  counts agreements, disagreements, total items, and computes agreementPct as a quality metric for the labeled batch |
-| **StoreLabelsWorker** | `tdl_store_labels` | Stores the final labeled data with both annotators' labels and the agreement percentage .  persists the training data for model consumption |
+| **PrepareBatchWorker** | `tdl_prepare_batch` | Prepares a batch of unlabeled data items for annotation. identifies the items to label and signals the batch is ready for annotators |
+| *FORK_JOIN + WAIT* | `annotator1_wait` / `annotator2_wait` | Two parallel WAIT tasks. each annotator independently labels the batch items and submits their labels array via `POST /tasks/{taskId}`; the JOIN waits for both to complete before proceeding | Built-in Conductor FORK_JOIN + WAIT,  no worker needed |
+| **ComputeAgreementWorker** | `tdl_compute_agreement` | Compares the two annotators' label arrays element-by-element. counts agreements, disagreements, total items, and computes agreementPct as a quality metric for the labeled batch |
+| **StoreLabelsWorker** | `tdl_store_labels` | Stores the final labeled data with both annotators' labels and the agreement percentage. persists the training data for model consumption |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -133,7 +133,7 @@ conductor workflow search -w training_data_labeling -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the labeling pipeline .  connect your annotation platform (Label Studio, Labelbox, Scale AI) for batch management and your ML data store for label persistence, and the dual-annotator workflow stays the same.
+Each worker handles one stage of the labeling pipeline. connect your annotation platform (Label Studio, Labelbox, Scale AI) for batch management and your ML data store for label persistence, and the dual-annotator workflow stays the same.
 
 - **ComputeAgreementWorker** (`tdl_compute_agreement`): compute real inter-annotator agreement metrics like Cohen's kappa, Fleiss' kappa, or Krippendorff's alpha
 - **PrepareBatchWorker** (`tdl_prepare_batch`): pull unlabeled data from a training data platform like Labelbox, Scale AI, or a custom database, and prepare annotation guidelines

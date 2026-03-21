@@ -1,12 +1,12 @@
 # Tool Use Caching in Java Using Conductor :  Check Cache, Execute-or-Return-Cached, Store Results
 
-Tool Use Caching .  checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss. Uses [Conductor](https://github.
+Tool Use Caching. checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss. Uses [Conductor](https://github.
 
 ## Tool Calls Are Expensive :  Don't Repeat Them
 
 Tool calls cost time and often money. A web search API charges per query. A database query consumes compute resources. A calculation takes CPU time. If the same tool is called with the same arguments within a short window (same weather query, same stock lookup, same calculation), returning the cached result saves time and cost.
 
-The caching pattern checks the cache before executing: if the tool name and arguments match a recent result (within the TTL), return it immediately. Otherwise, execute the tool, cache the result with the configured TTL, and return it. The `SWITCH` task makes this routing explicit .  cache hits skip execution entirely, and every request records whether it was served from cache or computed fresh.
+The caching pattern checks the cache before executing: if the tool name and arguments match a recent result (within the TTL), return it immediately. Otherwise, execute the tool, cache the result with the configured TTL, and return it. The `SWITCH` task makes this routing explicit. cache hits skip execution entirely, and every request records whether it was served from cache or computed fresh.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Four workers implement caching. Checking the cache for a prior result, routing c
 | **ExecuteToolWorker** | `uc_execute_tool` | Executes the requested tool and returns its result. Simulates a currency conversion: converts an amount from one curr... |
 | **ReturnCachedWorker** | `uc_return_cached` | Returns a previously cached result directly. Input fields: cachedResult, cacheKey, cachedAt. Output fields: result, f... |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

@@ -25,7 +25,7 @@ Four workers handle cross-system reconciliation: fetching records from source A 
 | **FetchSourceBWorker** | `rc_fetch_source_b` | Fetches records from source B (fulfillment system). |
 | **GenerateDiscrepancyReportWorker** | `rc_generate_discrepancy_report` | Generates a discrepancy report from comparison results. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

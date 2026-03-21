@@ -25,7 +25,7 @@ Four checkout workers: cart validation, tax calculation, payment processing, and
 | **ProcessPaymentWorker** | `chk_process_payment` | Processes payment and returns a payment ID. |
 | **ValidateCartWorker** | `chk_validate_cart` | Validates the shopping cart and returns subtotal information. |
 
-Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 

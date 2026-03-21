@@ -6,13 +6,13 @@ Runs a competitive tournament from registration to finals: accepting registratio
 
 You need to run a competitive tournament from registration to finals. The workflow accepts player registrations, seeds participants based on skill rating, generates the tournament bracket (single elimination, double elimination, or round robin), manages each round of matches, and finalizes results with prize distribution. Unseeded brackets produce lopsided first-round matchups; mismanaged rounds can deadlock the tournament.
 
-Without orchestration, you'd build a tournament platform that manages registration, generates brackets, coordinates match scheduling, records results, and advances winners .  manually handling disqualifications, byes for odd player counts, and the complex state management of a multi-round elimination bracket.
+Without orchestration, you'd build a tournament platform that manages registration, generates brackets, coordinates match scheduling, records results, and advances winners. manually handling disqualifications, byes for odd player counts, and the complex state management of a multi-round elimination bracket.
 
 ## The Solution
 
 **You just write the registration, skill seeding, bracket generation, match round management, and prize distribution logic. Conductor handles bracket generation retries, match scheduling, and tournament progression tracking.**
 
-Each tournament concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (register, seed, create bracket, manage rounds, finalize), tracking every tournament's complete state, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each tournament concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (register, seed, create bracket, manage rounds, finalize), tracking every tournament's complete state, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Registration, seeding, bracket generation, and match scheduling workers each own
 | **RegisterWorker** | `tbk_register` | Registers players for the tournament and validates entry requirements |
 | **SeedWorker** | `tbk_seed` | Seeds registered players by skill ranking for balanced bracket placement |
 
-Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
+Workers implement game backend operations. matchmaking, score processing, reward distribution,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w tournament_bracket_743 -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real tournament systems .  your registration platform for signups, your bracket engine for seeding, your match server for round management and prize distribution, and the workflow runs identically in production.
+Connect each worker to your real tournament systems. your registration platform for signups, your bracket engine for seeding, your match server for round management and prize distribution, and the workflow runs identically in production.
 
 - **Registration handler**: accept registrations with eligibility checks (rank requirements, region restrictions) and manage waitlists for capacity limits
 - **Seeder**: seed players using their MMR/ELO ratings with proper bye placement for non-power-of-2 player counts

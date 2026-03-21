@@ -1,10 +1,10 @@
 # Bug Triage in Java with Conductor :  Severity-Based Routing for Incoming Bug Reports
 
-A Java Conductor workflow that automatically triages bug reports .  parsing the report text, classifying severity by scanning for keywords like "crash" or "data loss," routing to severity-specific handlers (critical, high, or low), and assigning the bug to the right developer. The workflow uses a SWITCH task to branch execution based on severity, so critical bugs trigger immediate escalation while low-priority issues follow the standard path. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the triage pipeline with conditional routing.
+A Java Conductor workflow that automatically triages bug reports. parsing the report text, classifying severity by scanning for keywords like "crash" or "data loss," routing to severity-specific handlers (critical, high, or low), and assigning the bug to the right developer. The workflow uses a SWITCH task to branch execution based on severity, so critical bugs trigger immediate escalation while low-priority issues follow the standard path. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the triage pipeline with conditional routing.
 
 ## Routing Bugs by Severity Automatically
 
-When a bug report comes in, someone has to read it, decide how severe it is, and route it accordingly. Critical bugs (crashes, data loss) need immediate attention and different handling than cosmetic issues. Doing this manually is slow and inconsistent .  severity classification depends on who reads the report and when.
+When a bug report comes in, someone has to read it, decide how severe it is, and route it accordingly. Critical bugs (crashes, data loss) need immediate attention and different handling than cosmetic issues. Doing this manually is slow and inconsistent. severity classification depends on who reads the report and when.
 
 This workflow automates the entire triage process. It parses the raw bug report into structured fields (title, description, component), classifies severity by analyzing the description for keywords, then uses a Conductor SWITCH task to route to the appropriate handler: `btg_handle_critical` for crashes and data loss, `btg_handle_high` for errors and broken features, or `btg_handle_low` for everything else. After the severity-specific handling completes, the bug is assigned to a developer based on severity and component.
 
@@ -12,7 +12,7 @@ This workflow automates the entire triage process. It parses the raw bug report 
 
 **You just write the bug-parsing, severity-classification, and assignment workers. Conductor handles the severity-based routing and pipeline sequencing.**
 
-Six workers handle the triage pipeline .  report parsing, severity classification, three severity-specific handlers, and developer assignment. The SWITCH task makes the routing logic declarative: Conductor reads the `severity` output from the classifier and routes to the matching branch automatically. The critical-path handler can page on-call engineers while the low-priority handler simply adds to the backlog ,  each handler is independent and swappable.
+Six workers handle the triage pipeline. report parsing, severity classification, three severity-specific handlers, and developer assignment. The SWITCH task makes the routing logic declarative: Conductor reads the `severity` output from the classifier and routes to the matching branch automatically. The critical-path handler can page on-call engineers while the low-priority handler simply adds to the backlog,  each handler is independent and swappable.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Six workers handle the triage pipeline. ParseReportWorker extracts structured fi
 | **HandleLowWorker** | `btg_handle_low` | Adds the bug to the backlog for future prioritization. |
 | **ParseReportWorker** | `btg_parse_report` | Parses the raw bug report text into structured fields: title, description, and component. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w btg_bug_triage -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one triage step .  connect your issue tracker (Jira, GitHub Issues, Linear) for parsing and your on-call system (PagerDuty, OpsGenie) for critical escalation, and the triage workflow stays the same.
+Each worker handles one triage step. connect your issue tracker (Jira, GitHub Issues, Linear) for parsing and your on-call system (PagerDuty, OpsGenie) for critical escalation, and the triage workflow stays the same.
 
 - **AssignWorker** (`btg_assign`): integrate with Jira or GitHub Issues to auto-assign based on component ownership maps
 - **ClassifySeverityWorker** (`btg_classify_severity`): swap keyword matching for an ML classifier or LLM-based severity prediction

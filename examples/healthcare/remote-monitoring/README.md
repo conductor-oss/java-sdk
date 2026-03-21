@@ -1,10 +1,10 @@
 # Remote Patient Monitoring in Java Using Conductor :  Vital Signs Collection, Trend Analysis, Alert Routing, and Clinical Action
 
-A Java Conductor workflow example for remote patient monitoring (RPM) .  collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.
+A Java Conductor workflow example for remote patient monitoring (RPM). collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to monitor patients remotely using connected medical devices. Vital signs .  blood pressure, heart rate, blood glucose, weight, oxygen saturation ,  are transmitted from the patient's home device. Those readings must be analyzed against the patient's individual baseline and clinical thresholds to detect concerning trends (rising blood pressure over 3 days, weight gain suggesting fluid retention in CHF patients, glucose spikes in diabetics). Based on the analysis, the system must route to different clinical actions ,  log the reading as normal, or trigger an alert that notifies the care team and may schedule an intervention. A missed alert on a deteriorating trend can result in an avoidable hospitalization or emergency visit.
+You need to monitor patients remotely using connected medical devices. Vital signs. blood pressure, heart rate, blood glucose, weight, oxygen saturation,  are transmitted from the patient's home device. Those readings must be analyzed against the patient's individual baseline and clinical thresholds to detect concerning trends (rising blood pressure over 3 days, weight gain suggesting fluid retention in CHF patients, glucose spikes in diabetics). Based on the analysis, the system must route to different clinical actions,  log the reading as normal, or trigger an alert that notifies the care team and may schedule an intervention. A missed alert on a deteriorating trend can result in an avoidable hospitalization or emergency visit.
 
 Without orchestration, you'd build a monolithic monitoring service that polls device data, runs the trend analysis, branches with if/else into normal or alert paths, and sends notifications. If the device data platform is temporarily unavailable, you'd need retry logic. If the system crashes after detecting an alert but before notifying the care team, the patient's deterioration goes unaddressed. CMS RPM billing codes (99453, 99454, 99457) require documentation of every monitoring interaction.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic monitoring service that polls de
 
 **You just write the RPM workers. Vital signs collection, trend analysis, and conditional routing to normal logging or clinical alert actions. Conductor handles conditional SWITCH routing between normal and alert paths, automatic retries when the device platform is down, and complete monitoring records for RPM billing.**
 
-Each stage of the monitoring cycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of collecting vitals before analyzing trends, routing to the correct clinical action (normal or alert) via SWITCH based on trend analysis, retrying if the device platform is temporarily unavailable, and maintaining a complete record of every monitoring cycle for RPM billing and clinical documentation. You get all of that, without writing a single line of orchestration code.
+Each stage of the monitoring cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting vitals before analyzing trends, routing to the correct clinical action (normal or alert) via SWITCH based on trend analysis, retrying if the device platform is temporarily unavailable, and maintaining a complete record of every monitoring cycle for RPM billing and clinical documentation. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -23,9 +23,9 @@ Four workers form the RPM cycle: CollectVitalsWorker retrieves device readings, 
 | **CollectVitalsWorker** | `rpm_collect_vitals` | Retrieves the latest vital signs (BP, HR, SpO2, glucose, weight) from the patient's connected device |
 | **AnalyzeTrendsWorker** | `rpm_analyze_trends` | Analyzes readings against the patient's baseline and clinical thresholds, returns "normal" or "alert" |
 | **NormalActionWorker** | `rpm_normal_action` | Logs the reading as within normal limits and updates the patient's monitoring dashboard |
-| **AlertActionWorker** | `rpm_alert_action` | Triggers a clinical alert .  notifies the care team, flags for intervention, and may schedule a follow-up visit |
+| **AlertActionWorker** | `rpm_alert_action` | Triggers a clinical alert. notifies the care team, flags for intervention, and may schedule a follow-up visit |
 
-Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
+Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations. the workflow and compliance logic stay the same.
 
 ### The Workflow
 

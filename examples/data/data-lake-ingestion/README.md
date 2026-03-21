@@ -26,7 +26,7 @@ Five workers manage the data lake ingestion pipeline: validating records against
 | **ValidateSchemaWorker** | `li_validate_schema` | Validate Schema. Computes and returns valid records, valid count |
 | **WriteToLakeWorker** | `li_write_to_lake` | Write To Lake. Computes and returns files written, total bytes |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

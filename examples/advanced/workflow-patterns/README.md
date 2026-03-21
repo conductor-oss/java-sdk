@@ -1,18 +1,18 @@
 # Workflow Patterns Showcase in Java Using Conductor :  Chain, Fork-Join, and Loop in One Workflow
 
-A Java Conductor workflow example showcasing multiple workflow patterns in a single definition .  a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.
+A Java Conductor workflow example showcasing multiple workflow patterns in a single definition. a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.
 
 ## Real Workflows Combine Multiple Patterns
 
 Real-world processes don't fit a single pattern. An ETL pipeline starts with a sequential validation step (chain), then splits data processing across multiple workers (fork-join), then iterates over remaining unprocessed records until the batch is complete (loop). Most workflow tutorials show one pattern at a time, but production workflows combine sequential steps, parallel fan-out, and iterative loops in the same definition.
 
-This example shows how Conductor composes all three patterns .  chain, fork-join, and do-while loop ,  in a single workflow, demonstrating that you can mix patterns freely without special glue code.
+This example shows how Conductor composes all three patterns. chain, fork-join, and do-while loop,  in a single workflow, demonstrating that you can mix patterns freely without special glue code.
 
 ## The Solution
 
 **You write the chain, split, and loop logic. Conductor handles pattern composition, iteration control, and parallel branch management.**
 
-`WpChainStepWorker` handles the initial sequential processing step. A `FORK_JOIN` then splits into two parallel branches .  `WpSplitAWorker` and `WpSplitBWorker` process different aspects of the data simultaneously. The `JOIN` waits for both branches. `WpMergeResultsWorker` combines the parallel outputs. Finally, a `DO_WHILE` loop runs `WpLoopIterationWorker` iteratively ,  processing remaining items until the iteration count reaches the configured limit. Conductor handles the sequential-to-parallel-to-iterative transitions seamlessly, tracking every iteration and branch.
+`WpChainStepWorker` handles the initial sequential processing step. A `FORK_JOIN` then splits into two parallel branches. `WpSplitAWorker` and `WpSplitBWorker` process different aspects of the data simultaneously. The `JOIN` waits for both branches. `WpMergeResultsWorker` combines the parallel outputs. Finally, a `DO_WHILE` loop runs `WpLoopIterationWorker` iteratively,  processing remaining items until the iteration count reaches the configured limit. Conductor handles the sequential-to-parallel-to-iterative transitions seamlessly, tracking every iteration and branch.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers demonstrate three patterns in one workflow: a chain step, two paral
 | **WpSplitAWorker** | `wp_split_a` | Split branch A: parallel fork processing. |
 | **WpSplitBWorker** | `wp_split_b` | Split branch B: parallel fork processing. |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w workflow_patterns_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker demonstrates one pattern role .  replace the simulated chain, fork, and loop steps with real ETL or data processing logic and the combined multi-pattern workflow runs unchanged.
+Each worker demonstrates one pattern role. replace the simulated chain, fork, and loop steps with real ETL or data processing logic and the combined multi-pattern workflow runs unchanged.
 
 - **WpChainStepWorker** (`wp_chain_step`): implement real sequential preprocessing: data validation, schema normalization, or authentication checks before the parallel phase begins
 - **WpSplitAWorker / WpSplitBWorker** (`wp_split_a/b`): run real parallel workloads: split by data partition (A handles US records, B handles EU records), by concern (A does enrichment, B does scoring), or by destination

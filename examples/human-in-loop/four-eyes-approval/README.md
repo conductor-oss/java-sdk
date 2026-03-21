@@ -24,7 +24,7 @@ SubmitWorker prepares the request for dual review, and FinalizeWorker records bo
 | *WAIT task* | `approver_2` | Pauses for the second approver's independent decision, running in parallel with approver 1 | Built-in Conductor WAIT.; no worker needed |
 | **FinalizeWorker** | `fep_finalize` | Receives both approvers' decisions and finalizes: proceeds only if both approved, otherwise rejects and records which approver dissented |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### The Workflow
 

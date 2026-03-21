@@ -26,7 +26,7 @@ Five workers cover the contract lifecycle: DraftWorker creates agreements, Revie
 | **RenewWorker** | `clf_renew` | Schedules contract renewal based on the term length and expiry date. |
 | **ReviewWorker** | `clf_review` | Routes the draft through legal review for risk and compliance assessment. |
 
-Workers simulate supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations: inventory checks, shipment tracking, supplier coordination, with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

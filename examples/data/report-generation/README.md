@@ -25,7 +25,7 @@ Four workers implement the report pipeline: querying raw data for a report type 
 | **FormatReportWorker** | `rg_format_report` | Formats aggregated data into a report document. |
 | **QueryDataWorker** | `rg_query_data` | Queries raw data for report generation. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

@@ -27,7 +27,7 @@ Six workers conduct the research. Defining scope, searching web, papers, and dat
 | **SynthesizeWorker** | `ra_synthesize` | Synthesizes findings from all three search agents. Computes total sources, average credibility, produces a synthesis.. |
 | **WriteReportWorker** | `ra_write_report` | Writes the final research report. Takes topic, synthesis, key insights, and source count, and produces a title, exec.. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

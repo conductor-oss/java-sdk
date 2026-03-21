@@ -1,18 +1,18 @@
 # Building Automation in Java with Conductor
 
-A Java Conductor workflow example that orchestrates building automation .  monitoring HVAC, lighting, and occupancy systems on a per-floor basis, generating energy optimization recommendations based on current conditions, scheduling the optimizations for execution, and applying adjustments to building systems. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates building automation. monitoring HVAC, lighting, and occupancy systems on a per-floor basis, generating energy optimization recommendations based on current conditions, scheduling the optimizations for execution, and applying adjustments to building systems. Uses [Conductor](https://github.
 
 ## Why Building Automation Needs Orchestration
 
-Optimizing a building's HVAC and lighting systems requires a pipeline where each step depends on the previous one. You monitor building systems to get current HVAC status, lighting levels, and occupancy counts for a specific floor. You feed that data into an optimizer that identifies energy savings opportunities .  reducing HVAC output in unoccupied zones, dimming lights in daylit areas. You schedule those optimizations into a timed execution plan for the building management system. Finally, you apply the adjustments to the actual HVAC and lighting controllers.
+Optimizing a building's HVAC and lighting systems requires a pipeline where each step depends on the previous one. You monitor building systems to get current HVAC status, lighting levels, and occupancy counts for a specific floor. You feed that data into an optimizer that identifies energy savings opportunities. reducing HVAC output in unoccupied zones, dimming lights in daylit areas. You schedule those optimizations into a timed execution plan for the building management system. Finally, you apply the adjustments to the actual HVAC and lighting controllers.
 
-Each step depends on the previous one .  the optimizer needs current system states, the scheduler needs optimization recommendations, and the adjuster needs the schedule. If the BMS monitoring poll fails, you do not want stale occupancy data driving optimization decisions. Without orchestration, you'd build a monolithic building controller that mixes sensor polling, optimization algorithms, scheduling logic, and actuator control ,  making it impossible to swap optimization strategies, test scheduling independently, or track which sensor readings led to which energy savings.
+Each step depends on the previous one. the optimizer needs current system states, the scheduler needs optimization recommendations, and the adjuster needs the schedule. If the BMS monitoring poll fails, you do not want stale occupancy data driving optimization decisions. Without orchestration, you'd build a monolithic building controller that mixes sensor polling, optimization algorithms, scheduling logic, and actuator control,  making it impossible to swap optimization strategies, test scheduling independently, or track which sensor readings led to which energy savings.
 
 ## The Solution
 
 **You just write the building automation workers. System monitoring, energy optimization, schedule creation, and controller adjustment. Conductor handles sensor-to-actuator ordering, BMS polling retries, and recorded optimization decisions for energy savings verification.**
 
-Each worker handles one IoT operation .  data ingestion, threshold analysis, device command, or alert dispatch. Conductor manages the telemetry pipeline, device state tracking, and alert escalation.
+Each worker handles one IoT operation. data ingestion, threshold analysis, device command, or alert dispatch. Conductor manages the telemetry pipeline, device state tracking, and alert escalation.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers optimize building energy: MonitorSystemsWorker reads HVAC, lighting
 | **OptimizeWorker** | `bld_optimize` | Analyzes HVAC, lighting, and occupancy data to generate energy optimization recommendations and projected savings. |
 | **ScheduleWorker** | `bld_schedule` | Schedules optimization recommendations into a timed execution plan for the building management system. |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
+Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs. the workflow and alerting logic stay the same.
 
 ### The Workflow
 

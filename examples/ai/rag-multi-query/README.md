@@ -4,7 +4,7 @@ A Java Conductor workflow that expands a single user question into multiple quer
 
 ## One Question, Multiple Search Angles
 
-A single vector search query captures one representation of the user's intent. By expanding the question into multiple variants .  "How do I authenticate?" becomes "authentication setup guide", "login configuration steps", "auth token implementation" ,  you retrieve documents that match different aspects of the same intent. The parallel searches return overlapping and complementary results that are deduplicated before generation.
+A single vector search query captures one representation of the user's intent. By expanding the question into multiple variants. "How do I authenticate?" becomes "authentication setup guide", "login configuration steps", "auth token implementation",  you retrieve documents that match different aspects of the same intent. The parallel searches return overlapping and complementary results that are deduplicated before generation.
 
 ## The Solution
 
@@ -14,7 +14,7 @@ A query expander generates three variants. Conductor's `FORK_JOIN` searches with
 
 ### What You Write: Workers
 
-Six workers implement multi-query retrieval .  expanding the original question into three variant queries, searching for each in parallel via FORK_JOIN, deduplicating the combined results, and generating an answer from the broadened context.
+Six workers implement multi-query retrieval. expanding the original question into three variant queries, searching for each in parallel via FORK_JOIN, deduplicating the combined results, and generating an answer from the broadened context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -25,7 +25,7 @@ Six workers implement multi-query retrieval .  expanding the original question i
 | **SearchQ2Worker** | `mq_search_q2` | Worker that searches the knowledge base with query variant 2. Returns documents d1, d7, d9 (d1 overlaps with q1). |
 | **SearchQ3Worker** | `mq_search_q3` | Worker that searches the knowledge base with query variant 3. Returns documents d4 and d11 (d4 overlaps with q1). |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w rag_multi_query -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one multi-query step .  swap in an LLM for query expansion, connect a real vector store for parallel variant searches, implement deduplication by document ID, and the expand-search-deduplicate-generate pipeline runs unchanged.
+Each worker handles one multi-query step. swap in an LLM for query expansion, connect a real vector store for parallel variant searches, implement deduplication by document ID, and the expand-search-deduplicate-generate pipeline runs unchanged.
 
 - **ExpandQueriesWorker** (`mq_expand_queries`): use an LLM (GPT-4, Claude) to rephrase the user's question into multiple search query variants for broader retrieval coverage
 - **SearchQ1Worker** (`mq_search_q1`): query a vector database (Pinecone, Weaviate, pgvector) with the first query variant

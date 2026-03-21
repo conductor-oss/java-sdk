@@ -1,10 +1,10 @@
 # Next.js Approval Dashboard in Java Using Conductor :  Request Processing and Human Approval via WAIT Task
 
-A Java Conductor workflow example paired with a Next.js full-stack dashboard .  a SIMPLE task validates and processes an incoming approval request (type, title, amount, requester), then a WAIT task pauses the workflow until a human approver clicks approve or reject in the Next.js dashboard. The dashboard queries Conductor's API to list pending approvals and completes the WAIT task when the approver acts. Uses [Conductor](https://github.
+A Java Conductor workflow example paired with a Next.js full-stack dashboard. a SIMPLE task validates and processes an incoming approval request (type, title, amount, requester), then a WAIT task pauses the workflow until a human approver clicks approve or reject in the Next.js dashboard. The dashboard queries Conductor's API to list pending approvals and completes the WAIT task when the approver acts. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need a web-based approval dashboard where managers can see all pending requests and approve or reject them with a single click. Requests come in with a type (expense, purchase, time-off), title, dollar amount, and requester name. The system must validate and process each request, then pause and wait .  potentially for hours or days ,  until a human approver makes a decision. The dashboard needs to show all pending, approved, and rejected requests in real time. Without a built-in WAIT mechanism, you'd poll a database for the approver's decision, building your own state management, timeout handling, and dashboard query logic.
+You need a web-based approval dashboard where managers can see all pending requests and approve or reject them with a single click. Requests come in with a type (expense, purchase, time-off), title, dollar amount, and requester name. The system must validate and process each request, then pause and wait. potentially for hours or days,  until a human approver makes a decision. The dashboard needs to show all pending, approved, and rejected requests in real time. Without a built-in WAIT mechanism, you'd poll a database for the approver's decision, building your own state management, timeout handling, and dashboard query logic.
 
 Without orchestration, you'd build a full-stack app where the backend writes requests to a database, the frontend polls for pending items, and a separate cron job checks for decisions and advances the workflow. If the server restarts while waiting for approval, you'd need to rebuild state from the database. There is no built-in way to track how long each request has been pending, which approver acted, or when the approval happened.
 
@@ -20,10 +20,10 @@ NxtProcessWorker validates incoming requests with type, title, and amount. It ha
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **NxtProcessWorker** | `nxt_process` | Validates and processes the incoming approval request .  checks the type, title, amount, and requester, and marks it as ready for human review |
-| *WAIT task* | `nxt_approval` | Pauses the workflow until the Next.js dashboard sends an approval decision via `POST /tasks/{taskId}` with the approver's identity and approved/rejected status | Built-in Conductor WAIT .  no worker needed |
+| **NxtProcessWorker** | `nxt_process` | Validates and processes the incoming approval request. checks the type, title, amount, and requester, and marks it as ready for human review |
+| *WAIT task* | `nxt_approval` | Pauses the workflow until the Next.js dashboard sends an approval decision via `POST /tasks/{taskId}` with the approver's identity and approved/rejected status | Built-in Conductor WAIT. no worker needed |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -124,10 +124,10 @@ conductor workflow search -w approval_dashboard_nextjs_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-The process worker validates incoming requests .  swap in real budget checks, policy rules, or duplicate detection, and the Next.js dashboard workflow remains unchanged.
+The process worker validates incoming requests. swap in real budget checks, policy rules, or duplicate detection, and the Next.js dashboard workflow remains unchanged.
 
-- **NxtProcessWorker** → add real validation logic .  check the requester's budget authority, verify the amount is within approval limits, detect duplicate requests, and enrich with department and cost center data
-- **WAIT task** → the Next.js dashboard completes it by calling `POST /tasks/{taskId}` with `{ "approved": true, "approver": "manager@company.com" }` .  add fields like rejection reason, conditional approval notes, or delegation to another approver
+- **NxtProcessWorker** → add real validation logic. check the requester's budget authority, verify the amount is within approval limits, detect duplicate requests, and enrich with department and cost center data
+- **WAIT task** → the Next.js dashboard completes it by calling `POST /tasks/{taskId}` with `{ "approved": true, "approver": "manager@company.com" }`. add fields like rejection reason, conditional approval notes, or delegation to another approver
 - Add a **NotifyWorker** after the WAIT task to email the requester with the approval decision and any comments from the approver
 - Add a SWITCH after approval to route approved requests to a fulfillment workflow and rejected requests to an archive
 - Add an escalation timer using Conductor's timeout on the WAIT task to auto-escalate requests that have been pending beyond the SLA

@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Document Review. Uses [Conductor
 
 A litigation matter requires reviewing 1,500 documents for production. You need to ingest the document batch, classify documents by relevance (420 relevant out of 1,500), have attorneys review for responsiveness (310 responsive), apply privilege designations to protected communications (25 privileged), and produce the final non-privileged responsive set (285 documents) to opposing counsel. Manual handling at this scale is error-prone and risks inadvertent privilege waiver.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Document ingestion, relevance classification, privilege screening, and annotatio
 | **PrivilegeWorker** | `drv_privilege` | Applies privilege designations and withholds protected documents, calculating 285 producible (non-privileged responsive) documents |
 | **ProduceWorker** | `drv_produce` | Packages the final 285 producible documents into the agreed-upon production format for delivery to opposing counsel |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w drv_document_review -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real review tools .  your document management system for intake, your AI classifier for relevance scoring, your review platform for attorney assignment, and the workflow runs identically in production.
+Point each worker at your real review tools. your document management system for intake, your AI classifier for relevance scoring, your review platform for attorney assignment, and the workflow runs identically in production.
 
 - **IngestWorker** (`drv_ingest`): connect to a document management system like NetDocuments, iManage, or SharePoint to pull documents, or use IPRO for bulk load and text extraction
 - **ClassifyWorker** (`drv_classify`): integrate with Relativity Analytics or Everlaw for technology-assisted review (TAR) to auto-classify documents by relevance and issue coding

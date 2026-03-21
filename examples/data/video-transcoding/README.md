@@ -26,7 +26,7 @@ Five workers handle adaptive bitrate transcoding: analyzing the source video for
 | `Transcode4kWorker` | `vt_transcode_4k` | Encodes the source video to 4K (3840x2160) using the detected codec and duration, outputs the file path and resulting size (680 MB) |
 | `PackageOutputsWorker` | `vt_package_outputs` | Collects the three transcoded file paths and original duration, assembles a delivery manifest listing all resolutions with a total size (975 MB) and format count |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

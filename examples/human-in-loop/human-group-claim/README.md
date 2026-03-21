@@ -1,6 +1,6 @@
 # Group Assignment with Claim Pattern in Java Using Conductor :  Ticket Intake, WAIT for Group Claim, and Resolution
 
-A Java Conductor workflow example for group-based task assignment .  processing a ticket intake and queuing it to an assigned group (like a support queue), pausing at a WAIT task until any available team member claims and works the ticket, then resolving and closing it. Demonstrates the claim pattern where tasks are published to a pool and pulled by the first available person. Uses [Conductor](https://github.
+A Java Conductor workflow example for group-based task assignment. processing a ticket intake and queuing it to an assigned group (like a support queue), pausing at a WAIT task until any available team member claims and works the ticket, then resolving and closing it. Demonstrates the claim pattern where tasks are published to a pool and pulled by the first available person. Uses [Conductor](https://github.
 
 ## Tasks Can Be Assigned to a Group and Claimed by Any Member
 
@@ -10,7 +10,7 @@ Some tasks do not have a specific assignee. They are published to a group (like 
 
 **You just write the ticket-intake and resolution workers. Conductor handles the group queue and the durable wait for a team member to claim the task.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,11 +18,11 @@ IntakeWorker queues the ticket to a support group, and ResolveWorker closes it a
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **IntakeWorker** | `hgc_intake` | Processes the ticket intake .  validates the ticket ID, assigns it to the specified group queue, and marks it as queued and ready for claim |
-| *WAIT task* | `group_assigned_wait` | Publishes the ticket to the assigned group with instructions; pauses until a team member claims it by completing the task with `{ "claimedBy": "agent@company.com" }` via `POST /tasks/{taskId}` | Built-in Conductor WAIT .  no worker needed |
+| **IntakeWorker** | `hgc_intake` | Processes the ticket intake. validates the ticket ID, assigns it to the specified group queue, and marks it as queued and ready for claim |
+| *WAIT task* | `group_assigned_wait` | Publishes the ticket to the assigned group with instructions; pauses until a team member claims it by completing the task with `{ "claimedBy": "agent@company.com" }` via `POST /tasks/{taskId}` | Built-in Conductor WAIT. no worker needed |
 | **ResolveWorker** | `hgc_resolve` | Resolves and closes the ticket, recording who claimed and completed it |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -126,7 +126,7 @@ conductor workflow search -w human_group_claim -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one end of the claim flow .  connect your ticketing system (Zendesk, Freshdesk, ServiceNow) for intake and your resolution tracking backend for closure, and the group-claim workflow stays the same.
+Each worker handles one end of the claim flow. connect your ticketing system (Zendesk, Freshdesk, ServiceNow) for intake and your resolution tracking backend for closure, and the group-claim workflow stays the same.
 
 - **IntakeWorker** (`hgc_intake`): pull ticket data from a helpdesk system like Zendesk or Freshdesk, enrich with customer history, and assign to the appropriate group queue
 - **ResolveWorker** (`hgc_resolve`): update the ticket status in your helpdesk system, send resolution confirmation to the customer, and update SLA metrics

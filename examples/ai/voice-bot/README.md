@@ -1,10 +1,10 @@
 # Voice Bot in Java with Conductor
 
-A Java Conductor workflow that powers a voice-based conversational bot .  transcribing caller audio to text, understanding the caller's intent and extracting entities, generating a contextual response, and synthesizing the response back to speech. Given an audio URL, caller ID, and language, the pipeline produces a spoken reply audio file. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the transcribe-understand-generate-synthesize pipeline.
+A Java Conductor workflow that powers a voice-based conversational bot. transcribing caller audio to text, understanding the caller's intent and extracting entities, generating a contextual response, and synthesizing the response back to speech. Given an audio URL, caller ID, and language, the pipeline produces a spoken reply audio file. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the transcribe-understand-generate-synthesize pipeline.
 
 ## Handling Voice Conversations End-to-End
 
-A voice bot needs to process spoken language through four distinct stages: convert audio to text, understand what the caller wants, generate an appropriate response, and convert the response back to speech. Each stage depends on the previous one .  you cannot understand intent without a transcript, and you cannot synthesize speech without a response to speak. Failures at any stage (bad audio, ambiguous intent, synthesis errors) need proper handling and retry logic.
+A voice bot needs to process spoken language through four distinct stages: convert audio to text, understand what the caller wants, generate an appropriate response, and convert the response back to speech. Each stage depends on the previous one. you cannot understand intent without a transcript, and you cannot synthesize speech without a response to speak. Failures at any stage (bad audio, ambiguous intent, synthesis errors) need proper handling and retry logic.
 
 This workflow processes a single voice interaction. The transcriber converts the caller's audio to text. The intent analyzer identifies what the caller wants (e.g., order status, account inquiry) and extracts relevant entities (order numbers, account IDs). The response generator produces a contextual reply based on the detected intent. The synthesizer converts the text response into an audio file that can be played back to the caller.
 
@@ -25,7 +25,7 @@ TranscribeWorker converts audio to text, UnderstandWorker detects intent and ext
 | **TranscribeWorker** | `vb_transcribe` | Converts caller audio into text using speech-to-text processing. |
 | **UnderstandWorker** | `vb_understand` | Detects the caller's intent (e.g., order_status) and extracts entities (e.g., order numbers). |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w vb_voice_bot -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one voice stage .  connect your STT engine (Google Speech-to-Text, AWS Transcribe, Whisper) for transcription and your TTS engine (Google TTS, Amazon Polly, ElevenLabs) for synthesis, and the voice-bot workflow stays the same.
+Each worker handles one voice stage. connect your STT engine (Google Speech-to-Text, AWS Transcribe, Whisper) for transcription and your TTS engine (Google TTS, Amazon Polly, ElevenLabs) for synthesis, and the voice-bot workflow stays the same.
 
 - **GenerateWorker** (`vb_generate`): use an LLM (GPT-4, Claude) or dialog engine for context-aware response generation
 - **SynthesizeWorker** (`vb_synthesize`): integrate with a TTS service (Google Cloud TTS, Amazon Polly, ElevenLabs) for natural speech output

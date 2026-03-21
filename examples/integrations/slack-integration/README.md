@@ -1,10 +1,10 @@
 # Slack Integration in Java Using Conductor
 
-A Java Conductor workflow that processes Slack events end-to-end .  receiving an incoming Slack event (message, reaction, or channel event), processing it into a formatted message, posting the message to a Slack channel, and tracking delivery. Given a channel, event type, and payload, the pipeline produces a processed message, post confirmation, and delivery status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the receive-process-post-track pipeline.
+A Java Conductor workflow that processes Slack events end-to-end. receiving an incoming Slack event (message, reaction, or channel event), processing it into a formatted message, posting the message to a Slack channel, and tracking delivery. Given a channel, event type, and payload, the pipeline produces a processed message, post confirmation, and delivery status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the receive-process-post-track pipeline.
 
 ## Processing Slack Events into Channel Messages
 
-When a Slack event arrives (a new message, a reaction, a channel join), you typically need to receive and parse the event, process it into a formatted response, post the response to the appropriate channel, and track whether the message was delivered. Each step depends on the previous one .  you cannot format a message without the event data, and you cannot track delivery without a message ID from the post step.
+When a Slack event arrives (a new message, a reaction, a channel join), you typically need to receive and parse the event, process it into a formatted response, post the response to the appropriate channel, and track whether the message was delivered. Each step depends on the previous one. you cannot format a message without the event data, and you cannot track delivery without a message ID from the post step.
 
 Without orchestration, you would chain Slack API calls manually, manage event payloads and message IDs between steps, and build custom delivery tracking. Conductor sequences the pipeline and routes event data, formatted messages, and message IDs between workers automatically.
 

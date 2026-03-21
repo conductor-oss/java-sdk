@@ -6,13 +6,13 @@ Orchestrates a monitoring and alerting pipeline using [Conductor](https://github
 
 A metric threshold is breached and a raw alert fires. Before anyone gets paged, the system needs to decide whether this alert is real or a duplicate, determine its severity, pull in deployment context (was there a recent deploy?), and route the notification to the right Slack channel or PagerDuty escalation. Doing this manually means flapping alerts wake people up at 3 AM for problems that already have open incidents.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the alert evaluation and routing logic. Conductor handles deduplication sequencing, severity-based routing, and delivery tracking.**
 
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging .  your workers call the infrastructure APIs.
+Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. your workers call the infrastructure APIs.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ These four workers form the alert-processing pipeline, from severity evaluation 
 | **EvaluateWorker** | `ma_evaluate` | Evaluates the incoming alert name and metric value to determine severity (info/warning/critical) |
 | **RouteWorker** | `ma_route` | Routes the enriched alert to the correct notification channel based on severity (e.g., Slack for warnings, PagerDuty for critical) |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w monitoring_alerting_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one alerting concern .  plug in Datadog, PagerDuty, or Prometheus Alertmanager for real evaluation and routing, and the alerting pipeline runs unchanged.
+Each worker handles one alerting concern. plug in Datadog, PagerDuty, or Prometheus Alertmanager for real evaluation and routing, and the alerting pipeline runs unchanged.
 
 - **DeduplicateWorker** (`ma_deduplicate`): query a Redis sorted set or Elasticsearch index of recent alerts to check for duplicates within a time window
 - **EnrichWorker** (`ma_enrich`): call your deployment tracker API (e.g., Argo CD, Spinnaker, or a custom deploy log) to attach recent change context
@@ -172,6 +172,6 @@ monitoring-alerting-monitoring-alerting/
 │       ├── EvaluateWorker.java
 │       └── RouteWorker.java
 └── src/test/java/monitoringalerting/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

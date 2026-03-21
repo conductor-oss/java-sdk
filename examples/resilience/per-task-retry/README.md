@@ -1,6 +1,6 @@
 # Implementing Per-Task Retry Configuration in Java with Conductor :  Different Retry Strategies per Step
 
-A Java Conductor workflow example demonstrating per-task retry configuration .  each task in the workflow has its own retry count, retry logic (FIXED or EXPONENTIAL_BACKOFF), and retry delay, allowing fine-grained control over how each step handles transient failures.
+A Java Conductor workflow example demonstrating per-task retry configuration. each task in the workflow has its own retry count, retry logic (FIXED or EXPONENTIAL_BACKOFF), and retry delay, allowing fine-grained control over how each step handles transient failures.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, per-step retry configuration means building separate retr
 
 **You just write the task logic and declare each task's retry strategy in config. Conductor handles per-task retry timing with configurable strategy (FIXED or EXPONENTIAL_BACKOFF), attempt counting, backoff calculation, and a complete retry history for each step showing delays and outcomes.**
 
-Each task defines its own retry configuration in the workflow definition .  retry count, retry logic (FIXED or EXPONENTIAL_BACKOFF), and delay seconds. The workers just do their job and return success or failure. Conductor handles the retry timing, attempt counting, and backoff calculation per task. Changing a step's retry strategy is a JSON config change, not a code change. You get all of that, without writing a single line of orchestration code.
+Each task defines its own retry configuration in the workflow definition. retry count, retry logic (FIXED or EXPONENTIAL_BACKOFF), and delay seconds. The workers just do their job and return success or failure. Conductor handles the retry timing, attempt counting, and backoff calculation per task. Changing a step's retry strategy is a JSON config change, not a code change. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ PtrValidate uses 1 fixed retry for data errors that won't self-resolve, PtrPayme
 | **PtrPayment** | `ptr_payment` | Processes payment for an order. Configured with retryCount:5, EXPONENTIAL_BACKOFF, 1s base delay. Returns { result: "... |
 | **PtrValidate** | `ptr_validate` | Validates an order. Configured with retryCount:1, FIXED retry, 1s delay. Returns { result: "valid", orderId: ... } |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -128,11 +128,11 @@ conductor workflow search -w per_task_retry_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls a real service with its own retry needs .  connect the payment worker to Stripe with exponential backoff, the notification worker to SES with fixed retries, and the per-task retry configuration stays the same.
+Each worker calls a real service with its own retry needs. connect the payment worker to Stripe with exponential backoff, the notification worker to SES with fixed retries, and the per-task retry configuration stays the same.
 
-- **PtrNotify** (`ptr_notify`): send real notifications via email/SMS/push .  short fixed retries handle temporary delivery failures
-- **PtrPayment** (`ptr_payment`): integrate with your payment gateway (Stripe, PayPal) .  the exponential backoff prevents hammering rate-limited endpoints
-- **PtrValidate** (`ptr_validate`): replace with your real validation logic .  schema validation, business rule checks, input sanitization
+- **PtrNotify** (`ptr_notify`): send real notifications via email/SMS/push. short fixed retries handle temporary delivery failures
+- **PtrPayment** (`ptr_payment`): integrate with your payment gateway (Stripe, PayPal). the exponential backoff prevents hammering rate-limited endpoints
+- **PtrValidate** (`ptr_validate`): replace with your real validation logic. schema validation, business rule checks, input sanitization
 
 Swap in your real payment gateway and notification service, and adjusting retry strategies is a JSON config change without touching any worker code.
 

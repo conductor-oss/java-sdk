@@ -1,18 +1,18 @@
 # Implementing Error Notification in Java with Conductor :  Order Processing with Automated Failure Alerts
 
-A Java Conductor workflow example demonstrating error notification .  processing orders with a failure workflow that automatically triggers parallel alerts via Slack, email, and PagerDuty when the order processing step fails.
+A Java Conductor workflow example demonstrating error notification. processing orders with a failure workflow that automatically triggers parallel alerts via Slack, email, and PagerDuty when the order processing step fails.
 
 ## The Problem
 
-You have an order processing pipeline, and when it fails, the right people need to know immediately .  the on-call engineer via PagerDuty, the ops team via Slack, and the account manager via email. The notification must happen automatically and in parallel, because a slow email send shouldn't delay the PagerDuty page.
+You have an order processing pipeline, and when it fails, the right people need to know immediately. the on-call engineer via PagerDuty, the ops team via Slack, and the account manager via email. The notification must happen automatically and in parallel, because a slow email send shouldn't delay the PagerDuty page.
 
-Without orchestration, failure notifications are afterthoughts .  a catch block that sends one email and hopes it works. Adding Slack means another catch block. Adding PagerDuty means another. If the Slack webhook times out, the PagerDuty page never fires. Nobody knows which notifications actually sent for a given failure.
+Without orchestration, failure notifications are afterthoughts. a catch block that sends one email and hopes it works. Adding Slack means another catch block. Adding PagerDuty means another. If the Slack webhook times out, the PagerDuty page never fires. Nobody knows which notifications actually sent for a given failure.
 
 ## The Solution
 
 **You just write the order processor and notification channel integrations. Conductor handles failure detection, parallel notification dispatch across all channels, retries on delivery failures, and a record of which alerts were sent for every failed order.**
 
-The order processing worker handles business logic. When it fails, Conductor's failure workflow automatically triggers, running Slack, email, and PagerDuty notifications in parallel. Even if one notification channel is down, the others still fire. Every notification attempt is tracked .  you can see which alerts were sent, which failed, and how long each took. You get all of that, without writing a single line of orchestration code.
+The order processing worker handles business logic. When it fails, Conductor's failure workflow automatically triggers, running Slack, email, and PagerDuty notifications in parallel. Even if one notification channel is down, the others still fire. Every notification attempt is tracked. you can see which alerts were sent, which failed, and how long each took. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ ProcessOrderWorker handles the business logic, and when it fails, Conductor's fa
 | **SendPagerDutyWorker** | `en_send_pagerduty` | Worker for en_send_pagerduty. Sends a PagerDuty alert. Returns sent=true. |
 | **SendSlackWorker** | `en_send_slack` | Worker for en_send_slack. Sends a Slack notification. Returns sent=true and the channel from input (defaults to "#a.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -123,9 +123,9 @@ conductor workflow search -w order_with_alerts -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker sends to one notification channel .  connect the Slack worker to your webhook, the email worker to SES or SendGrid, the PagerDuty worker to your integration key, and the parallel-notify-on-failure workflow stays the same.
+Each worker sends to one notification channel. connect the Slack worker to your webhook, the email worker to SES or SendGrid, the PagerDuty worker to your integration key, and the parallel-notify-on-failure workflow stays the same.
 
-- **ProcessOrderWorker** (`en_process_order`): connect to your real order processing system .  validate inventory, charge payment, create shipment
+- **ProcessOrderWorker** (`en_process_order`): connect to your real order processing system. validate inventory, charge payment, create shipment
 - **SendEmailWorker** (`en_send_email`): send via SendGrid/SES with templated failure reports including stack traces and remediation steps
 - **SendPagerDutyWorker** (`en_send_pagerduty`): create real PagerDuty incidents via Events API v2 with severity levels based on error type
 

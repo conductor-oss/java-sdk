@@ -1,10 +1,10 @@
 # Government Case Management in Java with Conductor :  Intake, Investigation, Evaluation, and Resolution
 
-A Java Conductor workflow example for government case management .  opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.
+A Java Conductor workflow example for government case management. opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to manage government cases from intake through resolution. A citizen or agency files a report, which opens a case. An investigator gathers evidence and interviews witnesses. An evaluator reviews the findings and assesses severity. A decision-maker renders a formal determination based on the evaluation. Finally, the case is closed with a timestamp and resolution record. Each step depends on the output of the previous one .  you cannot evaluate without investigation findings, and you cannot decide without an evaluation.
+You need to manage government cases from intake through resolution. A citizen or agency files a report, which opens a case. An investigator gathers evidence and interviews witnesses. An evaluator reviews the findings and assesses severity. A decision-maker renders a formal determination based on the evaluation. Finally, the case is closed with a timestamp and resolution record. Each step depends on the output of the previous one. you cannot evaluate without investigation findings, and you cannot decide without an evaluation.
 
 Without orchestration, you'd build a monolithic service that tracks case state in a database, calls each downstream service in sequence, and handles failures inline. If the investigation service is slow or unavailable, you'd need retry logic and timeout handling. If the system crashes after investigation but before evaluation, you'd need to figure out where to resume. Regulators and FOIA requests demand a complete record of every case action, timing, and decision.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic service that tracks case state i
 
 **You just write the case intake, investigation, findings evaluation, decision rendering, and case closure logic. Conductor handles assignment retries, investigation sequencing, and case lifecycle audit trails.**
 
-Each stage of the case lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running them in sequence, passing investigation findings to the evaluator, feeding the evaluation into the decision step, retrying if any service is temporarily unavailable, and maintaining a complete audit trail of every case from open to close. You get all of that, without writing a single line of orchestration code.
+Each stage of the case lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running them in sequence, passing investigation findings to the evaluator, feeding the evaluation into the decision step, retrying if any service is temporarily unavailable, and maintaining a complete audit trail of every case from open to close. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Case creation, assignment, investigation, and resolution workers track governmen
 | **DecideWorker** | `cmg_decide` | Renders a formal decision (approve, deny, refer) based on the evaluation |
 | **CloseWorker** | `cmg_close` | Closes the case with a resolution record and timestamp |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w cmg_case_management_gov -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real case systems .  your case management platform for intake, your investigation tools for evidence gathering, your adjudication system for resolution decisions, and the workflow runs identically in production.
+Point each worker at your real case systems. your case management platform for intake, your investigation tools for evidence gathering, your adjudication system for resolution decisions, and the workflow runs identically in production.
 
 - **OpenCaseWorker** → integrate with your agency's case management database to create real case records with auto-generated case numbers
 - **InvestigateWorker** → connect to your evidence management system and witness interview scheduling tools

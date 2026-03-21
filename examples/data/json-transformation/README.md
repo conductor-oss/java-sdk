@@ -26,7 +26,7 @@ Five workers handle JSON transformation: parsing the source JSON, mapping and re
 | **RestructureNestedWorker** | `jt_restructure_nested` | Restructures a flat mapped record into nested groups. |
 | **ValidateSchemaWorker** | `jt_validate_schema` | Validate Schema. Computes and returns validated, is valid |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

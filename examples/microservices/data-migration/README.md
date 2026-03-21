@@ -12,7 +12,7 @@ Without orchestration, data migrations are run as monolithic scripts that restar
 
 **You just write the backup, transform, migrate, validate, and cutover workers. Conductor handles long-running step durability, crash-safe resume without re-processing data, and per-step progress tracking.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers cover the full migration lifecycle: BackupWorker snapshots the sour
 | **TransformWorker** | `dm_transform` | Transforms the backed-up data from the source schema (v1) to the target schema (v2). |
 | **ValidateWorker** | `dm_validate` | Compares source and target databases to verify 100% data match. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

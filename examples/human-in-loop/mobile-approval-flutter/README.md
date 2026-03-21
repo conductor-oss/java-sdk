@@ -1,6 +1,6 @@
 # Mobile Approval with Flutter in Java Using Conductor :  Request Submission, FCM Push Notification, WAIT for Mobile Response, and Finalization
 
-A Java Conductor workflow example for mobile-first approvals .  submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.
+A Java Conductor workflow example for mobile-first approvals. submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.
 
 ## Mobile Users Need Push Notifications for Approvals
 
@@ -10,7 +10,7 @@ When an approval is needed, the approver might not be at their desk. The workflo
 
 **You just write the request-submission, push-notification, and finalization workers. Conductor handles the durable wait for the mobile response.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,12 +18,12 @@ MobSubmitWorker validates the request, MobSendPushWorker delivers the FCM notifi
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **MobSubmitWorker** | `mob_submit` | Submits the approval request .  validates the request and identifies the approver's device token for push delivery |
+| **MobSubmitWorker** | `mob_submit` | Submits the approval request. validates the request and identifies the approver's device token for push delivery |
 | **MobSendPushWorker** | `mob_send_push` | Sends an FCM push notification to the approver's mobile device with the request details and approve/reject action buttons |
-| *WAIT task* | `mob_approval` | Pauses until the Flutter app sends the approver's decision back via `POST /tasks/{taskId}` when they tap approve or reject in the push notification | Built-in Conductor WAIT .  no worker needed |
-| **MobFinalizeWorker** | `mob_finalize` | Finalizes the approval .  records the decision, the channel (mobile), and triggers downstream actions |
+| *WAIT task* | `mob_approval` | Pauses until the Flutter app sends the approver's decision back via `POST /tasks/{taskId}` when they tap approve or reject in the push notification | Built-in Conductor WAIT. no worker needed |
+| **MobFinalizeWorker** | `mob_finalize` | Finalizes the approval. records the decision, the channel (mobile), and triggers downstream actions |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w mobile_approval_flutter -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one step of the mobile approval flow .  connect Firebase Cloud Messaging for push delivery and your Flutter app's callback for decision capture, and the mobile-approval workflow stays the same.
+Each worker handles one step of the mobile approval flow. connect Firebase Cloud Messaging for push delivery and your Flutter app's callback for decision capture, and the mobile-approval workflow stays the same.
 
 - **MobFinalizeWorker** (`mob_finalize`): push the approval decision to downstream systems, update the record status, and send confirmation to the requester
 - **MobSendPushWorker** (`mob_send_push`): send real push notifications via Firebase Cloud Messaging (FCM), Apple Push Notification Service (APNS), or a service like OneSignal

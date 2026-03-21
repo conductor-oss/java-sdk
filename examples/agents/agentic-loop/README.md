@@ -26,7 +26,7 @@ Five workers drive the iterative loop. Setting the goal, then cycling through th
 | **SummarizeWorker** | `al_summarize` | Summarizes the agentic loop execution after all iterations are complete. |
 | **ThinkWorker** | `al_think` | Plans the next action based on the goal and current iteration. Cycles through 3 fixed plan strings based on iteration |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

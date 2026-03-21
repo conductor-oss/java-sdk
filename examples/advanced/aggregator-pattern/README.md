@@ -1,10 +1,10 @@
 # Message Aggregation in Java Using Conductor :  Collect, Combine, and Forward Correlated Messages
 
-A Java Conductor workflow example for message aggregation .  collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.
+A Java Conductor workflow example for message aggregation. collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.
 
 ## Why Message Aggregation Needs Orchestration
 
-In distributed systems, a single business event often produces multiple messages .  an order generates a payment confirmation, an inventory reservation, and a shipping request. These messages arrive at different times from different services, and you need to collect all of them before you can compute a meaningful aggregate (total order value, item count, combined status) and forward it to the next stage.
+In distributed systems, a single business event often produces multiple messages. an order generates a payment confirmation, an inventory reservation, and a shipping request. These messages arrive at different times from different services, and you need to collect all of them before you can compute a meaningful aggregate (total order value, item count, combined status) and forward it to the next stage.
 
 Without orchestration, you'd build a stateful collector service that tracks which messages have arrived, implements timeout logic for stragglers, handles duplicates, computes the aggregate once the set is complete, and retries the downstream forwarding if it fails. That's a lot of state management, concurrency control, and failure handling bolted onto what should be a straightforward collect-and-combine operation.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a stateful collector service that tracks whic
 
 **You write the collection and aggregation logic. Conductor handles sequencing, retries, and execution tracking.**
 
-Each stage of the aggregation pipeline is a simple, independent worker. `AgpCollectWorker` gathers incoming messages and counts them. `AgpCheckCompleteWorker` compares the collected count against the expected total to determine if the full set has arrived. `AgpAggregateWorker` computes the combined result .  totals, summaries, timestamps. `AgpForwardWorker` delivers the aggregated payload to the downstream consumer. Conductor sequences them, retries any that fail, and tracks every execution so you can see exactly which messages were collected and what aggregate was produced.
+Each stage of the aggregation pipeline is a simple, independent worker. `AgpCollectWorker` gathers incoming messages and counts them. `AgpCheckCompleteWorker` compares the collected count against the expected total to determine if the full set has arrived. `AgpAggregateWorker` computes the combined result. totals, summaries, timestamps. `AgpForwardWorker` delivers the aggregated payload to the downstream consumer. Conductor sequences them, retries any that fail, and tracks every execution so you can see exactly which messages were collected and what aggregate was produced.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers form the collect-and-combine pipeline: collection, completeness che
 | **AgpCollectWorker** | `agp_collect` | Gathers incoming messages from input and counts them for completeness checking |
 | **AgpForwardWorker** | `agp_forward` | Delivers the aggregated payload to the downstream processor with a forwarding timestamp |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w agp_aggregator_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the collect-and-combine pipeline .  replace the simulated message ingestion with a real Kafka consumer or SQS reader and the aggregation logic runs unchanged.
+Each worker handles one stage of the collect-and-combine pipeline. replace the simulated message ingestion with a real Kafka consumer or SQS reader and the aggregation logic runs unchanged.
 
 - **AgpCollectWorker** (`agp_collect`): read messages from a real message broker (Kafka consumer, SQS `ReceiveMessage`, RabbitMQ) instead of accepting them as workflow input
 - **AgpAggregateWorker** (`agp_aggregate`): replace the hardcoded totals with real aggregation logic: summing transaction amounts from a database, computing averages across sensor readings, or merging partial search results

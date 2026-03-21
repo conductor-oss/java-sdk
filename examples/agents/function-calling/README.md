@@ -25,7 +25,7 @@ Four workers implement function calling, the LLM plans which function to invoke,
 | **LlmPlanWorker** | `fc_llm_plan` | Llm Plan. Computes and returns llm response |
 | **LlmSynthesizeWorker** | `fc_llm_synthesize` | LLM synthesis worker. Takes the function execution result and produces a natural-language answer for the user. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

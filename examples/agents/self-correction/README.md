@@ -1,18 +1,18 @@
 # Self-Correction Agent in Java Using Conductor :  Generate Code, Test, Diagnose, Fix
 
-Self-Correction .  generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering. Uses [Conductor](https://github.
+Self-Correction. generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering. Uses [Conductor](https://github.
 
 ## AI-Generated Code Needs Testing and Self-Repair
 
-LLM-generated code works on the first try about 60-70% of the time. The remaining 30-40% has bugs .  off-by-one errors, missing edge cases, incorrect API usage. A self-correcting agent doesn't just generate code; it tests the code, and if tests fail, it diagnoses what went wrong and fixes it.
+LLM-generated code works on the first try about 60-70% of the time. The remaining 30-40% has bugs. off-by-one errors, missing edge cases, incorrect API usage. A self-correcting agent doesn't just generate code; it tests the code, and if tests fail, it diagnoses what went wrong and fixes it.
 
-This creates a conditional pipeline: generate, test, then branch. On success, deliver the code. On failure, diagnose (analyze the test output, identify the root cause .  "Array index starts at 1 but should start at 0") and fix (generate corrected code targeting the specific issue). The fixed code then goes through delivery. Without orchestration, implementing this generate-test-fix loop with proper state management and failure routing requires careful branching logic.
+This creates a conditional pipeline: generate, test, then branch. On success, deliver the code. On failure, diagnose (analyze the test output, identify the root cause. "Array index starts at 1 but should start at 0") and fix (generate corrected code targeting the specific issue). The fixed code then goes through delivery. Without orchestration, implementing this generate-test-fix loop with proper state management and failure routing requires careful branching logic.
 
 ## The Solution
 
 **You write the code generation, testing, diagnosis, and fix logic. Conductor handles the pass/fail routing, conditional repair path, and delivery.**
 
-`GenerateCodeWorker` produces code from the requirement specification. `RunTestsWorker` executes test cases against the generated code and returns pass/fail status with detailed test output. Conductor's `SWITCH` routes based on test results: passing tests go to `DeliverWorker` for direct delivery. Failing tests go through `DiagnoseWorker` (analyzing test failures to identify root causes) and `FixWorker` (generating corrected code targeting the specific issues) before reaching `DeliverWorker`. Conductor records the original code, test results, diagnosis, and fixes .  showing exactly what was wrong and how it was corrected.
+`GenerateCodeWorker` produces code from the requirement specification. `RunTestsWorker` executes test cases against the generated code and returns pass/fail status with detailed test output. Conductor's `SWITCH` routes based on test results: passing tests go to `DeliverWorker` for direct delivery. Failing tests go through `DiagnoseWorker` (analyzing test failures to identify root causes) and `FixWorker` (generating corrected code targeting the specific issues) before reaching `DeliverWorker`. Conductor records the original code, test results, diagnosis, and fixes. showing exactly what was wrong and how it was corrected.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers implement self-correction. Generating code, running tests, and on f
 | **FixWorker** | `sc_fix` | Fixes code based on a diagnosis. Returns deterministic fixed code with a negative input guard added. |
 | **GenerateCodeWorker** | `sc_generate_code` | Generates code from a requirement description. Returns a deterministic fibonacci function implementation. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 
@@ -143,7 +143,7 @@ Replace with real code generation and test execution; the generate-test-fix pipe
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
 
-A Java Conductor workflow that generates code, runs tests, and self-corrects on failure .  generating code from a requirement, running test cases, then routing via `SWITCH`: if tests pass, the code is delivered; if tests fail, the agent diagnoses the failures, fixes the code, and delivers the corrected version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate code generation, testing, conditional diagnosis, and fixing as independent workers ,  you write the generation and testing logic, Conductor handles the pass/fail routing, retries, durability, and observability.
+A Java Conductor workflow that generates code, runs tests, and self-corrects on failure. generating code from a requirement, running test cases, then routing via `SWITCH`: if tests pass, the code is delivered; if tests fail, the agent diagnoses the failures, fixes the code, and delivers the corrected version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate code generation, testing, conditional diagnosis, and fixing as independent workers,  you write the generation and testing logic, Conductor handles the pass/fail routing, retries, durability, and observability.
 
 ## Project Structure
 

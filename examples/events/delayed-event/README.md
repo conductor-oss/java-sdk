@@ -12,7 +12,7 @@ Without orchestration, you'd build a delay queue with Thread.sleep() or schedule
 
 **You just write the event-receive, delay-compute, delay-apply, and event-processing workers. Conductor handles durable delay that survives restarts, ordered post-delay execution, and full lifecycle tracking per event.**
 
-Each delayed-processing concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the event, computing the delay, waiting the specified duration (durably ,  surviving restarts), processing the event after the delay, and logging completion. You get all of that, without writing a single line of orchestration code.
+Each delayed-processing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the event, computing the delay, waiting the specified duration (durably,  surviving restarts), processing the event after the delay, and logging completion. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage time-delayed processing: ReceiveEventWorker ingests the even
 | **ProcessEventWorker** | `de_process_event` | Processes the delayed event. |
 | **ReceiveEventWorker** | `de_receive_event` | Receives an incoming event and marks it as received. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

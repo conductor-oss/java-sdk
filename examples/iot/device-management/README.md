@@ -26,7 +26,7 @@ Five workers manage the device lifecycle: RegisterDeviceWorker adds the device t
 | **PushUpdateWorker** | `dev_push_update` | Checks for and pushes firmware updates to a device. |
 | **RegisterDeviceWorker** | `dev_register_device` | Registers a new IoT device in the device registry. |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
+Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
 
 ### The Workflow
 

@@ -26,7 +26,7 @@ Five workers run the quality assessment: loading records, then checking complete
 | `CheckConsistencyWorker` | `qc_check_consistency` | Detects duplicate IDs by comparing unique ID count to total ID count |
 | `GenerateReportWorker` | `qc_generate_report` | Averages the three check scores and assigns a letter grade (A/B/C/D) |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

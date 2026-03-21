@@ -12,7 +12,7 @@ Without orchestration, you'd build an event dispatcher with a switch statement o
 
 **You just write the event-receiver, classifier, and type-specific handler workers. Conductor handles type-based SWITCH routing, per-handler retries, and full event classification and processing history.**
 
-Each event type handler is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the event, classifying it, routing via a SWITCH task to the correct handler, retrying if the handler fails, and tracking every event's routing and processing. You get all of that, without writing a single line of orchestration code.
+Each event type handler is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the event, classifying it, routing via a SWITCH task to the correct handler, retrying if the handler fails, and tracking every event's routing and processing. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers route events by type: ReceiveEventWorker ingests events, ClassifyEv
 | **HandlePaymentWorker** | `ed_handle_payment` | Handles payment-related events. |
 | **ReceiveEventWorker** | `ed_receive_event` | Receives an incoming event and enriches it with metadata. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

@@ -1,20 +1,20 @@
 # RAG with Redis Vector Search in Java Using Conductor :  FT.SEARCH for Similarity Queries
 
-A Java Conductor workflow that implements RAG using Redis's vector similarity search (RediSearch) .  embedding the question, running an `FT.SEARCH` query with KNN vector matching against a Redis index, and generating an answer from the matched documents. Redis provides sub-millisecond vector search alongside your existing caching and data layer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Redis FT.SEARCH, and generation as independent workers ,  you write the Redis integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG using Redis's vector similarity search (RediSearch). embedding the question, running an `FT.SEARCH` query with KNN vector matching against a Redis index, and generating an answer from the matched documents. Redis provides sub-millisecond vector search alongside your existing caching and data layer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Redis FT.SEARCH, and generation as independent workers,  you write the Redis integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## Ultra-Low Latency RAG with Redis
 
-If you already run Redis for caching or session management, RediSearch adds vector similarity search without a separate database. Redis vectors are stored in-memory, making search latency sub-millisecond .  ideal for real-time applications where RAG latency matters (chatbots, autocomplete, interactive assistants). The pipeline embeds the question, searches the Redis index, and generates from the results.
+If you already run Redis for caching or session management, RediSearch adds vector similarity search without a separate database. Redis vectors are stored in-memory, making search latency sub-millisecond. ideal for real-time applications where RAG latency matters (chatbots, autocomplete, interactive assistants). The pipeline embeds the question, searches the Redis index, and generates from the results.
 
 ## The Solution
 
 **You write the embedding and Redis FT.SEARCH query logic. Conductor handles the RAG pipeline, retries, and observability.**
 
-Each stage is an independent worker .  question embedding, Redis FT.SEARCH vector query (specifying the index name), and answer generation. Conductor sequences them, retries the Redis query if the connection is temporarily lost, and tracks every search.
+Each stage is an independent worker. question embedding, Redis FT.SEARCH vector query (specifying the index name), and answer generation. Conductor sequences them, retries the Redis query if the connection is temporarily lost, and tracks every search.
 
 ### What You Write: Workers
 
-Three workers integrate Redis into the RAG pipeline .  embedding the query, performing sub-millisecond vector search via Redis FT.SEARCH, and generating an answer from the matched documents.
+Three workers integrate Redis into the RAG pipeline. embedding the query, performing sub-millisecond vector search via Redis FT.SEARCH, and generating an answer from the matched documents.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -22,7 +22,7 @@ Three workers integrate Redis into the RAG pipeline .  embedding the query, perf
 | **RedisFtSearchWorker** | `redis_ft_search` | Worker that simulates a Redis FT.SEARCH vector similarity query. Real Redis commands this simulates: Create index: FT... |
 | **RedisGenerateWorker** | `redis_generate` | Worker that generates an answer from the question and Redis search results. |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -127,13 +127,13 @@ conductor workflow search -w rag_redis_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in a real embedding API, run FT.SEARCH KNN queries against your Redis index for sub-millisecond retrieval, and the embed-search-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in a real embedding API, run FT.SEARCH KNN queries against your Redis index for sub-millisecond retrieval, and the embed-search-generate pipeline runs unchanged.
 
 - **RedisEmbedWorker** (`redis_embed`): call an embedding API (OpenAI text-embedding-3-small, Cohere embed-english-v3) to vectorize the question for Redis vector search
 - **RedisFtSearchWorker** (`redis_ft_search`): execute a real Redis `FT.SEARCH` vector similarity query against an HNSW or FLAT index using Jedis or Lettuce with `DIALECT 2`
 - **RedisGenerateWorker** (`redis_generate`): send Redis search results as context to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer
 
-The embed/search/generate contract is fixed .  tune the Redis index schema, switch distance metrics, or swap the LLM provider without changing the workflow.
+The embed/search/generate contract is fixed. tune the Redis index schema, switch distance metrics, or swap the LLM provider without changing the workflow.
 
 ## SDK
 

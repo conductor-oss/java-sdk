@@ -1,10 +1,10 @@
 # Real Estate Escrow Management in Java with Conductor :  Open, Deposit, Verify, Release, and Close
 
-A Java Conductor workflow example for managing the escrow lifecycle in a real estate transaction .  opening the escrow account, accepting the buyer's deposit, verifying that all closing conditions are met, releasing funds to the seller, and formally closing the escrow. Uses [Conductor](https://github.
+A Java Conductor workflow example for managing the escrow lifecycle in a real estate transaction. opening the escrow account, accepting the buyer's deposit, verifying that all closing conditions are met, releasing funds to the seller, and formally closing the escrow. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to manage escrow for property transactions. When a buyer and seller agree on a sale, earnest money must be deposited into a neutral escrow account. Before funds can be released, contingencies must be verified .  title is clear, inspection passed, financing is approved. Only after verification should funds be released to the seller, and then the escrow must be formally closed with all parties notified. If any step executes out of order ,  funds released before verification, escrow closed before release ,  you face legal liability and financial loss.
+You need to manage escrow for property transactions. When a buyer and seller agree on a sale, earnest money must be deposited into a neutral escrow account. Before funds can be released, contingencies must be verified. title is clear, inspection passed, financing is approved. Only after verification should funds be released to the seller, and then the escrow must be formally closed with all parties notified. If any step executes out of order,  funds released before verification, escrow closed before release,  you face legal liability and financial loss.
 
 Without orchestration, escrow management is tracked manually with phone calls, emails, and checklists. The title company calls to confirm the deposit, the agent emails to confirm verification, and a paralegal manually triggers the release. A missed step means funds are stuck or released prematurely, and reconstructing what happened requires digging through email threads.
 
@@ -12,7 +12,7 @@ Without orchestration, escrow management is tracked manually with phone calls, e
 
 **You just write the escrow opening, deposit handling, contingency verification, fund release, and closing logic. Conductor handles deposit retries, condition tracking, and escrow audit trails.**
 
-Each escrow step is a simple, independent worker .  one opens the account, one accepts the deposit, one verifies contingencies, one releases funds, one closes the escrow. Conductor ensures strict sequential execution so funds are never released before verification, retries if the banking API is temporarily down, and maintains a tamper-proof record of every step for regulatory compliance. You get all of that, without writing a single line of orchestration code.
+Each escrow step is a simple, independent worker. one opens the account, one accepts the deposit, one verifies contingencies, one releases funds, one closes the escrow. Conductor ensures strict sequential execution so funds are never released before verification, retries if the banking API is temporarily down, and maintains a tamper-proof record of every step for regulatory compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Deposit collection, document verification, condition tracking, and fund disburse
 | **ReleaseWorker** | `esc_release` | Releases escrowed funds to the seller after verification is complete |
 | **CloseEscrowWorker** | `esc_close` | Formally closes the escrow account and generates the closing statement |
 
-Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
+Workers implement property transaction steps. listing, inspection, escrow, closing,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w esc_escrow_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real escrow systems .  your trust accounting platform for account management, your title company API for contingency verification, your banking API for fund transfers, and the workflow runs identically in production.
+Wire each worker to your real escrow systems. your trust accounting platform for account management, your title company API for contingency verification, your banking API for fund transfers, and the workflow runs identically in production.
 
 - **OpenEscrowWorker** (`esc_open`): integrate with your escrow company's API or banking platform (Plaid, Stripe Treasury) to open a real custodial account
 - **DepositWorker** (`esc_deposit`): initiate an ACH pull from the buyer's bank account and verify the deposit cleared

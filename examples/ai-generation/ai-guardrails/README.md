@@ -1,6 +1,6 @@
 # AI Guardrails in Java Using Conductor :  Input Check, Content Filter, Generate, Output Check, Deliver
 
-A Java Conductor workflow that wraps AI generation with safety guardrails .  checking the user's prompt for policy violations, filtering content based on sensitivity rules, generating the response, checking the output for harmful or inappropriate content, and delivering only safe, compliant responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage guarded generation pipeline as independent workers ,  you write the safety logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that wraps AI generation with safety guardrails. checking the user's prompt for policy violations, filtering content based on sensitivity rules, generating the response, checking the output for harmful or inappropriate content, and delivering only safe, compliant responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage guarded generation pipeline as independent workers,  you write the safety logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## AI Models Need Safety Boundaries on Input and Output
 
@@ -12,7 +12,7 @@ Input guardrails detect prompt injection, jailbreak attempts, and policy-violati
 
 **You just write the input safety checking, content filtering, AI generation, output validation, and safe delivery logic. Conductor handles safety check sequencing, generation retries, and complete content audit trails.**
 
-`InputCheckWorker` scans the user prompt for policy violations .  jailbreak patterns, prompt injection attempts, restricted topics, and PII in the input. `ContentFilterWorker` applies sensitivity rules ,  topic restrictions, user-tier-based access controls, and content category filtering. `GenerateWorker` produces the AI response from the filtered prompt. `OutputCheckWorker` scans the generated response for harmful content, PII leakage, bias indicators, and compliance violations. `DeliverWorker` delivers the response only if both input and output checks pass. Conductor records every guardrail decision for safety auditing.
+`InputCheckWorker` scans the user prompt for policy violations. jailbreak patterns, prompt injection attempts, restricted topics, and PII in the input. `ContentFilterWorker` applies sensitivity rules,  topic restrictions, user-tier-based access controls, and content category filtering. `GenerateWorker` produces the AI response from the filtered prompt. `OutputCheckWorker` scans the generated response for harmful content, PII leakage, bias indicators, and compliance violations. `DeliverWorker` delivers the response only if both input and output checks pass. Conductor records every guardrail decision for safety auditing.
 
 ### What You Write: Workers
 
@@ -20,13 +20,13 @@ Safety checks run as independent workers before and after generation, so guardra
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ContentFilterWorker** | `grl_content_filter` | Applies content sensitivity rules .  checks for harmful topics, restricted categories, and policy violations |
+| **ContentFilterWorker** | `grl_content_filter` | Applies content sensitivity rules. checks for harmful topics, restricted categories, and policy violations |
 | **DeliverWorker** | `grl_deliver` | Delivers the safe, validated response to the user after all guardrail checks pass |
 | **GenerateWorker** | `grl_generate` | Generates the AI response from the filtered prompt using the specified model |
-| **InputCheckWorker** | `grl_input_check` | Scans the user prompt for safety .  checks for PII, prompt injection attempts, and policy violations |
-| **OutputCheckWorker** | `grl_output_check` | Validates the generated response .  checks toxicity (0.01), hallucination (0.03), and content safety |
+| **InputCheckWorker** | `grl_input_check` | Scans the user prompt for safety. checks for PII, prompt injection attempts, and policy violations |
+| **OutputCheckWorker** | `grl_output_check` | Validates the generated response. checks toxicity (0.01), hallucination (0.03), and content safety |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI guardrails (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI guardrails (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 

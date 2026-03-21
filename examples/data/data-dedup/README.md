@@ -26,7 +26,7 @@ Five workers form the deduplication pipeline: loading records, computing normali
 | **LoadRecordsWorker** | `dp_load_records` | Loads records for deduplication and passes them through with a count. |
 | **MergeGroupsWorker** | `dp_merge_groups` | Merges duplicate groups by picking the first record from each group and removing dedupKey. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

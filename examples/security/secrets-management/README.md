@@ -25,7 +25,7 @@ Four workers handle the secrets lifecycle: CreateSecretWorker generates credenti
 | **ScheduleRotationWorker** | `sm_schedule_rotation` | Schedules automatic rotation on a configurable interval (e.g., every 90 days) |
 | **VerifyAccessWorker** | `sm_verify_access` | Verifies that access policies are correct and only authorized services can read the secret |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations, the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations, the workflow logic stays the same.
 
 ### The Workflow
 

@@ -6,13 +6,13 @@ Automates infrastructure capacity planning using [Conductor](https://github.com/
 
 Your service is growing 15% month-over-month. At some point, current infrastructure will not be enough; but when? And how much should you add? Without automated capacity planning, teams either over-provision (wasting money) or under-provision (causing outages). This workflow turns raw metrics into a concrete recommendation: "add 3 nodes in 21 days, estimated cost $450/month."
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the metrics analysis and forecasting logic. Conductor handles the collection-to-recommendation pipeline and tracks every planning cycle.**
 
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging .  your workers call the infrastructure APIs.
+Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. your workers call the infrastructure APIs.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle the capacity planning cycle. Collecting utilization metrics,
 | **ForecastWorker** | `cp_forecast` | Projects when current capacity will be exhausted based on the growth trend, with a confidence score |
 | **RecommendWorker** | `cp_recommend` | Generates a scaling recommendation with node count and estimated monthly cost |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w capacity_planning_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one planning stage .  plug in CloudWatch, Prometheus, or AWS Forecast for real utilization data and trend analysis, and the planning workflow runs unchanged.
+Each worker handles one planning stage. plug in CloudWatch, Prometheus, or AWS Forecast for real utilization data and trend analysis, and the planning workflow runs unchanged.
 
 - **AnalyzeTrendsWorker** (`cp_analyze_trends`): use Prometheus range queries, Datadog metric aggregation, or CloudWatch GetMetricStatistics to compute growth rates
 - **CollectMetricsWorker** (`cp_collect_metrics`): pull utilization data from your cloud provider's monitoring API (AWS CloudWatch, GCP Monitoring, Azure Monitor)
@@ -172,6 +172,6 @@ capacity-planning-capacity-planning/
 │       ├── ForecastWorker.java
 │       └── RecommendWorker.java
 └── src/test/java/capacityplanning/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

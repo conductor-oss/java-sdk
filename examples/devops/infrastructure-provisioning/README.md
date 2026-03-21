@@ -6,13 +6,13 @@ Orchestrates infrastructure provisioning: plan, validate, provision, configure, 
 
 An engineer requests 3 EC2 instances in us-east-1. Before spinning them up, the request needs validation: Does the account have sufficient quota? Does the instance type comply with organization policies (no m5.24xlarge without VP approval)? Is the VPC and subnet configuration correct? Will this push the monthly bill over budget?
 
-After provisioning, the instances need configuration: install monitoring agents, configure security groups, join the service mesh, register with service discovery. If provisioning succeeds but configuration fails, you have running instances that aren't monitored or secured .  a dangerous state that must be detected and remediated. Every provisioning action needs a complete audit trail for cost tracking and compliance.
+After provisioning, the instances need configuration: install monitoring agents, configure security groups, join the service mesh, register with service discovery. If provisioning succeeds but configuration fails, you have running instances that aren't monitored or secured. a dangerous state that must be detected and remediated. Every provisioning action needs a complete audit trail for cost tracking and compliance.
 
 ## The Solution
 
 **You write the provisioning and policy validation logic. Conductor handles the plan-validate-provision-configure-verify pipeline and the full infrastructure audit trail.**
 
-`PlanWorker` generates the infrastructure plan .  resource types, sizes, regions, networking, and estimated cost. `ValidateWorker` checks the plan against organizational policies, quota limits, budget constraints, and security requirements. `ProvisionWorker` creates the validated resources ,  launching instances, creating databases, provisioning load balancers. `ConfigureWorker` sets up the provisioned resources ,  installing agents, configuring security, joining service meshes, and setting up monitoring. `VerifyWorker` confirms all resources are operational ,  health checks passing, monitoring reporting, and traffic routing correctly. Conductor sequences these five steps and records the complete provisioning audit trail.
+`PlanWorker` generates the infrastructure plan. resource types, sizes, regions, networking, and estimated cost. `ValidateWorker` checks the plan against organizational policies, quota limits, budget constraints, and security requirements. `ProvisionWorker` creates the validated resources,  launching instances, creating databases, provisioning load balancers. `ConfigureWorker` sets up the provisioned resources,  installing agents, configuring security, joining service meshes, and setting up monitoring. `VerifyWorker` confirms all resources are operational,  health checks passing, monitoring reporting, and traffic routing correctly. Conductor sequences these five steps and records the complete provisioning audit trail.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage provisioning. Planning resources, validating against policie
 | **Validate** | `ip_validate` | Validates the infrastructure plan against policies. |
 | **Verify** | `ip_verify` | Verifies the provisioned resource is healthy. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w infra_provisioning_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one provisioning step .  replace the simulated calls with Terraform, AWS CloudFormation, or Ansible for real resource creation and configuration, and the provisioning workflow runs unchanged.
+Each worker handles one provisioning step. replace the simulated calls with Terraform, AWS CloudFormation, or Ansible for real resource creation and configuration, and the provisioning workflow runs unchanged.
 
 - **Plan** (`ip_plan`): generate a resource plan using Terraform plan, Pulumi preview, or CloudFormation change sets, showing what will be created, modified, or destroyed
 - **Validate** (`ip_validate`): integrate with OPA (Open Policy Agent) for policy enforcement, check AWS Service Quotas API for quota limits, and estimate costs via AWS Pricing API

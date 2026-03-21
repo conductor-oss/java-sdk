@@ -1,6 +1,6 @@
 # Tree of Thought in Java Using Conductor :  Explore Three Solution Paths in Parallel, Evaluate, Select Best
 
-Tree of Thought .  define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution. Uses [Conductor](https://github.
+Tree of Thought. define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution. Uses [Conductor](https://github.
 
 ## Some Problems Have Multiple Solution Approaches
 
@@ -27,7 +27,7 @@ Six workers explore solution space. Defining the problem, exploring three parall
 | **PathCWorker** | `tt_path_c` | Empirical reasoning path. Proposes a data-driven solution based on traffic analysis: regional clusters with geo-routi... |
 | **SelectBestWorker** | `tt_select_best` | Selects and returns the best reasoning path and its solution as the final output of the tree-of-thought workflow. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

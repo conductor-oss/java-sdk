@@ -6,13 +6,13 @@ Marketplace seller onboarding: register, verify, list products, manage orders. U
 
 A new seller wants to sell on your marketplace. Before their products go live, you need to verify their identity (government ID, business registration), validate their business (tax ID verification, bank account confirmation), list their products with proper categorization and pricing, and enable order management (so they receive orders, manage fulfillment, and handle returns).
 
-Each step has dependencies: products can't be listed until the seller is verified, and order management can't be enabled until products are listed. Identity verification may require manual review (flagged documents), adding variable completion time. If product listing fails (invalid images, missing required fields), the seller's verification is still valid .  you just need to retry the listing step.
+Each step has dependencies: products can't be listed until the seller is verified, and order management can't be enabled until products are listed. Identity verification may require manual review (flagged documents), adding variable completion time. If product listing fails (invalid images, missing required fields), the seller's verification is still valid. you just need to retry the listing step.
 
 ## The Solution
 
 **You just write the seller registration, verification, product listing, and order management logic. Conductor handles verification retries, onboarding step sequencing, and seller lifecycle tracking.**
 
-`OnboardSellerWorker` registers the seller with business name, category, contact information, and bank details. `VerifySellerWorker` validates the seller's identity and business legitimacy .  checking government ID, tax registration, bank account ownership, and business licensing. `ListProductsWorker` processes the seller's product catalog ,  validating images, descriptions, pricing, and categorization, and publishing approved listings. `ManageOrdersWorker` enables the seller's order management capabilities ,  order notifications, fulfillment tracking, and return handling. Conductor sequences these steps and records the complete onboarding journey for compliance.
+`OnboardSellerWorker` registers the seller with business name, category, contact information, and bank details. `VerifySellerWorker` validates the seller's identity and business legitimacy. checking government ID, tax registration, bank account ownership, and business licensing. `ListProductsWorker` processes the seller's product catalog,  validating images, descriptions, pricing, and categorization, and publishing approved listings. `ManageOrdersWorker` enables the seller's order management capabilities,  order notifications, fulfillment tracking, and return handling. Conductor sequences these steps and records the complete onboarding journey for compliance.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Seller registration, verification, product listing, and order management workers
 | **OnboardSellerWorker** | `mkt_onboard_seller` | Registering seller |
 | **VerifySellerWorker** | `mkt_verify_seller` | Verifying documents for seller |
 
-Workers simulate e-commerce operations .  payment processing, inventory checks, shipping ,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations. payment processing, inventory checks, shipping,  with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 

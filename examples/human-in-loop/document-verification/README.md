@@ -1,10 +1,10 @@
 # Document Verification in Java Using Conductor :  AI Data Extraction, Human Verification via WAIT, and Verified Data Storage
 
-A Java Conductor workflow example for document verification .  using AI/OCR to extract structured data from a document (name, date, amount, ID numbers), pausing at a WAIT task for a human to verify and correct the extracted data against the original document, and then storing the human-verified data as the authoritative record. Demonstrates the AI-extracts-human-verifies pattern for intelligent document processing. Uses [Conductor](https://github.
+A Java Conductor workflow example for document verification. using AI/OCR to extract structured data from a document (name, date, amount, ID numbers), pausing at a WAIT task for a human to verify and correct the extracted data against the original document, and then storing the human-verified data as the authoritative record. Demonstrates the AI-extracts-human-verifies pattern for intelligent document processing. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to process documents .  invoices, contracts, tax forms, identity documents ,  by extracting structured data from unstructured images or PDFs. AI/OCR models extract fields like names, dates, amounts, and document numbers, along with a confidence score for each extraction. But AI extraction is not perfect ,  handwriting misreads, low-quality scans, and unusual layouts cause errors. A human must verify the extracted data against the original document, correcting any mistakes before the data enters your system of record. Without verification, OCR errors propagate into your database ,  wrong amounts on invoices, misspelled names on contracts, incorrect tax IDs.
+You need to process documents. invoices, contracts, tax forms, identity documents,  by extracting structured data from unstructured images or PDFs. AI/OCR models extract fields like names, dates, amounts, and document numbers, along with a confidence score for each extraction. But AI extraction is not perfect,  handwriting misreads, low-quality scans, and unusual layouts cause errors. A human must verify the extracted data against the original document, correcting any mistakes before the data enters your system of record. Without verification, OCR errors propagate into your database,  wrong amounts on invoices, misspelled names on contracts, incorrect tax IDs.
 
 Without orchestration, you'd call the OCR API, store the raw extraction in a database, email a reviewer with a link, poll for their corrections, and then update the database with verified data. If the OCR API times out on a large batch, you'd need retry logic. If the system crashes after the reviewer corrects the data but before it is stored, the verified corrections are lost. There is no visibility into how many documents are awaiting verification, what the AI confidence scores are, or how often humans correct the AI's output.
 
@@ -21,10 +21,10 @@ AiExtractWorker runs OCR to pull structured fields with confidence scores, and S
 | Worker | Task | What It Does |
 |---|---|---|
 | **AiExtractWorker** | `dv_ai_extract` | Runs AI/OCR extraction on the document, returning structured fields (name, date, amount, etc.) with a confidence score indicating extraction quality |
-| *WAIT task* | `dv_human_verify` | Pauses with the extracted data and confidence score until a human reviewer verifies and corrects the fields, submitting verified data via `POST /tasks/{taskId}` | Built-in Conductor WAIT .  no worker needed |
+| *WAIT task* | `dv_human_verify` | Pauses with the extracted data and confidence score until a human reviewer verifies and corrects the fields, submitting verified data via `POST /tasks/{taskId}` | Built-in Conductor WAIT. no worker needed |
 | **StoreVerifiedWorker** | `dv_store_verified` | Stores the human-verified data as the authoritative record in the document management system or database |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -128,7 +128,7 @@ conductor workflow search -w document_verification_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one side of the extraction-verification loop .  plug in your OCR service (AWS Textract, Google Document AI, ABBYY) for extraction and your system of record for storage, and the verification workflow stays the same.
+Each worker covers one side of the extraction-verification loop. plug in your OCR service (AWS Textract, Google Document AI, ABBYY) for extraction and your system of record for storage, and the verification workflow stays the same.
 
 - **AiExtractWorker** (`dv_ai_extract`): use AWS Textract, Google Document AI, or Azure Form Recognizer for real document data extraction from uploaded images or PDFs
 - **StoreVerifiedWorker** (`dv_store_verified`): write verified data to a database, update a customer record in a CRM, or push to a document management system with audit logging

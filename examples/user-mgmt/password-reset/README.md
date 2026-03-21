@@ -25,7 +25,7 @@ RequestWorker looks up the account by email, VerifyTokenWorker validates the res
 | `ResetWorker` | `pwd_reset` | Updates the user's password in the credential store and records the update timestamp |
 | `NotifyWorker` | `pwd_notify` | Sends a password-change confirmation email to the user's address |
 
-Workers simulate user lifecycle operations: account creation, verification, profile setup, with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations: account creation, verification, profile setup, with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 

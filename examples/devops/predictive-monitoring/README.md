@@ -6,13 +6,13 @@ Automates predictive monitoring using [Conductor](https://github.com/conductor-o
 
 Your CPU usage has been climbing steadily for 30 days. Will it breach 90% this week? Instead of waiting for an alert to fire at 3 AM, predictive monitoring analyzes 30 days of historical data (43,200 data points at 1-minute granularity), trains a forecasting model, and tells you there is a 72.3% chance of breach with a predicted peak of 88.5% by tomorrow afternoon. You get a warning alert now, while you can still scale up or optimize. Not a critical page when it is already too late.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the forecasting model and alert logic. Conductor handles the data-collection-to-prediction pipeline and tracks every forecast for accuracy validation.**
 
-`CollectHistoryWorker` gathers historical metric data for the monitoring target .  time-series values with timestamps spanning the training window. `TrainModelWorker` fits a prediction model to the historical data, learning trends, seasonality, and growth patterns. `PredictWorker` uses the trained model to forecast future metric values over the prediction horizon, with confidence intervals. `AlertWorker` evaluates the predictions against thresholds and sends early warnings if a breach is forecasted, including the predicted breach date and recommended actions. Conductor records every prediction for model accuracy tracking over time.
+`CollectHistoryWorker` gathers historical metric data for the monitoring target. time-series values with timestamps spanning the training window. `TrainModelWorker` fits a prediction model to the historical data, learning trends, seasonality, and growth patterns. `PredictWorker` uses the trained model to forecast future metric values over the prediction horizon, with confidence intervals. `AlertWorker` evaluates the predictions against thresholds and sends early warnings if a breach is forecasted, including the predicted breach date and recommended actions. Conductor records every prediction for model accuracy tracking over time.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers power predictive monitoring. Collecting historical metrics, trainin
 | **Predict** | `pdm_predict` | Forecasts future metric values using the trained model, outputting predicted peak, timing, and breach likelihood with confidence intervals |
 | **TrainModel** | `pdm_train_model` | Trains a time-series forecasting model (e.g., Prophet) on the collected historical data points |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -123,7 +123,7 @@ conductor workflow search -w predictive_monitoring -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one prediction stage .  replace the simulated calls with Prometheus range queries, Prophet time-series forecasting, or PagerDuty proactive alerts, and the monitoring workflow runs unchanged.
+Each worker handles one prediction stage. replace the simulated calls with Prometheus range queries, Prophet time-series forecasting, or PagerDuty proactive alerts, and the monitoring workflow runs unchanged.
 
 - **CollectHistory** (`pdm_collect_history`): query Prometheus range queries, CloudWatch GetMetricData, or InfluxDB for historical metric data with proper aggregation and gap handling
 - **TrainModel** (`pdm_train_model`): use Prophet for time-series forecasting with automatic seasonality detection, scikit-learn for linear models, or AWS Forecast for managed ML-based predictions

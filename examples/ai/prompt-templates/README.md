@@ -1,6 +1,6 @@
 # Prompt Templates in Java Using Conductor :  Versioned Templates, Variable Resolution, and LLM Invocation
 
-A Java Conductor workflow that manages prompt engineering as a first-class concern .  resolving a versioned prompt template by ID, substituting variables into the template, calling an LLM with the rendered prompt, and collecting the result with template metadata. This separates prompt management from LLM integration, so you can iterate on prompts without touching API code. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate template resolution, LLM invocation, and result collection as independent workers ,  you write the template registry and LLM logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that manages prompt engineering as a first-class concern. resolving a versioned prompt template by ID, substituting variables into the template, calling an LLM with the rendered prompt, and collecting the result with template metadata. This separates prompt management from LLM integration, so you can iterate on prompts without touching API code. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate template resolution, LLM invocation, and result collection as independent workers,  you write the template registry and LLM logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Prompt Engineering Needs Version Control
 
@@ -12,11 +12,11 @@ A template system solves this: prompts are stored with IDs and version numbers, 
 
 **You write the template resolution and LLM invocation logic. Conductor handles the versioned pipeline, retries, and observability.**
 
-Each concern is an independent worker .  template resolution (looking up the template by ID and version, substituting variables), LLM invocation (calling the model with the rendered prompt), and result collection (packaging the response with template metadata for auditability). Conductor chains them, retries the LLM call on transient errors, and records the template ID, version, rendered prompt, and response for every execution.
+Each concern is an independent worker. template resolution (looking up the template by ID and version, substituting variables), LLM invocation (calling the model with the rendered prompt), and result collection (packaging the response with template metadata for auditability). Conductor chains them, retries the LLM call on transient errors, and records the template ID, version, rendered prompt, and response for every execution.
 
 ### What You Write: Workers
 
-Three workers manage templated LLM calls .  resolving a versioned template with variable substitution, calling the LLM with the resolved prompt, and collecting the result with template metadata for tracking.
+Three workers manage templated LLM calls. resolving a versioned template with variable substitution, calling the LLM with the resolved prompt, and collecting the result with template metadata for tracking.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -129,13 +129,13 @@ conductor workflow search -w prompt_templates_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one prompt management concern .  swap in a database-backed template store for versioning, connect any LLM provider for invocation, log to Weights & Biases for prompt analytics, and the resolve-invoke-collect pipeline runs unchanged.
+Each worker handles one prompt management concern. swap in a database-backed template store for versioning, connect any LLM provider for invocation, log to Weights & Biases for prompt analytics, and the resolve-invoke-collect pipeline runs unchanged.
 
 - **CallLlmWorker** (`pt_call_llm`): call OpenAI, Anthropic Claude, or Google Gemini APIs with the resolved prompt, routing to different models based on template metadata
 - **CollectWorker** (`pt_collect`): log prompt version, model response, latency, and token usage to an analytics store (e.g., Datadog, Weights & Biases) for prompt performance tracking
 - **ResolveTemplateWorker** (`pt_resolve_template`): load versioned templates from a database or config service (e.g., PostgreSQL, AWS Parameter Store), supporting A/B testing of prompt versions
 
-The template/result contract stays fixed .  add new templates, update variable schemas, or swap LLM providers without changing the pipeline structure.
+The template/result contract stays fixed. add new templates, update variable schemas, or swap LLM providers without changing the pipeline structure.
 
 ## SDK
 

@@ -1,22 +1,22 @@
 # System Prompts in Java Using Conductor :  A/B Test Formal vs Casual Tone with Side-by-Side Comparison
 
-A Java Conductor workflow that runs the same user prompt through two different system prompts .  formal and casual ,  then compares the outputs side by side. This lets you evaluate how system prompt tone affects response quality, length, and style for your specific use case. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate prompt building, sequential LLM calls (formal then casual), and output comparison as independent workers ,  you write the prompt engineering and comparison logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that runs the same user prompt through two different system prompts. formal and casual,  then compares the outputs side by side. This lets you evaluate how system prompt tone affects response quality, length, and style for your specific use case. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate prompt building, sequential LLM calls (formal then casual), and output comparison as independent workers,  you write the prompt engineering and comparison logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Testing System Prompt Variations
 
-The system prompt dramatically affects LLM output .  formal prompts produce longer, more structured responses while casual prompts produce shorter, more conversational ones. But the effect varies by model and use case. To choose the right system prompt, you need to run the same user prompt through multiple variations and compare the outputs on metrics that matter (tone, length, helpfulness, accuracy).
+The system prompt dramatically affects LLM output. formal prompts produce longer, more structured responses while casual prompts produce shorter, more conversational ones. But the effect varies by model and use case. To choose the right system prompt, you need to run the same user prompt through multiple variations and compare the outputs on metrics that matter (tone, length, helpfulness, accuracy).
 
-This workflow builds the prompt with each system prompt style, calls the LLM for each, and compares the outputs .  recording both responses and the comparison metrics.
+This workflow builds the prompt with each system prompt style, calls the LLM for each, and compares the outputs. recording both responses and the comparison metrics.
 
 ## The Solution
 
 **You write the prompt variations and comparison scoring logic. Conductor handles the A/B test sequencing, retries, and observability.**
 
-Each step is an independent worker .  prompt building (combining system prompt with user message), LLM invocation, and output comparison. Conductor sequences the two LLM calls and the comparison step, retries if either call is rate-limited, and tracks every A/B test with both responses and the comparison results.
+Each step is an independent worker. prompt building (combining system prompt with user message), LLM invocation, and output comparison. Conductor sequences the two LLM calls and the comparison step, retries if either call is rate-limited, and tracks every A/B test with both responses and the comparison results.
 
 ### What You Write: Workers
 
-Three workers enable system prompt experimentation .  building the full prompt with a system persona and user message, calling the LLM, and comparing outputs from different system prompts (formal vs, casual) side by side.
+Three workers enable system prompt experimentation. building the full prompt with a system persona and user message, calling the LLM, and comparing outputs from different system prompts (formal vs, casual) side by side.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -135,13 +135,13 @@ conductor workflow search -w system_prompts_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one A/B testing step .  swap in real LLM calls to compare system prompt tones, add custom scoring metrics for your use case, and the build-call-compare workflow runs unchanged.
+Each worker handles one A/B testing step. swap in real LLM calls to compare system prompt tones, add custom scoring metrics for your use case, and the build-call-compare workflow runs unchanged.
 
 - **SpBuildPromptWorker** (`sp_build_prompt`): load system prompts and few-shot examples from a prompt registry (database, config service), supporting A/B testing of different prompt styles
 - **SpCallLlmWorker** (`sp_call_llm`): call an LLM API (OpenAI GPT-4, Anthropic Claude, Google Gemini) with the assembled system prompt, few-shot examples, and user message
 - **SpCompareOutputsWorker** (`sp_compare_outputs`): use an LLM-as-judge or automated metrics (BLEU, ROUGE, BERTScore) to compare outputs from different system prompt styles and recommend the best variant
 
-The prompt-in, comparison-out contract stays fixed .  add new persona variants, swap LLM providers, or change scoring criteria without altering the workflow structure.
+The prompt-in, comparison-out contract stays fixed. add new persona variants, swap LLM providers, or change scoring criteria without altering the workflow structure.
 
 ## SDK
 

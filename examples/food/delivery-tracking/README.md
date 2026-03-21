@@ -6,13 +6,13 @@ Tracks a food delivery end-to-end: assigning a driver, recording pickup, trackin
 
 You need to track a food delivery from restaurant to customer. The workflow assigns an available delivery driver, records the pickup at the restaurant, tracks the driver's location en route, confirms delivery at the customer's address, and records completion. Late deliveries lead to cold food and unhappy customers; losing track of a driver means the customer has no ETA.
 
-Without orchestration, you'd build a single delivery service that queries driver availability, updates status through the delivery lifecycle, sends push notifications, and handles exceptions (driver cancellation, wrong address) .  manually managing driver state across concurrent deliveries.
+Without orchestration, you'd build a single delivery service that queries driver availability, updates status through the delivery lifecycle, sends push notifications, and handles exceptions (driver cancellation, wrong address). manually managing driver state across concurrent deliveries.
 
 ## The Solution
 
 **You just write the driver assignment, pickup recording, location tracking, delivery confirmation, and order closure logic. Conductor handles tracking retries, ETA recalculations, and delivery chain audit trails.**
 
-Each delivery concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (assign driver, pickup, track, deliver, confirm), retrying if the GPS tracking service is unavailable, tracking every delivery's full lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each delivery concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (assign driver, pickup, track, deliver, confirm), retrying if the GPS tracking service is unavailable, tracking every delivery's full lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Pickup confirmation, route tracking, ETA updates, and delivery completion worker
 | **PickupWorker** | `dlt_pickup` | Records the driver picking up the order at the restaurant with a pickup timestamp |
 | **TrackWorker** | `dlt_track` | Tracks the driver's GPS location (lat/lng) en route to the destination and returns the current ETA |
 
-Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
+Workers implement food service operations. order processing, kitchen routing, delivery coordination,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w delivery_tracking_733 -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real delivery stack .  your driver dispatch system for assignment, GPS tracking for location updates, your order platform for delivery confirmation, and the workflow runs identically in production.
+Wire each worker to your real delivery stack. your driver dispatch system for assignment, GPS tracking for location updates, your order platform for delivery confirmation, and the workflow runs identically in production.
 
 - **Driver assigner**: match orders to nearby available drivers using geolocation APIs (Google Maps, Mapbox) and driver availability status
 - **Pickup recorder**: update order status when the driver confirms pickup at the restaurant; notify the customer of estimated arrival

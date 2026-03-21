@@ -12,7 +12,7 @@ Without orchestration, someone notices the error rate in Grafana, runs `kubectl 
 
 **You write the failure detection and rollback logic. Conductor handles the detect-identify-rollback-verify sequence and records the complete rollback timeline.**
 
-`DetectFailureWorker` analyzes deployment health signals .  error rates, latency percentiles, health check status ,  to confirm the deployment is failing and quantify the impact. `IdentifyVersionWorker` looks up the deployment history to find the last known-good version and its configuration. `RollbackDeployWorker` executes the rollback ,  redeploying the previous version with its original configuration. `VerifyRollbackWorker` monitors health signals post-rollback to confirm the service has recovered ,  checking error rates, latency, and health check status. Conductor sequences these steps and records the complete rollback timeline for incident review.
+`DetectFailureWorker` analyzes deployment health signals. error rates, latency percentiles, health check status,  to confirm the deployment is failing and quantify the impact. `IdentifyVersionWorker` looks up the deployment history to find the last known-good version and its configuration. `RollbackDeployWorker` executes the rollback,  redeploying the previous version with its original configuration. `VerifyRollbackWorker` monitors health signals post-rollback to confirm the service has recovered,  checking error rates, latency, and health check status. Conductor sequences these steps and records the complete rollback timeline for incident review.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers execute the rollback. Detecting deployment failures, identifying th
 | **RollbackDeployWorker** | `rb_rollback_deploy` | Rolls back the deployment to the identified stable version |
 | **VerifyRollbackWorker** | `rb_verify_rollback` | Verifies the service is healthy after rollback by checking error rates and health endpoints |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w deployment_rollback_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one rollback step .  replace the simulated calls with Datadog anomaly detection, Kubernetes rollout undo, or ArgoCD sync for real failure detection and recovery, and the rollback workflow runs unchanged.
+Each worker handles one rollback step. replace the simulated calls with Datadog anomaly detection, Kubernetes rollout undo, or ArgoCD sync for real failure detection and recovery, and the rollback workflow runs unchanged.
 
 - **DetectFailureWorker** (`rb_detect_failure`): query Datadog, New Relic, or Prometheus for error rate spikes correlated with deployment timestamps, with automatic threshold-based detection
 - **IdentifyVersionWorker** (`rb_identify_version`): look up the last successful deployment in Argo CD, Spinnaker, or a deploy history database, returning the stable version tag and Git revision hash
@@ -164,6 +164,6 @@ deployment-rollback-deployment-rollback/
 │       ├── RollbackDeployWorker.java
 │       └── VerifyRollbackWorker.java
 └── src/test/java/deploymentrollback/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

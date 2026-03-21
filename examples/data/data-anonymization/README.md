@@ -25,7 +25,7 @@ Four workers implement the anonymization pipeline: scanning for PII fields, gene
 | **SuppressFieldsWorker** | `an_suppress_fields` | Suppresses direct-identifier fields by replacing values with [REDACTED]. |
 | **VerifyAnonymizationWorker** | `an_verify_anonymization` | Verifies that anonymization was applied correctly. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

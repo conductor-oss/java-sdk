@@ -24,7 +24,7 @@ Three workers execute the performance test. Preparing the environment, running t
 | **GenerateReportWorker** | `pt_generate_report` | Produces a performance report with percentile latencies, throughput, and trend analysis |
 | **PrepareEnvWorker** | `pt_prepare_env` | Provisions and configures an isolated load test environment (warm caches, seed data) |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -131,7 +131,7 @@ conductor workflow search -w performance_testing_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one testing stage .  replace the simulated calls with k6, Gatling, or JMeter for real load generation and latency analysis, and the testing workflow runs unchanged.
+Each worker handles one testing stage. replace the simulated calls with k6, Gatling, or JMeter for real load generation and latency analysis, and the testing workflow runs unchanged.
 
 - **PrepareEnvWorker** → provision real test environments: Terraform/Pulumi for infrastructure, Kubernetes namespaces for isolation, or AWS CloudFormation for ephemeral stacks with pre-warmed caches and seeded databases
 - **RunLoadTestWorker** → execute real load tests: k6 for script-based HTTP testing, Gatling for Scala-based scenarios, JMeter for complex test plans, or Locust for Python-based distributed load generation
@@ -171,6 +171,6 @@ performance-testing-performance-testing/
 │       ├── GenerateReportWorker.java
 │       └── PrepareEnvWorker.java
 └── src/test/java/performancetesting/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

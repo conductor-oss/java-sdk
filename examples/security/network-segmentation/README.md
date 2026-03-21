@@ -1,10 +1,10 @@
 # Implementing Network Segmentation in Java with Conductor :  Zone Definition, Rule Configuration, Policy Application, and Isolation Verification
 
-A Java Conductor workflow example for network segmentation .  defining network zones (DMZ, internal, restricted), configuring firewall rules between zones, applying security policies, and verifying that isolation is enforced correctly.
+A Java Conductor workflow example for network segmentation. defining network zones (DMZ, internal, restricted), configuring firewall rules between zones, applying security policies, and verifying that isolation is enforced correctly.
 
 ## The Problem
 
-You need to segment your network into security zones .  the DMZ for public-facing services, internal zones for application servers, and restricted zones for databases and sensitive systems. Each zone needs firewall rules defining what traffic is allowed between zones, policies must be applied to enforce the rules, and isolation must be verified to ensure no unauthorized cross-zone traffic is possible.
+You need to segment your network into security zones. the DMZ for public-facing services, internal zones for application servers, and restricted zones for databases and sensitive systems. Each zone needs firewall rules defining what traffic is allowed between zones, policies must be applied to enforce the rules, and isolation must be verified to ensure no unauthorized cross-zone traffic is possible.
 
 Without orchestration, network segmentation is configured manually in firewall consoles. Rules are added ad hoc, verification is done by security auditors on quarterly schedules, and rule drift (unauthorized changes) goes undetected. A misconfigured rule can expose your database to the internet.
 
@@ -12,7 +12,7 @@ Without orchestration, network segmentation is configured manually in firewall c
 
 **You just write the firewall rules and zone definitions. Conductor handles ordered deployment of zones and rules, retries on firewall API failures, and a full record of every rule applied and isolation test result.**
 
-Each segmentation step is an independent worker .  zone definition, rule configuration, policy application, and isolation verification. Conductor runs them in sequence: define zones, configure rules between them, apply the policies, then verify isolation. Every segmentation operation is tracked with zone configurations, rules applied, and verification results. You get all of that, without writing a single line of orchestration code.
+Each segmentation step is an independent worker. zone definition, rule configuration, policy application, and isolation verification. Conductor runs them in sequence: define zones, configure rules between them, apply the policies, then verify isolation. Every segmentation operation is tracked with zone configurations, rules applied, and verification results. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage segmentation end-to-end: DefineZonesWorker establishes netwo
 | **DefineZonesWorker** | `ns_define_zones` | Defines network security zones (e.g., DMZ, application, data, management) |
 | **VerifyIsolationWorker** | `ns_verify_isolation` | Verifies zone isolation by confirming no unauthorized cross-zone traffic exists |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w network_segmentation_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one segmentation step .  connect DefineZonesWorker to your SDN controller (NSX, Calico), ConfigureRulesWorker to AWS Security Groups or Palo Alto, and the zone-configure-verify workflow stays the same.
+Each worker manages one segmentation step. connect DefineZonesWorker to your SDN controller (NSX, Calico), ConfigureRulesWorker to AWS Security Groups or Palo Alto, and the zone-configure-verify workflow stays the same.
 
 - **ApplyPoliciesWorker** (`ns_apply_policies`): deploy policies via infrastructure-as-code (Terraform, Pulumi) or push to network policy engines (Calico, Cilium)
 - **ConfigureRulesWorker** (`ns_configure_rules`): create firewall rules in AWS Security Groups, Azure NSGs, GCP Firewall, or on-prem firewalls (Palo Alto, Fortinet)
@@ -172,6 +172,6 @@ network-segmentation-network-segmentation/
 │       ├── DefineZonesWorker.java
 │       └── VerifyIsolationWorker.java
 └── src/test/java/networksegmentation/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

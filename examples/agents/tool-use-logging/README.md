@@ -12,7 +12,7 @@ The logging pattern wraps every tool call with pre-execution and post-execution 
 
 **You write the request logging, tool execution, response logging, and audit creation logic. Conductor handles the logging pipeline, ensuring audit records are created even on tool failure.**
 
-`LogRequestWorker` records the incoming tool call .  tool name, arguments, user ID, session ID, and timestamp ,  before execution begins. `ExecuteToolWorker` runs the actual tool and returns results. `LogResponseWorker` records the tool's output, execution duration, and success/error status. `CreateAuditEntryWorker` assembles the request log, response log, and timing data into a complete audit record. Conductor chains these four steps, ensuring logging happens even if the tool fails, and records the entire audit chain.
+`LogRequestWorker` records the incoming tool call. tool name, arguments, user ID, session ID, and timestamp,  before execution begins. `ExecuteToolWorker` runs the actual tool and returns results. `LogResponseWorker` records the tool's output, execution duration, and success/error status. `CreateAuditEntryWorker` assembles the request log, response log, and timing data into a complete audit record. Conductor chains these four steps, ensuring logging happens even if the tool fails, and records the entire audit chain.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers wrap tool calls with observability. Logging the request, executing 
 | **LogRequestWorker** | `tl_log_request` | Logs an incoming tool request. Takes toolName, toolArgs, userId, sessionId and returns a fixed requestId, timestamp, ... |
 | **LogResponseWorker** | `tl_log_response` | Logs a tool response. Takes requestId, toolName, result, executionTimeMs, toolStatus and returns a fixed timestamp an... |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

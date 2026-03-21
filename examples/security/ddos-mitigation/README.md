@@ -1,10 +1,10 @@
 # Implementing DDoS Mitigation in Java with Conductor :  Traffic Detection, Attack Classification, Mitigation, and Service Verification
 
-A Java Conductor workflow example for DDoS mitigation .  detecting abnormal traffic patterns, classifying the attack type (volumetric, protocol, application-layer), applying mitigation measures, and verifying that the protected service is still available.
+A Java Conductor workflow example for DDoS mitigation. detecting abnormal traffic patterns, classifying the attack type (volumetric, protocol, application-layer), applying mitigation measures, and verifying that the protected service is still available.
 
 ## The Problem
 
-Your service is under a DDoS attack .  traffic volume is spiking abnormally. You need to detect the anomaly, classify the attack type (SYN flood vs HTTP flood vs DNS amplification ,  each requires different mitigation), apply the right countermeasures (rate limiting, traffic scrubbing, blackholing), and verify that legitimate traffic can still reach the service after mitigation is applied.
+Your service is under a DDoS attack. traffic volume is spiking abnormally. You need to detect the anomaly, classify the attack type (SYN flood vs HTTP flood vs DNS amplification,  each requires different mitigation), apply the right countermeasures (rate limiting, traffic scrubbing, blackholing), and verify that legitimate traffic can still reach the service after mitigation is applied.
 
 Without orchestration, DDoS response is a runbook executed by an on-call engineer under pressure. They log into the CDN console, enable rate limiting, check if the service is still up, and adjust settings manually. Each attack is handled slightly differently, response time is measured in minutes, and there's no audit trail of what mitigation was applied and when.
 
@@ -12,7 +12,7 @@ Without orchestration, DDoS response is a runbook executed by an on-call enginee
 
 **You just write the traffic detection and mitigation rules. Conductor handles rapid sequential execution under attack conditions, retries on CDN API failures, and a timestamped record of every mitigation action and service availability check.**
 
-Each mitigation step is an independent worker .  traffic detection, attack classification, mitigation application, and service verification. Conductor runs them in sequence: detect the anomaly, classify the attack, apply mitigation, then verify the service. Every mitigation action is tracked with traffic metrics, attack classification, and service availability status. You get all of that, without writing a single line of orchestration code.
+Each mitigation step is an independent worker. traffic detection, attack classification, mitigation application, and service verification. Conductor runs them in sequence: detect the anomaly, classify the attack, apply mitigation, then verify the service. Every mitigation action is tracked with traffic metrics, attack classification, and service availability status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -22,10 +22,10 @@ The mitigation chain runs DetectWorker to spot traffic anomalies, ClassifyWorker
 |---|---|---|
 | **ClassifyWorker** | `ddos_classify` | Classifies the attack type (e.g., Layer 7 HTTP flood from botnet) |
 | **DetectWorker** | `ddos_detect` | Detects anomalous traffic spikes by comparing current volume against baseline thresholds |
-| **MitigateWorker** | `ddos_mitigate` | Activates mitigation controls .  rate limiting, challenge pages, and IP blocking |
-| **VerifyServiceWorker** | `ddos_verify_service` | Verifies service is restored .  confirms latency is normal and legitimate traffic is flowing |
+| **MitigateWorker** | `ddos_mitigate` | Activates mitigation controls. rate limiting, challenge pages, and IP blocking |
+| **VerifyServiceWorker** | `ddos_verify_service` | Verifies service is restored. confirms latency is normal and legitimate traffic is flowing |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,9 +132,9 @@ conductor workflow search -w ddos_mitigation_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one mitigation phase .  connect DetectWorker to Cloudflare or AWS Shield metrics, MitigateWorker to your CDN's rate-limiting API, and the detect-classify-mitigate-verify workflow stays the same.
+Each worker handles one mitigation phase. connect DetectWorker to Cloudflare or AWS Shield metrics, MitigateWorker to your CDN's rate-limiting API, and the detect-classify-mitigate-verify workflow stays the same.
 
-- **ClassifyWorker** (`ddos_classify`): classify attacks using traffic analysis .  packet types, source distribution, request patterns ,  to determine the attack vector
+- **ClassifyWorker** (`ddos_classify`): classify attacks using traffic analysis. packet types, source distribution, request patterns,  to determine the attack vector
 - **DetectWorker** (`ddos_detect`): monitor real traffic metrics from CloudFlare, AWS Shield, Akamai, or your load balancer for anomalous patterns
 - **MitigateWorker** (`ddos_mitigate`): apply real mitigation via Cloudflare API (rate limiting, challenge pages), AWS Shield Advanced, or BGP blackholing
 
@@ -172,6 +172,6 @@ ddos-mitigation-ddos-mitigation/
 │       ├── MitigateWorker.java
 │       └── VerifyServiceWorker.java
 └── src/test/java/ddosmitigation/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

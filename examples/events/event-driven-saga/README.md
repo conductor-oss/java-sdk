@@ -26,7 +26,7 @@ Five workers implement the saga: CreateOrderWorker starts the order, ProcessPaym
 | **ProcessPaymentWorker** | `ds_process_payment` | Processes payment for an order. |
 | **ShipOrderWorker** | `ds_ship_order` | Ships an order after successful payment. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
 ### The Workflow
 

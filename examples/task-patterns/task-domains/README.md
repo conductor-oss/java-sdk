@@ -1,6 +1,6 @@
 # Task Domains in Java with Conductor
 
-Task Domains demo .  route tasks to specific worker groups using domains. Uses [Conductor](https://github.
+Task Domains demo. route tasks to specific worker groups using domains. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -22,7 +22,7 @@ A single worker demonstrates domain-based routing: TdProcessWorker tags its outp
 |---|---|---|
 | **TdProcessWorker** | `td_process` | Processes data and tags output with the worker group name. When used with task domains, this worker can be routed to ... |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

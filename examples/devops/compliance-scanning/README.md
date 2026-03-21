@@ -25,7 +25,7 @@ Four workers execute the compliance pipeline. Discovering cloud resources, scann
 | **RemediateWorker** | `cs_remediate` | Auto-remediates critical compliance findings (e.g., enabling encryption, restricting public access) |
 | **ScanPoliciesWorker** | `cs_scan_policies` | Evaluates discovered resources against the specified compliance framework (e.g., CIS-AWS) |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w compliance_scanning_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one compliance stage .  plug in AWS Config, Open Policy Agent, or Checkov for real resource discovery and policy enforcement, and the scanning workflow runs unchanged.
+Each worker handles one compliance stage. plug in AWS Config, Open Policy Agent, or Checkov for real resource discovery and policy enforcement, and the scanning workflow runs unchanged.
 
 - **DiscoverResourcesWorker** → inventory real cloud resources: AWS Config for multi-account resource listing, GCP Asset Inventory, Azure Resource Graph, or Kubernetes API for cluster resources
 - **ScanPoliciesWorker** → run real policy checks: Open Policy Agent (OPA) with Rego policies, AWS Config Rules, Checkov for Terraform compliance, or kube-bench for CIS Kubernetes benchmarks
@@ -175,6 +175,6 @@ compliance-scanning-compliance-scanning/
 │       ├── RemediateWorker.java
 │       └── ScanPoliciesWorker.java
 └── src/test/java/compliancescanning/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

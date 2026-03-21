@@ -25,7 +25,7 @@ Request submission, policy check, manager review, and approval notification work
 | **AutoApproveWorker** | `tva_auto_approve` | Marks requests under the threshold as approved with method `auto` |
 | **ManagerApproveWorker** | `tva_manager_approve` | Routes requests over the threshold to a manager for review and records the approver identity |
 
-Workers simulate travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 

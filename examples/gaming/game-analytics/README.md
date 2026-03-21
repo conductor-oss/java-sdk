@@ -4,15 +4,15 @@ Runs a game analytics pipeline: collecting raw event data, processing it into st
 
 ## The Problem
 
-You need to analyze game performance metrics over a date range. The workflow collects raw event data (sessions, purchases, achievements, crashes), processes it into structured records, aggregates it into time-series summaries, computes key performance indicators (DAU, retention, ARPU, session length), and generates an analytics report. Without analytics, you are flying blind .  you do not know which features drive engagement, where players churn, or whether a new update improved retention.
+You need to analyze game performance metrics over a date range. The workflow collects raw event data (sessions, purchases, achievements, crashes), processes it into structured records, aggregates it into time-series summaries, computes key performance indicators (DAU, retention, ARPU, session length), and generates an analytics report. Without analytics, you are flying blind. you do not know which features drive engagement, where players churn, or whether a new update improved retention.
 
-Without orchestration, you'd build an analytics pipeline that queries event logs, runs ETL transforms, computes KPIs in SQL or code, and renders reports .  manually handling schema changes in event data, retrying failed queries on large datasets, and managing the compute resources for expensive aggregations.
+Without orchestration, you'd build an analytics pipeline that queries event logs, runs ETL transforms, computes KPIs in SQL or code, and renders reports. manually handling schema changes in event data, retrying failed queries on large datasets, and managing the compute resources for expensive aggregations.
 
 ## The Solution
 
 **You just write the event collection, data processing, metric aggregation, KPI calculation, and report generation logic. Conductor handles ingestion retries, metric aggregation sequencing, and analytics pipeline tracking.**
 
-Each analytics concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect, process, aggregate, compute KPIs, report), retrying if the data warehouse is temporarily unavailable, tracking every analytics run, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each analytics concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect, process, aggregate, compute KPIs, report), retrying if the data warehouse is temporarily unavailable, tracking every analytics run, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Event ingestion, metric aggregation, trend analysis, and dashboard update worker
 | **ProcessWorker** | `gan_process` | Processes raw events into structured records: sessions, matches, and purchases |
 | **ReportWorker** | `gan_report` | Generates the final analytics report with all KPIs and publishes it |
 
-Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
+Workers implement game backend operations. matchmaking, score processing, reward distribution,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w game_analytics_747 -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real analytics stack .  your event pipeline for data collection, your data warehouse for aggregation, your BI platform for KPI dashboards and reporting, and the workflow runs identically in production.
+Wire each worker to your real analytics stack. your event pipeline for data collection, your data warehouse for aggregation, your BI platform for KPI dashboards and reporting, and the workflow runs identically in production.
 
 - **Event collector**: pull raw events from your analytics platform (Unity Analytics, GameAnalytics, Firebase, custom event store)
 - **Event processor**: clean, deduplicate, and enrich raw events with player profiles and session context

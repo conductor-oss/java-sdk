@@ -1,18 +1,18 @@
 # Implementing WAF Management in Java with Conductor :  Traffic Analysis, Rule Updates, Deployment, and Protection Verification
 
-A Java Conductor workflow example for Web Application Firewall (WAF) management .  analyzing traffic patterns, updating WAF rules for detected threats, deploying rule changes, and verifying that protection is active without blocking legitimate traffic.
+A Java Conductor workflow example for Web Application Firewall (WAF) management. analyzing traffic patterns, updating WAF rules for detected threats, deploying rule changes, and verifying that protection is active without blocking legitimate traffic.
 
 ## The Problem
 
 Your WAF protects web applications from attacks. SQL injection, XSS, bot traffic. But WAF rules must evolve with threats. Traffic must be analyzed for new attack patterns, rules must be updated (add blocks for new attack signatures, whitelist legitimate traffic), changes must be deployed to the WAF, and protection must be verified (attacks are blocked, legitimate traffic passes).
 
-Without orchestration, WAF management is reactive .  a security engineer manually reviews WAF logs, writes rules in the vendor console, and deploys without testing. Overly aggressive rules block legitimate customers, overly permissive rules let attacks through, and there's no automated feedback loop.
+Without orchestration, WAF management is reactive. a security engineer manually reviews WAF logs, writes rules in the vendor console, and deploys without testing. Overly aggressive rules block legitimate customers, overly permissive rules let attacks through, and there's no automated feedback loop.
 
 ## The Solution
 
 **You just write the traffic analysis and rule deployment logic. Conductor handles the rule update sequence, retries on CDN deployment failures, and a full change log of every rule modification and verification result.**
 
-Each WAF step is an independent worker .  traffic analysis, rule updates, deployment, and verification. Conductor runs them in sequence: analyze traffic for threats, update rules accordingly, deploy to the WAF, then verify protection. Every rule change is tracked with the threat that triggered it, the rule modification, and verification results. You get all of that, without writing a single line of orchestration code.
+Each WAF step is an independent worker. traffic analysis, rule updates, deployment, and verification. Conductor runs them in sequence: analyze traffic for threats, update rules accordingly, deploy to the WAF, then verify protection. Every rule change is tracked with the threat that triggered it, the rule modification, and verification results. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ The WAF pipeline uses AnalyzeTrafficWorker to detect attack patterns, UpdateRule
 | **UpdateRulesWorker** | `waf_update_rules` | Generates new blocking rules based on detected attack patterns |
 | **VerifyProtectionWorker** | `waf_verify_protection` | Runs attack simulations to verify that the deployed rules block the detected threats |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,11 +132,11 @@ conductor workflow search -w waf_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one WAF operation .  connect AnalyzeTrafficWorker to AWS WAF or Cloudflare logs, DeployRulesWorker to your WAF provider's API, and the analyze-update-deploy-verify workflow stays the same.
+Each worker owns one WAF operation. connect AnalyzeTrafficWorker to AWS WAF or Cloudflare logs, DeployRulesWorker to your WAF provider's API, and the analyze-update-deploy-verify workflow stays the same.
 
 - **AnalyzeTrafficWorker** (`waf_analyze_traffic`): analyze real WAF logs from AWS WAF, Cloudflare, or Akamai for attack patterns and false positives
 - **DeployRulesWorker** (`waf_deploy_rules`): deploy rule changes to production WAF via AWS WAF API, Cloudflare API, or Akamai Property Manager
-- **UpdateRulesWorker** (`waf_update_rules`): modify WAF rules using the provider's API .  add block rules for new attack signatures, whitelist known-good patterns
+- **UpdateRulesWorker** (`waf_update_rules`): modify WAF rules using the provider's API. add block rules for new attack signatures, whitelist known-good patterns
 
 Connect to your WAF provider's API and the analyze-update-deploy-verify cycle continues with no orchestration changes.
 
@@ -172,6 +172,6 @@ waf-management-waf-management/
 │       ├── UpdateRulesWorker.java
 │       └── VerifyProtectionWorker.java
 └── src/test/java/wafmanagement/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

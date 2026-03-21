@@ -26,7 +26,7 @@ Five workers manage failed-event routing: DlReceiveEventWorker ingests the event
 | **DlRouteToDlqWorker** | `dl_route_to_dlq` | Routes a failed event to the dead letter queue, producing a DLQ entry with all relevant details. |
 | **DlSendAlertWorker** | `dl_send_alert` | Sends an alert notification when an event is routed to the dead letter queue. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
 ### The Workflow
 

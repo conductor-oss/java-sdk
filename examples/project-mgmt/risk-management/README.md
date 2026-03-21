@@ -1,18 +1,18 @@
 # Project Risk Management in Java with Conductor :  Identification, Severity Assessment, and Mitigation Planning
 
-A Java Conductor workflow example for project risk management .  identifying risks, assessing their severity (high/medium/low), routing to severity-appropriate handling, and producing mitigation plans. Uses [Conductor](https://github.
+A Java Conductor workflow example for project risk management. identifying risks, assessing their severity (high/medium/low), routing to severity-appropriate handling, and producing mitigation plans. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to manage risks across a project portfolio. When a new risk is reported .  "key vendor may miss delivery deadline," "database migration could cause downtime" ,  someone has to identify and categorize it, assess severity and probability, route it to the right response process (executive escalation for high-severity, team-level review for medium, backlog tracking for low), and generate a mitigation plan. Each of these steps depends on the output of the previous one, and the routing logic changes based on the assessed severity.
+You need to manage risks across a project portfolio. When a new risk is reported. "key vendor may miss delivery deadline," "database migration could cause downtime",  someone has to identify and categorize it, assess severity and probability, route it to the right response process (executive escalation for high-severity, team-level review for medium, backlog tracking for low), and generate a mitigation plan. Each of these steps depends on the output of the previous one, and the routing logic changes based on the assessed severity.
 
-Without orchestration, you'd wire all of this into a single monolithic class .  if/else chains to route by severity, try/catch blocks around every step, manual logging to audit which risks were escalated and why. That code becomes brittle as severity categories change, hard to extend when you add new response processes, and impossible to audit when stakeholders ask "why wasn't this risk escalated?"
+Without orchestration, you'd wire all of this into a single monolithic class. if/else chains to route by severity, try/catch blocks around every step, manual logging to audit which risks were escalated and why. That code becomes brittle as severity categories change, hard to extend when you add new response processes, and impossible to audit when stakeholders ask "why wasn't this risk escalated?"
 
 ## The Solution
 
 **You just write the risk identification, severity assessment, severity-based handling, and mitigation planning logic. Conductor handles assessment retries, mitigation routing, and risk tracking audit trails.**
 
-Each concern is a simple, independent worker .  a plain Java class that does one thing: identify the risk, assess its severity, handle the high/medium/low response, or build the mitigation plan. Conductor takes care of executing them in the right order, routing to the correct severity handler via a SWITCH task, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each concern is a simple, independent worker. a plain Java class that does one thing: identify the risk, assess its severity, handle the high/medium/low response, or build the mitigation plan. Conductor takes care of executing them in the right order, routing to the correct severity handler via a SWITCH task, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,7 +27,7 @@ Risk identification, probability assessment, mitigation planning, and monitoring
 | **LowWorker** | `rkm_low` | Logs the risk to the backlog for periodic review (default path for low-severity risks) |
 | **MitigateWorker** | `rkm_mitigate` | Generates a mitigation plan based on the project context and assessed severity |
 
-Workers simulate project management operations .  task creation, status updates, notifications ,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
+Workers implement project management operations. task creation, status updates, notifications,  with realistic outputs. Replace with real Jira/Asana/Linear integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w risk_management_risk-management -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real risk tools .  your risk register for identification, your project analytics for severity scoring, Slack or PagerDuty for escalation routing, and the workflow runs identically in production.
+Wire each worker to your real risk tools. your risk register for identification, your project analytics for severity scoring, Slack or PagerDuty for escalation routing, and the workflow runs identically in production.
 
 - **IdentifyWorker** (`rkm_identify`): connect to your project management tool (Jira, Asana, Monday.com) to pull risk details and auto-categorize using historical data
 - **AssessWorker** (`rkm_assess`): integrate a risk scoring model or lookup table that calculates severity from probability and impact matrices

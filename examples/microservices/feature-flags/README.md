@@ -12,7 +12,7 @@ Without orchestration, feature flag checks are scattered across application code
 
 **You just write the flag-check, new-feature, legacy-path, and usage-logging workers. Conductor handles conditional path routing via SWITCH, per-evaluation retries, and usage tracking for every flag decision.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers handle flag evaluation and routing: CheckFlagWorker evaluates flag 
 | **LogUsageWorker** | `ff_log_usage` | Logs the flag evaluation result for analytics and A/B test tracking. |
 | **NewFeatureWorker** | `ff_new_feature` | Executes the new feature code path when the flag is enabled (e.g., renders v2 UI). |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

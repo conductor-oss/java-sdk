@@ -1,10 +1,10 @@
 # React Approval Dashboard in Java Using Conductor :  Task Processing and Priority-Based Pending Approval via WAIT Task
 
-A Java Conductor workflow example paired with a React dashboard .  a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.
+A Java Conductor workflow example paired with a React dashboard. a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need a React-based approval dashboard where approvers can see their pending tasks, filter by priority (high, medium, low), and act on them. Each request comes in with a title describing what needs approval, a priority level, and the assigned approver. The system must process the request and then wait for the human approver to make a decision .  which could take minutes or days depending on the priority. The dashboard needs to query for all pending tasks assigned to a specific person and display them sorted by priority, with real-time status updates as approvals are completed.
+You need a React-based approval dashboard where approvers can see their pending tasks, filter by priority (high, medium, low), and act on them. Each request comes in with a title describing what needs approval, a priority level, and the assigned approver. The system must process the request and then wait for the human approver to make a decision. which could take minutes or days depending on the priority. The dashboard needs to query for all pending tasks assigned to a specific person and display them sorted by priority, with real-time status updates as approvals are completed.
 
 Without orchestration, you'd build a React frontend backed by a custom API server that manages a pending-tasks table, polls for status changes, and tracks approval timing. If the backend restarts while tasks are pending, you'd need to rebuild the approval queue from the database. There is no built-in way to see which tasks are pending for which assignee, how long each has been waiting, or to enforce SLA timeouts on high-priority items.
 
@@ -20,10 +20,10 @@ DashTaskWorker processes requests with title, priority, and assignee metadata. I
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **DashTaskWorker** | `dash_task` | Processes the incoming approval request .  validates the title, priority, and assignee, and marks it as ready for human review in the dashboard |
-| *WAIT task* | `pending_approval` | Pauses the workflow with title, priority, and assignee metadata until the React dashboard calls `POST /tasks/{taskId}` with the approver's decision | Built-in Conductor WAIT .  no worker needed |
+| **DashTaskWorker** | `dash_task` | Processes the incoming approval request. validates the title, priority, and assignee, and marks it as ready for human review in the dashboard |
+| *WAIT task* | `pending_approval` | Pauses the workflow with title, priority, and assignee metadata until the React dashboard calls `POST /tasks/{taskId}` with the approver's decision | Built-in Conductor WAIT. no worker needed |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -124,12 +124,12 @@ conductor workflow search -w approval_dashboard_react_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-The task worker validates incoming requests with priority and assignee data .  swap in your user directory and SLA rules for real validation, and the React dashboard workflow remains unchanged.
+The task worker validates incoming requests with priority and assignee data. swap in your user directory and SLA rules for real validation, and the React dashboard workflow remains unchanged.
 
-- **DashTaskWorker** → add real validation logic .  verify the assignee exists in your user directory, check the priority against SLA rules, and enrich the request with department and cost center data
-- **WAIT task** → the React dashboard completes it by calling `POST /tasks/{taskId}` with `{ "approvalStatus": "approved" }` .  add fields like rejection reason, comments, or conditional approval notes
+- **DashTaskWorker** → add real validation logic. verify the assignee exists in your user directory, check the priority against SLA rules, and enrich the request with department and cost center data
+- **WAIT task** → the React dashboard completes it by calling `POST /tasks/{taskId}` with `{ "approvalStatus": "approved" }`. add fields like rejection reason, comments, or conditional approval notes
 - Add a **NotifyWorker** after the WAIT task to send the requester an email or Slack notification with the approval decision
-- Add priority-based timeout on the WAIT task .  auto-escalate high-priority items after 1 hour, medium after 24 hours
+- Add priority-based timeout on the WAIT task. auto-escalate high-priority items after 1 hour, medium after 24 hours
 - Add a SWITCH after approval to route approved items to fulfillment and rejected items to the requester for revision
 
 Plug in your real request enrichment logic and the React dashboard's priority-based approval queue works exactly as before.

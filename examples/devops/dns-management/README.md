@@ -6,13 +6,13 @@ Orchestrates safe DNS record changes using [Conductor](https://github.com/conduc
 
 Updating a DNS record sounds simple until you realize a typo can take down your entire domain. The change needs to be planned, validated for conflicts (does this CNAME clash with an existing A record?), applied to the DNS provider, and then verified to have propagated globally. Doing this manually in the Route53 console at 11 PM is how outages happen.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the DNS change logic. Conductor handles plan-validate-apply sequencing and propagation verification.**
 
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging .  your workers call the infrastructure APIs.
+Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. your workers call the infrastructure APIs.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle safe DNS changes. Planning the record update, validating aga
 | **ValidateWorker** | `dns_validate` | Checks for conflicts with existing DNS records before applying the change |
 | **VerifyWorker** | `dns_verify` | Confirms DNS propagation by querying resolvers to ensure the new records are live |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w dns_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one DNS lifecycle step .  replace the simulated calls with Route53, Cloudflare, or Google Cloud DNS APIs, and the management workflow runs unchanged.
+Each worker handles one DNS lifecycle step. replace the simulated calls with Route53, Cloudflare, or Google Cloud DNS APIs, and the management workflow runs unchanged.
 
 - **ApplyWorker** (`dns_apply`): call AWS Route53 ChangeResourceRecordSets, Cloudflare DNS API, or Google Cloud DNS to apply record changes
 - **PlanWorker** (`dns_plan`): query your DNS provider's API to list existing records and generate a diff-based change plan
@@ -172,6 +172,6 @@ dns-management-dns-management/
 │       ├── ValidateWorker.java
 │       └── VerifyWorker.java
 └── src/test/java/dnsmanagement/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

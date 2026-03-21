@@ -4,9 +4,9 @@ A Java Conductor workflow that keeps a vector store in sync with a source docume
 
 ## The Cost of Full Re-Indexing
 
-When documents in your knowledge base change .  new articles added, existing ones updated, obsolete ones removed ,  the vector store needs to reflect those changes. A naive approach re-embeds every document on every sync cycle. For a corpus of 100,000 documents where 50 changed, that's 99,950 wasted embedding API calls and hours of unnecessary processing.
+When documents in your knowledge base change. new articles added, existing ones updated, obsolete ones removed,  the vector store needs to reflect those changes. A naive approach re-embeds every document on every sync cycle. For a corpus of 100,000 documents where 50 changed, that's 99,950 wasted embedding API calls and hours of unnecessary processing.
 
-Incremental indexing solves this by comparing document hashes to detect what actually changed, separating new documents (no existing hash) from updated ones (hash mismatch), embedding only those, and upserting the new vectors. After the upsert, a verification step confirms the index is consistent and reports query latency. If the embedding API fails mid-batch, you need to retry from the embedding step without re-running change detection .  the changed document list is still valid.
+Incremental indexing solves this by comparing document hashes to detect what actually changed, separating new documents (no existing hash) from updated ones (hash mismatch), embedding only those, and upserting the new vectors. After the upsert, a verification step confirms the index is consistent and reports query latency. If the embedding API fails mid-batch, you need to retry from the embedding step without re-running change detection. the changed document list is still valid.
 
 Without orchestration, this becomes a fragile script where an embedding timeout means re-scanning the entire source collection, there's no record of how many documents were synced per run, and a failed upsert leaves the index in an inconsistent state with no way to resume.
 
@@ -14,11 +14,11 @@ Without orchestration, this becomes a fragile script where an embedding timeout 
 
 **You write the change detection, embedding, and upsert logic. Conductor handles the incremental sync sequencing, retries, and observability.**
 
-Each stage of the incremental sync is an independent worker .  change detection, filtering, embedding, upserting, verification. Conductor sequences them and passes change sets between stages. If the embedding API times out, Conductor retries it without re-running change detection. Every sync run is tracked end-to-end, showing exactly how many documents were detected, filtered, embedded, upserted, and verified.
+Each stage of the incremental sync is an independent worker. change detection, filtering, embedding, upserting, verification. Conductor sequences them and passes change sets between stages. If the embedding API times out, Conductor retries it without re-running change detection. Every sync run is tracked end-to-end, showing exactly how many documents were detected, filtered, embedded, upserted, and verified.
 
 ### What You Write: Workers
 
-Five workers handle incremental index maintenance .  detecting document changes, filtering to only new or modified content, embedding the new chunks, upserting vectors, and verifying index consistency.
+Five workers handle incremental index maintenance. detecting document changes, filtering to only new or modified content, embedding the new chunks, upserting vectors, and verifying index consistency.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -28,7 +28,7 @@ Five workers handle incremental index maintenance .  detecting document changes,
 | **UpsertVectorsWorker** | `ir_upsert_vectors` | Worker that upserts embedding vectors into the vector store, counting inserts vs updates based on the action field. |
 | **VerifyIndexWorker** | `ir_verify_index` | Worker that verifies the vector index after upserting. Confirms all documents are indexed and reports query latency. |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -145,7 +145,7 @@ conductor workflow search -w incremental_rag -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one sync stage .  swap in MongoDB change streams or S3 events for change detection, OpenAI Embeddings for vectorization, and Pinecone or pgvector for upserts, and the incremental indexing pipeline runs unchanged.
+Each worker handles one sync stage. swap in MongoDB change streams or S3 events for change detection, OpenAI Embeddings for vectorization, and Pinecone or pgvector for upserts, and the incremental indexing pipeline runs unchanged.
 
 - **DetectChangesWorker** (`ir_detect_changes`): swap in a real query against your document store (MongoDB change streams, PostgreSQL CDC, S3 event notifications) using the last sync timestamp
 - **FilterNewDocsWorker** (`ir_filter_new_docs`): integrate with a hash store (Redis, DynamoDB) to compare document content hashes and classify changes as inserts vs, updates

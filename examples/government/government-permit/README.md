@@ -6,13 +6,13 @@ Processes a government permit application: receiving the application, validating
 
 You need to process a government permit application. A citizen submits an application for a permit (building, business, event), the application is validated for completeness and jurisdiction, a reviewer assesses it against regulations and zoning rules, and the permit is either issued or denied with explanation. Issuing a permit without proper review creates legal liability for the government; denying without explanation violates due process.
 
-Without orchestration, you'd manage permits through a legacy system with paper forms, manual reviews, and status tracking in spreadsheets .  losing applications in the queue, missing review deadlines mandated by statute, and struggling to produce audit trails when a permit decision is challenged.
+Without orchestration, you'd manage permits through a legacy system with paper forms, manual reviews, and status tracking in spreadsheets. losing applications in the queue, missing review deadlines mandated by statute, and struggling to produce audit trails when a permit decision is challenged.
 
 ## The Solution
 
 **You just write the application intake, document validation, zoning review, and permit issuance or denial logic. Conductor handles review retries, approval routing, and permit application audit trails.**
 
-Each permit concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing the application flow (apply, validate, review, issue/deny), routing via a SWITCH task to the correct outcome, tracking every application with timestamps and reviewer notes, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each permit concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing the application flow (apply, validate, review, issue/deny), routing via a SWITCH task to the correct outcome, tracking every application with timestamps and reviewer notes, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Application intake, document validation, zoning review, and permit issuance work
 | **ReviewWorker** | `gvp_review` | Conducts a zoning board review of the application and returns an approve/deny decision |
 | **ValidateWorker** | `gvp_validate` | Validates the application for completeness and verifies all required documents |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -135,7 +135,7 @@ conductor workflow search -w gvp_government_permit -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real permitting systems .  your citizen portal for application intake, your GIS system for zoning validation, your permitting database for issuance decisions, and the workflow runs identically in production.
+Connect each worker to your real permitting systems. your citizen portal for application intake, your GIS system for zoning validation, your permitting database for issuance decisions, and the workflow runs identically in production.
 
 - **Application handler**: integrate with your government e-services portal for online permit applications with document uploads
 - **Validator**: check application completeness, verify jurisdiction, and validate against zoning maps and GIS data

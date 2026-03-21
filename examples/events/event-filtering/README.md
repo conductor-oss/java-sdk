@@ -12,7 +12,7 @@ Without orchestration, you'd build a priority classifier with if/else chains, ma
 
 **You just write the event-receive, priority-classification, urgent-handler, standard-handler, and drop workers. Conductor handles priority-based SWITCH routing, per-lane retry policies, and complete visibility into every filter decision.**
 
-Each processing lane is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the event, classifying its priority, routing via a SWITCH task to the correct lane (urgent, standard, or drop), retrying failed processing, and tracking every event's classification and outcome. You get all of that, without writing a single line of orchestration code.
+Each processing lane is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the event, classifying its priority, routing via a SWITCH task to the correct lane (urgent, standard, or drop), retrying failed processing, and tracking every event's classification and outcome. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers implement priority-based filtering: ReceiveEventWorker ingests even
 | **StandardHandlerWorker** | `ef_standard_handler` | Handles standard (medium/low severity) events by queuing for batch processing. |
 | **UrgentHandlerWorker** | `ef_urgent_handler` | Handles urgent (critical/high severity) events with immediate alerting. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # Mistral AI in Java Using Conductor :  Document Q&A via Mistral Chat Completions
 
-A Java Conductor workflow that orchestrates Mistral AI chat completion calls for document-based question answering .  composing a chat request with a document as context and a user question, calling the Mistral chat API (with configurable model, temperature, max tokens, and safe prompt settings), and extracting the answer from the response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request composition, API invocation, and answer extraction as independent workers ,  you write the Mistral-specific logic, Conductor handles retries, durability, and observability.
+A Java Conductor workflow that orchestrates Mistral AI chat completion calls for document-based question answering. composing a chat request with a document as context and a user question, calling the Mistral chat API (with configurable model, temperature, max tokens, and safe prompt settings), and extracting the answer from the response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request composition, API invocation, and answer extraction as independent workers,  you write the Mistral-specific logic, Conductor handles retries, durability, and observability.
 
 ## Structured Mistral API Integration
 
@@ -12,11 +12,11 @@ Bundling request composition, API calls, and response parsing into a single meth
 
 **You write the Mistral request composition and answer extraction logic. Conductor handles the API pipeline, retries, and observability.**
 
-Each concern is an independent worker .  composing the Mistral chat request (messages array, generation config, safety settings), calling the chat completion API, and extracting the answer from the response. Conductor chains them so the composed request feeds into the API call, and the raw response feeds into the extractor. If Mistral rate-limits the call, Conductor retries it without re-composing the request.
+Each concern is an independent worker. composing the Mistral chat request (messages array, generation config, safety settings), calling the chat completion API, and extracting the answer from the response. Conductor chains them so the composed request feeds into the API call, and the raw response feeds into the extractor. If Mistral rate-limits the call, Conductor retries it without re-composing the request.
 
 ### What You Write: Workers
 
-Three workers manage the Mistral integration .  composing the chat request with system and user messages, calling the Mistral Chat API, and extracting the answer from the choices array.
+Three workers manage the Mistral integration. composing the chat request with system and user messages, calling the Mistral Chat API, and extracting the answer from the choices array.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers manage the Mistral integration .  composing the chat request with 
 | **MistralComposeRequestWorker** | `mistral_compose_request` | Composes a Mistral chat completion request body from workflow inputs. Inputs: document, question, model, temperature,... |
 | **MistralExtractAnswerWorker** | `mistral_extract_answer` | Extracts the assistant's answer from a Mistral chat completion response. |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w mistral_ai_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one phase of the Mistral integration .  swap in real HTTP calls to `api.mistral.ai/v1/chat/completions` with your API key, customize system prompts and safety settings, and the compose-call-extract pipeline runs unchanged.
+Each worker handles one phase of the Mistral integration. swap in real HTTP calls to `api.mistral.ai/v1/chat/completions` with your API key, customize system prompts and safety settings, and the compose-call-extract pipeline runs unchanged.
 
 - **MistralChatWorker** (`mistral_chat`): swap in a real HTTP call to `https://api.mistral.ai/v1/chat/completions` with your API key
 - **MistralComposeRequestWorker** (`mistral_compose_request`): customize the system prompt, add few-shot examples, or support multi-turn conversations
 - **MistralExtractAnswerWorker** (`mistral_extract_answer`): add structured output parsing, confidence scoring, or citation extraction from the response
 
-The request-in, answer-out contract is fixed at each stage .  switch Mistral models, adjust temperature, or add tool use without modifying the workflow.
+The request-in, answer-out contract is fixed at each stage. switch Mistral models, adjust temperature, or add tool use without modifying the workflow.
 
 ## SDK
 

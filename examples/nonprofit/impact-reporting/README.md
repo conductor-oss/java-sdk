@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Impact Reporting. Uses [Conducto
 
 Your nonprofit needs to produce its annual impact report for donors and board members. The reporting team must collect raw data across all programs (beneficiaries served, events held, volunteer hours), aggregate the totals into organization-wide metrics, analyze year-over-year growth and cost-effectiveness, format the report with charts, metrics, and narrative sections, and publish the final report as a downloadable document. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Data collection, outcome measurement, narrative generation, and report distribut
 | **FormatWorker** | `ipr_format` | Formats the impact report with sections, charts, and narrative for stakeholder presentation |
 | **PublishWorker** | `ipr_publish` | Publishes the final impact report to a public URL as a downloadable document |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w impact_reporting_756 -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real impact tools .  your program database for outcomes data, your analytics platform for metric aggregation, your reporting engine for donor-ready documents, and the workflow runs identically in production.
+Connect each worker to your real impact tools. your program database for outcomes data, your analytics platform for metric aggregation, your reporting engine for donor-ready documents, and the workflow runs identically in production.
 
 - **CollectDataWorker** (`ipr_collect_data`): query program data from Salesforce NPSP, Bloomerang, or your program database, pulling beneficiary counts, event attendance, and volunteer hours
 - **AggregateWorker** (`ipr_aggregate`): run SQL aggregations against your data warehouse or use the Salesforce Reports API to compute organization-wide totals

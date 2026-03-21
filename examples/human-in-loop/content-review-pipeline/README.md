@@ -1,10 +1,10 @@
 # Content Review Pipeline in Java Using Conductor :  AI Draft Generation, Human Review via WAIT, and Publishing
 
-A Java Conductor workflow example for AI-assisted content creation .  an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.
+A Java Conductor workflow example for AI-assisted content creation. an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need a content pipeline where AI generates first drafts and humans review them before publishing. An AI model produces content for a given topic and audience .  a blog post, marketing copy, product description, or documentation page. The draft includes the generated text, word count, and model used. A human editor must review the AI output for accuracy, tone, brand voice, and factual correctness. The editor may approve it as-is, edit it and approve the revised version, or reject it entirely. Only approved content should be published. Without a review step, AI hallucinations, off-brand tone, or factual errors reach your audience.
+You need a content pipeline where AI generates first drafts and humans review them before publishing. An AI model produces content for a given topic and audience. a blog post, marketing copy, product description, or documentation page. The draft includes the generated text, word count, and model used. A human editor must review the AI output for accuracy, tone, brand voice, and factual correctness. The editor may approve it as-is, edit it and approve the revised version, or reject it entirely. Only approved content should be published. Without a review step, AI hallucinations, off-brand tone, or factual errors reach your audience.
 
 Without orchestration, you'd call the AI API, store the draft in a database, email the editor a link to review it, poll for their response, and then call the CMS publish API. If the AI API times out, you'd need retry logic. If the system crashes after the editor approves but before publishing, the reviewed content never goes live. There is no single view showing which drafts are awaiting review, how long reviews take, or the approval rate of AI-generated content.
 
@@ -21,10 +21,10 @@ CrpAiDraftWorker generates content for a topic and audience, and CrpPublishWorke
 | Worker | Task | What It Does |
 |---|---|---|
 | **CrpAiDraftWorker** | `crp_ai_draft` | Generates an AI content draft for the given topic and target audience, returning the draft text, word count, and model used |
-| *WAIT task* | `crp_human_review` | Pauses the workflow with the AI draft content until a human editor submits their review .  approved/rejected flag and optionally edited content ,  via `POST /tasks/{taskId}` | Built-in Conductor WAIT ,  no worker needed |
+| *WAIT task* | `crp_human_review` | Pauses the workflow with the AI draft content until a human editor submits their review. approved/rejected flag and optionally edited content,  via `POST /tasks/{taskId}` | Built-in Conductor WAIT,  no worker needed |
 | **CrpPublishWorker** | `crp_publish` | Publishes the approved content to the CMS, returning the published URL; skips publishing if the review was rejected |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -128,10 +128,10 @@ conductor workflow search -w content_review_pipeline -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the content pipeline .  connect your LLM (Claude, GPT-4) for draft generation and your CMS (WordPress, Contentful, Ghost) for publishing, and the review workflow stays the same.
+Each worker handles one stage of the content pipeline. connect your LLM (Claude, GPT-4) for draft generation and your CMS (WordPress, Contentful, Ghost) for publishing, and the review workflow stays the same.
 
 - **CrpAiDraftWorker** → call a real AI API (OpenAI GPT-4, Anthropic Claude, Cohere) with topic, audience, tone, and length parameters to generate production-quality drafts
-- **WAIT task** → complete it from your content editor UI with `{ "approved": true, "editedContent": "..." }` .  the editor can approve as-is or provide a revised version
+- **WAIT task** → complete it from your content editor UI with `{ "approved": true, "editedContent": "..." }`. the editor can approve as-is or provide a revised version
 - **CrpPublishWorker** → publish to your CMS (WordPress REST API, Contentful Management API, Sanity, Ghost) with SEO metadata, featured images, and category tags
 - Add a **ComplianceCheckWorker** between AI draft and human review to run automated brand voice, plagiarism, and legal compliance checks before the editor sees it
 - Add a SWITCH after the review to route rejections back to the AI draft worker with the editor's feedback for a revised draft

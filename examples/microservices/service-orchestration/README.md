@@ -12,7 +12,7 @@ Without orchestration, the frontend or a BFF layer chains four HTTP calls with m
 
 **You just write the authentication, catalog-lookup, cart, and checkout workers. Conductor handles auth-to-checkout sequencing, per-step timeout isolation, and complete purchase flow traceability.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers drive the purchase flow: AuthenticateWorker validates user credenti
 | **CatalogLookupWorker** | `so_catalog_lookup` | Looks up a product in the catalog. |
 | **CheckoutWorker** | `so_checkout` | Processes checkout for a cart. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

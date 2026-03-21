@@ -1,6 +1,6 @@
 # WAIT Task Timeout Escalation in Java Using Conductor :  Request Preparation, WAIT with Deadline, Timeout-Triggered Escalation to Manager, and Normal Response Processing
 
-A Java Conductor workflow example for deadline-driven escalation .  preparing a request, pausing at a WAIT task with a timeout, and routing to an escalation path if no one responds before the deadline. If the human responds in time, the workflow processes their response normally. If the WAIT task times out, the escalation worker notifies a manager (manager@company.com) and flags the request as escalated. This prevents approval requests from sitting indefinitely without action. Uses [Conductor](https://github.
+A Java Conductor workflow example for deadline-driven escalation. preparing a request, pausing at a WAIT task with a timeout, and routing to an escalation path if no one responds before the deadline. If the human responds in time, the workflow processes their response normally. If the WAIT task times out, the escalation worker notifies a manager (manager@company.com) and flags the request as escalated. This prevents approval requests from sitting indefinitely without action. Uses [Conductor](https://github.
 
 ## WAIT Tasks Should Escalate When No One Responds in Time
 
@@ -10,7 +10,7 @@ If a human does not respond to a WAIT task within a deadline, the workflow shoul
 
 **You just write the request-preparation, escalation-notification, and response-processing workers. Conductor handles the deadline timeout and the escalation-vs-normal routing.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,12 +18,12 @@ WtePrepareWorker sets up the escalation context, WteProcessWorker handles timely
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **WtePrepareWorker** | `wte_prepare` | Prepares the request before the WAIT deadline starts .  takes the requestId, sets up the escalation context, and returns ready=true |
-| *WAIT task* | `wait_for_response` | Pauses for human input with a deadline .  if the human responds via `POST /tasks/{taskId}` before timeout, the response flows to normal processing; if the timeout fires, the workflow routes to escalation | Built-in Conductor WAIT ,  no worker needed |
-| **WteProcessWorker** | `wte_process` | Processes the human's response when they reply before the deadline .  reads the response from the WAIT task output and returns the processed result |
-| **WteEscalateWorker** | `wte_escalate` | Handles escalation when the WAIT task times out .  notifies the manager (manager@company.com), flags the request as escalated, and returns escalated=true with the escalation target |
+| **WtePrepareWorker** | `wte_prepare` | Prepares the request before the WAIT deadline starts. takes the requestId, sets up the escalation context, and returns ready=true |
+| *WAIT task* | `wait_for_response` | Pauses for human input with a deadline. if the human responds via `POST /tasks/{taskId}` before timeout, the response flows to normal processing; if the timeout fires, the workflow routes to escalation | Built-in Conductor WAIT,  no worker needed |
+| **WteProcessWorker** | `wte_process` | Processes the human's response when they reply before the deadline. reads the response from the WAIT task output and returns the processed result |
+| **WteEscalateWorker** | `wte_escalate` | Handles escalation when the WAIT task times out. notifies the manager (manager@company.com), flags the request as escalated, and returns escalated=true with the escalation target |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -127,7 +127,7 @@ conductor workflow search -w wait_timeout_escalation_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one branch of the timeout flow .  connect your notification service (email, Slack, PagerDuty) for escalation alerts and your business system for normal response processing, and the deadline-driven workflow stays the same.
+Each worker handles one branch of the timeout flow. connect your notification service (email, Slack, PagerDuty) for escalation alerts and your business system for normal response processing, and the deadline-driven workflow stays the same.
 
 - **WteEscalateWorker** (`wte_escalate`): send real escalation notifications via email/Slack/PagerDuty, auto-approve with an audit flag, or reassign to the next person in the chain
 - **WtePrepareWorker** (`wte_prepare`): set up escalation rules from a configuration database. Who to escalate to, timeout duration, default action

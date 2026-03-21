@@ -1,6 +1,6 @@
 # GCP Integration in Java Using Conductor
 
-A Java Conductor workflow that coordinates writes across three GCP services in parallel .  uploading an object to Google Cloud Storage, writing a document to Firestore, and publishing a message to Pub/Sub ,  then verifying all three completed successfully. Uses a FORK_JOIN to run the three service calls simultaneously. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parallel fan-out and verification.
+A Java Conductor workflow that coordinates writes across three GCP services in parallel. uploading an object to Google Cloud Storage, writing a document to Firestore, and publishing a message to Pub/Sub,  then verifying all three completed successfully. Uses a FORK_JOIN to run the three service calls simultaneously. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parallel fan-out and verification.
 
 ## Writing to Multiple GCP Services Reliably
 
@@ -20,12 +20,12 @@ Four workers coordinate GCP writes: GcpGcsUploadWorker stores objects in Cloud S
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **GcpGcsUploadWorker** | `gcp_gcs_upload` | Uploads the payload to Google Cloud Storage .  stores the object in the specified bucket and returns the objectUrl |
-| **GcpFirestoreWriteWorker** | `gcp_firestore_write` | Writes the payload as a Firestore document .  inserts the document into the specified collection and returns the documentId |
-| **GcpPubsubPublishWorker** | `gcp_pubsub_publish` | Publishes a message to Pub/Sub .  sends the payload to the specified topic and returns the messageId |
-| **GcpVerifyWorker** | `gcp_verify` | Verifies all three GCP services completed .  checks the objectUrl, Firestore documentId, and Pub/Sub messageId from the parallel branches |
+| **GcpGcsUploadWorker** | `gcp_gcs_upload` | Uploads the payload to Google Cloud Storage. stores the object in the specified bucket and returns the objectUrl |
+| **GcpFirestoreWriteWorker** | `gcp_firestore_write` | Writes the payload as a Firestore document. inserts the document into the specified collection and returns the documentId |
+| **GcpPubsubPublishWorker** | `gcp_pubsub_publish` | Publishes a message to Pub/Sub. sends the payload to the specified topic and returns the messageId |
+| **GcpVerifyWorker** | `gcp_verify` | Verifies all three GCP services completed. checks the objectUrl, Firestore documentId, and Pub/Sub messageId from the parallel branches |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

@@ -1,10 +1,10 @@
 # Workflow Profiling in Java Using Conductor :  Instrument, Execute, Measure, Find Bottlenecks, Optimize
 
-A Java Conductor workflow example for workflow profiling .  instrumenting a workflow to capture timing data, executing it across multiple iterations, measuring per-task execution times, identifying bottleneck tasks, and generating optimization recommendations. Uses [Conductor](https://github.
+A Java Conductor workflow example for workflow profiling. instrumenting a workflow to capture timing data, executing it across multiple iterations, measuring per-task execution times, identifying bottleneck tasks, and generating optimization recommendations. Uses [Conductor](https://github.
 
 ## You Can't Optimize What You Don't Measure
 
-Your workflow runs in 30 seconds, but where does the time go? Is it the database query in step 3 (takes 12 seconds) or the API call in step 7 (takes 8 seconds)? Running the workflow once gives you one data point. Running it 100 times and profiling each task across iterations reveals the real bottleneck .  maybe step 3 averages 2 seconds but occasionally spikes to 12 seconds, while step 7 is consistently 8 seconds.
+Your workflow runs in 30 seconds, but where does the time go? Is it the database query in step 3 (takes 12 seconds) or the API call in step 7 (takes 8 seconds)? Running the workflow once gives you one data point. Running it 100 times and profiling each task across iterations reveals the real bottleneck. maybe step 3 averages 2 seconds but occasionally spikes to 12 seconds, while step 7 is consistently 8 seconds.
 
 Workflow profiling means instrumenting tasks to capture high-resolution timing, running multiple iterations to build statistical profiles, computing per-task percentiles (p50, p95, p99), and identifying which tasks contribute most to end-to-end latency. Without this data, optimization efforts target the wrong tasks.
 
@@ -12,7 +12,7 @@ Workflow profiling means instrumenting tasks to capture high-resolution timing, 
 
 **You write the measurement and bottleneck analysis logic. Conductor handles multi-iteration execution, retries, and profiling session tracking.**
 
-`WfpInstrumentWorker` adds timing hooks to the target workflow. `WfpExecuteWorker` runs the workflow across the configured number of iterations, collecting timing data for each run. `WfpMeasureTimesWorker` computes per-task statistics .  mean, median, p95, p99 ,  across all iterations. `WfpBottleneckWorker` identifies the tasks that dominate the critical path and have the highest latency variance. `WfpOptimizeWorker` generates concrete optimization recommendations (cache this lookup, parallelize these two tasks, increase timeout for this external call). Conductor records the full profiling session.
+`WfpInstrumentWorker` adds timing hooks to the target workflow. `WfpExecuteWorker` runs the workflow across the configured number of iterations, collecting timing data for each run. `WfpMeasureTimesWorker` computes per-task statistics. mean, median, p95, p99,  across all iterations. `WfpBottleneckWorker` identifies the tasks that dominate the critical path and have the highest latency variance. `WfpOptimizeWorker` generates concrete optimization recommendations (cache this lookup, parallelize these two tasks, increase timeout for this external call). Conductor records the full profiling session.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers form the profiling pipeline: instrumentation, multi-iteration execu
 | **WfpMeasureTimesWorker** | `wfp_measure_times` | Measures average execution times for each task and computes total workflow duration |
 | **WfpOptimizeWorker** | `wfp_optimize` | Produces optimization suggestions (e.g., batch writes, parallelize transforms) with expected speedup |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w wfp_workflow_profiling -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one profiling phase .  replace the simulated timing collection with real OpenTelemetry spans or Conductor execution APIs and the measure-bottleneck-optimize pipeline runs unchanged.
+Each worker covers one profiling phase. replace the simulated timing collection with real OpenTelemetry spans or Conductor execution APIs and the measure-bottleneck-optimize pipeline runs unchanged.
 
 - **WfpInstrumentWorker** (`wfp_instrument`): add real instrumentation: inject OpenTelemetry spans, enable Conductor's built-in task timing metrics, or add custom Micrometer timers around task execution
 - **WfpMeasureTimesWorker** (`wfp_measure_times`): compute real statistics using Apache Commons Math (`DescriptiveStatistics`) for percentile calculations across execution history queried from Conductor's API

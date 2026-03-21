@@ -12,7 +12,7 @@ Without orchestration, the API layer manually fans out HTTP calls using Completa
 
 **You just write the user-fetch, orders-fetch, recommendations-fetch, and merge workers. Conductor handles parallel fan-out to all data sources, per-source timeout isolation, and automatic join before merging.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers serve the aggregation pipeline: FetchUserWorker, FetchOrdersWorker,
 | **FetchUserWorker** | `agg_fetch_user` | Fetches user profile data. |
 | **MergeResultsWorker** | `agg_merge_results` | Merges results from multiple services into a single response. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

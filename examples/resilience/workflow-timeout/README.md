@@ -1,6 +1,6 @@
 # Implementing Workflow Timeout in Java with Conductor :  Bounding Total Workflow Execution Time
 
-A Java Conductor workflow example demonstrating workflow-level timeouts .  setting a maximum execution time (30 seconds) for the entire workflow, ensuring that even if individual tasks complete quickly, the overall workflow doesn't run indefinitely.
+A Java Conductor workflow example demonstrating workflow-level timeouts. setting a maximum execution time (30 seconds) for the entire workflow, ensuring that even if individual tasks complete quickly, the overall workflow doesn't run indefinitely.
 
 ## The Problem
 
@@ -10,7 +10,7 @@ Without orchestration, total execution time limits require starting a timer at t
 
 ## The Solution
 
-The workflow definition includes `timeoutSeconds: 30` .  if the entire workflow hasn't completed within that window, Conductor marks it as timed out. This catches scenarios that per-task timeouts miss: long queues between tasks, stuck decision logic, or unexpected loops. The timeout is configured in the workflow definition, not in code. You get all of that, without writing a single line of orchestration code.
+The workflow definition includes `timeoutSeconds: 30`. if the entire workflow hasn't completed within that window, Conductor marks it as timed out. This catches scenarios that per-task timeouts miss: long queues between tasks, stuck decision logic, or unexpected loops. The timeout is configured in the workflow definition, not in code. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -20,7 +20,7 @@ FastWorker completes its processing quickly, while the workflow-level timeoutSec
 |---|---|---|
 | **FastWorker** | `wft_fast` | Fast worker that completes immediately. Returns { result: "done-{mode}" } based on the input mode. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,9 +118,9 @@ conductor workflow search -w wf_timeout_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker runs real processing .  connect them to your business services, set timeoutSeconds on the workflow definition, and the automatic total-execution-time enforcement stays the same.
+Each worker runs real processing. connect them to your business services, set timeoutSeconds on the workflow definition, and the automatic total-execution-time enforcement stays the same.
 
-- **FastWorker** (`wft_fast`): replace with any real worker .  the workflow timeout applies at the workflow level regardless of how fast or slow individual tasks are
+- **FastWorker** (`wft_fast`): replace with any real worker. the workflow timeout applies at the workflow level regardless of how fast or slow individual tasks are
 
 Connect any real workers, and the workflow-level timeout configured in the definition enforces total execution time limits automatically.
 

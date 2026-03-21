@@ -1,10 +1,10 @@
 # Implementing Self-Healing Workflow in Java with Conductor :  Health Check, Diagnosis, Remediation, and Retry
 
-A Java Conductor workflow example demonstrating self-healing .  checking service health, diagnosing the issue when unhealthy, automatically applying remediation (restart, clear cache, scale up), and retrying the failed process after recovery.
+A Java Conductor workflow example demonstrating self-healing. checking service health, diagnosing the issue when unhealthy, automatically applying remediation (restart, clear cache, scale up), and retrying the failed process after recovery.
 
 ## The Problem
 
-Your service goes unhealthy .  high error rate, degraded performance, resource exhaustion. Instead of paging an engineer at 3 AM, you want the system to heal itself: detect the issue via health check, diagnose the root cause (memory leak, disk full, dependency down), apply the appropriate fix (restart the service, clear the cache, scale up replicas), and retry the original operation. Self-healing reduces mean time to recovery from minutes (human response) to seconds (automated).
+Your service goes unhealthy. high error rate, degraded performance, resource exhaustion. Instead of paging an engineer at 3 AM, you want the system to heal itself: detect the issue via health check, diagnose the root cause (memory leak, disk full, dependency down), apply the appropriate fix (restart the service, clear the cache, scale up replicas), and retry the original operation. Self-healing reduces mean time to recovery from minutes (human response) to seconds (automated).
 
 Without orchestration, self-healing logic is scattered across monitoring scripts, cron jobs, and runbooks. Health checks live in Nagios, remediation scripts live on jump boxes, and the retry logic is manual. Building a coherent self-healing loop that diagnoses before remediating (don't restart if the issue is a full disk) requires gluing together multiple tools.
 
@@ -12,7 +12,7 @@ Without orchestration, self-healing logic is scattered across monitoring scripts
 
 **You just write the health check and remediation actions. Conductor handles SWITCH-based routing between healthy and unhealthy paths, the check-diagnose-remediate-retry sequence, retries on remediation steps, and a complete record of every healing attempt showing what was detected, what fix was applied, and whether recovery succeeded.**
 
-Each self-healing step is an independent worker .  health check evaluates the service, diagnose identifies the root cause, remediate applies the fix, and retry re-runs the original operation. Conductor orchestrates the flow: when the health check fails, it routes to diagnosis and remediation before retrying. Every healing attempt is tracked ,  you can see what was detected, what fix was applied, and whether the retry succeeded. You get all of that, without writing a single line of orchestration code.
+Each self-healing step is an independent worker. health check evaluates the service, diagnose identifies the root cause, remediate applies the fix, and retry re-runs the original operation. Conductor orchestrates the flow: when the health check fails, it routes to diagnosis and remediation before retrying. Every healing attempt is tracked,  you can see what was detected, what fix was applied, and whether the retry succeeded. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -20,13 +20,13 @@ HealthCheckWorker evaluates service status, DiagnoseWorker identifies the root c
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **DiagnoseWorker** | `sh_diagnose` | Worker for sh_diagnose .  diagnoses problems in an unhealthy service. Analyzes symptoms and returns a diagnosis with r.. |
-| **HealthCheckWorker** | `sh_health_check` | Worker for sh_health_check .  checks the health of a service. If service is "broken-service", returns healthy="false" .. |
-| **ProcessWorker** | `sh_process` | Worker for sh_process .  normal processing for healthy services. Returns result="processed-{data}" where data comes fr.. |
-| **RemediateWorker** | `sh_remediate` | Worker for sh_remediate .  applies the fix recommended by diagnosis. Takes the diagnosis and action, applies the remed.. |
-| **RetryProcessWorker** | `sh_retry_process` | Worker for sh_retry_process .  retries processing after remediation. Returns result="healed-{data}" to indicate the se.. |
+| **DiagnoseWorker** | `sh_diagnose` | Worker for sh_diagnose. diagnoses problems in an unhealthy service. Analyzes symptoms and returns a diagnosis with r.. |
+| **HealthCheckWorker** | `sh_health_check` | Worker for sh_health_check. checks the health of a service. If service is "broken-service", returns healthy="false" .. |
+| **ProcessWorker** | `sh_process` | Worker for sh_process. normal processing for healthy services. Returns result="processed-{data}" where data comes fr.. |
+| **RemediateWorker** | `sh_remediate` | Worker for sh_remediate. applies the fix recommended by diagnosis. Takes the diagnosis and action, applies the remed.. |
+| **RetryProcessWorker** | `sh_retry_process` | Worker for sh_retry_process. retries processing after remediation. Returns result="healed-{data}" to indicate the se.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -129,7 +129,7 @@ conductor workflow search -w self_healing_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker runs one healing step .  connect the health checker to your service endpoints, the remediator to Kubernetes scaling or service restarts, and the check-diagnose-remediate-retry workflow stays the same.
+Each worker runs one healing step. connect the health checker to your service endpoints, the remediator to Kubernetes scaling or service restarts, and the check-diagnose-remediate-retry workflow stays the same.
 
 - **DiagnoseWorker** (`sh_diagnose`): analyze logs (ELK, Splunk), check resource utilization (CPU, memory, disk), query dependency health
 - **HealthCheckWorker** (`sh_health_check`): check real service health via HTTP endpoints, Kubernetes liveness probes, or CloudWatch metrics

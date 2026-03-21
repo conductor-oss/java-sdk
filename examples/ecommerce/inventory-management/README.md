@@ -25,7 +25,7 @@ Stock checking, reservation, inventory updates, and reorder workers manage wareh
 | **ReserveStockWorker** | `inv_reserve` | Performs the reserve stock operation |
 | **UpdateInventoryWorker** | `inv_update` | Performs the update inventory operation |
 
-Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
+Workers implement e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
 ### The Workflow
 

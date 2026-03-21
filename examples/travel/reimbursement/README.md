@@ -26,7 +26,7 @@ Expense validation, approval routing, payment processing, and notification worke
 | **SubmitWorker** | `rmb_submit` | Submit. Computes and returns claim id, submitted |
 | **ValidateWorker** | `rmb_validate` | Validate. Computes and returns valid, receipts verified |
 
-Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w rmb_reimbursement -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real finance systems .  your receipt validation service for compliance checks, your HR directory for manager approvals, your payroll API for direct deposit, and the workflow runs identically in production.
+Point each worker at your real finance systems. your receipt validation service for compliance checks, your HR directory for manager approvals, your payroll API for direct deposit, and the workflow runs identically in production.
 
 - **SubmitWorker** (`rmb_submit`): create the reimbursement claim in your expense management system (SAP Concur, Expensify, Brex) and attach receipt images
 - **ValidateWorker** (`rmb_validate`): verify receipts via OCR (AWS Textract, Google Vision), check amounts against policy limits, and flag duplicates or out-of-policy expenses

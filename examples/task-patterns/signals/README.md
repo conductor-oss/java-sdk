@@ -1,10 +1,10 @@
 # Signals in Java with Conductor
 
-Signals demo .  send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. Uses [Conductor](https://github.
+Signals demo. send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need an order fulfillment workflow that pauses and waits for external events at two points: first, it waits for a shipping confirmation (tracking number and carrier) from the warehouse or shipping partner, and second, it waits for a delivery confirmation (delivery timestamp and recipient signature) from the carrier. The workflow cannot continue past each wait point until the external system sends the signal with the required data. Between signals, the order sits in a known state .  prepared, shipped, or delivered ,  potentially for hours or days.
+You need an order fulfillment workflow that pauses and waits for external events at two points: first, it waits for a shipping confirmation (tracking number and carrier) from the warehouse or shipping partner, and second, it waits for a delivery confirmation (delivery timestamp and recipient signature) from the carrier. The workflow cannot continue past each wait point until the external system sends the signal with the required data. Between signals, the order sits in a known state. prepared, shipped, or delivered,  potentially for hours or days.
 
 Without orchestration, you'd poll a database or message queue for shipping and delivery updates, maintaining a state machine in application code that tracks where each order is in the fulfillment process. If the polling service crashes, orders are stuck until it restarts. There is no built-in way for an external system to "push" data into a running process at a specific step, and correlating incoming signals with the right order workflow requires custom routing logic.
 
@@ -24,7 +24,7 @@ Three workers handle the order fulfillment flow between WAIT pauses: SigPrepareW
 | **SigPrepareWorker** | `sig_prepare` | Prepares the order for shipping. Takes an orderId and returns { ready: true }. |
 | **SigProcessShippingWorker** | `sig_process_shipping` | Processes shipping information after the shipping signal is received. Takes orderId, trackingNumber, and carrier. Ret... |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

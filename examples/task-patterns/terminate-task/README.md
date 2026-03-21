@@ -23,7 +23,7 @@ Two workers support the validate-then-process pattern: ValidateWorker checks ord
 | **ProcessWorker** | `term_process` | Processes a validated order. Only reached if validation passed. Takes orderId and amount, returns processedAmount. |
 | **ValidateWorker** | `term_validate` | Validates an order by checking amount and currency constraints. Validation rules: - Amount must be positive (greater ... |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

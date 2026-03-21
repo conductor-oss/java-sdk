@@ -1,6 +1,6 @@
 # Ollama Local in Java Using Conductor :  Code Review via Locally-Hosted LLMs
 
-A Java Conductor workflow that runs code review through a locally-hosted Ollama model .  checking that the requested model is available, generating a code review, and post-processing the raw output into structured feedback. No API keys, no cloud calls, no data leaving your machine. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate model availability checks, local LLM generation, and output formatting as independent workers ,  you write the Ollama integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that runs code review through a locally-hosted Ollama model. checking that the requested model is available, generating a code review, and post-processing the raw output into structured feedback. No API keys, no cloud calls, no data leaving your machine. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate model availability checks, local LLM generation, and output formatting as independent workers,  you write the Ollama integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## Running LLMs Locally for Code Review
 
@@ -12,11 +12,11 @@ Without orchestration, a model-not-found error means a cryptic failure, a genera
 
 **You write the Ollama model check, local generation call, and review formatting logic. Conductor handles the sequencing, retries, and observability.**
 
-Each step is an independent worker .  model availability check (is the requested model loaded in Ollama?), local generation (calling Ollama's `/api/generate` endpoint), and post-processing (structuring raw output into review comments). Conductor sequences them, retries the generation if Ollama's local inference times out, and tracks every review with the model used, the code reviewed, and the structured feedback produced.
+Each step is an independent worker. model availability check (is the requested model loaded in Ollama?), local generation (calling Ollama's `/api/generate` endpoint), and post-processing (structuring raw output into review comments). Conductor sequences them, retries the generation if Ollama's local inference times out, and tracks every review with the model used, the code reviewed, and the structured feedback produced.
 
 ### What You Write: Workers
 
-Three workers manage local model inference .  checking that the Ollama model is loaded and ready, generating a response locally, and post-processing the output with token counts and latency metrics.
+Three workers manage local model inference. checking that the Ollama model is loaded and ready, generating a response locally, and post-processing the output with token counts and latency metrics.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers manage local model inference .  checking that the Ollama model is 
 | **OllamaGenerateWorker** | `ollama_generate` | Worker that simulates Ollama text generation. Takes prompt, model, ollamaHost, and options. Returns a fixed response ... |
 | **OllamaPostProcessWorker** | `ollama_post_process` | Worker that post-processes the Ollama generation response. Takes response and wraps it in a review field. |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w ollama_local_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one step of the local inference pipeline .  swap in real Ollama `/api/generate` calls with streaming support, add model auto-download via `/api/pull`, and the check-generate-format workflow runs unchanged.
+Each worker handles one step of the local inference pipeline. swap in real Ollama `/api/generate` calls with streaming support, add model auto-download via `/api/pull`, and the check-generate-format workflow runs unchanged.
 
 - **OllamaCheckModelWorker** (`ollama_check_model`): call the Ollama `/api/tags` or `/api/show` endpoint to verify model availability, and `/api/pull` to auto-download missing models
 - **OllamaGenerateWorker** (`ollama_generate`): call the real Ollama `/api/generate` endpoint with streaming support, configurable temperature/top_p/repeat_penalty, and token-level callbacks for progressive output
 - **OllamaPostProcessWorker** (`ollama_post_process`): add response cleaning (strip special tokens), format conversion (Markdown to HTML), or structured extraction (JSON mode parsing) on the raw Ollama output
 
-The check/generate/post-process contract stays fixed .  swap models, adjust generation parameters, or add output filtering without changing the workflow definition.
+The check/generate/post-process contract stays fixed. swap models, adjust generation parameters, or add output filtering without changing the workflow definition.
 
 ## SDK
 

@@ -25,7 +25,7 @@ This pipeline breaks audio processing into four focused workers. from raw audio 
 | **PreprocessAudioWorker** | `au_preprocess_audio` | Preprocesses audio: normalization, noise reduction. |
 | **TranscribeWorker** | `au_transcribe` | Transcribes audio into text with speaker diarization. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w audio_transcription -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker maps directly to a real audio service .  swap in Whisper for transcription, FFmpeg for preprocessing, or AWS Comprehend for keyword extraction, and the workflow runs identically without any changes.
+Each worker maps directly to a real audio service. swap in Whisper for transcription, FFmpeg for preprocessing, or AWS Comprehend for keyword extraction, and the workflow runs identically without any changes.
 
 - **PreprocessAudioWorker** → shell out to FFmpeg for normalization, noise reduction, and format conversion (`ffmpeg -i input.wav -af "loudnorm,afftdn" output.wav`)
 - **TranscribeWorker** → call Whisper API, Google Speech-to-Text, or AWS Transcribe for real speech-to-text with speaker diarization

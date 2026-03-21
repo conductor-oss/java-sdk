@@ -26,7 +26,7 @@ Availability search, rate comparison, reservation, and confirmation workers each
 | **ReminderWorker** | `htl_reminder` | Schedules a check-in reminder notification for the guest |
 | **SearchWorker** | `htl_search` | Searching hotels in |
 
-Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 

@@ -1,18 +1,18 @@
 # Customer Journey in Java with Conductor :  Track Touchpoints, Map Stages, and Optimize the Path to Conversion
 
-A Java Conductor workflow that maps a customer's journey from first contact to conversion .  tracking touchpoints across channels, mapping them into journey stages, analyzing the journey for drop-off points and friction, and generating optimization recommendations. Given a `customerId` and `timeWindow`, the pipeline produces touchpoint counts, journey stage breakdowns, and actionable recommendations to improve conversion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step journey analysis.
+A Java Conductor workflow that maps a customer's journey from first contact to conversion. tracking touchpoints across channels, mapping them into journey stages, analyzing the journey for drop-off points and friction, and generating optimization recommendations. Given a `customerId` and `timeWindow`, the pipeline produces touchpoint counts, journey stage breakdowns, and actionable recommendations to improve conversion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the four-step journey analysis.
 
 ## Seeing the Full Picture of How Customers Convert
 
-Customers interact with your product through dozens of touchpoints .  website visits, email opens, support tickets, feature usage, social engagement. These interactions are scattered across systems and channels. Understanding the path from first touch to conversion (or churn) requires collecting all touchpoints, organizing them into stages (awareness, consideration, decision), analyzing where customers drop off, and recommending changes to improve the funnel.
+Customers interact with your product through dozens of touchpoints. website visits, email opens, support tickets, feature usage, social engagement. These interactions are scattered across systems and channels. Understanding the path from first touch to conversion (or churn) requires collecting all touchpoints, organizing them into stages (awareness, consideration, decision), analyzing where customers drop off, and recommending changes to improve the funnel.
 
-This workflow performs that analysis end-to-end. The touchpoint tracker collects all interactions for a customer within the specified time window. The journey mapper organizes those touchpoints into sequential stages. The analyzer identifies patterns .  which stages have the highest drop-off, which channels are most effective, where friction slows the journey. The optimizer generates specific recommendations based on the analysis insights.
+This workflow performs that analysis end-to-end. The touchpoint tracker collects all interactions for a customer within the specified time window. The journey mapper organizes those touchpoints into sequential stages. The analyzer identifies patterns. which stages have the highest drop-off, which channels are most effective, where friction slows the journey. The optimizer generates specific recommendations based on the analysis insights.
 
 ## The Solution
 
 **You just write the touchpoint-tracking, journey-mapping, analysis, and optimization workers. Conductor handles the four-step pipeline and data flow.**
 
-Four workers handle the journey analysis .  touchpoint tracking, journey mapping, insight analysis, and optimization. The tracker collects cross-channel interactions for the customer. The mapper groups touchpoints into journey stages. The analyzer extracts insights about drop-offs and friction points. The optimizer recommends changes based on those insights. Conductor sequences the four steps and passes touchpoints, journey maps, and insights between them automatically.
+Four workers handle the journey analysis. touchpoint tracking, journey mapping, insight analysis, and optimization. The tracker collects cross-channel interactions for the customer. The mapper groups touchpoints into journey stages. The analyzer extracts insights about drop-offs and friction points. The optimizer recommends changes based on those insights. Conductor sequences the four steps and passes touchpoints, journey maps, and insights between them automatically.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ TrackTouchpointsWorker collects cross-channel interactions, MapJourneyWorker org
 | **OptimizeWorker** | `cjy_optimize` | Generates optimization recommendations based on journey insights. |
 | **TrackTouchpointsWorker** | `cjy_track_touchpoints` | Tracks customer touchpoints across channels. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w cjy_customer_journey -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one analysis phase .  connect your CDP (Segment, mParticle) for touchpoint collection and your analytics platform (Amplitude, Mixpanel) for journey insights, and the customer-journey workflow stays the same.
+Each worker handles one analysis phase. connect your CDP (Segment, mParticle) for touchpoint collection and your analytics platform (Amplitude, Mixpanel) for journey insights, and the customer-journey workflow stays the same.
 
 - **AnalyzeWorker** (`cjy_analyze`): connect to analytics platforms (Amplitude, Mixpanel) for real funnel and cohort analysis
 - **MapJourneyWorker** (`cjy_map_journey`): integrate with a CDP (Segment, mParticle) to pull real cross-channel event streams

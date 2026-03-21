@@ -1,24 +1,24 @@
 # Conversational RAG in Java Using Conductor :  Multi-Turn Chat with Context-Aware Retrieval
 
-A Java Conductor workflow that powers multi-turn conversational retrieval-augmented generation. Each user message is embedded alongside recent conversation history, matched against a document store, and answered with grounded, context-aware responses .  all while maintaining session state across turns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate each stage as an independent worker ,  you write the embedding, retrieval, and generation logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that powers multi-turn conversational retrieval-augmented generation. Each user message is embedded alongside recent conversation history, matched against a document store, and answered with grounded, context-aware responses. all while maintaining session state across turns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate each stage as an independent worker,  you write the embedding, retrieval, and generation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Why Conversational RAG Is Harder Than Single-Shot RAG
 
 A single-turn RAG pipeline is straightforward: embed the query, retrieve documents, generate a response. But once users ask follow-up questions ("What about the pricing?" after asking "Tell me about product X"), the query alone is ambiguous. You need conversation history to resolve references and maintain coherence.
 
-That means every request now depends on session state .  loading prior turns, rewriting the query with conversational context, retrieving against the enriched query, generating a history-aware response, and persisting the new turn. Each of these steps can fail independently (embedding service timeout, vector store unreachable, LLM rate-limited), and if any step fails mid-conversation, you need to retry without corrupting session state or losing the user's place.
+That means every request now depends on session state. loading prior turns, rewriting the query with conversational context, retrieving against the enriched query, generating a history-aware response, and persisting the new turn. Each of these steps can fail independently (embedding service timeout, vector store unreachable, LLM rate-limited), and if any step fails mid-conversation, you need to retry without corrupting session state or losing the user's place.
 
-Without orchestration, you'd build this as a single method with nested try/catch blocks, manual session locking, and ad-hoc retry logic .  code that's fragile, hard to test, and impossible to observe when a user reports "the bot forgot what I said."
+Without orchestration, you'd build this as a single method with nested try/catch blocks, manual session locking, and ad-hoc retry logic. code that's fragile, hard to test, and impossible to observe when a user reports "the bot forgot what I said."
 
 ## The Solution
 
 **You write the session management, context-aware embedding, and generation logic. Conductor handles the multi-turn sequencing, retries, and observability.**
 
-Each stage of the conversational RAG pipeline is an independent worker .  loading history, embedding with context, retrieving documents, generating a response, saving the turn. Conductor sequences them, passes outputs between stages, retries on transient failures, and tracks every turn of every conversation for debugging. You get durable, observable multi-turn RAG without writing a line of orchestration code.
+Each stage of the conversational RAG pipeline is an independent worker. loading history, embedding with context, retrieving documents, generating a response, saving the turn. Conductor sequences them, passes outputs between stages, retries on transient failures, and tracks every turn of every conversation for debugging. You get durable, observable multi-turn RAG without writing a line of orchestration code.
 
 ### What You Write: Workers
 
-Five workers manage the full conversation turn .  loading session history, embedding with conversational context, retrieving documents, generating a history-aware response, and persisting the new turn.
+Five workers manage the full conversation turn. loading session history, embedding with conversational context, retrieving documents, generating a history-aware response, and persisting the new turn.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -28,7 +28,7 @@ Five workers manage the full conversation turn .  loading session history, embed
 | **RetrieveWorker** | `crag_retrieve` | Worker that retrieves relevant documents based on the contextual query. Returns 3 fixed documents with text and simil... |
 | **SaveHistoryWorker** | `crag_save_history` | Worker that saves the current turn to conversation history. Appends user + assistant messages to the shared SESSION_S... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -145,11 +145,11 @@ conductor workflow search -w conversational_rag_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one conversation stage .  swap the memory store for Redis or DynamoDB, plug in your LLM provider for generation, connect a real vector store for retrieval, and the conversational pipeline runs unchanged.
+Each worker handles one conversation stage. swap the memory store for Redis or DynamoDB, plug in your LLM provider for generation, connect a real vector store for retrieval, and the conversational pipeline runs unchanged.
 
 - **EmbedWithContextWorker** (`crag_embed_with_context`): swap the fixed embedding vector for a real call to OpenAI Embeddings, Cohere, or a local sentence-transformers model
 - **GenerateWorker** (`crag_generate`): replace the simulated response with a call to GPT-4, Claude, or any LLM, passing the retrieved context and conversation history as the prompt
-- **LoadHistoryWorker** / **SaveHistoryWorker** .  replace the in-memory ConcurrentHashMap with Redis, DynamoDB, or a database-backed session store for persistent conversation memory
+- **LoadHistoryWorker** / **SaveHistoryWorker**. replace the in-memory ConcurrentHashMap with Redis, DynamoDB, or a database-backed session store for persistent conversation memory
 - **RetrieveWorker** (`crag_retrieve`): swap the fixed documents for a real vector search against Pinecone, Weaviate, pgvector, or Elasticsearch
 
 The session state contract is fixed across workers.  replace the in-memory store with Redis, swap the embedding provider, or upgrade the LLM, and the multi-turn pipeline runs unchanged.

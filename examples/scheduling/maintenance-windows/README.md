@@ -1,12 +1,12 @@
 # Maintenance Window Management in Java Using Conductor :  Time-Window Checks with Execute or Defer
 
-A Java Conductor workflow example for maintenance window management .  checking whether the current time falls within an approved maintenance window, executing maintenance tasks if it does, or deferring to the next available window if it doesn't.
+A Java Conductor workflow example for maintenance window management. checking whether the current time falls within an approved maintenance window, executing maintenance tasks if it does, or deferring to the next available window if it doesn't.
 
 ## The Problem
 
-You need to perform maintenance .  database migrations, certificate rotations, patch deployments; but only during approved maintenance windows. If a maintenance task is triggered outside the window, it must be deferred rather than executed. The system must check the current time against the window schedule and route accordingly: execute now or schedule for later.
+You need to perform maintenance. database migrations, certificate rotations, patch deployments; but only during approved maintenance windows. If a maintenance task is triggered outside the window, it must be deferred rather than executed. The system must check the current time against the window schedule and route accordingly: execute now or schedule for later.
 
-Without orchestration, maintenance windows are enforced by human judgment .  an engineer checks the clock before running a script. Automated scripts either ignore maintenance windows entirely (running at any time) or are scheduled with cron at fixed times that don't adapt when windows change.
+Without orchestration, maintenance windows are enforced by human judgment. an engineer checks the clock before running a script. Automated scripts either ignore maintenance windows entirely (running at any time) or are scheduled with cron at fixed times that don't adapt when windows change.
 
 ## The Solution
 
@@ -24,7 +24,7 @@ CheckWindowWorker determines if the current time falls within the maintenance wi
 | **DeferMaintenanceWorker** | `mnw_defer_maintenance` | Defers maintenance to the next available window, recording the reason and scheduled time |
 | **ExecuteMaintenanceWorker** | `mnw_execute_maintenance` | Runs maintenance tasks (db-vacuum, index-rebuild, cache-clear) on the target system and reports duration and completed tasks |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -127,11 +127,11 @@ conductor workflow search -w maintenance_windows_408 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one window concern .  connect the window checker to your maintenance schedule (PagerDuty, ServiceNow), the executor to run real tasks like database migrations, and the check-route-execute-or-defer workflow stays the same.
+Each worker handles one window concern. connect the window checker to your maintenance schedule (PagerDuty, ServiceNow), the executor to run real tasks like database migrations, and the check-route-execute-or-defer workflow stays the same.
 
 - **CheckWindowWorker** (`mnw_check_window`): query your maintenance window schedule from PagerDuty, ServiceNow, or a shared calendar API
 - **DeferMaintenanceWorker** (`mnw_defer_maintenance`): reschedule the maintenance workflow for the next available window using Conductor's scheduler or a calendar-aware trigger
-- **ExecuteMaintenanceWorker** (`mnw_execute_maintenance`): run real maintenance tasks .  database migrations via Flyway, certificate rotations, Kubernetes rolling updates
+- **ExecuteMaintenanceWorker** (`mnw_execute_maintenance`): run real maintenance tasks. database migrations via Flyway, certificate rotations, Kubernetes rolling updates
 
 Connect to your scheduling system and real maintenance commands, and the window-check-then-execute-or-defer flow transfers without any workflow edits.
 

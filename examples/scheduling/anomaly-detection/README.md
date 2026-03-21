@@ -26,7 +26,7 @@ Five workers form the detection pipeline: CollectDataWorker gathers historical m
 | **ComputeBaselineWorker** | `anom_compute_baseline` | Computes a statistical baseline (mean and standard deviation) from collected data points for anomaly comparison |
 | **DetectWorker** | `anom_detect` | Calculates the z-score of the latest metric value against the baseline to determine if it is anomalous |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 

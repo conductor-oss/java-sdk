@@ -6,13 +6,13 @@ Automates threshold-based alerting using [Conductor](https://github.com/conducto
 
 CPU usage is at 87%. Is that a problem? It depends on the thresholds. Below 70% is fine: just log it. Between 70% and 90% is a warning, send a Slack message so the team is aware. Above 90% is critical, page the on-call engineer immediately. Each severity level needs a different response, and the check needs to happen reliably every time, with the right routing for each outcome.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the threshold checks and notification handlers. Conductor handles severity-based routing, delivery retries, and alerting decision tracking.**
 
-`CheckMetricWorker` evaluates the current metric value against configured warning and critical thresholds, classifying the status. Conductor's routing directs the workflow to the appropriate handler: `LogOkWorker` records the metric value for normal readings. `SendWarningWorker` sends a notification to the team channel for warning-level breaches. `PageOncallWorker` pages the on-call engineer via PagerDuty or Opsgenie for critical breaches. Conductor records every alert decision .  metric value, threshold comparison, and action taken ,  for alerting analytics and threshold tuning.
+`CheckMetricWorker` evaluates the current metric value against configured warning and critical thresholds, classifying the status. Conductor's routing directs the workflow to the appropriate handler: `LogOkWorker` records the metric value for normal readings. `SendWarningWorker` sends a notification to the team channel for warning-level breaches. `PageOncallWorker` pages the on-call engineer via PagerDuty or Opsgenie for critical breaches. Conductor records every alert decision. metric value, threshold comparison, and action taken,  for alerting analytics and threshold tuning.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle threshold alerting. Checking the metric value, then routing 
 | **PageOncall** | `th_page_oncall` | Pages the on-call engineer for critical alerts. |
 | **SendWarning** | `th_send_warning` | Sends a warning alert to Slack. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -123,7 +123,7 @@ conductor workflow search -w threshold_alerting -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one severity response .  replace the simulated calls with Prometheus metric queries, Slack Webhooks, or PagerDuty Events API for real threshold monitoring and escalation, and the alerting workflow runs unchanged.
+Each worker handles one severity response. replace the simulated calls with Prometheus metric queries, Slack Webhooks, or PagerDuty Events API for real threshold monitoring and escalation, and the alerting workflow runs unchanged.
 
 - **CheckMetric** (`ta_check_metric`): query Prometheus, Datadog, or CloudWatch for real-time metric values with configurable warning and critical thresholds per metric and per environment
 - **LogOk** (`ta_log_ok`): record that the metric is within normal range for audit and trend tracking, pushing the data point to a time-series database or logging platform

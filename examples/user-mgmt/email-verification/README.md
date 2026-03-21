@@ -25,7 +25,7 @@ SendCodeWorker generates and emails a verification code, WaitInputWorker simulat
 | **VerifyCodeWorker** | `emv_verify` | Verifies the submitted code against the expected code. |
 | **WaitInputWorker** | `emv_wait_input` | Simulates waiting for user to submit their verification code. |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w emv_email_verification -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one verification step .  connect your email delivery service (SendGrid, SES, Mailgun) for code sending and your user store for account activation, and the verification workflow stays the same.
+Each worker handles one verification step. connect your email delivery service (SendGrid, SES, Mailgun) for code sending and your user store for account activation, and the verification workflow stays the same.
 
 - **SendCodeWorker** (`emv_send_code`): generate a cryptographically secure code, store it in Redis with a TTL for expiration, and send it via SendGrid, SES, or Mailgun with a branded verification email template
 - **WaitInputWorker** (`emv_wait_input`): replace with a Conductor WAIT task that pauses the workflow until the user clicks the verification link or submits the code via your API, which completes the task via the Conductor REST API

@@ -1,6 +1,6 @@
 # Policy Issuance in Java with Conductor :  Underwrite, Approve, Generate Policy, Issue, Deliver
 
-A Java Conductor workflow example for end-to-end insurance policy issuance .  underwriting the applicant to determine risk class, approving the application and setting the premium, generating the policy document, officially issuing the policy in the system of record, and delivering the policy documents to the policyholder. Each step feeds into the next: underwriting produces the riskClass that approval uses to set the premium, the approved premium feeds into document generation which produces the policyId, and that policyId flows through issuance and delivery. Uses [Conductor](https://github.
+A Java Conductor workflow example for end-to-end insurance policy issuance. underwriting the applicant to determine risk class, approving the application and setting the premium, generating the policy document, officially issuing the policy in the system of record, and delivering the policy documents to the policyholder. Each step feeds into the next: underwriting produces the riskClass that approval uses to set the premium, the approved premium feeds into document generation which produces the policyId, and that policyId flows through issuance and delivery. Uses [Conductor](https://github.
 
 ## New Insurance Applications Must Flow Through Underwriting, Approval, and Issuance
 
@@ -10,7 +10,7 @@ When a new insurance application arrives, the insurer must underwrite the applic
 
 **You just write the underwriting, approval, document generation, policy issuance, and delivery logic. Conductor handles underwriting retries, document generation sequencing, and policy lifecycle audit trails.**
 
-`UnderwriteWorker` evaluates the application .  property inspection data, credit score, claims history, coverage amount vs: property value, and produces a risk assessment with a recommendation. `ApproveWorker` makes the acceptance decision based on underwriting guidelines, with auto-approval for standard risks and referral for exceptions. `GeneratePolicyWorker` creates the policy document ,  declarations page, coverage schedule, endorsements, and exclusions specific to the approved coverage. `IssueWorker` records the policy in the administration system with policy number, effective dates, and premium schedule. `DeliverWorker` sends the policy package to the policyholder via their preferred channel. Conductor tracks the full issuance timeline.
+`UnderwriteWorker` evaluates the application. property inspection data, credit score, claims history, coverage amount vs: property value, and produces a risk assessment with a recommendation. `ApproveWorker` makes the acceptance decision based on underwriting guidelines, with auto-approval for standard risks and referral for exceptions. `GeneratePolicyWorker` creates the policy document,  declarations page, coverage schedule, endorsements, and exclusions specific to the approved coverage. `IssueWorker` records the policy in the administration system with policy number, effective dates, and premium schedule. `DeliverWorker` sends the policy package to the policyholder via their preferred channel. Conductor tracks the full issuance timeline.
 
 ### What You Write: Workers
 
@@ -18,13 +18,13 @@ Application intake, underwriting, policy document generation, and activation wor
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **UnderwriteWorker** | `pis_underwrite` | Underwrites the applicant .  evaluates the applicantId and coverageType to determine the risk classification (standard, preferred, substandard) and underwriting result |
-| **ApproveWorker** | `pis_approve` | Approves the application based on the underwriting result .  reads the riskClass to determine the premium and issues the approval decision |
-| **GeneratePolicyWorker** | `pis_generate_policy` | Generates the policy document .  creates the declarations page, coverage schedule, and terms using the applicant details, coverage type, and approved premium, then outputs the policyId |
-| **IssueWorker** | `pis_issue` | Officially issues the policy .  records the policy in the administration system with the assigned policyId, setting the effective date and policy status to active |
-| **DeliverWorker** | `pis_deliver` | Delivers the policy documents to the policyholder .  sends the generated policy via the appropriate delivery method (email, postal mail, portal) |
+| **UnderwriteWorker** | `pis_underwrite` | Underwrites the applicant. evaluates the applicantId and coverageType to determine the risk classification (standard, preferred, substandard) and underwriting result |
+| **ApproveWorker** | `pis_approve` | Approves the application based on the underwriting result. reads the riskClass to determine the premium and issues the approval decision |
+| **GeneratePolicyWorker** | `pis_generate_policy` | Generates the policy document. creates the declarations page, coverage schedule, and terms using the applicant details, coverage type, and approved premium, then outputs the policyId |
+| **IssueWorker** | `pis_issue` | Officially issues the policy. records the policy in the administration system with the assigned policyId, setting the effective date and policy status to active |
+| **DeliverWorker** | `pis_deliver` | Delivers the policy documents to the policyholder. sends the generated policy via the appropriate delivery method (email, postal mail, portal) |
 
-Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
+Workers implement insurance operations. claim intake, assessment, settlement,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -134,7 +134,7 @@ conductor workflow search -w pis_policy_issuance -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real issuance stack .  your underwriting engine for risk classification, your policy admin system for document generation, your distribution platform for policy delivery, and the workflow runs identically in production.
+Wire each worker to your real issuance stack. your underwriting engine for risk classification, your policy admin system for document generation, your distribution platform for policy delivery, and the workflow runs identically in production.
 
 - **UnderwriteWorker** (`pis_underwrite`): integrate with third-party data: LexisNexis for identity verification, Verisk for property risk scores, or TransUnion for insurance credit scores
 - **GeneratePolicyWorker** (`pis_generate_policy`): use Apache PDFBox or DocuSign templates to generate branded policy documents with dynamic coverage schedules and endorsement riders

@@ -1,10 +1,10 @@
 # Health Dashboard in Java Using Conductor :  Parallel Service Health Checks and Dashboard Rendering
 
-A Java Conductor workflow example for building a health dashboard .  checking the health of API servers, databases, and caches in parallel via FORK/JOIN, then rendering a unified dashboard from the collected status data.
+A Java Conductor workflow example for building a health dashboard. checking the health of API servers, databases, and caches in parallel via FORK/JOIN, then rendering a unified dashboard from the collected status data.
 
 ## The Problem
 
-You need a health dashboard that shows the status of every component. API servers, databases, caches .  at a glance. Each health check is independent and can run in parallel for speed (don't wait for the database check to finish before checking the cache). The results must be aggregated into a single dashboard view showing green/yellow/red status for each component.
+You need a health dashboard that shows the status of every component. API servers, databases, caches. at a glance. Each health check is independent and can run in parallel for speed (don't wait for the database check to finish before checking the cache). The results must be aggregated into a single dashboard view showing green/yellow/red status for each component.
 
 Without orchestration, health dashboards either poll each component from the browser (slow, client-heavy) or run a monolithic script that checks everything serially (slow, single point of failure). If one health check hangs, the entire dashboard is stale.
 
@@ -25,7 +25,7 @@ Three health checkers run in parallel via FORK/JOIN. CheckApiWorker probes API s
 | **CheckDbWorker** | `hd_check_db` | Checks database health for a given environment, returning status and response time |
 | **RenderDashboardWorker** | `hd_render_dashboard` | Aggregates all component statuses into an overall health rating (GREEN/DEGRADED) and generates a dashboard URL |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w health_dashboard_417 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker checks one component .  connect the API health checker to your service endpoints, the database checker to run real connection tests, and the parallel-check-then-render workflow stays the same.
+Each worker checks one component. connect the API health checker to your service endpoints, the database checker to run real connection tests, and the parallel-check-then-render workflow stays the same.
 
 - **CheckApiWorker** (`hd_check_api`): make real HTTP health check requests to your API endpoints and measure response times
 - **CheckCacheWorker** (`hd_check_cache`): ping Redis/Memcached, check memory usage, measure hit/miss ratios, verify cluster health

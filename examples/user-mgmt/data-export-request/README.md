@@ -25,7 +25,7 @@ ValidateExportWorker verifies identity and format, CollectDataWorker aggregates 
 | **PackageDataWorker** | `der_package` | Packages the collected data into the requested format (JSON, CSV) and uploads it to a downloadable URL |
 | **ValidateExportWorker** | `der_validate` | Validates the export request by verifying the user's identity and checking the requested format |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w der_data_export -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one export step .  connect your data stores for multi-source collection and your object storage (S3, GCS) for secure file delivery, and the data-export workflow stays the same.
+Each worker handles one export step. connect your data stores for multi-source collection and your object storage (S3, GCS) for secure file delivery, and the data-export workflow stays the same.
 
 - **ValidateExportWorker** (`der_validate`): verify the user exists in your identity provider (Auth0, Okta) and validate that requested data categories match your data catalog schema
 - **CollectDataWorker** (`der_collect`): query user data across your services: profile from PostgreSQL, activity from Elasticsearch, files from S3, preferences from Redis. Aggregating everything into a unified structure

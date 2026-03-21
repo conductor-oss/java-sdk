@@ -12,7 +12,7 @@ Without orchestration, health aggregation is a polling loop that sequentially pi
 
 **You just write the per-component health-check workers and the aggregation worker. Conductor handles parallel health probes, per-component timeouts, and automatic aggregation once all checks complete.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers probe infrastructure in parallel: CheckApiWorker, CheckDbWorker, Ch
 | **CheckDbWorker** | `hc_check_db` | Checks the database health and reports connection pool utilization. |
 | **CheckQueueWorker** | `hc_check_queue` | Checks the Kafka message queue health and reports consumer lag. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

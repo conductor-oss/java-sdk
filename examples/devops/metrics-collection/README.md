@@ -6,13 +6,13 @@ Collect metrics from multiple sources in parallel using FORK/JOIN, then aggregat
 
 A complete system health picture requires metrics from multiple sources: application metrics (request rate, error rate, latency from Prometheus), infrastructure metrics (CPU, memory, disk from CloudWatch), and business metrics (orders per minute, revenue from the application database). Collecting them sequentially triples the collection time. Collecting them in parallel gives you all metrics in the time of the slowest source.
 
-After parallel collection, the metrics need aggregation .  normalizing timestamps, aligning time windows, computing derived metrics (error rate = errors / total requests), and producing a unified view that spans all three sources. If one source is temporarily unavailable, the other two should still be collected and aggregated with a gap note.
+After parallel collection, the metrics need aggregation. normalizing timestamps, aligning time windows, computing derived metrics (error rate = errors / total requests), and producing a unified view that spans all three sources. If one source is temporarily unavailable, the other two should still be collected and aggregated with a gap note.
 
 ## The Solution
 
 **You write the source-specific collectors and aggregation logic. Conductor handles parallel collection, result merging, and per-source failure isolation.**
 
-`FORK_JOIN` dispatches parallel collectors to gather metrics simultaneously from application, infrastructure, and business sources .  each returning metrics with timestamps, values, and metadata. After `JOIN` collects all results, `AggregateWorker` normalizes timestamps across sources, aligns time windows, computes derived metrics, and produces a unified metrics summary. Conductor runs all collectors in parallel and records collection latency per source for monitoring pipeline health.
+`FORK_JOIN` dispatches parallel collectors to gather metrics simultaneously from application, infrastructure, and business sources. each returning metrics with timestamps, values, and metadata. After `JOIN` collects all results, `AggregateWorker` normalizes timestamps across sources, aligns time windows, computes derived metrics, and produces a unified metrics summary. Conductor runs all collectors in parallel and records collection latency per source for monitoring pipeline health.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers collect metrics in parallel. Gathering application, infrastructure,
 | **CollectBusinessMetrics** | `mc_collect_business` | Collects business-level metrics such as revenue, orders, and conversion rate. |
 | **CollectInfraMetrics** | `mc_collect_infra` | Collects infrastructure-level metrics such as CPU, memory, and disk I/O. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w metrics_collection_411 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker collects from one metric source .  replace the simulated calls with Prometheus PromQL, CloudWatch GetMetricData, or SQL queries for real application, infrastructure, and business metrics, and the collection workflow runs unchanged.
+Each worker collects from one metric source. replace the simulated calls with Prometheus PromQL, CloudWatch GetMetricData, or SQL queries for real application, infrastructure, and business metrics, and the collection workflow runs unchanged.
 
 - **CollectAppMetrics** (`mc_collect_app`): query Prometheus via PromQL for application-level metrics like request rate, error rate, and latency percentiles
 - **CollectInfraMetrics** (`mc_collect_infra`): pull infrastructure metrics from AWS CloudWatch GetMetricData, GCP Monitoring API, or node_exporter for CPU, memory, disk, and network utilization

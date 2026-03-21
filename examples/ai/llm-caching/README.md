@@ -1,27 +1,27 @@
 # LLM Caching in Java Using Conductor :  Hash Prompts, Cache Responses, Track Savings
 
-A Java Conductor workflow that wraps LLM calls with a caching layer .  hashing each prompt to create a deterministic cache key, checking a cache before calling the model, storing new responses, and reporting cache hit rates and cost savings. Identical prompts return cached responses in milliseconds instead of waiting seconds for an LLM round-trip. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate hashing, cache-aware LLM calls, and savings reporting as independent workers ,  you write the caching and LLM logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that wraps LLM calls with a caching layer. hashing each prompt to create a deterministic cache key, checking a cache before calling the model, storing new responses, and reporting cache hit rates and cost savings. Identical prompts return cached responses in milliseconds instead of waiting seconds for an LLM round-trip. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate hashing, cache-aware LLM calls, and savings reporting as independent workers,  you write the caching and LLM logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Paying for the Same Answer Twice
 
-LLM API calls are slow (1-10 seconds) and expensive ($0.01-$0.10+ per call). In production, many prompts are repeated .  the same support question, the same product description request, the same summarization of a document that hasn't changed. Without caching, every duplicate prompt makes a full round-trip to the LLM API, burning tokens and adding latency.
+LLM API calls are slow (1-10 seconds) and expensive ($0.01-$0.10+ per call). In production, many prompts are repeated. the same support question, the same product description request, the same summarization of a document that hasn't changed. Without caching, every duplicate prompt makes a full round-trip to the LLM API, burning tokens and adding latency.
 
-The caching pipeline needs three steps: hash the prompt (with the model name) to create a stable cache key, check the cache and either return the cached response or call the LLM and store the result, then report whether it was a hit or miss so you can track savings over time. If the LLM call fails, you need to retry it without re-hashing .  the cache key is still valid. And you want visibility into cache hit rates and estimated cost savings across all calls.
+The caching pipeline needs three steps: hash the prompt (with the model name) to create a stable cache key, check the cache and either return the cached response or call the LLM and store the result, then report whether it was a hit or miss so you can track savings over time. If the LLM call fails, you need to retry it without re-hashing. the cache key is still valid. And you want visibility into cache hit rates and estimated cost savings across all calls.
 
 ## The Solution
 
 **You write the prompt hashing, cache lookup, and LLM call logic. Conductor handles the cache-aware pipeline, retries, and observability.**
 
-Each concern is an independent worker .  prompt hashing, cache-aware LLM invocation, savings reporting. Conductor chains them so the cache key feeds into the LLM call worker (which checks the cache first), and the hit/miss result feeds into the reporter. If the LLM API times out on a cache miss, Conductor retries automatically. Every call records whether it was a cache hit or miss, the response latency, and the estimated cost savings.
+Each concern is an independent worker. prompt hashing, cache-aware LLM invocation, savings reporting. Conductor chains them so the cache key feeds into the LLM call worker (which checks the cache first), and the hit/miss result feeds into the reporter. If the LLM API times out on a cache miss, Conductor retries automatically. Every call records whether it was a cache hit or miss, the response latency, and the estimated cost savings.
 
 ### What You Write: Workers
 
-Three workers implement the caching layer .  hashing the prompt and model into a deterministic cache key, performing a cache-aware LLM call that returns cached responses on hit, and reporting cache hit rates with estimated cost savings.
+Three workers implement the caching layer. hashing the prompt and model into a deterministic cache key, performing a cache-aware LLM call that returns cached responses on hit, and reporting cache hit rates with estimated cost savings.
 
 | Worker | Task | What It Does |
 |---|---|---|
 | **CacheHashPromptWorker** | `cache_hash_prompt` | Creates a deterministic cache key by concatenating model and prompt, normalizing whitespace, and truncating to 64 characters | Processing only |
-| **CacheLlmCallWorker** | `cache_llm_call` | Checks an in-memory cache for the key .  on hit returns the cached response instantly, on miss calls OpenAI API (live) or returns a fixed response (simulated), stores the result, and reports latency |
+| **CacheLlmCallWorker** | `cache_llm_call` | Checks an in-memory cache for the key. on hit returns the cached response instantly, on miss calls OpenAI API (live) or returns a fixed response (simulated), stores the result, and reports latency |
 | **CacheReportWorker** | `cache_report` | Reports whether the call was a cache hit or miss and estimates cost savings (~$0.02 per cache hit) | Processing only |
 
 **Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CacheLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) on cache miss. Without the key, it runs in simulated mode with deterministic output prefixed with `[SIMULATED]`. Non-LLM workers (hashing, reporting) always run their real logic.
@@ -129,13 +129,13 @@ conductor workflow search -w llm_caching -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one caching concern .  swap in Redis or GPTCache for real cache lookups, connect any LLM provider for cache misses, track hit rates and cost savings, and the hash-check-call-store pipeline runs unchanged.
+Each worker handles one caching concern. swap in Redis or GPTCache for real cache lookups, connect any LLM provider for cache misses, track hit rates and cost savings, and the hash-check-call-store pipeline runs unchanged.
 
 - **CacheHashPromptWorker** (`cache_hash_prompt`): use a cryptographic hash (SHA-256) for cache keys to handle long prompts, and include model version and temperature in the key for cache correctness
 - **CacheLlmCallWorker** (`cache_llm_call`): replace the in-memory ConcurrentHashMap with Redis or Memcached for distributed caching across instances, and call the real OpenAI/Anthropic/Cohere API on cache misses
 - **CacheReportWorker** (`cache_report`): push cache hit rates, latency savings, and estimated cost savings to a metrics backend (Datadog, Prometheus) for monitoring caching effectiveness
 
-The hash/call/report contract is fixed .  swap the in-memory cache for Redis, connect a real LLM provider, or push metrics to Prometheus without changing the workflow.
+The hash/call/report contract is fixed. swap the in-memory cache for Redis, connect a real LLM provider, or push metrics to Prometheus without changing the workflow.
 
 ## SDK
 

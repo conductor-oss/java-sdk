@@ -1,16 +1,16 @@
 # Implementing Exponential Backoff Retry in Java with Conductor :  Doubling Delays for Rate-Limited APIs
 
-A Java Conductor workflow example demonstrating exponential backoff retry .  a worker that simulates 429 (Too Many Requests) errors, with Conductor automatically retrying using doubling delays (1s, 2s, 4s, 8s) to give the rate-limited API time to recover.
+A Java Conductor workflow example demonstrating exponential backoff retry. a worker that simulates 429 (Too Many Requests) errors, with Conductor automatically retrying using doubling delays (1s, 2s, 4s, 8s) to give the rate-limited API time to recover.
 
 ## The Problem
 
-You call an API that enforces rate limits and returns 429 errors when you exceed them. Retrying immediately makes the situation worse .  you burn through your rate limit quota even faster. Exponential backoff gives the API progressively more time to recover: wait 1 second after the first failure, 2 seconds after the second, 4 seconds after the third, and so on.
+You call an API that enforces rate limits and returns 429 errors when you exceed them. Retrying immediately makes the situation worse. you burn through your rate limit quota even faster. Exponential backoff gives the API progressively more time to recover: wait 1 second after the first failure, 2 seconds after the second, 4 seconds after the third, and so on.
 
 Without orchestration, exponential backoff means Thread.sleep() calls with manual delay calculations inside retry loops. Each API caller implements backoff differently, some use linear delays, some forget to cap the maximum delay, and none of them track the retry history for debugging.
 
 ## The Solution
 
-The worker makes the API call and returns success or failure. Conductor handles the exponential backoff automatically .  configured via retryDelaySeconds and backoffRate in the task definition. Every retry attempt is recorded with the exact delay applied, so you can see the backoff progression. Changing the backoff rate or max retries is a config change, not a code change. You get all of that, without writing a single line of orchestration code.
+The worker makes the API call and returns success or failure. Conductor handles the exponential backoff automatically. configured via retryDelaySeconds and backoffRate in the task definition. Every retry attempt is recorded with the exact delay applied, so you can see the backoff progression. Changing the backoff rate or max retries is a config change, not a code change. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -20,7 +20,7 @@ RetryExpoTaskWorker makes the API call and reports success or failure, while Con
 |---|---|---|
 | **RetryExpoTaskWorker** | `retry_expo_task` | Simulates an API that returns 429 (Too Many Requests) for the first 2 calls, then succeeds on the 3rd attempt. Conduc... |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,9 +118,9 @@ conductor workflow search -w retry_expo_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls a real service .  connect to your rate-limited API, configure retryDelaySeconds and backoffRate in the task definition, and the exponential backoff retry behavior stays the same.
+Each worker calls a real service. connect to your rate-limited API, configure retryDelaySeconds and backoffRate in the task definition, and the exponential backoff retry behavior stays the same.
 
-- **RetryExpoTaskWorker** (`retry_expo_task`): replace with your real rate-limited API call (Stripe, Twilio, Twitter, any API with 429 responses) .  the exponential backoff is pure configuration
+- **RetryExpoTaskWorker** (`retry_expo_task`): replace with your real rate-limited API call (Stripe, Twilio, Twitter, any API with 429 responses). the exponential backoff is pure configuration
 
 Replace with your real rate-limited API call, and the exponential backoff behavior is purely a task definition setting requiring no code changes.
 

@@ -1,18 +1,18 @@
 # Certificate Issuance in Java with Conductor :  Completion Verification, Generation, Signing, Delivery, and Record-Keeping
 
-A Java Conductor workflow example for issuing educational certificates .  verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.
+A Java Conductor workflow example for issuing educational certificates. verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to issue certificates when students complete a course. Before generating anything, you must verify the student actually finished all required coursework, assignments, and exams. Then you generate a certificate with the student's name, course title, and completion date, digitally sign it so it cannot be forged, deliver it to the student, and record the issued credential in the registrar's system. Issuing a certificate without verified completion is an institutional liability; losing the record makes the credential unverifiable.
 
-Without orchestration, you'd embed completion checks, PDF generation, digital signing, email delivery, and database writes in a single service .  manually ensuring a certificate is never generated without verified completion, retrying failed email sends, and logging every step to prove the audit trail when an employer verifies a credential years later.
+Without orchestration, you'd embed completion checks, PDF generation, digital signing, email delivery, and database writes in a single service. manually ensuring a certificate is never generated without verified completion, retrying failed email sends, and logging every step to prove the audit trail when an employer verifies a credential years later.
 
 ## The Solution
 
 **You just write the completion verification, certificate generation, digital signing, delivery, and record-keeping logic. Conductor handles signing retries, delivery tracking, and credential issuance audit trails.**
 
-Each credential concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (verify, generate, sign, issue, record), retrying if the signing service or email delivery times out, maintaining a complete audit trail of every certificate's lifecycle, and resuming from the last step if the process crashes after signing but before delivery. You get all of that, without writing a single line of orchestration code.
+Each credential concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (verify, generate, sign, issue, record), retrying if the signing service or email delivery times out, maintaining a complete audit trail of every certificate's lifecycle, and resuming from the last step if the process crashes after signing but before delivery. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Eligibility verification, certificate generation, digital signing, and delivery 
 | **IssueCertificateWorker** | `cer_issue` | Delivers the signed certificate to the student (email, portal download) |
 | **RecordCertificateWorker** | `cer_record` | Records the issued credential in the institution's registrar system |
 
-Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
+Workers implement educational operations. enrollment, grading, notifications,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w cer_certificate_issuance -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real credentialing stack .  your LMS for completion verification, a PDF renderer (iText, Accredible) for certificate generation, your institution's PKI for digital signing, and the workflow runs identically in production.
+Wire each worker to your real credentialing stack. your LMS for completion verification, a PDF renderer (iText, Accredible) for certificate generation, your institution's PKI for digital signing, and the workflow runs identically in production.
 
 - **VerifyCompletionWorker** (`cer_verify_completion`): query your LMS (Canvas, Blackboard, Moodle) or student information system to verify all assignments, exams, and attendance requirements are met
 - **GenerateCertificateWorker** (`cer_generate`): render a PDF certificate using a template engine (Apache PDFBox, iText, or a service like Accredible/Certifier)

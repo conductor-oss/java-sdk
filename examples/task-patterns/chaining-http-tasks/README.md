@@ -23,7 +23,7 @@ Two workers bookend the HTTP chain: PrepareRequestWorker builds the request cont
 | **PrepareRequestWorker** | `http_prepare_request` | Worker that prepares an HTTP request by extracting the search term from the query input. Runs before the HTTP system ... |
 | **ProcessResponseWorker** | `http_process_response` | Worker that processes the HTTP response from the API call. Receives the status code and body from the preceding HTTP ... |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

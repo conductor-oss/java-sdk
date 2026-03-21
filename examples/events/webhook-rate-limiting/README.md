@@ -12,7 +12,7 @@ Without orchestration, you'd implement a rate limiter with token buckets or slid
 
 **You just write the sender-identification, rate-check, process, and throttle-queue workers. Conductor handles SWITCH-based allow/throttle routing, per-sender rate tracking, and a full audit of every rate-limit decision.**
 
-Each rate-limiting concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of identifying the sender, checking their rate, routing via a SWITCH task to process or throttle, and tracking every webhook's rate-limit decision. You get all of that, without writing a single line of orchestration code.
+Each rate-limiting concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of identifying the sender, checking their rate, routing via a SWITCH task to process or throttle, and tracking every webhook's rate-limit decision. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers enforce per-sender rate limits: IdentifySenderWorker extracts the s
 | **ProcessAllowedWorker** | `wl_process_allowed` | Processes an allowed webhook request. |
 | **QueueThrottledWorker** | `wl_queue_throttled` | Queues a throttled webhook request for later retry. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

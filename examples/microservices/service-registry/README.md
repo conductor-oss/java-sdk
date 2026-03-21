@@ -12,7 +12,7 @@ Without orchestration, registration and health checks are handled by client libr
 
 **You just write the registration, health-check, and discovery workers. Conductor handles registration sequencing, health-check retries, and a durable record of every registration lifecycle.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers manage the registration lifecycle: RegisterServiceWorker adds the 
 | **HealthCheckWorker** | `sr_health_check` | Performs a health check on a registered service. |
 | **RegisterServiceWorker** | `sr_register_service` | Registers a service in the service registry. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

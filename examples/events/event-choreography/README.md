@@ -12,7 +12,7 @@ Without orchestration, you'd implement this as a pure event-driven choreography 
 
 **You just write the order, payment, inventory, notification, and event-emission workers. Conductor handles event-driven sequencing with full end-to-end traceability, per-service retries, and centralized monitoring of the entire order flow.**
 
-Each service and its event emission is a simple, independent worker .  a plain Java class that does one thing. Conductor gives you choreography-style decoupling (each worker only knows its own concern) with orchestration benefits (full traceability, automatic retries, centralized monitoring). You get the best of both patterns without writing event routing code.
+Each service and its event emission is a simple, independent worker. a plain Java class that does one thing. Conductor gives you choreography-style decoupling (each worker only knows its own concern) with orchestration benefits (full traceability, automatic retries, centralized monitoring). You get the best of both patterns without writing event routing code.
 
 ### What You Write: Workers
 
@@ -28,7 +28,7 @@ Seven workers model choreography with traceability: OrderServiceWorker, PaymentS
 | **OrderServiceWorker** | `ch_order_service` | Processes an incoming order and calculates the total amount. |
 | **PaymentServiceWorker** | `ch_payment_service` | Processes payment for an order. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

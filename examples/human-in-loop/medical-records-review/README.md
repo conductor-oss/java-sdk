@@ -1,6 +1,6 @@
 # Medical Records Review in Java Using Conductor :  HIPAA Compliance Validation, Physician Review via WAIT, and Audit-Trailed Storage
 
-A Java Conductor workflow example for medical records review .  demonstrating HIPAA-pattern compliance checks (PHI encryption, audit logging, access controls), pausing at a WAIT task for a physician to review the records and provide their clinical assessment, and storing the result with a complete audit trail. Uses [Conductor](https://github.
+A Java Conductor workflow example for medical records review. demonstrating HIPAA-pattern compliance checks (PHI encryption, audit logging, access controls), pausing at a WAIT task for a physician to review the records and provide their clinical assessment, and storing the result with a complete audit trail. Uses [Conductor](https://github.
 
 ## Medical Records Must Pass HIPAA Compliance Before Physician Review
 
@@ -10,7 +10,7 @@ Before a physician can review medical records, the system must validate HIPAA co
 
 **You just write the HIPAA validation and audit-trailed storage workers. Conductor handles the durable pause for physician review and the compliance pipeline.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,11 +18,11 @@ MrValidateHipaaWorker checks PHI encryption and access controls, and MrStoreResu
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **MrValidateHipaaWorker** | `mr_validate_hipaa` | Runs automated HIPAA compliance checks .  verifies PHI encryption, audit logging configuration, access controls, and data retention policies |
-| *WAIT task* | `mr_physician_review` | Pauses until a physician reviews the records and submits their clinical assessment via `POST /tasks/{taskId}` | Built-in Conductor WAIT .  no worker needed |
+| **MrValidateHipaaWorker** | `mr_validate_hipaa` | Runs automated HIPAA compliance checks. verifies PHI encryption, audit logging configuration, access controls, and data retention policies |
+| *WAIT task* | `mr_physician_review` | Pauses until a physician reviews the records and submits their clinical assessment via `POST /tasks/{taskId}` | Built-in Conductor WAIT. no worker needed |
 | **MrStoreResultWorker** | `mr_store_result` | Stores the physician review result with a complete healthcare-pattern audit trail including reviewer identity, timestamp, and access log |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -126,7 +126,7 @@ conductor workflow search -w medical_records_review_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the compliance flow .  connect your HIPAA compliance engine for validation and your EHR system (Epic, Cerner) for audit-trailed storage, and the medical review workflow stays the same.
+Each worker handles one stage of the compliance flow. connect your HIPAA compliance engine for validation and your EHR system (Epic, Cerner) for audit-trailed storage, and the medical review workflow stays the same.
 
 - **MrStoreResultWorker** (`mr_store_result`): write the review result to a healthcare-pattern data store like AWS HealthLake, update the patient record in your EHR system, and generate a compliance audit report
 - **MrValidateHipaaWorker** (`mr_validate_hipaa`): integrate with a compliance platform like Vanta or Drata to run real HIPAA control checks, or query your security infrastructure for encryption and access log status

@@ -1,18 +1,18 @@
 # Message Broker Pipeline in Java Using Conductor :  Receive, Route, Deliver, Acknowledge, Log
 
-A Java Conductor workflow example for message brokering .  receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.
+A Java Conductor workflow example for message brokering. receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.
 
 ## Messages Need Reliable Routing, Not Just Transport
 
-A message arrives on the `orders` topic with `high` priority. It needs to be routed to the order processing service, not the analytics pipeline. Another message arrives on `notifications` with `low` priority .  it should go to the batch notification queue, not the real-time push service. Topic-based routing, priority handling, delivery confirmation, and audit logging are the core responsibilities of a message broker.
+A message arrives on the `orders` topic with `high` priority. It needs to be routed to the order processing service, not the analytics pipeline. Another message arrives on `notifications` with `low` priority. it should go to the batch notification queue, not the real-time push service. Topic-based routing, priority handling, delivery confirmation, and audit logging are the core responsibilities of a message broker.
 
-Building this manually means writing routing tables, implementing delivery retries with backoff for each subscriber, tracking which messages were acknowledged and which need redelivery, and maintaining an audit log of every message's journey. When a delivery fails, you need to know the message ID, topic, priority, routing decision, and delivery attempt count .  not just "something went wrong."
+Building this manually means writing routing tables, implementing delivery retries with backoff for each subscriber, tracking which messages were acknowledged and which need redelivery, and maintaining an audit log of every message's journey. When a delivery fails, you need to know the message ID, topic, priority, routing decision, and delivery attempt count. not just "something went wrong."
 
 ## The Solution
 
 **You write the routing and delivery logic. Conductor handles the message lifecycle, retries, and audit logging.**
 
-`MbrReceiveWorker` ingests the message and extracts its topic and priority metadata. `MbrRouteWorker` determines the delivery target based on topic routing rules and priority level. `MbrDeliverWorker` sends the payload to the routed destination. `MbrAcknowledgeWorker` confirms successful delivery and records the acknowledgment. `MbrLogWorker` writes the complete message lifecycle .  receive, route decision, delivery, acknowledgment ,  to the audit log. Conductor ensures this five-step pipeline runs in sequence, retries failed deliveries, and gives you full traceability for every message.
+`MbrReceiveWorker` ingests the message and extracts its topic and priority metadata. `MbrRouteWorker` determines the delivery target based on topic routing rules and priority level. `MbrDeliverWorker` sends the payload to the routed destination. `MbrAcknowledgeWorker` confirms successful delivery and records the acknowledgment. `MbrLogWorker` writes the complete message lifecycle. receive, route decision, delivery, acknowledgment,  to the audit log. Conductor ensures this five-step pipeline runs in sequence, retries failed deliveries, and gives you full traceability for every message.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage the brokering lifecycle: message reception, topic-based rout
 | **MbrReceiveWorker** | `mbr_receive` | Ingests an incoming message, assigning a message ID and receive timestamp |
 | **MbrRouteWorker** | `mbr_route` | Resolves the destination for the message based on its topic and records routing time |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w mbr_message_broker -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one brokering responsibility .  replace the simulated topic routing with real RabbitMQ exchange bindings or Kafka partition logic and the route-deliver-acknowledge pipeline runs unchanged.
+Each worker handles one brokering responsibility. replace the simulated topic routing with real RabbitMQ exchange bindings or Kafka partition logic and the route-deliver-acknowledge pipeline runs unchanged.
 
 - **MbrRouteWorker** (`mbr_route`): implement real topic-based routing using a routing table in Redis or a database, or integrate with RabbitMQ exchange bindings or Kafka topic partitioning
 - **MbrDeliverWorker** (`mbr_deliver`): publish to real subscriber endpoints via HTTP POST (webhooks), Kafka `producer.send()`, SQS `sendMessage()`, or gRPC streaming

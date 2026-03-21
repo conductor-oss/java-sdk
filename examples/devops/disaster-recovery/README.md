@@ -6,13 +6,13 @@ Orchestrates a full disaster recovery failover using [Conductor](https://github.
 
 Your primary region (us-east-1) suffers an outage. The database needs to be failed over to the standby in us-west-2, DNS records must be updated to redirect traffic, and someone needs to verify the DR region is healthy, all within your RTO target. Doing these steps manually under pressure risks mistakes, missed steps, and blown SLAs.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the failover logic. Conductor handles step ordering, RTO tracking, and guaranteed recovery completion.**
 
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging .  your workers call the infrastructure APIs.
+Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. your workers call the infrastructure APIs.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the DR failover sequence. Detecting the outage, promoting th
 | **UpdateDnsWorker** | `dr_update_dns` | Updates DNS records to redirect traffic from the failed primary to the DR region |
 | **VerifyWorker** | `dr_verify` | Validates the DR region is healthy and serving traffic, and reports the achieved RTO in minutes |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w disaster_recovery_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one failover step .  replace the simulated calls with AWS RDS promote-replica, Route53, or Azure Service Health APIs, and the DR workflow runs unchanged.
+Each worker owns one failover step. replace the simulated calls with AWS RDS promote-replica, Route53, or Azure Service Health APIs, and the DR workflow runs unchanged.
 
 - **DetectWorker** (`dr_detect`): integrate with AWS Health API, Azure Service Health, or synthetic monitoring (e.g., Pingdom, Checkly) to detect region failures
 - **FailoverDbWorker** (`dr_failover_db`): call AWS RDS promote-read-replica, Aurora Global Database failover, or equivalent cloud DB failover APIs
@@ -172,6 +172,6 @@ disaster-recovery-disaster-recovery/
 │       ├── UpdateDnsWorker.java
 │       └── VerifyWorker.java
 └── src/test/java/disasterrecovery/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

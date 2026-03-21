@@ -1,18 +1,18 @@
 # Webhook Callback in Java Using Conductor
 
-Webhook Callback Workflow .  receive an incoming webhook request, process the data, and notify the caller via callback URL. Uses [Conductor](https://github.
+Webhook Callback Workflow. receive an incoming webhook request, process the data, and notify the caller via callback URL. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to process an incoming webhook request and notify the caller of the result via a callback URL. The workflow receives the webhook payload, processes the data according to your business logic, and sends the result back to the caller's callback endpoint. If the callback fails, the caller never learns the outcome; if processing fails, you must still notify the caller of the failure.
 
-Without orchestration, you'd handle the webhook in a servlet or controller, process the data inline, and make an HTTP POST to the callback URL .  manually retrying failed callbacks, handling timeout and connection errors, and logging every callback attempt to debug delivery failures.
+Without orchestration, you'd handle the webhook in a servlet or controller, process the data inline, and make an HTTP POST to the callback URL. manually retrying failed callbacks, handling timeout and connection errors, and logging every callback attempt to debug delivery failures.
 
 ## The Solution
 
 **You just write the request-receive, data-processing, and callback-notification workers. Conductor handles ordered request processing, callback delivery retry with backoff, and a durable record of every webhook callback attempt.**
 
-Each webhook-callback concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of receiving the request, processing the data, and calling back the caller ,  retrying failed callbacks with backoff, tracking every webhook's full lifecycle, and resuming if the process crashes after processing but before the callback. You get all of that, without writing a single line of orchestration code.
+Each webhook-callback concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the request, processing the data, and calling back the caller,  retrying failed callbacks with backoff, tracking every webhook's full lifecycle, and resuming if the process crashes after processing but before the callback. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers handle the callback lifecycle: ReceiveRequestWorker parses the inc
 | **ProcessDataWorker** | `wc_process_data` | Processes the parsed data from the received webhook request. Produces a processing result with record counts and status. |
 | **ReceiveRequestWorker** | `wc_receive_request` | Receives an incoming webhook request, validates it, and parses the payload into a structured format for downstream pr... |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

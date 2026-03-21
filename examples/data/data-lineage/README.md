@@ -26,7 +26,7 @@ Five workers track lineage across the data pipeline: registering the source orig
 | **RecordDestinationWorker** | `ln_record_destination` | Records the destination in the lineage chain. |
 | **RegisterSourceWorker** | `ln_register_source` | Registers the data source and initializes lineage tracking. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

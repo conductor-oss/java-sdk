@@ -6,13 +6,13 @@ Build artifact lifecycle orchestration: build, sign, publish, and cleanup old ar
 
 After building a JAR, Docker image, or npm package, the artifact needs signing (so consumers can verify it hasn't been tampered with), publishing to a repository (Artifactory, Docker Hub, npm registry), and old versions need cleanup (keeping the last 10 versions, deleting artifacts older than 90 days). Without lifecycle management, artifact repositories grow unbounded, unsigned artifacts create supply chain risks, and there's no audit trail of what was published when.
 
-Each step has dependencies: signing requires the build output, publishing requires the signed artifact, and cleanup requires knowing which versions are still in use. If publishing fails, the artifact is built and signed but not available .  retrying should resume from publishing, not rebuild.
+Each step has dependencies: signing requires the build output, publishing requires the signed artifact, and cleanup requires knowing which versions are still in use. If publishing fails, the artifact is built and signed but not available. retrying should resume from publishing, not rebuild.
 
 ## The Solution
 
 **You write the build, sign, and publish logic. Conductor handles artifact lifecycle sequencing, provenance tracking, and retention enforcement.**
 
-`BuildWorker` compiles the source code and produces the build artifact. JAR, Docker image, or package .  with version metadata. `SignWorker` signs the artifact for integrity verification using GPG, Sigstore, or Docker Content Trust. `PublishWorker` uploads the signed artifact to the target repository with version tags and metadata. `CleanupWorker` applies retention policies ,  removing old versions, cleaning up unused tags, and reclaiming storage. Conductor sequences these steps and records the complete artifact provenance chain.
+`BuildWorker` compiles the source code and produces the build artifact. JAR, Docker image, or package. with version metadata. `SignWorker` signs the artifact for integrity verification using GPG, Sigstore, or Docker Content Trust. `PublishWorker` uploads the signed artifact to the target repository with version tags and metadata. `CleanupWorker` applies retention policies,  removing old versions, cleaning up unused tags, and reclaiming storage. Conductor sequences these steps and records the complete artifact provenance chain.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the artifact lifecycle. Building the package, signing for in
 | **PublishWorker** | `am_publish` | Publishes the signed artifact to Artifactory. |
 | **SignWorker** | `am_sign` | Signs the built artifact with GPG key. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w artifact_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one artifact lifecycle step .  replace the simulated calls with Maven/Gradle builds, Sigstore signing, or JFrog Artifactory publishing, and the management workflow runs unchanged.
+Each worker owns one artifact lifecycle step. replace the simulated calls with Maven/Gradle builds, Sigstore signing, or JFrog Artifactory publishing, and the management workflow runs unchanged.
 
 - **BuildWorker** (`am_build`): integrate with Maven/Gradle for JAR builds, Docker buildx for multi-architecture images, or npm pack for JavaScript packages
 - **SignWorker** (`am_sign`): use Sigstore/cosign for keyless signing of container images, GPG for JAR signing, or AWS Signer for code signing with audit trails

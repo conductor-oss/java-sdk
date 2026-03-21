@@ -12,7 +12,7 @@ Without orchestration, the routing proxy is a bespoke middleware that hard-codes
 
 **You just write the feature-flag check, monolith-call, microservice-call, and result-comparison workers. Conductor handles flag-based conditional routing, parallel shadow execution, and full visibility into migration traffic splits.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers implement the strangler fig: CheckFeatureFlagWorker determines the 
 | **CheckFeatureFlagWorker** | `sd_check_feature_flag` | Checks feature flag to determine routing target. |
 | **CompareResultsWorker** | `sd_compare_results` | Compares results from monolith and microservice in shadow mode. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

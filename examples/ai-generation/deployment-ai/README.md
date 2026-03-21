@@ -1,18 +1,18 @@
 # Deployment AI in Java with Conductor :  Risk-Aware Deployment with Change Analysis and Strategy Selection
 
-A Java Conductor workflow that makes deployment decisions intelligently .  analyzing code changes in a new version, predicting the deployment risk level, recommending a deployment strategy (blue-green, canary, rolling, or direct), and executing the deployment accordingly. Given a `serviceName`, `version`, and target `environment`, the pipeline produces a change count, risk assessment, chosen strategy, and deployment status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the analyze-predict-recommend-deploy pipeline.
+A Java Conductor workflow that makes deployment decisions intelligently. analyzing code changes in a new version, predicting the deployment risk level, recommending a deployment strategy (blue-green, canary, rolling, or direct), and executing the deployment accordingly. Given a `serviceName`, `version`, and target `environment`, the pipeline produces a change count, risk assessment, chosen strategy, and deployment status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the analyze-predict-recommend-deploy pipeline.
 
 ## Deploying with Confidence Instead of Guesswork
 
 Every deployment carries risk. A version with 200 changed files across critical modules needs a different deployment strategy than a version with 3 changed config lines. Teams often pick a strategy based on gut feeling or always use the same approach regardless of risk. This leads to either over-cautious deployments (canary for trivial changes, wasting time) or reckless ones (direct push for risky changes, causing outages).
 
-This workflow makes deployment strategy data-driven. The change analyzer examines what changed between versions .  file count, modules affected, breaking changes. The risk predictor evaluates the change analysis and assigns a risk level. The strategy recommender selects the appropriate deployment method based on risk and target environment (production gets more cautious strategies than staging). The deploy executor carries out the chosen strategy. Each step's output informs the next ,  risk levels drive strategy selection, and strategy drives execution parameters.
+This workflow makes deployment strategy data-driven. The change analyzer examines what changed between versions. file count, modules affected, breaking changes. The risk predictor evaluates the change analysis and assigns a risk level. The strategy recommender selects the appropriate deployment method based on risk and target environment (production gets more cautious strategies than staging). The deploy executor carries out the chosen strategy. Each step's output informs the next,  risk levels drive strategy selection, and strategy drives execution parameters.
 
 ## The Solution
 
 **You just write the change-analysis, risk-prediction, strategy-recommendation, and deployment workers. Conductor handles the decision chain and execution sequencing.**
 
-Four workers form the deployment pipeline .  change analysis, risk prediction, strategy recommendation, and deployment execution. The change analyzer examines the diff between versions. The risk predictor scores the changes. The strategy recommender maps risk level and environment to a deployment approach. The executor deploys using the recommended strategy. Conductor sequences the decision chain and ensures the deployment strategy is always backed by data.
+Four workers form the deployment pipeline. change analysis, risk prediction, strategy recommendation, and deployment execution. The change analyzer examines the diff between versions. The risk predictor scores the changes. The strategy recommender maps risk level and environment to a deployment approach. The executor deploys using the recommended strategy. Conductor sequences the decision chain and ensures the deployment strategy is always backed by data.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ AnalyzeChangesWorker examines the diff between versions, PredictRiskWorker score
 | **PredictRiskWorker** | `dai_predict_risk` | Scores deployment risk based on the change analysis (low, medium, high, critical). |
 | **RecommendStrategyWorker** | `dai_recommend_strategy` | Selects the deployment strategy (blue-green, canary, rolling, direct) based on risk level and target environment. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w dai_deployment_ai -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one deployment decision step .  connect your CI/CD platform (Spinnaker, Argo CD, AWS CodeDeploy) for execution and your observability stack (Datadog, New Relic) for risk assessment, and the deployment workflow stays the same.
+Each worker handles one deployment decision step. connect your CI/CD platform (Spinnaker, Argo CD, AWS CodeDeploy) for execution and your observability stack (Datadog, New Relic) for risk assessment, and the deployment workflow stays the same.
 
 - **AnalyzeChangesWorker** (`dai_analyze_changes`): connect to GitHub/GitLab API to diff real versions and detect breaking changes
 - **ExecuteDeployWorker** (`dai_execute_deploy`): integrate with Kubernetes, Argo CD, or Spinnaker to execute real deployments

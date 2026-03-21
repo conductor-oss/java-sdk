@@ -1,6 +1,6 @@
 # Web Browsing Agent in Java Using Conductor :  Plan Search, Execute, Select Pages, Read, Extract Answer
 
-Web Browsing Agent .  plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.
+Web Browsing Agent. plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.
 
 ## Answering Questions by Actually Reading Web Pages
 
@@ -12,7 +12,7 @@ This is a five-step pipeline where each step narrows the focus: search returns m
 
 **You write the search planning, page selection, content reading, and answer extraction logic. Conductor handles the browsing pipeline, retries on page fetch failures, and full research trail recording.**
 
-`PlanSearchWorker` analyzes the question and formulates an effective search query .  adding specific keywords, removing ambiguity, and targeting authoritative sources. `ExecuteSearchWorker` runs the query and returns ranked results with URLs, titles, and snippets. `SelectPagesWorker` evaluates the results and selects the most promising pages based on source authority, snippet relevance, and content type. `ReadPageWorker` fetches and parses the selected page content. `ExtractAnswerWorker` finds the specific answer to the question within the page content and returns it with the source citation. Conductor chains these five steps and records the full research trail.
+`PlanSearchWorker` analyzes the question and formulates an effective search query. adding specific keywords, removing ambiguity, and targeting authoritative sources. `ExecuteSearchWorker` runs the query and returns ranked results with URLs, titles, and snippets. `SelectPagesWorker` evaluates the results and selects the most promising pages based on source authority, snippet relevance, and content type. `ReadPageWorker` fetches and parses the selected page content. `ExtractAnswerWorker` finds the specific answer to the question within the page content and returns it with the source citation. Conductor chains these five steps and records the full research trail.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers browse the web. Planning search queries, executing the search, sele
 | **ReadPageWorker** | `wb_read_page` | Reads the content of selected pages. Simulates page loading and content extraction. Returns page contents with url, t... |
 | **SelectPagesWorker** | `wb_select_pages` | Selects the most relevant pages from search results based on relevance score. Sorts by relevance descending and retur... |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # Document QA in Java with Conductor :  Ingest, Chunk, Index, and Answer Questions About Documents
 
-A Java Conductor workflow that answers questions about documents .  ingesting a document from a URL, chunking it into searchable segments, indexing the chunks for retrieval, querying the index with a natural language question, and generating an answer from the most relevant chunks. Given a `documentUrl` and `question`, the pipeline produces a chunk count, an answer, and a confidence score. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-step document QA pipeline.
+A Java Conductor workflow that answers questions about documents. ingesting a document from a URL, chunking it into searchable segments, indexing the chunks for retrieval, querying the index with a natural language question, and generating an answer from the most relevant chunks. Given a `documentUrl` and `question`, the pipeline produces a chunk count, an answer, and a confidence score. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-step document QA pipeline.
 
 ## Asking Questions Instead of Reading Entire Documents
 
@@ -12,7 +12,7 @@ This workflow handles the full pipeline. The ingester fetches the document from 
 
 **You just write the document-ingestion, chunking, indexing, querying, and answer-generation workers. Conductor handles the five-step RAG pipeline.**
 
-Five workers form the QA pipeline .  document ingestion, chunking, indexing, querying, and answering. The ingester downloads and parses the document. The chunker splits it into segments suitable for semantic search. The indexer creates a searchable index. The query worker finds the chunks most relevant to the question. The answer worker generates a response from those chunks with a confidence score. Conductor sequences all five steps and passes the document content, chunks, index ID, and relevant chunks between them.
+Five workers form the QA pipeline. document ingestion, chunking, indexing, querying, and answering. The ingester downloads and parses the document. The chunker splits it into segments suitable for semantic search. The indexer creates a searchable index. The query worker finds the chunks most relevant to the question. The answer worker generates a response from those chunks with a confidence score. Conductor sequences all five steps and passes the document content, chunks, index ID, and relevant chunks between them.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ IngestWorker fetches the document, ChunkWorker splits it for search, IndexWorker
 | **IngestWorker** | `dqa_ingest` | Fetches and parses the document from the provided URL (PDF, HTML, etc.). |
 | **QueryWorker** | `dqa_query` | Searches the index with the user's question and retrieves the top relevant chunks. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w dqa_document_qa -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  connect your vector store (Pinecone, Weaviate, pgvector) for indexing and your LLM (Claude, GPT-4) for answer generation, and the document QA workflow stays the same.
+Each worker handles one RAG stage. connect your vector store (Pinecone, Weaviate, pgvector) for indexing and your LLM (Claude, GPT-4) for answer generation, and the document QA workflow stays the same.
 
 - **AnswerWorker** (`dqa_answer`): swap in an LLM (GPT-4, Claude) for real answer generation from retrieved context
 - **ChunkWorker** (`dqa_chunk`): use LangChain or LlamaIndex chunking strategies (recursive, semantic) for better retrieval quality

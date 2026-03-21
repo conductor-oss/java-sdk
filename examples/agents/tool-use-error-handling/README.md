@@ -1,10 +1,10 @@
 # Tool Use Error Handling in Java Using Conductor :  Primary Tool with Fallback on Failure
 
-Tool Use Error Handling .  tries a primary tool and falls back to an alternative tool on failure via a SWITCH task. Uses [Conductor](https://github.
+Tool Use Error Handling. tries a primary tool and falls back to an alternative tool on failure via a SWITCH task. Uses [Conductor](https://github.
 
 ## Tools Fail :  Have a Backup Plan
 
-Your primary weather API returns a 503 because it's having an outage. Your primary search engine is rate-limiting you. Your primary database is under maintenance. If the agent simply reports "tool failed" to the user, it's a poor experience .  especially when an alternative tool could have answered the question.
+Your primary weather API returns a 503 because it's having an outage. Your primary search engine is rate-limiting you. Your primary database is under maintenance. If the agent simply reports "tool failed" to the user, it's a poor experience. especially when an alternative tool could have answered the question.
 
 The error handling pattern tries the primary tool first, checks its status, and on failure routes to a fallback tool that serves the same purpose through a different provider or method. The primary might be a paid, high-quality API; the fallback might be a free, lower-quality alternative. Either way, the user gets an answer. Conductor's `SWITCH` task makes this failover routing explicit, and every execution records which tool served the request.
 
@@ -25,7 +25,7 @@ Four workers implement failover. Trying the primary tool, checking its status, a
 | **TryFallbackToolWorker** | `te_try_fallback_tool` | Attempts the fallback tool after the primary tool has failed. Returns a successful geocoding result. |
 | **TryPrimaryToolWorker** | `te_try_primary_tool` | Attempts to call the primary tool. Simulates a failure by returning toolStatus="failure" with a 503 service-unavailab... |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

@@ -12,7 +12,7 @@ Without orchestration, the calling service manually chains the calls, passing da
 
 **You just write each isolated service worker and the aggregation worker. Conductor handles inter-service data passing, per-step crash recovery, and full visibility into the processing chain.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers demonstrate complete data isolation: ServiceAWorker, ServiceBWorker
 | **ServiceBWorker** | `sn_service_b` | Processes service A's output independently using its own isolated data store. |
 | **ServiceCWorker** | `sn_service_c` | Processes service B's output independently using its own isolated data store. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

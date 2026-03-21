@@ -1,10 +1,10 @@
 # Teams Integration in Java Using Conductor
 
-A Java Conductor workflow that processes Microsoft Teams webhook events end-to-end .  receiving an incoming webhook payload, formatting it into an Adaptive Card, posting the card to a Teams channel, and acknowledging delivery. Given a team ID, channel ID, and webhook payload (e.g., a monitoring alert), the pipeline produces a formatted card, post confirmation, and acknowledgment status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the receive-format-post-acknowledge pipeline.
+A Java Conductor workflow that processes Microsoft Teams webhook events end-to-end. receiving an incoming webhook payload, formatting it into an Adaptive Card, posting the card to a Teams channel, and acknowledging delivery. Given a team ID, channel ID, and webhook payload (e.g., a monitoring alert), the pipeline produces a formatted card, post confirmation, and acknowledgment status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the receive-format-post-acknowledge pipeline.
 
 ## Turning Webhook Events into Teams Adaptive Cards
 
-When an external system fires a webhook (a monitoring alert, a CI/CD status change, a support ticket update), you typically need to receive the raw payload, transform it into a rich Adaptive Card with severity colors and action buttons, post the card to the right Teams channel, and send an acknowledgment back to the source. Each step depends on the previous one .  you cannot format a card without the event data, and you cannot acknowledge delivery without a message ID from the post step.
+When an external system fires a webhook (a monitoring alert, a CI/CD status change, a support ticket update), you typically need to receive the raw payload, transform it into a rich Adaptive Card with severity colors and action buttons, post the card to the right Teams channel, and send an acknowledgment back to the source. Each step depends on the previous one. you cannot format a card without the event data, and you cannot acknowledge delivery without a message ID from the post step.
 
 Without orchestration, you would chain Microsoft Graph API calls manually, manage webhook payloads and message IDs between steps, and build custom acknowledgment logic. Conductor sequences the pipeline and routes event data, card payloads, and message IDs between workers automatically.
 
@@ -25,7 +25,7 @@ Four workers handle Teams notifications: ReceiveWebhookWorker parses incoming ev
 | **PostCardWorker** | `tms_post_card` | Posts an adaptive card to a Teams channel. |
 | **ReceiveWebhookWorker** | `tms_receive_webhook` | Receives a Teams webhook and extracts event data. |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

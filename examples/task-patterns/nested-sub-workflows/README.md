@@ -1,6 +1,6 @@
 # Nested Sub Workflows in Java with Conductor
 
-Three-level nested order processing .  order fulfillment (Level 1) delegates to a payment sub-workflow (Level 2), which delegates fraud checking to its own sub-workflow (Level 3). Uses [Conductor](https://github.
+Three-level nested order processing. order fulfillment (Level 1) delegates to a payment sub-workflow (Level 2), which delegates fraud checking to its own sub-workflow (Level 3). Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd call payment functions directly from order code, ne
 
 **You just write the fraud check, charge, and fulfillment workers. Conductor handles the three-level sub-workflow nesting, execution tracking, and independent retry at each level.**
 
-This example demonstrates Conductor's SUB_WORKFLOW tasks nested three levels deep. The root `nested_order` workflow (Level 1) invokes a `nested_payment` sub-workflow (Level 2) via SUB_WORKFLOW task, passing orderId, amount, and email. The payment workflow invokes a `nested_fraud` sub-workflow (Level 3) for risk scoring via CheckFraudWorker, then runs ChargeWorker to process the payment. After the payment sub-workflow returns a transactionId, the root workflow runs FulfillWorker to complete the order. Each level is a standalone workflow definition .  you can run the payment workflow independently for refunds, or reuse the fraud workflow from a different payment flow. Conductor tracks the full execution tree across all three levels.
+This example demonstrates Conductor's SUB_WORKFLOW tasks nested three levels deep. The root `nested_order` workflow (Level 1) invokes a `nested_payment` sub-workflow (Level 2) via SUB_WORKFLOW task, passing orderId, amount, and email. The payment workflow invokes a `nested_fraud` sub-workflow (Level 3) for risk scoring via CheckFraudWorker, then runs ChargeWorker to process the payment. After the payment sub-workflow returns a transactionId, the root workflow runs FulfillWorker to complete the order. Each level is a standalone workflow definition. you can run the payment workflow independently for refunds, or reuse the fraud workflow from a different payment flow. Conductor tracks the full execution tree across all three levels.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers handle the three-level order flow: CheckFraudWorker computes a ris
 | **CheckFraudWorker** | `nest_check_fraud` | Checks fraud risk for a transaction. Returns a deterministic risk score (25) and approval status. Used by the deepest... |
 | **FulfillWorker** | `nest_fulfill` | Fulfills an order after payment is complete. Returns fulfillment status. Used by the root workflow (Level 1: nested_o... |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic .  the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

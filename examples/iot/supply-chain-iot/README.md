@@ -1,18 +1,18 @@
 # Supply Chain IoT in Java with Conductor :  Shipment Tracking, Condition Monitoring, and Alert-Based Rerouting
 
-A Java Conductor workflow example that orchestrates supply chain monitoring .  tracking shipment location from origin to destination, monitoring in-transit environmental conditions (temperature for cold chain compliance), and routing to different handlers via SWITCH based on condition status: continue the shipment if conditions are normal, or trigger an alert and initiate rerouting if conditions breach thresholds. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates supply chain monitoring. tracking shipment location from origin to destination, monitoring in-transit environmental conditions (temperature for cold chain compliance), and routing to different handlers via SWITCH based on condition status: continue the shipment if conditions are normal, or trigger an alert and initiate rerouting if conditions breach thresholds. Uses [Conductor](https://github.
 
 ## Why Supply Chain Monitoring Needs Orchestration
 
-Shipping perishable goods or sensitive materials requires continuous monitoring throughout transit. You track the shipment's GPS position to know where it is. You check the in-transit environmental conditions .  temperature inside the container, humidity levels, door-open events. Based on those conditions, you take entirely different actions: if everything is within spec, you log the checkpoint and continue. If the temperature exceeds the cold chain threshold, you trigger an alert, notify the logistics team, and initiate rerouting to a closer destination before the cargo is compromised.
+Shipping perishable goods or sensitive materials requires continuous monitoring throughout transit. You track the shipment's GPS position to know where it is. You check the in-transit environmental conditions. temperature inside the container, humidity levels, door-open events. Based on those conditions, you take entirely different actions: if everything is within spec, you log the checkpoint and continue. If the temperature exceeds the cold chain threshold, you trigger an alert, notify the logistics team, and initiate rerouting to a closer destination before the cargo is compromised.
 
-This is a classic conditional routing problem. The same shipment check can lead to "continue" or "reroute + alert," and those paths have completely different downstream effects. Without orchestration, you'd build a monolithic shipment monitor that mixes GPS polling, sensor reading, threshold checking, notification dispatch, and rerouting logic .  making it impossible to add new condition types (shock, tilt, light exposure) without rewriting the core monitoring code.
+This is a classic conditional routing problem. The same shipment check can lead to "continue" or "reroute + alert," and those paths have completely different downstream effects. Without orchestration, you'd build a monolithic shipment monitor that mixes GPS polling, sensor reading, threshold checking, notification dispatch, and rerouting logic. making it impossible to add new condition types (shock, tilt, light exposure) without rewriting the core monitoring code.
 
 ## How This Workflow Solves It
 
 **You just write the supply chain monitoring workers. Shipment tracking, condition monitoring, and conditional routing to OK or alert handlers. Conductor handles SWITCH-based condition routing, GPS tracker retries, and checkpoint records for cold chain compliance documentation.**
 
-Each supply chain concern is an independent worker .  track shipment, monitor conditions, handle normal status, handle alerts. Conductor sequences tracking and condition monitoring, then uses a SWITCH task to route to the correct handler based on condition status. If a GPS tracker poll times out, Conductor retries. Adding new condition types means adding a new SWITCH case and worker ,  no changes to existing shipment tracking or alert logic.
+Each supply chain concern is an independent worker. track shipment, monitor conditions, handle normal status, handle alerts. Conductor sequences tracking and condition monitoring, then uses a SWITCH task to route to the correct handler based on condition status. If a GPS tracker poll times out, Conductor retries. Adding new condition types means adding a new SWITCH case and worker,  no changes to existing shipment tracking or alert logic.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers monitor shipments in transit: TrackShipmentWorker tracks GPS positi
 | **MonitorConditionsWorker** | `sci_monitor_conditions` | Reads in-transit environmental conditions (temperature, humidity) from shipment IoT sensors. |
 | **TrackShipmentWorker** | `sci_track_shipment` | Tracks the shipment's current GPS location between origin and destination. |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs .  the workflow and alerting logic stay the same.
+Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs. the workflow and alerting logic stay the same.
 
 ### The Workflow
 

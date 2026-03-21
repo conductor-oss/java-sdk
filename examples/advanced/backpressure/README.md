@@ -1,18 +1,18 @@
 # Queue Backpressure in Java Using Conductor :  Monitor Depth, Throttle Producers, Shed Load
 
-A Java Conductor workflow example for queue backpressure management .  monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.
+A Java Conductor workflow example for queue backpressure management. monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.
 
 ## When Queues Overflow
 
 A downstream service slows down, consumers fall behind, and your queue depth starts climbing. At 10,000 messages, latency creeps up. At 50,000, memory pressure kicks in. At 100,000, the broker starts rejecting publishes and upstream services cascade-fail. The difference between a minor slowdown and a full outage is whether you react to queue pressure before it becomes critical.
 
-Reacting means measuring queue depth, classifying the pressure level (ok, high, critical), and taking graduated action .  letting traffic flow normally when depth is low, throttling producer rates when it climbs past a high-water mark, and actively shedding low-priority messages when depth crosses the critical threshold. Building that decision tree with the right fallbacks and observability is where manual approaches break down.
+Reacting means measuring queue depth, classifying the pressure level (ok, high, critical), and taking graduated action. letting traffic flow normally when depth is low, throttling producer rates when it climbs past a high-water mark, and actively shedding low-priority messages when depth crosses the critical threshold. Building that decision tree with the right fallbacks and observability is where manual approaches break down.
 
 ## The Solution
 
 **You write the monitoring and throttling logic. Conductor handles the conditional routing, retries, and execution tracking.**
 
-`BkpMonitorQueueWorker` samples the queue depth and classifies pressure as `ok`, `high`, or `critical` based on the configured thresholds. A `SWITCH` task routes to the appropriate response: `BkpHandleOkWorker` logs normal operation, `BkpThrottleWorker` reduces the producer rate by a calculated percentage, and `BkpShedLoadWorker` drops the lowest-priority messages to bring depth back under control. Conductor's conditional routing makes the graduated response declarative .  no if/else chains, just a clean branch per pressure level.
+`BkpMonitorQueueWorker` samples the queue depth and classifies pressure as `ok`, `high`, or `critical` based on the configured thresholds. A `SWITCH` task routes to the appropriate response: `BkpHandleOkWorker` logs normal operation, `BkpThrottleWorker` reduces the producer rate by a calculated percentage, and `BkpShedLoadWorker` drops the lowest-priority messages to bring depth back under control. Conductor's conditional routing makes the graduated response declarative. no if/else chains, just a clean branch per pressure level.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ The backpressure response splits across four workers: queue monitoring, normal-f
 | **BkpShedLoadWorker** | `bkp_shed_load` | Drops low-priority messages by the calculated shed percentage to bring queue depth under control |
 | **BkpThrottleWorker** | `bkp_throttle` | Reduces producer rate by the calculated throttle percentage when queue depth exceeds the high-water mark |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w bkp_backpressure -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker addresses one pressure-response concern .  replace the simulated queue metrics with real SQS or RabbitMQ monitoring APIs and the graduated throttle-or-shed logic runs unchanged.
+Each worker addresses one pressure-response concern. replace the simulated queue metrics with real SQS or RabbitMQ monitoring APIs and the graduated throttle-or-shed logic runs unchanged.
 
 - **BkpMonitorQueueWorker** (`bkp_monitor_queue`): query real queue metrics from SQS (`getQueueAttributes`), RabbitMQ management API, or Kafka consumer group lag via `kafka-consumer-groups.sh`
 - **BkpThrottleWorker** (`bkp_throttle`): call your API gateway's rate-limiting endpoint (e.g., Kong, AWS API Gateway throttle settings) to dynamically reduce producer throughput

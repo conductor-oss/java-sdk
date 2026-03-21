@@ -27,7 +27,7 @@ Six workers implement the full backup lifecycle. Configuration validation, snaps
 | **CleanupOldBackups** | `backup_cleanup_old` | Enforces the retention policy by listing existing backups (deterministically generated), deleting those older than `retentionDays` or exceeding `maxBackups`, and reporting freed storage. |
 | **SendNotification** | `backup_send_notification` | Sends a backup completion notification summarizing the pipeline results (filename, size, storage location, verification status, cleanup results). Supports Slack, email, and console channels. |
 
-TakeSnapshot runs real dump commands when credentials are available, and falls back to mock mode with deterministic output otherwise. The remaining workers simulate storage and notification operations with realistic outputs. Replace with actual S3 SDK and Slack webhook calls, the workflow stays the same.
+TakeSnapshot runs real dump commands when credentials are available, and falls back to mock mode with deterministic output otherwise. The remaining workers implement storage and notification operations with realistic outputs. Replace with actual S3 SDK and Slack webhook calls, the workflow stays the same.
 
 ### The Workflow
 

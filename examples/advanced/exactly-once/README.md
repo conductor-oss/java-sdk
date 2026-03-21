@@ -26,7 +26,7 @@ Five workers enforce the exactly-once protocol: distributed locking, state check
 | **ExoProcessWorker** | `exo_process` | Executes the idempotent business logic (e.g., applying a debit and computing new balance) |
 | **ExoUnlockWorker** | `exo_unlock` | Releases the distributed lock after processing and commit are complete |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 

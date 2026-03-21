@@ -1,10 +1,10 @@
 # RAG with MongoDB Atlas Vector Search in Java Using Conductor :  Embed, Search, Generate
 
-A Java Conductor workflow that implements RAG using MongoDB Atlas Vector Search .  embedding the question, running a vector search query against a MongoDB collection with a vector search index, and generating an answer from the retrieved documents. If you already store your data in MongoDB, Atlas Vector Search lets you add RAG without a separate vector database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, MongoDB vector search, and generation as independent workers ,  you write the MongoDB integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG using MongoDB Atlas Vector Search. embedding the question, running a vector search query against a MongoDB collection with a vector search index, and generating an answer from the retrieved documents. If you already store your data in MongoDB, Atlas Vector Search lets you add RAG without a separate vector database. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, MongoDB vector search, and generation as independent workers,  you write the MongoDB integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG on Your Existing MongoDB Data
 
-If your documents already live in MongoDB, Atlas Vector Search lets you run vector similarity queries against the same collection using `$vectorSearch` aggregation stages .  no data migration to a separate vector store needed. The RAG pipeline embeds the question, queries MongoDB with the vector, and generates from the results, all against your existing data and indexes.
+If your documents already live in MongoDB, Atlas Vector Search lets you run vector similarity queries against the same collection using `$vectorSearch` aggregation stages. no data migration to a separate vector store needed. The RAG pipeline embeds the question, queries MongoDB with the vector, and generates from the results, all against your existing data and indexes.
 
 Each step can fail independently: the embedding API might time out, the MongoDB cluster might be performing an election, or the LLM might be rate-limited.
 
@@ -12,11 +12,11 @@ Each step can fail independently: the embedding API might time out, the MongoDB 
 
 **You write the embedding and MongoDB Atlas Vector Search query logic. Conductor handles the RAG pipeline, retries, and observability.**
 
-Each stage is an independent worker .  question embedding, MongoDB Atlas vector search (specifying database and collection), and answer generation. Conductor sequences them, retries the MongoDB query during replica set elections, and tracks every search with the question, database, collection, retrieved documents, and generated answer.
+Each stage is an independent worker. question embedding, MongoDB Atlas vector search (specifying database and collection), and answer generation. Conductor sequences them, retries the MongoDB query during replica set elections, and tracks every search with the question, database, collection, retrieved documents, and generated answer.
 
 ### What You Write: Workers
 
-Three workers integrate MongoDB Atlas into the RAG pipeline .  embedding the query, performing $vectorSearch against a MongoDB Atlas collection, and generating an answer from the matched documents.
+Three workers integrate MongoDB Atlas into the RAG pipeline. embedding the query, performing $vectorSearch against a MongoDB Atlas collection, and generating an answer from the matched documents.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers integrate MongoDB Atlas into the RAG pipeline .  embedding the que
 | **MongoGenerateWorker** | `mongo_generate` | Worker that generates an answer from the question and retrieved documents. In production this would call an LLM (e.g.... |
 | **MongoVectorSearchWorker** | `mongo_vector_search` | Worker that simulates MongoDB Atlas $vectorSearch aggregation pipeline stage. In production this would run: db.collec... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,13 +129,13 @@ conductor workflow search -w rag_mongodb_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in a real embedding API, run `$vectorSearch` aggregation queries against your MongoDB Atlas collection, and the embed-search-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in a real embedding API, run `$vectorSearch` aggregation queries against your MongoDB Atlas collection, and the embed-search-generate pipeline runs unchanged.
 
 - **MongoEmbedWorker** (`mongo_embed`): call an embedding API (OpenAI text-embedding-3-small, Cohere embed-english-v3) to vectorize the question for MongoDB Atlas Vector Search
 - **MongoGenerateWorker** (`mongo_generate`): send MongoDB search results as context to an LLM (OpenAI GPT-4, Anthropic Claude) to generate a grounded answer
 - **MongoVectorSearchWorker** (`mongo_vector_search`): run a real MongoDB Atlas `$vectorSearch` aggregation pipeline with configurable numCandidates, limit, and metadata filters on your collection
 
-The embed/search/generate contract is fixed .  adjust the Atlas Search index, change the similarity metric, or swap the LLM provider without altering the workflow.
+The embed/search/generate contract is fixed. adjust the Atlas Search index, change the similarity metric, or swap the LLM provider without altering the workflow.
 
 ## SDK
 

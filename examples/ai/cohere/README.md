@@ -1,6 +1,6 @@
 # Cohere Marketing Copy Generation in Java Using Conductor :  Build Prompt, Generate Candidates, Select Best
 
-A Java Conductor workflow example for generating marketing copy using Cohere .  building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.
+A Java Conductor workflow example for generating marketing copy using Cohere. building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.
 
 ## One Generation Is Not Enough for Production Copy
 
@@ -12,11 +12,11 @@ Without orchestration, you'd loop through generations in a single function, mix 
 
 **You write the prompt construction, Cohere API call, and candidate selection logic. Conductor handles the pipeline, retries, and observability.**
 
-`CohereBuildPromptWorker` constructs a prompt tailored for marketing content .  specifying tone, audience, product details, and desired call-to-action. `CohereGenerateWorker` calls the Cohere Generate API to produce multiple text candidates. `CohereSelectBestWorker` evaluates each candidate against quality criteria and selects the winner. Conductor records the prompt, all generated candidates, and the selection rationale ,  so the marketing team can review alternatives and understand why one version was chosen.
+`CohereBuildPromptWorker` constructs a prompt tailored for marketing content. specifying tone, audience, product details, and desired call-to-action. `CohereGenerateWorker` calls the Cohere Generate API to produce multiple text candidates. `CohereSelectBestWorker` evaluates each candidate against quality criteria and selects the winner. Conductor records the prompt, all generated candidates, and the selection rationale,  so the marketing team can review alternatives and understand why one version was chosen.
 
 ### What You Write: Workers
 
-Three workers cover the full copy generation pipeline .  prompt construction with tone and audience parameters, multi-candidate generation via Cohere, and quality-based selection of the best candidate.
+Three workers cover the full copy generation pipeline. prompt construction with tone and audience parameters, multi-candidate generation via Cohere, and quality-based selection of the best candidate.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers cover the full copy generation pipeline .  prompt construction wit
 | **CohereGenerateWorker** | `cohere_generate` | Simulates a Cohere API generate call, returning a fixed response with 3 generations. |
 | **CohereSelectBestWorker** | `cohere_select_best` | Selects the generation with the highest likelihood (least negative value). |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,7 +129,7 @@ conductor workflow search -w cohere_text_generation -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the copy generation pipeline .  swap in the real Cohere Generate API for multi-candidate generation, add readability scoring or Cohere Rerank for selection, and the workflow runs unchanged.
+Each worker handles one stage of the copy generation pipeline. swap in the real Cohere Generate API for multi-candidate generation, add readability scoring or Cohere Rerank for selection, and the workflow runs unchanged.
 
 - **CohereGenerateWorker** (`cohere_generate`): call the real Cohere Generate API (`co.generate()`) or Chat API (`co.chat()`) with your API key, generating multiple candidates with different temperature/p values
 - **CohereSelectBestWorker** (`cohere_select_best`): implement real selection: use Cohere's Rerank API to score candidates, apply readability metrics (Flesch-Kincaid), or call a separate LLM to judge quality

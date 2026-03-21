@@ -1,18 +1,18 @@
 # Knowledge Base Sync in Java with Conductor :  Crawl, Extract, Update, Index, and Verify
 
-A Java Conductor workflow that keeps a knowledge base in sync with a source .  crawling the source URL for new and changed content, extracting structured articles, updating the knowledge base records, re-indexing for search, and verifying that the sync completed correctly. Given a `sourceUrl` and `kbId`, the pipeline produces crawl counts, extraction results, update status, index metrics, and verification results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-step sync pipeline.
+A Java Conductor workflow that keeps a knowledge base in sync with a source. crawling the source URL for new and changed content, extracting structured articles, updating the knowledge base records, re-indexing for search, and verifying that the sync completed correctly. Given a `sourceUrl` and `kbId`, the pipeline produces crawl counts, extraction results, update status, index metrics, and verification results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-step sync pipeline.
 
 ## Keeping Help Content Up to Date
 
 Knowledge bases go stale. Product features change, documentation gets updated, and new articles are published; but the knowledge base that customers and support agents search still shows last month's content. Syncing manually is tedious and error-prone. A reliable sync pipeline needs to crawl the source for changes, extract the content, update the knowledge base, rebuild the search index, and verify everything landed correctly.
 
-This workflow automates the full sync cycle. The crawler scans the source URL and identifies new or changed pages. The extractor pulls structured content (title, body, categories) from the crawled pages. The updater writes the extracted content to the knowledge base. The indexer rebuilds the search index to include the new content. The verifier checks that the updated articles are accessible and the index returns correct results. Each step depends on the previous one .  you cannot extract from uncrawled pages or index unupdated content.
+This workflow automates the full sync cycle. The crawler scans the source URL and identifies new or changed pages. The extractor pulls structured content (title, body, categories) from the crawled pages. The updater writes the extracted content to the knowledge base. The indexer rebuilds the search index to include the new content. The verifier checks that the updated articles are accessible and the index returns correct results. Each step depends on the previous one. you cannot extract from uncrawled pages or index unupdated content.
 
 ## The Solution
 
 **You just write the crawling, extraction, updating, indexing, and verification workers. Conductor handles the five-step sync pipeline and data flow.**
 
-Five workers handle the sync lifecycle .  crawling, extraction, updating, indexing, and verification. The crawler discovers changed content at the source. The extractor parses pages into structured articles. The updater writes to the knowledge base. The indexer rebuilds search. The verifier confirms the sync is correct. Conductor sequences all five steps and passes crawled pages, extracted content, and update status between them via JSONPath.
+Five workers handle the sync lifecycle. crawling, extraction, updating, indexing, and verification. The crawler discovers changed content at the source. The extractor parses pages into structured articles. The updater writes to the knowledge base. The indexer rebuilds search. The verifier confirms the sync is correct. Conductor sequences all five steps and passes crawled pages, extracted content, and update status between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ CrawlWorker discovers changed pages, ExtractWorker parses article content, Updat
 | **UpdateWorker** | `kbs_update` | Writes extracted articles to the knowledge base, tracking new, updated, and deleted counts. |
 | **VerifyWorker** | `kbs_verify` | Confirms that all indexed articles are searchable and the sync completed correctly. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w kbs_knowledge_base_sync -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one sync stage .  connect your content source for crawling, your KB platform (Zendesk Guide, Confluence, Notion) for updates, and your search engine (Elasticsearch, Algolia) for indexing, and the sync workflow stays the same.
+Each worker handles one sync stage. connect your content source for crawling, your KB platform (Zendesk Guide, Confluence, Notion) for updates, and your search engine (Elasticsearch, Algolia) for indexing, and the sync workflow stays the same.
 
 - **CrawlWorker** (`kbs_crawl`): use a real web crawler (Scrapy, Jsoup) or CMS API to discover changed content
 - **ExtractWorker** (`kbs_extract`): integrate with content parsers or an LLM to extract structured articles from raw HTML

@@ -1,12 +1,12 @@
 # Text Classification in Java with Conductor
 
-A Java Conductor workflow that classifies text into categories .  preprocessing the input, extracting feature vectors, predicting the category, and scoring prediction confidence with a reliability check. Given raw text and a set of categories, the pipeline returns the predicted category, confidence score, and reliability assessment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the preprocess-extract-classify-confidence pipeline.
+A Java Conductor workflow that classifies text into categories. preprocessing the input, extracting feature vectors, predicting the category, and scoring prediction confidence with a reliability check. Given raw text and a set of categories, the pipeline returns the predicted category, confidence score, and reliability assessment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the preprocess-extract-classify-confidence pipeline.
 
 ## Sorting Text into Categories Accurately
 
-Incoming text .  support tickets, emails, chat messages ,  needs to be routed to the right team or tagged with the right label. Manual tagging does not scale, and a single-step classifier misses nuance. Reliable classification requires preprocessing (cleaning noise, normalizing formatting), extracting meaningful features, predicting the category, and then scoring the prediction's confidence so low-confidence results can be flagged for human review.
+Incoming text. support tickets, emails, chat messages,  needs to be routed to the right team or tagged with the right label. Manual tagging does not scale, and a single-step classifier misses nuance. Reliable classification requires preprocessing (cleaning noise, normalizing formatting), extracting meaningful features, predicting the category, and then scoring the prediction's confidence so low-confidence results can be flagged for human review.
 
-This workflow classifies a single piece of text. The preprocessor cleans and normalizes the input. The feature extractor produces n-grams, keyword counts, and statistical features. The classifier predicts the most likely category from the feature vector. The confidence scorer evaluates the prediction's reliability by checking the margin between the top category and runner-up. Each step's output feeds the next .  cleaned text feeds feature extraction, features feed classification, and the classification feeds confidence scoring.
+This workflow classifies a single piece of text. The preprocessor cleans and normalizes the input. The feature extractor produces n-grams, keyword counts, and statistical features. The classifier predicts the most likely category from the feature vector. The confidence scorer evaluates the prediction's reliability by checking the margin between the top category and runner-up. Each step's output feeds the next. cleaned text feeds feature extraction, features feed classification, and the classification feeds confidence scoring.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ PreprocessWorker cleans raw input, ExtractFeaturesWorker produces n-grams and ke
 | **ExtractFeaturesWorker** | `txc_extract_features` | Extracts n-grams, keyword counts, and statistical features from the cleaned text. |
 | **PreprocessWorker** | `txc_preprocess` | Cleans raw text by normalizing whitespace, lowercasing, and removing noise characters. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w txc_text_classification -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one classification step .  connect your ML model (scikit-learn, Hugging Face, AWS Comprehend) for prediction and your routing system for low-confidence escalation, and the classification workflow stays the same.
+Each worker handles one classification step. connect your ML model (scikit-learn, Hugging Face, AWS Comprehend) for prediction and your routing system for low-confidence escalation, and the classification workflow stays the same.
 
 - **ClassifyWorker** (`txc_classify`): swap in a fine-tuned BERT classifier or LLM for example-grade text classification
 - **ConfidenceWorker** (`txc_confidence`): use model probability outputs or calibrated scores for real confidence estimation

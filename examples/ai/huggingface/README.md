@@ -12,11 +12,11 @@ When you hardcode a single model call, adding a new task type means duplicating 
 
 **You write the model selection, inference call, and result formatting logic. Conductor handles the task routing, retries, and observability.**
 
-Each concern is an independent worker .  model selection (mapping task types to Hugging Face model IDs and parameters), inference (calling the Hugging Face Inference API), and result formatting (extracting the relevant field from the model's output based on task type). Conductor chains them so the selected model feeds into the inference call, and the raw output feeds into the task-specific formatter. If the Inference API is rate-limited or a model is loading, Conductor retries automatically. Every execution records which model handled which task.
+Each concern is an independent worker. model selection (mapping task types to Hugging Face model IDs and parameters), inference (calling the Hugging Face Inference API), and result formatting (extracting the relevant field from the model's output based on task type). Conductor chains them so the selected model feeds into the inference call, and the raw output feeds into the task-specific formatter. If the Inference API is rate-limited or a model is loading, Conductor retries automatically. Every execution records which model handled which task.
 
 ### What You Write: Workers
 
-Three workers cover task-based model routing .  selecting the right Hugging Face model for the task (summarization, generation, or sentiment), running inference, and formatting the task-specific result.
+Three workers cover task-based model routing. selecting the right Hugging Face model for the task (summarization, generation, or sentiment), running inference, and formatting the task-specific result.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -24,7 +24,7 @@ Three workers cover task-based model routing .  selecting the right Hugging Face
 | **HfInferenceWorker** | `hf_inference` | Simulates a call to the Hugging Face Inference API. In production, this would POST to https://api-inference.huggingfa... |
 | **HfSelectModelWorker** | `hf_select_model` | Selects the appropriate Hugging Face model based on the requested task type. Maps task types (summarization, text-gen... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -129,7 +129,7 @@ conductor workflow search -w huggingface_inference_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one NLP pipeline concern .  swap in real Hugging Face Inference API calls for summarization, generation, or classification, extend the task-to-model mapping, and the select-infer-format workflow runs unchanged.
+Each worker handles one NLP pipeline concern. swap in real Hugging Face Inference API calls for summarization, generation, or classification, extend the task-to-model mapping, and the select-infer-format workflow runs unchanged.
 
 - **HfSelectModelWorker** (`hf_select_model`): extend the task-to-model mapping with additional task types (translation, NER, question-answering) or use the Hugging Face Hub API to find the best model dynamically
 - **HfInferenceWorker** (`hf_inference`): swap in a real HTTP call to `https://api-inference.huggingface.co/models/{modelId}` with your API token

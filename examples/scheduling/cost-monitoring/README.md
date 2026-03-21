@@ -1,6 +1,6 @@
 # Cloud Cost Monitoring in Java Using Conductor :  Billing Collection, Trend Analysis, and Budget Alerts
 
-A Java Conductor workflow example for cloud cost monitoring .  collecting billing data across accounts, analyzing spending trends against historical patterns, and alerting when costs exceed budget limits or show unexpected growth.
+A Java Conductor workflow example for cloud cost monitoring. collecting billing data across accounts, analyzing spending trends against historical patterns, and alerting when costs exceed budget limits or show unexpected growth.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, cost monitoring is checking the AWS/GCP billing dashboard
 
 **You just write the billing data collection and budget threshold rules. Conductor handles the billing-to-alert pipeline, retries when cloud billing APIs are rate-limited, and a historical record of every cost check and budget alert.**
 
-Each cost concern is an independent worker .  billing collection, trend analysis, and budget alerting. Conductor runs them in sequence: collect current costs, analyze trends, then alert if thresholds are breached. Every cost check is tracked with billing data, trend analysis, and alert decisions. You get all of that, without writing a single line of orchestration code.
+Each cost concern is an independent worker. billing collection, trend analysis, and budget alerting. Conductor runs them in sequence: collect current costs, analyze trends, then alert if thresholds are breached. Every cost check is tracked with billing data, trend analysis, and alert decisions. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers form the cost pipeline: CollectBillingWorker pulls spending data b
 | **CollectBillingWorker** | `cos_collect_billing` | Collects billing data for an account, returning total spend and a breakdown by service (compute, storage, network) |
 | **CosAlertWorker** | `cos_alert_anomalies` | Sends a budget alert if spending exceeds 80% of budget, with critical severity above 90% |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -128,7 +128,7 @@ conductor workflow search -w cost_monitoring_419 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one cost concern .  connect the billing collector to AWS Cost Explorer or GCP Billing API, the alerting worker to Slack or email, and the collect-analyze-alert workflow stays the same.
+Each worker manages one cost concern. connect the billing collector to AWS Cost Explorer or GCP Billing API, the alerting worker to Slack or email, and the collect-analyze-alert workflow stays the same.
 
 - **AnalyzeTrendsWorker** (`cos_analyze_trends`): compute daily/weekly spend trends, identify top cost drivers, and detect anomalous spending patterns
 - **CollectBillingWorker** (`cos_collect_billing`): query AWS Cost Explorer, GCP Billing, or Azure Cost Management APIs for real billing data by service and tag

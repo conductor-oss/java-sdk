@@ -25,7 +25,7 @@ VerifyDeletionWorker confirms identity and reason, BackupWorker exports data for
 | **DeleteAccountWorker** | `acd_delete` | Purges the user's records across all database tables (12 tables) and timestamps the deletion |
 | **VerifyDeletionWorker** | `acd_verify` | Verifies the user's identity and validates the deletion reason before proceeding |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w acd_account_deletion -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one deletion step .  connect your object storage (S3, GCS) for data backup and your database cascade logic for multi-table purging, and the account-deletion workflow stays the same.
+Each worker handles one deletion step. connect your object storage (S3, GCS) for data backup and your database cascade logic for multi-table purging, and the account-deletion workflow stays the same.
 
 - **VerifyDeletionWorker** (`acd_verify`): verify the user's identity via your auth provider (Auth0, Okta, Cognito) and validate the deletion reason against your retention policy rules
 - **BackupWorker** (`acd_backup`): export the user's profile, activity logs, and stored files to S3 or GCS with a retention-compliant lifecycle policy, returning the backup location and expiration date

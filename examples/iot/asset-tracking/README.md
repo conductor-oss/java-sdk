@@ -26,7 +26,7 @@ Five workers form the tracking pipeline: TagAssetWorker registers IoT identifier
 | **TriggerAlertWorker** | `ast_trigger_alert` | Evaluates geofence status and triggers an alert if the asset is outside the authorized zone. |
 | **UpdateRegistryWorker** | `ast_update_registry` | Updates the central asset registry with current location, geofence status, and alert information. |
 
-Workers simulate device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
+Workers implement device telemetry and control operations with realistic sensor data. Replace with real MQTT/CoAP clients and device APIs, the workflow and alerting logic stay the same.
 
 ### The Workflow
 

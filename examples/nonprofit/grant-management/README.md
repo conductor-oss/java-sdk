@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Grant Management. Uses [Conducto
 
 Your nonprofit is applying for a foundation grant to fund a community program. The grants team needs to submit the application with the organization name and requested amount, have the grant committee review and score the application, approve the grant based on the review score, disburse the funds to the organization, and file a grant usage report documenting expenditures and outcomes. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Application preparation, submission, compliance tracking, and reporting workers 
 | **ReportWorker** | `gmt_report` | Files the grant usage report linking the grant ID, organization, and funding status |
 | **ReviewWorker** | `gmt_review` | Reviews the application for the requested amount, assigning a score and recommendation from the grant committee |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w grant_management_752 -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real grant systems .  your grants database for application tracking, your finance platform for budget management, your funder portals for progress reporting, and the workflow runs identically in production.
+Wire each worker to your real grant systems. your grants database for application tracking, your finance platform for budget management, your funder portals for progress reporting, and the workflow runs identically in production.
 
 - **ApplyWorker** (`gmt_apply`): submit the application through your grants portal or create the record in Salesforce NPSP Grants Management, attaching required documents from your document store
 - **ReviewWorker** (`gmt_review`): route the application to the grant committee via your workflow system, collect reviewer scores, and aggregate the recommendation

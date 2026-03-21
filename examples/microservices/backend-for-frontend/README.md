@@ -12,7 +12,7 @@ Without orchestration, each platform ends up with its own ad-hoc endpoint that d
 
 **You just write the data-fetch and platform-transform workers. Conductor handles conditional platform routing, retry on data-fetch failures, and per-request tracing.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ FetchDataWorker loads shared user data once, then TransformWebWorker and Transfo
 | **TransformMobileWorker** | `bff_transform_mobile` | Compresses the fetched data into a compact payload optimized for small screens and low bandwidth. |
 | **TransformWebWorker** | `bff_transform_web` | Returns the full dataset with all fields for rich desktop rendering. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

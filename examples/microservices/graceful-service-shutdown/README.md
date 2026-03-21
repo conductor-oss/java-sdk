@@ -12,7 +12,7 @@ Without orchestration, shutdown hooks are implemented as JVM ShutdownHook callba
 
 **You just write the stop-accepting, drain, checkpoint, and deregister workers. Conductor handles ordered shutdown steps, guaranteed completion of each phase, and a durable record proving the shutdown was clean.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers execute the shutdown sequence: StopAcceptingWorker halts new work i
 | **DrainTasksWorker** | `gs_drain_tasks` | Drains in-flight tasks for the given instance, waiting for them to complete. |
 | **StopAcceptingWorker** | `gs_stop_accepting` | Stops accepting new tasks for the given service instance. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

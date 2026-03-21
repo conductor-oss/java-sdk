@@ -1,10 +1,10 @@
 # Code Generation in Java with Conductor :  From Requirements to Validated, Tested Code
 
-A Java Conductor workflow that generates code from natural language requirements .  parsing requirements into structured specs, generating source code in a specified language and framework, validating syntax, and running test cases against the output. Given `requirements`, `language`, and `framework`, the pipeline produces source files, syntax validation results, test pass/fail status, and a line count. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parse-generate-validate-test pipeline.
+A Java Conductor workflow that generates code from natural language requirements. parsing requirements into structured specs, generating source code in a specified language and framework, validating syntax, and running test cases against the output. Given `requirements`, `language`, and `framework`, the pipeline produces source files, syntax validation results, test pass/fail status, and a line count. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the parse-generate-validate-test pipeline.
 
 ## Generating Code That Actually Works
 
-Generating code from requirements is not just about producing text that looks like code. The output needs to be syntactically valid and functionally correct. This means parsing the requirements into actionable specs, generating code in the right language with the right framework conventions, checking that it compiles, and running test cases to verify behavior. Each step depends on the previous one .  you cannot validate code that has not been generated, and you cannot run tests without knowing the expected behavior from the requirements.
+Generating code from requirements is not just about producing text that looks like code. The output needs to be syntactically valid and functionally correct. This means parsing the requirements into actionable specs, generating code in the right language with the right framework conventions, checking that it compiles, and running test cases to verify behavior. Each step depends on the previous one. you cannot validate code that has not been generated, and you cannot run tests without knowing the expected behavior from the requirements.
 
 This workflow takes natural language requirements and produces tested code. The parser extracts structured specs from the requirements. The generator creates source code (e.g., REST API routes) along with test cases in the specified language and framework. The validator checks syntax. The test runner executes the generated test cases against the generated code. The workflow outputs the code, line count, syntax validity, and test results.
 
@@ -12,7 +12,7 @@ This workflow takes natural language requirements and produces tested code. The 
 
 **You just write the requirement-parsing, code-generation, validation, and test-execution workers. Conductor handles the pipeline sequencing and data routing.**
 
-Four workers form the code generation pipeline .  requirement parsing, code generation, syntax validation, and test execution. The parser converts free-text requirements into structured specs. The generator produces source files (like `routes/users.js`, `routes/orders.js`) with accompanying test cases. The validator checks the generated code for syntax errors. The test runner executes the test cases and reports pass/fail. Conductor sequences the pipeline and routes parsed specs, generated code, and test cases between steps via JSONPath.
+Four workers form the code generation pipeline. requirement parsing, code generation, syntax validation, and test execution. The parser converts free-text requirements into structured specs. The generator produces source files (like `routes/users.js`, `routes/orders.js`) with accompanying test cases. The validator checks the generated code for syntax errors. The test runner executes the test cases and reports pass/fail. Conductor sequences the pipeline and routes parsed specs, generated code, and test cases between steps via JSONPath.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ ParseRequirementsWorker converts natural language to structured specs, GenerateC
 | **ParseRequirementsWorker** | `cdg_parse_requirements` | Converts natural-language requirements into structured specs (entities, endpoints, operations). |
 | **ValidateWorker** | `cdg_validate` | Checks the generated code for syntax errors and lint violations. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -131,7 +131,7 @@ conductor workflow search -w cdg_code_generation -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the generation pipeline .  connect your LLM (Claude, GPT-4, Codex) for code generation and your CI system for syntax validation and test execution, and the code-gen workflow stays the same.
+Each worker handles one stage of the generation pipeline. connect your LLM (Claude, GPT-4, Codex) for code generation and your CI system for syntax validation and test execution, and the code-gen workflow stays the same.
 
 - **GenerateCodeWorker** (`cdg_generate_code`): swap in an LLM (GPT-4, Claude, Codex) for real code generation from structured specs
 - **ParseRequirementsWorker** (`cdg_parse_requirements`): use NLP or an LLM to extract entities, relationships, and constraints from natural language

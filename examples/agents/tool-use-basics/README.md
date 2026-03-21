@@ -25,7 +25,7 @@ Four workers implement the tool-use pattern. Analyzing the request, selecting th
 | **FormatResultWorker** | `tu_format_result` | Formats tool execution results into a natural language answer. Builds a human-readable string based on the tool output. |
 | **SelectToolWorker** | `tu_select_tool` | Selects the appropriate tool based on the analyzed intent. Maps intent to tool name, produces a description, and buil |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

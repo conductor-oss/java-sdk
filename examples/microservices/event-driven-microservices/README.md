@@ -12,7 +12,7 @@ Without orchestration, event processing is scattered across message consumers wi
 
 **You just write the event-emit, processing, projection-update, and subscriber-notification workers. Conductor handles event pipeline sequencing, guaranteed projection updates, and full lifecycle visibility per event.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers model the event lifecycle: EmitEventWorker publishes a domain event
 | **ProcessEventWorker** | `edm_process_event` | Processes the event by applying business logic and identifying downstream subscribers (e.g., billing, shipping, analytics). |
 | **UpdateProjectionWorker** | `edm_update_projection` | Updates the read-side projection (materialized view) with the processed event data. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

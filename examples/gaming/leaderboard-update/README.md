@@ -6,13 +6,13 @@ Updates a game's leaderboard for a season: collecting match scores, validating f
 
 You need to update a game's leaderboard for a season. The workflow collects scores from all completed matches, validates them for integrity (checking for cheating flags, impossible scores, or data corruption), ranks players by their validated scores, updates the public leaderboard, and broadcasts the updated rankings to all connected players. Posting invalid scores to the leaderboard undermines competitive integrity; stale leaderboards reduce player engagement.
 
-Without orchestration, you'd build a batch leaderboard job that queries match results, filters invalid scores, sorts by rank, updates the leaderboard database, and pushes updates to clients .  manually handling ties, pagination for large player bases, and real-time update latency.
+Without orchestration, you'd build a batch leaderboard job that queries match results, filters invalid scores, sorts by rank, updates the leaderboard database, and pushes updates to clients. manually handling ties, pagination for large player bases, and real-time update latency.
 
 ## The Solution
 
 **You just write the score collection, integrity validation, ranking, leaderboard update, and broadcast logic. Conductor handles score validation retries, ranking recalculation, and leaderboard audit trails.**
 
-Each leaderboard concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (collect, validate, rank, update, broadcast), retrying if the leaderboard service is slow, tracking every leaderboard update cycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each leaderboard concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect, validate, rank, update, broadcast), retrying if the leaderboard service is slow, tracking every leaderboard update cycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Score validation, ranking calculation, leaderboard update, and notification work
 | **UpdateWorker** | `lbu_update` | Writes the computed rankings to the leaderboard store for the current season |
 | **ValidateWorker** | `lbu_validate` | Validates collected scores for integrity, filtering out flagged or impossible entries |
 
-Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
+Workers implement game backend operations. matchmaking, score processing, reward distribution,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w leaderboard_update_742 -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real leaderboard stack .  your match results database for score collection, your ranking engine for position calculations, your live service for real-time player broadcasts, and the workflow runs identically in production.
+Connect each worker to your real leaderboard stack. your match results database for score collection, your ranking engine for position calculations, your live service for real-time player broadcasts, and the workflow runs identically in production.
 
 - **Score collector**: pull match results from your game server database or match history API with time-range filtering
 - **Score validator**: cross-check scores against anti-cheat verdicts, statistical outlier detection, and server-authoritative game state

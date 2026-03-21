@@ -1,10 +1,10 @@
 # End-to-End Supply Chain Management in Java with Conductor :  Plan, Source, Make, Deliver, and Return
 
-A Java Conductor workflow example for end-to-end supply chain management following the SCOR model .  creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.
+A Java Conductor workflow example for end-to-end supply chain management following the SCOR model. creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to orchestrate the complete supply chain from demand to delivery. A production plan must be created specifying what to build and how much. Raw materials must be sourced from approved suppliers with the right lead times. Manufacturing must execute the production plan using the sourced materials. The finished goods must be shipped to the customer or distribution center. Finally, the return policy and reverse logistics path must be configured for the delivery. Each step depends on the previous one .  you cannot manufacture without sourced materials, and you cannot ship without finished goods.
+You need to orchestrate the complete supply chain from demand to delivery. A production plan must be created specifying what to build and how much. Raw materials must be sourced from approved suppliers with the right lead times. Manufacturing must execute the production plan using the sourced materials. The finished goods must be shipped to the customer or distribution center. Finally, the return policy and reverse logistics path must be configured for the delivery. Each step depends on the previous one. you cannot manufacture without sourced materials, and you cannot ship without finished goods.
 
 Without orchestration, each department runs its own silo: planning uses a spreadsheet, procurement sends emails to suppliers, manufacturing tracks jobs on a whiteboard, and logistics manages shipping in a separate TMS. When sourcing delays push back the manufacturing schedule, planning doesn't find out until the factory calls. When a delivery fails and needs a return, the return process has no context about the original production plan or sourcing decisions.
 
@@ -12,7 +12,7 @@ Without orchestration, each department runs its own silo: planning uses a spread
 
 **You just write the SCOR workers. Planning, sourcing, manufacturing, delivery, and returns. Conductor handles cross-department sequencing, supplier retries, and end-to-end visibility from plan to delivery.**
 
-Each stage of the SCOR supply chain model is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so the plan drives sourcing decisions, sourced materials enable manufacturing, manufacturing output triggers delivery, and delivery configuration includes return handling. If the sourcing worker fails to reach a supplier, Conductor retries without re-creating the production plan. Every plan, sourcing decision, manufacturing record, shipment, and return policy is captured end-to-end for supply chain visibility and analytics.
+Each stage of the SCOR supply chain model is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so the plan drives sourcing decisions, sourced materials enable manufacturing, manufacturing output triggers delivery, and delivery configuration includes return handling. If the sourcing worker fails to reach a supplier, Conductor retries without re-creating the production plan. Every plan, sourcing decision, manufacturing record, shipment, and return policy is captured end-to-end for supply chain visibility and analytics.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers follow the SCOR model: PlanWorker creates production plans, SourceW
 | **ReturnWorker** | `scm_return` | Configures the return policy for a delivery. |
 | **SourceWorker** | `scm_source` | Sources materials from suppliers. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

@@ -6,7 +6,7 @@ Environment lifecycle orchestration: create, configure, seed data, and verify. U
 
 "I need a staging environment for my feature branch" shouldn't take a week of DevOps tickets. Ephemeral environments should spin up in minutes: provision infrastructure from a template (Kubernetes namespace, database, message queue), configure the environment with the right service versions and feature flags, seed it with realistic test data, and run health checks to confirm everything is ready.
 
-Environments have a TTL .  they're destroyed automatically after the specified hours to control costs. If the configuration step fails (wrong service version, missing secret), the environment is created but unusable ,  retrying should reconfigure, not recreate. And every environment must be tracked: who created it, which branch, when it was created, and when it was destroyed.
+Environments have a TTL. they're destroyed automatically after the specified hours to control costs. If the configuration step fails (wrong service version, missing secret), the environment is created but unusable,  retrying should reconfigure, not recreate. And every environment must be tracked: who created it, which branch, when it was created, and when it was destroyed.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Four workers manage the environment lifecycle. Creating infrastructure, configur
 | **SeedData** | `em_seed_data` | Seeds test data into the environment. |
 | **VerifyEnv** | `em_verify` | Verifies the environment is healthy. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w environment_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one environment lifecycle step .  replace the simulated calls with Terraform workspaces, Kubernetes namespace APIs, or Consul KV for real provisioning and configuration, and the management workflow runs unchanged.
+Each worker handles one environment lifecycle step. replace the simulated calls with Terraform workspaces, Kubernetes namespace APIs, or Consul KV for real provisioning and configuration, and the management workflow runs unchanged.
 
 - **CreateEnv** (`em_create_env`): use Terraform workspaces, Kubernetes namespaces via kubectl, or AWS CloudFormation stacks for real environment provisioning with isolation
 - **ConfigureEnv** (`em_configure_env`): apply environment-specific configuration via Ansible playbooks, Consul KV writes, or Kubernetes ConfigMaps/Secrets for database URLs, API keys, and feature flags

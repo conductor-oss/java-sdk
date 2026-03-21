@@ -1,10 +1,10 @@
 # Benefits Enrollment in Java with Conductor :  Plan Presentation, Selection, Validation, Enrollment, and Confirmation
 
-A Java Conductor workflow example for employee benefits enrollment .  presenting available medical, dental, and vision plan options based on the employee's eligibility, capturing their selections, validating choices against plan rules and dependent eligibility, enrolling in the carrier systems, and sending confirmation with effective dates and premium costs. Uses [Conductor](https://github.
+A Java Conductor workflow example for employee benefits enrollment. presenting available medical, dental, and vision plan options based on the employee's eligibility, capturing their selections, validating choices against plan rules and dependent eligibility, enrolling in the carrier systems, and sending confirmation with effective dates and premium costs. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to manage open enrollment for employee benefits. During the enrollment period, each employee must see their eligible plan options .  medical (PPO, HMO, HDHP), dental (basic, premium), and vision (standard). The employee makes selections for themselves and their dependents. Those selections must be validated ,  checking that chosen plans are available in the employee's region, dependents meet age and relationship eligibility rules, and HSA elections are only paired with HDHP medical plans. Validated selections are enrolled with each insurance carrier, generating a monthly premium total and an effective date. Finally, the employee receives confirmation with their benefit summary, ID card information, and payroll deduction details. If enrollment happens out of order ,  selecting before seeing options, or enrolling without validating ,  employees end up with ineligible plan combinations or missed coverage.
+You need to manage open enrollment for employee benefits. During the enrollment period, each employee must see their eligible plan options. medical (PPO, HMO, HDHP), dental (basic, premium), and vision (standard). The employee makes selections for themselves and their dependents. Those selections must be validated,  checking that chosen plans are available in the employee's region, dependents meet age and relationship eligibility rules, and HSA elections are only paired with HDHP medical plans. Validated selections are enrolled with each insurance carrier, generating a monthly premium total and an effective date. Finally, the employee receives confirmation with their benefit summary, ID card information, and payroll deduction details. If enrollment happens out of order,  selecting before seeing options, or enrolling without validating,  employees end up with ineligible plan combinations or missed coverage.
 
 Without orchestration, you'd build a monolithic enrollment portal that queries plan catalogs, captures selections in a form, runs validation rules, calls each carrier's enrollment API, and emails a confirmation. If a carrier API is down during open enrollment crunch time, the enrollment fails and the employee may miss the deadline. If the system crashes after enrolling with the medical carrier but before dental, the employee has partial coverage. HR needs a complete audit trail of every enrollment for ERISA compliance and benefits reconciliation.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic enrollment portal that queries p
 
 **You just write the plan presentation, selection capture, eligibility validation, carrier enrollment, and confirmation logic. Conductor handles enrollment retries, plan selection routing, and benefits audit trails.**
 
-Each stage of the enrollment process is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of presenting options before selection, validating before enrollment, enrolling with carriers only after validation passes, confirming only after all carriers acknowledge, retrying if a carrier API is temporarily unavailable during peak enrollment periods, and maintaining a complete audit trail for ERISA compliance. You get all of that, without writing a single line of orchestration code.
+Each stage of the enrollment process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of presenting options before selection, validating before enrollment, enrolling with carriers only after validation passes, confirming only after all carriers acknowledge, retrying if a carrier API is temporarily unavailable during peak enrollment periods, and maintaining a complete audit trail for ERISA compliance. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -20,13 +20,13 @@ Eligibility check, plan comparison, enrollment processing, and confirmation work
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **PresentWorker** | `ben_present` | Retrieves the employee's eligible benefit options .  medical plans (PPO, HMO, HDHP), dental tiers, and vision coverage ,  based on their employment class and location |
+| **PresentWorker** | `ben_present` | Retrieves the employee's eligible benefit options. medical plans (PPO, HMO, HDHP), dental tiers, and vision coverage,  based on their employment class and location |
 | **SelectWorker** | `ben_select` | Captures the employee's plan selections for medical, dental, and vision, including dependent coverage elections |
 | **ValidateWorker** | `ben_validate` | Validates selections against plan rules. HDHP/HSA pairing, dependent age limits, regional availability, and ACA affordability requirements |
 | **EnrollWorker** | `ben_enroll` | Submits validated selections to insurance carriers, calculates the total monthly premium, and sets the coverage effective date |
 | **ConfirmWorker** | `ben_confirm` | Sends the employee a benefits confirmation with plan summaries, ID card details, payroll deduction amounts, and carrier contact information |
 
-Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
+Workers implement HR operations. onboarding tasks, approvals, provisioning,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w ben_benefits_enrollment -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real benefits systems .  your benefits admin platform for plan options, your carrier APIs for enrollment, your HRIS for confirmation and premium deductions, and the workflow runs identically in production.
+Connect each worker to your real benefits systems. your benefits admin platform for plan options, your carrier APIs for enrollment, your HRIS for confirmation and premium deductions, and the workflow runs identically in production.
 
 - **PresentWorker** → query your benefits administration platform (Benefitfocus, bswift) for real plan catalogs filtered by the employee's employment class, location, and life event eligibility
 - **SelectWorker** → integrate with your enrollment portal to capture real-time selections with dependent information and beneficiary designations

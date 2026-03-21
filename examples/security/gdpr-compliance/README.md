@@ -25,7 +25,7 @@ Four workers handle GDPR requests end-to-end: VerifyIdentityWorker confirms the 
 | **ProcessRequestWorker** | `gdpr_process_request` | Executes the requested right (erasure, export, rectification) across all identified systems |
 | **VerifyIdentityWorker** | `gdpr_verify_identity` | Verifies the identity of the data subject making the GDPR request |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations, the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations, the workflow logic stays the same.
 
 ### The Workflow
 

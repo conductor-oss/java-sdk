@@ -25,7 +25,7 @@ Four workers implement the split-process-merge pattern: dividing the dataset int
 | **ProcessPartitionBWorker** | `par_process_partition_b` | Processes partition B by adding processed:true and partition:"B" to each record. |
 | **SplitDataWorker** | `par_split_data` | Split Data. Computes and returns partition a, partition b, total count |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

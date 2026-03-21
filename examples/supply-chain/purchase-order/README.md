@@ -1,18 +1,18 @@
 # Purchase Order Lifecycle in Java with Conductor :  PO Creation, Approval, Vendor Transmission, Order Tracking, and Goods Receipt
 
-A Java Conductor workflow example for purchase order lifecycle management .  creating a PO with line items and vendor details, obtaining budget/authority approval, transmitting the order to the vendor, tracking fulfillment status, and confirming goods receipt at the warehouse. Uses [Conductor](https://github.
+A Java Conductor workflow example for purchase order lifecycle management. creating a PO with line items and vendor details, obtaining budget/authority approval, transmitting the order to the vendor, tracking fulfillment status, and confirming goods receipt at the warehouse. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to manage purchase orders from creation through delivery. A PO must be created with vendor, items, quantities, and pricing. It requires approval based on the total amount and the requester's authority level. The approved PO must be transmitted to the vendor (via EDI, email, or supplier portal). The order must be tracked for fulfillment status (acknowledged, shipped, partial delivery). Finally, goods receipt must be confirmed against the original PO line items.
 
-Without orchestration, buyers create POs in the ERP but send them to vendors via email separately .  sometimes the email fails and the vendor never receives the order. Tracking is manual: buyers call vendors weekly to check status. When goods arrive, the receiving team doesn't always know which PO to match against, leading to receiving errors and payment delays.
+Without orchestration, buyers create POs in the ERP but send them to vendors via email separately. sometimes the email fails and the vendor never receives the order. Tracking is manual: buyers call vendors weekly to check status. When goods arrive, the receiving team doesn't always know which PO to match against, leading to receiving errors and payment delays.
 
 ## The Solution
 
 **You just write the PO lifecycle workers. Creation, approval, vendor transmission, order tracking, and goods receipt. Conductor handles transmission retries, fulfillment tracking, and full PO history for spend analytics.**
 
-Each stage of the purchase order lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so POs are only sent after approval, tracking begins only after the vendor confirms receipt, and goods are received only against transmitted POs. If the vendor transmission fails (EDI timeout, email bounce), Conductor retries without re-creating or re-approving the PO. Every PO creation, approval, transmission confirmation, tracking update, and receiving record is captured for spend analytics and supplier performance measurement.
+Each stage of the purchase order lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so POs are only sent after approval, tracking begins only after the vendor confirms receipt, and goods are received only against transmitted POs. If the vendor transmission fails (EDI timeout, email bounce), Conductor retries without re-creating or re-approving the PO. Every PO creation, approval, transmission confirmation, tracking update, and receiving record is captured for spend analytics and supplier performance measurement.
 
 ### What You Write: Workers
 
@@ -24,9 +24,9 @@ Five workers manage PO lifecycle: CreateWorker drafts the order, ApproveWorker c
 | **CreateWorker** | `po_create` | Creates a purchase order with vendor, items, quantities, and pricing. |
 | **ReceiveWorker** | `po_receive` | Confirms goods receipt against the original PO line items. |
 | **SendWorker** | `po_send` | Transmits the approved PO to the vendor via EDI, email, or supplier portal. |
-| **TrackWorker** | `po_track` | Tracks order fulfillment status .  acknowledged, shipped, partial delivery. |
+| **TrackWorker** | `po_track` | Tracks order fulfillment status. acknowledged, shipped, partial delivery. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

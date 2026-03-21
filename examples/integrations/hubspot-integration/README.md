@@ -1,10 +1,10 @@
 # Hubspot Integration in Java Using Conductor
 
-A Java Conductor workflow that onboards a new contact in HubSpot .  creating the contact record, enriching it with company data (industry, size, revenue), assigning a sales rep owner based on the enriched profile, and enrolling the contact in a nurture sequence. Given contact details (email, name, company), the pipeline produces a contact ID, enriched profile, owner assignment, and sequence enrollment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the create-enrich-assign-nurture pipeline.
+A Java Conductor workflow that onboards a new contact in HubSpot. creating the contact record, enriching it with company data (industry, size, revenue), assigning a sales rep owner based on the enriched profile, and enrolling the contact in a nurture sequence. Given contact details (email, name, company), the pipeline produces a contact ID, enriched profile, owner assignment, and sequence enrollment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the create-enrich-assign-nurture pipeline.
 
 ## Onboarding Contacts with Enrichment and Assignment
 
-When a new lead arrives, they need to be created as a contact in HubSpot, their profile needs to be enriched with company intelligence (industry, company size, revenue segment), a sales rep needs to be assigned based on the enriched profile, and the contact should be enrolled in an appropriate nurture sequence. Each step depends on the previous one .  you cannot enrich without a contact ID, and you cannot assign an owner without knowing the industry and company size.
+When a new lead arrives, they need to be created as a contact in HubSpot, their profile needs to be enriched with company intelligence (industry, company size, revenue segment), a sales rep needs to be assigned based on the enriched profile, and the contact should be enrolled in an appropriate nurture sequence. Each step depends on the previous one. you cannot enrich without a contact ID, and you cannot assign an owner without knowing the industry and company size.
 
 Without orchestration, you would chain HubSpot API calls manually, pass contact IDs between steps, and manage the enrichment-to-assignment logic yourself. Conductor sequences the pipeline and routes contact IDs, enrichment data, and owner assignments between workers automatically.
 
@@ -20,12 +20,12 @@ Four workers onboard CRM contacts: CreateContactWorker adds the lead, EnrichData
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CreateContactWorker** | `hs_create_contact` | Creates a contact in HubSpot .  takes the email, name, and company and returns the contact ID |
-| **EnrichDataWorker** | `hs_enrich_data` | Enriches the contact profile .  looks up company intelligence (industry, company size, revenue segment) using the contact ID and company name |
-| **AssignOwnerWorker** | `hs_assign_owner` | Assigns a sales rep owner .  routes the contact to the appropriate rep based on the enriched profile (industry, company size, territory) |
-| **NurtureSequenceWorker** | `hs_nurture_sequence` | Enrolls the contact in a nurture sequence .  selects the appropriate email drip campaign based on the contact's profile and stage |
+| **CreateContactWorker** | `hs_create_contact` | Creates a contact in HubSpot. takes the email, name, and company and returns the contact ID |
+| **EnrichDataWorker** | `hs_enrich_data` | Enriches the contact profile. looks up company intelligence (industry, company size, revenue segment) using the contact ID and company name |
+| **AssignOwnerWorker** | `hs_assign_owner` | Assigns a sales rep owner. routes the contact to the appropriate rep based on the enriched profile (industry, company size, territory) |
+| **NurtureSequenceWorker** | `hs_nurture_sequence` | Enrolls the contact in a nurture sequence. selects the appropriate email drip campaign based on the contact's profile and stage |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

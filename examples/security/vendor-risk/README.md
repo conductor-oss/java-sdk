@@ -1,6 +1,6 @@
 # Implementing Vendor Risk Assessment in Java with Conductor :  Questionnaire, SOC2 Review, Risk Scoring, and Decision
 
-A Java Conductor workflow example for vendor risk assessment .  collecting security questionnaires from vendors, reviewing their SOC2/ISO27001 certifications, scoring their overall risk, and making an approve/conditional/deny decision on vendor onboarding.
+A Java Conductor workflow example for vendor risk assessment. collecting security questionnaires from vendors, reviewing their SOC2/ISO27001 certifications, scoring their overall risk, and making an approve/conditional/deny decision on vendor onboarding.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, vendor risk assessment lives in email threads. Someone se
 
 **You just write the questionnaire collection and risk scoring logic. Conductor handles the assessment sequence, retries when vendor portals are slow to respond, and a complete audit trail of every risk score, SOC2 review, and onboarding decision.**
 
-Each assessment step is an independent worker .  questionnaire collection, SOC2 review, risk scoring, and decision. Conductor runs them in sequence: collect the questionnaire, review certifications, score the risk, then make the decision. Every assessment is tracked with responses, review findings, risk score, and decision rationale for audit. You get all of that, without writing a single line of orchestration code.
+Each assessment step is an independent worker. questionnaire collection, SOC2 review, risk scoring, and decision. Conductor runs them in sequence: collect the questionnaire, review certifications, score the risk, then make the decision. Every assessment is tracked with responses, review findings, risk score, and decision rationale for audit. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ The assessment pipeline chains CollectQuestionnaireWorker to gather vendor respo
 | **MakeDecisionWorker** | `vr_make_decision` | Makes an approve/deny/conditional decision based on risk score and SOC 2 review |
 | **ReviewSoc2Worker** | `vr_review_soc2` | Reviews the vendor's SOC 2 Type II report for validity and qualifications |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,11 +132,11 @@ conductor workflow search -w vendor_risk_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one assessment phase .  connect CollectQuestionnaireWorker to OneTrust or SecurityScorecard, ReviewSoc2Worker to parse real audit reports, and the questionnaire-review-score-decision workflow stays the same.
+Each worker covers one assessment phase. connect CollectQuestionnaireWorker to OneTrust or SecurityScorecard, ReviewSoc2Worker to parse real audit reports, and the questionnaire-review-score-decision workflow stays the same.
 
 - **AssessRiskWorker** (`vr_assess_risk`): compute a risk score based on data access level, security maturity, vendor size, and compliance status
 - **CollectQuestionnaireWorker** (`vr_collect_questionnaire`): send security questionnaires via OneTrust, SecurityScorecard, or custom forms and collect vendor responses
-- **MakeDecisionWorker** (`vr_make_decision`): apply risk acceptance criteria .  auto-approve low risk, route medium risk to security review, deny high risk
+- **MakeDecisionWorker** (`vr_make_decision`): apply risk acceptance criteria. auto-approve low risk, route medium risk to security review, deny high risk
 
 Integrate with your GRC platform for real questionnaire data, and the risk assessment orchestration transfers with no changes needed.
 
@@ -172,6 +172,6 @@ vendor-risk-vendor-risk/
 │       ├── MakeDecisionWorker.java
 │       └── ReviewSoc2Worker.java
 └── src/test/java/vendorrisk/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

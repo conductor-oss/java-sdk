@@ -1,18 +1,18 @@
 # Bid Management in Java with Conductor :  RFP Creation, Vendor Distribution, Bid Collection, Evaluation, and Award
 
-A Java Conductor workflow example for competitive bid management .  creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.
+A Java Conductor workflow example for competitive bid management. creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to run a competitive bidding process across multiple vendors. The procurement team creates a bid package with project specs and budget, distributes it to a shortlist of vendors (Alpha Corp, Beta Ltd, Gamma Inc), collects their proposals by a deadline, evaluates each bid on cost, schedule, and qualifications, and awards the contract. If a vendor's submission fails to upload, you need to retry without losing other submissions. If the evaluation step crashes, you need to resume without re-soliciting bids.
 
-Without orchestration, you'd manage this in email threads and spreadsheets .  manually tracking which vendors received the RFP, chasing late submissions, and comparing proposals in a shared doc. There is no audit trail of when bids were received, evaluation criteria applied inconsistently across reviewers, and the award decision has no traceable link to the scored evaluations.
+Without orchestration, you'd manage this in email threads and spreadsheets. manually tracking which vendors received the RFP, chasing late submissions, and comparing proposals in a shared doc. There is no audit trail of when bids were received, evaluation criteria applied inconsistently across reviewers, and the award decision has no traceable link to the scored evaluations.
 
 ## The Solution
 
 **You just write the bid lifecycle workers. RFP creation, vendor distribution, proposal collection, evaluation scoring, and contract award. Conductor handles sequencing, retries, and full audit trails for procurement compliance.**
 
-Each phase of the bidding lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so the RFP is fully created before distribution, bids are only collected after all vendors have been notified, evaluation only runs once all submissions are in, and the award references the evaluation scores. If the distribution worker fails for one vendor, Conductor retries without re-sending to vendors already notified. Every step is recorded with timestamps and outputs for procurement audit compliance.
+Each phase of the bidding lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so the RFP is fully created before distribution, bids are only collected after all vendors have been notified, evaluation only runs once all submissions are in, and the award references the evaluation scores. If the distribution worker fails for one vendor, Conductor retries without re-sending to vendors already notified. Every step is recorded with timestamps and outputs for procurement audit compliance.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers divide the bid lifecycle: CreateWorker builds the RFP package, Dist
 | **DistributeWorker** | `bid_distribute` | Distributes the RFP to the shortlisted vendors. |
 | **EvaluateWorker** | `bid_evaluate` | Scores each bid against cost, timeline, and capability criteria. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

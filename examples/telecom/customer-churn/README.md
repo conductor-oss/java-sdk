@@ -1,12 +1,12 @@
 # Customer Churn in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates customer churn prevention .  detecting at-risk subscribers based on usage trend decline, analyzing the reasons behind the churn risk (pricing, coverage, service quality), creating a personalized retention offer based on the identified reasons and account tenure, delivering the offer to the customer, and tracking whether the customer accepts and stays. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates customer churn prevention. detecting at-risk subscribers based on usage trend decline, analyzing the reasons behind the churn risk (pricing, coverage, service quality), creating a personalized retention offer based on the identified reasons and account tenure, delivering the offer to the customer, and tracking whether the customer accepts and stays. Uses [Conductor](https://github.
 
 ## Why Churn Prevention Needs Orchestration
 
-Retaining at-risk customers requires a time-sensitive pipeline from detection through outcome tracking. You detect churn risk by analyzing usage trends .  declining call minutes, reduced data consumption, or increased complaint frequency signal a customer is likely to leave. You analyze the reasons behind the risk ,  is it pricing, network quality in their area, a recent bad support experience, or a competitor offer? You create a personalized retention offer based on the identified reasons and the customer's account age ,  a discount, a plan upgrade, bonus data, or a device credit. You deliver the offer via the most effective channel for that customer. Finally, you track whether the offer was accepted and the customer was retained.
+Retaining at-risk customers requires a time-sensitive pipeline from detection through outcome tracking. You detect churn risk by analyzing usage trends. declining call minutes, reduced data consumption, or increased complaint frequency signal a customer is likely to leave. You analyze the reasons behind the risk,  is it pricing, network quality in their area, a recent bad support experience, or a competitor offer? You create a personalized retention offer based on the identified reasons and the customer's account age,  a discount, a plan upgrade, bonus data, or a device credit. You deliver the offer via the most effective channel for that customer. Finally, you track whether the offer was accepted and the customer was retained.
 
-If the offer is created but delivery fails, a perfectly good retention offer never reaches the customer and they churn. If detection flags a customer but reason analysis stalls, the retention team misses the intervention window. Without orchestration, you'd build a batch churn-scoring script that dumps results into a spreadsheet for manual follow-up .  making it impossible to personalize offers at scale, track which offers actually prevent churn, or close the loop between the churn model and retention outcomes.
+If the offer is created but delivery fails, a perfectly good retention offer never reaches the customer and they churn. If detection flags a customer but reason analysis stalls, the retention team misses the intervention window. Without orchestration, you'd build a batch churn-scoring script that dumps results into a spreadsheet for manual follow-up. making it impossible to personalize offers at scale, track which offers actually prevent churn, or close the loop between the churn model and retention outcomes.
 
 ## The Solution
 
@@ -20,13 +20,13 @@ Risk scoring, retention offer generation, outreach execution, and outcome tracki
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **AnalyzeReasonsWorker** | `ccn_analyze_reasons` | Analyzes the reasons behind the churn risk .  pricing, coverage, service quality, or competitor offers. |
+| **AnalyzeReasonsWorker** | `ccn_analyze_reasons` | Analyzes the reasons behind the churn risk. pricing, coverage, service quality, or competitor offers. |
 | **CreateOfferWorker** | `ccn_create_offer` | Creates a personalized retention offer based on the identified churn reasons and account tenure. |
 | **DeliverWorker** | `ccn_deliver` | Delivers the retention offer to the customer via their preferred channel (SMS, email, in-app, call center). |
 | **DetectRiskWorker** | `ccn_detect_risk` | Detects churn risk by scoring the customer based on usage trend decline and behavioral signals. |
 | **TrackWorker** | `ccn_track` | Tracks whether the customer accepted the offer and was retained or still churned. |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,13 +136,13 @@ conductor workflow search -w ccn_customer_churn -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real retention systems .  your analytics platform for churn scoring, your CRM for account analysis, your marketing automation for offer delivery and tracking, and the workflow runs identically in production.
+Connect each worker to your real retention systems. your analytics platform for churn scoring, your CRM for account analysis, your marketing automation for offer delivery and tracking, and the workflow runs identically in production.
 
 - **DetectRiskWorker** (`ccn_detect_risk`): run your churn prediction model (scikit-learn, TensorFlow Serving, or SAS) against the customer's usage data from your data warehouse or CRM analytics platform
 - **AnalyzeReasonsWorker** (`ccn_analyze_reasons`): correlate the risk score with data from your CRM (Salesforce, Amdocs), NPS survey results, network quality KPIs for the customer's area, and competitor pricing intelligence
 - **CreateOfferWorker** (`ccn_create_offer`): generate the retention offer using your campaign management system (Adobe Campaign, Pega, Salesforce Marketing Cloud) with offer rules tuned to the churn reason and customer segment
 - **DeliverWorker** (`ccn_deliver`): deliver the offer via your omnichannel engagement platform. SMS gateway, email (SendGrid), push notification, or queue it for the next call center interaction via your CTI system
-- **TrackWorker** (`ccn_track`): monitor offer acceptance by tracking the customer's subsequent behavior in your CRM and billing system .  checking for plan changes, renewed usage, or port-out requests
+- **TrackWorker** (`ccn_track`): monitor offer acceptance by tracking the customer's subsequent behavior in your CRM and billing system. checking for plan changes, renewed usage, or port-out requests
 
 Swap scoring models or retention offer engines and the churn pipeline adapts without restructuring.
 

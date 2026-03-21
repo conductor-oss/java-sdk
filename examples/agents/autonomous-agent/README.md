@@ -26,7 +26,7 @@ Five workers implement the autonomous agent. Setting the goal, creating a plan, 
 | **FinalReportWorker** | `aa_final_report` | Produces the final report summarising the autonomous agent's work. |
 | **SetGoalWorker** | `aa_set_goal` | Translates a high-level mission into a concrete goal with constraints. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
 ### The Workflow
 

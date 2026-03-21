@@ -6,13 +6,13 @@ Fulfills a public records request (FOIA): receiving the request, searching gover
 
 You need to fulfill a public records request (FOIA, state open records law). A requester submits a request for specific records, the records are searched across government databases and archives, found records are verified for authenticity, sensitive information is redacted (SSNs, law enforcement details, attorney-client privilege), and the redacted records are released to the requester. Releasing un-redacted records exposes private information and violates privacy laws; denying without proper search violates open records laws.
 
-Without orchestration, you'd manage records requests through email and shared drives .  manually searching across multiple databases, tracking which documents need redaction, coordinating with legal counsel on exemptions, and meeting statutory response deadlines that vary by jurisdiction.
+Without orchestration, you'd manage records requests through email and shared drives. manually searching across multiple databases, tracking which documents need redaction, coordinating with legal counsel on exemptions, and meeting statutory response deadlines that vary by jurisdiction.
 
 ## The Solution
 
 **You just write the request intake, database search, document verification, redaction, and record release logic. Conductor handles search retries, redaction sequencing, and records request audit trails.**
 
-Each records request concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (request, search, verify, redact, release), tracking every request with timestamps for statutory deadline compliance, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each records request concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (request, search, verify, redact, release), tracking every request with timestamps for statutory deadline compliance, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Request validation, records search, redaction, and delivery workers handle FOIA 
 | **SearchWorker** | `pbr_search` | Searches government databases and archives for documents matching the request query |
 | **VerifyWorker** | `pbr_verify` | Verifies document authenticity and checks for applicable exemptions before release |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w pbr_public_records -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real FOIA systems .  your records management platform for document search, your redaction tool for sensitive content removal, your citizen portal for record release, and the workflow runs identically in production.
+Swap each worker for your real FOIA systems. your records management platform for document search, your redaction tool for sensitive content removal, your citizen portal for record release, and the workflow runs identically in production.
 
 - **Request handler**: accept requests via your public records portal with requester identification and scope clarification
 - **Records searcher**: query across government databases, document management systems (Laserfiche, OnBase), and email archives

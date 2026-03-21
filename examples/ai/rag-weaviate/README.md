@@ -1,20 +1,20 @@
 # RAG with Weaviate in Java Using Conductor :  GraphQL-Powered Vector Search and Generation
 
-A Java Conductor workflow that implements RAG using Weaviate .  embedding the query, searching a Weaviate class via its GraphQL API with vector similarity (nearVector/nearText), and generating an answer from the retrieved objects. Weaviate offers built-in vectorization modules, multi-tenancy, and a GraphQL query interface. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Weaviate search, and generation as independent workers ,  you write the Weaviate integration, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that implements RAG using Weaviate. embedding the query, searching a Weaviate class via its GraphQL API with vector similarity (nearVector/nearText), and generating an answer from the retrieved objects. Weaviate offers built-in vectorization modules, multi-tenancy, and a GraphQL query interface. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate embedding, Weaviate search, and generation as independent workers,  you write the Weaviate integration, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG with Weaviate's Rich Query Interface
 
-Weaviate provides vector search through a GraphQL API that supports nearVector, nearText (with built-in vectorizers), BM25, and hybrid queries .  all in a single API. It also supports multi-tenancy, batch operations, and cross-references between objects. The RAG pipeline embeds the query, searches a Weaviate class for relevant objects, and generates from the results.
+Weaviate provides vector search through a GraphQL API that supports nearVector, nearText (with built-in vectorizers), BM25, and hybrid queries. all in a single API. It also supports multi-tenancy, batch operations, and cross-references between objects. The RAG pipeline embeds the query, searches a Weaviate class for relevant objects, and generates from the results.
 
 ## The Solution
 
 **You write the embedding and Weaviate GraphQL query logic. Conductor handles the RAG pipeline, retries, and observability.**
 
-Each stage is an independent worker .  query embedding, Weaviate GraphQL search, and answer generation. Conductor sequences them, retries the Weaviate query if the server is temporarily unavailable, and tracks every search with the query, retrieved objects, and generated answer.
+Each stage is an independent worker. query embedding, Weaviate GraphQL search, and answer generation. Conductor sequences them, retries the Weaviate query if the server is temporarily unavailable, and tracks every search with the query, retrieved objects, and generated answer.
 
 ### What You Write: Workers
 
-Three workers integrate Weaviate into the RAG pipeline .  embedding the query, searching via Weaviate's GraphQL nearVector or nearText operators, and generating an answer from the retrieved objects.
+Three workers integrate Weaviate into the RAG pipeline. embedding the query, searching via Weaviate's GraphQL nearVector or nearText operators, and generating an answer from the retrieved objects.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -22,7 +22,7 @@ Three workers integrate Weaviate into the RAG pipeline .  embedding the query, s
 | **WeavGenerateWorker** | `weav_generate` | Generates an answer from the user question and retrieved Weaviate objects (simulated). |
 | **WeavSearchWorker** | `weav_search` | Performs a vector-similarity search against Weaviate (simulated). |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -127,13 +127,13 @@ conductor workflow search -w rag_weaviate_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RAG stage .  swap in a real embedding model, query a Weaviate class via its GraphQL nearVector or hybrid search API, and the embed-search-generate pipeline runs unchanged.
+Each worker handles one RAG stage. swap in a real embedding model, query a Weaviate class via its GraphQL nearVector or hybrid search API, and the embed-search-generate pipeline runs unchanged.
 
 - **WeavEmbedWorker** (`weav_embed`): call an embedding API (OpenAI text-embedding-3-small, Cohere embed-english-v3) or use Weaviate's built-in vectorizer modules (text2vec-openai, text2vec-cohere)
 - **WeavGenerateWorker** (`weav_generate`): send Weaviate search results as context to an LLM (OpenAI GPT-4, Anthropic Claude) or use Weaviate's generative module (generative-openai) for in-database RAG
 - **WeavSearchWorker** (`weav_search`): query a real Weaviate class using the GraphQL API or Java client with `nearVector`, `nearText`, or hybrid search and metadata filters
 
-The embed/search/generate contract stays fixed .  switch between nearVector and nearText, adjust Weaviate class schemas, or swap LLM providers without modifying the workflow.
+The embed/search/generate contract stays fixed. switch between nearVector and nearText, adjust Weaviate class schemas, or swap LLM providers without modifying the workflow.
 
 ## SDK
 

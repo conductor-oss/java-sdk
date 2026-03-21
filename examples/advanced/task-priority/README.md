@@ -1,18 +1,18 @@
 # Task Priority Routing in Java Using Conductor :  Classify Urgency, Route to Priority-Specific Queues
 
-A Java Conductor workflow example for task priority routing .  classifying incoming tasks by urgency and impact into high/medium/low priority, then routing each to the appropriate processing queue via a `SWITCH` task. Uses [Conductor](https://github.
+A Java Conductor workflow example for task priority routing. classifying incoming tasks by urgency and impact into high/medium/low priority, then routing each to the appropriate processing queue via a `SWITCH` task. Uses [Conductor](https://github.
 
 ## Not All Tasks Are Equal :  High Priority Must Jump the Queue
 
 A production incident alert, a routine log rotation, and a monthly report request arrive at the same time. The incident needs immediate attention with dedicated resources. The log rotation can wait. The report can run overnight. Without priority classification and routing, all three compete for the same worker pool, and the incident sits behind the report in the queue.
 
-Priority routing means classifying each task based on urgency and impact (a P1 incident is high/high, a log rotation is low/low), then routing it to the matching queue .  high-priority tasks go to a dedicated fast lane with more workers and shorter timeouts, while low-priority tasks go to a batch queue that runs during off-peak hours.
+Priority routing means classifying each task based on urgency and impact (a P1 incident is high/high, a log rotation is low/low), then routing it to the matching queue. high-priority tasks go to a dedicated fast lane with more workers and shorter timeouts, while low-priority tasks go to a batch queue that runs during off-peak hours.
 
 ## The Solution
 
 **You write the classification and per-tier handling logic. Conductor handles priority routing, retries, and SLA tracking.**
 
-`TprClassifyPriorityWorker` evaluates the task's urgency and impact to determine its priority level .  high, medium, or low. A `SWITCH` task routes based on the classification: `TprRouteHighWorker` handles urgent tasks with dedicated resources and aggressive SLAs, `TprRouteMediumWorker` processes normal tasks with standard resources, and `TprRouteLowWorker` queues low-priority work for batch processing. Conductor's conditional routing makes the priority lanes declarative, and every execution records the classification rationale.
+`TprClassifyPriorityWorker` evaluates the task's urgency and impact to determine its priority level. high, medium, or low. A `SWITCH` task routes based on the classification: `TprRouteHighWorker` handles urgent tasks with dedicated resources and aggressive SLAs, `TprRouteMediumWorker` processes normal tasks with standard resources, and `TprRouteLowWorker` queues low-priority work for batch processing. Conductor's conditional routing makes the priority lanes declarative, and every execution records the classification rationale.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers handle priority-based routing. urgency classification and three tie
 | **TprRouteLowWorker** | `tpr_route_low` | Routes the task to the low-priority queue with a 240-minute SLA |
 | **TprRouteMediumWorker** | `tpr_route_medium` | Routes the task to the medium-priority queue with a 60-minute SLA |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w tpr_task_priority -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one priority tier .  replace the simulated queue routing with real priority-based SQS queues or Kubernetes resource allocations and the classify-then-route logic runs unchanged.
+Each worker handles one priority tier. replace the simulated queue routing with real priority-based SQS queues or Kubernetes resource allocations and the classify-then-route logic runs unchanged.
 
 - **TprClassifyPriorityWorker** (`tpr_classify_priority`): implement real priority classification using PagerDuty severity levels, Jira priority fields, or custom urgency/impact matrices from your incident management system
 - **TprRouteHighWorker** (`tpr_route_high`): dispatch to dedicated high-priority infrastructure: a separate Kubernetes namespace with guaranteed resources, a priority SQS queue, or trigger PagerDuty incident creation

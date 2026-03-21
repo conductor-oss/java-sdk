@@ -24,7 +24,7 @@ Three workers implement the dynamic fanout: PrepareTasksWorker generates one tas
 | **FetchUrlWorker** | `df_fetch_url` | Fetches a URL and returns metadata. In a real application, this would make an HTTP request. Here it returns determini |
 | **PrepareTasksWorker** | `df_prepare_tasks` | Prepares the dynamic task list and input map for FORK_JOIN_DYNAMIC. Takes a list of URLs and generates: - dynamicTask |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

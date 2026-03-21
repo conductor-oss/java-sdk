@@ -4,15 +4,15 @@ Manages a restaurant menu lifecycle: creating items with descriptions, setting p
 
 ## The Problem
 
-You need to manage a restaurant's menu lifecycle .  creating menu items with descriptions and photos, setting prices based on food costs and margins, organizing items into categories (appetizers, entrees, desserts), publishing the menu to ordering platforms, and updating items as ingredients or prices change. Publishing a menu with incorrect prices erodes margins; outdated items lead to orders the kitchen cannot fulfill.
+You need to manage a restaurant's menu lifecycle. creating menu items with descriptions and photos, setting prices based on food costs and margins, organizing items into categories (appetizers, entrees, desserts), publishing the menu to ordering platforms, and updating items as ingredients or prices change. Publishing a menu with incorrect prices erodes margins; outdated items lead to orders the kitchen cannot fulfill.
 
-Without orchestration, you'd manage menus through a combination of spreadsheets, POS admin panels, and third-party delivery platform dashboards .  manually keeping prices synchronized across platforms, updating photos and descriptions in multiple places, and hoping no platform shows a discontinued item.
+Without orchestration, you'd manage menus through a combination of spreadsheets, POS admin panels, and third-party delivery platform dashboards. manually keeping prices synchronized across platforms, updating photos and descriptions in multiple places, and hoping no platform shows a discontinued item.
 
 ## The Solution
 
 **You just write the item creation, pricing, categorization, platform publishing, and update syncing logic. Conductor handles pricing retries, publication sequencing, and menu change audit trails.**
 
-Each menu concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create items, price, categorize, publish, update), retrying if a platform API is unavailable, tracking every menu change, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each menu concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (create items, price, categorize, publish, update), retrying if a platform API is unavailable, tracking every menu change, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Item creation, pricing, categorization, and publication workers handle menu upda
 | **PublishWorker** | `mnu_publish` | Publishes the menu to ordering platforms and returns the menu ID, publish status, and date |
 | **UpdateWorker** | `mnu_update` | Confirms the menu is live and synced across all platforms, returning the final menu status and item count |
 
-Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
+Workers implement food service operations. order processing, kitchen routing, delivery coordination,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w menu_management_734 -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real menu systems .  your recipe database for item creation, your POS for pricing, your delivery platforms (DoorDash, Uber Eats) for publishing and sync, and the workflow runs identically in production.
+Point each worker at your real menu systems. your recipe database for item creation, your POS for pricing, your delivery platforms (DoorDash, Uber Eats) for publishing and sync, and the workflow runs identically in production.
 
 - **Item creator**: persist menu items with descriptions, photos, allergen tags, and modifiers to your menu management system
 - **Pricing engine**: calculate prices based on food cost percentages, competitor pricing, and demand-based dynamic pricing

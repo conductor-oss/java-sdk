@@ -6,13 +6,13 @@ Tracks a user's nutritional intake: logging meals, looking up calories and macro
 
 You need to track a user's nutritional intake for a meal. The workflow logs what foods were consumed, looks up the nutritional information (calories, macros, micronutrients) for each food item, calculates daily totals by combining the meal with previous meals that day, and generates a nutrition report. Tracking without accurate nutritional data gives users a false sense of their intake; not calculating daily totals means missing calorie or macro targets.
 
-Without orchestration, you'd build a single tracking service that records food entries, queries a nutrition database, accumulates daily totals, and renders reports .  manually handling foods not found in the database, retrying failed nutrition API lookups, and managing timezone-aware daily boundaries.
+Without orchestration, you'd build a single tracking service that records food entries, queries a nutrition database, accumulates daily totals, and renders reports. manually handling foods not found in the database, retrying failed nutrition API lookups, and managing timezone-aware daily boundaries.
 
 ## The Solution
 
 **You just write the meal logging, nutrient lookup, daily total calculation, and nutrition report generation logic. Conductor handles ingredient lookup retries, macro aggregation, and nutritional audit trails.**
 
-Each nutrition concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (log meal, lookup nutrition, calculate daily totals, generate report), retrying if the nutrition database API is unavailable, tracking every meal entry, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each nutrition concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (log meal, lookup nutrition, calculate daily totals, generate report), retrying if the nutrition database API is unavailable, tracking every meal entry, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Ingredient logging, macro calculation, meal scoring, and report generation worke
 | **LookupNutritionWorker** | `nut_lookup_nutrition` | Looks up nutritional data (calories, protein, carbs, fat, fiber) for the logged foods |
 | **ReportWorker** | `nut_report` | Generates a daily nutrition report with calories consumed, goal, remaining, and on-track status |
 
-Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
+Workers implement food service operations. order processing, kitchen routing, delivery coordination,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w nutrition_tracking_739 -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real nutrition tools .  a food database API like Nutritionix for calorie lookups, your health tracking platform for goal comparison, your reporting engine for nutrition summaries, and the workflow runs identically in production.
+Swap each worker for your real nutrition tools. a food database API like Nutritionix for calorie lookups, your health tracking platform for goal comparison, your reporting engine for nutrition summaries, and the workflow runs identically in production.
 
 - **Meal logger**: capture food entries via barcode scanning (Open Food Facts API), photo recognition (Nutritionix, CalorieAI), or manual search
 - **Nutrition lookup**: query the USDA FoodData Central API, Nutritionix, or your custom food database for accurate nutritional data

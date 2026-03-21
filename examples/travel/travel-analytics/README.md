@@ -25,7 +25,7 @@ Data aggregation, spend analysis, trend identification, and report generation wo
 | **CollectWorker** | `tan_collect` | Collects and validates and computes raw data |
 | **ReportWorker** | `tan_report` | Analytics dashboard updated with new insights |
 
-Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w tan_travel_analytics -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real data sources .  your booking system for travel records, your data warehouse for aggregation, a BI tool like Tableau for report generation, and the workflow runs identically in production.
+Connect each worker to your real data sources. your booking system for travel records, your data warehouse for aggregation, a BI tool like Tableau for report generation, and the workflow runs identically in production.
 
 - **CollectWorker** (`tan_collect`): pull travel data from your TMS (SAP Concur, Navan), expense system (Expensify, Brex), and corporate card transaction feeds for the specified period
 - **AggregateWorker** (`tan_aggregate`): run aggregation queries in your data warehouse (Snowflake, BigQuery, Redshift) to compute category totals, per-trip averages, and department-level spending breakdowns

@@ -1,10 +1,10 @@
 # Public Health Surveillance in Java with Conductor :  Disease Monitoring, Outbreak Detection, and Response Coordination
 
-A Java Conductor workflow example for public health surveillance .  monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.
+A Java Conductor workflow example for public health surveillance. monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to run disease surveillance for a public health department. Case reports come in for a specific disease and region. The system must pull baseline epidemiological data, compare the current case count against expected levels to detect whether an outbreak is occurring, and then take the right action .  issue a public health alert if cases exceed the threshold, or schedule continued monitoring if levels are elevated but not yet critical. Regardless of the branch taken, a response plan must be executed. The decision to alert versus monitor must be automatic and auditable.
+You need to run disease surveillance for a public health department. Case reports come in for a specific disease and region. The system must pull baseline epidemiological data, compare the current case count against expected levels to detect whether an outbreak is occurring, and then take the right action. issue a public health alert if cases exceed the threshold, or schedule continued monitoring if levels are elevated but not yet critical. Regardless of the branch taken, a response plan must be executed. The decision to alert versus monitor must be automatic and auditable.
 
 Without orchestration, you'd build a monolithic surveillance application that queries the case database, runs the outbreak detection algorithm, branches with if/else into alert or monitoring logic, and then triggers the response. If the surveillance data feed is temporarily unavailable, you'd need retry logic. If the system crashes after detecting an outbreak but before issuing the alert, cases could go unreported. Epidemiologists need a complete timeline of every surveillance run for retrospective analysis.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic surveillance application that qu
 
 **You just write the disease monitoring, outbreak detection, alert routing, and public health response coordination logic. Conductor handles surveillance retries, intervention routing, and public health audit trails.**
 
-Each stage of the surveillance pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of running surveillance before detection, routing to alert or monitoring via SWITCH based on the detection outcome, always executing the response step regardless of which branch was taken, and maintaining a full audit trail of every surveillance cycle. You get all of that, without writing a single line of orchestration code.
+Each stage of the surveillance pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running surveillance before detection, routing to alert or monitoring via SWITCH based on the detection outcome, always executing the response step regardless of which branch was taken, and maintaining a full audit trail of every surveillance cycle. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Surveillance data collection, outbreak analysis, intervention planning, and publ
 | **MonitorWorker** | `phw_monitor` | Schedules continued surveillance with a next-check date when cases are elevated but below alert threshold |
 | **RespondWorker** | `phw_respond` | Executes the public health response plan (contact tracing, resource deployment, public communications) |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -135,7 +135,7 @@ conductor workflow search -w phw_public_health -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real public health systems .  your disease surveillance platform for case monitoring, your epidemiological tools for outbreak detection, your health department coordination system for response, and the workflow runs identically in production.
+Connect each worker to your real public health systems. your disease surveillance platform for case monitoring, your epidemiological tools for outbreak detection, your health department coordination system for response, and the workflow runs identically in production.
 
 - **SurveillanceWorker** → connect to your syndromic surveillance system, CDC BioSense, or state-level NEDSS to pull real case data
 - **DetectOutbreakWorker** → implement a statistical detection algorithm (EARS C-algorithm, CUSUM, or Farrington) instead of a simple threshold

@@ -1,6 +1,6 @@
 # Search Agent in Java Using Conductor :  Formulate Queries, Parallel Google/Wiki Search, Rank, Synthesize
 
-Search Agent .  formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. Uses [Conductor](https://github.
+Search Agent. formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. Uses [Conductor](https://github.
 
 ## Good Answers Need Multiple Search Sources
 
@@ -12,7 +12,7 @@ Parallel search across Google and Wikipedia halves the wait time. But the result
 
 **You write the query formulation, search execution, ranking, and synthesis logic. Conductor handles parallel search dispatch, result merging, and source attribution.**
 
-`FormulateQueriesWorker` analyzes the question and generates targeted search queries optimized for each source .  keyword queries for Google, topic queries for Wikipedia. `FORK_JOIN` dispatches `SearchGoogleWorker` and `SearchWikiWorker` simultaneously. After `JOIN` collects both result sets, `RankMergeWorker` combines and deduplicates results by relevance score, normalizing across different source formats. `SynthesizeWorker` generates a comprehensive answer from the ranked results with inline citations to both web and Wikipedia sources. Conductor runs both searches in parallel and records the contribution of each source to the final answer.
+`FormulateQueriesWorker` analyzes the question and generates targeted search queries optimized for each source. keyword queries for Google, topic queries for Wikipedia. `FORK_JOIN` dispatches `SearchGoogleWorker` and `SearchWikiWorker` simultaneously. After `JOIN` collects both result sets, `RankMergeWorker` combines and deduplicates results by relevance score, normalizing across different source formats. `SynthesizeWorker` generates a comprehensive answer from the ranked results with inline citations to both web and Wikipedia sources. Conductor runs both searches in parallel and records the contribution of each source to the final answer.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers run the search pipeline. Formulating queries, searching Google and 
 | **SearchWikiWorker** | `sa_search_wiki` | Simulates a Wikipedia search using the provided queries. Returns search results with title, url, snippet, relevance, ... |
 | **SynthesizeWorker** | `sa_synthesize` | Synthesizes a final answer from ranked search results and top sources. Produces a coherent answer string, confidence ... |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

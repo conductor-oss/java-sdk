@@ -1,6 +1,6 @@
 # Warehouse Management in Java with Conductor :  Receiving, Putaway, Picking, Packing, and Shipping
 
-A Java Conductor workflow example for warehouse management .  receiving inbound goods at the dock, putting away items to assigned storage locations, picking items from bins to fulfill outbound orders, packing them for shipment, and shipping via the selected carrier. Uses [Conductor](https://github.
+A Java Conductor workflow example for warehouse management. receiving inbound goods at the dock, putting away items to assigned storage locations, picking items from bins to fulfill outbound orders, packing them for shipment, and shipping via the selected carrier. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, each step is managed by a different warehouse associate w
 
 **You just write the warehouse workers. Receiving, putaway, picking, packing, and shipping. Conductor handles step sequencing, shipping label retries, and full order visibility for warehouse performance analytics.**
 
-Each step of the warehouse flow is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so goods are received before putaway, putaway completes before items are available for picking, picking drives packing, and packing drives shipping. If the shipping label API times out, Conductor retries without re-packing the order. Every receiving record, putaway location, pick confirmation, pack verification, and ship confirmation is tracked for order visibility and warehouse performance analytics.
+Each step of the warehouse flow is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so goods are received before putaway, putaway completes before items are available for picking, picking drives packing, and packing drives shipping. If the shipping label API times out, Conductor retries without re-packing the order. Every receiving record, putaway location, pick confirmation, pack verification, and ship confirmation is tracked for order visibility and warehouse performance analytics.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers manage dock-to-door operations: ReceiveWorker logs inbound goods, P
 | **ReceiveWorker** | `wm_receive` | Receives inbound goods at the dock, inspects, and logs the receipt. |
 | **ShipWorker** | `wm_ship` | Ships packed orders via the selected carrier with tracking numbers and documentation. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

@@ -1,18 +1,18 @@
 # Cross-Region Data Replication in Java Using Conductor :  Replicate, Sync, Verify Consistency
 
-A Java Conductor workflow example for cross-region data replication .  copying a dataset from a primary region to a replica region, synchronizing the data and computing checksums, and verifying consistency between the two regions. Uses [Conductor](https://github.
+A Java Conductor workflow example for cross-region data replication. copying a dataset from a primary region to a replica region, synchronizing the data and computing checksums, and verifying consistency between the two regions. Uses [Conductor](https://github.
 
 ## Keeping Data Consistent Across Regions
 
-Multi-region architectures improve latency and availability, but replicating data from us-east-1 to eu-west-1 is not a simple copy. You need to initiate the replication, wait for the data to sync, compute checksums on both sides, and verify they match. If the checksums diverge .  because a write landed on the primary during sync, or a network partition caused partial replication ,  you need to know immediately, not discover it hours later when a user in Europe sees stale data.
+Multi-region architectures improve latency and availability, but replicating data from us-east-1 to eu-west-1 is not a simple copy. You need to initiate the replication, wait for the data to sync, compute checksums on both sides, and verify they match. If the checksums diverge. because a write landed on the primary during sync, or a network partition caused partial replication,  you need to know immediately, not discover it hours later when a user in Europe sees stale data.
 
-Manually coordinating replication means writing polling loops to check sync status, implementing checksum verification across regions with different API endpoints, handling transient failures on cross-region network calls, and logging enough context to diagnose consistency drift. Each step depends on the previous one .  you can't verify consistency before sync completes, and sync requires a valid replication ID from the initial copy.
+Manually coordinating replication means writing polling loops to check sync status, implementing checksum verification across regions with different API endpoints, handling transient failures on cross-region network calls, and logging enough context to diagnose consistency drift. Each step depends on the previous one. you can't verify consistency before sync completes, and sync requires a valid replication ID from the initial copy.
 
 ## The Solution
 
 **You write the replication and consistency checks. Conductor handles sequencing, retries, and cross-region audit trails.**
 
-`XrReplicateWorker` initiates the data replication from the primary region to the replica region and returns a replication ID. `XrSyncWorker` waits for synchronization to complete and computes checksums for both the primary and replica copies. `XrVerifyConsistencyWorker` compares the checksums .  if they match, the regions are consistent; if they diverge, the workflow output flags the inconsistency. Conductor sequences these steps, retries any that fail due to cross-region network issues, and records the replication ID, checksums, and consistency verdict for every run.
+`XrReplicateWorker` initiates the data replication from the primary region to the replica region and returns a replication ID. `XrSyncWorker` waits for synchronization to complete and computes checksums for both the primary and replica copies. `XrVerifyConsistencyWorker` compares the checksums. if they match, the regions are consistent; if they diverge, the workflow output flags the inconsistency. Conductor sequences these steps, retries any that fail due to cross-region network issues, and records the replication ID, checksums, and consistency verdict for every run.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers own the replication lifecycle: data copying between regions, check
 | **XrSyncWorker** | `xr_sync` | Synchronizes primary and replica by computing checksums and measuring replication lag |
 | **XrVerifyConsistencyWorker** | `xr_verify_consistency` | Compares primary and replica checksums to confirm cross-region data consistency |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -128,7 +128,7 @@ conductor workflow search -w cross_region_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one replication concern .  replace the simulated cross-region copies with real S3 replication or DynamoDB Global Tables APIs and the sync-and-verify pipeline runs unchanged.
+Each worker manages one replication concern. replace the simulated cross-region copies with real S3 replication or DynamoDB Global Tables APIs and the sync-and-verify pipeline runs unchanged.
 
 - **XrReplicateWorker** (`xr_replicate`): call AWS S3 Cross-Region Replication API, DynamoDB Global Tables, or `pg_dump`/`pg_restore` across PostgreSQL instances in different regions
 - **XrSyncWorker** (`xr_sync`): poll the replication status endpoint (e.g., `describeTable` for DynamoDB, S3 replication metrics) and compute MD5/SHA-256 checksums on both sides

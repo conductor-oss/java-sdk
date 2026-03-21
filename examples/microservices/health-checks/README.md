@@ -12,7 +12,7 @@ Without orchestration, health checks are run sequentially in a cron job, making 
 
 **You just write the service-check and report-generation workers. Conductor handles parallel execution of all checks, per-service timeout isolation, and historical tracking of every health run.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -23,7 +23,7 @@ Two worker types power the health pipeline: CheckServiceWorker probes individual
 | **CheckServiceWorker** | `hc_check_service` | Checks health of an individual service. |
 | **GenerateReportWorker** | `hc_generate_report` | Generates a health report from individual service checks. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

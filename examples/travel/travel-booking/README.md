@@ -26,7 +26,7 @@ Five workers divide the booking flow. Search, compare, book, confirm, and itiner
 | `ConfirmWorker` | `tvb_confirm` | Finalizes the reservation, issuing e-ticket `ET-travel-booking-2024` |
 | `ItineraryWorker` | `tvb_itinerary` | Assembles and sends the complete itinerary (flight, booking ref, e-ticket) to the traveler |
 
-Workers simulate travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 

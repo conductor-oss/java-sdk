@@ -21,11 +21,11 @@ Policy retrieval, rule evaluation, exception handling, and compliance reporting 
 | Worker | Task | What It Does |
 |---|---|---|
 | **CheckWorker** | `tpl_check` | Checks the input and computes compliance result, reason |
-| **CompliantWorker** | `tpl_compliant` | Within policy .  auto-approved |
+| **CompliantWorker** | `tpl_compliant` | Within policy. auto-approved |
 | **ExceptionWorker** | `tpl_exception` | Processes a travel policy exception request. Approves the exception and records the VP-level approver |
 | **ProcessWorker** | `tpl_process` | Processes the booking request against the company travel policy |
 
-Workers simulate travel operations .  booking, approval, itinerary generation ,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
+Workers implement travel operations. booking, approval, itinerary generation,  with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -131,7 +131,7 @@ conductor workflow search -w tpl_travel_policy -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real compliance systems .  your policy rules engine for compliance checks, your HR system for exception approvals, your booking platform for reservation processing, and the workflow runs identically in production.
+Wire each worker to your real compliance systems. your policy rules engine for compliance checks, your HR system for exception approvals, your booking platform for reservation processing, and the workflow runs identically in production.
 
 - **CheckWorker** (`tpl_check`): evaluate the booking against your company's travel policy rules stored in your TMS (SAP Concur, Navan) or policy engine, checking rate caps, class restrictions, and advance booking requirements
 - **CompliantWorker** (`tpl_compliant`): auto-approve the booking in your travel management system, deduct from the department's travel budget, and notify the traveler they can proceed

@@ -25,7 +25,7 @@ Four workers manage bidirectional sync: detecting changes in both systems since 
 | **ResolveConflictsWorker** | `sy_resolve_conflicts` | Resolves conflicts using the specified strategy (e.g, latest_wins). |
 | **VerifyConsistencyWorker** | `sy_verify_consistency` | Verifies that both systems are consistent after sync. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

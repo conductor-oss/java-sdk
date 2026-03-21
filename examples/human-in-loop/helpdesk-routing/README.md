@@ -1,10 +1,10 @@
 # Helpdesk Routing in Java with Conductor :  Tier-Based Ticket Routing via SWITCH
 
-A Java Conductor workflow that routes helpdesk tickets to the right support tier .  classifying the issue by complexity, then using a SWITCH task to route to Tier 1 (simple questions), Tier 2 (technical issues), or Tier 3 (escalations and critical problems). Given an `issueDescription` and `customerId`, the pipeline classifies the ticket and routes it to the appropriate handler. Uses [Conductor](https://github.com/conductor-oss/conductor) to implement tier-based conditional routing with SWITCH.
+A Java Conductor workflow that routes helpdesk tickets to the right support tier. classifying the issue by complexity, then using a SWITCH task to route to Tier 1 (simple questions), Tier 2 (technical issues), or Tier 3 (escalations and critical problems). Given an `issueDescription` and `customerId`, the pipeline classifies the ticket and routes it to the appropriate handler. Uses [Conductor](https://github.com/conductor-oss/conductor) to implement tier-based conditional routing with SWITCH.
 
 ## Getting Tickets to the Right Team on the First Try
 
-Customers expect their support tickets to reach someone who can actually help. Routing a complex technical issue to Tier 1 wastes the customer's time with a handoff. Routing a simple password reset to Tier 3 wastes engineer time. The classification needs to happen automatically and the routing needs to be deterministic .  the right tier every time, based on issue complexity.
+Customers expect their support tickets to reach someone who can actually help. Routing a complex technical issue to Tier 1 wastes the customer's time with a handoff. Routing a simple password reset to Tier 3 wastes engineer time. The classification needs to happen automatically and the routing needs to be deterministic. the right tier every time, based on issue complexity.
 
 This workflow classifies the ticket first, then routes it to the correct tier using a Conductor SWITCH task. The classifier analyzes the issue description and customer context to determine which tier should handle it. The SWITCH task reads the tier assignment and routes to `hdr_tier1` (general support for common questions), `hdr_tier2` (technical support for product issues), or `hdr_tier3` (engineering escalation for critical problems). If the classification does not match any defined tier, the default case routes to Tier 1.
 
@@ -12,7 +12,7 @@ This workflow classifies the ticket first, then routes it to the correct tier us
 
 **You just write the ticket-classification and tier-specific handler workers. Conductor handles the SWITCH-based routing to the correct support tier.**
 
-Four workers handle the routing .  one classifier and three tier-specific handlers. The classifier determines the appropriate tier based on issue complexity and customer context. The SWITCH task makes routing declarative: Conductor reads the tier from the classifier's output and sends the ticket to the matching handler. Each tier handler processes tickets differently. Tier 1 uses knowledge base lookups, Tier 2 investigates technical details, Tier 3 engages engineering directly.
+Four workers handle the routing. one classifier and three tier-specific handlers. The classifier determines the appropriate tier based on issue complexity and customer context. The SWITCH task makes routing declarative: Conductor reads the tier from the classifier's output and sends the ticket to the matching handler. Each tier handler processes tickets differently. Tier 1 uses knowledge base lookups, Tier 2 investigates technical details, Tier 3 engages engineering directly.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ ClassifyWorker determines the support tier, then the SWITCH routes to Tier1Worke
 | **Tier2Worker** | `hdr_tier2` | Handles technical support: product issues, configuration problems, and debugging. |
 | **Tier3Worker** | `hdr_tier3` | Handles engineering escalations: critical problems requiring senior engineer investigation. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w hdr_helpdesk_routing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one tier of support .  connect your helpdesk platform (Zendesk, Freshdesk, Intercom) for classification and your knowledge base for Tier 1 lookups, and the tier-routing workflow stays the same.
+Each worker handles one tier of support. connect your helpdesk platform (Zendesk, Freshdesk, Intercom) for classification and your knowledge base for Tier 1 lookups, and the tier-routing workflow stays the same.
 
 - **ClassifyWorker** (`hdr_classify`): swap in an ML model or LLM for intelligent ticket classification based on natural language
 - **Tier1Worker** (`hdr_tier1`): integrate with Zendesk or Freshdesk to create and assign Tier 1 tickets

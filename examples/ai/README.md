@@ -12,7 +12,7 @@ These examples demonstrate LLM integration patterns with Conductor workflows: pr
 
 2. **Java 21+** and **Maven 3.8+**
 
-3. **LLM API key** (see table below). `first-ai-workflow` runs in **simulated mode by default** (no API key needed). Other examples require an API key , set the appropriate environment variable before running.
+3. **LLM API key** (see table below). `first-ai-workflow` runs in **simulated mode by default** (no API key needed). Other examples require an API key, set the appropriate environment variable before running.
 
 ## Examples
 

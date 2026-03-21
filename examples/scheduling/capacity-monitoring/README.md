@@ -1,10 +1,10 @@
 # Capacity Monitoring in Java Using Conductor :  Resource Measurement, Forecasting, and Capacity Alerts
 
-A Java Conductor workflow example for capacity monitoring .  measuring current resource utilization across clusters, forecasting future capacity needs, and alerting when capacity thresholds are breached or exhaustion is predicted.
+A Java Conductor workflow example for capacity monitoring. measuring current resource utilization across clusters, forecasting future capacity needs, and alerting when capacity thresholds are breached or exhaustion is predicted.
 
 ## The Problem
 
-You need to monitor infrastructure capacity. CPU, memory, disk, network .  across your clusters. Beyond current utilization, you need to forecast when resources will run out based on growth trends. If current usage exceeds thresholds or the forecast predicts exhaustion within your planning window, capacity alerts must fire so you can provision before outages occur.
+You need to monitor infrastructure capacity. CPU, memory, disk, network. across your clusters. Beyond current utilization, you need to forecast when resources will run out based on growth trends. If current usage exceeds thresholds or the forecast predicts exhaustion within your planning window, capacity alerts must fire so you can provision before outages occur.
 
 Without orchestration, capacity monitoring is a dashboard that shows current state but doesn't predict. Forecasting runs separately from measurement, uses stale data, and alerting is disconnected from both. By the time someone notices a capacity issue, it's already causing production problems.
 
@@ -12,7 +12,7 @@ Without orchestration, capacity monitoring is a dashboard that shows current sta
 
 **You just write the resource measurement and capacity forecasting logic. Conductor handles the measure-forecast-alert pipeline, retries when cluster metric endpoints are slow, and historical tracking of capacity trends over time.**
 
-Each capacity concern is an independent worker .  resource measurement, growth forecasting, and alerting. Conductor runs them in sequence: measure current state, forecast future needs, then alert if thresholds are breached. Every monitoring run is tracked with measurements, forecasts, and alert decisions. You get all of that, without writing a single line of orchestration code.
+Each capacity concern is an independent worker. resource measurement, growth forecasting, and alerting. Conductor runs them in sequence: measure current state, forecast future needs, then alert if thresholds are breached. Every monitoring run is tracked with measurements, forecasts, and alert decisions. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers monitor infrastructure capacity: MeasureResourcesWorker samples CP
 | **ForecastWorker** | `cap_forecast` | Forecasts days until CPU, memory, and disk exhaustion based on current usage trends, with scaling recommendations |
 | **MeasureResourcesWorker** | `cap_measure_resources` | Measures current CPU, memory, and disk utilization percentages and node count for a cluster |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -128,7 +128,7 @@ conductor workflow search -w capacity_monitoring_418 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one monitoring phase .  connect the measurement worker to CloudWatch or Prometheus, the alerting worker to PagerDuty, and the measure-forecast-alert workflow stays the same.
+Each worker handles one monitoring phase. connect the measurement worker to CloudWatch or Prometheus, the alerting worker to PagerDuty, and the measure-forecast-alert workflow stays the same.
 
 - **CapAlertWorker** (`cap_alert`): send capacity alerts via PagerDuty when critical, Slack for warnings, and auto-create Jira tickets for capacity planning
 - **ForecastWorker** (`cap_forecast`): implement capacity forecasting using linear regression, exponential smoothing, or call a capacity planning service

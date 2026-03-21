@@ -25,7 +25,7 @@ Four workers manage each cron job run: ScheduleJobWorker registers the schedule,
 | **LogResultWorker** | `cj_log_result` | Logs the result of a cron job execution. |
 | **ScheduleJobWorker** | `cj_schedule_job` | Schedules a cron job with the given name and expression. |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 

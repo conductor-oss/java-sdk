@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Notification Preferences. Uses [
 
 A user wants to change their notification settings. Enabling SMS alerts and disabling push notifications. The system needs to load their current preferences (email, SMS, push, Slack), merge the new selections with existing ones, sync the updated channel configuration to all downstream notification services, and send a confirmation that the changes took effect. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ LoadPrefsWorker reads current channel settings, UpdatePrefsWorker merges new sel
 | **SyncChannelsWorker** | `np_sync_channels` | Identifies which channels are now active and syncs the configuration to each notification service |
 | **UpdatePrefsWorker** | `np_update` | Merges the new preference selections with existing ones and persists the updated configuration |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w np_notification_preferences -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one preference step .  connect your notification services (Twilio for SMS, Firebase for push, Slack API) for channel sync and your user store for preference persistence, and the notification-preferences workflow stays the same.
+Each worker handles one preference step. connect your notification services (Twilio for SMS, Firebase for push, Slack API) for channel sync and your user store for preference persistence, and the notification-preferences workflow stays the same.
 
 - **LoadPrefsWorker** (`np_load`): query the user's current notification preferences from your database or user profile service (Auth0, Cognito user attributes)
 - **UpdatePrefsWorker** (`np_update`): merge the new preferences with existing ones and persist the updated record to your database or identity provider

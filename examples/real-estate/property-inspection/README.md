@@ -1,10 +1,10 @@
 # Property Inspection in Java with Conductor :  Schedule, Inspect, Document, and Report
 
-A Java Conductor workflow example for managing property inspections .  scheduling the inspection with an inspector, conducting the on-site evaluation (structural, plumbing, electrical, HVAC), documenting findings with photos and notes, and generating the final inspection report. Uses [Conductor](https://github.
+A Java Conductor workflow example for managing property inspections. scheduling the inspection with an inspector, conducting the on-site evaluation (structural, plumbing, electrical, HVAC), documenting findings with photos and notes, and generating the final inspection report. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to coordinate property inspections for real estate transactions. When a buyer makes an offer contingent on inspection, an inspector must be scheduled, the on-site inspection must cover all systems (roof, foundation, plumbing, electrical, HVAC), findings must be documented with photos and severity ratings, and a formal report must be generated for the buyer, seller, and their agents. Each step depends on the previous one .  you can't document findings before the inspection, and the report can't be generated without documentation.
+You need to coordinate property inspections for real estate transactions. When a buyer makes an offer contingent on inspection, an inspector must be scheduled, the on-site inspection must cover all systems (roof, foundation, plumbing, electrical, HVAC), findings must be documented with photos and severity ratings, and a formal report must be generated for the buyer, seller, and their agents. Each step depends on the previous one. you can't document findings before the inspection, and the report can't be generated without documentation.
 
 Without orchestration, inspection coordination happens over phone calls and email. The agent schedules the inspector, the inspector emails findings in a Word doc, someone reformats it into a report, and it gets forwarded to the buyer. If the documentation step fails, the report is incomplete. If the inspector's notes are lost, the entire inspection must be repeated. Nobody can track which inspections are in progress, complete, or overdue.
 
@@ -12,7 +12,7 @@ Without orchestration, inspection coordination happens over phone calls and emai
 
 **You just write the scheduling, on-site inspection, documentation, and report generation logic. Conductor handles scheduling retries, assessment sequencing, and inspection audit trails.**
 
-Each inspection step is a simple, independent worker .  one schedules the inspector, one records the inspection findings, one organizes documentation (photos, notes, checklists), one generates the final report. Conductor takes care of executing them in order, retrying if the scheduling API is unavailable, and maintaining a permanent record of every inspection from scheduling through report delivery. You get all of that, without writing a single line of orchestration code.
+Each inspection step is a simple, independent worker. one schedules the inspector, one records the inspection findings, one organizes documentation (photos, notes, checklists), one generates the final report. Conductor takes care of executing them in order, retrying if the scheduling API is unavailable, and maintaining a permanent record of every inspection from scheduling through report delivery. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Scheduling, on-site assessment, deficiency documentation, and report generation 
 | **DocumentWorker** | `pin_document` | Organizes inspection findings into structured documentation with photos, severity ratings, and notes |
 | **ReportWorker** | `pin_report` | Generates the formal inspection report with overall condition assessment and recommended repairs |
 
-Workers simulate property transaction steps .  listing, inspection, escrow, closing ,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
+Workers implement property transaction steps. listing, inspection, escrow, closing,  with realistic outputs. Replace with real MLS and escrow service integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w pin_property_inspection -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real inspection tools .  your scheduling platform for inspector booking, a mobile inspection app for findings capture, your document system for report generation, and the workflow runs identically in production.
+Swap each worker for your real inspection tools. your scheduling platform for inspector booking, a mobile inspection app for findings capture, your document system for report generation, and the workflow runs identically in production.
 
 - **ScheduleWorker** (`pin_schedule`): integrate with Calendly or Google Calendar to book appointments, check inspector availability in your scheduling system
 - **InspectWorker** (`pin_inspect`): accept inspection data from a mobile app (Spectora, HomeGauge) where the inspector records findings on-site

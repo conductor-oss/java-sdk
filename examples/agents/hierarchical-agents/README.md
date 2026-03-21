@@ -1,6 +1,6 @@
 # Hierarchical Agents in Java Using Conductor :  Manager, Team Leads, and Workers in a Development Org
 
-Hierarchical agents .  manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.
+Hierarchical agents. manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.
 
 ## Software Projects Need Hierarchical Coordination
 
@@ -29,7 +29,7 @@ Eight agents form a hierarchy, the manager plans, team leads delegate to fronten
 | **WorkerStylingWorker** | `hier_worker_styling` | Styling developer worker that applies the design system, responsive layout, and theme support based on the styling ta... |
 | **WorkerUiWorker** | `hier_worker_ui` | UI developer worker that builds the page components defined by the frontend lead. |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

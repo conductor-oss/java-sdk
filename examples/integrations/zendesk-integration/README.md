@@ -1,10 +1,10 @@
 # Zendesk Integration in Java Using Conductor
 
-A Java Conductor workflow that manages a Zendesk support ticket lifecycle end-to-end .  creating a ticket from a requester's email and subject, classifying it by priority, routing it to the appropriate agent based on priority and category, and resolving the ticket. Given a requester email, subject, description, and category, the pipeline produces a ticket ID, priority classification, assigned agent, and resolution status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the create-classify-route-resolve pipeline.
+A Java Conductor workflow that manages a Zendesk support ticket lifecycle end-to-end. creating a ticket from a requester's email and subject, classifying it by priority, routing it to the appropriate agent based on priority and category, and resolving the ticket. Given a requester email, subject, description, and category, the pipeline produces a ticket ID, priority classification, assigned agent, and resolution status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the create-classify-route-resolve pipeline.
 
 ## Automating Zendesk Ticket Triage and Resolution
 
-When a support request arrives, you need to create a ticket in Zendesk, analyze its subject and description to determine priority (urgent, high, normal, low), route it to the right agent or group based on priority and category (billing goes to finance, bugs go to engineering), and ultimately mark it as resolved. Each step depends on the previous one .  you cannot classify without a ticket ID, and you cannot route without knowing the priority.
+When a support request arrives, you need to create a ticket in Zendesk, analyze its subject and description to determine priority (urgent, high, normal, low), route it to the right agent or group based on priority and category (billing goes to finance, bugs go to engineering), and ultimately mark it as resolved. Each step depends on the previous one. you cannot classify without a ticket ID, and you cannot route without knowing the priority.
 
 Without orchestration, you would chain Zendesk REST API calls manually, manage ticket IDs, priority levels, and agent assignments between steps, and handle edge cases like misrouted tickets or classification failures. Conductor sequences the pipeline and routes ticket IDs, priorities, and agent IDs between workers automatically.
 
@@ -25,7 +25,7 @@ Four workers manage the support lifecycle: CreateTicketWorker opens tickets, Cla
 | **ResolveTicketWorker** | `zd_resolve` | Resolves a ticket. |
 | **RouteTicketWorker** | `zd_route` | Routes ticket to an agent. |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

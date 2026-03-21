@@ -26,7 +26,7 @@ Five workers handle the invoice pipeline: ReceiveInvoiceWorker captures the docu
 | **ProcessPaymentWorker** | `ivc_process_payment` | Process Payment. Computes and returns payment status, payment id, scheduled date, payment method |
 | **ReceiveInvoiceWorker** | `ivc_receive_invoice` | Receive Invoice. Computes and returns received at, document type, page count |
 
-Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
+Workers implement financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
 
 ### The Workflow
 

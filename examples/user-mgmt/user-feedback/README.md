@@ -1,18 +1,18 @@
 # User Feedback Processing in Java Using Conductor :  Collection, Classification, Routing, and Auto-Response
 
-A Java Conductor workflow example for processing user feedback .  ingesting submissions from any channel, classifying them by category and priority, routing to the right internal team, and sending an automatic acknowledgment. Uses [Conductor](https://github.
+A Java Conductor workflow example for processing user feedback. ingesting submissions from any channel, classifying them by category and priority, routing to the right internal team, and sending an automatic acknowledgment. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to handle incoming user feedback from multiple sources (in-app forms, email, support portals). Each submission must be ingested, classified as a bug report, feature request, or general feedback, assigned a priority based on severity signals like "crash" or "urgent," routed to the appropriate team (engineering for bugs, product for feature requests, support for everything else), and followed up with a personalized acknowledgment so the user knows their feedback landed.
 
-Without orchestration, you'd chain all of this in a single service .  parsing text for keywords, looking up team routing tables, composing response messages, and wrapping every step in try/catch. When classification logic changes or a new feedback channel appears, you're editing a monolith. Failures in the response step can silently swallow the whole submission, and you have no visibility into which feedback items were classified but never routed.
+Without orchestration, you'd chain all of this in a single service. parsing text for keywords, looking up team routing tables, composing response messages, and wrapping every step in try/catch. When classification logic changes or a new feedback channel appears, you're editing a monolith. Failures in the response step can silently swallow the whole submission, and you have no visibility into which feedback items were classified but never routed.
 
 ## The Solution
 
 **You just write the feedback-ingestion, classification, routing, and auto-response workers. Conductor handles the processing pipeline and team routing.**
 
-Each concern .  ingestion, classification, routing, response ,  is a simple, independent worker. Conductor runs them in sequence, passes the classification output into routing and routing output into the response, retries any step that fails, and tracks every feedback submission end-to-end. You get all of that, without writing a single line of orchestration code.
+Each concern. ingestion, classification, routing, response,  is a simple, independent worker. Conductor runs them in sequence, passes the classification output into routing and routing output into the response, retries any step that fails, and tracks every feedback submission end-to-end. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ CollectFeedbackWorker ingests submissions, ClassifyFeedbackWorker categorizes by
 | **RouteFeedbackWorker** | `ufb_route` | Maps the classified category to an internal team (engineering, product, support) and creates a ticket |
 | **RespondFeedbackWorker** | `ufb_respond` | Sends the user a personalized auto-response referencing their category and assigned team |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w ufb_user_feedback -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one feedback step .  connect your feedback tool (Intercom, Canny, UserVoice) for ingestion and your project tracker (Jira, Linear) for team routing, and the feedback workflow stays the same.
+Each worker handles one feedback step. connect your feedback tool (Intercom, Canny, UserVoice) for ingestion and your project tracker (Jira, Linear) for team routing, and the feedback workflow stays the same.
 
 - **CollectFeedbackWorker** (`ufb_collect`): persist feedback to PostgreSQL/DynamoDB and publish to a Kafka topic for analytics
 - **ClassifyFeedbackWorker** (`ufb_classify`): replace keyword matching with an ML classifier or LLM-based sentiment analysis for richer categorization

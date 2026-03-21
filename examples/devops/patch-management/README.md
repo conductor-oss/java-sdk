@@ -6,13 +6,13 @@ Automates security patch management using [Conductor](https://github.com/conduct
 
 A critical CVE was published yesterday affecting OpenSSL on your fleet of 200 servers. You need to know which hosts are vulnerable, patch them without taking down the entire fleet at once (rolling deployment), and verify every host is running the patched version and still healthy. Missing a host means leaving a known vulnerability exposed. Patching too aggressively means a service outage if the patch has a regression.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
 **You write the vulnerability scanning and patching logic. Conductor handles rolling deployment sequencing, verification gates, and compliance reporting.**
 
-`ScanVulnerabilitiesWorker` identifies systems affected by known vulnerabilities, prioritizing by CVSS severity score and exposure level. `DeployPatchWorker` applies the security patch to the targeted systems .  updating packages, applying hotfixes, or deploying updated container images. `TestPatchWorker` runs functional tests on the patched systems to confirm no regressions ,  application health checks, integration tests, and load tests. `VerifyPatchWorker` re-scans the patched systems to confirm the vulnerability is remediated and no new vulnerabilities were introduced. Conductor sequences these steps and records the patch lifecycle for compliance reporting.
+`ScanVulnerabilitiesWorker` identifies systems affected by known vulnerabilities, prioritizing by CVSS severity score and exposure level. `DeployPatchWorker` applies the security patch to the targeted systems. updating packages, applying hotfixes, or deploying updated container images. `TestPatchWorker` runs functional tests on the patched systems to confirm no regressions,  application health checks, integration tests, and load tests. `VerifyPatchWorker` re-scans the patched systems to confirm the vulnerability is remediated and no new vulnerabilities were introduced. Conductor sequences these steps and records the patch lifecycle for compliance reporting.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ Three workers manage the patching cycle. Scanning for vulnerabilities, deploying
 | **ScanVulnerabilities** | `pm_scan_vulnerabilities` | Scans systems for vulnerabilities matching a given patch. |
 | **VerifyPatch** | `pm_verify_patch` | Verifies that all hosts are patched and healthy. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -122,7 +122,7 @@ conductor workflow search -w patch_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one patch lifecycle step .  replace the simulated calls with Qualys or Nessus for vulnerability scanning and Ansible for OS-level patching, and the patch management workflow runs unchanged.
+Each worker handles one patch lifecycle step. replace the simulated calls with Qualys or Nessus for vulnerability scanning and Ansible for OS-level patching, and the patch management workflow runs unchanged.
 
 - **ScanVulnerabilitiesWorker**: integrate with Qualys, Nessus, Trivy (for containers), or AWS Inspector for real vulnerability scanning with CVE correlation
 - **DeployPatchWorker**: use Ansible for OS-level patching, yum/apt for package updates, or update container base images and redeploy via CI/CD

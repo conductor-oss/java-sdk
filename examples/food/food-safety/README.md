@@ -6,13 +6,13 @@ Conducts a food safety inspection: visiting the facility, checking temperatures,
 
 You need to conduct a food safety inspection at a restaurant. An inspector visits the facility, checks temperature logs for food storage and cooking equipment, verifies hygiene practices (handwashing, cross-contamination prevention, pest control), issues a safety certification if standards are met, and records the inspection results. Certifying without thorough temperature and hygiene checks puts public health at risk.
 
-Without orchestration, you'd manage inspections with paper checklists and spreadsheets .  manually tracking which restaurants are due for inspection, recording findings in documents, issuing certificates through a separate system, and maintaining records for health department audits.
+Without orchestration, you'd manage inspections with paper checklists and spreadsheets. manually tracking which restaurants are due for inspection, recording findings in documents, issuing certificates through a separate system, and maintaining records for health department audits.
 
 ## The Solution
 
 **You just write the facility inspection, temperature checks, hygiene verification, and certification issuance logic. Conductor handles inspection scheduling retries, compliance routing, and safety audit trails.**
 
-Each food safety concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (inspect, check temps, verify hygiene, certify, record), tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each food safety concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (inspect, check temps, verify hygiene, certify, record), tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Inspection scheduling, temperature logging, compliance checking, and reporting w
 | **RecordWorker** | `fsf_record` | Records inspection results and compliance status in the food safety database |
 | **VerifyHygieneWorker** | `fsf_verify_hygiene` | Verifies hygiene practices (handwashing, surface sanitation, cross-contamination prevention) and returns a score |
 
-Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
+Workers implement food service operations. order processing, kitchen routing, delivery coordination,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w food_safety_738 -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real food safety tools .  your inspection scheduling system, IoT temperature sensors for monitoring, your health department portal for certification filing, and the workflow runs identically in production.
+Swap each worker for your real food safety tools. your inspection scheduling system, IoT temperature sensors for monitoring, your health department portal for certification filing, and the workflow runs identically in production.
 
 - **Facility inspector**: pull inspection schedules from your health department system and record findings with photo evidence
 - **Temperature checker**: read from IoT temperature sensors (Thermoworks, ComplianceMate) for real-time cold/hot holding verification

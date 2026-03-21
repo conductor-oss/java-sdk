@@ -1,6 +1,6 @@
 # RAG Evaluation in Java Using Conductor :  Faithfulness, Relevance, and Coherence Scoring in Parallel
 
-A Java Conductor workflow that runs a RAG pipeline and then evaluates the output on three quality dimensions simultaneously .  faithfulness (does the answer stick to the retrieved context?), relevance (does it address the question?), and coherence (is it well-structured and readable?). Conductor's `FORK_JOIN` runs all three evaluations in parallel, then aggregates the scores. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate RAG execution, parallel evaluation, and score aggregation as independent workers ,  you write the evaluation logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that runs a RAG pipeline and then evaluates the output on three quality dimensions simultaneously. faithfulness (does the answer stick to the retrieved context?), relevance (does it address the question?), and coherence (is it well-structured and readable?). Conductor's `FORK_JOIN` runs all three evaluations in parallel, then aggregates the scores. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate RAG execution, parallel evaluation, and score aggregation as independent workers,  you write the evaluation logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Measuring RAG Quality Systematically
 
@@ -16,7 +16,7 @@ The RAG pipeline runs first, producing a question, context, and answer. Then Con
 
 ### What You Write: Workers
 
-Five workers evaluate RAG quality .  running the RAG pipeline, then scoring faithfulness, relevance, and coherence in parallel via FORK_JOIN, and aggregating the three scores into a unified quality report.
+Five workers evaluate RAG quality. running the RAG pipeline, then scoring faithfulness, relevance, and coherence in parallel via FORK_JOIN, and aggregating the three scores into a unified quality report.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -26,7 +26,7 @@ Five workers evaluate RAG quality .  running the RAG pipeline, then scoring fait
 | **EvalRelevanceWorker** | `re_eval_relevance` | Worker that evaluates the relevance of a RAG answer. Checks whether the answer addresses the original question. |
 | **RunRagWorker** | `re_run_rag` | Worker that simulates running a RAG pipeline. Takes a question and returns an answer, context passages, and retrieved... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -135,7 +135,7 @@ conductor workflow search -w rag_evaluation_pipeline -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker scores one quality dimension .  swap in LLM-based evaluators for faithfulness, relevance, and coherence checks, and the parallel evaluation-aggregation pipeline runs unchanged.
+Each worker scores one quality dimension. swap in LLM-based evaluators for faithfulness, relevance, and coherence checks, and the parallel evaluation-aggregation pipeline runs unchanged.
 
 - **RunRagWorker** (`re_run_rag`): call your production RAG pipeline (retrieve + generate) and capture the answer, retrieved context, and metadata for evaluation
 - **EvalFaithfulnessWorker** (`re_eval_faithfulness`): use an LLM-as-judge (GPT-4, Claude) or DeepEval/RAGAS to score whether the answer is supported by the retrieved context

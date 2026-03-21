@@ -1,10 +1,10 @@
 # Implementing E-Commerce Order Saga in Java with Conductor :  Inventory, Payment, and Shipping with Compensation
 
-A Java Conductor workflow example demonstrating the saga pattern for e-commerce .  reserving inventory, charging payment, and shipping the order in sequence, with compensating transactions (release inventory, refund payment) that execute when shipping fails.
+A Java Conductor workflow example demonstrating the saga pattern for e-commerce. reserving inventory, charging payment, and shipping the order in sequence, with compensating transactions (release inventory, refund payment) that execute when shipping fails.
 
 ## The Problem
 
-You process an e-commerce order: reserve the inventory so it's not sold to someone else, charge the customer's payment method, and ship the order. If shipping fails (item damaged, carrier unavailable), the payment must be refunded and the inventory must be released back to stock. Each step depends on the previous one .  you can't charge without reserved inventory, and you can't ship without payment.
+You process an e-commerce order: reserve the inventory so it's not sold to someone else, charge the customer's payment method, and ship the order. If shipping fails (item damaged, carrier unavailable), the payment must be refunded and the inventory must be released back to stock. Each step depends on the previous one. you can't charge without reserved inventory, and you can't ship without payment.
 
 Without orchestration, order processing is a monolithic transaction attempt. A shipping failure after successful payment leaves the customer charged with no shipment. A payment failure after inventory reservation leaves stock locked. Compensating each combination of partial success requires tangled error-handling code.
 
@@ -12,7 +12,7 @@ Without orchestration, order processing is a monolithic transaction attempt. A s
 
 **You just write the order processing and compensation logic. Conductor handles the reserve-charge-ship sequence, SWITCH-based failure detection, reverse-order compensation (refund then release), retries on each step, and a complete audit trail of every order showing which steps completed and which compensations ran.**
 
-Each forward step (reserve inventory, charge payment, ship order) and its compensation (release inventory, refund payment) are independent workers. Conductor runs the forward steps in sequence. When shipping fails, the failure workflow triggers compensation .  refund payment, then release inventory ,  in the correct reverse order. Every step is tracked, so you can see exactly where the order failed and which compensations ran. You get all of that, without writing a single line of orchestration code.
+Each forward step (reserve inventory, charge payment, ship order) and its compensation (release inventory, refund payment) are independent workers. Conductor runs the forward steps in sequence. When shipping fails, the failure workflow triggers compensation. refund payment, then release inventory,  in the correct reverse order. Every step is tracked, so you can see exactly where the order failed and which compensations ran. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ ReserveInventoryWorker locks stock, ChargePaymentWorker processes the charge, an
 | **ReserveInventoryWorker** | `spi_reserve_inventory` | Worker for spi_reserve_inventory. Reserves inventory for an order. Produces a deterministic reservation ID "INV-001.. |
 | **ShipOrderWorker** | `spi_ship_order` | Worker for spi_ship_order. Ships an order. If the input parameter "shouldFail" is true, the worker returns shipStat.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -134,7 +134,7 @@ conductor workflow search -w saga_payment_inventory -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one order step .  connect the inventory worker to your warehouse system, the payment worker to Stripe or Braintree, the shipping worker to your carrier API, and the reserve-charge-ship saga with compensation stays the same.
+Each worker handles one order step. connect the inventory worker to your warehouse system, the payment worker to Stripe or Braintree, the shipping worker to your carrier API, and the reserve-charge-ship saga with compensation stays the same.
 
 - **ChargePaymentWorker** (`spi_charge_payment`): charge via Stripe/PayPal/Braintree, returning a charge ID for potential refund
 - **RefundPaymentWorker** (`spi_refund_payment`): issue a refund via Stripe/PayPal/Braintree using the charge ID from the payment step

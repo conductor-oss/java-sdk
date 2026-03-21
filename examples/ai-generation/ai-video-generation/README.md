@@ -1,6 +1,6 @@
 # AI Video Generation in Java Using Conductor :  Script, Storyboard, Generate, Edit, Render
 
-A Java Conductor workflow that produces AI-generated videos through a five-stage production pipeline .  writing the script from a topic, creating a visual storyboard with scene descriptions, generating video clips for each scene, editing clips into a sequence with transitions, and rendering the final video. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the video production pipeline as independent workers ,  you write the video generation logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that produces AI-generated videos through a five-stage production pipeline. writing the script from a topic, creating a visual storyboard with scene descriptions, generating video clips for each scene, editing clips into a sequence with transitions, and rendering the final video. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the video production pipeline as independent workers,  you write the video generation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Automated Video Production Is a Multi-Stage Pipeline
 
@@ -12,7 +12,7 @@ Each stage is a different skillset and toolset. NLP for scriptwriting, visual pl
 
 **You just write the scriptwriting, storyboarding, clip generation, editing, and rendering logic. Conductor handles render retries, stage dependencies, and execution tracking across all video pipeline steps.**
 
-`ScriptWorker` writes the video script from the topic .  narration text, scene descriptions, timing cues, and visual directions for the specified duration and style. `StoryboardWorker` translates each script scene into detailed visual specifications ,  composition, camera movement, color palette, and transition type. `GenerateWorker` creates video clips for each storyboard frame using AI video generation models. `EditWorker` sequences the clips with transitions, timing adjustments, and audio sync. `RenderWorker` encodes the final video at the target resolution, format, and bitrate. Conductor tracks each stage's execution time and output for production analytics.
+`ScriptWorker` writes the video script from the topic. narration text, scene descriptions, timing cues, and visual directions for the specified duration and style. `StoryboardWorker` translates each script scene into detailed visual specifications,  composition, camera movement, color palette, and transition type. `GenerateWorker` creates video clips for each storyboard frame using AI video generation models. `EditWorker` sequences the clips with transitions, timing adjustments, and audio sync. `RenderWorker` encodes the final video at the target resolution, format, and bitrate. Conductor tracks each stage's execution time and output for production analytics.
 
 ### What You Write: Workers
 
@@ -20,13 +20,13 @@ Five workers divide the video creation process: scripting, storyboarding, clip g
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **EditWorker** | `avg_edit` | Edits the generated video clips .  applies transitions, audio sync, and timing adjustments to produce a coherent sequence |
+| **EditWorker** | `avg_edit` | Edits the generated video clips. applies transitions, audio sync, and timing adjustments to produce a coherent sequence |
 | **GenerateWorker** | `avg_generate` | Generates video clips for each storyboard scene using AI video generation in the specified style |
 | **RenderWorker** | `avg_render` | Renders the edited video at 1080p resolution, producing the final MP4 output with encoding metadata |
-| **ScriptWorker** | `avg_script` | Writes a video script from the topic .  generates scene descriptions, narration, and timing cues for the specified duration |
+| **ScriptWorker** | `avg_script` | Writes a video script from the topic. generates scene descriptions, narration, and timing cues for the specified duration |
 | **StoryboardWorker** | `avg_storyboard` | Translates the script into a visual storyboard with 5 scenes, shot descriptions, and 15 keyframes |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live script and storyboard generation (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live script and storyboard generation (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 

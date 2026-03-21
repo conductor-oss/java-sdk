@@ -1,6 +1,6 @@
 # RAG Access Control in Java Using Conductor :  Authentication, Permission Filtering, and Data Redaction
 
-A Java Conductor workflow that wraps a RAG pipeline with enterprise access controls .  authenticating the user, checking document-level permissions, filtering retrieval results to only include documents the user is authorized to see, redacting sensitive fields (PII, financial data, classified content) from the context, and generating an answer from the sanitized, permission-filtered documents. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage access-controlled pipeline as independent workers ,  you write the auth, permission, redaction, and generation logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that wraps a RAG pipeline with enterprise access controls. authenticating the user, checking document-level permissions, filtering retrieval results to only include documents the user is authorized to see, redacting sensitive fields (PII, financial data, classified content) from the context, and generating an answer from the sanitized, permission-filtered documents. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage access-controlled pipeline as independent workers,  you write the auth, permission, redaction, and generation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## RAG Without Access Control Is a Data Leak
 
@@ -8,17 +8,17 @@ A standard RAG pipeline retrieves documents and generates answers without checki
 
 Access-controlled RAG adds four gates before generation: authenticate the user (validate their token/session), check their permissions (which document categories can they access?), filter retrieval results (remove any documents they shouldn't see), and redact sensitive fields from the remaining documents. Only then does the sanitized context reach the LLM.
 
-Each gate must execute in order .  you can't filter by permissions before you know who the user is, and you can't redact before filtering. If any gate fails (invalid token, permission service unavailable), the pipeline must stop cleanly without leaking data.
+Each gate must execute in order. you can't filter by permissions before you know who the user is, and you can't redact before filtering. If any gate fails (invalid token, permission service unavailable), the pipeline must stop cleanly without leaking data.
 
 ## The Solution
 
 **You write the authentication, permission filtering, and data redaction logic. Conductor handles the access-controlled pipeline, retries, and observability.**
 
-Each access control gate is an independent worker .  authentication, permission checking, filtered retrieval, sensitive data redaction, and generation. Conductor sequences them so each gate's output feeds into the next. If the permission service times out, Conductor retries it without re-authenticating. Every query is tracked with the user identity, permissions applied, documents filtered, fields redacted, and final answer ,  creating a complete audit trail for compliance.
+Each access control gate is an independent worker. authentication, permission checking, filtered retrieval, sensitive data redaction, and generation. Conductor sequences them so each gate's output feeds into the next. If the permission service times out, Conductor retries it without re-authenticating. Every query is tracked with the user identity, permissions applied, documents filtered, fields redacted, and final answer,  creating a complete audit trail for compliance.
 
 ### What You Write: Workers
 
-Five workers enforce access control throughout the RAG pipeline .  authenticating the user, checking document-level permissions, retrieving only authorized content, redacting sensitive fields, and generating an answer from the sanitized context.
+Five workers enforce access control throughout the RAG pipeline. authenticating the user, checking document-level permissions, retrieving only authorized content, redacting sensitive fields, and generating an answer from the sanitized context.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -28,7 +28,7 @@ Five workers enforce access control throughout the RAG pipeline .  authenticatin
 | **GenerateWorker** | `ac_generate` | Worker that generates an answer from the access-controlled and redacted context. Notes when data has been redacted du... |
 | **RedactSensitiveWorker** | `ac_redact_sensitive` | Worker that redacts sensitive information from documents based on clearance level. Redacts SSN patterns and salary fi... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -139,7 +139,7 @@ conductor workflow search -w rag_access_control -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker enforces one security gate .  swap in your identity provider for authentication, your IAM system for permission checks, real PII detection for redaction, and the five-stage access-controlled pipeline runs unchanged.
+Each worker enforces one security gate. swap in your identity provider for authentication, your IAM system for permission checks, real PII detection for redaction, and the five-stage access-controlled pipeline runs unchanged.
 
 - **AuthenticateUserWorker** (`ac_authenticate_user`): validate JWT tokens against your identity provider (Auth0, Okta, AWS Cognito) and extract roles and clearance level from claims
 - **CheckPermissionsWorker** (`ac_check_permissions`): query a policy engine (Open Policy Agent, AWS Cedar, Casbin) to determine which document collections the user may access
@@ -147,7 +147,7 @@ Each worker enforces one security gate .  swap in your identity provider for aut
 - **GenerateWorker** (`ac_generate`): send the access-controlled, redacted context to an LLM (OpenAI GPT-4, Anthropic Claude) to generate an answer that respects the user's clearance level
 - **RedactSensitiveWorker** (`ac_redact_sensitive`): apply PII redaction (SSN patterns, salary figures) using regex or a dedicated PII detection library (Presidio, AWS Comprehend) based on user clearance
 
-Each worker preserves the security contract at its boundary .  swap the auth provider, change the permission model, or upgrade the redaction strategy without altering the pipeline routing.
+Each worker preserves the security contract at its boundary. swap the auth provider, change the permission model, or upgrade the redaction strategy without altering the pipeline routing.
 
 ## SDK
 

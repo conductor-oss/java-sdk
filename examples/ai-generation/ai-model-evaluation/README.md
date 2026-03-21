@@ -1,6 +1,6 @@
 # AI Model Evaluation in Java Using Conductor :  Load Model, Prepare Test Set, Run Inference, Compute Metrics, Report
 
-A Java Conductor workflow that evaluates a machine learning model end-to-end .  loading the model artifacts, preparing the test dataset, running inference on all test samples, computing evaluation metrics (accuracy, F1, precision, recall, latency), and generating a comprehensive evaluation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage evaluation pipeline as independent workers ,  you write the evaluation logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that evaluates a machine learning model end-to-end. loading the model artifacts, preparing the test dataset, running inference on all test samples, computing evaluation metrics (accuracy, F1, precision, recall, latency), and generating a comprehensive evaluation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage evaluation pipeline as independent workers,  you write the evaluation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Model Evaluation Must Be Systematic and Reproducible
 
@@ -12,7 +12,7 @@ Each step must be reproducible: the same model version, the same test set, the s
 
 **You just write the model loading, test set preparation, batch inference, metrics computation, and evaluation reporting logic. Conductor handles inference retries, metric aggregation sequencing, and full evaluation audit trails.**
 
-`LoadModelWorker` loads the model artifacts (weights, config, tokenizer) and verifies integrity. `PrepareTestSetWorker` loads and preprocesses the test dataset .  applying the same transformations used during training. `RunInferenceWorker` runs the model on all test samples and collects predictions with confidence scores. `ComputeMetricsWorker` calculates task-appropriate metrics ,  accuracy, precision, recall, F1, confusion matrix for classification; BLEU, ROUGE for generation; latency percentiles for performance. `ReportWorker` generates the evaluation report with metric summaries, per-class breakdowns, and failure analysis. Conductor tracks each evaluation run for model comparison over time.
+`LoadModelWorker` loads the model artifacts (weights, config, tokenizer) and verifies integrity. `PrepareTestSetWorker` loads and preprocesses the test dataset. applying the same transformations used during training. `RunInferenceWorker` runs the model on all test samples and collects predictions with confidence scores. `ComputeMetricsWorker` calculates task-appropriate metrics,  accuracy, precision, recall, F1, confusion matrix for classification; BLEU, ROUGE for generation; latency percentiles for performance. `ReportWorker` generates the evaluation report with metric summaries, per-class breakdowns, and failure analysis. Conductor tracks each evaluation run for model comparison over time.
 
 ### What You Write: Workers
 
@@ -20,12 +20,12 @@ Each evaluation stage: model loading, test preparation, inference, metric comput
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ComputeMetricsWorker** | `ame_compute_metrics` | Computes evaluation metrics from predictions and ground truth .  accuracy (0.937), F1 (0.929), and AUC (0.981) |
+| **ComputeMetricsWorker** | `ame_compute_metrics` | Computes evaluation metrics from predictions and ground truth. accuracy (0.937), F1 (0.929), and AUC (0.981) |
 | **LoadModelWorker** | `ame_load_model` | Loads the model artifacts (500M parameters) and returns the inference endpoint URL |
 | **ReportWorker** | `ame_report` | Generates a comprehensive evaluation report with metric summaries and model comparison data |
 | **RunInferenceWorker** | `ame_run_inference` | Runs batch inference on test samples, returning predictions with P50 (12ms) and P99 (45ms) latency metrics |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -104,7 +104,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI evaluation (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI evaluation (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 

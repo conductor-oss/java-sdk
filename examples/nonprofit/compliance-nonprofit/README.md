@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Compliance Nonprofit. Uses [Cond
 
 Your nonprofit's fiscal year just closed, and you need to run the annual compliance review before filing deadlines. The compliance team must audit the organization's financials and governance, verify that all required filings (Form 990, state registration, annual report) are current, check IRS, state, and donor compliance requirements, generate a compliance report with findings and risk scores, and submit the final compliance package to regulators. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Regulation identification, documentation review, gap assessment, and reporting w
 | **SubmitWorker** | `cnp_submit` | Submits the compliance package for the organization's EIN and returns a confirmation ID |
 | **VerifyFilingsWorker** | `cnp_verify_filings` | Verifies that Form 990, state registration, and annual report filings are current for the EIN |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w compliance_nonprofit_760 -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real compliance systems .  your document management for policy review, your grant portal for reporting requirements, your filing platform for regulatory submissions, and the workflow runs identically in production.
+Wire each worker to your real compliance systems. your document management for policy review, your grant portal for reporting requirements, your filing platform for regulatory submissions, and the workflow runs identically in production.
 
 - **AuditWorker** (`cnp_audit`): pull financial data from your accounting system (QuickBooks, Sage Intacct) and governance records from your board management platform to compute the program expense ratio
 - **VerifyFilingsWorker** (`cnp_verify_filings`): query the IRS e-file status API and your state's charity registration portal to confirm all filings are up to date

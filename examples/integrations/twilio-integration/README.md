@@ -1,10 +1,10 @@
 # Twilio Integration in Java Using Conductor
 
-A Java Conductor workflow that runs a two-way SMS conversation via Twilio .  sending an outbound SMS, waiting for the recipient's reply, processing the response to generate contextual follow-up content, and sending a reply SMS back. Given a to/from phone number pair and message body, the pipeline produces the original message SID, the received response, and the reply SID. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the send-wait-process-reply pipeline.
+A Java Conductor workflow that runs a two-way SMS conversation via Twilio. sending an outbound SMS, waiting for the recipient's reply, processing the response to generate contextual follow-up content, and sending a reply SMS back. Given a to/from phone number pair and message body, the pipeline produces the original message SID, the received response, and the reply SID. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the send-wait-process-reply pipeline.
 
 ## Running Two-Way SMS Conversations Through Twilio
 
-Two-way SMS involves more than sending a single message. You send an outbound SMS, wait for the recipient to reply (polling or webhook), process the reply to determine the appropriate response (parsing keywords, looking up context, generating a follow-up), and send the reply back. Each step depends on the previous one .  you cannot wait for a reply without a message SID from the send step, and you cannot generate a reply without the response body.
+Two-way SMS involves more than sending a single message. You send an outbound SMS, wait for the recipient to reply (polling or webhook), process the reply to determine the appropriate response (parsing keywords, looking up context, generating a follow-up), and send the reply back. Each step depends on the previous one. you cannot wait for a reply without a message SID from the send step, and you cannot generate a reply without the response body.
 
 Without orchestration, you would chain Twilio REST API calls manually, manage message SIDs and response bodies between steps, and build custom polling or webhook handling for inbound messages. Conductor sequences the pipeline and routes message SIDs, response content, and reply text between workers automatically.
 

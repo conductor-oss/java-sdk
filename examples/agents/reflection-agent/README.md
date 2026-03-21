@@ -1,12 +1,12 @@
 # Reflection Agent in Java Using Conductor :  Generate, Reflect, Improve in Iterative Refinement Loop
 
-Reflection Agent .  generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output. Uses [Conductor](https://github.
+Reflection Agent. generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output. Uses [Conductor](https://github.
 
 ## First Drafts Are Never Good Enough
 
 An LLM's first response to "Write an essay about climate change solutions" is serviceable but rarely excellent. It might lack specific examples, have a weak conclusion, or miss an important perspective. A reflection agent catches these weaknesses: after generating the initial draft, a separate reflection step identifies specific issues ("Paragraph 3 lacks a concrete example", "The economic analysis is superficial"), and an improvement step addresses each issue.
 
-Each iteration sharpens the output .  the first reflection might catch structural problems, the second might catch factual gaps, the third might polish prose quality. The loop terminates when the reflection step finds no significant issues or a maximum iteration count is reached. Without orchestration, managing the evolving draft across iterations, tracking which issues were found and fixed, and implementing loop termination logic requires careful state management.
+Each iteration sharpens the output. the first reflection might catch structural problems, the second might catch factual gaps, the third might polish prose quality. The loop terminates when the reflection step finds no significant issues or a maximum iteration count is reached. Without orchestration, managing the evolving draft across iterations, tracking which issues were found and fixed, and implementing loop termination logic requires careful state management.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Four workers power iterative refinement. Generating an initial draft, reflecting
 | **InitialGenerationWorker** | `rn_initial_generation` | Generates an initial draft on a given topic. Produces a shallow first pass with a low quality score, setting the stag... |
 | **ReflectWorker** | `rn_reflect` | Reflects on the current draft and provides constructive feedback along with a quality score. The feedback varies by i... |
 
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode .  the agent workflow stays the same.
+Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.
 
 ### The Workflow
 

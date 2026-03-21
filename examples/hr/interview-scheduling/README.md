@@ -1,6 +1,6 @@
 # Interview Scheduling in Java with Conductor :  Availability Check, Slot Selection, Candidate Invite, Confirmation, and Reminder
 
-A Java Conductor workflow example for interview scheduling .  checking interviewer panel calendar availability, selecting the best time slot, sending the candidate an invite with video link and details, confirming all participants, and sending day-of reminders. Uses [Conductor](https://github.
+A Java Conductor workflow example for interview scheduling. checking interviewer panel calendar availability, selecting the best time slot, sending the candidate an invite with video link and details, confirming all participants, and sending day-of reminders. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a scheduling tool that queries each interview
 
 **You just write the availability checking, slot selection, candidate invitation, confirmation, and reminder logic. Conductor handles calendar booking retries, availability matching, and scheduling audit trails.**
 
-Each stage of interview scheduling is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking availability before scheduling, scheduling before inviting, confirming all participants after the invite is sent, sending reminders only after confirmation, retrying if a calendar API is temporarily unavailable, and giving recruiters complete visibility into every interview's scheduling status. You get all of that, without writing a single line of orchestration code.
+Each stage of interview scheduling is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking availability before scheduling, scheduling before inviting, confirming all participants after the invite is sent, sending reminders only after confirmation, retrying if a calendar API is temporarily unavailable, and giving recruiters complete visibility into every interview's scheduling status. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Availability collection, slot matching, calendar booking, and reminder workers c
 | **ConfirmWorker** | `ivs_confirm` | Confirms all interviewers have accepted the calendar hold and flags any who have declined or not responded |
 | **RemindWorker** | `ivs_remind` | Sends day-of reminders to the candidate and all interviewers with the agenda, scorecard link, and join instructions |
 
-Workers simulate HR operations .  onboarding tasks, approvals, provisioning ,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
+Workers implement HR operations. onboarding tasks, approvals, provisioning,  with realistic outputs. Replace with real HRIS and identity provider integrations and the workflow stays the same.
 
 ### The Workflow
 

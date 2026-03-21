@@ -1,18 +1,18 @@
 # AI Orchestration Platform in Java Using Conductor :  Receive, Route to Model, Execute, Validate, Respond
 
-A Java Conductor workflow that acts as an AI request gateway .  receiving incoming AI requests, routing each to the appropriate model based on request type and priority, executing the model inference, validating the response quality, and returning the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request routing, model execution, and validation as independent workers ,  you write the routing and model integration logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that acts as an AI request gateway. receiving incoming AI requests, routing each to the appropriate model based on request type and priority, executing the model inference, validating the response quality, and returning the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate request routing, model execution, and validation as independent workers,  you write the routing and model integration logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Routing AI Requests to the Right Model
 
 An organization running multiple AI models (GPT-4 for complex reasoning, Claude for long documents, a fine-tuned model for domain-specific tasks, a local model for sensitive data) needs a routing layer that sends each request to the right model. A summarization request goes to the model best at summarization. A coding request goes to the model best at code. A request involving PII goes to the on-premises model.
 
-The routing decision depends on request type, data sensitivity, model availability, cost constraints, and priority level. After model execution, the response needs quality validation before returning to the caller .  catching model hallucinations, format violations, and incomplete responses. Without orchestration, this routing becomes hardcoded conditional logic that's impossible to update when you add new models or change routing rules.
+The routing decision depends on request type, data sensitivity, model availability, cost constraints, and priority level. After model execution, the response needs quality validation before returning to the caller. catching model hallucinations, format violations, and incomplete responses. Without orchestration, this routing becomes hardcoded conditional logic that's impossible to update when you add new models or change routing rules.
 
 ## The Solution
 
 **You just write the request intake, model routing, inference execution, response validation, and delivery logic. Conductor handles model routing, inference retries, and end-to-end request tracking across providers.**
 
-`ReceiveRequestWorker` ingests the AI request and extracts its type, priority, and data sensitivity classification. `RouteModelWorker` selects the best model based on request type, sensitivity constraints, model availability, and cost/priority trade-offs. `ExecuteWorker` sends the request to the selected model and captures the response with usage metadata. `ValidateWorker` checks response quality .  format compliance, completeness, and confidence thresholds. `RespondWorker` returns the validated response to the caller with model selection metadata. Conductor tracks which model handled each request type for routing optimization.
+`ReceiveRequestWorker` ingests the AI request and extracts its type, priority, and data sensitivity classification. `RouteModelWorker` selects the best model based on request type, sensitivity constraints, model availability, and cost/priority trade-offs. `ExecuteWorker` sends the request to the selected model and captures the response with usage metadata. `ValidateWorker` checks response quality. format compliance, completeness, and confidence thresholds. `RespondWorker` returns the validated response to the caller with model selection metadata. Conductor tracks which model handled each request type for routing optimization.
 
 ### What You Write: Workers
 
@@ -24,9 +24,9 @@ Request routing, model execution, and response validation each run as isolated w
 | **ReceiveRequestWorker** | `aop_receive_request` | Ingests the incoming AI request and assigns a request ID based on type and priority |
 | **RespondWorker** | `aop_respond` | Sends the orchestrated response back to the requester with a status code and confirmation |
 | **RouteModelWorker** | `aop_route_model` | Routes the request to the best model (e.g., text-model-v3) based on request type, selecting the model endpoint with load balancing |
-| **ValidateWorker** | `aop_validate` | Validates the model response for coherence, relevance, and safety .  assigns a quality score and safety flag |
+| **ValidateWorker** | `aop_validate` | Validates the model response for coherence, relevance, and safety. assigns a quality score and safety flag |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI execution and validation (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI execution and validation (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 

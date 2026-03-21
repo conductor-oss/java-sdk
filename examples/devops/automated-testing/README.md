@@ -6,13 +6,13 @@ Orchestrates a test suite: setup environment, run unit/integration/e2e tests in 
 
 A test suite takes 30 minutes to run sequentially: 10 minutes for unit tests, 15 minutes for integration tests, 5 minutes for performance tests. Running all three in parallel brings it down to 15 minutes (the slowest suite). But parallel execution requires a shared environment setup, independent test runners, and a final aggregation step that merges results from all three suites.
 
-If integration tests fail, unit test results are still valid .  you don't need to re-run them. If the environment setup fails, no tests should run. After all suites complete, the aggregation step needs to produce a single pass/fail verdict with per-suite breakdowns, coverage metrics, and failure details.
+If integration tests fail, unit test results are still valid. you don't need to re-run them. If the environment setup fails, no tests should run. After all suites complete, the aggregation step needs to produce a single pass/fail verdict with per-suite breakdowns, coverage metrics, and failure details.
 
 ## The Solution
 
 **You write the test runners and environment setup. Conductor handles parallel execution, result aggregation, and per-suite failure isolation.**
 
-`SetupEnvWorker` provisions the test environment .  spinning up test databases, mock services, and test fixtures for the specified branch. `FORK_JOIN` dispatches parallel test suites: unit tests, integration tests, and performance tests run simultaneously in isolated runners. After `JOIN` collects all results, `AggregateResultsWorker` merges the per-suite reports into a unified test report with pass/fail counts, coverage metrics, failure details, and execution times. Conductor runs all suites in parallel and records each suite's results independently.
+`SetupEnvWorker` provisions the test environment. spinning up test databases, mock services, and test fixtures for the specified branch. `FORK_JOIN` dispatches parallel test suites: unit tests, integration tests, and performance tests run simultaneously in isolated runners. After `JOIN` collects all results, `AggregateResultsWorker` merges the per-suite reports into a unified test report with pass/fail counts, coverage metrics, failure details, and execution times. Conductor runs all suites in parallel and records each suite's results independently.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers run the test pipeline. Setting up the environment, executing unit/i
 | **RunUnit** | `at_run_unit` | Runs unit tests. |
 | **SetupEnv** | `at_setup_env` | Sets up the test environment. |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls .  the workflow and rollback logic stay the same.
+Workers implement infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls. the workflow and rollback logic stay the same.
 
 ### The Workflow
 
@@ -134,7 +134,7 @@ conductor workflow search -w automated_testing_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker runs one test suite or setup task .  replace the simulated calls with Maven Surefire, Testcontainers, or k6 for real test execution and coverage reporting, and the testing workflow runs unchanged.
+Each worker runs one test suite or setup task. replace the simulated calls with Maven Surefire, Testcontainers, or k6 for real test execution and coverage reporting, and the testing workflow runs unchanged.
 
 - **Test suite workers**: execute real test suites via Maven Surefire (unit), Testcontainers (integration), or k6/Gatling (performance) with actual pass/fail results and coverage reports
 - **SetupEnvWorker** (`at_setup_env`): provision ephemeral test environments using Docker Compose, Kubernetes namespaces, or Terraform workspaces with automatic cleanup after test completion

@@ -1,10 +1,10 @@
 # Email-Based Approval in Java Using Conductor :  Request Preparation, Approval Email with Click Links, WAIT for Response, and Decision Processing
 
-A Java Conductor workflow example for email-based approvals .  preparing a request, sending an email with embedded approve/reject URLs that map to the workflow's WAIT task, pausing until the approver clicks one of the links, and processing the resulting decision. Demonstrates how approvers who do not have dashboard access can approve directly from their inbox with a single click. Uses [Conductor](https://github.
+A Java Conductor workflow example for email-based approvals. preparing a request, sending an email with embedded approve/reject URLs that map to the workflow's WAIT task, pausing until the approver clicks one of the links, and processing the resulting decision. Demonstrates how approvers who do not have dashboard access can approve directly from their inbox with a single click. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need approvals from people who live in their email .  executives, external partners, or field workers who will never log into an approval dashboard. The workflow must prepare the request, send an email containing one-click approve and reject URLs, and wait for the approver to click one. Each URL maps to a unique Conductor WAIT task completion endpoint, so clicking "Approve" sends `{ "decision": "approved" }` and clicking "Reject" sends `{ "decision": "rejected" }` ,  completing the WAIT task and resuming the workflow. The decision must then be processed downstream. If the email provider is temporarily down, the send must retry without re-preparing the request. If the decision processing fails, it must retry without re-sending the email.
+You need approvals from people who live in their email. executives, external partners, or field workers who will never log into an approval dashboard. The workflow must prepare the request, send an email containing one-click approve and reject URLs, and wait for the approver to click one. Each URL maps to a unique Conductor WAIT task completion endpoint, so clicking "Approve" sends `{ "decision": "approved" }` and clicking "Reject" sends `{ "decision": "rejected" }`,  completing the WAIT task and resuming the workflow. The decision must then be processed downstream. If the email provider is temporarily down, the send must retry without re-preparing the request. If the decision processing fails, it must retry without re-sending the email.
 
 Without orchestration, you'd send the email, embed callback URLs pointing to a custom webhook server, poll a database for the response, and then advance the workflow. If the webhook server is down when the approver clicks, the approval is lost. If the system crashes between receiving the click and processing the decision, the request is stuck. There is no audit trail showing when the email was sent, when the link was clicked, or how long the approver took to respond.
 
@@ -20,12 +20,12 @@ PrepareWorker validates the request, SendEmailWorker delivers approve/reject lin
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **PrepareWorker** | `ea_prepare` | Prepares the approval request .  validates the requester and subject, enriches with context, and marks it as ready for email delivery |
+| **PrepareWorker** | `ea_prepare` | Prepares the approval request. validates the requester and subject, enriches with context, and marks it as ready for email delivery |
 | **SendEmailWorker** | `ea_send_email` | Sends an approval email with embedded approve/reject click URLs that map to the WAIT task's completion endpoint |
-| *WAIT task* | `email_response` | Pauses the workflow until the approver clicks an approve or reject link in the email, which completes this task via the Conductor API with the decision | Built-in Conductor WAIT .  no worker needed |
-| **ProcessDecisionWorker** | `ea_process_decision` | Processes the approval decision .  updates the request status, triggers downstream actions, and notifies the requester of the outcome |
+| *WAIT task* | `email_response` | Pauses the workflow until the approver clicks an approve or reject link in the email, which completes this task via the Conductor API with the decision | Built-in Conductor WAIT. no worker needed |
+| **ProcessDecisionWorker** | `ea_process_decision` | Processes the approval decision. updates the request status, triggers downstream actions, and notifies the requester of the outcome |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w email_approval_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one step of the email approval flow .  connect your email provider (SendGrid, SES, Mailgun) for delivery and your business system for decision processing, and the one-click approval workflow stays the same.
+Each worker handles one step of the email approval flow. connect your email provider (SendGrid, SES, Mailgun) for delivery and your business system for decision processing, and the one-click approval workflow stays the same.
 
 - **PrepareWorker** (`ea_prepare`): enrich the approval request with context from your business systems. Attach relevant documents, compute urgency scores
 - **ProcessDecisionWorker** (`ea_process_decision`): push the approval decision to downstream systems. Update a database, trigger a fulfillment workflow, or notify stakeholders via Slack

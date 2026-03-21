@@ -1,10 +1,10 @@
 # Database Integration in Java Using Conductor
 
-A Java Conductor workflow that performs a database-to-database ETL migration .  connecting to source and target databases, querying rows from the source, transforming the data (normalizing fields, adding timestamps), writing transformed rows to the target, and verifying the row counts match. Given source/target database configs, a query, and transform rules, the pipeline produces a verified migration with row counts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the connect-query-transform-write-verify pipeline.
+A Java Conductor workflow that performs a database-to-database ETL migration. connecting to source and target databases, querying rows from the source, transforming the data (normalizing fields, adding timestamps), writing transformed rows to the target, and verifying the row counts match. Given source/target database configs, a query, and transform rules, the pipeline produces a verified migration with row counts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the connect-query-transform-write-verify pipeline.
 
 ## Migrating Data Between Databases Reliably
 
-Database migration involves a strict sequence: connect to both databases, query the source, transform the data to match the target schema, write the transformed rows, and verify that source and target counts match. Each step depends on the previous one .  you cannot transform without data, and you cannot verify without knowing how many rows were written. If any step fails mid-migration, you need to know exactly where it stopped and be able to resume.
+Database migration involves a strict sequence: connect to both databases, query the source, transform the data to match the target schema, write the transformed rows, and verify that source and target counts match. Each step depends on the previous one. you cannot transform without data, and you cannot verify without knowing how many rows were written. If any step fails mid-migration, you need to know exactly where it stopped and be able to resume.
 
 Without orchestration, you would manage connection lifecycles, chain SQL operations manually, and build custom verification logic. Conductor sequences the five steps and tracks every row count and connection ID between them.
 
@@ -20,13 +20,13 @@ Five workers run the ETL migration: ConnectWorker establishes database connectio
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ConnectWorker** | `dbi_connect` | Establishes connections to source and target databases .  returns sourceConnectionId and targetConnectionId for use by subsequent query and write steps |
-| **QueryWorker** | `dbi_query` | Queries data from the source database .  executes the SQL query using the source connection and returns the result rows and rowCount |
-| **TransformWorker** | `dbi_transform` | Transforms the queried rows .  applies the transform rules (field normalization, timestamp addition, schema mapping) and returns the transformedRows and transformedCount |
-| **WriteWorker** | `dbi_write` | Writes transformed rows to the target database .  inserts the rows using the target connection and returns the writtenCount |
-| **VerifyWorker** | `dbi_verify` | Verifies the migration .  compares the source rowCount against the writtenCount and returns verified=true if they match |
+| **ConnectWorker** | `dbi_connect` | Establishes connections to source and target databases. returns sourceConnectionId and targetConnectionId for use by subsequent query and write steps |
+| **QueryWorker** | `dbi_query` | Queries data from the source database. executes the SQL query using the source connection and returns the result rows and rowCount |
+| **TransformWorker** | `dbi_transform` | Transforms the queried rows. applies the transform rules (field normalization, timestamp addition, schema mapping) and returns the transformedRows and transformedCount |
+| **WriteWorker** | `dbi_write` | Writes transformed rows to the target database. inserts the rows using the target connection and returns the writtenCount |
+| **VerifyWorker** | `dbi_verify` | Verifies the migration. compares the source rowCount against the writtenCount and returns verified=true if they match |
 
-Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients .  the workflow orchestration and error handling stay the same.
+Workers implement external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients. the workflow orchestration and error handling stay the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # User-Assigned Human Task in Java Using Conductor :  Document Preparation, WAIT Assigned to Specific Reviewer, and Post-Review Finalization
 
-A Java Conductor workflow example demonstrating user-specific task assignment .  preparing a document, pausing at a WAIT task assigned to a designated reviewer (not a group), and finalizing the document after the assigned person completes their review. Unlike group claims where anyone can pick up the task, this pattern ensures only the specified user can act. Uses [Conductor](https://github.
+A Java Conductor workflow example demonstrating user-specific task assignment. preparing a document, pausing at a WAIT task assigned to a designated reviewer (not a group), and finalizing the document after the assigned person completes their review. Unlike group claims where anyone can pick up the task, this pattern ensures only the specified user can act. Uses [Conductor](https://github.
 
 ## Review Tasks Need to Be Assigned to a Specific Person
 
@@ -10,7 +10,7 @@ Unlike group assignments, some tasks must go to a specific user, the document's 
 
 **You just write the document-preparation and post-review finalization workers. Conductor handles the user-specific assignment and the durable wait for that reviewer.**
 
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging .  your code handles the decision logic.
+Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. your code handles the decision logic.
 
 ### What You Write: Workers
 
@@ -18,11 +18,11 @@ HuaPrepareWorker identifies the designated reviewer from document metadata, and 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **HuaPrepareWorker** | `hua_prepare` | Prepares the document for review .  formats it, identifies the assigned reviewer from the document metadata, and signals readiness |
-| *WAIT task* | `hua_user_review` | Pauses until the assigned user completes their review via `POST /tasks/{taskId}` with their feedback and decision | Built-in Conductor WAIT .  no worker needed |
-| **HuaPostReviewWorker** | `hua_post_review` | Finalizes the document after review .  applies the reviewer's feedback, updates the document status, and notifies the author |
+| **HuaPrepareWorker** | `hua_prepare` | Prepares the document for review. formats it, identifies the assigned reviewer from the document metadata, and signals readiness |
+| *WAIT task* | `hua_user_review` | Pauses until the assigned user completes their review via `POST /tasks/{taskId}` with their feedback and decision | Built-in Conductor WAIT. no worker needed |
+| **HuaPostReviewWorker** | `hua_post_review` | Finalizes the document after review. applies the reviewer's feedback, updates the document status, and notifies the author |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments .  the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
 
 ### The Workflow
 
@@ -126,7 +126,7 @@ conductor workflow search -w human_user_assignment_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one end of the review cycle .  connect your document management system for preparation and your review tracking platform for finalization, and the user-assignment workflow stays the same.
+Each worker handles one end of the review cycle. connect your document management system for preparation and your review tracking platform for finalization, and the user-assignment workflow stays the same.
 
 - **HuaPostReviewWorker** (`hua_post_review`): apply the reviewer's changes, update document status in your DMS, send notification to the author, and archive the review record
 - **HuaPrepareWorker** (`hua_prepare`): fetch the document from a DMS, look up the designated reviewer from an org chart or assignment rules engine, and set permissions

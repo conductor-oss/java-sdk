@@ -1,6 +1,6 @@
 # Task Routing in Java Using Conductor :  Analyze Requirements, Select Worker Pool, Dispatch, Verify
 
-A Java Conductor workflow example for intelligent task routing .  analyzing a task's resource requirements (CPU, GPU, memory) and region constraints, selecting the optimal worker pool to handle it, dispatching the task to that pool, and verifying successful execution. Uses [Conductor](https://github.
+A Java Conductor workflow example for intelligent task routing. analyzing a task's resource requirements (CPU, GPU, memory) and region constraints, selecting the optimal worker pool to handle it, dispatching the task to that pool, and verifying successful execution. Uses [Conductor](https://github.
 
 ## Tasks Have Different Resource Needs :  Send Them to the Right Pool
 
@@ -12,7 +12,7 @@ Intelligent task routing means analyzing each task's requirements (GPU type, mem
 
 **You write the requirements analysis and pool selection logic. Conductor handles dispatch sequencing, retries, and routing audit trails.**
 
-`TrtAnalyzeRequirementsWorker` examines the task type, resource needs, and region constraints to build a requirements profile. `TrtSelectPoolWorker` matches the requirements against available worker pools and selects the best fit .  considering capacity, cost, and locality. `TrtDispatchWorker` sends the task to the selected pool. `TrtVerifyWorker` confirms the task executed successfully on the target infrastructure. Conductor sequences these steps and records the routing decision ,  which pool was selected, why, and whether the task succeeded there.
+`TrtAnalyzeRequirementsWorker` examines the task type, resource needs, and region constraints to build a requirements profile. `TrtSelectPoolWorker` matches the requirements against available worker pools and selects the best fit. considering capacity, cost, and locality. `TrtDispatchWorker` sends the task to the selected pool. `TrtVerifyWorker` confirms the task executed successfully on the target infrastructure. Conductor sequences these steps and records the routing decision,  which pool was selected, why, and whether the task succeeded there.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage intelligent dispatch: requirements analysis, pool selection 
 | **TrtSelectPoolWorker** | `trt_select_pool` | Selects the best-fit worker pool based on requirements and current load |
 | **TrtVerifyWorker** | `trt_verify` | Confirms that the dispatched task was executed successfully on the target pool |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w trt_task_routing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one routing decision .  replace the simulated pool selection with real Kubernetes node affinity or cloud resource APIs and the analyze-select-dispatch pipeline runs unchanged.
+Each worker handles one routing decision. replace the simulated pool selection with real Kubernetes node affinity or cloud resource APIs and the analyze-select-dispatch pipeline runs unchanged.
 
 - **TrtAnalyzeRequirementsWorker** (`trt_analyze_requirements`): parse real resource requirements from task metadata: Kubernetes resource requests, AWS instance type requirements, or custom resource labels
 - **TrtSelectPoolWorker** (`trt_select_pool`): query real cluster capacity via Kubernetes API (`kubectl get nodes --show-labels`), AWS Auto Scaling group status, or a custom resource broker to find the best-fit pool

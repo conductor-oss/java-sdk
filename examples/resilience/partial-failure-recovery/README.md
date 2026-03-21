@@ -1,16 +1,16 @@
 # Implementing Partial Failure Recovery in Java with Conductor :  Resume from Last Successful Step
 
-A Java Conductor workflow example demonstrating partial failure recovery .  a three-step sequential pipeline where step 2 fails on the first attempt, showing how Conductor's retry endpoint resumes from the last successful step rather than restarting the entire workflow.
+A Java Conductor workflow example demonstrating partial failure recovery. a three-step sequential pipeline where step 2 fails on the first attempt, showing how Conductor's retry endpoint resumes from the last successful step rather than restarting the entire workflow.
 
 ## The Problem
 
-You have a multi-step pipeline (validate, process, finalize) where an intermediate step fails due to a transient issue. When you retry, you don't want to re-execute steps that already succeeded .  step 1's side effects (database writes, API calls) would be duplicated. You need to resume from exactly the point of failure, skipping already-completed steps.
+You have a multi-step pipeline (validate, process, finalize) where an intermediate step fails due to a transient issue. When you retry, you don't want to re-execute steps that already succeeded. step 1's side effects (database writes, API calls) would be duplicated. You need to resume from exactly the point of failure, skipping already-completed steps.
 
 Without orchestration, partial failure recovery requires building custom checkpoint logic. Each step must record its completion state, and the retry mechanism must read those checkpoints to know where to start. This is fragile, error-prone, and means every pipeline needs its own checkpointing implementation.
 
 ## The Solution
 
-Each step is an independent worker. When step 2 fails, Conductor records which steps completed and which didn't. Calling Conductor's retry endpoint (`POST /workflow/{id}/retry`) resumes from exactly the failed step .  step 1 is skipped because it already succeeded. No checkpointing code needed. Every execution shows exactly which steps ran, which were skipped on retry, and what their results were. You get all of that, without writing a single line of orchestration code.
+Each step is an independent worker. When step 2 fails, Conductor records which steps completed and which didn't. Calling Conductor's retry endpoint (`POST /workflow/{id}/retry`) resumes from exactly the failed step. step 1 is skipped because it already succeeded. No checkpointing code needed. Every execution shows exactly which steps ran, which were skipped on retry, and what their results were. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -18,11 +18,11 @@ Step1Worker validates input, Step2Worker performs the main processing (which may
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **Step1Worker** | `pfr_step1` | Worker for pfr_step1 .  first step in the partial failure recovery pipeline. Takes a "data" input and returns { result.. |
-| **Step2Worker** | `pfr_step2` | Worker for pfr_step2 .  second step that simulates a transient failure. Fails on the first attempt, then succeeds on r.. |
-| **Step3Worker** | `pfr_step3` | Worker for pfr_step3 .  third and final step in the partial failure recovery pipeline. Takes a "prev" input and return.. |
+| **Step1Worker** | `pfr_step1` | Worker for pfr_step1. first step in the partial failure recovery pipeline. Takes a "data" input and returns { result.. |
+| **Step2Worker** | `pfr_step2` | Worker for pfr_step2. second step that simulates a transient failure. Fails on the first attempt, then succeeds on r.. |
+| **Step3Worker** | `pfr_step3` | Worker for pfr_step3. third and final step in the partial failure recovery pipeline. Takes a "prev" input and return.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -126,11 +126,11 @@ conductor workflow search -w partial_failure_recovery_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker performs one pipeline step .  connect them to your real validation, processing, and finalization services, and the resume-from-failure-point behavior stays the same.
+Each worker performs one pipeline step. connect them to your real validation, processing, and finalization services, and the resume-from-failure-point behavior stays the same.
 
-- **Step1Worker** (`pfr_step1`): replace with your first processing step .  data validation, input parsing, resource acquisition
-- **Step2Worker** (`pfr_step2`): replace with your second step that may fail transiently .  external API call, database write, file processing
-- **Step3Worker** (`pfr_step3`): replace with your final step .  result aggregation, notification, cleanup
+- **Step1Worker** (`pfr_step1`): replace with your first processing step. data validation, input parsing, resource acquisition
+- **Step2Worker** (`pfr_step2`): replace with your second step that may fail transiently. external API call, database write, file processing
+- **Step3Worker** (`pfr_step3`): replace with your final step. result aggregation, notification, cleanup
 
 Replace each step with your real validation, processing, and finalization services, and the resume-from-failure-point behavior carries over with no orchestration changes.
 

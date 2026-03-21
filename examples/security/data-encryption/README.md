@@ -1,6 +1,6 @@
 # Implementing Data Encryption Pipeline in Java with Conductor :  Classification, Key Generation, Encryption, and Verification
 
-A Java Conductor workflow example for data encryption .  classifying data sensitivity, generating appropriate encryption keys, encrypting the data, and verifying that encryption was applied correctly.
+A Java Conductor workflow example for data encryption. classifying data sensitivity, generating appropriate encryption keys, encrypting the data, and verifying that encryption was applied correctly.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, encryption is either applied uniformly (wasteful) or ad h
 
 **You just write the classification rules and KMS integration. Conductor handles the strict ordering from classification to verification, retries on KMS timeouts, and an audit record of every key generated and field encrypted.**
 
-Each encryption step is an independent worker .  data classification, key generation, encryption, and verification. Conductor runs them in sequence: classify the data, generate the appropriate key, encrypt, then verify. Every encryption operation is tracked with classification level, key ID, algorithm used, and verification result. You get all of that, without writing a single line of orchestration code.
+Each encryption step is an independent worker. data classification, key generation, encryption, and verification. Conductor runs them in sequence: classify the data, generate the appropriate key, encrypt, then verify. Every encryption operation is tracked with classification level, key ID, algorithm used, and verification result. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ The encryption pipeline uses four workers: ClassifyDataWorker determines sensiti
 | **GenerateKeyWorker** | `de_generate_key` | Generates an AES-256 encryption key and stores it in the KMS |
 | **VerifyEncryptionWorker** | `de_verify_encryption` | Verifies that encryption was applied correctly and no plaintext PII remains accessible |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w data_encryption_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one encryption concern .  connect ClassifyDataWorker to Google Cloud DLP or Amazon Macie, GenerateKeyWorker to AWS KMS or Azure Key Vault, and the classify-encrypt-verify workflow stays the same.
+Each worker owns one encryption concern. connect ClassifyDataWorker to Google Cloud DLP or Amazon Macie, GenerateKeyWorker to AWS KMS or Azure Key Vault, and the classify-encrypt-verify workflow stays the same.
 
 - **ClassifyDataWorker** (`de_classify_data`): classify data using DLP tools (Google Cloud DLP, Amazon Macie) or regex-based PII detection for sensitivity levels
 - **EncryptDataWorker** (`de_encrypt_data`): encrypt data using JCE with the generated key, or use envelope encryption via cloud KMS
@@ -172,6 +172,6 @@ data-encryption-data-encryption/
 │       ├── GenerateKeyWorker.java
 │       └── VerifyEncryptionWorker.java
 └── src/test/java/dataencryption/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

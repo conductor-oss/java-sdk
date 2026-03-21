@@ -4,7 +4,7 @@ You've defined a workflow in JSON, registered it with Conductor, and hit "start"
 
 ## Learning to Write Conductor Workers
 
-A Conductor worker is a Java class that implements the `Worker` interface: it receives a `Task`, does work, and returns a `TaskResult`. But there are different patterns for different situations. Synchronous workers transform data in-place. Async-style workers simulate external calls (API requests, database queries) that might be slow. Error-handling workers demonstrate how to set `FAILED` status with error messages so Conductor knows to retry or route to failure handling.
+A Conductor worker is a Java class that implements the `Worker` interface: it receives a `Task`, does work, and returns a `TaskResult`. But there are different patterns for different situations. Synchronous workers transform data in-place. Async-style workers implement external calls (API requests, database queries) that might be slow. Error-handling workers demonstrate how to set `FAILED` status with error messages so Conductor knows to retry or route to failure handling.
 
 This example chains all three patterns in a single workflow so you can see how each type of worker looks, how Conductor passes data between them, and how error handling works.
 

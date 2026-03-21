@@ -1,18 +1,18 @@
 # Performance Profiling in Java Using Conductor :  Instrument, Collect Profiles, Analyze Hotspots, and Recommend
 
-A Java Conductor workflow example for performance profiling .  instrumenting a service, collecting CPU/memory profiles, analyzing hotspots (slow methods, memory leaks), and generating optimization recommendations.
+A Java Conductor workflow example for performance profiling. instrumenting a service, collecting CPU/memory profiles, analyzing hotspots (slow methods, memory leaks), and generating optimization recommendations.
 
 ## The Problem
 
-Your service is slow and you need to find out why. Performance profiling requires instrumenting the service to collect profile data (CPU sampling, memory allocation tracking), analyzing the profiles to find hotspots (methods consuming the most CPU, objects causing the most GC), and generating actionable recommendations ("this method is O(n^2) .  consider a hashmap").
+Your service is slow and you need to find out why. Performance profiling requires instrumenting the service to collect profile data (CPU sampling, memory allocation tracking), analyzing the profiles to find hotspots (methods consuming the most CPU, objects causing the most GC), and generating actionable recommendations ("this method is O(n^2). consider a hashmap").
 
-Without orchestration, profiling is a manual process .  an engineer SSHs to a server, runs async-profiler, downloads the flame graph, and eyeballs it. There's no automated pipeline from instrumentation to recommendation, and profiles are lost after the session ends.
+Without orchestration, profiling is a manual process. an engineer SSHs to a server, runs async-profiler, downloads the flame graph, and eyeballs it. There's no automated pipeline from instrumentation to recommendation, and profiles are lost after the session ends.
 
 ## The Solution
 
 **You just write the profiler integration and hotspot analysis logic. Conductor handles the instrument-collect-analyze-recommend sequence, retries when profiler attachment fails, and a durable record of every profiling session's findings and recommendations.**
 
-Each profiling step is an independent worker .  instrumentation, profile collection, hotspot analysis, and recommendation generation. Conductor runs them in sequence: instrument the target, collect the profile, analyze hotspots, then generate recommendations. Every profiling session is tracked with the exact profile data, findings, and recommendations. You get all of that, without writing a single line of orchestration code.
+Each profiling step is an independent worker. instrumentation, profile collection, hotspot analysis, and recommendation generation. Conductor runs them in sequence: instrument the target, collect the profile, analyze hotspots, then generate recommendations. Every profiling session is tracked with the exact profile data, findings, and recommendations. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers run each profiling session: PrfInstrumentWorker attaches the profil
 | **PrfInstrumentWorker** | `prf_instrument` | Attaches a profiler to the target service for the specified profile type (CPU/memory), reporting overhead percentage |
 | **RecommendWorker** | `prf_recommend` | Generates optimization recommendations based on hotspot findings, with estimated improvement and a report URL |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic .  the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic. the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w performance_profiling_430 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker runs one profiling phase .  connect the instrumentor to async-profiler or JFR, the analyzer to parse real flame graphs and heap dumps, and the instrument-collect-analyze-recommend workflow stays the same.
+Each worker runs one profiling phase. connect the instrumentor to async-profiler or JFR, the analyzer to parse real flame graphs and heap dumps, and the instrument-collect-analyze-recommend workflow stays the same.
 
 - **AnalyzeHotspotsWorker** (`prf_analyze_hotspots`): parse flame graphs, identify top CPU consumers, detect memory leak patterns, and flag contention hotspots
 - **CollectProfileWorker** (`prf_collect_profile`): collect CPU samples, heap dumps, or allocation profiles over the specified duration and upload to S3

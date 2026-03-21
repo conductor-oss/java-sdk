@@ -1,12 +1,12 @@
 # Test Generation in Java with Conductor
 
-A Java Conductor workflow that automatically generates unit tests from source code .  analyzing the source file to discover functions and their signatures, generating test cases for each function, validating the generated tests for syntactic correctness, and producing a coverage report. Given a source file, language, and test framework, the pipeline outputs validated test cases and a pass/fail report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the analyze-generate-validate-report pipeline.
+A Java Conductor workflow that automatically generates unit tests from source code. analyzing the source file to discover functions and their signatures, generating test cases for each function, validating the generated tests for syntactic correctness, and producing a coverage report. Given a source file, language, and test framework, the pipeline outputs validated test cases and a pass/fail report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the analyze-generate-validate-report pipeline.
 
 ## Writing Tests Nobody Wants to Write
 
-Developers know they should write tests, but doing it manually is tedious .  especially for existing code with many functions and edge cases. You need to parse the source code to understand function signatures and behavior, generate meaningful test cases that cover normal and edge scenarios, validate that the generated tests actually compile, and report on coverage. Doing this by hand for every function in a codebase does not scale.
+Developers know they should write tests, but doing it manually is tedious. especially for existing code with many functions and edge cases. You need to parse the source code to understand function signatures and behavior, generate meaningful test cases that cover normal and edge scenarios, validate that the generated tests actually compile, and report on coverage. Doing this by hand for every function in a codebase does not scale.
 
-This workflow automates test generation for a single source file. The code analyzer parses the file to extract function signatures and metadata. The test generator creates test cases for each discovered function. The validator checks that generated tests are syntactically correct. The reporter summarizes coverage and results. Each step feeds the next .  discovered functions drive test generation, generated tests feed validation, and validation results feed the report.
+This workflow automates test generation for a single source file. The code analyzer parses the file to extract function signatures and metadata. The test generator creates test cases for each discovered function. The validator checks that generated tests are syntactically correct. The reporter summarizes coverage and results. Each step feeds the next. discovered functions drive test generation, generated tests feed validation, and validation results feed the report.
 
 ## The Solution
 
@@ -23,7 +23,7 @@ AnalyzeCodeWorker parses source files to discover function signatures and metada
 | **AnalyzeCodeWorker** | `tge_analyze_code` | Parses the source file to discover functions, their signatures, parameters, and return types. |
 | **ReportWorker** | `tge_report` | Generates a coverage report summarizing test counts, pass rates, and per-function results. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -130,7 +130,7 @@ conductor workflow search -w tge_test_generation -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one generation step .  connect your LLM (Claude, Codex) for test creation and your test runner (JUnit, pytest, Jest) for validation, and the test-generation workflow stays the same.
+Each worker handles one generation step. connect your LLM (Claude, Codex) for test creation and your test runner (JUnit, pytest, Jest) for validation, and the test-generation workflow stays the same.
 
 - **AnalyzeCodeWorker** (`tge_analyze_code`): use tree-sitter or JavaParser for real AST-based code analysis
 - **ReportWorker** (`tge_report`): integrate with JaCoCo, Istanbul, or Codecov for real coverage reporting

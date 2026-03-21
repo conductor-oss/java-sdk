@@ -1,18 +1,18 @@
 # AI Data Labeling in Java Using Conductor :  Prepare, Parallel Labelers, Reconcile Disagreements, Export
 
-A Java Conductor workflow that orchestrates data labeling at scale .  preparing the dataset, dispatching multiple labelers to annotate the same data in parallel via `FORK_JOIN` for quality through redundancy, reconciling disagreements between labelers, and exporting the labeled dataset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate data preparation, parallel labeling, reconciliation, and export as independent workers ,  you write the labeling logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that orchestrates data labeling at scale. preparing the dataset, dispatching multiple labelers to annotate the same data in parallel via `FORK_JOIN` for quality through redundancy, reconciling disagreements between labelers, and exporting the labeled dataset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate data preparation, parallel labeling, reconciliation, and export as independent workers,  you write the labeling logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Quality Labels Need Multiple Annotators and Reconciliation
 
 Training a machine learning model on poorly labeled data produces a poor model. Quality labeling uses redundancy: multiple labelers annotate the same data independently, and disagreements are resolved through reconciliation (majority vote, expert review, or confidence-weighted consensus). This catches labeler mistakes and ambiguous cases.
 
-Parallel labeling means multiple annotators work simultaneously .  cutting labeling time proportionally. But all labelers must finish before reconciliation can begin. If one labeler times out, the others' work is still valid. After reconciliation, the final labeled dataset needs export in the format required by your training pipeline (COCO JSON, Pascal VOC XML, CSV with labels).
+Parallel labeling means multiple annotators work simultaneously. cutting labeling time proportionally. But all labelers must finish before reconciliation can begin. If one labeler times out, the others' work is still valid. After reconciliation, the final labeled dataset needs export in the format required by your training pipeline (COCO JSON, Pascal VOC XML, CSV with labels).
 
 ## The Solution
 
 **You just write the data preparation, annotation, disagreement reconciliation, and labeled dataset export logic. Conductor handles parallel labeler coordination, disagreement routing, and progress tracking across annotation tasks.**
 
-`PrepareDataWorker` loads and preprocesses the dataset .  sampling, shuffling, and formatting items for annotation. `FORK_JOIN` dispatches multiple labelers to annotate the same items independently in parallel ,  each labeler returns labels, confidence scores, and annotation time. After `JOIN` collects all annotations, `ReconcileWorker` resolves disagreements using majority vote or confidence-weighted consensus, flagging items where labelers strongly disagreed for expert review. `ExportWorker` formats the reconciled labels into the target format and exports the labeled dataset. Conductor tracks per-labeler accuracy and agreement rates.
+`PrepareDataWorker` loads and preprocesses the dataset. sampling, shuffling, and formatting items for annotation. `FORK_JOIN` dispatches multiple labelers to annotate the same items independently in parallel,  each labeler returns labels, confidence scores, and annotation time. After `JOIN` collects all annotations, `ReconcileWorker` resolves disagreements using majority vote or confidence-weighted consensus, flagging items where labelers strongly disagreed for expert review. `ExportWorker` formats the reconciled labels into the target format and exports the labeled dataset. Conductor tracks per-labeler accuracy and agreement rates.
 
 ### What You Write: Workers
 
@@ -21,12 +21,12 @@ Labeling workers run in parallel with independent annotation tasks, while a reco
 | Worker | Task | What It Does |
 |---|---|---|
 | **ExportWorker** | `adl_export` | Exports reconciled labeled samples in COCO format to the output path for model training |
-| **Labeler1Worker** | `adl_labeler_1` | Labeled 500 samples .  classification labels applied |
-| **Labeler2Worker** | `adl_labeler_2` | Labeled 500 samples .  classification labels applied |
+| **Labeler1Worker** | `adl_labeler_1` | Labeled 500 samples. classification labels applied |
+| **Labeler2Worker** | `adl_labeler_2` | Labeled 500 samples. classification labels applied |
 | **PrepareDataWorker** | `adl_prepare_data` | Prepares and preprocesses the dataset samples for labeling |
-| **ReconcileWorker** | `adl_reconcile` | Inter-annotator agreement: 94% .  conflicts resolved |
+| **ReconcileWorker** | `adl_reconcile` | Inter-annotator agreement: 94%. conflicts resolved |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI labeling (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live AI labeling (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 

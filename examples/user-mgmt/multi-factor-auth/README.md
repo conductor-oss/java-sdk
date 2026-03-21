@@ -25,7 +25,7 @@ PrimaryAuthWorker validates credentials, SelectMethodWorker picks TOTP/SMS/email
 | **SelectMethodWorker** | `mfa_select_method` | Determines the second factor method (TOTP, SMS, or email) based on user preference and available options |
 | **VerifyFactorWorker** | `mfa_verify_factor` | Verifies the submitted second-factor code against the selected method, tracking attempt count |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w mfa_multi_factor_auth -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one auth step .  connect your identity provider (Auth0, Okta, Duo) for factor verification and your session store (Redis, DynamoDB) for token issuance, and the MFA workflow stays the same.
+Each worker handles one auth step. connect your identity provider (Auth0, Okta, Duo) for factor verification and your session store (Redis, DynamoDB) for token issuance, and the MFA workflow stays the same.
 
 - **PrimaryAuthWorker** (`mfa_primary_auth`): validate credentials against your identity provider (Auth0, Cognito, Okta) using their authentication API
 - **SelectMethodWorker** (`mfa_select_method`): query the user's enrolled MFA methods from Auth0 or Cognito and select the appropriate one based on device context and user preference

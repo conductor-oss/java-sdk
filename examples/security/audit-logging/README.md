@@ -1,18 +1,18 @@
 # Implementing Immutable Audit Logging in Java with Conductor :  Event Capture, Context Enrichment, Immutable Storage, and Integrity Verification
 
-A Java Conductor workflow example for audit logging .  capturing security-relevant events, enriching with context (who, what, when, from where), storing in an immutable log, and verifying log integrity.
+A Java Conductor workflow example for audit logging. capturing security-relevant events, enriching with context (who, what, when, from where), storing in an immutable log, and verifying log integrity.
 
 ## The Problem
 
 You need a tamper-proof audit trail for compliance (SOC2, HIPAA, PCI). Every security-relevant action (login, permission change, data access) must be captured with full context (actor, action, resource, timestamp, source IP), stored in an immutable log that can't be modified after the fact, and periodically verified for integrity (no entries deleted or modified).
 
-Without orchestration, audit logs are application-level log.info() calls that can be modified or deleted. Context enrichment is inconsistent .  some logs include the actor, some don't. Immutability is an aspiration rather than a guarantee, and nobody verifies that the log hasn't been tampered with.
+Without orchestration, audit logs are application-level log.info() calls that can be modified or deleted. Context enrichment is inconsistent. some logs include the actor, some don't. Immutability is an aspiration rather than a guarantee, and nobody verifies that the log hasn't been tampered with.
 
 ## The Solution
 
 **You just write the event capture and immutable storage logic. Conductor handles ordered execution, durable delivery to the immutable store, and a meta-audit trail of every logging operation itself.**
 
-Each audit concern is an independent worker .  event capture, context enrichment, immutable storage, and integrity verification. Conductor runs them in sequence: capture the event, enrich with full context, store immutably, then verify integrity. Every audit operation is itself tracked by Conductor, creating a meta-audit trail. You get all of that, without writing a single line of orchestration code.
+Each audit concern is an independent worker. event capture, context enrichment, immutable storage, and integrity verification. Conductor runs them in sequence: capture the event, enrich with full context, store immutably, then verify integrity. Every audit operation is itself tracked by Conductor, creating a meta-audit trail. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -23,9 +23,9 @@ Four workers form the audit chain: CaptureEventWorker records security-relevant 
 | **CaptureEventWorker** | `al_capture_event` | Captures a security-relevant event with actor, action, and resource details |
 | **EnrichContextWorker** | `al_enrich_context` | Enriches the event with IP address, device info, session data, and role context |
 | **StoreImmutableWorker** | `al_store_immutable` | Writes the enriched event to an immutable, append-only audit log |
-| **VerifyIntegrityWorker** | `al_verify_integrity` | Verifies log integrity by validating the hash chain .  confirms no entries were modified or deleted |
+| **VerifyIntegrityWorker** | `al_verify_integrity` | Verifies log integrity by validating the hash chain. confirms no entries were modified or deleted |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w audit_logging_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one audit concern .  connect CaptureEventWorker to your API gateway or application hooks, StoreImmutableWorker to AWS QLDB or WORM storage, and the capture-enrich-store-verify workflow stays the same.
+Each worker handles one audit concern. connect CaptureEventWorker to your API gateway or application hooks, StoreImmutableWorker to AWS QLDB or WORM storage, and the capture-enrich-store-verify workflow stays the same.
 
 - **CaptureEventWorker** (`al_capture_event`): capture events from application hooks, API gateway logs, database audit logs, or cloud trail services
 - **EnrichContextWorker** (`al_enrich_context`): add actor identity from your IdP, source IP geolocation, device fingerprint, and session context
@@ -172,6 +172,6 @@ audit-logging-audit-logging/
 │       ├── StoreImmutableWorker.java
 │       └── VerifyIntegrityWorker.java
 └── src/test/java/auditlogging/
-    └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+    └── MainExampleTest.java        # 2 tests. workflow resource loading, worker instantiation
 
 ```

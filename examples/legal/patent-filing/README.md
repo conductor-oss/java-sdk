@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Patent Filing. Uses [Conductor](
 
 An inventor submits a new invention disclosure. You need to draft a patent application with claims (typically 12+), conduct a prior art search to check for novelty, have a patent attorney review the draft for quality and completeness, file the application with the USPTO, and track its status through examination. Missing a filing deadline or overlooking prior art can forfeit patent rights entirely.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Prior art search, claim drafting, filing preparation, and submission workers eac
 | **FileWorker** | `ptf_file` | Files the patent application with the USPTO, generating an application number (US-2024-XXXXXX) and recording the filing date |
 | **TrackWorker** | `ptf_track` | Creates a tracking record (TRK-{timestamp}) for the filed application and reports its status as "pending-examination" |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w ptf_patent_filing -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real IP tools .  your patent search database for prior art, your drafting platform for application preparation, the USPTO or EPO filing API for submission, and the workflow runs identically in production.
+Swap each worker for your real IP tools. your patent search database for prior art, your drafting platform for application preparation, the USPTO or EPO filing API for submission, and the workflow runs identically in production.
 
 - **DraftWorker** (`ptf_draft`): integrate with a patent drafting tool like PatSnap or ClaimMaster to auto-generate claim sets from invention disclosures
 - **ReviewWorker** (`ptf_review`): connect to an IP management platform like Anaqua or CPA Global for attorney review workflows and approval tracking

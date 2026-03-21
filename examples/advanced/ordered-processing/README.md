@@ -1,10 +1,10 @@
 # Ordered Message Processing in Java Using Conductor :  Receive, Sort by Sequence, Process in Order, Verify
 
-A Java Conductor workflow example for ordered message processing .  receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.
+A Java Conductor workflow example for ordered message processing. receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.
 
 ## Messages Arrive Out of Order, but Must Be Processed Sequentially
 
-A financial trading system emits order updates .  placed, partially filled, fully filled, cancelled. These events arrive over a message queue that doesn't guarantee ordering. Processing a cancellation before the placement, or a fill before the partial fill, produces incorrect portfolio state. The sequence numbers are embedded in the messages, but reconstructing order from a shuffled batch requires buffering, sorting, and then processing each message one at a time.
+A financial trading system emits order updates. placed, partially filled, fully filled, cancelled. These events arrive over a message queue that doesn't guarantee ordering. Processing a cancellation before the placement, or a fill before the partial fill, produces incorrect portfolio state. The sequence numbers are embedded in the messages, but reconstructing order from a shuffled batch requires buffering, sorting, and then processing each message one at a time.
 
 Without guaranteed ordering, you'd build a resequencing buffer that holds messages until gaps are filled, implements timeout logic for missing sequences, and processes them strictly in order. That's a lot of state management for what should be a simple sort-then-process pipeline.
 
@@ -12,7 +12,7 @@ Without guaranteed ordering, you'd build a resequencing buffer that holds messag
 
 **You write the sorting and sequential processing logic. Conductor handles the ordering pipeline, retries, and sequence verification.**
 
-`OprReceiveWorker` ingests the batch of out-of-order messages. `OprSortBySequenceWorker` resequences them by their partition key and sequence number, producing an ordered list. `OprProcessInOrderWorker` executes the business logic on each message strictly in sequence .  ensuring the placement is processed before the fill, and the fill before the cancellation. `OprVerifyOrderWorker` confirms that no sequence gaps exist and that the processing order matches the expected sequence. Conductor records the received order, sorted order, and verification result for every batch.
+`OprReceiveWorker` ingests the batch of out-of-order messages. `OprSortBySequenceWorker` resequences them by their partition key and sequence number, producing an ordered list. `OprProcessInOrderWorker` executes the business logic on each message strictly in sequence. ensuring the placement is processed before the fill, and the fill before the cancellation. `OprVerifyOrderWorker` confirms that no sequence gaps exist and that the processing order matches the expected sequence. Conductor records the received order, sorted order, and verification result for every batch.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers enforce sequential processing: message reception, sequence-number s
 | **OprSortBySequenceWorker** | `opr_sort_by_sequence` | Reorders received messages by their sequence numbers to restore correct order |
 | **OprVerifyOrderWorker** | `opr_verify_order` | Confirms that messages were processed in the correct sequence order |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w opr_ordered_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker addresses one resequencing concern .  replace the simulated message sorting with real Kafka partition consumers or Redis sorted sets and the sort-then-process pipeline runs unchanged.
+Each worker addresses one resequencing concern. replace the simulated message sorting with real Kafka partition consumers or Redis sorted sets and the sort-then-process pipeline runs unchanged.
 
 - **OprReceiveWorker** (`opr_receive`): consume real messages from a Kafka partition (where ordering is per-partition) or SQS FIFO queue with message group IDs
 - **OprSortBySequenceWorker** (`opr_sort_by_sequence`): use a resequencing buffer backed by Redis sorted sets (`ZADD`/`ZRANGEBYSCORE`) for cross-batch ordering with gap detection

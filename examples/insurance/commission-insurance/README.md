@@ -12,7 +12,7 @@ Commission processing involves multiple rates (new business 15%, renewal 10%, bo
 
 **You just write the commission calculation, advance deduction, validation, payout processing, and reporting logic. Conductor handles split calculation retries, payment sequencing, and commission audit trails.**
 
-`CalculateWorker` computes the commission amount using the applicable rate .  new business or renewal, product-specific tiers, and any bonus qualifications. `ValidateWorker` verifies the calculation against the agent's commission schedule and carrier guidelines. `DeductAdvancesWorker` subtracts any outstanding advance balances from the earned commission. `PayWorker` issues the net commission payment to the agent via their configured payment method. `ReportWorker` generates commission statements and updates the agent's production records for year-end 1099 reporting. Conductor tracks every commission calculation for financial audit.
+`CalculateWorker` computes the commission amount using the applicable rate. new business or renewal, product-specific tiers, and any bonus qualifications. `ValidateWorker` verifies the calculation against the agent's commission schedule and carrier guidelines. `DeductAdvancesWorker` subtracts any outstanding advance balances from the earned commission. `PayWorker` issues the net commission payment to the agent via their configured payment method. `ReportWorker` generates commission statements and updates the agent's production records for year-end 1099 reporting. Conductor tracks every commission calculation for financial audit.
 
 ### What You Write: Workers
 
@@ -20,13 +20,13 @@ Policy matching, rate calculation, split allocation, and payment processing work
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CalculateWorker** | `cin_calculate` | Calculates the commission .  applies the applicable rate (15% new business, 10% renewal) to the premium amount, with tier adjustments for production thresholds and product-specific rates |
-| **ValidateWorker** | `cin_validate` | Validates the commission .  verifies the calculated amount against the agent's commission schedule and carrier guidelines, checking for rate overrides and special agreements |
-| **DeductAdvancesWorker** | `cin_deduct_advances` | Deducts outstanding advances .  subtracts any advance balance from the gross commission to determine the net commission payable, tracking the amortization schedule |
-| **PayWorker** | `cin_pay` | Issues the commission payment .  processes the net commission via the agent's configured payment method and generates a paymentId for reconciliation |
-| **ReportWorker** | `cin_report` | Files the commission report .  records the transaction for the agent and policy, updates year-to-date production totals, and generates the commission statement |
+| **CalculateWorker** | `cin_calculate` | Calculates the commission. applies the applicable rate (15% new business, 10% renewal) to the premium amount, with tier adjustments for production thresholds and product-specific rates |
+| **ValidateWorker** | `cin_validate` | Validates the commission. verifies the calculated amount against the agent's commission schedule and carrier guidelines, checking for rate overrides and special agreements |
+| **DeductAdvancesWorker** | `cin_deduct_advances` | Deducts outstanding advances. subtracts any advance balance from the gross commission to determine the net commission payable, tracking the amortization schedule |
+| **PayWorker** | `cin_pay` | Issues the commission payment. processes the net commission via the agent's configured payment method and generates a paymentId for reconciliation |
+| **ReportWorker** | `cin_report` | Files the commission report. records the transaction for the agent and policy, updates year-to-date production totals, and generates the commission statement |
 
-Workers simulate insurance operations .  claim intake, assessment, settlement ,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
+Workers implement insurance operations. claim intake, assessment, settlement,  with realistic outputs. Replace with real claims management and underwriting integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w cin_commission_insurance -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real commission systems .  your policy admin for production data, your commission engine for tier-based calculations, your payroll system for agent payouts, and the workflow runs identically in production.
+Swap each worker for your real commission systems. your policy admin for production data, your commission engine for tier-based calculations, your payroll system for agent payouts, and the workflow runs identically in production.
 
 - **CalculateWorker** (`cin_calculate`): implement tiered commission schedules with new business/renewal splits, contingent commission calculations based on loss ratios, and override commissions for agency hierarchies
 - **PayWorker** (`cin_pay`): process payments via ACH (Plaid or Dwolla), generate 1099-MISC forms for year-end tax reporting, and handle multi-state commission tax withholding

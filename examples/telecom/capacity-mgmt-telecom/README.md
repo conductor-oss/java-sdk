@@ -1,12 +1,12 @@
 # Capacity Mgmt Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom network capacity management .  monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates telecom network capacity management. monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.
 
 ## Why Capacity Management Needs Orchestration
 
-Managing network capacity requires a proactive pipeline from measurement through expansion. You monitor current utilization and subscriber growth rates for a region's network type (RAN, transport, core). You forecast when existing capacity will be exhausted based on current utilization and growth trends. You plan the expansion .  determining what equipment, spectrum, or backhaul capacity to add and where. You provision the planned resources by deploying and configuring new network elements. Finally, you verify the provisioned capacity is live and the region's utilization has dropped to acceptable levels.
+Managing network capacity requires a proactive pipeline from measurement through expansion. You monitor current utilization and subscriber growth rates for a region's network type (RAN, transport, core). You forecast when existing capacity will be exhausted based on current utilization and growth trends. You plan the expansion. determining what equipment, spectrum, or backhaul capacity to add and where. You provision the planned resources by deploying and configuring new network elements. Finally, you verify the provisioned capacity is live and the region's utilization has dropped to acceptable levels.
 
-If provisioning fails partway through, you need to know exactly which resources were already deployed so you can commission them or roll back cleanly. If forecasting underestimates growth, the plan is insufficient and subscribers experience congestion before the next planning cycle. Without orchestration, you'd build a capacity planning spreadsheet process that mixes performance data collection, trend analysis, vendor PO workflows, and deployment scripts .  making it impossible to run what-if forecasts, track which growth assumptions drove which expansions, or automate the provisioning step.
+If provisioning fails partway through, you need to know exactly which resources were already deployed so you can commission them or roll back cleanly. If forecasting underestimates growth, the plan is insufficient and subscribers experience congestion before the next planning cycle. Without orchestration, you'd build a capacity planning spreadsheet process that mixes performance data collection, trend analysis, vendor PO workflows, and deployment scripts. making it impossible to run what-if forecasts, track which growth assumptions drove which expansions, or automate the provisioning step.
 
 ## The Solution
 
@@ -22,11 +22,11 @@ Demand forecasting, capacity analysis, upgrade planning, and implementation trac
 |---|---|---|
 | **ForecastWorker** | `cmt_forecast` | Forecasts capacity exhaustion date based on current utilization and subscriber growth rate. |
 | **MonitorWorker** | `cmt_monitor` | Monitors current network utilization and growth rate for a region and network type. |
-| **PlanWorker** | `cmt_plan` | Plans the capacity expansion .  equipment, spectrum, or backhaul to add in the region. |
+| **PlanWorker** | `cmt_plan` | Plans the capacity expansion. equipment, spectrum, or backhaul to add in the region. |
 | **ProvisionWorker** | `cmt_provision` | Provisions new network resources by deploying and configuring the planned equipment. |
 | **VerifyWorker** | `cmt_verify` | Verifies the provisioned capacity is live and the region's utilization is within target. |
 
-Workers simulate telecom operations .  provisioning, activation, billing ,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
+Workers implement telecom operations. provisioning, activation, billing,  with realistic outputs. Replace with real OSS/BSS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w cmt_capacity_mgmt_telecom -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real capacity tools .  your performance management system for utilization data, your planning platform for growth forecasting, your OSS for resource provisioning, and the workflow runs identically in production.
+Swap each worker for your real capacity tools. your performance management system for utilization data, your planning platform for growth forecasting, your OSS for resource provisioning, and the workflow runs identically in production.
 
 - **MonitorWorker** (`cmt_monitor`): pull utilization KPIs from your network performance management system (Nokia NetAct, Ericsson ENM, Huawei U2000) or query counters via the NMS northbound API
 - **ForecastWorker** (`cmt_forecast`): run capacity forecasting models using your planning tools (Atoll, Planet, ASSET) or feed historical data into a time-series forecasting service

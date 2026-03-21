@@ -12,7 +12,7 @@ Without orchestration, you end up hard-coding the call chain inside a single gat
 
 **You just write the auth, rate-check, routing, and response-transform workers. Conductor handles ordered execution, automatic retries on transient failures, and per-request observability.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers divide the routing pipeline: AuthenticateWorker validates tokens, R
 | **RouteRequestWorker** | `gw_route_request` | Routes a request to the appropriate backend service. |
 | **TransformResponseWorker** | `gw_transform_response` | Transforms a service response for the client version. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

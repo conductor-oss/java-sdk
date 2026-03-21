@@ -23,7 +23,7 @@ ValidatePolicyWorker checks expense amounts and categories, while ProcessWorker 
 | *WAIT task* | `wait_for_approval` | Pauses the workflow until a manager approves or rejects the expense via `POST /tasks/{taskId}`. See [Completing the WAIT Task](#completing-the-wait-task-human-approval) | Built-in Conductor WAIT.; no worker needed |
 | **ProcessWorker** | `exp_process` | Finalizes the approved expense: posts the reimbursement to payroll, updates the general ledger, and sends the employee a confirmation email; returns `processed: true` |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### The Workflow
 

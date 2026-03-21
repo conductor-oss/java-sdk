@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Program Evaluation. Uses [Conduc
 
 Your nonprofit needs to evaluate a community outreach program to decide whether to expand, modify, or sunset it. The evaluation team must define the KPIs and outcome metrics, collect data across reach, outcomes, cost, and satisfaction dimensions, analyze program performance by scoring each metric, benchmark the results against sector averages, and generate actionable recommendations. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Data gathering, metric analysis, effectiveness scoring, and recommendation gener
 | **DefineMetricsWorker** | `pev_define_metrics` | Defines the evaluation framework with KPIs: reach, outcomes, cost-effectiveness, and satisfaction |
 | **RecommendWorker** | `pev_recommend` | Generates actionable recommendations (e.g., scale reach, optimize costs) based on the overall evaluation score and ranking |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w program_evaluation_757 -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real evaluation tools .  your program database for outcomes data, your survey platform for participant feedback, your analytics engine for effectiveness scoring, and the workflow runs identically in production.
+Swap each worker for your real evaluation tools. your program database for outcomes data, your survey platform for participant feedback, your analytics engine for effectiveness scoring, and the workflow runs identically in production.
 
 - **DefineMetricsWorker** (`pev_define_metrics`): load the evaluation framework from your program database or Salesforce NPSP program objects, configuring which KPIs apply to this program type
 - **CollectWorker** (`pev_collect`): query outcome data from your case management system (Apricot, Penelope) and financial data from your accounting platform (Sage Intacct, QuickBooks)

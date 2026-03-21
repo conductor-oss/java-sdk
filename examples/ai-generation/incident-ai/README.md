@@ -1,10 +1,10 @@
 # Incident AI in Java with Conductor :  Detect, Diagnose, Fix, and Verify Production Incidents
 
-A Java Conductor workflow that handles production incidents end-to-end .  detecting an anomaly from an alert, diagnosing the root cause, suggesting a fix, executing the remediation, and verifying the service has recovered. Given an `alertId`, `serviceName`, and `severity`, the pipeline produces a diagnosis, fix action, execution result, and verification status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-step incident response pipeline.
+A Java Conductor workflow that handles production incidents end-to-end. detecting an anomaly from an alert, diagnosing the root cause, suggesting a fix, executing the remediation, and verifying the service has recovered. Given an `alertId`, `serviceName`, and `severity`, the pipeline produces a diagnosis, fix action, execution result, and verification status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-step incident response pipeline.
 
 ## Responding to Incidents Faster Than Humans Can
 
-When a production alert fires at 3 AM, the response time depends on how fast an engineer can wake up, read the alert, diagnose the issue, apply a fix, and verify recovery. Automating this pipeline reduces mean time to resolution (MTTR) from hours to minutes. Each step in the response chain builds on the previous one .  diagnosis requires the detection context, the suggested fix depends on the diagnosis, execution depends on the fix plan, and verification confirms the fix actually worked.
+When a production alert fires at 3 AM, the response time depends on how fast an engineer can wake up, read the alert, diagnose the issue, apply a fix, and verify recovery. Automating this pipeline reduces mean time to resolution (MTTR) from hours to minutes. Each step in the response chain builds on the previous one. diagnosis requires the detection context, the suggested fix depends on the diagnosis, execution depends on the fix plan, and verification confirms the fix actually worked.
 
 This workflow models the incident response lifecycle. The detector analyzes the incoming alert. The diagnoser identifies the root cause from the detection output. The fix suggester proposes a remediation based on the diagnosis. The executor applies the fix. The verifier checks that the service has recovered. The five-step chain ensures every incident is handled systematically, with full traceability from alert to resolution.
 
@@ -12,7 +12,7 @@ This workflow models the incident response lifecycle. The detector analyzes the 
 
 **You just write the detection, diagnosis, fix-suggestion, execution, and verification workers. Conductor handles the five-step incident response chain.**
 
-Five workers handle the incident lifecycle .  detection, diagnosis, fix suggestion, fix execution, and verification. The detector correlates alert data. The diagnoser identifies root causes. The fix suggester proposes remediations. The executor applies the chosen fix. The verifier confirms service recovery. Conductor sequences the five steps and passes alert context, diagnoses, fix plans, and execution results between them automatically.
+Five workers handle the incident lifecycle. detection, diagnosis, fix suggestion, fix execution, and verification. The detector correlates alert data. The diagnoser identifies root causes. The fix suggester proposes remediations. The executor applies the chosen fix. The verifier confirms service recovery. Conductor sequences the five steps and passes alert context, diagnoses, fix plans, and execution results between them automatically.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ DetectWorker correlates alert data, DiagnoseWorker identifies root causes, Sugge
 | **SuggestFixWorker** | `iai_suggest_fix` | Proposes a remediation action based on the root cause diagnosis. |
 | **VerifyWorker** | `iai_verify` | Checks that the service has recovered after the fix by running health checks. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w iai_incident_ai -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one incident response step .  connect your alerting system (PagerDuty, OpsGenie) for detection and your infrastructure API (AWS, Kubernetes) for remediation execution, and the incident-response workflow stays the same.
+Each worker handles one incident response step. connect your alerting system (PagerDuty, OpsGenie) for detection and your infrastructure API (AWS, Kubernetes) for remediation execution, and the incident-response workflow stays the same.
 
 - **DetectWorker** (`iai_detect`): integrate with PagerDuty, OpsGenie, or Datadog for real alert correlation and anomaly detection
 - **DiagnoseWorker** (`iai_diagnose`): connect to logging (ELK, Splunk) and tracing (Jaeger, Zipkin) systems for real root cause analysis

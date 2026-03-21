@@ -1,16 +1,16 @@
 # Implementing Worker Health Checks in Java with Conductor :  Monitoring Worker Availability and Performance
 
-A Java Conductor workflow example demonstrating worker health monitoring .  running a task and using Conductor's APIs to verify worker availability, poll rates, and execution health across the system.
+A Java Conductor workflow example demonstrating worker health monitoring. running a task and using Conductor's APIs to verify worker availability, poll rates, and execution health across the system.
 
 ## The Problem
 
 You have workers deployed across multiple hosts or containers. You need to know: are they running? Are they polling? How fast are they processing tasks? If a worker stops polling (process crashed, deployment failed, network issue), tasks queue up and workflows stall. You need visibility into worker health before it becomes a production incident.
 
-Without orchestration, worker health monitoring requires custom infrastructure .  process supervisors, heartbeat endpoints, and separate monitoring dashboards. Each worker must implement its own health reporting, and there's no unified view of worker fleet health.
+Without orchestration, worker health monitoring requires custom infrastructure. process supervisors, heartbeat endpoints, and separate monitoring dashboards. Each worker must implement its own health reporting, and there's no unified view of worker fleet health.
 
 ## The Solution
 
-Conductor tracks worker health automatically .  poll timestamps, task completion rates, and queue depths are all available via Conductor's APIs. The example demonstrates querying these APIs to build health dashboards and set up alerting. Every worker's polling behavior and task execution is recorded without any health-check code in the workers themselves. You get all of that, without writing a single line of orchestration code.
+Conductor tracks worker health automatically. poll timestamps, task completion rates, and queue depths are all available via Conductor's APIs. The example demonstrates querying these APIs to build health dashboards and set up alerting. Every worker's polling behavior and task execution is recorded without any health-check code in the workers themselves. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -18,9 +18,9 @@ WhcWorker processes tasks while tracking health metrics (poll counts, completion
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **WhcWorker** | `whc_task` | Worker for whc_task .  processes tasks and tracks health metrics. Maintains thread-safe poll and completed counters th.. |
+| **WhcWorker** | `whc_task` | Worker for whc_task. processes tasks and tracks health metrics. Maintains thread-safe poll and completed counters th.. |
 
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
+Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
 ### The Workflow
 
@@ -118,9 +118,9 @@ conductor workflow search -w worker_health_checks_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker processes real tasks .  connect them to your business services, query Conductor's health APIs for poll rates and queue depths, and the automatic worker health monitoring stays the same.
+Each worker processes real tasks. connect them to your business services, query Conductor's health APIs for poll rates and queue depths, and the automatic worker health monitoring stays the same.
 
-- **WhcWorker** (`whc_task`): replace with any real worker .  the health monitoring is done via Conductor's APIs, not the worker code itself; build dashboards with Grafana/Datadog pulling from Conductor's metrics endpoints
+- **WhcWorker** (`whc_task`): replace with any real worker. the health monitoring is done via Conductor's APIs, not the worker code itself; build dashboards with Grafana/Datadog pulling from Conductor's metrics endpoints
 
 Replace with any real worker, and Conductor's built-in health APIs provide fleet-wide worker monitoring without adding any health-check code to the workers themselves.
 

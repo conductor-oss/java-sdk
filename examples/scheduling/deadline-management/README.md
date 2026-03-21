@@ -25,7 +25,7 @@ Workers handle each urgency level: CheckDeadlinesWorker evaluates how close a ta
 | **HandleOverdueWorker** | `ded_handle_overdue` | Escalates overdue tasks to management with P0 priority, reporting hours past deadline |
 | **HandleUrgentWorker** | `ded_handle_urgent` | Escalates urgent tasks to the senior team with P1 priority, reporting remaining hours before deadline |
 
-Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
+Workers implement scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 
 ### The Workflow
 

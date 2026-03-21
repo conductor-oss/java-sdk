@@ -25,7 +25,7 @@ Four workers span the parent and child workflows: CalcTotalWorker computes the o
 | **ChargePaymentWorker** | `sub_charge_payment` | Charges payment and returns a deterministic transactionId: "TXN-" + orderId. Returns charged=true and the amount. Defaults orderId to "UNKNOWN" if missing/blank. |
 | **ConfirmOrderWorker** | `sub_confirm_order` | Confirms the order after payment: returns the orderId, transactionId, and confirmed=true. Defaults orderId to "UNKNOWN" and transactionId to "NONE" if missing/blank. |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
+Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
 ### The Workflow
 

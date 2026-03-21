@@ -1,18 +1,18 @@
 # PR Review AI in Java with Conductor :  Fetch, Analyze, Review, and Post Comments on Pull Requests
 
-A Java Conductor workflow that automates pull request reviews .  fetching the diff from the repository, analyzing the changes for issues and patterns, generating a review with line-level comments, and posting the review back to the PR. Given a `repoName` and `prNumber`, the pipeline produces a diff analysis, review comments, and a posted review status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the fetch-analyze-generate-post review pipeline.
+A Java Conductor workflow that automates pull request reviews. fetching the diff from the repository, analyzing the changes for issues and patterns, generating a review with line-level comments, and posting the review back to the PR. Given a `repoName` and `prNumber`, the pipeline produces a diff analysis, review comments, and a posted review status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the fetch-analyze-generate-post review pipeline.
 
 ## Giving Every PR a Thorough Review Automatically
 
-Code reviews are essential but time-consuming. Reviewers miss things when they are tired, rushed, or unfamiliar with the codebase. An AI reviewer provides consistent, thorough feedback on every PR .  catching patterns like missing error handling, security concerns, or style inconsistencies that humans might overlook. The AI review does not replace human reviewers; it gives them a head start by flagging issues before they even open the PR.
+Code reviews are essential but time-consuming. Reviewers miss things when they are tired, rushed, or unfamiliar with the codebase. An AI reviewer provides consistent, thorough feedback on every PR. catching patterns like missing error handling, security concerns, or style inconsistencies that humans might overlook. The AI review does not replace human reviewers; it gives them a head start by flagging issues before they even open the PR.
 
-This workflow processes one pull request. The diff fetcher retrieves the PR changes from the repository. The change analyzer examines the diff for patterns, complexity, and potential issues. The review generator produces a structured review with specific comments tied to files and line numbers. The poster submits the review as comments on the PR. Each step's output feeds the next .  the raw diff feeds analysis, the analysis feeds review generation, and the generated review feeds posting.
+This workflow processes one pull request. The diff fetcher retrieves the PR changes from the repository. The change analyzer examines the diff for patterns, complexity, and potential issues. The review generator produces a structured review with specific comments tied to files and line numbers. The poster submits the review as comments on the PR. Each step's output feeds the next. the raw diff feeds analysis, the analysis feeds review generation, and the generated review feeds posting.
 
 ## The Solution
 
 **You just write the diff-fetching, change-analysis, review-generation, and posting workers. Conductor handles the review pipeline and PR data flow.**
 
-Four workers handle the review pipeline .  diff fetching, change analysis, review generation, and review posting. The fetcher pulls the PR diff from the repository. The analyzer examines changes for patterns and issues. The generator creates review comments with file and line references. The poster submits the review to the PR. Conductor sequences the four steps and passes diffs, analyses, and review comments between them via JSONPath.
+Four workers handle the review pipeline. diff fetching, change analysis, review generation, and review posting. The fetcher pulls the PR diff from the repository. The analyzer examines changes for patterns and issues. The generator creates review comments with file and line references. The poster submits the review to the PR. Conductor sequences the four steps and passes diffs, analyses, and review comments between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ FetchDiffWorker retrieves the PR changes, AnalyzeChangesWorker examines patterns
 | **GenerateReviewWorker** | `prr_generate_review` | Produces a structured review with file- and line-level comments and an overall verdict (approve/request changes). |
 | **PostReviewWorker** | `prr_post_review` | Posts the generated review as comments on the pull request. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w prr_pr_review -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one review step .  connect your Git hosting API (GitHub, GitLab, Bitbucket) for diff fetching and your LLM (Claude, GPT-4) for review generation, and the PR-review workflow stays the same.
+Each worker handles one review step. connect your Git hosting API (GitHub, GitLab, Bitbucket) for diff fetching and your LLM (Claude, GPT-4) for review generation, and the PR-review workflow stays the same.
 
 - **AnalyzeChangesWorker** (`prr_analyze_changes`): use an LLM (GPT-4, Claude) for deep semantic analysis of code changes
 - **FetchDiffWorker** (`prr_fetch_diff`): integrate with the GitHub or GitLab REST API to fetch real PR diffs

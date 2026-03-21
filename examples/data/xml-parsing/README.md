@@ -26,7 +26,7 @@ Five workers handle XML-to-JSON transformation: receiving raw XML content, parsi
 | **ParseTagsWorker** | `xp_parse_tags` | Parses XML tags and returns simulated parsed elements. |
 | **ReceiveXmlWorker** | `xp_receive_xml` | Receives raw XML content and passes it along with metadata. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

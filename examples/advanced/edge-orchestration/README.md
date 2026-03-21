@@ -1,6 +1,6 @@
 # Edge Computing Orchestration in Java Using Conductor :  Dispatch, Process, Collect, Merge
 
-A Java Conductor workflow example for edge computing orchestration .  dispatching a job to multiple edge nodes, executing processing on each node, collecting results from all nodes, and merging them into a single unified output. Uses [Conductor](https://github.
+A Java Conductor workflow example for edge computing orchestration. dispatching a job to multiple edge nodes, executing processing on each node, collecting results from all nodes, and merging them into a single unified output. Uses [Conductor](https://github.
 
 ## Processing Data at the Edge
 
@@ -12,7 +12,7 @@ Coordinating a fleet of edge nodes means tracking which nodes received the job, 
 
 **You write the dispatch and edge processing logic. Conductor handles node coordination, retries, and result merging.**
 
-`EorDispatchWorker` takes the job ID and list of edge nodes, assigns work to each node, and returns the task assignments. `EorEdgeProcessWorker` simulates the edge-side processing .  running the job on each node's local data and producing per-node results. `EorCollectWorker` gathers results from all nodes and counts how many reported back. `EorMergeWorker` combines the collected partial results into a single merged output. Conductor sequences these steps, retries dispatch or collection if a network call to an edge node fails, and records the full execution ,  which nodes were assigned, which responded, and what the merged result looks like.
+`EorDispatchWorker` takes the job ID and list of edge nodes, assigns work to each node, and returns the task assignments. `EorEdgeProcessWorker` simulates the edge-side processing. running the job on each node's local data and producing per-node results. `EorCollectWorker` gathers results from all nodes and counts how many reported back. `EorMergeWorker` combines the collected partial results into a single merged output. Conductor sequences these steps, retries dispatch or collection if a network call to an edge node fails, and records the full execution,  which nodes were assigned, which responded, and what the merged result looks like.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers coordinate edge-fleet processing: job dispatch to nodes, per-node e
 | **EorEdgeProcessWorker** | `eor_edge_process` | Runs the processing task on each edge node and returns per-node record counts |
 | **EorMergeWorker** | `eor_merge` | Merges results from all edge nodes into a single consolidated output |
 
-Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations .  the pattern and Conductor orchestration stay the same.
+Workers implement the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations. the pattern and Conductor orchestration stay the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w edge_orchestration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one phase of the dispatch-process-collect cycle .  replace the simulated edge node calls with real IoT Greengrass or MQTT APIs and the edge orchestration logic runs unchanged.
+Each worker handles one phase of the dispatch-process-collect cycle. replace the simulated edge node calls with real IoT Greengrass or MQTT APIs and the edge orchestration logic runs unchanged.
 
 - **EorDispatchWorker** (`eor_dispatch`): call AWS IoT Greengrass `createDeployment`, Azure IoT Edge, or send MQTT messages to edge devices to dispatch real jobs
 - **EorEdgeProcessWorker** (`eor_edge_process`): invoke real edge-side inference (TensorFlow Lite, ONNX Runtime) or data processing via SSH, gRPC, or the AWS IoT Jobs API

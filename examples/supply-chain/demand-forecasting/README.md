@@ -1,18 +1,18 @@
 # Demand Forecasting in Java with Conductor :  Data Collection, Trend Analysis, Forecast Generation, and Procurement Planning
 
-A Java Conductor workflow example for demand forecasting .  collecting historical sales and market data for a product category (e.g., consumer electronics in North America), analyzing seasonal trends and growth patterns, generating a 6-month demand forecast, and creating procurement plans based on predicted volumes. Uses [Conductor](https://github.
+A Java Conductor workflow example for demand forecasting. collecting historical sales and market data for a product category (e.g., consumer electronics in North America), analyzing seasonal trends and growth patterns, generating a 6-month demand forecast, and creating procurement plans based on predicted volumes. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to forecast demand for consumer electronics across North America over the next 6 months. This requires pulling historical sales data from your ERP, POS systems, and market intelligence feeds, analyzing the data for seasonal patterns (holiday spikes, back-to-school), growth trends, and market shifts, running forecasting models to predict future demand by SKU and region, and translating those forecasts into procurement plans with order quantities and timing. If the forecast over-predicts, you carry excess inventory; if it under-predicts, you stock out during peak demand.
 
-Without orchestration, the data scientist runs a Jupyter notebook that pulls data manually, the supply planner copies forecast numbers into a spreadsheet, and procurement creates POs based on gut feel plus the spreadsheet. There is no reproducibility .  nobody knows which data was used for last quarter's forecast. When the model needs retraining, the entire pipeline is re-run from scratch because there is no checkpoint between data collection and forecasting.
+Without orchestration, the data scientist runs a Jupyter notebook that pulls data manually, the supply planner copies forecast numbers into a spreadsheet, and procurement creates POs based on gut feel plus the spreadsheet. There is no reproducibility. nobody knows which data was used for last quarter's forecast. When the model needs retraining, the entire pipeline is re-run from scratch because there is no checkpoint between data collection and forecasting.
 
 ## The Solution
 
 **You just write the forecasting workers. Data collection, trend analysis, demand prediction, and procurement planning. Conductor handles data checkpointing, automatic retries on model failures, and versioned records for forecast reproducibility.**
 
-Each stage of the forecasting pipeline is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so clean historical data feeds trend analysis, trend outputs parameterize the forecast model, and forecast results drive procurement planning. If the forecasting model worker fails (out-of-memory, timeout), Conductor retries it using the already-collected and analyzed data ,  no need to re-pull months of sales history. Every data snapshot, trend analysis, forecast output, and procurement plan is versioned and recorded for audit and model improvement.
+Each stage of the forecasting pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so clean historical data feeds trend analysis, trend outputs parameterize the forecast model, and forecast results drive procurement planning. If the forecasting model worker fails (out-of-memory, timeout), Conductor retries it using the already-collected and analyzed data,  no need to re-pull months of sales history. Every data snapshot, trend analysis, forecast output, and procurement plan is versioned and recorded for audit and model improvement.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers form the forecasting pipeline: CollectDataWorker pulls historical s
 | **ForecastWorker** | `df_forecast` | Generates a demand forecast over the specified horizon using trend analysis results. |
 | **PlanWorker** | `df_plan` | Translates demand forecasts into procurement plans with order quantities and timing. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

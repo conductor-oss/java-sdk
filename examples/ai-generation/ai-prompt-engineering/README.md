@@ -1,6 +1,6 @@
 # AI Prompt Engineering in Java Using Conductor :  Define Task, Generate Variants, Test, Evaluate, Select Best
 
-A Java Conductor workflow that automates prompt optimization .  defining the task and evaluation criteria, generating multiple prompt variants, testing each variant against a benchmark, evaluating results against criteria, and selecting the best-performing prompt. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage prompt engineering pipeline as independent workers ,  you write the prompt generation and evaluation logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that automates prompt optimization. defining the task and evaluation criteria, generating multiple prompt variants, testing each variant against a benchmark, evaluating results against criteria, and selecting the best-performing prompt. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage prompt engineering pipeline as independent workers,  you write the prompt generation and evaluation logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Finding the Best Prompt Through Systematic Testing
 
@@ -12,7 +12,7 @@ Automated prompt engineering generates multiple variants (different system promp
 
 **You just write the task definition, prompt variant generation, benchmark testing, evaluation scoring, and best-prompt selection logic. Conductor handles variant testing orchestration, score aggregation, and complete prompt iteration history.**
 
-`DefineTaskWorker` establishes the task description, evaluation criteria (accuracy, format compliance, relevance), and test inputs. `GeneratePromptsWorker` creates multiple prompt variants .  varying instruction style, system prompt, few-shot examples, and output format. `TestVariantsWorker` runs each variant against the test inputs and collects outputs. `EvaluateWorker` scores each variant's outputs against the evaluation criteria. `SelectBestWorker` picks the highest-scoring prompt variant and produces the final prompt with its evaluation metrics. Conductor records every variant and its scores for prompt iteration history.
+`DefineTaskWorker` establishes the task description, evaluation criteria (accuracy, format compliance, relevance), and test inputs. `GeneratePromptsWorker` creates multiple prompt variants. varying instruction style, system prompt, few-shot examples, and output format. `TestVariantsWorker` runs each variant against the test inputs and collects outputs. `EvaluateWorker` scores each variant's outputs against the evaluation criteria. `SelectBestWorker` picks the highest-scoring prompt variant and produces the final prompt with its evaluation metrics. Conductor records every variant and its scores for prompt iteration history.
 
 ### What You Write: Workers
 
@@ -20,12 +20,12 @@ Workers for variant generation, benchmark testing, and scoring operate independe
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **DefineTaskWorker** | `ape_define_task` | Establishes the task specification from the description .  defines input format, expected output, and evaluation criteria |
+| **DefineTaskWorker** | `ape_define_task` | Establishes the task specification from the description. defines input format, expected output, and evaluation criteria |
 | **EvaluateWorker** | `ape_evaluate` | Ranked by quality. P3 leads with 0.91 |
 | **GeneratePromptsWorker** | `ape_generate_prompts` | 5 prompt variants generated |
 | **SelectBestWorker** | `ape_select_best` | Best prompt: P3 (score: 0.91) |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -104,7 +104,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live prompt engineering (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live prompt engineering (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 
@@ -136,7 +136,7 @@ conductor workflow search -w ape_prompt_engineering -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real prompt optimization stack .  an LLM for variant generation, your benchmark dataset for testing, automated metrics (ROUGE, exact match) or LLM-as-judge for evaluation, and the workflow runs identically in production.
+Wire each worker to your real prompt optimization stack. an LLM for variant generation, your benchmark dataset for testing, automated metrics (ROUGE, exact match) or LLM-as-judge for evaluation, and the workflow runs identically in production.
 
 - **GeneratePromptsWorker** (`ape_generate_prompts`): use an LLM to generate diverse prompt variants, or implement DSPy-style automatic prompt optimization with gradient-free search
 - **TestVariantsWorker** (`ape_test_variants`): run variants against a curated benchmark dataset with known-good answers for objective evaluation, or use A/B testing in production with real user queries

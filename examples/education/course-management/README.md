@@ -1,18 +1,18 @@
 # Course Management in Java with Conductor :  Course Creation, Scheduling, Instructor Assignment, and Catalog Publishing
 
-A Java Conductor workflow example for setting up a new course .  creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.
+A Java Conductor workflow example for setting up a new course. creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to stand up a new course offering each semester. This means creating the course record in your student information system with the correct department and credit hours, scheduling class sessions into available time slots and rooms, assigning an instructor whose qualifications and availability match, and finally publishing the course to the catalog so students can register. Publishing a course without an assigned instructor or without scheduled sessions creates registration chaos.
 
-Without orchestration, you'd build a single course-setup script that creates the record, queries room availability, checks faculty schedules, and pushes to the catalog .  manually handling conflicts when the chosen room is double-booked, retrying failed database writes, and logging every step to debug why a course appeared in the catalog without an instructor.
+Without orchestration, you'd build a single course-setup script that creates the record, queries room availability, checks faculty schedules, and pushes to the catalog. manually handling conflicts when the chosen room is double-booked, retrying failed database writes, and logging every step to debug why a course appeared in the catalog without an instructor.
 
 ## The Solution
 
 **You just write the course creation, scheduling, instructor assignment, and catalog publishing logic. Conductor handles enrollment retries, scheduling coordination, and course lifecycle tracking.**
 
-Each course setup concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (create, schedule, assign instructor, publish), retrying if the scheduling system is temporarily unavailable, tracking every course's setup lifecycle from creation to publication, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each course setup concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (create, schedule, assign instructor, publish), retrying if the scheduling system is temporarily unavailable, tracking every course's setup lifecycle from creation to publication, and resuming from the last successful step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Course creation, scheduling, enrollment management, and completion tracking work
 | **AssignInstructorWorker** | `crs_assign_instructor` | Selects and assigns a qualified instructor from the department |
 | **PublishCourseWorker** | `crs_publish` | Publishes the fully configured course to the student registration catalog |
 
-Workers simulate educational operations .  enrollment, grading, notifications ,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
+Workers implement educational operations. enrollment, grading, notifications,  with realistic outputs. Replace with real LMS and SIS integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w crs_course_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real academic systems .  your SIS (Banner, PeopleSoft) for course records, your room scheduling system (25Live, Ad Astra) for sessions, your faculty database for instructor assignment, and the workflow runs identically in production.
+Point each worker at your real academic systems. your SIS (Banner, PeopleSoft) for course records, your room scheduling system (25Live, Ad Astra) for sessions, your faculty database for instructor assignment, and the workflow runs identically in production.
 
 - **CreateCourseWorker** (`crs_create`): insert the course record into your SIS (Banner, PeopleSoft, Workday Student) with proper department codes and credit-hour mappings
 - **ScheduleCourseWorker** (`crs_schedule`): query your room/scheduling system (25Live, Ad Astra, EMS) for available time slots and classrooms that match capacity requirements

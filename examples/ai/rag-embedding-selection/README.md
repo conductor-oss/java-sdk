@@ -16,7 +16,7 @@ Each embedding provider is an independent worker. OpenAI, Cohere, local. Conduct
 
 ### What You Write: Workers
 
-Six workers benchmark embedding providers .  preparing test data, running OpenAI, Cohere, and local embeddings in parallel via FORK_JOIN, evaluating each on accuracy and latency, and selecting the best performer for production use.
+Six workers benchmark embedding providers. preparing test data, running OpenAI, Cohere, and local embeddings in parallel via FORK_JOIN, evaluating each on accuracy and latency, and selecting the best performer for production use.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -27,7 +27,7 @@ Six workers benchmark embedding providers .  preparing test data, running OpenAI
 | **PrepareBenchmarkWorker** | `es_prepare_benchmark` | Worker that prepares a benchmark dataset for embedding evaluation. Returns benchmark queries with expected document I... |
 | **SelectBestWorker** | `es_select_best` | Worker that selects the best embedding model based on evaluation rankings. Returns the best model, its score, and a r... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -139,7 +139,7 @@ conductor workflow search -w rag_embedding_selection -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker benchmarks one embedding provider .  swap in real OpenAI, Cohere, and local sentence-transformers calls, add retrieval quality metrics like MRR, and the parallel benchmark-evaluate-select workflow runs unchanged.
+Each worker benchmarks one embedding provider. swap in real OpenAI, Cohere, and local sentence-transformers calls, add retrieval quality metrics like MRR, and the parallel benchmark-evaluate-select workflow runs unchanged.
 
 - **PrepareBenchmarkWorker** (`es_prepare_benchmark`): load benchmark datasets (MTEB, BEIR, or custom domain-specific query/document pairs) with ground truth relevance judgments
 - **EmbedOpenaiWorker** (`es_embed_openai`): call the real OpenAI Embeddings API (text-embedding-3-large) and compute NDCG, recall, and precision against the benchmark
@@ -148,7 +148,7 @@ Each worker benchmarks one embedding provider .  swap in real OpenAI, Cohere, an
 - **EvaluateEmbeddingsWorker** (`es_evaluate_embeddings`): compute composite scores weighting quality (NDCG, recall), latency, and cost-per-query to recommend the best embedding model for your use case
 - **SelectBestWorker** (`es_select_best`): output a deployment recommendation with the winning model, its retrieval quality metrics, latency percentiles, and estimated monthly cost
 
-Each embedding worker returns the same vector/timing shape, so adding new providers to the benchmark requires only a new worker and fork branch .  the evaluation and selection logic stays unchanged.
+Each embedding worker returns the same vector/timing shape, so adding new providers to the benchmark requires only a new worker and fork branch. the evaluation and selection logic stays unchanged.
 
 ## SDK
 

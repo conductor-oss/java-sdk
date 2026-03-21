@@ -22,7 +22,7 @@ LcrExtractTermsWorker pulls key clauses and risk flags from contracts, and LcrFi
 | *WAIT task* | `lcr_legal_review` | Pauses with the extracted terms and risk flags until a lawyer reviews, verifies accuracy, and submits their assessment via `POST /tasks/{taskId}` | Built-in Conductor WAIT.; no worker needed |
 | **LcrFinalizeWorker** | `lcr_finalize` | Finalizes the contract review. records the lawyer's approval and any redline notes, updates the contract status in the CLM system |
 
-Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
+Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
 ### The Workflow
 

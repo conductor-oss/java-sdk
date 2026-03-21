@@ -1,18 +1,18 @@
 # Drug Interaction Checking in Java Using Conductor :  Medication List, Pairwise Checks, Conflict Flagging, and Alternative Recommendations
 
-A Java Conductor workflow example for drug interaction checking .  pulling a patient's current medication list, checking every drug pair for interactions, flagging clinically significant conflicts by severity, and recommending safer therapeutic alternatives. Uses [Conductor](https://github.
+A Java Conductor workflow example for drug interaction checking. pulling a patient's current medication list, checking every drug pair for interactions, flagging clinically significant conflicts by severity, and recommending safer therapeutic alternatives. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to check for drug-drug interactions when a new medication is prescribed. The patient's complete active medication list must be retrieved from the EHR. Every pair of the new medication against existing medications must be checked against an interaction database for contraindications, dose adjustments, and monitoring requirements. Clinically significant conflicts must be flagged with severity levels (minor, moderate, major, contraindicated). For flagged interactions, the system must recommend alternative medications in the same therapeutic class that do not conflict. A missed major interaction .  like prescribing warfarin with a CYP2C9 inhibitor ,  can cause life-threatening adverse events.
+You need to check for drug-drug interactions when a new medication is prescribed. The patient's complete active medication list must be retrieved from the EHR. Every pair of the new medication against existing medications must be checked against an interaction database for contraindications, dose adjustments, and monitoring requirements. Clinically significant conflicts must be flagged with severity levels (minor, moderate, major, contraindicated). For flagged interactions, the system must recommend alternative medications in the same therapeutic class that do not conflict. A missed major interaction. like prescribing warfarin with a CYP2C9 inhibitor,  can cause life-threatening adverse events.
 
-Without orchestration, you'd build a monolithic prescribing safety service that queries the medication list, runs pairwise lookups against the interaction database, formats the conflict alerts, and generates alternatives .  all in a single request. If the drug interaction database is temporarily unavailable, the prescriber gets no safety check at all. If the system crashes after finding conflicts but before presenting alternatives, the clinician sees a warning with no actionable guidance. Every interaction check must be logged for medication safety audits.
+Without orchestration, you'd build a monolithic prescribing safety service that queries the medication list, runs pairwise lookups against the interaction database, formats the conflict alerts, and generates alternatives. all in a single request. If the drug interaction database is temporarily unavailable, the prescriber gets no safety check at all. If the system crashes after finding conflicts but before presenting alternatives, the clinician sees a warning with no actionable guidance. Every interaction check must be logged for medication safety audits.
 
 ## The Solution
 
 **You just write the drug safety workers. Medication list retrieval, pairwise interaction checks, conflict flagging, and alternative recommendation. Conductor handles sequential evaluation, automatic retries when the interaction database is unavailable, and logged records of every safety check for medication audits.**
 
-Each stage of the interaction check is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of listing medications before checking pairs, flagging conflicts only after all pairs are evaluated, generating alternative recommendations only for flagged conflicts, and logging every check for medication safety audits. You get all of that, without writing a single line of orchestration code.
+Each stage of the interaction check is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of listing medications before checking pairs, flagging conflicts only after all pairs are evaluated, generating alternative recommendations only for flagged conflicts, and logging every check for medication safety audits. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers form the drug safety pipeline: ListMedicationsWorker retrieves acti
 | **FlagConflictsWorker** | `drg_flag_conflicts` | Categorizes detected interactions by clinical severity (minor, moderate, major, contraindicated) |
 | **RecommendAlternativesWorker** | `drg_recommend_alternatives` | Suggests alternative medications in the same therapeutic class that avoid the flagged interactions |
 
-Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations .  the workflow and compliance logic stay the same.
+Workers implement clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations. the workflow and compliance logic stay the same.
 
 ### The Workflow
 

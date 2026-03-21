@@ -1,6 +1,6 @@
 # Reverse Logistics in Java with Conductor :  Return Receipt, Condition Inspection, Refurbish/Recycle/Dispose Routing, and Processing
 
-A Java Conductor workflow example for reverse logistics .  receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.
+A Java Conductor workflow example for reverse logistics. receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, returns pile up at the dock waiting for inspection. Inspe
 
 **You just write the returns workers. Receipt logging, condition inspection, refurbish/recycle/dispose routing, and processing. Conductor handles SWITCH-based disposition routing, refurbishment retries, and disposition records for sustainability reporting.**
 
-Each step of the reverse logistics process is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so returns are received before inspection, inspection results drive the SWITCH task that routes to refurbish, recycle, or dispose, and final processing runs regardless of which disposition path was taken. If the refurbishment worker fails, Conductor retries without re-inspecting the item. Every receipt, inspection result, disposition decision, and processing action is recorded for return analytics and sustainability reporting.
+Each step of the reverse logistics process is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so returns are received before inspection, inspection results drive the SWITCH task that routes to refurbish, recycle, or dispose, and final processing runs regardless of which disposition path was taken. If the refurbishment worker fails, Conductor retries without re-inspecting the item. Every receipt, inspection result, disposition decision, and processing action is recorded for return analytics and sustainability reporting.
 
 ### What You Write: Workers
 
@@ -21,13 +21,13 @@ Six workers handle returns end-to-end: ReceiveReturnWorker logs the return, Insp
 | Worker | Task | What It Does |
 |---|---|---|
 | **DisposeWorker** | `rvl_dispose` | Disposes of items that cannot be refurbished or recycled, with proper waste handling. |
-| **InspectWorker** | `rvl_inspect` | Inspects the returned product's condition .  cosmetic damage, functional defect, or beyond repair. |
-| **ProcessWorker** | `rvl_process` | Processes the return .  updates inventory, triggers the customer refund, and records the disposition. |
+| **InspectWorker** | `rvl_inspect` | Inspects the returned product's condition. cosmetic damage, functional defect, or beyond repair. |
+| **ProcessWorker** | `rvl_process` | Processes the return. updates inventory, triggers the customer refund, and records the disposition. |
 | **ReceiveReturnWorker** | `rvl_receive_return` | Receives the returned product at the returns center and logs the return ID. |
 | **RecycleWorker** | `rvl_recycle` | Recovers materials from items that cannot be refurbished but have recyclable components. |
 | **RefurbishWorker** | `rvl_refurbish` | Refurbishes repairable items for resale or warranty replacement. |
 
-Workers simulate supply chain operations .  inventory checks, shipment tracking, supplier coordination ,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
+Workers implement supply chain operations. inventory checks, shipment tracking, supplier coordination,  with realistic outputs. Replace with real ERP and logistics integrations and the workflow stays the same.
 
 ### The Workflow
 

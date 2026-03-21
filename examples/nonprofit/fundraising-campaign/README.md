@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Fundraising Campaign. Uses [Cond
 
 Your nonprofit is launching an end-of-year fundraising campaign with a $100,000 goal. The development team needs to plan the campaign by selecting outreach channels (email, social, direct mail), launch it on the target date, track donations against the goal throughout the campaign, close the campaign at the end date, and produce a final report showing total raised, donor count, and whether the goal was met. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -26,7 +26,7 @@ Campaign setup, outreach, pledge tracking, and results reporting workers each ha
 | **ReportWorker** | `frc_report` | Generates the final campaign report with total raised, goal-met status, and campaign ID |
 | **TrackWorker** | `frc_track` | Tracks donations against the goal, computing total raised, donor count, and average donation |
 
-Workers simulate nonprofit operations .  donor processing, campaign management, reporting ,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
+Workers implement nonprofit operations. donor processing, campaign management, reporting,  with realistic outputs. Replace with real CRM and payment integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w fundraising_campaign_754 -s COMPLETED -c 5
 
 ## How to Extend
 
-Swap each worker for your real fundraising tools .  your CRM for donor segmentation, your email platform for campaign outreach, your payment processor for donation collection, and the workflow runs identically in production.
+Swap each worker for your real fundraising tools. your CRM for donor segmentation, your email platform for campaign outreach, your payment processor for donation collection, and the workflow runs identically in production.
 
 - **PlanWorker** (`frc_plan`): create the campaign in Salesforce NPSP, Bloomerang, or DonorPerfect and configure outreach sequences in your email platform (Mailchimp, SendGrid)
 - **LaunchWorker** (`frc_launch`): activate email drip campaigns in Mailchimp, schedule social media posts via Buffer, and update the campaign status in your CRM

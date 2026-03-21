@@ -6,13 +6,13 @@ Orchestrates a catering order from client inquiry through menu planning, event e
 
 You need to manage a catering order from initial inquiry to final invoice. A client reaches out with event details (date, guest count), a customized quote is prepared, the menu is planned based on dietary requirements and budget, the catering event is executed, and the final invoice is sent. Providing a quote without understanding guest count leads to cost overruns; executing without a planned menu results in food shortages or waste.
 
-Without orchestration, you'd manage catering through spreadsheets and email .  manually tracking inquiry status, building quotes from templates, coordinating menu planning with kitchen staff, and chasing invoices after the event.
+Without orchestration, you'd manage catering through spreadsheets and email. manually tracking inquiry status, building quotes from templates, coordinating menu planning with kitchen staff, and chasing invoices after the event.
 
 ## The Solution
 
 **You just write the client inquiry, menu planning, event execution, and invoicing logic. Conductor handles quote retries, event coordination sequencing, and catering engagement audit trails.**
 
-Each catering concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (inquiry, quote, plan menu, execute, invoice), retrying if an external service fails, tracking every catering order's lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each catering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (inquiry, quote, plan menu, execute, invoice), retrying if an external service fails, tracking every catering order's lifecycle, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Inquiry intake, menu planning, quoting, execution, and invoicing workers each ma
 | **PlanMenuWorker** | `cat_plan_menu` | Plans a menu for the given guest count and budget, selecting appetizers, mains, desserts, and beverages |
 | **QuoteWorker** | `cat_quote` | Calculates a price quote at $45 per guest based on guest count and returns the total and per-guest rate |
 
-Workers simulate food service operations .  order processing, kitchen routing, delivery coordination ,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
+Workers implement food service operations. order processing, kitchen routing, delivery coordination,  with realistic outputs. Replace with real POS and delivery integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w catering_management_740 -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real catering systems .  your CRM for client inquiries, your menu planning tool, your event management platform, your invoicing system, and the workflow runs identically in production.
+Connect each worker to your real catering systems. your CRM for client inquiries, your menu planning tool, your event management platform, your invoicing system, and the workflow runs identically in production.
 
 - **Inquiry handler**: capture client requirements in your CRM (Salesforce, HubSpot) and check kitchen capacity for the requested date
 - **Quote generator**: calculate pricing based on menu selections, guest count, venue fees, and staffing using your catering cost model

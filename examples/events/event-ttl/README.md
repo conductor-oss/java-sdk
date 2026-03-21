@@ -12,7 +12,7 @@ Without orchestration, you'd embed TTL checks in every consumer, calculate expir
 
 **You just write the expiry-check, event-processing, expired-logging, and acknowledgment workers. Conductor handles expiry-based SWITCH routing, guaranteed processing of valid events, and a complete record of every TTL decision.**
 
-Each TTL concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of checking the event's age against its TTL, routing via a SWITCH task to processing (valid) or logging (expired), retrying processing if it fails, and tracking every event's TTL decision. You get all of that, without writing a single line of orchestration code.
+Each TTL concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking the event's age against its TTL, routing via a SWITCH task to processing (valid) or logging (expired), retrying processing if it fails, and tracking every event's TTL decision. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers enforce event expiration: CheckExpiryWorker evaluates the event's a
 | **LogExpiredWorker** | `xl_log_expired` | Logs an expired event that exceeded its TTL. |
 | **ProcessEventWorker** | `xl_process_event` | Processes a valid (non-expired) event. |
 
-Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources .  the workflow and routing logic stay the same.
+Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
 
 ### The Workflow
 

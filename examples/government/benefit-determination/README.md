@@ -1,10 +1,10 @@
 # Government Benefit Determination in Java with Conductor :  Eligibility Verification, Calculation, and Applicant Notification
 
-A Java Conductor workflow example for government benefit determination .  receiving applications, verifying income-based eligibility, calculating benefit amounts, and routing applicants to approval or denial notifications. Uses [Conductor](https://github.
+A Java Conductor workflow example for government benefit determination. receiving applications, verifying income-based eligibility, calculating benefit amounts, and routing applicants to approval or denial notifications. Uses [Conductor](https://github.
 
 ## The Problem
 
-You need to process benefit applications for a government assistance program. Each application requires intake validation, income verification against eligibility thresholds, benefit amount calculation based on the applicant's financial profile, and then routing to either an approval notice (with the benefit amount) or a denial notice (with the specific reason). The eligibility decision must branch the workflow .  eligible applicants receive a benefit calculation and approval letter, while ineligible applicants receive a denial with an explanation.
+You need to process benefit applications for a government assistance program. Each application requires intake validation, income verification against eligibility thresholds, benefit amount calculation based on the applicant's financial profile, and then routing to either an approval notice (with the benefit amount) or a denial notice (with the specific reason). The eligibility decision must branch the workflow. eligible applicants receive a benefit calculation and approval letter, while ineligible applicants receive a denial with an explanation.
 
 Without orchestration, you'd build a monolithic service that queries the applicant database, runs the income check, computes the benefit, and branches with if/else into notification logic. If the eligibility service is temporarily unavailable, you'd need retry logic. If the notification step fails after eligibility is already determined, you'd need to track partial progress. Auditors require a complete trail of every determination for compliance reviews.
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic service that queries the applica
 
 **You just write the application intake, eligibility verification, benefit calculation, and approval or denial notification logic. Conductor handles eligibility retries, benefit routing, and determination audit trails.**
 
-Each stage of the benefit determination is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in the right order, routing eligible and ineligible applicants to different notification paths via SWITCH, retrying on failure, and providing a complete audit trail of every determination. You get all of that, without writing a single line of orchestration code.
+Each stage of the benefit determination is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in the right order, routing eligible and ineligible applicants to different notification paths via SWITCH, retrying on failure, and providing a complete audit trail of every determination. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Application intake, eligibility verification, benefit calculation, and enrollmen
 | **NotifyEligibleWorker** | `bnd_notify_eligible` | Sends an approval notice to the applicant with their calculated benefit amount |
 | **NotifyIneligibleWorker** | `bnd_notify_ineligible` | Sends a denial notice to the applicant with the specific reason for ineligibility |
 
-Workers simulate government operations .  application processing, compliance checks, notifications ,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
+Workers implement government operations. application processing, compliance checks, notifications,  with realistic outputs. Replace with real agency system integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -135,7 +135,7 @@ conductor workflow search -w bnd_benefit_determination -s COMPLETED -c 5
 
 ## How to Extend
 
-Connect each worker to your real benefits systems .  your eligibility verification service for income checks, your benefit calculator for amount determination, your case management platform for applicant notifications, and the workflow runs identically in production.
+Connect each worker to your real benefits systems. your eligibility verification service for income checks, your benefit calculator for amount determination, your case management platform for applicant notifications, and the workflow runs identically in production.
 
 - **ApplyWorker** → integrate with your agency's case management system to create intake records and validate required documentation
 - **VerifyEligibilityWorker** → call federal/state income verification APIs (IRS, SSA) instead of using a hardcoded threshold

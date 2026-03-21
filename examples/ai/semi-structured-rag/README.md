@@ -16,7 +16,7 @@ A classifier determines which sources to search. Conductor's `FORK_JOIN` runs st
 
 ### What You Write: Workers
 
-Five workers handle dual-source retrieval .  classifying the question's data needs, searching structured and unstructured sources in parallel via FORK_JOIN, merging both result types, and generating a unified answer.
+Five workers handle dual-source retrieval. classifying the question's data needs, searching structured and unstructured sources in parallel via FORK_JOIN, merging both result types, and generating a unified answer.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -26,7 +26,7 @@ Five workers handle dual-source retrieval .  classifying the question's data nee
 | **SearchStructuredWorker** | `ss_search_structured` | Worker that searches structured data sources based on the classified structured fields. Returns results with field, v... |
 | **SearchUnstructuredWorker** | `ss_search_unstructured` | Worker that searches unstructured text chunks for relevant passages. Returns results with chunkId, relevance score, a... |
 
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode .  the workflow and worker interfaces stay the same.
+Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ conductor workflow search -w semi_structured_rag_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker targets one data type .  swap in real SQL queries for structured search, connect a vector store for unstructured search, implement cross-source merging, and the classify-search-merge-generate pipeline runs unchanged.
+Each worker targets one data type. swap in real SQL queries for structured search, connect a vector store for unstructured search, implement cross-source merging, and the classify-search-merge-generate pipeline runs unchanged.
 
 - **ClassifyDataWorker** (`ss_classify_data`): use an LLM or rule-based classifier to separate input data into structured fields (table/column references) and unstructured text chunks
 - **SearchStructuredWorker** (`ss_search_structured`): query structured data sources (PostgreSQL, MySQL, or a data warehouse) using SQL generated from the classified structured fields

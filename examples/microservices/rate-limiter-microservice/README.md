@@ -12,7 +12,7 @@ Without orchestration, rate-limiting logic is embedded in API gateway middleware
 
 **You just write the quota-check, request-processing, rejection, and counter-update workers. Conductor handles conditional allow/reject routing via SWITCH, per-client retry policies, and an audit trail of every rate-limit decision.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers implement distributed rate limiting: CheckQuotaWorker evaluates per
 | **RejectRequestWorker** | `rl_reject_request` | Rejects a request when the rate limit quota is exceeded. |
 | **UpdateCounterWorker** | `rl_update_counter` | Updates the rate limit counter after processing a request. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

@@ -1,6 +1,6 @@
 # Implementing Security Awareness Training in Java with Conductor :  Module Assignment, Phishing Simulation, Evaluation, and Compliance Reporting
 
-A Java Conductor workflow example for automated security awareness campaigns .  assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.
+A Java Conductor workflow example for automated security awareness campaigns. assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd manage training assignments in one spreadsheet, phi
 
 **You just write the LMS integration and phishing simulation logic. Conductor handles campaign sequencing so phishing tests only run after training is assigned, retries if the simulation platform is temporarily down, and timestamped evidence for SOC2 and ISO 27001 auditors.**
 
-Each phase of the awareness campaign is a simple, independent worker .  a plain Java class that does one thing. Conductor sequences them so training is assigned before phishing tests are sent, simulation results feed directly into the evaluation step, and the compliance report captures everything end-to-end. If the phishing simulation worker fails partway through, Conductor retries without re-sending to employees who already received the test. Every assignment, simulation, and evaluation result is tracked with timestamps for audit evidence.
+Each phase of the awareness campaign is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so training is assigned before phishing tests are sent, simulation results feed directly into the evaluation step, and the compliance report captures everything end-to-end. If the phishing simulation worker fails partway through, Conductor retries without re-sending to employees who already received the test. Every assignment, simulation, and evaluation result is tracked with timestamps for audit evidence.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers run the awareness campaign: StAssignTrainingWorker assigns modules 
 | **StReportComplianceWorker** | `st_report_compliance` | Generates training compliance report. |
 | **StSendPhishingSimWorker** | `st_send_phishing_sim` | Sends phishing simulation to department employees. |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -123,7 +123,7 @@ conductor workflow search -w security_training -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker runs one campaign step .  connect StAssignTrainingWorker to KnowBe4 or your LMS, StSendPhishingSimWorker to GoPhish, and the assign-simulate-evaluate-report workflow stays the same.
+Each worker runs one campaign step. connect StAssignTrainingWorker to KnowBe4 or your LMS, StSendPhishingSimWorker to GoPhish, and the assign-simulate-evaluate-report workflow stays the same.
 
 - **StAssignTrainingWorker** (`st_assign_training`): assign modules via your LMS API (KnowBe4, Proofpoint Security Awareness, or a custom LMS), pulling employee lists from your HR system or Active Directory
 - **StSendPhishingSimWorker** (`st_send_phishing_sim`): launch phishing simulations via KnowBe4's API or GoPhish, tracking which employees receive each simulated email and their click/report responses

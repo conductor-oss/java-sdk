@@ -1,10 +1,10 @@
 # Question Answering in Java with Conductor :  Parse, Retrieve, and Generate Answers from a Knowledge Base
 
-A Java Conductor workflow that answers natural language questions from a knowledge base .  parsing the question to extract intent and keywords, retrieving relevant context from the knowledge base, and generating a natural language answer from the retrieved context. Given a `question` and `knowledgeBase`, the pipeline produces parsed intent, relevant context, and a generated answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the three-step question answering pipeline.
+A Java Conductor workflow that answers natural language questions from a knowledge base. parsing the question to extract intent and keywords, retrieving relevant context from the knowledge base, and generating a natural language answer from the retrieved context. Given a `question` and `knowledgeBase`, the pipeline produces parsed intent, relevant context, and a generated answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the three-step question answering pipeline.
 
 ## Answering Questions with Knowledge-Grounded Responses
 
-An effective question answering system does not just search for keywords .  it understands what the user is asking, finds the most relevant information from a knowledge base, and synthesizes a clear, accurate answer. This requires a pipeline: parse the question to extract its intent and key terms, retrieve the most relevant passages from the knowledge base, and generate an answer that directly addresses the question using the retrieved context.
+An effective question answering system does not just search for keywords. it understands what the user is asking, finds the most relevant information from a knowledge base, and synthesizes a clear, accurate answer. This requires a pipeline: parse the question to extract its intent and key terms, retrieve the most relevant passages from the knowledge base, and generate an answer that directly addresses the question using the retrieved context.
 
 This workflow implements that three-step pipeline. The question parser analyzes the input to extract intent (e.g., "how-to" vs. "definition" vs. "comparison") and key terms. The context retriever searches the specified knowledge base using the parsed question and returns the most relevant passages. The answer generator synthesizes a natural language response from the retrieved context, directly answering the user's question.
 
@@ -12,7 +12,7 @@ This workflow implements that three-step pipeline. The question parser analyzes 
 
 **You just write the question-parsing, context-retrieval, and answer-generation workers. Conductor handles the QA pipeline and passage routing.**
 
-Three workers form the QA pipeline .  question parsing, context retrieval, and answer generation. The parser extracts intent and keywords from the question. The retriever searches the knowledge base for relevant passages. The generator produces a natural language answer from the retrieved context. Conductor sequences the three steps and passes parsed questions, retrieved context, and generated answers between them via JSONPath.
+Three workers form the QA pipeline. question parsing, context retrieval, and answer generation. The parser extracts intent and keywords from the question. The retriever searches the knowledge base for relevant passages. The generator produces a natural language answer from the retrieved context. Conductor sequences the three steps and passes parsed questions, retrieved context, and generated answers between them via JSONPath.
 
 ### What You Write: Workers
 
@@ -24,7 +24,7 @@ ParseQuestionWorker extracts intent and keywords, RetrieveContextWorker finds th
 | **ParseQuestionWorker** | `qas_parse_question` | Analyzes the input question to extract intent type (how-to, definition, comparison) and keywords. |
 | **RetrieveContextWorker** | `qas_retrieve_context` | Searches the knowledge base for the most relevant passages matching the parsed question. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -128,7 +128,7 @@ conductor workflow search -w qas_question_answering -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one QA step .  connect your search engine (Elasticsearch, Algolia) for passage retrieval and your LLM (Claude, GPT-4) for answer synthesis, and the question-answering workflow stays the same.
+Each worker handles one QA step. connect your search engine (Elasticsearch, Algolia) for passage retrieval and your LLM (Claude, GPT-4) for answer synthesis, and the question-answering workflow stays the same.
 
 - **GenerateAnswerWorker** (`qas_generate_answer`): swap in an LLM (GPT-4, Claude) for real answer generation from retrieved context
 - **ParseQuestionWorker** (`qas_parse_question`): use NLP models for intent classification and keyword extraction

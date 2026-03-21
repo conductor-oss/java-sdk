@@ -25,7 +25,7 @@ Four workers implement the GDPR erasure pipeline: discovering all records across
 | **GenerateAuditLogWorker** | `gr_generate_audit_log` | Generates a GDPR-compliant audit log for the deletion request. |
 | **VerifyIdentityWorker** | `gr_verify_identity` | Verifies the identity of the user requesting data deletion. |
 
-Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks .  the pipeline structure and error handling stay the same.
+Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.
 
 ### The Workflow
 

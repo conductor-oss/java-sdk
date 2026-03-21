@@ -1,18 +1,18 @@
 # Implementing OAuth Token Management in Java with Conductor :  Grant Validation, Token Issuance, and Compliance Auditing
 
-A Java Conductor workflow example for OAuth 2.0 token lifecycle management .  validating client credentials and grant types, issuing access and refresh tokens, persisting token metadata for revocation, and logging every issuance for compliance. Uses [Conductor](https://github.
+A Java Conductor workflow example for OAuth 2.0 token lifecycle management. validating client credentials and grant types, issuing access and refresh tokens, persisting token metadata for revocation, and logging every issuance for compliance. Uses [Conductor](https://github.
 
 ## The Problem
 
 You need to handle OAuth 2.0 token requests end-to-end: validate that the client ID is registered and the grant type (authorization_code, client_credentials, etc.) is permitted, issue scoped access and refresh tokens, store token metadata so tokens can be revoked or introspected later, and write an immutable audit trail for every issuance event.
 
-Without orchestration, you'd wire all of this into a single token endpoint handler .  checking credentials, generating JWTs, writing to the token store, and appending audit logs in one long method. If the token store write fails after issuance, you have an untracked token in the wild. If the audit log write throws, you either swallow the error or fail the entire request. Retry logic, failure isolation, and observability all get bolted on as afterthoughts, and the result is a brittle, hard-to-audit token service.
+Without orchestration, you'd wire all of this into a single token endpoint handler. checking credentials, generating JWTs, writing to the token store, and appending audit logs in one long method. If the token store write fails after issuance, you have an untracked token in the wild. If the audit log write throws, you either swallow the error or fail the entire request. Retry logic, failure isolation, and observability all get bolted on as afterthoughts, and the result is a brittle, hard-to-audit token service.
 
 ## The Solution
 
 **You just write the grant validation and JWT signing logic. Conductor handles the validate-issue-store-audit sequence, retries a failed token store write without re-issuing, and an immutable audit trail of every token minted.**
 
-Each stage of the token lifecycle is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in sequence, retrying a failed token store write without re-issuing the token, tracking every step with inputs and outputs for audit, and resuming from the exact failure point if the process crashes mid-issuance.
+Each stage of the token lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in sequence, retrying a failed token store write without re-issuing the token, tracking every step with inputs and outputs for audit, and resuming from the exact failure point if the process crashes mid-issuance.
 
 ### What You Write: Workers
 
@@ -25,7 +25,7 @@ Four workers manage the token lifecycle: ValidateGrantWorker checks client crede
 | **StoreTokenWorker** | `otm_store_token` | Stores token metadata for revocation support. |
 | **ValidateGrantWorker** | `otm_validate_grant` | Validates the OAuth grant type and client credentials. |
 
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations .  the workflow logic stays the same.
+Workers implement security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations. the workflow logic stays the same.
 
 ### The Workflow
 
@@ -123,7 +123,7 @@ conductor workflow search -w oauth_token_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one token lifecycle step .  connect ValidateGrantWorker to your OAuth provider (Keycloak, Auth0), IssueTokensWorker to your JWT signing service, and the validate-issue-store-audit workflow stays the same.
+Each worker handles one token lifecycle step. connect ValidateGrantWorker to your OAuth provider (Keycloak, Auth0), IssueTokensWorker to your JWT signing service, and the validate-issue-store-audit workflow stays the same.
 
 - **ValidateGrantWorker** (`otm_validate_grant`): look up registered clients and allowed grant types in your OAuth provider (Keycloak admin API, Auth0 Management API, or a database of registered applications)
 - **IssueTokensWorker** (`otm_issue_tokens`): generate real JWTs with a signing key, set expiry based on grant type, and produce refresh tokens backed by your token store

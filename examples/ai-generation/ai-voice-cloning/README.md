@@ -1,6 +1,6 @@
 # AI Voice Cloning in Java Using Conductor :  Sample Collection, Model Training, Speech Generation, Verification
 
-A Java Conductor workflow that clones a speaker's voice .  collecting voice samples from the target speaker, training a voice model on those samples, generating speech in the cloned voice from target text, verifying the output against the original voice for quality and similarity, and delivering the final audio. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage voice cloning pipeline as independent workers ,  you write the voice processing logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that clones a speaker's voice. collecting voice samples from the target speaker, training a voice model on those samples, generating speech in the cloned voice from target text, verifying the output against the original voice for quality and similarity, and delivering the final audio. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the five-stage voice cloning pipeline as independent workers,  you write the voice processing logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## Voice Cloning Requires Training, Generation, and Verification
 
@@ -12,7 +12,7 @@ Sample collection needs sufficient audio quality and duration. Training can take
 
 **You just write the sample collection, voice model training, speech synthesis, verification, and delivery logic. Conductor handles training retries, pipeline sequencing, and verification tracking across all synthesis steps.**
 
-`CollectSamplesWorker` gathers and validates voice samples from the speaker .  checking audio quality, duration, and language coverage. `TrainModelWorker` trains the voice cloning model on the collected samples, producing a speaker embedding or fine-tuned model. `GenerateWorker` synthesizes speech from the target text using the trained voice model. `VerifyWorker` compares the generated speech against the original samples for similarity (MOS score, speaker verification) and quality (naturalness, intelligibility). `DeliverWorker` packages the verified audio with metadata. Conductor tracks the full pipeline and records verification scores for quality monitoring.
+`CollectSamplesWorker` gathers and validates voice samples from the speaker. checking audio quality, duration, and language coverage. `TrainModelWorker` trains the voice cloning model on the collected samples, producing a speaker embedding or fine-tuned model. `GenerateWorker` synthesizes speech from the target text using the trained voice model. `VerifyWorker` compares the generated speech against the original samples for similarity (MOS score, speaker verification) and quality (naturalness, intelligibility). `DeliverWorker` packages the verified audio with metadata. Conductor tracks the full pipeline and records verification scores for quality monitoring.
 
 ### What You Write: Workers
 
@@ -24,9 +24,9 @@ The voice cloning pipeline decomposes into discrete workers for sample collectio
 | **DeliverWorker** | `avc_deliver` | Delivers the verified audio as MP3 format to the output destination |
 | **GenerateWorker** | `avc_generate` | Synthesizes speech from target text using the trained voice model, producing audio with duration metadata |
 | **TrainModelWorker** | `avc_train_model` | Trains Model and returns model id, epochs, loss |
-| **VerifyWorker** | `avc_verify` | Verifies the generated speech against the original voice .  measures similarity (0.96) and naturalness (0.91) scores |
+| **VerifyWorker** | `avc_verify` | Verifies the generated speech against the original voice. measures similarity (0.96) and naturalness (0.91) scores |
 
-Workers simulate AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode .  the generation workflow stays the same.
+Workers implement AI generation stages with realistic outputs so you can see the pipeline without API keys. Set the provider API key to switch to live mode. the generation workflow stays the same.
 
 ### The Workflow
 
@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live voice verification (optional .  falls back to simulated) |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for live voice verification (optional. falls back to simulated) |
 
 ## Using the Conductor CLI
 

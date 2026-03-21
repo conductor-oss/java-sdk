@@ -4,15 +4,15 @@ Matches players into a fair, balanced game session: searching the player pool, r
 
 ## The Problem
 
-You need to match players into a fair, balanced game session. The workflow searches for players queuing in the same game mode and region, evaluates each player's skill rating (ELO, MMR, Glicko), finds a balanced match that minimizes skill disparity, creates a game lobby with the matched players, and starts the session. Unbalanced matches frustrate both sides .  skilled players get bored, new players get destroyed.
+You need to match players into a fair, balanced game session. The workflow searches for players queuing in the same game mode and region, evaluates each player's skill rating (ELO, MMR, Glicko), finds a balanced match that minimizes skill disparity, creates a game lobby with the matched players, and starts the session. Unbalanced matches frustrate both sides. skilled players get bored, new players get destroyed.
 
-Without orchestration, you'd build a matchmaking service with a queue poller, skill-rating lookup, matching algorithm, lobby creation, and session start .  manually managing queue timeouts, handling players who disconnect during matchmaking, expanding search criteria when wait times are too long, and logging match quality metrics.
+Without orchestration, you'd build a matchmaking service with a queue poller, skill-rating lookup, matching algorithm, lobby creation, and session start. manually managing queue timeouts, handling players who disconnect during matchmaking, expanding search criteria when wait times are too long, and logging match quality metrics.
 
 ## The Solution
 
 **You just write the player search, skill rating, match balancing, lobby creation, and game start logic. Conductor handles queue retries, match formation timing, and matchmaking audit trails.**
 
-Each matchmaking concern is a simple, independent worker .  a plain Java class that does one thing. Conductor takes care of executing them in order (search players, rate skill, match, create lobby, start), retrying if the player database is slow, tracking every matchmaking operation, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
+Each matchmaking concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (search players, rate skill, match, create lobby, start), retrying if the player database is slow, tracking every matchmaking operation, and resuming from the last step if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Player profiling, queue management, match formation, and lobby creation workers 
 | **SearchPlayersWorker** | `gmm_search_players` | Searches the player pool for candidates matching skill level and region |
 | **StartWorker** | `gmm_start` | Starts the game session in the lobby and assigns the map |
 
-Workers simulate game backend operations .  matchmaking, score processing, reward distribution ,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
+Workers implement game backend operations. matchmaking, score processing, reward distribution,  with realistic outputs. Replace with real game server and database integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w gaming_matchmaking_741 -s COMPLETED -c 5
 
 ## How to Extend
 
-Point each worker at your real matchmaking systems .  your player pool service for candidate search, your ELO/MMR rating system for skill balancing, your game server for lobby provisioning, and the workflow runs identically in production.
+Point each worker at your real matchmaking systems. your player pool service for candidate search, your ELO/MMR rating system for skill balancing, your game server for lobby provisioning, and the workflow runs identically in production.
 
 - **Player searcher**: query your matchmaking queue (Redis sorted sets, custom queue service) for players in the same mode, region, and platform
 - **Skill rater**: look up player MMR/ELO from your ranking database; apply confidence intervals (Glicko-2) for new players

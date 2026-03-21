@@ -12,7 +12,7 @@ Without orchestration, fan-out/fan-in patterns are implemented with manual threa
 
 **You just write the instance-call and result-aggregation workers. Conductor handles parallel partition dispatch, per-instance retry on failure, and automatic join before aggregation.**
 
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing .  your workers just make the service calls.
+Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
 
 ### What You Write: Workers
 
@@ -23,7 +23,7 @@ Two worker types implement fan-out/fan-in: CallInstanceWorker processes a partit
 | **AggregateResultsWorker** | `lb_aggregate_results` | Aggregates results from all parallel instance calls. |
 | **CallInstanceWorker** | `lb_call_instance` | Processes a partition of a batch on a specific instance. |
 
-Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients .  the workflow coordination stays the same.
+Workers implement service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients. the workflow coordination stays the same.
 
 ### The Workflow
 

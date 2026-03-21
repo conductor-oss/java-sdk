@@ -1,18 +1,18 @@
 # Image Processing Pipeline in Java Using Conductor :  Upload, Resize, Optimize, Watermark, and CDN Push
 
-A Java Conductor workflow example that orchestrates an image processing pipeline .  uploading original images with dimension and format detection, resizing to multiple responsive breakpoints, optimizing file sizes with quality-aware compression, applying watermarks for brand protection, and pushing final assets to CDN with cache invalidation and TTL configuration. Uses [Conductor](https://github.
+A Java Conductor workflow example that orchestrates an image processing pipeline. uploading original images with dimension and format detection, resizing to multiple responsive breakpoints, optimizing file sizes with quality-aware compression, applying watermarks for brand protection, and pushing final assets to CDN with cache invalidation and TTL configuration. Uses [Conductor](https://github.
 
 ## Why Image Processing Pipelines Need Orchestration
 
-Processing images for web delivery requires a strict transformation chain. You upload the original and extract its dimensions, format, and file size. You resize it to multiple breakpoints (thumbnail, mobile, tablet, desktop, retina). You optimize each variant .  reducing file size by 40-60% while maintaining visual quality. You apply watermarks to protect intellectual property. Finally, you push all variants to the CDN with appropriate cache headers and TTLs.
+Processing images for web delivery requires a strict transformation chain. You upload the original and extract its dimensions, format, and file size. You resize it to multiple breakpoints (thumbnail, mobile, tablet, desktop, retina). You optimize each variant. reducing file size by 40-60% while maintaining visual quality. You apply watermarks to protect intellectual property. Finally, you push all variants to the CDN with appropriate cache headers and TTLs.
 
-Each stage depends on the previous one .  you cannot optimize before resizing, and you cannot push to CDN before watermarking. If optimization fails for one variant, you need to retry just that variant without re-uploading the original or re-resizing everything. Without orchestration, you'd build a monolithic image processor that mixes file I/O, image manipulation libraries, compression algorithms, and CDN APIs ,  making it impossible to swap your compression engine, add a new output format (WebP, AVIF), or trace which processing step introduced a visual artifact.
+Each stage depends on the previous one. you cannot optimize before resizing, and you cannot push to CDN before watermarking. If optimization fails for one variant, you need to retry just that variant without re-uploading the original or re-resizing everything. Without orchestration, you'd build a monolithic image processor that mixes file I/O, image manipulation libraries, compression algorithms, and CDN APIs,  making it impossible to swap your compression engine, add a new output format (WebP, AVIF), or trace which processing step introduced a visual artifact.
 
 ## How This Workflow Solves It
 
 **You just write the image processing workers. Upload handling, resizing, optimization, watermarking, and CDN push. Conductor handles transformation ordering, CDN push retries, and file-size tracking at every stage for compression analysis.**
 
-Each processing stage is an independent worker .  upload, resize, optimize, watermark, push to CDN. Conductor sequences them, passes storage paths and variant lists between stages, retries if a CDN push times out, and tracks file sizes at every step so you can measure compression effectiveness.
+Each processing stage is an independent worker. upload, resize, optimize, watermark, push to CDN. Conductor sequences them, passes storage paths and variant lists between stages, retries if a CDN push times out, and tracks file sizes at every step so you can measure compression effectiveness.
 
 ### What You Write: Workers
 
@@ -26,7 +26,7 @@ Five workers process each image: UploadImageWorker handles ingestion with dimens
 | **UploadImageWorker** | `imp_upload_image` | Uploads the image |
 | **WatermarkImageWorker** | `imp_watermark_image` | Handles watermark image |
 
-Workers simulate media processing stages .  transcoding, thumbnail generation, metadata extraction ,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
+Workers implement media processing stages. transcoding, thumbnail generation, metadata extraction,  with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
 ### The Workflow
 

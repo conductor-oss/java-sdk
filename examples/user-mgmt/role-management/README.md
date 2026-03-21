@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Role Management. Uses [Conductor
 
 An admin requests to assign the "editor" role to a team member. The system needs to log the role request with the requester's identity, validate that the assignment complies with access policies and doesn't conflict with existing roles, assign the role with its associated permissions (read, write), and sync those permissions to the IAM provider, API gateway, and database layer. Each step depends on the previous one's output.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ RequestRoleWorker logs the assignment request, ValidateRoleWorker checks policy 
 | **SyncPermissionsWorker** | `rom_sync_permissions` | Propagates the role's permissions to IAM, API gateway, and database targets |
 | **ValidateRoleWorker** | `rom_validate` | Validates that the requested role assignment complies with access policies and checks for conflicting roles |
 
-Workers simulate user lifecycle operations .  account creation, verification, profile setup ,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+Workers implement user lifecycle operations. account creation, verification, profile setup,  with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w rom_role_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one RBAC step .  connect your IAM provider (Okta, Auth0, AWS IAM) for role assignment and your API gateway for permission sync, and the role-management workflow stays the same.
+Each worker handles one RBAC step. connect your IAM provider (Okta, Auth0, AWS IAM) for role assignment and your API gateway for permission sync, and the role-management workflow stays the same.
 
 - **RequestRoleWorker** (`rom_request_role`): log the role assignment request in your audit system and create an approval ticket in your ITSM platform (Jira, ServiceNow) if required by policy
 - **ValidateRoleWorker** (`rom_validate`): check the requested role against your RBAC policy engine (Open Policy Agent, Casbin) for conflicts, separation-of-duties violations, and approval requirements

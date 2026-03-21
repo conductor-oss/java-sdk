@@ -6,7 +6,7 @@ A Java Conductor workflow example demonstrating Compliance Review. Uses [Conduct
 
 A regulatory audit is approaching. You need to identify the applicable compliance requirements (e.g., 45 controls), assess your organization's current posture against each one, perform a gap analysis to find the 7 unmet controls (like missing encryption), and create a remediation plan to close those gaps before the deadline. Failing to identify a critical gap can result in regulatory fines, consent orders, or loss of operating licenses.
 
-Without orchestration, you'd wire all of this together in a single monolithic class .  managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
+Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
 
 ## The Solution
 
@@ -25,7 +25,7 @@ Regulatory identification, compliance assessment, gap analysis, and remediation 
 | **GapAnalysisWorker** | `cmr_gap_analysis` | Analyzes the 7 unmet controls in detail, categorizing each gap by severity (e.g., encryption flagged as critical) and producing a prioritized gap report |
 | **RemediateWorker** | `cmr_remediate` | Creates a remediation plan (REM-695) with specific action items to close each identified gap before the audit deadline |
 
-Workers simulate legal operations .  document review, compliance checks, approval routing ,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
+Workers implement legal operations. document review, compliance checks, approval routing,  with realistic outputs. Replace with real document management and e-signature integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -132,7 +132,7 @@ conductor workflow search -w cmr_compliance_review -s COMPLETED -c 5
 
 ## How to Extend
 
-Wire each worker to your real compliance tools .  your regulatory database for requirement lookups, your document management system for policy reviews, your GRC platform for audit reporting, and the workflow runs identically in production.
+Wire each worker to your real compliance tools. your regulatory database for requirement lookups, your document management system for policy reviews, your GRC platform for audit reporting, and the workflow runs identically in production.
 
 - **IdentifyWorker** (`cmr_identify`): integrate with a GRC (Governance, Risk, Compliance) platform like ServiceNow GRC, OneTrust, or LogicGate to pull applicable regulatory frameworks and control catalogs
 - **AssessWorker** (`cmr_assess`): connect to automated compliance scanning tools like Vanta, Drata, or AWS Audit Manager to gather real-time control evidence and posture scores

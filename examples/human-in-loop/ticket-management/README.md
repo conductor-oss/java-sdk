@@ -1,10 +1,10 @@
 # Ticket Management in Java with Conductor
 
-A Java Conductor workflow that manages the full lifecycle of a support ticket .  creating the ticket, classifying it by category and priority, assigning it to the right agent, resolving the issue, and closing the ticket. Given a subject, description, and reporter, the pipeline drives a ticket from creation through resolution to closure. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the create-classify-assign-resolve-close pipeline.
+A Java Conductor workflow that manages the full lifecycle of a support ticket. creating the ticket, classifying it by category and priority, assigning it to the right agent, resolving the issue, and closing the ticket. Given a subject, description, and reporter, the pipeline drives a ticket from creation through resolution to closure. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the create-classify-assign-resolve-close pipeline.
 
 ## Managing Tickets from Creation to Closure
 
-When a user reports an issue, the ticket needs to be created, categorized by type and priority, assigned to the right agent, worked on until resolved, and formally closed. Dropping any step means tickets get lost, misrouted, or left in limbo. Each step depends on the previous one .  you cannot assign a ticket before classifying its priority, and you cannot close it before it is resolved.
+When a user reports an issue, the ticket needs to be created, categorized by type and priority, assigned to the right agent, worked on until resolved, and formally closed. Dropping any step means tickets get lost, misrouted, or left in limbo. Each step depends on the previous one. you cannot assign a ticket before classifying its priority, and you cannot close it before it is resolved.
 
 This workflow drives a single ticket through its full lifecycle. The creator generates a ticket ID and records the subject and reporter. The classifier determines category (bug, feature request, question) and priority (critical, high, medium, low). The assigner routes the ticket to an appropriate agent based on category and priority. The resolver records the fix and resolution details. The closer marks the ticket as done and captures final metadata.
 
@@ -26,7 +26,7 @@ CreateTicketWorker generates a unique ID, ClassifyTicketWorker determines catego
 | **CreateTicketWorker** | `tkt_create` | Creates a new ticket with a unique ID from the subject, description, and reporter. |
 | **ResolveTicketWorker** | `tkt_resolve` | Records the resolution details and marks the ticket as resolved. |
 
-Workers implement domain operations .  lead scoring, contact enrichment, deal updates ,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
+Workers implement domain operations. lead scoring, contact enrichment, deal updates,  with realistic outputs. Replace with real CRM API integrations and the workflow stays the same.
 
 ### The Workflow
 
@@ -136,7 +136,7 @@ conductor workflow search -w tkt_ticket_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one ticket lifecycle step .  connect your helpdesk platform (Zendesk, Jira Service Management, Freshdesk) for creation and routing, and the ticket-management workflow stays the same.
+Each worker handles one ticket lifecycle step. connect your helpdesk platform (Zendesk, Jira Service Management, Freshdesk) for creation and routing, and the ticket-management workflow stays the same.
 
 - **AssignTicketWorker** (`tkt_assign`): integrate with Zendesk or Jira Service Management for real agent assignment and SLA tracking
 - **ClassifyTicketWorker** (`tkt_classify`): use an LLM or ML classifier for intelligent ticket categorization from description text
