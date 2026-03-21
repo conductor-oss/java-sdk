@@ -1,6 +1,7 @@
 # User Survey in Java Using Conductor :  Creation, Distribution, Collection, Analysis, and Reporting
 
 A Java Conductor workflow example for running user satisfaction surveys end-to-end. creating a survey with custom questions, distributing it to a target audience, collecting responses, analyzing results (average satisfaction, top themes, sentiment breakdown), and generating a summary report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to gather structured feedback from users through surveys. That means creating a survey with a title and question set, sending it to a specific audience segment, collecting the responses, running analysis to extract satisfaction scores, recurring themes (ease of use, performance, pricing), and sentiment distribution (positive/neutral/negative), and finally producing a report that stakeholders can act on. Each step depends on the previous one. you can't distribute a survey before it's created, you can't analyze responses before they're collected, and the report needs both the survey ID and the analysis results.

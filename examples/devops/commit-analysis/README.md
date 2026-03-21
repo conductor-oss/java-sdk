@@ -136,7 +136,7 @@ Each worker handles one analysis step. connect your Git hosting API (GitHub, Git
 
 - **ClassifyWorker** (`cma_classify`): use an LLM or Conventional Commits parser to classify commits more accurately than keyword matching
 - **DetectPatternsWorker** (`cma_detect_patterns`): integrate with analytics platforms (Grafana, Datadog) to correlate commit patterns with deployment incidents
-- **ParseCommitsWorker** (`cma_parse_commits`): connect to the GitHub or GitLab API to pull real commit history instead of simulated data
+- **ParseCommitsWorker** (`cma_parse_commits`): connect to the GitHub or GitLab API to pull real commit history instead of demo data
 
 Integrate the GitHub or GitLab API for real commit data and the analysis pipeline with pattern detection stays intact.
 

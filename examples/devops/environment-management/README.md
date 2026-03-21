@@ -132,7 +132,7 @@ conductor workflow search -w environment_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one environment lifecycle step. replace the simulated calls with Terraform workspaces, Kubernetes namespace APIs, or Consul KV for real provisioning and configuration, and the management workflow runs unchanged.
+Each worker handles one environment lifecycle step. replace the demo calls with Terraform workspaces, Kubernetes namespace APIs, or Consul KV for real provisioning and configuration, and the management workflow runs unchanged.
 
 - **CreateEnv** (`em_create_env`): use Terraform workspaces, Kubernetes namespaces via kubectl, or AWS CloudFormation stacks for real environment provisioning with isolation
 - **ConfigureEnv** (`em_configure_env`): apply environment-specific configuration via Ansible playbooks, Consul KV writes, or Kubernetes ConfigMaps/Secrets for database URLs, API keys, and feature flags

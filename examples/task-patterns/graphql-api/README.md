@@ -1,6 +1,7 @@
 # Graphql API in Java with Conductor
 
 GraphQL API demo. single task workflow to demonstrate REST vs GraphQL query patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to trigger a deployment operation through a GraphQL API. sending a project name and target environment, and getting back a structured deployment result. Unlike REST endpoints where you might need multiple calls to different URLs, a GraphQL query lets the client specify exactly what data it needs in a single request. The workflow takes the project and environment as inputs, executes the deployment via a GraphQL mutation or query, and returns the result.

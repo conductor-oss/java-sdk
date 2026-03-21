@@ -1,6 +1,7 @@
 # Medical Billing in Java Using Conductor :  CPT/ICD Coding, Coverage Verification, Claim Submission, and Payment Tracking
 
 A Java Conductor workflow example for medical billing. coding clinical encounters with CPT and ICD codes, verifying patient insurance coverage, submitting claims to payers, and tracking reimbursement payments. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to bill for a clinical encounter. After a patient visit, the encounter must be coded with CPT procedure codes (e.g., 99213 for an office visit, 36415 for venipuncture) and ICD diagnosis codes (e.g., E11.9 for type 2 diabetes, I10 for hypertension). The patient's insurance coverage must be verified against the coded procedures. A claim is then submitted to the payer with the coded line items and total charge. Finally, the payment must be tracked through adjudication to reconcile what was billed versus what was reimbursed.
@@ -140,7 +141,7 @@ Connect CodeProceduresWorker to your coding engine, VerifyCoverageWorker to your
 - Add a **DenialManagementWorker** with a SWITCH on claim status to automatically appeal denied claims with corrected codes
 - Add a **PatientStatementWorker** to generate and mail patient responsibility statements for remaining balances
 
-Replace the simulated outputs with real clearinghouse and payer connections while keeping the same field structure, and the billing pipeline runs without any workflow changes.
+Replace the demo outputs with real clearinghouse and payer connections while keeping the same field structure, and the billing pipeline runs without any workflow changes.
 
 ## SDK
 

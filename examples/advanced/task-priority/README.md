@@ -1,6 +1,7 @@
 # Task Priority Routing in Java Using Conductor :  Classify Urgency, Route to Priority-Specific Queues
 
 A Java Conductor workflow example for task priority routing. classifying incoming tasks by urgency and impact into high/medium/low priority, then routing each to the appropriate processing queue via a `SWITCH` task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Not All Tasks Are Equal :  High Priority Must Jump the Queue
 
 A production incident alert, a routine log rotation, and a monthly report request arrive at the same time. The incident needs immediate attention with dedicated resources. The log rotation can wait. The report can run overnight. Without priority classification and routing, all three compete for the same worker pool, and the incident sits behind the report in the queue.
@@ -129,13 +130,13 @@ conductor workflow search -w tpr_task_priority -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one priority tier. replace the simulated queue routing with real priority-based SQS queues or Kubernetes resource allocations and the classify-then-route logic runs unchanged.
+Each worker handles one priority tier. replace the demo queue routing with real priority-based SQS queues or Kubernetes resource allocations and the classify-then-route logic runs unchanged.
 
 - **TprClassifyPriorityWorker** (`tpr_classify_priority`): implement real priority classification using PagerDuty severity levels, Jira priority fields, or custom urgency/impact matrices from your incident management system
 - **TprRouteHighWorker** (`tpr_route_high`): dispatch to dedicated high-priority infrastructure: a separate Kubernetes namespace with guaranteed resources, a priority SQS queue, or trigger PagerDuty incident creation
 - **TprRouteLowWorker** (`tpr_route_low`): queue for batch processing: write to a low-priority SQS queue consumed by spot instances, schedule via cron for off-peak hours, or add to a backlog in your project management tool
 
-The classification output contract stays fixed. Swap the simulated queue dispatch for real SQS priority queues or PagerDuty escalation and the priority routing runs unchanged.
+The classification output contract stays fixed. Swap the demo queue dispatch for real SQS priority queues or PagerDuty escalation and the priority routing runs unchanged.
 
 ## SDK
 

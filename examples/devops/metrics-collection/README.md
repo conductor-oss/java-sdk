@@ -130,7 +130,7 @@ conductor workflow search -w metrics_collection_411 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker collects from one metric source. replace the simulated calls with Prometheus PromQL, CloudWatch GetMetricData, or SQL queries for real application, infrastructure, and business metrics, and the collection workflow runs unchanged.
+Each worker collects from one metric source. replace the demo calls with Prometheus PromQL, CloudWatch GetMetricData, or SQL queries for real application, infrastructure, and business metrics, and the collection workflow runs unchanged.
 
 - **CollectAppMetrics** (`mc_collect_app`): query Prometheus via PromQL for application-level metrics like request rate, error rate, and latency percentiles
 - **CollectInfraMetrics** (`mc_collect_infra`): pull infrastructure metrics from AWS CloudWatch GetMetricData, GCP Monitoring API, or node_exporter for CPU, memory, disk, and network utilization

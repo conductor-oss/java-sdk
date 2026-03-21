@@ -1,6 +1,7 @@
 # Scholarship Processing in Java with Conductor :  Application, Evaluation, Ranking, Award, and Notification
 
 A Java Conductor workflow example for scholarship processing. accepting student applications, evaluating them based on GPA and financial need, ranking applicants competitively, awarding the scholarship to qualified recipients, and notifying students of the outcome. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process scholarship applications from submission to award. A student applies for a specific scholarship, the financial aid office evaluates their eligibility based on GPA and demonstrated financial need, applicants are ranked against the competition, an award decision is made based on ranking and available funds, and the student is notified whether they received the scholarship and for how much. Awarding without proper evaluation risks compliance violations; ranking without consistent criteria leads to unfair outcomes.

@@ -136,7 +136,7 @@ conductor workflow search -w cicd_pipeline_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one pipeline stage. Replace the simulated build and deploy calls with Jenkins, GitHub Actions, or ArgoCD, and the CI/CD pipeline runs unchanged.
+Each worker owns one pipeline stage. Replace the demo build and deploy calls with Jenkins, GitHub Actions, or ArgoCD, and the CI/CD pipeline runs unchanged.
 
 - **Build** (`cicd_build`): integrate with Maven/Gradle for Java builds, Docker for container image building, and push artifacts to ECR/Docker Hub/Artifactory
 - **SecurityScan** (`cicd_security_scan`): run Snyk, Trivy, or OWASP Dependency-Check for vulnerability scanning, with configurable severity thresholds to gate deployment

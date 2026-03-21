@@ -1,6 +1,7 @@
 # Stream Processing in Java Using Conductor :  Event Ingestion, Time Windowing, Window Aggregation, Anomaly Detection, and Result Emission
 
 A Java Conductor workflow example for stream processing with windowed analytics: ingesting a batch of timestamped events, grouping them into configurable time windows (e.g., 5-second or 1-minute tumbling windows), computing per-window aggregates (event counts, averages, distributions), detecting anomalies where window metrics deviate significantly from the norm, and emitting the combined aggregates and anomaly alerts as the final output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Events are arriving continuously. API requests, sensor readings, user actions, financial transactions, and you need to analyze them in near-real-time using time windows. A configurable window size (say, 60,000ms for 1-minute windows) groups events by time, and each window needs aggregate statistics: how many events occurred, what was the average value, what was the distribution. Then anomaly detection needs to run across windows: a window with 10x the normal event count might indicate a traffic spike or DDoS, while a window with zero events might indicate a service outage. The results: both normal aggregates and anomaly alerts, need to be emitted to downstream consumers.

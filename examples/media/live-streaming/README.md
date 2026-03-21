@@ -1,6 +1,7 @@
 # Live Streaming Pipeline in Java Using Conductor :  Stream Setup, Encoding, CDN Distribution, Quality Monitoring, and Archival
 
 A Java Conductor workflow example that orchestrates a live streaming pipeline. provisioning ingest URLs and stream keys, encoding to adaptive bitrate HLS streams with low-latency codecs, distributing across CDN nodes with multi-region viewer support, monitoring stream quality (peak viewers, average bitrate, buffer ratio, quality scores), and archiving the completed stream with thumbnails for VOD playback. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Live Streaming Workflows Need Orchestration
 
 Managing a live stream involves a sequence of infrastructure operations that must happen in the right order. You set up the stream. provisioning an RTMP ingest URL and stream key. You configure encoding,  setting up adaptive bitrate transcoding at multiple quality levels with low-latency settings. You distribute the encoded stream to CDN edge nodes across viewer regions. You monitor quality throughout,  tracking peak concurrent viewers, average bitrate, buffer ratios, and computing an overall quality score. After the stream ends, you archive the recording with generated thumbnails for on-demand playback.

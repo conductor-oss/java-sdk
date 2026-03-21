@@ -1,6 +1,7 @@
 # Connected Vehicles in Java with Conductor
 
 A Java Conductor workflow example that orchestrates connected vehicle monitoring. collecting vehicle telemetry (engine RPM, fuel level, battery voltage, speed), running on-board diagnostics to assess overall vehicle health, tracking geolocation, and compiling a comprehensive vehicle status report combining health, location, and speed data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Connected Vehicle Monitoring Needs Orchestration
 
 Monitoring a connected vehicle requires collecting data from multiple on-board systems and combining it into an actionable status report. You pull telemetry from the vehicle's OBD-II or CAN bus. engine RPM, fuel level, battery voltage, and speed. You run diagnostics against those readings to assess overall vehicle health (engine performance, electrical system, fuel efficiency). You track the vehicle's geolocation using its GPS module. Finally, you compile health status, location, and speed into a unified status report for fleet operators or the vehicle owner.

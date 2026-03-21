@@ -134,7 +134,7 @@ Point each worker at your real service registry (Consul, Eureka, Kubernetes) and
 - **HealthCheckWorker** (`sr_health_check`): make a real HTTP call to the service's /health endpoint (e.g., Spring Boot Actuator)
 - **RegisterServiceWorker** (`sr_register_service`): register with Consul, Eureka, or Kubernetes Service via its API
 
-Migrating from a simulated registry to Consul or Eureka preserves the register-check-discover workflow.
+Migrating from a demo registry to Consul or Eureka preserves the register-check-discover workflow.
 
 ## SDK
 

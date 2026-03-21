@@ -25,7 +25,7 @@ CreateAccountWorker generates a user ID, VerifyEmailWorker confirms ownership, S
 | **SetPreferencesWorker** | `uo_set_preferences` | Initializes default user preferences: theme (light), language (en), notifications (on), timezone (UTC) |
 | **WelcomeWorker** | `uo_welcome` | Sends a personalized welcome email to the verified user with getting-started content |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end with reproducible results. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo workers produce realistic, deterministic output shapes so the workflow runs end-to-end with reproducible results. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 
@@ -137,7 +137,7 @@ Each worker handles one onboarding step. Connect your identity provider (Auth0, 
 **Example. Make `CreateAccountWorker` real with PostgreSQL:**
 
 ```java
-// Before (simulated):
+// Before (demo):
 String userId = "USR-" + toHexPrefix(email);
 result.getOutputData().put("userId", userId);
 result.getOutputData().put("createdAt", "2025-01-15T10:30:00Z");
@@ -157,7 +157,7 @@ try (var conn = dataSource.getConnection();
 
 ```
 
-Replace the simulated database with PostgreSQL and the onboarding sequence: account creation through welcome email, operates unchanged.
+Replace the demo database with PostgreSQL and the onboarding sequence: account creation through welcome email, operates unchanged.
 
 **Other production swaps:**
 - **CreateAccountWorker**: identity provider: Auth0 Management API (`com.auth0:auth0`) or AWS Cognito (`software.amazon.awssdk:cognitoidentityprovider`); publish a `user.created` event to Kafka

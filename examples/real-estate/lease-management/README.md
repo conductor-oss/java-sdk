@@ -1,6 +1,7 @@
 # Lease Management in Java with Conductor :  Create, Sign, Activate, Renew, or Terminate
 
 A Java Conductor workflow example for managing the full lease lifecycle. creating a lease agreement, collecting signatures, activating the lease, and then routing to renewal or termination based on the requested action. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage residential or commercial leases from creation through completion. A new lease must be drafted with terms (rent amount, duration, deposit), signed by both tenant and landlord, and then activated to begin the tenancy. At the end of the lease term, the workflow needs to handle either renewal (new terms, rent escalation) or termination (security deposit return, move-out inspection). The path taken depends on whether the tenant or landlord requests renewal or termination, and every action must be recorded for legal compliance.

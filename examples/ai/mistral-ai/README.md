@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `MISTRAL_API_KEY` | _(none)_ | Mistral API key. When set, `MistralChatWorker` calls the real Mistral Chat Completions API. When unset, returns simulated responses with `[SIMULATED]` prefix. |
+| `MISTRAL_API_KEY` | _(none)_ | Mistral API key. When set, `MistralChatWorker` calls the real Mistral Chat Completions API. When unset, returns demo responses with `[DEMO]` prefix. |
 
 ## Using the Conductor CLI
 

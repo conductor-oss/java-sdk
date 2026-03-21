@@ -138,7 +138,7 @@ Each worker handles one sentiment step. connect your NLP service (AWS Comprehend
 - **AnalyzeWorker** (`snt_analyze`): swap in a real NLP model (VADER, TextBlob) or LLM for more nuanced sentiment scoring
 - **ClassifyWorker** (`snt_classify`): use fine-tuned sentiment classifiers (Hugging Face transformers) for domain-specific accuracy
 
-Replace the simulated analyzer with a real NLP model and the sentiment scoring pipeline with batch aggregation keeps running as defined.
+Replace the demo analyzer with a real NLP model and the sentiment scoring pipeline with batch aggregation keeps running as defined.
 
 ## SDK
 

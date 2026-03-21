@@ -133,7 +133,7 @@ Point the batch preparation worker at your real database or S3 bucket, replace t
 
 - **`PrepareBatchesWorker`**: Query your database or S3 bucket to discover records, then partition them into batches based on the configured `batchSize`.
 
-- **`ProcessBatchWorker`**: Replace the simulated processing with your actual per-record logic (database upserts, API calls, file transformations, message queue publishes).
+- **`ProcessBatchWorker`**: Replace the demo processing with your actual per-record logic (database upserts, API calls, file transformations, message queue publishes).
 
 - **`SummarizeWorker`**: Aggregate real processing metrics (success/failure counts, total processing time, records written) and write them to a reporting table or send a Slack notification.
 

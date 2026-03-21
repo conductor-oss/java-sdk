@@ -132,7 +132,7 @@ conductor workflow search -w rolling_update_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one rollout phase. replace the simulated calls with Kubernetes rollout controls, AWS ECS rolling updates, or custom Ansible playbooks, and the update workflow runs unchanged.
+Each worker handles one rollout phase. replace the demo calls with Kubernetes rollout controls, AWS ECS rolling updates, or custom Ansible playbooks, and the update workflow runs unchanged.
 
 - **Analyze** (`ru_analyze`): examine the current deployment state: how many instances are running, which version they're on, current traffic levels, and whether it's safe to begin the update
 - **PlanUpdate** (`ru_plan`): implement dynamic batch sizing based on current traffic and error budget, with automatic rollback triggers if error rate exceeds threshold during any batch

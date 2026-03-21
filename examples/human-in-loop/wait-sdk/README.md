@@ -1,6 +1,7 @@
 # WAIT Task Completion via SDK (TaskClient) in Java Using Conductor :  Ticket Initialization, WAIT for Programmatic Resolution, and Ticket Finalization
 
 A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from Java code using the Conductor SDK's TaskClient. initializing a support ticket with status "open", pausing at a WAIT task until a separate Java process (a background service, scheduled job, or another microservice) completes it via the SDK, then finalizing and closing the ticket. Unlike the REST API approach, the SDK method provides type-safe Java objects and integrates naturally into existing Java services without HTTP client setup. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Programmatic Workflow Resumption via the Conductor SDK
 
 Instead of using REST APIs directly, the Conductor SDK's TaskClient can complete WAIT tasks programmatically from Java code. This is useful when another Java service or a scheduled job needs to resume a paused workflow. The workflow initializes a ticket, pauses at a WAIT task, and a separate process uses the SDK to complete it. The finalization step closes the ticket.
@@ -130,7 +131,7 @@ Each worker handles one end of the ticket lifecycle. connect your support ticket
 - **FinalizeWorker** (`wsdk_finalize`): close the ticket in your helpdesk system, send resolution confirmation, and update SLA metrics
 - **InitWorker** (`wsdk_init`): create tickets in a helpdesk system like Zendesk or Jira Service Management, and set up monitoring for SLA deadlines
 
-Replace the simulated helpdesk with Zendesk or Jira Service Management and the SDK-based programmatic resolution flow keeps working as defined.
+Replace the demo helpdesk with Zendesk or Jira Service Management and the SDK-based programmatic resolution flow keeps working as defined.
 
 ## SDK
 

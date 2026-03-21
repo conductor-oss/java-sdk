@@ -1,6 +1,7 @@
 # Task Assignment Automation in Java with Conductor :  Task Analysis, Skill Matching, Assignment, Notification, and Tracking
 
 A Java Conductor workflow example that automates task assignment. analyzing the task to extract required skills and complexity, matching those skills against available team members with compatibility scoring, assigning the task to the best candidate, notifying the assignee, and setting up tracking with status and due date. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Task Assignment Needs Orchestration
 
 Assigning tasks to the right person requires a pipeline where each step narrows the decision. You analyze the task. parsing the title and description to extract required skills (e.g., JavaScript, React) and assessing complexity (low, medium, high). You match those skills against your team,  scoring each team member on skill overlap and checking availability, producing a best match with a compatibility score (e.g., Alice at 95% match, availability "open"). You formally assign the task to the selected candidate. You notify the assignee so they know work is waiting. You set up tracking,  recording the assignee, setting the status to IN_PROGRESS, and computing a due date based on complexity.

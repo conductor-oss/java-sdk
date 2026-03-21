@@ -1,6 +1,7 @@
 # Agriculture IoT in Java with Conductor
 
 A Java Conductor workflow example that orchestrates precision agriculture. reading soil moisture and pH from field sensors, fetching weather forecasts for rain probability and temperature, making irrigation decisions based on soil conditions, crop type, and weather outlook, and actuating irrigation valves across specific field zones for a calculated duration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Smart Irrigation Needs Orchestration
 
 Deciding whether to irrigate a field requires data from multiple sources fed through a decision pipeline. You read soil sensors to get current moisture levels and pH for the crop type. You fetch weather data to check temperature and rain probability. irrigating before a rainstorm wastes water and can damage crops. You feed soil and weather data into an irrigation decision engine that determines whether to irrigate, for how long, and which zones. Finally, you actuate the irrigation valves for the selected zones and duration.

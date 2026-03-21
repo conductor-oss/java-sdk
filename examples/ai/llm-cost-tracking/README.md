@@ -20,12 +20,12 @@ Four workers track costs across providers. Calling GPT-4, Claude, and Gemini seq
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CallGpt4Worker** | `ct_call_gpt4` | Calls GPT-4 with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_OPENAI_API_KEY` is set (calls OpenAI API, extracts `usage.prompt_tokens` and `usage.completion_tokens`). **Simulated** otherwise (returns fixed tokens with `` prefix) |
-| **CallClaudeWorker** | `ct_call_claude` | Calls Claude with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_ANTHROPIC_API_KEY` is set (calls Anthropic API, extracts `usage.input_tokens` and `usage.output_tokens`). **Simulated** otherwise |
-| **CallGeminiWorker** | `ct_call_gemini` | Calls Gemini with the prompt and returns token usage alongside the response text | **Live** when `GOOGLE_API_KEY` is set (calls Gemini API, extracts `usageMetadata`). **Simulated** otherwise |
+| **CallGpt4Worker** | `ct_call_gpt4` | Calls GPT-4 with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_OPENAI_API_KEY` is set (calls OpenAI API, extracts `usage.prompt_tokens` and `usage.completion_tokens`). **Demo** otherwise (returns fixed tokens with `` prefix) |
+| **CallClaudeWorker** | `ct_call_claude` | Calls Claude with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_ANTHROPIC_API_KEY` is set (calls Anthropic API, extracts `usage.input_tokens` and `usage.output_tokens`). **Demo** otherwise |
+| **CallGeminiWorker** | `ct_call_gemini` | Calls Gemini with the prompt and returns token usage alongside the response text | **Live** when `GOOGLE_API_KEY` is set (calls Gemini API, extracts `usageMetadata`). **Demo** otherwise |
 | **AggregateCostsWorker** | `ct_aggregate_costs` | Aggregate Costs. Computes and returns breakdown, total cost, total tokens | Pricing-based aggregation of real or HMAC-signed JWT counts |
 
-Each worker auto-detects its API key from the environment. Set one, two, or all three keys to mix live and simulated providers in the same workflow run. Without any keys, everything runs in simulated mode with realistic output shapes.
+Each worker auto-detects its API key from the environment. Set one, two, or all three keys to mix live and demo providers in the same workflow run. Without any keys, everything runs in demo mode with realistic output shapes.
 
 ### The Workflow
 
@@ -62,7 +62,7 @@ export GOOGLE_API_KEY="AIza..."       # Enables live Gemini calls
 
 ```
 
-Without keys, workers run in simulated mode with fixed token counts and `` response prefix.
+Without keys, workers run in demo mode with fixed token counts and `` response prefix.
 
 ### Option 1: Docker Compose (everything included)
 
@@ -158,7 +158,7 @@ conductor workflow search -w llm_cost_tracking_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker calls one LLM provider and reports token usage. The same worker interface supports both live and simulated modes. Set the corresponding API key to switch.
+Each worker calls one LLM provider and reports token usage. The same worker interface supports both live and demo modes. Set the corresponding API key to switch.
 
 - **AggregateCostsWorker** (`ct_aggregate_costs`): update pricing rates as providers change their pricing, or write cost data to a time-series database (InfluxDB, TimescaleDB) or observability platform (Datadog, Grafana) for dashboarding
 - **Run providers in parallel**: replace the sequential task chain with a FORK/JOIN to call all three providers simultaneously, reducing total latency from 3x to 1x
@@ -194,9 +194,9 @@ llm-cost-tracking/
 │   ├── LlmCostTrackingExample.java  # Main entry point (supports --workers mode)
 │   └── workers/
 │       ├── AggregateCostsWorker.java # Per-model cost calculation with pricing rates
-│       ├── CallClaudeWorker.java     # Claude call (live via Anthropic API or simulated)
-│       ├── CallGeminiWorker.java     # Gemini call (live via Google API or simulated)
-│       └── CallGpt4Worker.java       # GPT-4 call (live via OpenAI API or simulated)
+│       ├── CallClaudeWorker.java     # Claude call (live via Anthropic API or demo)
+│       ├── CallGeminiWorker.java     # Gemini call (live via Google API or demo)
+│       └── CallGpt4Worker.java       # GPT-4 call (live via OpenAI API or demo)
 └── src/test/java/llmcosttracking/workers/
     ├── AggregateCostsWorkerTest.java # 3 tests. Full cost calculation, small token counts
     ├── CallClaudeWorkerTest.java

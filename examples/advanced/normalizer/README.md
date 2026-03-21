@@ -1,6 +1,7 @@
 # Data Format Normalizer in Java Using Conductor :  Detect Format, Convert JSON/XML/CSV, Output Canonical Form
 
 A Java Conductor workflow example for data normalization. detecting the input format of incoming data (JSON, XML, or CSV), routing to the appropriate format-specific converter via a `SWITCH` task, and producing a canonical output regardless of the source format. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Every Source System Speaks a Different Format
 
 Your ERP sends XML, your CRM sends JSON, and your partner's FTP drop is CSV. Downstream analytics expects a single canonical format. Each integration point needs its own parser, and when a new source system joins with YAML or fixed-width files, you add another branch to a growing if/else chain.
@@ -133,7 +134,7 @@ conductor workflow search -w nrm_normalizer -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker converts one input format. replace the simulated parsers with real JAXB, Jackson, or Apache Commons CSV libraries and the detect-convert-output pipeline runs unchanged.
+Each worker converts one input format. replace the demo parsers with real JAXB, Jackson, or Apache Commons CSV libraries and the detect-convert-output pipeline runs unchanged.
 
 - **NrmDetectFormatWorker** (`nrm_detect_format`): use Apache Tika for real format detection, or inspect Content-Type headers and file magic bytes to classify input format automatically
 - **NrmConvertXmlWorker** (`nrm_convert_xml`): parse real XML using JAXB, Jackson XML, or DOM4j and transform to your canonical JSON schema

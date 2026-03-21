@@ -25,7 +25,7 @@ The triage worker classifies incoming messages, and Conductor routes them to the
 | **TechWorker** | `ah_tech` | Performs root-cause analysis by message content: rate limiting gets quota increase, timeouts get connection pool restart, 500 errors get deployment rollback, unclassified issues get escalation to engineering. Returns diagnostics with latency, error rate, and root cause. High-urgency tickets get P1 priority. |
 | **GeneralWorker** | `ah_general` | Routes general inquiries by message content: plan/pricing questions get comparison details and upgrade recommendations, cancellation requests get retention callbacks, everything else gets a follow-up. |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 
@@ -142,7 +142,7 @@ conductor workflow search -w agent_handoff -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker encapsulates one agent specialization. Replace the simulated responses with real LLM classifiers (Dialogflow, OpenAI) and domain-specific APIs (Stripe, PagerDuty, Zendesk), and the triage-to-specialist routing runs unchanged.
+Each worker encapsulates one agent specialization. Replace the demo responses with real LLM classifiers (Dialogflow, OpenAI) and domain-specific APIs (Stripe, PagerDuty, Zendesk), and the triage-to-specialist routing runs unchanged.
 
 - **TriageWorker** (`ah_triage`): replace keyword matching with an LLM classifier (OpenAI function calling to return structured `{category, confidence}` JSON, or LangChain `RouterChain` for multi-agent dispatch), or integrate with Dialogflow CX for intent detection with built-in entity extraction and context management
 - **BillingWorker** (`ah_billing`): connect to Stripe's Refund API or PayPal's Disputes API to process refunds directly, query billing databases for charge history, and send confirmation via SendGrid
@@ -150,7 +150,7 @@ Each worker encapsulates one agent specialization. Replace the simulated respons
 - **GeneralWorker** (`ah_general`): connect to a knowledge base API (Zendesk Guide, Confluence) for automated FAQ responses, or integrate with a CRM (Salesforce, HubSpot) to pull customer context before responding
 - **Add a new specialist**: create a new worker class, add a case to the `SWITCH` in `workflow.json`, and update the triage keywords. No existing code changes needed.
 
-Replace the simulated specialist logic with real CRM and billing APIs; the routing workflow preserves the same handoff interface.
+Replace the demo specialist logic with real CRM and billing APIs; the routing workflow preserves the same handoff interface.
 
 ## SDK
 

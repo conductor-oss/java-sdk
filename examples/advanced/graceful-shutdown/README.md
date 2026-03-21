@@ -1,6 +1,7 @@
 # Graceful Worker Shutdown in Java Using Conductor :  Signal, Drain, Complete, Checkpoint, Stop
 
 A Java Conductor workflow example for graceful worker shutdown. signaling a worker group to stop accepting new tasks, draining the task queue within a configurable timeout, completing all in-flight tasks, checkpointing the current state, and finally stopping the workers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Killing Workers Loses Work
 
 Sending `kill -9` to a worker process terminates it instantly. any in-flight tasks get orphaned, partial results are lost, and the next worker restart has no idea where the previous instance left off. Messages get redelivered, duplicates appear, and the ops team spends an hour figuring out which tasks need to be manually retried.
@@ -135,13 +136,13 @@ conductor workflow search -w gsh_graceful_shutdown -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one shutdown phase. replace the simulated drain and checkpoint calls with real queue APIs and state persistence and the graceful shutdown sequence runs unchanged.
+Each worker manages one shutdown phase. replace the demo drain and checkpoint calls with real queue APIs and state persistence and the graceful shutdown sequence runs unchanged.
 
 - **GshDrainTasksWorker** (`gsh_drain_tasks`): integrate with Conductor's task queue API to poll remaining tasks and wait for the queue to empty, or monitor SQS `ApproximateNumberOfMessagesNotVisible`
 - **GshCheckpointWorker** (`gsh_checkpoint`): write checkpoint state to Redis, DynamoDB, or a PostgreSQL `worker_checkpoints` table so the next startup can resume from the exact position
 - **GshStopWorker** (`gsh_stop`): call Kubernetes `kubectl drain` for pod-level shutdown, or send a SIGTERM to the worker process group after confirming all tasks are checkpointed
 
-The checkpoint and drain output contracts stay fixed. Swap the simulated signals for real Kubernetes preStop hooks or systemd notifications and the shutdown sequence runs unchanged.
+The checkpoint and drain output contracts stay fixed. Swap the demo signals for real Kubernetes preStop hooks or systemd notifications and the shutdown sequence runs unchanged.
 
 ## SDK
 

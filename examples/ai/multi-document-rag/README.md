@@ -109,13 +109,13 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, embed and generate workers call OpenAI. When unset, all workers use simulated output. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, embed and generate workers call OpenAI. When unset, all workers use demo output. |
 
-### Live vs Simulated Mode
+### Live vs Demo Mode
 
-- **Without `CONDUCTOR_OPENAI_API_KEY`**: All workers return deterministic simulated output (default behavior, no API calls).
-- **With `CONDUCTOR_OPENAI_API_KEY`**: EmbedWorker calls OpenAI Embeddings API (text-embedding-3-small) and GenerateWorker calls OpenAI Chat Completions (gpt-4o-mini). Search workers (SearchApiDocsWorker, SearchTutorialsWorker, SearchForumsWorker) remain simulated because they require a real vector database.
-- If an OpenAI call fails, the worker automatically falls back to simulated output.
+- **Without `CONDUCTOR_OPENAI_API_KEY`**: All workers return deterministic demo output (default behavior, no API calls).
+- **With `CONDUCTOR_OPENAI_API_KEY`**: EmbedWorker calls OpenAI Embeddings API (text-embedding-3-small) and GenerateWorker calls OpenAI Chat Completions (gpt-4o-mini). Search workers (SearchApiDocsWorker, SearchTutorialsWorker, SearchForumsWorker) are demo-only because they require a real vector database.
+- If an OpenAI call fails, the worker automatically falls back to demo output.
 
 ## Using the Conductor CLI
 

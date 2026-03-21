@@ -1,6 +1,7 @@
 # User-Generated Content Pipeline in Java Using Conductor :  Submission, Moderation, Approval, Enrichment, and Publishing
 
 A Java Conductor workflow example that orchestrates a UGC pipeline. receiving user submissions with queue positioning, running automated moderation (spam detection, adult content filtering, toxicity scoring), approving content that passes moderation, enriching with auto-generated metadata (tags, sentiment analysis, readability scores, language detection), and publishing to the platform. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why UGC Pipelines Need Orchestration
 
 Processing user-generated content requires a pipeline that balances speed (users expect fast publication) with safety (you must not publish harmful content). You receive the submission and assign a queue position. You run automated moderation. spam detection, adult content classification, toxicity scoring,  to catch clearly violating content. Content that passes moderation is approved (automatically or by a human moderator, depending on your confidence threshold). Approved content is enriched with auto-generated tags, sentiment analysis, readability scores, and language detection to improve discoverability. Finally, the enriched content is published with a public URL.

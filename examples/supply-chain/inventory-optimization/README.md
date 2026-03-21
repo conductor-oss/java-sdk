@@ -1,6 +1,7 @@
 # Inventory Optimization in Java with Conductor :  Stock Analysis, Reorder Point Calculation, Multi-SKU Optimization, and Replenishment Execution
 
 A Java Conductor workflow example for inventory optimization. analyzing current stock levels across multiple SKUs in a warehouse (e.g., WIDGET-A through CABLE-E in WH-Central), calculating reorder points based on demand velocity and lead times, optimizing order quantities to minimize carrying costs while preventing stockouts, and executing replenishment orders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to keep the right amount of inventory across multiple SKUs. Too much stock ties up working capital and warehouse space; too little causes stockouts and lost sales. For each SKU in WH-Central (widgets, gadgets, sensors, cables), you must analyze current on-hand quantities against consumption rates, calculate the reorder point where a new order must be placed to arrive before stock runs out, optimize order quantities across all SKUs to minimize total cost (ordering costs + holding costs + stockout penalties), and trigger purchase orders for items below their reorder threshold.

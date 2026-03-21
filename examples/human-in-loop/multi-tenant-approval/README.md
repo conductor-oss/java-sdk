@@ -1,6 +1,7 @@
 # Multi-Tenant Approval in Java Using Conductor :  Tenant Config Loading, Amount-Based SWITCH to Manager or Manager+Executive WAIT Chains, and Tenant-Scoped Finalization
 
 A Java Conductor workflow example for multi-tenant SaaS approval routing. loading each tenant's approval configuration (auto-approve limits, required approval levels), using a SWITCH to route requests to the correct WAIT chain based on the tenant's rules (manager-only for single-level tenants, manager-then-executive for enterprise tenants, auto-approve for tenants below threshold), and finalizing with tenant-scoped post-approval logic. Each tenant (startup-co, enterprise-corp, small-biz) has its own auto-approve limit and approval chain depth, so the same workflow handles all tenants without per-tenant workflow definitions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Different Tenants Have Different Approval Rules and Thresholds
 
 In a multi-tenant SaaS application, each tenant has its own approval configuration. Different amount thresholds, different required approval levels, different approver roles. The workflow loads the tenant's configuration, determines the required approval level based on the amount, routes to the appropriate approval chain, then finalizes. If the config loading step uses stale data, you can re-run just that step.

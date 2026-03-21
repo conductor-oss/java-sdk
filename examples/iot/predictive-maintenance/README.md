@@ -1,6 +1,7 @@
 # Predictive Maintenance in Java with Conductor :  Sensor Data Collection, Trend Analysis, Failure Prediction, and Maintenance Scheduling
 
 A Java Conductor workflow example that orchestrates predictive maintenance for industrial assets. collecting operational data (temperature, vibration, operating hours), analyzing degradation trends over time, predicting failure dates with confidence scores and recommended actions, and automatically scheduling maintenance work orders with cost estimates and parts procurement. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Predictive Maintenance Needs Orchestration
 
 Preventing unplanned downtime requires turning raw sensor data into maintenance decisions. You collect current operational data. bearing temperature at 178F, vibration at 3.8 mm/s, 18,500 operating hours since install, 2,500 hours since last maintenance. You analyze trends by computing temperature and vibration slopes over time to derive an overall health score. You feed those trends into a failure prediction model that estimates when the asset will fail (e.g., "May 25, compressor valve, 82% confidence, medium risk"). If maintenance is warranted, you schedule a work order two weeks before the predicted failure date, order the replacement parts (compressor valve CV-300), and estimate the cost.

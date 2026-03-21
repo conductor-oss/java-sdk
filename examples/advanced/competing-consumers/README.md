@@ -1,6 +1,7 @@
 # Competing Consumers in Java Using Conductor :  Publish, Compete, Process, Acknowledge
 
 A Java Conductor workflow example for the competing consumers pattern. publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Scaling Throughput with Multiple Consumers
 
 When a single consumer can't keep up with the message rate on a queue, you add more consumers. But multiple consumers reading from the same queue introduces coordination problems: two consumers might grab the same message, a consumer might crash after claiming a message but before processing it, and you need to know which consumer actually handled each task for debugging and audit.
@@ -131,7 +132,7 @@ conductor workflow search -w ccs_competing_consumers -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one phase of the compete-process-acknowledge cycle. replace the simulated queue operations with real SQS or RabbitMQ consumer group APIs and the competing consumer logic runs unchanged.
+Each worker manages one phase of the compete-process-acknowledge cycle. replace the demo queue operations with real SQS or RabbitMQ consumer group APIs and the competing consumer logic runs unchanged.
 
 - **CcsPublishWorker** (`ccs_publish`): publish to a real SQS queue (`sqs.sendMessage()`), RabbitMQ exchange, or Kafka topic instead of simulating the message send
 - **CcsCompeteWorker** (`ccs_compete`): implement real consumer group coordination using Kafka consumer groups, SQS visibility timeout with `receiveMessage()`, or Redis-based distributed locking (Redisson)

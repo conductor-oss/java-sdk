@@ -132,7 +132,7 @@ conductor workflow search -w post_mortem_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one post-mortem stage. replace the simulated calls with PagerDuty timeline APIs, Datadog incident metrics, or Google Calendar scheduling, and the post-mortem workflow runs unchanged.
+Each worker handles one post-mortem stage. replace the demo calls with PagerDuty timeline APIs, Datadog incident metrics, or Google Calendar scheduling, and the post-mortem workflow runs unchanged.
 
 - **GatherTimelineWorker** (`pm_gather_timeline`): query PagerDuty Incidents API for alert and acknowledgment timestamps, pull Slack message history for the incident channel, and correlate with deploy events from CI/CD to build a chronological event sequence
 - **CollectMetricsWorker** (`pm_collect_metrics`): query Datadog or Prometheus for error rates, latency, and availability during the incident window, and pull affected user counts from application logs or analytics APIs

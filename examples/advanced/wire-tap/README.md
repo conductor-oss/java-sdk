@@ -1,6 +1,7 @@
 # Wire Tap Pattern in Java Using Conductor :  Process Messages While Tapping an Audit Copy in Parallel
 
 A Java Conductor workflow example for the wire tap pattern. receiving a message and simultaneously processing it through the main business flow while tapping a copy to an audit/monitoring system, using `FORK_JOIN` for parallel execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Auditing Must Not Slow Down the Main Flow
 
 Every payment transaction must be processed and also logged to the compliance audit trail. If you audit synchronously before processing, you add latency to every transaction. If you audit after processing, a crash between process and audit means a transaction exists without an audit record. The wire tap pattern solves this by running both in parallel. the main flow and the audit tap execute simultaneously, so neither blocks the other.
@@ -129,13 +130,13 @@ conductor workflow search -w wtp_wire_tap -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles either the main flow or the audit tap. replace the simulated audit writes with real Elasticsearch or compliance logging APIs and the parallel tap-while-processing pattern runs unchanged.
+Each worker handles either the main flow or the audit tap. replace the demo audit writes with real Elasticsearch or compliance logging APIs and the parallel tap-while-processing pattern runs unchanged.
 
 - **WtpMainFlowWorker** (`wtp_main_flow`): run your real business logic: process payment transactions, handle order fulfillment, or execute trade orders
 - **WtpTapAuditWorker** (`wtp_tap_audit`): write to a real audit store: append-only Kafka topic for immutable logs, S3 for compliance archives, or Elasticsearch for searchable audit trails
 - **WtpReceiveWorker** (`wtp_receive`): consume from a real message source: Kafka consumer, SQS queue, or webhook endpoint, passing the raw message to both the main flow and audit tap
 
-The main-flow and audit-tap output contracts stay fixed. Swap the simulated audit log for a real compliance database or Splunk sink and the parallel tap runs unchanged.
+The main-flow and audit-tap output contracts stay fixed. Swap the demo audit log for a real compliance database or Splunk sink and the parallel tap runs unchanged.
 
 ## SDK
 

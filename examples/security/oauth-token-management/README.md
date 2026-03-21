@@ -1,6 +1,7 @@
 # Implementing OAuth Token Management in Java with Conductor :  Grant Validation, Token Issuance, and Compliance Auditing
 
 A Java Conductor workflow example for OAuth 2.0 token lifecycle management. validating client credentials and grant types, issuing access and refresh tokens, persisting token metadata for revocation, and logging every issuance for compliance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to handle OAuth 2.0 token requests end-to-end: validate that the client ID is registered and the grant type (authorization_code, client_credentials, etc.) is permitted, issue scoped access and refresh tokens, store token metadata so tokens can be revoked or introspected later, and write an immutable audit trail for every issuance event.

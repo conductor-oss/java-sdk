@@ -1,6 +1,7 @@
 # Government Benefit Determination in Java with Conductor :  Eligibility Verification, Calculation, and Applicant Notification
 
 A Java Conductor workflow example for government benefit determination. receiving applications, verifying income-based eligibility, calculating benefit amounts, and routing applicants to approval or denial notifications. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process benefit applications for a government assistance program. Each application requires intake validation, income verification against eligibility thresholds, benefit amount calculation based on the applicant's financial profile, and then routing to either an approval notice (with the benefit amount) or a denial notice (with the specific reason). The eligibility decision must branch the workflow. eligible applicants receive a benefit calculation and approval letter, while ineligible applicants receive a denial with an explanation.

@@ -1,6 +1,7 @@
 # ML Experiment Tracking in Java Using Conductor :  Define, Run, Log Metrics, Compare, Decide
 
 A Java Conductor workflow example for ML experiment tracking. defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Experiments Without Reproducibility Are Guesswork
 
 You tuned a hyperparameter, retrained the model, and accuracy went up 2%. Was it the hyperparameter change, or did the training data shift? Without a structured experiment record. hypothesis, configuration, metrics, baseline comparison,  you can't answer that question. Teams run dozens of experiments a week, and without systematic tracking, knowledge about what was tried and what worked lives in Slack threads and Jupyter notebooks that nobody can find six months later.
@@ -135,13 +136,13 @@ conductor workflow search -w experiment_tracking_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one experiment lifecycle step. replace the simulated training runs with real MLflow or Weights & Biases APIs and the define-run-compare-decide pipeline runs unchanged.
+Each worker handles one experiment lifecycle step. replace the demo training runs with real MLflow or Weights & Biases APIs and the define-run-compare-decide pipeline runs unchanged.
 
 - **ExtRunExperimentWorker** (`ext_run_experiment`): trigger a real training job via SageMaker `createTrainingJob()`, Weights & Biases run, or MLflow `mlflow.start_run()` and collect actual metrics
 - **ExtLogMetricsWorker** (`ext_log_metrics`): log metrics to MLflow Tracking (`mlflow.log_metrics`), Weights & Biases (`wandb.log`), or a custom metrics database
 - **ExtCompareWorker** (`ext_compare`): run real statistical tests (t-test, bootstrap confidence intervals) using Apache Commons Math or a Python subprocess with scipy.stats
 
-The experiment record contract stays fixed. Swap the simulated training for a real MLflow or W&B integration and the compare-decide pipeline runs unchanged.
+The experiment record contract stays fixed. Swap the demo training for a real MLflow or W&B integration and the compare-decide pipeline runs unchanged.
 
 ## SDK
 

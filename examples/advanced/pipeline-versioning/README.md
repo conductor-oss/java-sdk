@@ -1,6 +1,7 @@
 # Pipeline Versioning in Java Using Conductor :  Snapshot Config, Tag, Test, Promote
 
 A Java Conductor workflow example for pipeline versioning. snapshotting the current pipeline configuration, tagging it with a version, running integration tests against the tagged version, and promoting it to the target environment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Pipeline Configs Change, and You Need to Know What Ran When
 
 Your ETL pipeline's configuration. source tables, transformation rules, destination schemas,  changes frequently. A config change on Tuesday breaks the Wednesday morning run, and nobody can tell which configuration was active when. Rolling back means guessing which version of the config file was deployed, or restoring from a backup that may include unrelated changes.
@@ -130,13 +131,13 @@ conductor workflow search -w pipeline_versioning_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one versioning gate. replace the simulated config snapshots with real Git commits or AppConfig APIs and the tag-test-promote pipeline runs unchanged.
+Each worker manages one versioning gate. replace the demo config snapshots with real Git commits or AppConfig APIs and the tag-test-promote pipeline runs unchanged.
 
 - **PvrSnapshotConfigWorker** (`pvr_snapshot_config`): store pipeline configs in Git (commit + SHA), DynamoDB, or a config management service like AWS AppConfig or HashiCorp Consul
 - **PvrTestPipelineWorker** (`pvr_test_pipeline`): run real integration tests: execute the pipeline against a test dataset, compare outputs to golden files, and check data quality assertions
 - **PvrPromoteWorker** (`pvr_promote`): deploy the tagged config to production via Terraform apply, Kubernetes ConfigMap update, or Airflow variable refresh
 
-The snapshot and tag output contract stays fixed. Swap the simulated config store for a real Git-backed config repo or AWS Parameter Store and the version-test-promote pipeline runs unchanged.
+The snapshot and tag output contract stays fixed. Swap the demo config store for a real Git-backed config repo or AWS Parameter Store and the version-test-promote pipeline runs unchanged.
 
 ## SDK
 

@@ -139,7 +139,7 @@ Point each worker at your real database change log (Debezium, DMS), transformati
 - **PublishDownstreamWorker** (`cd_publish_downstream`): publish events to Kafka, AWS SNS/SQS, or Google Pub/Sub using the appropriate client SDK
 - **ConfirmDeliveryWorker** (`cd_confirm_delivery`): verify consumer offsets or check delivery receipts to confirm all messages reached their destination
 
-Switching from a simulated change log to Debezium or AWS DMS requires no modifications to the pipeline workflow.
+Switching from a demo change log to Debezium or AWS DMS requires no modifications to the pipeline workflow.
 
 ## SDK
 

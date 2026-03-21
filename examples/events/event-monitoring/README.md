@@ -142,7 +142,7 @@ Wire each worker to your real metrics source (Prometheus, CloudWatch), analysis 
 - **Analyzer**: implement statistical anomaly detection (z-score, rolling averages, trend analysis) or integrate with ML-based anomaly detection services
 - **Report generator**: render dashboards as HTML/PDF, push to Grafana, or send Slack summaries with key metrics and alerts
 
-Pointing CollectMetricsWorker at Prometheus or Datadog instead of simulated data requires no changes to the analysis workflow.
+Pointing CollectMetricsWorker at Prometheus or Datadog instead of demo data requires no changes to the analysis workflow.
 
 ## SDK
 

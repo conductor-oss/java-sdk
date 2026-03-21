@@ -20,11 +20,11 @@ Three workers cover the full RAG pipeline: embedding the query, searching the ve
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **EmbedQueryWorker** | `brag_embed_query` | Converts the user's question into a vector embedding using OpenAI (`OPENAI_EMBED_MODEL`, default `text-embedding-3-small`), returning the embedding array, model name, and dimensions | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; simulated (fixed 8-dim vector) otherwise |
-| **SearchVectorsWorker** | `brag_search_vectors` | Queries a vector database with the embedding to retrieve the top-k most relevant document chunks, each with id, text, and similarity score (0.85-0.94) | **Always simulated**.; no real vector DB. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples |
-| **GenerateAnswerWorker** | `brag_generate_answer` | Sends the original question plus retrieved context to OpenAI (`OPENAI_CHAT_MODEL`, default `gpt-4o-mini`), producing a grounded answer; returns the answer text and token count | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; simulated (fixed answer) otherwise |
+| **EmbedQueryWorker** | `brag_embed_query` | Converts the user's question into a vector embedding using OpenAI (`OPENAI_EMBED_MODEL`, default `text-embedding-3-small`), returning the embedding array, model name, and dimensions | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; demo (fixed 8-dim vector) otherwise |
+| **SearchVectorsWorker** | `brag_search_vectors` | Queries a vector database with the embedding to retrieve the top-k most relevant document chunks, each with id, text, and similarity score (0.85-0.94) | **Always demo**.; no real vector DB. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples |
+| **GenerateAnswerWorker** | `brag_generate_answer` | Sends the original question plus retrieved context to OpenAI (`OPENAI_CHAT_MODEL`, default `gpt-4o-mini`), producing a grounded answer; returns the answer text and token count | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; demo (fixed answer) otherwise |
 
-**Important:** Vector search is always simulated in this example, even in live mode. `CONDUCTOR_OPENAI_API_KEY` only turns on real embedding and generation calls. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples. Without the key, all three workers produce deterministic simulated output so the workflow runs end-to-end without any external dependencies.
+**Important:** Vector search is demo-only in this example, even in live mode. `CONDUCTOR_OPENAI_API_KEY` only turns on real embedding and generation calls. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples. Without the key, all three workers produce deterministic demo output so the workflow runs end-to-end without any external dependencies.
 
 ### The Workflow
 
@@ -54,7 +54,7 @@ docker compose up --build
 
 ```
 
-Starts Conductor on port 8080 and runs the example automatically (simulated mode).
+Starts Conductor on port 8080 and runs the example automatically (demo mode).
 
 With real OpenAI API calls:
 
@@ -79,7 +79,7 @@ docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 
-# Build and run (simulated mode)
+# Build and run (demo mode)
 mvn package -DskipTests
 java -jar target/basic-rag-1.0.0.jar
 
@@ -110,7 +110,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(unset)_ | OpenAI API key. When set, `EmbedQueryWorker` and `GenerateAnswerWorker` make real API calls. When unset, both workers run in simulated mode |
+| `CONDUCTOR_OPENAI_API_KEY` | _(unset)_ | OpenAI API key. When set, `EmbedQueryWorker` and `GenerateAnswerWorker` make real API calls. When unset, both workers run in demo mode |
 | `OPENAI_EMBED_MODEL` | `text-embedding-3-small` | OpenAI embedding model used by `EmbedQueryWorker` in live mode. |
 | `OPENAI_CHAT_MODEL` | `gpt-4o-mini` | OpenAI chat model used by `GenerateAnswerWorker` in live mode. |
 
@@ -156,10 +156,10 @@ Conductor orchestrates these three stages as independent workers. If the embeddi
 
 ## How to Extend
 
-Embedding and generation already use real OpenAI APIs when `CONDUCTOR_OPENAI_API_KEY` is set. The main extension point is the vector search worker, which is always simulated in this example.
+Embedding and generation already use real OpenAI APIs when `CONDUCTOR_OPENAI_API_KEY` is set. The main extension point is the vector search worker, which is demo-only in this example.
 
 - **EmbedQueryWorker** (`brag_embed_query`): already calls OpenAI in live mode and respects `OPENAI_EMBED_MODEL`. To swap providers, replace the API call with Cohere `embed()` or a local sentence-transformers model
-- **SearchVectorsWorker** (`brag_search_vectors`): always simulated. Replace with a real vector database: Pinecone `query()`, Weaviate GraphQL, Qdrant `search`, Milvus, or pgvector in PostgreSQL. See the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples
+- **SearchVectorsWorker** (`brag_search_vectors`): demo-only. Replace with a real vector database: Pinecone `query()`, Weaviate GraphQL, Qdrant `search`, Milvus, or pgvector in PostgreSQL. See the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples
 - **GenerateAnswerWorker** (`brag_generate_answer`): already calls OpenAI in live mode and respects `OPENAI_CHAT_MODEL`. To swap providers, replace with Claude Messages API or a local Ollama model
 - **Add a reranker**: insert a reranking step between search and generation (Cohere Rerank, cross-encoder models) to improve retrieval precision before feeding context to the LLM
 

@@ -1,6 +1,7 @@
 # Workflow Optimization in Java Using Conductor :  Analyze Execution, Find Waste, Parallelize, Benchmark
 
 A Java Conductor workflow example for workflow optimization. analyzing execution history to measure task durations, identifying wasted time (sequential tasks that could run in parallel, unnecessary waits), recommending parallelization opportunities, and benchmarking the optimized version against the original. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Slow Workflows Need Data-Driven Optimization, Not Guessing
 
 Your order fulfillment workflow takes 45 seconds end-to-end, but the SLA is 30 seconds. Which tasks are the bottleneck? Are there sequential tasks with no data dependency that could run in parallel? Is there a task that always takes 10 seconds but only does a simple lookup. suggesting it's waiting on a slow dependency?
@@ -131,13 +132,13 @@ conductor workflow search -w wfo_workflow_optimization -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker tackles one optimization concern. replace the simulated execution analysis with real Conductor API metrics and the analyze-identify-benchmark pipeline runs unchanged.
+Each worker tackles one optimization concern. replace the demo execution analysis with real Conductor API metrics and the analyze-identify-benchmark pipeline runs unchanged.
 
 - **WfoAnalyzeExecutionWorker** (`wfo_analyze_execution`): query real execution data from Conductor's `workflow/execution` API, parse task timing from OpenTelemetry traces, or aggregate metrics from Prometheus/Datadog
 - **WfoIdentifyWasteWorker** (`wfo_identify_waste`): implement real dependency analysis: build a DAG of data dependencies between tasks and identify tasks with no incoming data edges that are currently sequential
 - **WfoBenchmarkWorker** (`wfo_benchmark`): run real A/B benchmarks: execute original and optimized workflows with the same inputs, measure wall-clock time, and compute speedup with statistical confidence
 
-The analysis and benchmark output contract stays fixed. Swap the simulated execution data for real Conductor execution history and the waste-identification pipeline runs unchanged.
+The analysis and benchmark output contract stays fixed. Swap the demo execution data for real Conductor execution history and the waste-identification pipeline runs unchanged.
 
 ## SDK
 

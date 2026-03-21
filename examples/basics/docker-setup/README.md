@@ -22,7 +22,7 @@ A single smoke-test worker verifies your Docker and Conductor setup is working c
 |---|---|---|
 | `DockerTestWorker` | `docker_test_task` | Accepts a `message` string input (defaults to "Docker setup test" if blank), echoes it back with an ISO-8601 timestamp to confirm Docker-based Conductor connectivity |
 
-Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
+Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the demo logic for your real service calls, the worker contract stays the same.
 
 ### The Workflow
 

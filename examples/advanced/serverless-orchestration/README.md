@@ -1,6 +1,7 @@
 # Serverless Function Chain in Java Using Conductor :  Parse, Enrich, Score, Aggregate
 
 A Java Conductor workflow example for serverless function orchestration. invoking a parse function to extract structured data from an event, enriching it with external context, scoring the enriched data, and aggregating the final results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Chaining Lambda Functions Without Losing Control
 
 You have four Lambda functions that need to run in sequence: one parses raw event payloads into structured data, one enriches the parsed data with external API lookups, one scores the enriched records (fraud score, relevance score, risk score), and one aggregates the scored results into a summary. Each function's output is the next function's input.
@@ -131,13 +132,13 @@ conductor workflow search -w serverless_orchestration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker wraps one serverless function invocation. replace the simulated Lambda calls with real AWS Lambda or Cloud Functions APIs and the function chain runs unchanged.
+Each worker wraps one serverless function invocation. replace the demo Lambda calls with real AWS Lambda or Cloud Functions APIs and the function chain runs unchanged.
 
 - **SvlInvokeParseWorker** (`svl_invoke_parse`): invoke a real AWS Lambda function (`lambda.invoke()`), Google Cloud Function, or Azure Function to parse event payloads
 - **SvlInvokeEnrichWorker** (`svl_invoke_enrich`): call real enrichment APIs: Clearbit for company data, MaxMind for geo-IP, or your own microservice for domain-specific context
 - **SvlInvokeScoreWorker** (`svl_invoke_score`): invoke a real scoring Lambda that runs an ML model (SageMaker endpoint, custom TensorFlow Serving) and returns fraud/risk/relevance scores
 
-The function invocation contract stays fixed. Swap the simulated Lambda calls for real AWS SDK invocations or Azure Functions triggers and the parse-enrich-score chain runs unchanged.
+The function invocation contract stays fixed. Swap the demo Lambda calls for real AWS SDK invocations or Azure Functions triggers and the parse-enrich-score chain runs unchanged.
 
 ## SDK
 

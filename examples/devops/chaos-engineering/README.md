@@ -132,7 +132,7 @@ conductor workflow search -w chaos_engineering_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one experiment phase. replace the simulated calls with Gremlin, LitmusChaos, or Toxiproxy for real fault injection and system observation, and the chaos workflow runs unchanged.
+Each worker handles one experiment phase. replace the demo calls with Gremlin, LitmusChaos, or Toxiproxy for real fault injection and system observation, and the chaos workflow runs unchanged.
 
 - **DefineExperimentWorker** → load experiment definitions from a catalog: Gremlin experiment templates, LitmusChaos experiment CRDs, or a custom experiment registry with pre-approved blast radius limits
 - **InjectFailureWorker** → inject real faults: Chaos Monkey for random pod kills, Toxiproxy for network latency/packet loss, stress-ng for CPU/memory pressure, or tc (traffic control) for bandwidth throttling

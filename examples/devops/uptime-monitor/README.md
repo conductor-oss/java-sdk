@@ -287,14 +287,14 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
 
 ## How to Extend
 
-Each worker is a standalone class. Swap the simulated implementation for a real one and the workflow, retries, and alerting logic stay the same.
+Each worker is a standalone class. Swap the demo implementation for a real one and the workflow, retries, and alerting logic stay the same.
 
-- **SendEmailAlert** (`uptime_send_email_alert`): replace the simulated log with AWS SES, SendGrid, or any SMTP client:
+- **SendEmailAlert** (`uptime_send_email_alert`): replace the demo log with AWS SES, SendGrid, or any SMTP client:
 
 ```java
-// Before (simulated):
+// Before (demo):
 result.getOutputData().put("sent", true);
-result.getOutputData().put("message", "Simulated email sent");
+result.getOutputData().put("message", "Demo email sent");
 
 // After (real. AWS SES):
 SesClient ses = SesClient.create();
@@ -333,13 +333,13 @@ uptime-monitor/
 │       ├── CheckEndpoint.java       # Real HTTP/DNS/TLS checks
 │       ├── AggregateResults.java
 │       ├── SendSlackAlert.java      # Real if webhook configured
-│       ├── SendEmailAlert.java      # Simulated
-│       ├── UpdateStatusPage.java    # Simulated
+│       ├── SendEmailAlert.java      # Demo
+│       ├── UpdateStatusPage.java    # Demo
 │       ├── CheckEscalation.java     # Deterministic threshold check
-│       ├── SendSmsAlert.java        # Simulated
-│       ├── PageOncall.java          # Simulated
-│       ├── RecordHealthy.java       # Simulated
-│       └── StoreMetrics.java        # Simulated
+│       ├── SendSmsAlert.java        # Demo
+│       ├── PageOncall.java          # Demo
+│       ├── RecordHealthy.java       # Demo
+│       └── StoreMetrics.java        # Demo
 └── src/test/java/uptimemonitor/workers/
     ├── PrepareChecksTest.java       # 7 tests
     ├── AggregateResultsTest.java    # 9 tests

@@ -99,7 +99,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `GOOGLE_APPLICATION_CREDENTIALS` | _(none)_ | Path to GCP service account JSON key file. Currently unused, all workers run in simulated mode with `[SIMULATED]` output prefix. Swap in Google Cloud client libraries for production. |
+| `GOOGLE_APPLICATION_CREDENTIALS` | _(none)_ | Path to GCP service account JSON key file. Currently unused, all workers run in demo mode with `[DEMO]` output prefix. Swap in Google Cloud client libraries for production. |
 
 ## Using the Conductor CLI
 

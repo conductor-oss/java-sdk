@@ -1,6 +1,7 @@
 # Signals in Java with Conductor
 
 Signals demo. send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need an order fulfillment workflow that pauses and waits for external events at two points: first, it waits for a shipping confirmation (tracking number and carrier) from the warehouse or shipping partner, and second, it waits for a delivery confirmation (delivery timestamp and recipient signature) from the carrier. The workflow cannot continue past each wait point until the external system sends the signal with the required data. Between signals, the order sits in a known state. prepared, shipped, or delivered,  potentially for hours or days.
@@ -139,7 +140,7 @@ Replace the order preparation and processing workers with your real fulfillment 
 - **SigProcessShippingWorker** (`sig_process_shipping`): update the order status with the tracking number from the signal, send a shipping confirmation email to the customer via SendGrid/SES, and register for carrier tracking updates
 - **SigCompleteWorker** (`sig_complete`): mark the order as delivered in your OMS, update the customer's order history, trigger a post-delivery satisfaction survey, and close the fulfillment case
 
-Replacing the simulated order logic with real shipment tracking does not change the WAIT-based signal flow, since the durable pause and signal-to-workflow routing are managed entirely by Conductor.
+Replacing the demo order logic with real shipment tracking does not change the WAIT-based signal flow, since the durable pause and signal-to-workflow routing are managed entirely by Conductor.
 
 ## SDK
 

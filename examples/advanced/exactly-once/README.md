@@ -136,13 +136,13 @@ conductor workflow search -w exo_exactly_once -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker enforces one part of the lock-check-process-commit protocol. Replace the simulated Redis locks and idempotency lookups with real distributed lock and dedup store APIs and the exactly-once guarantee runs unchanged.
+Each worker enforces one part of the lock-check-process-commit protocol. Replace the demo Redis locks and idempotency lookups with real distributed lock and dedup store APIs and the exactly-once guarantee runs unchanged.
 
 - **ExoLockWorker** (`exo_lock`): acquire a real distributed lock using Redis (Redisson `RLock`), ZooKeeper (`InterProcessMutex`), or DynamoDB conditional writes with a TTL
 - **ExoCheckStateWorker** (`exo_check_state`): query a real idempotency store (DynamoDB `getItem` by message ID, PostgreSQL `SELECT` on a processed_messages table, or Redis `EXISTS`)
 - **ExoCommitWorker** (`exo_commit`): atomically write the result and mark the message as processed in a single database transaction, or use DynamoDB `TransactWriteItems` to commit both in one call
 
-The lock-check-commit protocol stays fixed. Swap the simulated Redis lock for a real distributed lock (Redlock, ZooKeeper) and the deduplication guarantee holds unchanged.
+The lock-check-commit protocol stays fixed. Swap the demo Redis lock for a real distributed lock (Redlock, ZooKeeper) and the deduplication guarantee holds unchanged.
 
 ## SDK
 

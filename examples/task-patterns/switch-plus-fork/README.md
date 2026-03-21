@@ -1,6 +1,7 @@
 # Switch Plus Fork in Java with Conductor
 
 SWITCH + FORK demo. conditional parallel execution. Batch type triggers parallel lanes A and B; default runs single processing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process items differently based on whether they arrive as a batch or individually. Batch processing requires two parallel lanes (Lane A and Lane B) that split the work and process simultaneously, then join before continuing. Single-item processing just runs one task. The decision. parallel batch processing or sequential single-item processing,  must be made at runtime based on the input type. After either path completes, a common finalization step runs.

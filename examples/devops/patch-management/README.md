@@ -122,7 +122,7 @@ conductor workflow search -w patch_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one patch lifecycle step. replace the simulated calls with Qualys or Nessus for vulnerability scanning and Ansible for OS-level patching, and the patch management workflow runs unchanged.
+Each worker handles one patch lifecycle step. replace the demo calls with Qualys or Nessus for vulnerability scanning and Ansible for OS-level patching, and the patch management workflow runs unchanged.
 
 - **ScanVulnerabilitiesWorker**: integrate with Qualys, Nessus, Trivy (for containers), or AWS Inspector for real vulnerability scanning with CVE correlation
 - **DeployPatchWorker**: use Ansible for OS-level patching, yum/apt for package updates, or update container base images and redeploy via CI/CD

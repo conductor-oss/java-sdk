@@ -1,6 +1,7 @@
 # Event Dedup in Java Using Conductor
 
 Event deduplication workflow. computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to deduplicate events so that the same event is never processed twice. In distributed systems, at-least-once delivery guarantees mean consumers may receive duplicate messages. The workflow must compute a content hash of the event payload, check whether that hash has been seen before, and either process the event (if new) or skip it (if duplicate). Processing duplicates can lead to double charges, duplicate notifications, or corrupted state.
@@ -19,7 +20,7 @@ Four workers enforce exactly-once event processing: ComputeHashWorker generates 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CheckSeenWorker** | `dd_check_seen` | Checks whether a given hash has been seen before (simulated lookup). Always returns "duplicate" to simulate a previou... |
+| **CheckSeenWorker** | `dd_check_seen` | Checks whether a given hash has been seen before (demo lookup). Always returns "duplicate" to demonstrate a previou... |
 | **ComputeHashWorker** | `dd_compute_hash` | Computes a deterministic hash of the event payload for deduplication. Uses a fixed hash value for demonstration purpo... |
 | **ProcessEventWorker** | `dd_process_event` | Processes a new (non-duplicate) event. |
 | **SkipEventWorker** | `dd_skip_event` | Skips a duplicate (or unknown-status) event. |

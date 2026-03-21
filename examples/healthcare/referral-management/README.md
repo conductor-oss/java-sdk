@@ -1,6 +1,7 @@
 # Referral Management in Java Using Conductor :  Creation, Specialist Matching, Scheduling, Tracking, and Closure
 
 A Java Conductor workflow example for referral management. creating a referral from a PCP with clinical reason, matching the patient to an in-network specialist by specialty and availability, scheduling the specialist appointment, tracking the referral through completion, and closing with the consultation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage patient referrals from creation through specialist consultation. A primary care physician creates a referral specifying the patient, specialty needed, and clinical reason. The system must match the patient to an appropriate in-network specialist based on specialty, location, availability, and insurance acceptance. An appointment must be scheduled with the matched specialist. The referral must be tracked to ensure the patient actually sees the specialist and the consultation report is sent back to the referring provider. Finally, the referral is closed when the consultation is complete. Lost referrals. where patients never see the specialist or reports never reach the PCP,  lead to gaps in care and potential liability.

@@ -99,7 +99,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `AWS_ACCESS_KEY_ID` | _(none)_ | AWS access key ID. Currently unused, all workers run in simulated mode with `[SIMULATED]` output prefix. Swap in AWS SDK for production. |
+| `AWS_ACCESS_KEY_ID` | _(none)_ | AWS access key ID. Currently unused, all workers run in demo mode with `[DEMO]` output prefix. Swap in AWS SDK for production. |
 | `AWS_SECRET_ACCESS_KEY` | _(none)_ | AWS secret access key. Required alongside `AWS_ACCESS_KEY_ID` for production use. |
 
 ## Using the Conductor CLI
@@ -138,7 +138,7 @@ Swap in the AWS SDK calls. S3Client.putObject() in the upload worker, DynamoDbCl
 - **AwsS3UploadWorker** (`aws_s3_upload`): use the AWS SDK S3Client to upload real objects to an S3 bucket
 - **AwsSnsNotifyWorker** (`aws_sns_notify`): use the AWS SDK SnsClient to publish real messages to an SNS topic
 
-Replace each simulated worker with a real AWS SDK call while keeping the same output fields, and the FORK_JOIN fan-out continues unchanged.
+Replace each demo worker with a real AWS SDK call while keeping the same output fields, and the FORK_JOIN fan-out continues unchanged.
 
 ## SDK
 

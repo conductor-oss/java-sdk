@@ -132,7 +132,7 @@ conductor workflow search -w multi_region_deploy_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one deployment phase. replace the simulated calls with AWS CodeDeploy, ArgoCD multi-cluster sync, or Kubernetes rolling updates per region, and the multi-region workflow runs unchanged.
+Each worker handles one deployment phase. replace the demo calls with AWS CodeDeploy, ArgoCD multi-cluster sync, or Kubernetes rolling updates per region, and the multi-region workflow runs unchanged.
 
 - **DeployPrimaryWorker** (`mrd_deploy_primary`): deploy via AWS CodeDeploy with blue-green or canary, ArgoCD sync to the primary cluster, or Kubernetes rolling update with deployment strategy
 - **VerifyPrimaryWorker** (`mrd_verify_primary`): compare error rates and latency against pre-deployment baselines using Datadog, New Relic, or CloudWatch anomaly detection

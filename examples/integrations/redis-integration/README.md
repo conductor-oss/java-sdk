@@ -101,7 +101,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `REDIS_URL` | _(none)_ | Redis connection URL (e.g., `redis://localhost:6379`). Currently unused, all workers run in simulated mode with `[SIMULATED]` output prefix. Swap in Jedis or Lettuce for production. |
+| `REDIS_URL` | _(none)_ | Redis connection URL (e.g., `redis://localhost:6379`). Currently unused, all workers run in demo mode with `[DEMO]` output prefix. Swap in Jedis or Lettuce for production. |
 
 ## Using the Conductor CLI
 

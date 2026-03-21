@@ -144,7 +144,7 @@ Connect CollectHoursWorker to your timesheet system, ApplyDeductionsWorker to yo
 - **Payment processor**: submit ACH direct deposits via your payroll provider (ADP, Gusto, Paychex) or bank's NACHA file
 - **Stub distributor**: generate and distribute digital pay stubs via your employee portal or email
 
-Replace simulated payroll calculations with real timesheet, tax, and payment integrations while preserving the same output structure, and the payroll workflow continues without modification.
+Replace demo payroll calculations with real timesheet, tax, and payment integrations while preserving the same output structure, and the payroll workflow continues without modification.
 
 ## SDK
 

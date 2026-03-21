@@ -25,7 +25,7 @@ Four workers run two-way SMS conversations: SendSmsWorker delivers the outbound 
 | **SendSmsWorker** | `twl_send_sms` | Sends an SMS via Twilio. |
 | **WaitResponseWorker** | `twl_wait_response` | Waits for an SMS response. |
 
-The workers auto-detect Twilio credentials at startup. When `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` are set, SendSmsWorker and SendReplyWorker use the real Twilio API to deliver messages. Without credentials, they fall back to simulated mode with realistic output shapes so the workflow runs end-to-end without a Twilio account.
+The workers auto-detect Twilio credentials at startup. When `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` are set, SendSmsWorker and SendReplyWorker use the real Twilio API to deliver messages. Without credentials, they fall back to demo mode with realistic output shapes so the workflow runs end-to-end without a Twilio account.
 
 ### The Workflow
 
@@ -134,7 +134,7 @@ conductor workflow search -w twilio_integration_436 -s COMPLETED -c 5
 
 ## How to Extend
 
-SendSmsWorker and SendReplyWorker already use the real Twilio Java SDK (Message.creator()) when credentials are provided. The remaining workers are simulated:
+SendSmsWorker and SendReplyWorker already use the real Twilio Java SDK (Message.creator()) when credentials are provided. The remaining workers are demo:
 
 - **WaitResponseWorker** (`twl_wait_response`): integrate with Twilio webhooks or use the Twilio Messages API to poll for real inbound replies by message SID
 - **ProcessResponseWorker** (`twl_process_response`): add your own business logic for parsing responses, looking up context, or generating follow-up content

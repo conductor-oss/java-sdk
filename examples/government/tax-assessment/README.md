@@ -1,6 +1,7 @@
 # Property Tax Assessment in Java with Conductor :  Valuation, Calculation, and Owner Notification
 
 A Java Conductor workflow example for municipal property tax assessment. collecting property data, appraising value, computing tax liability, notifying property owners, and opening an appeal window. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to assess property taxes for a municipality. Each assessment involves pulling property records (square footage, lot size, bedroom count), appraising the property's market value, applying the local mill rate to compute the tax bill, mailing the owner a notice, and opening a statutory appeal window. These steps must run in strict sequence. you cannot calculate tax without a valuation, and you cannot notify an owner without a final amount.

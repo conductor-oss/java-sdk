@@ -1,6 +1,7 @@
 # Exclusive Join in Java with Conductor
 
 EXCLUSIVE_JOIN demo. query three vendors in parallel, wait for all responses, then select the best offer by lowest price and fastest response time. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to get price quotes from multiple vendors simultaneously and pick the best offer. A product query goes out to Vendor A, Vendor B, and Vendor C at the same time. Each vendor responds with a price and response time. After all three respond, you need to compare their offers and select the winner. lowest price wins, with fastest response time as the tiebreaker. The entire comparison must happen only after every vendor has replied, not as responses trickle in.
@@ -129,7 +130,7 @@ conductor workflow search -w exclusive_join_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace the simulated vendor workers with real pricing API calls to your actual suppliers, and the parallel quote-and-compare workflow runs unchanged.
+Replace the demo vendor workers with real pricing API calls to your actual suppliers, and the parallel quote-and-compare workflow runs unchanged.
 
 - **VendorAWorker** (`ej_vendor_a`): call Vendor A's real pricing API (REST, SOAP, or EDI), authenticate with their credentials, parse the response into a normalized price/availability format
 - **VendorBWorker** (`ej_vendor_b`): call Vendor B's pricing API, handling their specific response format, rate limits, and authentication scheme

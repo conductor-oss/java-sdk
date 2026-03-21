@@ -1,6 +1,7 @@
 # OCR Pipeline in Java Using Conductor :  Image Preprocessing, Text Extraction, Validation, and Structured Output
 
 A Java Conductor workflow example for document OCR. preprocessing a document image (deskewing, binarization, contrast enhancement), extracting raw text via OCR with a confidence score, validating the extracted text against the expected document type (invoice, receipt, form), and organizing the validated fields into structured output (invoice number, date, total, due date, payment terms). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 A scanned invoice arrives as a JPEG. slightly rotated, low contrast, with noise from the scanner. Before you can extract structured data (invoice number, date, total amount, due date), the image needs preprocessing: deskewing to straighten the text, binarization to convert to black-and-white, and contrast enhancement so faint characters are readable. The OCR engine then produces raw text with a confidence score, but raw OCR output contains errors, a "$12,450.00" might be read as "$12,45O.OO" if the engine confuses zeros and the letter O. You need to validate the extracted text against the expected document type (an invoice should have an invoice number matching a pattern like `INV-YYYY-NNNN`, a valid date, and a dollar amount) and then organize the validated fields into structured JSON that downstream systems can consume.

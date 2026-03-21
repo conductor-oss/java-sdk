@@ -1,6 +1,7 @@
 # Tool Use Error Handling in Java Using Conductor :  Primary Tool with Fallback on Failure
 
 Tool Use Error Handling. tries a primary tool and falls back to an alternative tool on failure via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Tools Fail :  Have a Backup Plan
 
 Your primary weather API returns a 503 because it's having an outage. Your primary search engine is rate-limiting you. Your primary database is under maintenance. If the agent simply reports "tool failed" to the user, it's a poor experience. especially when an alternative tool could have answered the question.

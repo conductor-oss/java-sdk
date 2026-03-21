@@ -27,7 +27,7 @@ Six workers handle support tickets. Classifying the category, routing to bug/fea
 | **GeneralRespondWorker** | `cs_general_respond` | Handles general inquiries by providing a helpful response and suggesting relevant documentation (Getting Started Guide, FAQ, API Documentation). |
 | **QaValidateWorker** | `cs_qa_validate` | Validates the quality of the support response by running 4 checks: tone appropriate, includes greeting, includes next steps, no sensitive data exposed. Returns approved status, check results, and a formatted final response. |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 

@@ -1,6 +1,7 @@
 # WAIT Task Completion via REST API in Java Using Conductor :  Prepare, WAIT for External HTTP Callback, SWITCH on Decision, and Route to Approved/Rejected Handlers
 
 A Java Conductor workflow example demonstrating how external systems resume paused workflows via REST API. preparing a request, pausing at a WAIT task, and completing it when an external system sends `POST /tasks/{taskId}` with a decision payload. A SWITCH then routes based on the decision: "rejected" goes to a rejection handler, while the default path goes to an approval handler. Both paths use the same HandleDecisionWorker but receive different hardcoded decision values, demonstrating how a single worker can handle multiple SWITCH branches. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## External Systems Need to Resume Workflows via REST API
 
 Sometimes the signal to continue a workflow comes from an external system, a webhook, a third-party service callback, or an admin tool. The WAIT task pauses the workflow, and a REST API call completes it with the decision payload. The workflow prepares the request, pauses, then handles the decision when the external system calls back. If decision handling fails, you need to retry it without waiting for another external callback.

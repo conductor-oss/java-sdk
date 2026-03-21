@@ -135,7 +135,7 @@ Replace the image compression stub with real processing (ImageMagick, Thumbnaila
 - **ProcessImageWorker** (`fo_process_image`): perform real image processing using ImageMagick, Thumbnailator, or a cloud vision API (AWS Rekognition, Google Vision); resize, generate thumbnails, extract EXIF metadata, run object detection, or apply watermarks
 - **AggregateWorker** (`fo_aggregate`): merge all per-image results into a processing manifest, compute statistics (total bytes saved, success/failure rate, average processing time), upload the manifest to S3, and update the image catalog database
 
-Replacing the simulated compression with real image processing does not change the scatter-gather workflow, as long as each branch returns the expected name, size, and format fields.
+Replacing the demo compression with real image processing does not change the scatter-gather workflow, as long as each branch returns the expected name, size, and format fields.
 
 ## SDK
 

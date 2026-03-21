@@ -1,6 +1,7 @@
 # Stakeholder Reporting in Java with Conductor :  Collect Updates, Aggregate, Format, and Distribute
 
 A Java Conductor workflow example for automated stakeholder reporting. collecting project updates from multiple sources, aggregating them into a coherent summary, formatting for executive consumption, and distributing to the right stakeholders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to produce regular stakeholder reports for a project. Every reporting period, someone has to gather updates from engineering (sprint velocity, blockers), finance (burn rate, forecast), and program management (milestone status, risks). Those raw updates need to be aggregated into a single coherent summary, formatted into a professional report (PDF, slide deck, or dashboard), and then distributed to the right audience. executives get the high-level view, team leads get the details.

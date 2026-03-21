@@ -147,7 +147,7 @@ Wire each worker to your real audit log store (immutable database, S3), event va
 - **AtProcessEventWorker** (`at_process_event`): implement your actual event processing logic while capturing processing metadata for the audit trail
 - **AtFinalizeAuditWorker** (`at_finalize_audit`): seal the audit record with a cryptographic hash, publish to your compliance reporting system, and archive for retention
 
-Replacing the simulated audit log with a real compliance store (S3, immutable ledger) leaves the six-step audit chain intact.
+Replacing the demo audit log with a real compliance store (S3, immutable ledger) leaves the six-step audit chain intact.
 
 ## SDK
 

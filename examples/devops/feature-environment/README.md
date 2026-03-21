@@ -132,7 +132,7 @@ conductor workflow search -w feature_environment_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one provisioning step. replace the simulated calls with Kubernetes namespace APIs, Helm deployments, or GitHub PR comment APIs, and the environment workflow runs unchanged.
+Each worker handles one provisioning step. replace the demo calls with Kubernetes namespace APIs, Helm deployments, or GitHub PR comment APIs, and the environment workflow runs unchanged.
 
 - **ProvisionWorker** (`fe_provision`): create Kubernetes namespaces via the K8s API, Terraform workspaces for cloud-native isolation, or Vercel/Netlify preview deployments for frontend branches
 - **DeployBranchWorker** (`fe_deploy_branch`): build Docker images from the branch, push to a registry, and deploy via Helm upgrade, kubectl apply, or Argo CD ApplicationSets targeting the preview namespace

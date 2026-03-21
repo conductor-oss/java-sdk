@@ -1,6 +1,7 @@
 # Real Estate Listing in Java with Conductor :  Create, Verify, Enrich, Publish, and Distribute
 
 A Java Conductor workflow example for publishing property listings. creating the listing with address and price, verifying data accuracy, enriching with photos and neighborhood data, publishing to the MLS, and distributing to syndication channels (Zillow, Realtor.com, Redfin). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to get a property listed and visible to buyers. The agent enters the address, price, and details; but before the listing goes live, the data must be verified (correct address, valid price range, no duplicate listings), enriched with professional photos, school district info, and walk scores, published to the MLS, and then distributed to consumer-facing portals. If the listing is published before verification, bad data reaches buyers. If distribution fails for one portal, the listing has inconsistent reach.

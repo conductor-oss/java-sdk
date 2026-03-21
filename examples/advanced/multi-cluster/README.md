@@ -1,6 +1,7 @@
 # Multi-Cluster Processing in Java Using Conductor :  Partition Data, Process in Parallel Across Clusters, Aggregate
 
 A Java Conductor workflow example for multi-cluster data processing. preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## One Cluster Is Not Enough
 
 Your dataset has grown beyond what a single cluster can process in the required time window. You need to split the workload across clusters in different regions. sending partition A to us-east-1 and partition B to us-west-2,  then merge the results. This cuts processing time in half, adds geographic redundancy, and keeps data closer to regional users.
@@ -131,13 +132,13 @@ conductor workflow search -w multi_cluster_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker targets one cluster region. replace the simulated processing with real EMR or Spark job submissions to regional clusters and the partition-process-aggregate pipeline runs unchanged.
+Each worker targets one cluster region. replace the demo processing with real EMR or Spark job submissions to regional clusters and the partition-process-aggregate pipeline runs unchanged.
 
 - **MclClusterEastWorker / MclClusterWestWorker**: submit jobs to real compute clusters via Kubernetes API (cross-cluster kubectl), AWS EMR `addJobFlowSteps()`, or Spark `spark-submit` against regional clusters
 - **MclPrepareWorker** (`mcl_prepare`): implement real data partitioning using Hadoop InputSplit, Spark partitionBy, or S3 prefix-based sharding across regions
 - **MclAggregateWorker** (`mcl_aggregate`): merge results from multiple clusters using UNION ALL queries, Spark DataFrame joins, or custom merging logic that handles schema differences between clusters
 
-The per-cluster result contract stays fixed. Swap simulated processing for real Spark or Flink jobs on each regional cluster and the partition-aggregate pipeline runs unchanged.
+The per-cluster result contract stays fixed. Swap demo processing for real Spark or Flink jobs on each regional cluster and the partition-aggregate pipeline runs unchanged.
 
 ## SDK
 

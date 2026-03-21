@@ -1,6 +1,7 @@
 # Webhook Trigger in Java Using Conductor
 
 Webhook Trigger. process incoming webhook event, validate payload, transform data, and store the result through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process incoming webhook events through a validation and transformation pipeline. When a webhook arrives, the payload must be validated for required fields and correct structure, transformed into your internal data format, and stored for downstream consumption. Storing invalid or untransformed webhook data pollutes your data store and breaks downstream consumers.

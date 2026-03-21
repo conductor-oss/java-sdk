@@ -1,6 +1,7 @@
 # External Payload in Java with Conductor
 
 External payload storage. generate a summary and storage reference instead of returning large data, then process the summary. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to pass large data between workflow tasks. a report with millions of rows, a dataset for ML training, or a full database export; but Conductor's task output has a size limit. Storing megabytes of raw data directly in task output would bloat the workflow execution record, slow down the Conductor server, and eventually hit payload size limits. The downstream task only needs a summary and a pointer to the full data, not the data itself.
@@ -123,12 +124,12 @@ conductor workflow search -w large_payload_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace the simulated data generation with a real large-payload writer to S3 or GCS, and the external payload storage pattern works unchanged.
+Replace the demo data generation with a real large-payload writer to S3 or GCS, and the external payload storage pattern works unchanged.
 
 - **GenerateWorker** (`ep_generate`): run the actual data generation (database export, API bulk fetch, log aggregation), upload the result to S3/GCS/Azure Blob using the AWS/GCP SDK, and return the storage URI, byte count, and row count as the summary
 - **ProcessWorker** (`ep_process`): fetch the full data from the storage reference, process it (parse CSV, transform JSON, run analytics), and write results to a data warehouse, Elasticsearch index, or downstream queue
 
-Uploading to real S3 or GCS storage instead of returning simulated references does not change the workflow, as long as the summary and storageRef fields are returned in the expected format.
+Uploading to real S3 or GCS storage instead of returning demo references does not change the workflow, as long as the summary and storageRef fields are returned in the expected format.
 
 ## SDK
 

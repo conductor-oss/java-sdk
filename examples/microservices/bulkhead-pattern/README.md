@@ -138,7 +138,7 @@ Connect each worker to your real tenant registry, Redis or ZooKeeper semaphore, 
 - **ClassifyRequestWorker** (`bh_classify_request`): look up tenant tier and priority from your tenant-management service or database
 - **ExecuteRequestWorker** (`bh_execute_request`): make the real downstream service call within the bounded pool
 
-Switching from a simulated semaphore to a Redis-backed distributed one changes nothing in the isolation workflow.
+Switching from a demo semaphore to a Redis-backed distributed one changes nothing in the isolation workflow.
 
 ## SDK
 

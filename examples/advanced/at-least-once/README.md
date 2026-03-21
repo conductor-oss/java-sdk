@@ -1,6 +1,7 @@
 # At-Least-Once Message Delivery in Java Using Conductor :  Receive, Process, Acknowledge, Verify
 
 A Java Conductor workflow example for at-least-once message delivery. receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Guaranteeing Every Message Gets Processed
 
 Message queues like SQS and Kafka deliver messages with a receipt handle and a visibility timeout. If your consumer crashes after processing but before acknowledging, the message reappears on the queue and gets delivered again. If it crashes after acknowledging but before recording delivery, you lose the audit trail. The gap between "processed" and "acknowledged" is where messages get lost or silently duplicated.
@@ -131,13 +132,13 @@ conductor workflow search -w alo_at_least_once -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one step of the receive-process-acknowledge lifecycle. swap the simulated SQS calls for real queue APIs and the delivery guarantee logic runs unchanged.
+Each worker owns one step of the receive-process-acknowledge lifecycle. swap the demo SQS calls for real queue APIs and the delivery guarantee logic runs unchanged.
 
 - **AloReceiveWorker** (`alo_receive`): pull messages from a real SQS queue (`sqs.receiveMessage()`) or Kafka consumer, returning the actual receipt handle and delivery count
 - **AloAcknowledgeWorker** (`alo_acknowledge`): call `sqs.deleteMessage()` with the receipt handle, or commit the Kafka offset, to remove the message from the queue
 - **AloVerifyDeliveryWorker** (`alo_verify_delivery`): query a delivery ledger (DynamoDB, PostgreSQL) to confirm the message ID was recorded, enabling end-to-end audit
 
-The output contract stays fixed. Swap simulated SQS calls for real queue APIs and the delivery guarantee logic runs unchanged.
+The output contract stays fixed. Swap demo SQS calls for real queue APIs and the delivery guarantee logic runs unchanged.
 
 ## SDK
 

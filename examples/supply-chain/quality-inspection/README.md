@@ -1,6 +1,7 @@
 # Quality Inspection in Java with Conductor :  Sampling, Testing, Pass/Fail Routing, and Results Recording
 
 A Java Conductor workflow example for quality inspection. pulling samples from a production batch, running standardized tests against acceptance criteria, routing to pass or fail handlers based on test results, and recording the inspection outcome for compliance and traceability. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to inspect production batches before they ship. A sample must be pulled from the batch according to AQL (Acceptable Quality Level) sampling tables. The sample undergoes standardized tests. dimensional measurements, material composition, functional testing. Based on results, the batch is either accepted for shipment (pass) or quarantined for rework/scrap (fail). Regardless of outcome, the inspection results must be recorded for traceability, regulatory compliance (ISO 9001, FDA 21 CFR Part 820), and supplier quality scorecards.

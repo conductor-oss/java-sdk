@@ -25,7 +25,7 @@ Four workers process Slack events: ReceiveEventWorker parses incoming payloads, 
 | **ReceiveEventWorker** | `slk_receive_event` | Receives an incoming Slack event and extracts the event type and data. |
 | **TrackDeliveryWorker** | `slk_track_delivery` | Tracks delivery status of a posted Slack message. |
 
-The workers auto-detect Slack credentials at startup. When `SLACK_BOT_TOKEN` is set, PostMessageWorker uses the real Slack Web API (chat.postMessage, via `java.net.http`) to post messages to channels. Without the token, it falls back to simulated mode with realistic output shapes so the workflow runs end-to-end without a Slack bot token.
+The workers auto-detect Slack credentials at startup. When `SLACK_BOT_TOKEN` is set, PostMessageWorker uses the real Slack Web API (chat.postMessage, via `java.net.http`) to post messages to channels. Without the token, it falls back to demo mode with realistic output shapes so the workflow runs end-to-end without a Slack bot token.
 
 ### The Workflow
 
@@ -124,7 +124,7 @@ conductor workflow search -w slack_integration -s COMPLETED -c 5
 
 ## How to Extend
 
-PostMessageWorker already uses the real Slack Web API (chat.postMessage, via java.net.http) when `SLACK_BOT_TOKEN` is provided. The remaining workers are simulated:
+PostMessageWorker already uses the real Slack Web API (chat.postMessage, via java.net.http) when `SLACK_BOT_TOKEN` is provided. The remaining workers are demo:
 
 - **ReceiveEventWorker** (`slk_receive_event`): integrate with the Slack Events API or Socket Mode for real event ingestion
 - **ProcessEventWorker** (`slk_process_event`): add your own business logic for parsing events and generating formatted responses

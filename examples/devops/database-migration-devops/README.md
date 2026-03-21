@@ -132,7 +132,7 @@ conductor workflow search -w database_migration_devops_workflow -s COMPLETED -c 
 
 ## How to Extend
 
-Each worker handles one migration phase. replace the simulated calls with Flyway, Liquibase, or pt-online-schema-change for real schema changes and validation, and the migration workflow runs unchanged.
+Each worker handles one migration phase. replace the demo calls with Flyway, Liquibase, or pt-online-schema-change for real schema changes and validation, and the migration workflow runs unchanged.
 
 - **BackupWorker** (`dbm_backup`): take automated backups via pg_dump, RDS snapshots, or Cloud SQL export before every migration, with automatic restoration on migration failure
 - **MigrateWorker** (`dbm_migrate`): use Flyway or Liquibase for versioned migrations, pt-online-schema-change for zero-downtime MySQL migrations, or Alembic for Python/SQLAlchemy projects

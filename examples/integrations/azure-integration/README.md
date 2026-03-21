@@ -99,7 +99,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `AZURE_CLIENT_ID` | _(none)_ | Azure service principal client ID. Currently unused, all workers run in simulated mode with `[SIMULATED]` output prefix. Swap in Azure SDK for production. |
+| `AZURE_CLIENT_ID` | _(none)_ | Azure service principal client ID. Currently unused, all workers run in demo mode with `[DEMO]` output prefix. Swap in Azure SDK for production. |
 | `AZURE_CLIENT_SECRET` | _(none)_ | Azure service principal client secret. Required alongside `AZURE_CLIENT_ID` for production use. |
 | `AZURE_TENANT_ID` | _(none)_ | Azure Active Directory tenant ID. Required alongside `AZURE_CLIENT_ID` for production use. |
 

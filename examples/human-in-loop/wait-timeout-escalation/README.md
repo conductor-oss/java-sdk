@@ -1,6 +1,7 @@
 # WAIT Task Timeout Escalation in Java Using Conductor :  Request Preparation, WAIT with Deadline, Timeout-Triggered Escalation to Manager, and Normal Response Processing
 
 A Java Conductor workflow example for deadline-driven escalation. preparing a request, pausing at a WAIT task with a timeout, and routing to an escalation path if no one responds before the deadline. If the human responds in time, the workflow processes their response normally. If the WAIT task times out, the escalation worker notifies a manager (manager@company.com) and flags the request as escalated. This prevents approval requests from sitting indefinitely without action. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## WAIT Tasks Should Escalate When No One Responds in Time
 
 If a human does not respond to a WAIT task within a deadline, the workflow should not hang indefinitely. Instead, it should escalate. Notify a manager, auto-approve, or take a default action. The workflow prepares the request, pauses at a WAIT task with a timeout, and a SWITCH routes to the escalation path if the timeout fires or to the normal processing path if the human responds in time.

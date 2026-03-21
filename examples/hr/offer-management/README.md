@@ -1,6 +1,7 @@
 # Offer Management in Java with Conductor :  Generation, Approval, Delivery, and Accept/Decline Routing
 
 A Java Conductor workflow example for job offer management. generating an offer letter with position and salary details, routing for compensation committee approval, delivering the offer to the candidate, and using SWITCH to route the candidate's response to either the acceptance path (trigger onboarding) or the decline path (reopen the requisition). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage job offers from generation through candidate response. After the hiring team selects a candidate, an offer letter must be generated with the position title, base salary, equity package, benefits summary, and start date. The offer must be approved by the compensation committee or hiring VP to ensure it falls within the approved salary band and headcount budget. Once approved, the offer is sent to the candidate with an expiration deadline. The candidate either accepts. triggering the onboarding pipeline, background check, and equipment provisioning, or declines,  reopening the requisition and notifying the recruiter to extend the offer to the next candidate in the pipeline. If the system sends an offer before approval, the company may commit to an unauthorized salary. If a decline is not handled, the requisition sits idle and the role goes unfilled.

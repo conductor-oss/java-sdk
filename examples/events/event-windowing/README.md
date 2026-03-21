@@ -1,6 +1,7 @@
 # Event Windowing in Java Using Conductor
 
 Event Windowing. collect events into a time window, compute aggregate statistics, and emit the windowed result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to group events into time-based windows and compute aggregate statistics per window. Events arrive continuously, but analysis requires bounded windows. computing event count, sum, average, min, max, and standard deviation across all events within a configurable time window (e.g., 5 seconds, 1 minute). Without windowing, you either process events one at a time (losing temporal context) or accumulate unbounded state.

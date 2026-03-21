@@ -1,11 +1,12 @@
 # Implementing Security Awareness Training in Java with Conductor :  Module Assignment, Phishing Simulation, Evaluation, and Compliance Reporting
 
-A Java Conductor workflow example for automated security awareness campaigns. assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+A Java Conductor workflow example for automated security awareness campaigns. assigning training modules (e.g., secure coding) to department employees, running phishing exercises to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
-You need to run security awareness campaigns across your organization. Each campaign involves assigning training modules to a department's employees, sending simulated phishing emails to test their real-world response, evaluating who completed the training and who clicked the phishing link, and generating a compliance report showing pass/fail rates. Regulatory frameworks like SOC 2 and ISO 27001 require documented evidence that these campaigns ran and that results were recorded.
+You need to run security awareness campaigns across your organization. Each campaign involves assigning training modules to a department's employees, sending demo phishing emails to test their real-world response, evaluating who completed the training and who clicked the phishing link, and generating a compliance report showing pass/fail rates. Regulatory frameworks like SOC 2 and ISO 27001 require documented evidence that these campaigns ran and that results were recorded.
 
-Without orchestration, you'd manage training assignments in one spreadsheet, phishing simulations in a separate tool, and manually compile results into a report. If the phishing simulation fails to send to half the department, you don't know which employees were actually tested. Compliance asks for proof that engineering completed the "secure-coding-2024" module, and you spend hours cross-referencing three different systems.
+Without orchestration, you'd manage training assignments in one spreadsheet, phishing exercises in a separate tool, and manually compile results into a report. If the phishing simulation fails to send to half the department, you don't know which employees were actually tested. Compliance asks for proof that engineering completed the "secure-coding-2024" module, and you spend hours cross-referencing three different systems.
 
 ## The Solution
 
@@ -15,7 +16,7 @@ Each phase of the awareness campaign is a simple, independent worker. a plain Ja
 
 ### What You Write: Workers
 
-Four workers run the awareness campaign: StAssignTrainingWorker assigns modules to employees, StSendPhishingSimWorker delivers simulated phishing emails, StEvaluateResultsWorker analyzes completion rates and click-through data, and StReportComplianceWorker generates the compliance report for auditors.
+Four workers run the awareness campaign: StAssignTrainingWorker assigns modules to employees, StSendPhishingSimWorker delivers demo phishing emails, StEvaluateResultsWorker analyzes completion rates and click-through data, and StReportComplianceWorker generates the compliance report for auditors.
 
 | Worker | Task | What It Does |
 |---|---|---|
@@ -125,7 +126,7 @@ conductor workflow search -w security_training -s COMPLETED -c 5
 Each worker runs one campaign step. connect StAssignTrainingWorker to KnowBe4 or your LMS, StSendPhishingSimWorker to GoPhish, and the assign-simulate-evaluate-report workflow stays the same.
 
 - **StAssignTrainingWorker** (`st_assign_training`): assign modules via your LMS API (KnowBe4, Proofpoint Security Awareness, or a custom LMS), pulling employee lists from your HR system or Active Directory
-- **StSendPhishingSimWorker** (`st_send_phishing_sim`): launch phishing simulations via KnowBe4's API or GoPhish, tracking which employees receive each simulated email and their click/report responses
+- **StSendPhishingSimWorker** (`st_send_phishing_sim`): launch phishing exercises via KnowBe4's API or GoPhish, tracking which employees receive each test email and their click/report responses
 - **StEvaluateResultsWorker** (`st_evaluate_results`): pull training completion status from the LMS and phishing click rates from the simulation platform, flagging employees who failed both
 - **StReportComplianceWorker** (`st_report_compliance`): generate a PDF or CSV compliance report with per-department pass rates, upload to your GRC platform (Drata, Vanta, ServiceNow GRC) for auditor access
 

@@ -1,6 +1,7 @@
 # Message Aggregation in Java Using Conductor :  Collect, Combine, and Forward Correlated Messages
 
 A Java Conductor workflow example for message aggregation. collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Message Aggregation Needs Orchestration
 
 In distributed systems, a single business event often produces multiple messages. an order generates a payment confirmation, an inventory reservation, and a shipping request. These messages arrive at different times from different services, and you need to collect all of them before you can compute a meaningful aggregate (total order value, item count, combined status) and forward it to the next stage.
@@ -131,13 +132,13 @@ conductor workflow search -w agp_aggregator_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one stage of the collect-and-combine pipeline. replace the simulated message ingestion with a real Kafka consumer or SQS reader and the aggregation logic runs unchanged.
+Each worker handles one stage of the collect-and-combine pipeline. replace the demo message ingestion with a real Kafka consumer or SQS reader and the aggregation logic runs unchanged.
 
 - **AgpCollectWorker** (`agp_collect`): read messages from a real message broker (Kafka consumer, SQS `ReceiveMessage`, RabbitMQ) instead of accepting them as workflow input
 - **AgpAggregateWorker** (`agp_aggregate`): replace the hardcoded totals with real aggregation logic: summing transaction amounts from a database, computing averages across sensor readings, or merging partial search results
 - **AgpForwardWorker** (`agp_forward`): publish the aggregated result to a downstream Kafka topic, POST it to a webhook, or write it to a data warehouse (BigQuery, Redshift)
 
-Each worker preserves the same output contract, so swapping simulated ingestion for a real Kafka consumer or SQS reader requires zero workflow changes.
+Each worker preserves the same output contract, so swapping demo ingestion for a real Kafka consumer or SQS reader requires zero workflow changes.
 
 ## SDK
 

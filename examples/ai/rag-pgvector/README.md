@@ -22,7 +22,7 @@ Three workers integrate pgvector into the RAG pipeline. embedding the query, run
 |---|---|---|
 | **PgvecEmbedWorker** | `pgvec_embed` | Worker that encodes a question into a fixed embedding vector for pgvector. In production this would call an embedding... |
 | **PgvecGenerateWorker** | `pgvec_generate` | Worker that generates an answer from a question and retrieved pgvector rows. In production this would call an LLM (e.... |
-| **PgvecQueryWorker** | `pgvec_query` | Worker that builds a pgvector SQL query and returns simulated result rows. Takes embedding, table name, limit, and di... |
+| **PgvecQueryWorker** | `pgvec_query` | Worker that builds a pgvector SQL query and returns demo result rows. Takes embedding, table name, limit, and di... |
 
 Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use simulated responses. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use demo responses. |
 
 ## Using the Conductor CLI
 

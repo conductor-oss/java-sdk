@@ -1,6 +1,7 @@
 # Government Permit in Java with Conductor
 
 Processes a government permit application: receiving the application, validating documents, routing to a zoning board review, and issuing or denying the permit via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process a government permit application. A citizen submits an application for a permit (building, business, event), the application is validated for completeness and jurisdiction, a reviewer assesses it against regulations and zoning rules, and the permit is either issued or denied with explanation. Issuing a permit without proper review creates legal liability for the government; denying without explanation violates due process.

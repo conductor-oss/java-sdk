@@ -26,7 +26,7 @@ A supervisor plans the work, three specialist agents (coder, tester, documenter)
 | **DocumenterAgentWorker** | `sup_documenter_agent` | Generates documentation. Returns 3 documents created (API_REFERENCE.md, SETUP_GUIDE.md, EXAMPLES.md), 5 sections (Overview, Authentication Flow, API Endpoints, Configuration, Troubleshooting), and 1200 words total. |
 | **ReviewWorker** | `sup_review` | Reviews all agent outputs against the plan. Determines overall status: APPROVED if all agents pass, NEEDS_REVISION if any agent has issues. Returns action items (fix failing test, increase coverage, add error handling docs) and metrics (lines of code, test count, documentation word count). |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 

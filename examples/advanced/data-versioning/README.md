@@ -1,6 +1,7 @@
 # Dataset Versioning in Java Using Conductor :  Snapshot, Tag, Diff, and Rollback
 
 A Java Conductor workflow example for dataset versioning. taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Datasets Change, and You Need to Track How
 
 A data pipeline updates your ML training dataset daily. Yesterday's model performed well, but today's retrained model has degraded accuracy. Was it the new data? Which rows changed? Can you roll back to yesterday's version and retrain? Without versioning, you're guessing. there's no snapshot to compare against, no diff to show what changed, and no tag to identify which version produced the good model.
@@ -135,13 +136,13 @@ conductor workflow search -w data_versioning_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one versioning step. replace the simulated snapshot and diff calls with real DVC or LakeFS APIs and the tag-diff-rollback pipeline runs unchanged.
+Each worker owns one versioning step. replace the demo snapshot and diff calls with real DVC or LakeFS APIs and the tag-diff-rollback pipeline runs unchanged.
 
 - **DvrSnapshotWorker** (`dvr_snapshot`): take real snapshots using DVC (`dvc commit`), LakeFS branches, Delta Lake `DESCRIBE HISTORY`, or S3 versioned object copies
 - **DvrDiffWorker** (`dvr_diff`): compute real diffs using DVC `diff`, LakeFS `diff` API, or SQL queries comparing row counts and checksums between versions
 - **DvrRollbackWorker** (`dvr_rollback`): revert using DVC `checkout`, LakeFS `revert`, or restoring an S3 object version to make the previous dataset active again
 
-The snapshot and diff output contracts stay fixed. Swap the simulated storage for real DVC, LakeFS, or Delta Lake and the tag-diff-rollback pipeline runs unchanged.
+The snapshot and diff output contracts stay fixed. Swap the demo storage for real DVC, LakeFS, or Delta Lake and the tag-diff-rollback pipeline runs unchanged.
 
 ## SDK
 

@@ -1,6 +1,7 @@
 # Container Deployment Pipeline in Java Using Conductor :  Build, Deploy, Scale, Monitor
 
 A Java Conductor workflow example for container deployment. building a Docker image from a service name and tag, deploying it with a specified replica count, configuring horizontal auto-scaling (min/max replicas), and enabling monitoring for the new deployment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Deploying Containers End-to-End
 
 Shipping a new version of a containerized service means building the image, pushing it to a registry, creating a deployment with the right replica count, configuring the horizontal pod autoscaler so it can scale between 2 and 10 replicas based on load, and wiring up monitoring dashboards so you can see if the new version is healthy. Each step depends on the previous one. you can't deploy an image that hasn't been built, you can't configure scaling for a deployment that doesn't exist, and monitoring is useless if it's pointed at the wrong deployment ID.
@@ -131,7 +132,7 @@ conductor workflow search -w container_orchestration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one deployment lifecycle step. replace the simulated Docker and Kubernetes calls with real container platform APIs and the build-deploy-scale-monitor pipeline runs unchanged.
+Each worker owns one deployment lifecycle step. replace the demo Docker and Kubernetes calls with real container platform APIs and the build-deploy-scale-monitor pipeline runs unchanged.
 
 - **CtrBuildWorker** (`ctr_build`): trigger a real Docker build via the Docker Engine API, AWS CodeBuild `startBuild()`, or Google Cloud Build, then push the image to ECR/GCR/DockerHub
 - **CtrDeployWorker** (`ctr_deploy`): call the Kubernetes API (`kubectl apply` or the Java Kubernetes client) to create a Deployment, or use ECS `createService()` / Cloud Run `createService()`

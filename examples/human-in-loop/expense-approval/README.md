@@ -256,7 +256,7 @@ Each worker wraps a single expense operation. Plug in your policy engine (SAP Co
 **Example. Make `ValidatePolicyWorker` real with a policy engine:**
 
 ```java
-// Before (simulated):
+// Before (demo):
 boolean needsApproval = amount > 100 || "travel".equals(category);
 
 // After (real. Load rules from a database):

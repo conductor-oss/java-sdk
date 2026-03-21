@@ -1,6 +1,7 @@
 # Sprint Planning Automation in Java with Conductor :  Story Selection, Estimation, Assignment, and Sprint Creation
 
 A Java Conductor workflow example that automates sprint planning. selecting user stories from the backlog based on team capacity, estimating story points for each selected story, assigning stories to individual team members, and creating the sprint with total point commitment and active status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Sprint Planning Needs Orchestration
 
 Planning a sprint requires a sequence where each decision constrains the next. You select stories from the prioritized backlog that fit the team's capacity. pulling high-priority items first (US-101 "User login"), then medium (US-102 "Dashboard view"), then low (US-103 "Export CSV") until you approach the capacity limit. You estimate each selected story in points,  5 points for the login feature, 8 for the dashboard, 3 for CSV export,  producing a total commitment of 16 points. You assign each estimated story to a team member based on skills and individual capacity. Alice takes US-101, Bob takes US-102, Carol takes US-103. Finally, you create the sprint,  recording the sprint number, story count, total points, and setting the status to ACTIVE.

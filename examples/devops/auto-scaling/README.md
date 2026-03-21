@@ -132,7 +132,7 @@ conductor workflow search -w auto_scaling_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one scaling phase. replace the simulated calls with CloudWatch metrics, AWS Auto Scaling Groups, or Kubernetes HPA for real trend analysis and instance management, and the scaling workflow runs unchanged.
+Each worker handles one scaling phase. replace the demo calls with CloudWatch metrics, AWS Auto Scaling Groups, or Kubernetes HPA for real trend analysis and instance management, and the scaling workflow runs unchanged.
 
 - **Analyze** (`as_analyze`): query Prometheus, CloudWatch, or Datadog for real-time metrics with trend analysis and anomaly detection to distinguish genuine load increases from transient spikes
 - **Plan** (`as_plan`): compute the optimal target instance count based on metric trends, time-of-day patterns, and business context, choosing between scale-up, scale-down, or maintain

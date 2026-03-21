@@ -138,7 +138,7 @@ Each worker handles one deployment decision step. connect your CI/CD platform (S
 - **ExecuteDeployWorker** (`dai_execute_deploy`): integrate with Kubernetes, Argo CD, or Spinnaker to execute real deployments
 - **PredictRiskWorker** (`dai_predict_risk`): train an ML model on historical deployment outcomes to predict risk more accurately
 
-Replace the simulated deployer with ArgoCD or AWS CodeDeploy and the risk-aware deployment decision chain remains the same.
+Replace the demo deployer with ArgoCD or AWS CodeDeploy and the risk-aware deployment decision chain remains the same.
 
 ## SDK
 

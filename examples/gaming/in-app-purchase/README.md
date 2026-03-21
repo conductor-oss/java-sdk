@@ -1,6 +1,7 @@
 # In App Purchase in Java Using Conductor
 
 Processes an in-app purchase: selecting an item from the game catalog, verifying eligibility, charging payment, delivering the virtual item to the player's inventory, and generating a receipt. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process an in-app purchase in a game. The player selects an item to buy, the purchase is verified with the platform's payment system (ensuring the transaction is legitimate), payment is charged, the virtual item is delivered to the player's inventory, and a receipt is generated. Delivering items without payment verification enables fraud; failing to deliver after payment creates support tickets and chargebacks.

@@ -20,11 +20,11 @@ Three workers form the structured output pipeline. JSON generation from entity d
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **GenerateJsonWorker** | `so_generate_json` | Generates a structured JSON object for the given entity. Calls OpenAI API in live mode, returns deterministic output in simulated mode. |
+| **GenerateJsonWorker** | `so_generate_json` | Generates a structured JSON object for the given entity. Calls OpenAI API in live mode, returns deterministic output in demo mode. |
 | **ValidateSchemaWorker** | `so_validate_schema` | Validates the generated JSON against the schema: checks that all required fields exist and that their types match (string, number). Returns a `valid` boolean, a list of errors, and the validated data | Processing only |
 | **TransformWorker** | `so_transform` | Enriches the validated data by adding metadata fields (`_validated: true`, `_timestamp`) to produce the final application-ready JSON | Processing only |
 
-**Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `GenerateJsonWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) to generate structured JSON. Without the key, it runs in simulated mode with deterministic output where string fields are prefixed with ``. Non-LLM workers (schema validation, transformation) always run their real logic.
+**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `GenerateJsonWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) to generate structured JSON. Without the key, it runs in demo mode with deterministic output where string fields are prefixed with ``. Non-LLM workers (schema validation, transformation) always run their real logic.
 
 ### The Workflow
 
@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `GenerateJsonWorker` calls the real API. When absent, runs in simulated mode. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `GenerateJsonWorker` calls the real API. When absent, runs in demo mode. |
 
 ## Using the Conductor CLI
 
@@ -136,7 +136,7 @@ Each worker owns one stage of the structured output pipeline. Swap in GPT-4 JSON
 - **TransformWorker** (`so_transform`): customize the transformation to match your application's expected format: map field names, convert types, flatten nested objects, or enrich with data from external APIs (Clearbit for company enrichment, FullContact for contact data)
 - **Add a retry-on-invalid loop**: if the schema validation fails, use a Conductor DO_WHILE task to re-generate with the validation errors included in the prompt, giving the LLM a chance to self-correct
 
-The output contract is fixed at each stage. Switch from simulated generation to GPT-4 JSON mode, or swap in a full JSON Schema validator, without touching the workflow definition.
+The output contract is fixed at each stage. Switch from demo generation to GPT-4 JSON mode, or swap in a full JSON Schema validator, without touching the workflow definition.
 
 ## SDK
 

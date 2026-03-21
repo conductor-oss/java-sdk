@@ -1,6 +1,7 @@
 # Video Transcoding in Java Using Conductor :  Source Analysis, Parallel 720p/1080p/4K Encoding, and Output Packaging
 
 A Java Conductor workflow example for adaptive bitrate video transcoding: analyzing the source video to detect codec, resolution, and duration, then transcoding to three resolutions (720p, 1080p, 4K) in parallel via FORK_JOIN so all three encodes run simultaneously, then packaging all outputs into a manifest with total file sizes. The 720p encode doesn't wait for the 4K encode, and if one resolution fails, the others are unaffected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 When a creator uploads a video, your streaming platform needs to deliver it at multiple quality levels. 720p for mobile on cellular, 1080p for laptops, 4K for smart TVs. Each resolution requires a separate transcode pass with different bitrate targets, and a 2-hour 4K source video takes significant compute time per resolution. These three encodes are completely independent of each other: the 720p encode uses the same source video as the 4K encode, and neither needs the other's output. Running them sequentially triples the total transcoding time. But before any encoding can start, you need to analyze the source video to detect its codec, resolution, frame rate, and duration, because the encode settings depend on the source format. And after all three resolutions are ready, you need to package them into an adaptive bitrate manifest (HLS/DASH) that the player uses to switch quality based on network conditions.
@@ -133,13 +134,13 @@ conductor workflow search -w video_transcoding -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace the simulated encoders with real FFmpeg commands targeting H.264/H.265 at each resolution, and package into HLS/DASH manifests, the parallel transcoding workflow runs unchanged.
+Replace the demo encoders with real FFmpeg commands targeting H.264/H.265 at each resolution, and package into HLS/DASH manifests, the parallel transcoding workflow runs unchanged.
 
 - **AnalyzeVideoWorker** → use real video analysis: FFprobe for codec/resolution/duration detection, MediaInfo for detailed stream information, or cloud-based analysis via AWS MediaConvert or Google Transcoder API probe endpoints
 - **Transcode720pWorker / Transcode1080pWorker / Transcode4kWorker** → call real video encoders: FFmpeg with libx264/libx265 for H.264/HEVC encoding, AWS Elastic Transcoder or MediaConvert for cloud-based encoding, or hardware-accelerated encoding via NVENC/QSV for GPU-equipped workers
 - **PackageOutputsWorker** → generate real adaptive bitrate manifests: HLS (m3u8) playlists for Apple devices, DASH (mpd) manifests for cross-platform streaming, or CMAF for unified packaging, then upload to CDN storage (S3 + CloudFront, GCS + Cloud CDN)
 
-Replacing simulated encodes with real FFmpeg processes or adding a new resolution tier leaves the parallel transcoding workflow unchanged, provided each encoder returns the expected file size and codec metadata.
+Replacing demo encodes with real FFmpeg processes or adding a new resolution tier leaves the parallel transcoding workflow unchanged, provided each encoder returns the expected file size and codec metadata.
 
 **Add new branches** to the FORK_JOIN in `workflow.json`, for example, a thumbnail extraction branch that captures key frames at intervals, an audio-only branch that extracts and encodes AAC/Opus audio for podcast-style consumption, or a subtitle extraction branch that pulls embedded captions into WebVTT format.
 

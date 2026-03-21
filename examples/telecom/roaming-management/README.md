@@ -1,6 +1,7 @@
 # Roaming Management in Java Using Conductor
 
 A Java Conductor workflow example that orchestrates telecom roaming management. detecting when a subscriber connects to a visited network, validating the inter-carrier roaming agreement between the home and visited networks, rating the roaming usage according to the agreement's tariff schedule, billing the subscriber for roaming charges, and settling the inter-carrier payment between the home and visited operators. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Roaming Management Needs Orchestration
 
 Managing roaming events requires a pipeline that spans two independent carrier networks. You detect roaming when a subscriber registers on a visited network. their device attaches to a foreign PLMN and the visited network sends a location update to the home network. You validate that a roaming agreement exists between the home and visited networks,  checking that the agreement is active, covers the subscriber's service types, and has not exceeded volume caps. You rate the roaming usage by applying the tariffs defined in the inter-carrier agreement,  which differ from the subscriber's domestic plan. You bill the subscriber by adding roaming charges to their account. Finally, you settle the inter-carrier amount between the home and visited operators.

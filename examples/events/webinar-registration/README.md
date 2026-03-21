@@ -138,7 +138,7 @@ Each worker handles one attendee step. connect your webinar platform (Zoom, GoTo
 - **RegisterWorker** (`wbr_register`): connect to your webinar platform API (Zoom, GoToWebinar, Webex) for real attendee registration
 - **RemindWorker** (`wbr_remind`): use a scheduling service or delayed task execution for timed reminder notifications
 
-Replace the simulated email service with SendGrid and the register-confirm-remind-followup attendee lifecycle operates unchanged.
+Replace the demo email service with SendGrid and the register-confirm-remind-followup attendee lifecycle operates unchanged.
 
 ## SDK
 

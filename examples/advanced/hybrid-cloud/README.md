@@ -1,6 +1,7 @@
 # Hybrid Cloud Data Routing in Java Using Conductor :  Classify Sensitivity, Route to On-Prem or Cloud
 
 A Java Conductor workflow example for hybrid cloud data routing. classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Sensitive Data Can't Leave Your Data Center
 
 Regulations like GDPR, HIPAA, and PCI-DSS require that certain data. patient records, financial transactions, PII,  stays within controlled environments. But running everything on-premises wastes cloud elasticity for workloads that have no compliance constraints. The challenge is automatically determining which data must stay on-prem and which can be processed in the cloud, then routing each record to the right infrastructure.
@@ -126,13 +127,13 @@ conductor workflow search -w hybrid_cloud_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker addresses one routing concern. replace the simulated data classification with real DLP or Macie APIs and the on-prem-vs-cloud routing logic runs unchanged.
+Each worker addresses one routing concern. replace the demo data classification with real DLP or Macie APIs and the on-prem-vs-cloud routing logic runs unchanged.
 
 - **HybClassifyDataWorker** (`hyb_classify_data`): integrate AWS Macie for PII detection, Google Cloud DLP for sensitive data discovery, or custom regex/NLP classifiers for domain-specific sensitivity rules
 - **HybProcessOnpremWorker** (`hyb_process_onprem`): process data on local Kubernetes clusters, call on-prem database APIs, or invoke services behind a VPN/private link
 - **HybProcessCloudWorker** (`hyb_process_cloud`): submit jobs to AWS Lambda, ECS Fargate, or Google Cloud Run for elastic, pay-per-use processing of non-sensitive workloads
 
-The classification and processing output shapes stay fixed. Swap simulated cloud calls for real AWS or Azure APIs and the sensitivity-based routing runs unchanged.
+The classification and processing output shapes stay fixed. Swap demo cloud calls for real AWS or Azure APIs and the sensitivity-based routing runs unchanged.
 
 ## SDK
 

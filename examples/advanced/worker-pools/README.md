@@ -1,6 +1,7 @@
 # Worker Pool Management in Java Using Conductor :  Categorize, Assign Pool, Execute, Return
 
 A Java Conductor workflow example for worker pool management. categorizing incoming tasks by type, assigning them to the appropriate specialized worker pool, executing the task on a worker from that pool, and returning the worker to the pool when done. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Specialized Tasks Need Specialized Workers
 
 A video transcoding task needs workers with high-CPU instances and FFmpeg installed. An image recognition task needs GPU workers with CUDA drivers. A PDF generation task just needs a basic worker with LibreOffice. Sending all tasks to a single general-purpose pool wastes expensive GPU time on PDF generation and leaves transcoding tasks waiting behind image recognition jobs.
@@ -131,13 +132,13 @@ conductor workflow search -w wpl_worker_pools -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one pool management step. replace the simulated pool assignments with real Kubernetes node selectors or cloud instance group APIs and the categorize-assign-execute cycle runs unchanged.
+Each worker handles one pool management step. replace the demo pool assignments with real Kubernetes node selectors or cloud instance group APIs and the categorize-assign-execute cycle runs unchanged.
 
 - **WplCategorizeTaskWorker** (`wpl_categorize_task`): classify tasks based on real resource needs: parse Docker image requirements, inspect task metadata for GPU/memory/CPU annotations, or look up task-to-pool mappings in a config database
 - **WplAssignPoolWorker** (`wpl_assign_pool`): query real pool availability via Kubernetes node pools (`kubectl get nodes -l pool=gpu`), AWS Auto Scaling groups, or a custom pool broker with capacity tracking
 - **WplExecuteTaskWorker** (`wpl_execute_task`): run on real specialized infrastructure: submit to a GPU-equipped Kubernetes pod, dispatch to an ECS task with specific instance requirements, or invoke a containerized worker via Docker API
 
-The categorization and pool-assignment contract stays fixed. Swap the simulated resource matcher for real Kubernetes resource quotas or Nomad task groups and the dispatch pipeline runs unchanged.
+The categorization and pool-assignment contract stays fixed. Swap the demo resource matcher for real Kubernetes resource quotas or Nomad task groups and the dispatch pipeline runs unchanged.
 
 ## SDK
 

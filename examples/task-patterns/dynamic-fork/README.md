@@ -135,7 +135,7 @@ Replace the URL fetcher with your real HTTP client or API integration, and the r
 - **FetchUrlWorker** (`df_fetch_url`): make real HTTP requests using Apache HttpClient or OkHttp, follow redirects, capture response headers and body, handle content types (JSON, HTML, binary), and return structured metadata (status code, content-length, response time)
 - **AggregateWorker** (`df_aggregate`): merge all fetch results into a report, compute statistics (success rate, average response time, total bytes transferred), flag failures for retry, and write the aggregated output to S3 or a database
 
-Replacing simulated fetches with real HTTP requests does not change the dynamic fork workflow, as long as each branch worker returns the expected URL metadata and status fields.
+Replacing demo fetches with real HTTP requests does not change the dynamic fork workflow, as long as each branch worker returns the expected URL metadata and status fields.
 
 ## SDK
 

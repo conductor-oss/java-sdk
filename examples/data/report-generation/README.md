@@ -1,6 +1,7 @@
 # Report Generation in Java Using Conductor :  Data Querying, Aggregation, Formatting, and Distribution
 
 A Java Conductor workflow example for automated report generation. querying raw data for a specific report type and date range, aggregating the results into summary metrics, formatting the aggregated data into a report document with a downloadable URL, and distributing the finished report to a recipient list via email or Slack. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Every Monday morning, the sales team needs a weekly revenue report. Every month-end, finance needs a P&L summary. Every quarter, the board needs a KPI dashboard export. Each report follows the same pattern: query the right data for the right date range, aggregate it into the metrics that audience cares about, format it into a presentable document (PDF, Excel, HTML), and deliver it to the right people. But the data query for a revenue report is different from a P&L query. The aggregation logic (sum revenue by region vs. compute gross margin by product line) depends on the report type. Formatting depends on the audience. And distribution might be email for finance, Slack for engineering, and a shared drive for the board.

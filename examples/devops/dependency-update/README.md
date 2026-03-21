@@ -131,7 +131,7 @@ conductor workflow search -w dependency_update_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one update stage. replace the simulated calls with Maven Versions Plugin, Snyk, or the GitHub PR API for real dependency scanning and pull request creation, and the update workflow runs unchanged.
+Each worker handles one update stage. replace the demo calls with Maven Versions Plugin, Snyk, or the GitHub PR API for real dependency scanning and pull request creation, and the update workflow runs unchanged.
 
 - **ScanOutdatedWorker** → scan real dependency manifests: Maven `versions-maven-plugin` for Java, `npm outdated` for Node.js, `pip list --outdated` for Python, or Snyk/Dependabot APIs for vulnerability-aware scanning
 - **UpdateDepsWorker** → update real manifests: modify `pom.xml` via Maven Versions Plugin, `package.json` via npm/yarn, or `requirements.txt` via pip-compile, respecting semver constraints

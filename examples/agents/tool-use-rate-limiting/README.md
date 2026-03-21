@@ -1,6 +1,7 @@
 # Tool Use Rate Limiting in Java Using Conductor :  Check Limits, Execute-or-Queue, Delayed Execution
 
 Tool Use Rate Limiting. checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## APIs Have Rate Limits :  Respect Them
 
 Most external APIs enforce rate limits: OpenAI allows a certain number of requests per minute, Google Maps has a daily quota, and many services return 429 (Too Many Requests) when you exceed the limit. Hitting rate limits causes errors, potential API key suspension, and degraded user experience.
@@ -21,7 +22,7 @@ Four workers manage rate limits. Checking the quota, routing allowed requests to
 |---|---|---|
 | **CheckRateLimitWorker** | `rl_check_rate_limit` | Checks the rate limit for the given tool/API key combination. Simulates near-limit conditions: quotaUsed=98, quotaLim... |
 | **DelayedExecuteWorker** | `rl_delayed_execute` | Executes a previously queued tool request after a delay. Returns the same translation result with executedImmediately... |
-| **ExecuteToolWorker** | `rl_execute_tool` | Executes the tool immediately when the rate limit allows it. Returns a simulated translation result with executedImme... |
+| **ExecuteToolWorker** | `rl_execute_tool` | Executes the tool immediately when the rate limit allows it. Returns a demo translation result with executedImme... |
 | **QueueRequestWorker** | `rl_queue_request` | Queues a throttled request for later execution. Returns a fixed queueId and the estimated wait time. |
 
 Workers implement agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode. the agent workflow stays the same.

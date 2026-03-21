@@ -1,6 +1,7 @@
 # Pipeline Pattern in Java Using Conductor :  Sequential Data Processing Through Stages
 
 A Java Conductor workflow example for the pipeline pattern. passing raw data through a series of sequential processing stages where each stage transforms the data and passes its output to the next. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Data Transformation Requires a Clean Stage-by-Stage Flow
 
 Raw sensor data arrives as unstructured readings. Stage 1 parses the binary payload into structured fields. Stage 2 converts units (Fahrenheit to Celsius, PSI to bar). Stage 3 applies calibration offsets. Stage 4 writes the calibrated data to the time-series database. Each stage must receive the exact output of the previous stage. feeding uncalibrated data to the database stage produces incorrect readings.
@@ -131,7 +132,7 @@ conductor workflow search -w pip_pipeline_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker is one stage in the transformation chain. replace the simulated parsing and conversion with real sensor data parsers or unit conversion libraries and the sequential pipeline runs unchanged.
+Each worker is one stage in the transformation chain. replace the demo parsing and conversion with real sensor data parsers or unit conversion libraries and the sequential pipeline runs unchanged.
 
 - **PipStage1Worker** (`pip_stage_1`): parse real input formats: binary sensor data via ByteBuffer, protocol buffers via protobuf-java, or raw log lines via regex/Grok patterns
 - **PipStage2Worker** (`pip_stage_2`): apply real transformations: unit conversion libraries, data normalization (z-score, min-max), or schema mapping with Jackson/JOLT

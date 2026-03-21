@@ -1,6 +1,7 @@
 # Edge Computing Pipeline in Java with Conductor :  Task Offloading, On-Device Inference, and Cloud Sync
 
 A Java Conductor workflow example that orchestrates an edge computing pipeline. offloading compute jobs to edge nodes, running on-device ML inference (object detection, classification), syncing results back to the cloud, and aggregating edge analytics into dashboards and time-series stores. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Edge Compute Pipelines Need Orchestration
 
 Edge computing pushes inference and data processing out to devices at the network edge. cameras running object detection, gateways classifying sensor readings, robots making real-time decisions. But the results still need to flow back to the cloud for aggregation, dashboarding, and long-term storage. That creates a multi-hop pipeline: schedule the compute job on the right edge node, run the inference, sync the results over a potentially unreliable link, and aggregate everything centrally.

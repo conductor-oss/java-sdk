@@ -21,10 +21,10 @@ Three workers handle the Gemini integration. Preparing parts-based content with 
 | Worker | Task | What It Does |
 |---|---|---|
 | **GeminiFormatOutputWorker** | `gemini_format_output` | Extracts the generated text from Gemini's candidate structure and returns it as formattedResult. |
-| **GeminiGenerateWorker** | `gemini_generate` | Calls the Google Gemini generateContent REST API using the configured model (`GEMINI_MODEL`, default `gemini-2.5-flash`). Falls back to a simulated response when GOOGLE_API_KEY is not set. |
+| **GeminiGenerateWorker** | `gemini_generate` | Calls the Google Gemini generateContent REST API using the configured model (`GEMINI_MODEL`, default `gemini-2.5-flash`). Falls back to a demo response when GOOGLE_API_KEY is not set. |
 | **GeminiPrepareContentWorker** | `gemini_prepare_content` | Prepares a Gemini-style request body with parts-based content structure, generation config, and safety settings. |
 
-When `GOOGLE_API_KEY` is set and has active billing/quota for the Gemini API, `GeminiGenerateWorker` makes a real HTTP call to the Gemini REST API using `java.net.http.HttpClient` (built into Java 21). The model comes from `GEMINI_MODEL` by default and can also be overridden via workflow input. If your API key lacks quota (HTTP 429), the worker fails fast with a clear terminal message and includes the `Retry-After` value when Google returns one. When the key is absent, it falls back to a simulated response (prefixed with ``) so the workflow runs end-to-end without credentials.
+When `GOOGLE_API_KEY` is set and has active billing/quota for the Gemini API, `GeminiGenerateWorker` makes a real HTTP call to the Gemini REST API using `java.net.http.HttpClient` (built into Java 21). The model comes from `GEMINI_MODEL` by default and can also be overridden via workflow input. If your API key lacks quota (HTTP 429), the worker fails fast with a clear terminal message and includes the `Retry-After` value when Google returns one. When the key is absent, it falls back to a demo response (prefixed with ``) so the workflow runs end-to-end without credentials.
 
 ### The Workflow
 
@@ -53,7 +53,7 @@ gemini_format_output
 # With real Gemini API:
 GOOGLE_API_KEY=your-key GEMINI_MODEL=gemini-2.5-flash docker compose up --build
 
-# Without API key (simulated mode):
+# Without API key (demo mode):
 docker compose up --build
 
 ```
@@ -90,7 +90,7 @@ java -jar target/google-gemini-1.0.0.jar
 # With real Gemini API:
 GOOGLE_API_KEY=your-key GEMINI_MODEL=gemini-2.5-flash ./run.sh
 
-# Without API key (simulated mode):
+# Without API key (demo mode):
 ./run.sh
 
 # Or on a custom port:
@@ -109,7 +109,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `GOOGLE_API_KEY` | _(none)_ | Google Gemini API key with active billing and quota. When set, workers call the real Gemini API. When absent, workers use simulated responses. If the key lacks quota, you'll see a clear error with a link to the Cloud console. |
+| `GOOGLE_API_KEY` | _(none)_ | Google Gemini API key with active billing and quota. When set, workers call the real Gemini API. When absent, workers use demo responses. If the key lacks quota, you'll see a clear error with a link to the Cloud console. |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Default Gemini model used by `GeminiGenerateWorker`. You can also override it per workflow input with `model`. |
 
 ## Using the Conductor CLI

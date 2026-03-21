@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `StreamCollectChunksWorker` calls the real OpenAI streaming endpoint (SSE). When unset, returns simulated chunked responses with `[SIMULATED]` prefix. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `StreamCollectChunksWorker` calls the real OpenAI streaming endpoint (SSE). When unset, returns demo chunked responses with `[DEMO]` prefix. |
 
 ## Using the Conductor CLI
 

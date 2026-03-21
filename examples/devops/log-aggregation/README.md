@@ -132,7 +132,7 @@ conductor workflow search -w log_aggregation_412 -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one log processing step. replace the simulated calls with Fluent Bit for collection, Grok patterns for parsing, or Elasticsearch Bulk API for storage, and the aggregation workflow runs unchanged.
+Each worker handles one log processing step. replace the demo calls with Fluent Bit for collection, Grok patterns for parsing, or Elasticsearch Bulk API for storage, and the aggregation workflow runs unchanged.
 
 - **CollectLogs** (`la_collect_logs`): use Fluent Bit or Vector for log collection from Kubernetes pods, AWS CloudWatch Logs, or syslog endpoints with backpressure handling
 - **ParseLogs** (`la_parse_logs`): implement Grok patterns for common log formats (Apache, Nginx, application logs), JSON parsing for structured logs, and multiline log handling for stack traces

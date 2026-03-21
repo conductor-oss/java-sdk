@@ -1,6 +1,7 @@
 # Genomics Pipeline in Java Using Conductor :  Sequencing, Alignment, Variant Calling, Annotation, and Clinical Reporting
 
 A Java Conductor workflow example for a clinical genomics pipeline. processing DNA samples through sequencing, aligning reads to a reference genome, calling genetic variants, annotating variants with clinical significance, and generating a diagnostic report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process genomic samples for clinical diagnostics. A DNA sample arrives from the lab and must be sequenced to produce raw reads (FASTQ). Those reads must be aligned to a reference genome (GRCh38) to produce a BAM file. Variant calling identifies SNPs, indels, and structural variants in the aligned data (VCF). Each variant must be annotated with clinical significance from databases like ClinVar, OMIM, and gnomAD. Finally, a clinical report must be generated summarizing pathogenic and likely pathogenic findings for the ordering physician. Each step produces large intermediate files and depends strictly on the previous step's output. you cannot call variants without aligned reads, and you cannot annotate without called variants.

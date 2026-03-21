@@ -1,6 +1,7 @@
 # Data Catalog in Java Using Conductor :  Asset Discovery, Classification, Tagging, and Search Indexing
 
 A Java Conductor workflow example for building a data catalog. discovering data assets across schemas and data sources, classifying them by content type and PII sensitivity, applying metadata tags, and indexing everything for searchable catalog lookups. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Your organization has data scattered across databases, data lakes, APIs, and file stores. Nobody knows what data exists, where it lives, whether it contains PII, or who owns it. You need to build a catalog that answers these questions. That means crawling data sources to discover tables, columns, and datasets at a configurable scan depth, classifying each asset by category and PII sensitivity (using rule-based patterns for emails, SSNs, phone numbers), tagging assets with metadata labels (owner, domain, freshness, quality tier), and indexing everything into a searchable catalog so analysts and engineers can find what they need.

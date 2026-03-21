@@ -1,6 +1,7 @@
 # Log Processing in Java Using Conductor :  Ingestion, Structured Parsing, Pattern Extraction, and Metric Aggregation
 
 A Java Conductor workflow example for log processing. ingesting raw log entries from a source within a time range, parsing each entry into structured fields (timestamp, level, service, message, isError flag), extracting recurring patterns to identify the most common log signatures, and aggregating metrics like error counts, warning counts, and per-service breakdowns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Your services generate thousands of log entries per minute, each with a raw timestamp, severity level, service name, and message. Before you can answer questions like "which service is producing the most errors?" or "is there a recurring NullPointerException pattern?", you need to ingest the logs from the source for a specific time range, parse each raw entry into structured fields (normalizing `ts` to `timestamp`, `msg` to `message`, flagging ERROR-level entries), extract recurring patterns to identify the most frequent log signatures (repeated exceptions, timeout messages, connection errors), and aggregate metrics (total entries, error count, warning count, top patterns by frequency). Each step depends on the previous one: you can't extract patterns from unparsed logs, and you can't aggregate metrics without knowing which entries are errors.

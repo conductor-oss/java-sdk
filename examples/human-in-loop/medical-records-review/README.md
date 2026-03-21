@@ -1,6 +1,7 @@
 # Medical Records Review in Java Using Conductor :  HIPAA Compliance Validation, Physician Review via WAIT, and Audit-Trailed Storage
 
 A Java Conductor workflow example for medical records review. demonstrating HIPAA-pattern compliance checks (PHI encryption, audit logging, access controls), pausing at a WAIT task for a physician to review the records and provide their clinical assessment, and storing the result with a complete audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Medical Records Must Pass HIPAA Compliance Before Physician Review
 
 Before a physician can review medical records, the system must validate HIPAA compliance. Checking PHI encryption, audit logging, access controls, and data retention policies. The workflow runs automated HIPAA checks, pauses at a WAIT task for physician review, then stores the result with an audit trail. If storing the result fails, you need to retry it without asking the physician to re-review.

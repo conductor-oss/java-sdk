@@ -140,7 +140,7 @@ conductor workflow search -w wft_workflow_testing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one test lifecycle phase. Replace the simulated fixture setup and assertions with real test framework integrations and the setup-execute-assert-report pipeline runs unchanged.
+Each worker handles one test lifecycle phase. Replace the demo fixture setup and assertions with real test framework integrations and the setup-execute-assert-report pipeline runs unchanged.
 
 - **SetupWorker** (`wft_setup`): create real test fixtures: insert test data into a staging database via JDBC, deploy mock services with WireMock or MockServer, or register test workflow definitions via Conductor's metadata API
 - **ExecuteWorker** (`wft_execute`): trigger the real workflow under test: call `WorkflowClient.startWorkflow()` with the golden input, poll for completion, and capture the actual output from the completed workflow execution
@@ -148,7 +148,7 @@ Each worker handles one test lifecycle phase. Replace the simulated fixture setu
 - **TeardownWorker** (`wft_teardown`): clean up real resources: drop staging database tables, stop WireMock servers, deregister temporary workflow definitions
 - **ReportWorker** (`wft_report`): generate CI/CD-compatible reports: JUnit XML format for Jenkins/GitHub Actions integration, HTML reports via Allure for visual dashboards, or post pass/fail summaries to Slack/Teams with links to failed Conductor executions
 
-The fixture and assertion contract stays fixed. Swap the simulated test runner for a real Conductor execution and the assert-teardown-report pipeline runs unchanged.
+The fixture and assertion contract stays fixed. Swap the demo test runner for a real Conductor execution and the assert-teardown-report pipeline runs unchanged.
 
 ## SDK
 

@@ -1,6 +1,7 @@
 # IoT Security in Java with Conductor :  Network Scanning, Vulnerability Detection, Automated Patching, and Verification
 
 A Java Conductor workflow example that orchestrates IoT security operations. scanning the device network to discover connected devices, detecting vulnerabilities on each device (expired certificates, default credentials, known CVEs), pushing security patches to affected devices, and verifying all devices pass a post-patch security check. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why IoT Security Workflows Need Orchestration
 
 Securing an IoT network is a strict pipeline where skipping a step or executing out of order creates real risk. You scan the network to discover all connected devices. cameras, sensors, gateways. You run vulnerability detection against the inventory to find devices with expired TLS certificates, default passwords, or firmware versions affected by known CVEs. You push security patches to the specific affected devices. After patching, you re-verify that every device on the network passes the security check.

@@ -101,7 +101,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `SF_CLIENT_ID` | _(none)_ | Salesforce connected app client ID. Currently unused, all workers run in simulated mode with `[SIMULATED]` output prefix. |
+| `SF_CLIENT_ID` | _(none)_ | Salesforce connected app client ID. Currently unused, all workers run in demo mode with `[DEMO]` output prefix. |
 | `SF_CLIENT_SECRET` | _(none)_ | Salesforce connected app client secret. |
 | `SF_USERNAME` | _(none)_ | Salesforce username for API access. |
 | `SF_PASSWORD` | _(none)_ | Salesforce password (with security token appended). |

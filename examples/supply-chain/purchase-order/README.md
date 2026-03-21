@@ -1,6 +1,7 @@
 # Purchase Order Lifecycle in Java with Conductor :  PO Creation, Approval, Vendor Transmission, Order Tracking, and Goods Receipt
 
 A Java Conductor workflow example for purchase order lifecycle management. creating a PO with line items and vendor details, obtaining budget/authority approval, transmitting the order to the vendor, tracking fulfillment status, and confirming goods receipt at the warehouse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage purchase orders from creation through delivery. A PO must be created with vendor, items, quantities, and pricing. It requires approval based on the total amount and the requester's authority level. The approved PO must be transmitted to the vendor (via EDI, email, or supplier portal). The order must be tracked for fulfillment status (acknowledged, shipped, partial delivery). Finally, goods receipt must be confirmed against the original PO line items.

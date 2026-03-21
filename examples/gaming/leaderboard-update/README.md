@@ -1,6 +1,7 @@
 # Leaderboard Update in Java Using Conductor
 
 Updates a game's leaderboard for a season: collecting match scores, validating for integrity, ranking players, updating the public leaderboard, and broadcasting results to connected players. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to update a game's leaderboard for a season. The workflow collects scores from all completed matches, validates them for integrity (checking for cheating flags, impossible scores, or data corruption), ranks players by their validated scores, updates the public leaderboard, and broadcasts the updated rankings to all connected players. Posting invalid scores to the leaderboard undermines competitive integrity; stale leaderboards reduce player engagement.

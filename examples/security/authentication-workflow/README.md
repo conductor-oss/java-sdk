@@ -1,6 +1,7 @@
 # Implementing Authentication Workflow in Java with Conductor :  Credential Validation, MFA Verification, Risk Assessment, and Token Issuance
 
 A Java Conductor workflow example implementing a multi-step authentication pipeline. validating user credentials (password, biometric, API key), verifying a second factor via MFA, assessing login risk based on device and location signals, and issuing a signed JWT session token only after all checks pass. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to authenticate users through multiple verification layers before granting access. First, the submitted credentials (password hash, biometric template, or API key) must be validated against the identity store. Then, if MFA is enabled, a second factor (TOTP, SMS code, hardware key) must be verified. Before issuing a token, a risk assessment must evaluate whether the login attempt looks suspicious. new device, unusual geolocation, impossible travel, or velocity anomalies. Only after all three checks pass should a JWT be minted with the appropriate claims, scopes, and expiration. If any step fails, the login must be denied and the failure recorded for security monitoring.

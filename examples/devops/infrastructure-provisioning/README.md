@@ -136,7 +136,7 @@ conductor workflow search -w infra_provisioning_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one provisioning step. replace the simulated calls with Terraform, AWS CloudFormation, or Ansible for real resource creation and configuration, and the provisioning workflow runs unchanged.
+Each worker handles one provisioning step. replace the demo calls with Terraform, AWS CloudFormation, or Ansible for real resource creation and configuration, and the provisioning workflow runs unchanged.
 
 - **Plan** (`ip_plan`): generate a resource plan using Terraform plan, Pulumi preview, or CloudFormation change sets, showing what will be created, modified, or destroyed
 - **Validate** (`ip_validate`): integrate with OPA (Open Policy Agent) for policy enforcement, check AWS Service Quotas API for quota limits, and estimate costs via AWS Pricing API

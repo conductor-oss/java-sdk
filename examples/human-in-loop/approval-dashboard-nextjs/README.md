@@ -1,6 +1,7 @@
 # Next.js Approval Dashboard in Java Using Conductor :  Request Processing and Human Approval via WAIT Task
 
 A Java Conductor workflow example paired with a Next.js full-stack dashboard. a SIMPLE task validates and processes an incoming approval request (type, title, amount, requester), then a WAIT task pauses the workflow until a human approver clicks approve or reject in the Next.js dashboard. The dashboard queries Conductor's API to list pending approvals and completes the WAIT task when the approver acts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need a web-based approval dashboard where managers can see all pending requests and approve or reject them with a single click. Requests come in with a type (expense, purchase, time-off), title, dollar amount, and requester name. The system must validate and process each request, then pause and wait. potentially for hours or days,  until a human approver makes a decision. The dashboard needs to show all pending, approved, and rejected requests in real time. Without a built-in WAIT mechanism, you'd poll a database for the approver's decision, building your own state management, timeout handling, and dashboard query logic.

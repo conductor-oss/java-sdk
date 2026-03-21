@@ -123,7 +123,7 @@ conductor workflow search -w runbook_automation_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one runbook step. Replace the simulated calls with Ansible playbooks, AWS RDS failover APIs, or Confluence lookups, and the automation workflow runs unchanged.
+Each worker handles one runbook step. Replace the demo calls with Ansible playbooks, AWS RDS failover APIs, or Confluence lookups, and the automation workflow runs unchanged.
 
 - **`LoadRunbookWorker`**: Fetch runbook definitions from Confluence API, a Git repository, or an internal runbook registry instead of returning a hardcoded runbook ID.
 

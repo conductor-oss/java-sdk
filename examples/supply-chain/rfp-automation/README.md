@@ -1,6 +1,7 @@
 # RFP Automation in Java with Conductor :  RFP Creation, Vendor Distribution, Response Collection, Evaluation, and Vendor Selection
 
 A Java Conductor workflow example for request-for-proposal automation. creating an RFP for a project (e.g., "Cloud Infrastructure Migration" requiring scalability, security, and 24/7 support), distributing it to qualified vendors, collecting responses by deadline, evaluating proposals against requirements, and selecting the winning vendor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to run a structured RFP process for a cloud infrastructure migration. The RFP must clearly specify requirements (scalability, security, 24/7 support) and a response deadline. It must be distributed to qualified vendors in your approved vendor list. Vendor responses must be collected and validated for completeness before the deadline. Each response must be evaluated against the stated requirements with consistent scoring. The vendor with the best overall score is selected, and the decision must be defensible in case of a protest.

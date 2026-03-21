@@ -1,6 +1,7 @@
 # ML Data Pipeline in Java Using Conductor :  Data Collection, Cleaning, Train/Test Split, Model Training, and Evaluation
 
 A Java Conductor workflow example for an end-to-end ML training pipeline: collecting labeled data from a source, cleaning it (removing records with null features or invalid labels), splitting into train and test sets at a configurable ratio, training a model (e.g., random forest) on the training set, and evaluating accuracy and metrics against the held-out test set. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Training a model requires a strict sequence of data preparation steps, and each depends on the output of the previous one. You collect labeled records from a data source, but some have null features or malformed labels that would corrupt training. You clean those out, but then you need to split the surviving records into train and test sets at a specific ratio (say, 80/20), and the split must happen after cleaning, not before, or your test set contains dirty data. You train the model (a random forest classifier, for example) on the training partition, but evaluation must use the held-out test partition from the same split. Not a different random sample. If training crashes after 30 minutes of GPU time, you don't want to re-collect and re-clean the data from scratch.

@@ -21,10 +21,10 @@ Three workers implement the caching layer. hashing the prompt and model into a d
 | Worker | Task | What It Does |
 |---|---|---|
 | **CacheHashPromptWorker** | `cache_hash_prompt` | Creates a deterministic cache key by concatenating model and prompt, normalizing whitespace, and truncating to 64 characters | Processing only |
-| **CacheLlmCallWorker** | `cache_llm_call` | Checks an in-memory cache for the key. on hit returns the cached response instantly, on miss calls OpenAI API (live) or returns a fixed response (simulated), stores the result, and reports latency |
+| **CacheLlmCallWorker** | `cache_llm_call` | Checks an in-memory cache for the key. on hit returns the cached response instantly, on miss calls OpenAI API (live) or returns a fixed response (demo), stores the result, and reports latency |
 | **CacheReportWorker** | `cache_report` | Reports whether the call was a cache hit or miss and estimates cost savings (~$0.02 per cache hit) | Processing only |
 
-**Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CacheLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) on cache miss. Without the key, it runs in simulated mode with deterministic output prefixed with `[SIMULATED]`. Non-LLM workers (hashing, reporting) always run their real logic.
+**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CacheLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) on cache miss. Without the key, it runs in demo mode with deterministic output prefixed with `[DEMO]`. Non-LLM workers (hashing, reporting) always run their real logic.
 
 ### The Workflow
 
@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `CacheLlmCallWorker` calls the real API on cache miss. When absent, runs in simulated mode. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `CacheLlmCallWorker` calls the real API on cache miss. When absent, runs in demo mode. |
 
 ## Using the Conductor CLI
 

@@ -25,7 +25,7 @@ Four workers automate the PR lifecycle: ReceiveWebhookWorker parses push events,
 | **RunChecksWorker** | `gh_run_checks` | Runs CI checks on the PR. |
 | **MergePrWorker** | `gh_merge_pr` | Merges the pull request. |
 
-The workers auto-detect GitHub credentials at startup. When `GITHUB_TOKEN` is set, CreatePrWorker and MergePrWorker use the real GitHub REST API (via `java.net.http`) to create and merge pull requests. Without the token, they fall back to simulated mode with realistic output shapes so the workflow runs end-to-end without a GitHub token.
+The workers auto-detect GitHub credentials at startup. When `GITHUB_TOKEN` is set, CreatePrWorker and MergePrWorker use the real GitHub REST API (via `java.net.http`) to create and merge pull requests. Without the token, they fall back to demo mode with realistic output shapes so the workflow runs end-to-end without a GitHub token.
 
 ### The Workflow
 
@@ -133,7 +133,7 @@ conductor workflow search -w github_integration_434 -s COMPLETED -c 5
 
 ## How to Extend
 
-CreatePrWorker and MergePrWorker already use the real GitHub REST API (via java.net.http) when `GITHUB_TOKEN` is provided. The remaining workers are simulated:
+CreatePrWorker and MergePrWorker already use the real GitHub REST API (via java.net.http) when `GITHUB_TOKEN` is provided. The remaining workers are demo:
 
 - **ReceiveWebhookWorker** (`gh_receive_webhook`): integrate with a real webhook endpoint that receives GitHub push events
 - **RunChecksWorker** (`gh_run_checks`): integrate with GitHub Actions, Jenkins, or another CI system to run real CI checks against the PR

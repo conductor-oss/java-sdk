@@ -169,7 +169,7 @@ Each worker handles one piece of the contract pipeline. Connect your legal AI pl
 - **LcrFinalizeWorker** (`lcr_finalize`): push the reviewed contract to a CLM system like Ironclad, DocuSign CLM, or Agiloft, update the deal record in your CRM (Salesforce, HubSpot), and notify the requesting team via email or Slack
 - **Add a redline loop**: if the lawyer flags issues, add a sub-workflow that sends redlines to the counterparty, waits for a revised contract, re-extracts terms, and returns to the legal review WAIT task
 
-Replace the simulated extraction with a real contract AI platform and the review pipeline continues to work as designed.
+Replace the demo extraction with a real contract AI platform and the review pipeline continues to work as designed.
 
 ## SDK
 

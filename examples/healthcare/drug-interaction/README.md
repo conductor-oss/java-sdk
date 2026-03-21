@@ -1,6 +1,7 @@
 # Drug Interaction Checking in Java Using Conductor :  Medication List, Pairwise Checks, Conflict Flagging, and Alternative Recommendations
 
 A Java Conductor workflow example for drug interaction checking. pulling a patient's current medication list, checking every drug pair for interactions, flagging clinically significant conflicts by severity, and recommending safer therapeutic alternatives. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to check for drug-drug interactions when a new medication is prescribed. The patient's complete active medication list must be retrieved from the EHR. Every pair of the new medication against existing medications must be checked against an interaction database for contraindications, dose adjustments, and monitoring requirements. Clinically significant conflicts must be flagged with severity levels (minor, moderate, major, contraindicated). For flagged interactions, the system must recommend alternative medications in the same therapeutic class that do not conflict. A missed major interaction. like prescribing warfarin with a CYP2C9 inhibitor,  can cause life-threatening adverse events.
@@ -140,7 +141,7 @@ Connect ListMedicationsWorker to your EHR's FHIR MedicationRequest API, CheckPai
 - Add a **AllergyCheckWorker** to cross-reference the new medication against the patient's documented allergies before pair checking
 - Add a **PharmacistReviewWorker** as a human-in-the-loop step for contraindicated interactions that require pharmacist override
 
-Replace simulated lookups with real drug interaction databases and formulary APIs while returning the same fields, and the safety checking pipeline needs no workflow changes.
+Replace demo lookups with real drug interaction databases and formulary APIs while returning the same fields, and the safety checking pipeline needs no workflow changes.
 
 ## SDK
 

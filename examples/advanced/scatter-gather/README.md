@@ -134,13 +134,13 @@ conductor workflow search -w sgr_scatter_gather -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker queries one data source. Replace the simulated API responses with real airline, pricing, or search provider calls and the parallel broadcast-and-aggregate pipeline runs unchanged.
+Each worker queries one data source. Replace the demo API responses with real airline, pricing, or search provider calls and the parallel broadcast-and-aggregate pipeline runs unchanged.
 
 - **SgrBroadcastWorker** (`sgr_broadcast`): fan out real queries to multiple APIs: airline GDS systems (Amadeus, Sabre), price comparison APIs, or multi-vendor product catalogs
 - **SgrGather*Workers** (`sgr_gather_1/2/3`). Query real data sources: REST APIs with per-source auth, database replicas in different regions, or Elasticsearch clusters with different indices
 - **SgrAggregateWorker** (`sgr_aggregate`): implement real aggregation: merge and deduplicate results, rank by price/relevance/freshness, and apply business rules (preferred vendors, margin thresholds)
 
-Each gatherer's output contract stays fixed. Swap the simulated price APIs for real airline or hotel booking APIs and the broadcast-aggregate pipeline runs unchanged.
+Each gatherer's output contract stays fixed. Swap the demo price APIs for real airline or hotel booking APIs and the broadcast-aggregate pipeline runs unchanged.
 
 ## SDK
 

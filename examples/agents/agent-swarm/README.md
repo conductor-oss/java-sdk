@@ -1,6 +1,7 @@
 # Agent Swarm in Java Using Conductor :  Decompose Research into Parallel Specialist Investigations
 
 Agent Swarm. decompose a research topic into subtasks, run 4 swarm agents in parallel, then merge findings into a unified report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Research at Scale Needs Parallel Specialization
 
 Researching a topic like "edge computing adoption" thoroughly requires four distinct perspectives: market analysis (market size, growth rates, competitive landscape), technical landscape (architectures, key innovations, standards), real-world use cases (deployments, case studies, ROI data), and future trends (emerging developments, potential disruptions). A single agent doing all four sequentially takes four times as long and tends to produce shallow coverage across all areas.

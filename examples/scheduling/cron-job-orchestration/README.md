@@ -138,7 +138,7 @@ Each worker handles one job lifecycle step. Connect the executor to run real she
 - **ExecuteJobWorker** (`cj_execute_job`): run real commands via ProcessBuilder, SSH to remote hosts, or invoke Lambda/Cloud Functions
 - **LogResultWorker** (`cj_log_result`): persist job results to Elasticsearch, CloudWatch Logs, or your job management database
 
-Replace simulated execution with real shell commands, and the schedule-execute-cleanup orchestration works unchanged.
+Replace demo execution with real shell commands, and the schedule-execute-cleanup orchestration works unchanged.
 
 ## SDK
 

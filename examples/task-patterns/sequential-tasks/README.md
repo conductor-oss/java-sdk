@@ -1,6 +1,7 @@
 # Sequential Tasks in Java with Conductor
 
 Sequential ETL pipeline. extract, transform, load. Three workers process data in order. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to run an ETL pipeline where each phase strictly depends on the previous one: extract raw records from a data source, transform them by adding computed fields (grade classification, normalized scores) in a specified format, then load the transformed records into a destination system. The transform step cannot start until extraction is complete because it needs the raw data. The load step cannot start until transformation is complete because it needs the enriched records. If the load step fails after transforming 1,000 records, you need to resume from the load step. not re-extract and re-transform.

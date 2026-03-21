@@ -132,7 +132,7 @@ conductor workflow search -w enr_content_enricher -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one enrichment concern. Replace the simulated CRM and customer lookups with real Salesforce or database queries and the enrichment pipeline runs unchanged.
+Each worker handles one enrichment concern. Replace the demo CRM and customer lookups with real Salesforce or database queries and the enrichment pipeline runs unchanged.
 
 - **LookupDataWorker** (`enr_lookup_data`): query real data sources: Salesforce CRM for account details, Clearbit API for company enrichment, MaxMind GeoIP for location data, or your own customer database
 - **ForwardWorker** (`enr_forward`): publish the enriched message to a Kafka topic, post it to a webhook, or write it to a Snowflake/BigQuery table for downstream analytics

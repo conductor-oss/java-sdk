@@ -1,6 +1,7 @@
 # JSON Transformation in Java Using Conductor :  Field Mapping, Value Transforms, Nested Restructuring, and Schema Validation
 
 A Java Conductor workflow example for JSON-to-JSON transformation: parsing an incoming JSON record, renaming fields according to mapping rules (`cust_id` to `customerId`, `first_name` + `last_name` to `fullName`), applying value transforms (lowercasing emails, uppercasing account types, concatenating name fields), restructuring flat fields into nested groups (`identity`, `contact`, `account`), validating that the output conforms to the target schema, and emitting the final transformed record. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Your upstream system sends customer records with snake_case field names (`cust_id`, `first_name`, `last_name`, `acct_type`, `reg_date`) in a flat structure, but your downstream API expects camelCase fields (`customerId`, `fullName`, `accountType`) organized into nested groups (`identity.id`, `contact.email`, `account.type`). The transformation is not just renaming. `first_name` and `last_name` need to be concatenated into `fullName` with whitespace trimmed, `email` needs to be lowercased for consistency, and `acct_type` needs to be uppercased to match the enum values the downstream system expects. After restructuring, the output must conform to a target schema: `identity.id` and `contact.email` are required fields, and any record missing them is invalid.

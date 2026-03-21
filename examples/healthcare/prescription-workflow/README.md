@@ -1,6 +1,7 @@
 # Prescription Workflow in Java Using Conductor :  Verification, Interaction Checking, Filling, Dispensing, and Adherence Tracking
 
 A Java Conductor workflow example for prescription processing. verifying the prescription and pulling the patient's current medication list, checking for drug-drug interactions, filling the prescription at the pharmacy, dispensing to the patient, and tracking refills and adherence. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process prescriptions from the point a provider writes the order through dispensing and ongoing adherence monitoring. The prescription must first be verified. confirming the prescriber's DEA number, the patient's identity, and the medication's formulary status. The patient's current medication list must be pulled and the new drug checked for interactions, contraindications, and duplicate therapy. Once cleared, the prescription is filled,  the correct medication, strength, and quantity are prepared. The filled prescription is dispensed to the patient with counseling instructions. Finally, the prescription must be tracked for refill timing and adherence (medication possession ratio). A missed interaction check or dispensing error can cause serious patient harm.

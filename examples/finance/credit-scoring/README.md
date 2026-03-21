@@ -139,7 +139,7 @@ Connect CollectDataWorker to a credit bureau API (Experian, TransUnion, Equifax)
 - **Score computer**: apply your proprietary scoring model or integrate with FICO, VantageScore, or custom ML models
 - **Classifier**: map scores to risk tiers with configurable thresholds; generate adverse action notices for declined applicants per FCRA/ECOA
 
-Replace simulated bureau data with real credit bureau API calls while maintaining the same output structure, and the scoring pipeline operates without modification.
+Replace demo bureau data with real credit bureau API calls while maintaining the same output structure, and the scoring pipeline operates without modification.
 
 ## SDK
 

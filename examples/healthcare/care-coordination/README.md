@@ -1,6 +1,7 @@
 # Care Coordination in Java Using Conductor :  Needs Assessment, Care Planning, Team Assembly, and Patient Monitoring
 
 A Java Conductor workflow example for care coordination. assessing a patient's clinical needs based on condition and acuity, building a personalized care plan, assembling the right care team (PCP, specialist, social worker), and activating ongoing monitoring. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to coordinate care for patients with chronic conditions or complex medical needs. When a patient is flagged for care coordination, their clinical condition and acuity must be assessed to determine what services they need. Based on that assessment, a care plan is created with specific goals, interventions, and timelines. The right care team must then be assembled. a primary care physician, relevant specialists, a care manager, and potentially a social worker or behavioral health provider. Finally, the patient must be enrolled in ongoing monitoring so the care team can track progress against the plan.

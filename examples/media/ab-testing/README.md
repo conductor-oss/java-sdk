@@ -1,6 +1,7 @@
 # A/B Testing Pipeline in Java Using Conductor :  Variant Definition, User Assignment, Metric Collection, and Statistical Analysis
 
 A Java Conductor workflow example that orchestrates an end-to-end A/B test. defining experiment variants with traffic splits, assigning users to control and treatment groups via random hashing, collecting engagement metrics (clicks, impressions, conversion rates), running statistical significance analysis (p-value, uplift, confidence intervals, effect size), and deciding a winner with a rollout recommendation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why A/B Test Pipelines Need Orchestration
 
 Running a rigorous A/B test involves a strict sequence where each stage depends on the previous one. You define the variants (control vs. treatment) and traffic split percentages. You assign users to groups using deterministic hashing so the same user always sees the same variant. You collect behavioral metrics. clicks, impressions, conversion rates,  for each group over the experiment window. You run statistical analysis to compute p-values, measure uplift, and determine whether results are statistically significant at your target confidence level. Finally, you decide a winner and generate a rollout recommendation.

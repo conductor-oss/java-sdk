@@ -1,6 +1,7 @@
 # Model Serving Pipeline in Java Using Conductor :  Load, Validate, Deploy, Test, Promote
 
 A Java Conductor workflow example for deploying ML models to production serving. loading a model from storage, validating it against test inputs, deploying to a staging endpoint, running smoke tests, and promoting to production. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Deploying Models to Production Is Not Just Copying a File
 
 A data scientist trains a model and hands off a `.pt` file. Getting that file into production serving means loading it into the inference framework, validating that it produces expected outputs for known inputs (no NaN predictions, correct tensor shapes), deploying it to a staging endpoint, running smoke tests against real traffic patterns, and only then promoting it to handle production traffic. Skip any step and you risk serving garbage predictions.
@@ -134,13 +135,13 @@ conductor workflow search -w model_serving_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one deployment gate. replace the simulated model loading with real TorchServe or SageMaker endpoint APIs and the load-validate-deploy-promote pipeline runs unchanged.
+Each worker covers one deployment gate. replace the demo model loading with real TorchServe or SageMaker endpoint APIs and the load-validate-deploy-promote pipeline runs unchanged.
 
 - **MsvLoadModelWorker** (`msv_load_model`): load real models from S3/GCS using TorchServe, TensorFlow Serving, or ONNX Runtime model loading APIs
 - **MsvDeployWorker** (`msv_deploy`): create real inference endpoints via SageMaker `createEndpoint()`, Kubernetes deployments (Seldon Core, KServe), or Google Cloud AI Platform
 - **MsvPromoteWorker** (`msv_promote`): shift production traffic using blue-green deployment (update load balancer), canary rollout (Istio traffic splitting), or SageMaker endpoint variant weights
 
-The validation and deployment contract stays fixed. Swap the simulated inference framework for real TorchServe or TensorFlow Serving and the staged rollout pipeline runs unchanged.
+The validation and deployment contract stays fixed. Swap the demo inference framework for real TorchServe or TensorFlow Serving and the staged rollout pipeline runs unchanged.
 
 ## SDK
 

@@ -1,6 +1,7 @@
 # Interview Scheduling in Java with Conductor :  Availability Check, Slot Selection, Candidate Invite, Confirmation, and Reminder
 
 A Java Conductor workflow example for interview scheduling. checking interviewer panel calendar availability, selecting the best time slot, sending the candidate an invite with video link and details, confirming all participants, and sending day-of reminders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to coordinate interview scheduling across multiple busy interviewers and a candidate. Given an interview panel (e.g., hiring manager, two engineers, a product lead), you must find time slots where all interviewers are free. The best available slot is selected, and the candidate receives an invite with the date, time, role description, interviewer names, and a video conference link. Each interviewer must confirm their participation. On the day of the interview, all parties receive reminders with the agenda and join details. If any interviewer's calendar changes after booking, the system needs to detect the conflict and reschedule. Coordinating this manually across four or five calendars through back-and-forth emails regularly takes days and creates a poor candidate experience.

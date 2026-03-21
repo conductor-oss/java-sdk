@@ -132,13 +132,13 @@ conductor workflow search -w do_while_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace the simulated item processor with your real per-item logic. Database writes, API calls, or file operations, and the DO_WHILE loop workflow runs unchanged.
+Replace the demo item processor with your real per-item logic. Database writes, API calls, or file operations, and the DO_WHILE loop workflow runs unchanged.
 
 - **ProcessItemWorker** (`dw_process_item`): process real items from a queue or database: transform a CSV row, call an external API for enrichment, send an individual notification, or migrate a record from one system to another
 - **SummarizeWorker** (`dw_summarize`): aggregate results from all iterations: count successes vs: failures, compute total processing time, generate a batch completion report, and write it to S3 or email it to stakeholders
 - **Add a validation step**: add a second task inside the loopOver array (e.g., `dw_validate_item`) that runs before `dw_process_item` on each iteration; Conductor executes both tasks sequentially per iteration
 
-Replacing the simulated item processing with real per-record logic does not affect the DO_WHILE loop mechanics, as long as each iteration returns the updated iteration counter.
+Replacing the demo item processing with real per-record logic does not affect the DO_WHILE loop mechanics, as long as each iteration returns the updated iteration counter.
 
 ## SDK
 

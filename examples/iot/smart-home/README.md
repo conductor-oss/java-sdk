@@ -1,6 +1,7 @@
 # Smart Home Automation in Java with Conductor :  Event Detection, Rule Evaluation, and Device Actuation
 
 A Java Conductor workflow example that orchestrates smart home automation. detecting sensor events (occupancy, temperature changes, motion), evaluating automation rules against home context (mode, current temperature), routing to the correct device actuator via SWITCH (lights, thermostat, or security system), and logging every automation event. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Smart Home Automation Needs Orchestration
 
 A smart home automation rule involves a decision chain: a sensor fires an event, the system evaluates context (is someone home? what mode is active? what is the current temperature?), and based on the matched rule, it actuates the right device. dim the lights to 80% warm white, set the thermostat to a target temperature, or arm the security system for a specific zone. Different event types route to entirely different actuators, and every actuation must be logged for audit and debugging.

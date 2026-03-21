@@ -1,6 +1,7 @@
 # Exception-Based Routing in Java Using Conductor :  Risk Analysis, SWITCH for Auto-Process vs. Human Review, and Finalization
 
 A Java Conductor workflow example demonstrating exception-based human-in-the-loop routing. analyzing an item's risk score, using SWITCH to route low-risk items to automatic processing or high-risk items (risk > 7) to a WAIT task for human review, and finalizing the result regardless of which path was taken. Demonstrates the pattern where automation handles the happy path and humans intervene only for exceptions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Not every item needs human attention. most can be auto-processed, but high-risk exceptions must be escalated to a person. The workflow analyzes the item's risk score (1-10) and routes accordingly: items scoring 7 or below go to automatic processing, while items above 7 pause at a WAIT task for human review. The human reviewer examines the flagged item and makes a decision. After either path completes (auto-processed or human-reviewed), a finalization step wraps up. Without this routing, you either manually review everything (expensive and slow) or auto-process everything (dangerous for high-risk items).

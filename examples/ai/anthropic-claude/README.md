@@ -21,10 +21,10 @@ Three workers isolate each phase of the Claude integration. Message construction
 | Worker | Task | What It Does |
 |---|---|---|
 | **ClaudeBuildMessagesWorker** | `claude_build_messages` | Builds the Claude Messages API request body, including Claude's top-level `system` field plus the user message array. |
-| **ClaudeCallApiWorker** | `claude_call_api` | Calls the Anthropic Claude Messages API. When `CONDUCTOR_ANTHROPIC_API_KEY` is set, makes a real HTTP call using `java.net.http.HttpClient`; otherwise returns a deterministic simulated response. |
+| **ClaudeCallApiWorker** | `claude_call_api` | Calls the Anthropic Claude Messages API. When `CONDUCTOR_ANTHROPIC_API_KEY` is set, makes a real HTTP call using `java.net.http.HttpClient`; otherwise returns a deterministic demo response. |
 | **ClaudeProcessResponseWorker** | `claude_process_response` | Processes Claude's content-block response, filters `text` blocks, and returns the final analysis plus usage metadata. |
 
-**Live vs Simulated mode:** The `ClaudeCallApiWorker` auto-detects the `CONDUCTOR_ANTHROPIC_API_KEY` environment variable at startup. When the key is present and has access to the configured model (`ANTHROPIC_MODEL`, default `claude-sonnet-4-20250514`), it makes real HTTP calls to `https://api.anthropic.com/v1/messages` using `java.net.http.HttpClient` (built into Java 21) and parses the response with Jackson. When the key is absent, it returns a deterministic simulated response so the workflow runs end-to-end without credentials. Live-mode 4xx failures are surfaced immediately with the failed task name plus a truncated response body so you can diagnose model-access and request-shape issues quickly.
+**Live vs Demo mode:** The `ClaudeCallApiWorker` auto-detects the `CONDUCTOR_ANTHROPIC_API_KEY` environment variable at startup. When the key is present and has access to the configured model (`ANTHROPIC_MODEL`, default `claude-sonnet-4-20250514`), it makes real HTTP calls to `https://api.anthropic.com/v1/messages` using `java.net.http.HttpClient` (built into Java 21) and parses the response with Jackson. When the key is absent, it returns a deterministic demo response so the workflow runs end-to-end without credentials. Live-mode 4xx failures are surfaced immediately with the failed task name plus a truncated response body so you can diagnose model-access and request-shape issues quickly.
 
 ### The Workflow
 
@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 | Environment Variable | Default | Description |
 |---|---|---|
-| `CONDUCTOR_ANTHROPIC_API_KEY` | *(none)* | Anthropic API key with access to the configured model. When set, the worker makes real Claude API calls. When absent, responses are simulated. |
+| `CONDUCTOR_ANTHROPIC_API_KEY` | *(none)* | Anthropic API key with access to the configured model. When set, the worker makes real Claude API calls. When absent, responses are demo. |
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` | Claude model to send in the Messages API request. You can also override it per workflow input with `model`. |
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |

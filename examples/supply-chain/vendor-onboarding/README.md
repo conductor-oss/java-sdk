@@ -1,6 +1,7 @@
 # Vendor Onboarding in Java with Conductor :  Application, Credential Verification, Evaluation, Approval, and System Activation
 
 A Java Conductor workflow example for vendor onboarding. receiving a new vendor application with business details, verifying their credentials (business licenses, insurance, certifications), evaluating the vendor on financial stability and capability, approving or rejecting based on the evaluation score, and activating approved vendors in the procurement system so they can receive purchase orders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to onboard new vendors into your supply chain. A prospective vendor submits an application with their business details, category, and country of operation. Their credentials must be verified. business registration, insurance coverage, industry certifications (ISO, SOC 2). The vendor must be evaluated on financial health (D&B rating, credit check) and operational capability. Based on the evaluation score, procurement approves or rejects the application. Approved vendors must be activated in the ERP vendor master so buyers can issue purchase orders to them.

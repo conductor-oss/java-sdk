@@ -1,6 +1,6 @@
 # Creating Workers in Java with Conductor: Three Common Worker Patterns
 
-You've defined a workflow in JSON, registered it with Conductor, and hit "start"; but nothing happens. The workflow sits in RUNNING state forever because Conductor workflows don't execute code; workers do. And right now you have zero workers polling for tasks. This example builds three workers from scratch, a synchronous transform, a simulated API fetch, and an error-handling processor, so you can see the `Worker` interface in action and understand how Conductor delegates real work to your Java code.
+You've defined a workflow in JSON, registered it with Conductor, and hit "start"; but nothing happens. The workflow sits in RUNNING state forever because Conductor workflows don't execute code; workers do. And right now you have zero workers polling for tasks. This example builds three workers from scratch, a synchronous transform, a demo API fetch, and an error-handling processor, so you can see the `Worker` interface in action and understand how Conductor delegates real work to your Java code.
 
 ## Learning to Write Conductor Workers
 
@@ -127,7 +127,7 @@ conductor workflow search -w worker_demo_workflow -s COMPLETED -c 5
 ## How to Extend
 
 - **SimpleTransformWorker** (`simple_transform`): add NLP processing, content sanitization, or format conversion (e.g., Markdown to HTML).
-- **FetchDataWorker** (`fetch_data`): replace simulated records with a real REST API call, database query, or message queue read.
+- **FetchDataWorker** (`fetch_data`): replace demo records with a real REST API call, database query, or message queue read.
 - **SafeProcessWorker** (`safe_process`): implement real scoring/validation logic (e.g., data quality checks, ML inference, business rule evaluation).
 
 ## SDK

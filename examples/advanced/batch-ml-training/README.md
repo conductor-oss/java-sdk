@@ -1,6 +1,7 @@
 # Batch ML Model Training in Java Using Conductor :  Prepare Data, Train in Parallel, Evaluate
 
 A Java Conductor workflow example for batch ML training. loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Running ML Experiments Without Losing Your Mind
 
 Training a single model is straightforward. Comparing multiple model architectures on the same dataset is where things get messy. You need to prepare the raw data (cleaning, feature engineering), split it consistently so every model trains on the same 80/20 partition, train a random forest and a gradient boosting model simultaneously to cut wall-clock time in half, then evaluate both against the held-out test set to determine which one wins.
@@ -135,7 +136,7 @@ conductor workflow search -w batch_ml_training_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker encapsulates one ML lifecycle step. replace the simulated training calls with real SageMaker or MLflow APIs and the parallel-train-then-evaluate pipeline runs unchanged.
+Each worker encapsulates one ML lifecycle step. replace the demo training calls with real SageMaker or MLflow APIs and the parallel-train-then-evaluate pipeline runs unchanged.
 
 - **BmlPrepareDataWorker** (`bml_prepare_data`): load real datasets from S3, BigQuery, or a feature store; run cleaning and feature engineering with Apache Spark or pandas via a subprocess
 - **BmlTrainModel1Worker / BmlTrainModel2Worker**: invoke SageMaker training jobs, submit MLflow runs, or call scikit-learn/XGBoost via a Python subprocess to train on actual data

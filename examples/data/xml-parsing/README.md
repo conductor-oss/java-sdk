@@ -1,6 +1,7 @@
 # XML Parsing in Java Using Conductor :  XML Reception, Tag Parsing, Field Extraction, JSON Conversion, and Record Emission
 
 A Java Conductor workflow example for XML-to-JSON transformation. receiving raw XML content with a configurable root element, parsing the XML tags into structured elements, extracting typed fields from each element (id, name, price as double, category), converting the extracted data to JSON records with source metadata and timestamps, and emitting the final records for downstream consumption. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Your partners send product catalog updates as XML files. Each file contains nested elements under a configurable root tag, and each element has fields like `id`, `name`, `price`, and `category` buried inside XML tags. Your downstream systems: the product database, the search index, the pricing engine, all consume JSON. You need to receive the XML, parse it into its constituent elements under the root tag, extract typed fields from each element (treating `price` as a double, not a string), convert the extracted data to JSON records with metadata (source, parsedAt timestamp), and emit the records for downstream consumers. Each step depends on the previous one: you can't extract fields from unparsed XML, and you can't convert to JSON without typed field values.
@@ -22,7 +23,7 @@ Five workers handle XML-to-JSON transformation: receiving raw XML content, parsi
 | **ConvertToJsonWorker** | `xp_convert_to_json` | Converts extracted data to JSON records by adding source and parsedAt metadata. |
 | **EmitRecordsWorker** | `xp_emit_records` | Emits the final parsed records with a completion status. |
 | **ExtractFieldsWorker** | `xp_extract_fields` | Extracts id, name, price (as double), and category from each parsed element. |
-| **ParseTagsWorker** | `xp_parse_tags` | Parses XML tags and returns simulated parsed elements. |
+| **ParseTagsWorker** | `xp_parse_tags` | Parses XML tags and returns demo parsed elements. |
 | **ReceiveXmlWorker** | `xp_receive_xml` | Receives raw XML content and passes it along with metadata. |
 
 Workers implement data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks. the pipeline structure and error handling stay the same.

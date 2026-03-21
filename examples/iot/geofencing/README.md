@@ -1,6 +1,7 @@
 # Geofencing in Java with Conductor :  Location Tracking, Boundary Evaluation, and Zone-Based Alerts
 
 A Java Conductor workflow example that orchestrates geofence monitoring. normalizing device GPS coordinates, computing distance from geofence boundaries, determining inside/outside zone status, and routing to different alert handlers based on whether the device has entered or exited the fence. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Geofence Monitoring Needs Orchestration
 
 Geofencing requires a decision pipeline for every location update. You receive raw GPS coordinates from a device, normalize them, and compute the Euclidean distance to the geofence center. Based on whether the device is inside or outside the defined radius, you route to entirely different alert handlers. an entry alert when a device enters a restricted zone, an exit alert when it leaves a monitored area. The alert type, the notification recipients, and the follow-up actions all depend on the zone status.

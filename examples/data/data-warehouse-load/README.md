@@ -1,6 +1,7 @@
 # Data Warehouse Load in Java Using Conductor :  Staging, Pre-Load Checks, Upsert, Post-Load Validation, and Metadata Update
 
 A Java Conductor workflow example for data warehouse loading: staging incoming records to a temporary table, running pre-load quality checks against the schema, upserting validated records into the target table, running post-load validation to confirm the data landed correctly, and updating warehouse metadata with load statistics. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Loading data into a warehouse is not just an INSERT statement. You need to stage records in a temporary table so the target table isn't locked during quality checks. You need to run pre-load validation (schema compliance, null checks, referential integrity) before touching production tables. You need to upsert. Inserting new records and updating existing ones based on a key. After loading, you need to verify the target table has the expected record count and the data is queryable. Finally, you need to update warehouse metadata (last load time, row counts, freshness) so downstream dashboards and dbt models know the data is current.

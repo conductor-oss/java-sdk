@@ -1,6 +1,7 @@
 # Customer Churn in Java Using Conductor
 
 A Java Conductor workflow example that orchestrates customer churn prevention. detecting at-risk subscribers based on usage trend decline, analyzing the reasons behind the churn risk (pricing, coverage, service quality), creating a personalized retention offer based on the identified reasons and account tenure, delivering the offer to the customer, and tracking whether the customer accepts and stays. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Churn Prevention Needs Orchestration
 
 Retaining at-risk customers requires a time-sensitive pipeline from detection through outcome tracking. You detect churn risk by analyzing usage trends. declining call minutes, reduced data consumption, or increased complaint frequency signal a customer is likely to leave. You analyze the reasons behind the risk,  is it pricing, network quality in their area, a recent bad support experience, or a competitor offer? You create a personalized retention offer based on the identified reasons and the customer's account age,  a discount, a plan upgrade, bonus data, or a device credit. You deliver the offer via the most effective channel for that customer. Finally, you track whether the offer was accepted and the customer was retained.

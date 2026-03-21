@@ -132,7 +132,7 @@ conductor workflow search -w on_call_rotation_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one handoff step. replace the simulated calls with PagerDuty Schedules API, Opsgenie routing rules, or Slack interactive messages, and the rotation workflow runs unchanged.
+Each worker handles one handoff step. replace the demo calls with PagerDuty Schedules API, Opsgenie routing rules, or Slack interactive messages, and the rotation workflow runs unchanged.
 
 - **CheckScheduleWorker** (`oc_check_schedule`): query PagerDuty Schedules API or Opsgenie On-Call API to determine current and next on-call engineers, supporting weekly, daily, or follow-the-sun rotation types
 - **HandoffWorker** (`oc_handoff`): pull active incidents from PagerDuty Incidents API, compile severity and context summaries, and post the handoff brief to the incoming on-call via Slack DM

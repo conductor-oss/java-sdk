@@ -1,6 +1,7 @@
 # Air Quality in Java with Conductor
 
 A Java Conductor workflow example that orchestrates air quality monitoring. collecting pollutant readings (PM2.5, PM10, ozone, CO) from monitoring stations, evaluating concentrations against air quality standards to compute an AQI category, and routing to different response handlers via SWITCH based on whether conditions are good, moderate, or poor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Air Quality Monitoring Needs Orchestration
 
 Monitoring air quality requires a pipeline that collects pollutant data, evaluates it against standards, and takes different actions depending on the result. You collect readings from a monitoring station. PM2.5, PM10, ozone, and CO concentrations for a given region. You check those readings against air quality standards to compute an AQI score and categorize conditions as good, moderate, or poor. Based on the category, you route to entirely different response handlers: log a routine checkpoint for good air, issue a sensitive-groups advisory for moderate conditions, or broadcast a public health warning for poor air quality.

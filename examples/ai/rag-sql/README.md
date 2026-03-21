@@ -20,7 +20,7 @@ Five workers implement natural language to SQL. parsing the question for intent 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ExecuteSqlWorker** | `sq_execute_sql` | Worker that executes a SQL query and returns simulated result rows. Returns 5 rows with workflow_name, execution_coun... |
+| **ExecuteSqlWorker** | `sq_execute_sql` | Worker that executes a SQL query and returns demo result rows. Returns 5 rows with workflow_name, execution_coun... |
 | **FormatResultsWorker** | `sq_format_results` | Worker that formats SQL query results into a natural-language answer. Takes the original question, SQL, rows, and row... |
 | **GenerateSqlWorker** | `sq_generate_sql` | Worker that generates a SQL query from the parsed intent, entities, and schema. |
 | **ParseNlWorker** | `sq_parse_nl` | Worker that parses a natural-language question against a database schema. Extracts intent and structured entities. |
@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, GenerateSqlWorker and ParseNlWorker call gpt-4o-mini instead of using simulated output |
+| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, GenerateSqlWorker and ParseNlWorker call gpt-4o-mini instead of using demo output |
 
 ## Using the Conductor CLI
 

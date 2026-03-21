@@ -1,6 +1,7 @@
 # Message Correlation in Java Using Conductor :  Group Related Messages by ID and Process Together
 
 A Java Conductor workflow example for message correlation. receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Linking Messages That Belong Together
 
 A single customer order generates events from the payment service, the inventory service, and the shipping service. Each event arrives independently with its own schema, but they all share an order ID. To build a complete order view. payment confirmed, items reserved, label printed,  you need to match these messages by their correlation field, group them, and process each group as a whole.
@@ -131,13 +132,13 @@ conductor workflow search -w crp_correlation_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker tackles one correlation concern. replace the simulated message matching with real Kafka or event stream consumers and the group-and-process logic runs unchanged.
+Each worker tackles one correlation concern. replace the demo message matching with real Kafka or event stream consumers and the group-and-process logic runs unchanged.
 
 - **CrpReceiveMessagesWorker** (`crp_receive_messages`): consume real messages from Kafka, SQS, or a webhook endpoint instead of accepting them as workflow input
 - **CrpMatchByIdWorker** (`crp_match_by_id`): look up additional context from a database while correlating, or use Redis to track cross-workflow correlation state for messages arriving in separate workflow runs
 - **CrpProcessWorker** (`crp_process`): write the fully-correlated order/session/transaction view to a data warehouse (BigQuery, Redshift) or trigger downstream workflows per correlated group
 
-The correlated-group output contract stays fixed. Swap the simulated message source for a real Kafka or SNS consumer and the match-aggregate-process pipeline runs unchanged.
+The correlated-group output contract stays fixed. Swap the demo message source for a real Kafka or SNS consumer and the match-aggregate-process pipeline runs unchanged.
 
 ## SDK
 

@@ -132,7 +132,7 @@ conductor workflow search -w artifact_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one artifact lifecycle step. replace the simulated calls with Maven/Gradle builds, Sigstore signing, or JFrog Artifactory publishing, and the management workflow runs unchanged.
+Each worker owns one artifact lifecycle step. replace the demo calls with Maven/Gradle builds, Sigstore signing, or JFrog Artifactory publishing, and the management workflow runs unchanged.
 
 - **BuildWorker** (`am_build`): integrate with Maven/Gradle for JAR builds, Docker buildx for multi-architecture images, or npm pack for JavaScript packages
 - **SignWorker** (`am_sign`): use Sigstore/cosign for keyless signing of container images, GPG for JAR signing, or AWS Signer for code signing with audit trails

@@ -25,7 +25,7 @@ Four agents collaborate sequentially, the analyst produces findings, the strateg
 | **ExecutorWorker** | `ac_executor` | Translates the strategy into 6 concrete action items with owners (Marketing, Customer Support, Product, Data Science, Operations), deadlines (Week 2-8), and priority levels. Creates a 3-phase, 8-week timeline (Quick Wins, Foundation, Scale & Sustain). |
 | **CompilePlanWorker** | `ac_compile_plan` | Assembles insights, strategy, action items, and timeline into a consolidated plan summary. Reports counts (insights used, strategy pillars, action items) and timeline duration. Sets status to "ready_for_review". |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 

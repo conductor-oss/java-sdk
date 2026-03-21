@@ -21,7 +21,7 @@ Two workers demonstrate retry resilience. an LLM call worker that may fail trans
 | **RetryLlmCallWorker** | `retry_llm_call` | LLM API call that fails with 429 rate-limit errors on the first two attempts, then succeeds on the third. Calls OpenAI API in live mode on success attempt. |
 | **RetryReportWorker** | `retry_report` | Summarises the retry outcome. Receives the LLM response and the number of attempts it took to succeed. | Processing only |
 
-**Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, the successful attempt (3rd+) of `RetryLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in simulated mode with deterministic output prefixed with `[SIMULATED]`. The retry simulation (first 2 attempts fail with 429) always runs regardless of mode.
+**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, the successful attempt (3rd+) of `RetryLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in demo mode with deterministic output prefixed with `[DEMO]`. The retry simulation (first 2 attempts fail with 429) always runs regardless of mode.
 
 ### The Workflow
 
@@ -91,7 +91,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, successful LLM attempts call the real API. When absent, runs in simulated mode. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, successful LLM attempts call the real API. When absent, runs in demo mode. |
 
 ## Using the Conductor CLI
 
@@ -128,7 +128,7 @@ Each worker contains only the API call logic with zero retry code. swap in a rea
 - **RetryLlmCallWorker** (`retry_llm_call`): swap in a real LLM API call (OpenAI, Claude, Gemini); throw `RuntimeException` on transient errors so Conductor triggers its retry logic
 - **RetryReportWorker** (`retry_report`): write retry metrics to a monitoring system (Datadog, Prometheus) to track retry rates over time
 
-The call/report contract stays fixed. replace the simulated LLM call with a real API client and Conductor's retry configuration handles transient failures without any worker code changes.
+The call/report contract stays fixed. replace the demo LLM call with a real API client and Conductor's retry configuration handles transient failures without any worker code changes.
 
 ## SDK
 

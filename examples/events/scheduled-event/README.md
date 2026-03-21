@@ -143,7 +143,7 @@ Wire each worker to your real job queue (Redis sorted sets, DynamoDB), scheduler
 - **Wait worker**: use Conductor's WAIT task for durable, crash-resistant waits instead of Thread.sleep()
 - **Executor**: implement the actual scheduled action (send reminder email, cancel expired order, trigger report generation)
 
-Replacing the simulated wait with a real timer service or connecting ExecuteEventWorker to live job logic requires no pipeline changes.
+Replacing the demo wait with a real timer service or connecting ExecuteEventWorker to live job logic requires no pipeline changes.
 
 ## SDK
 

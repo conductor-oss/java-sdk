@@ -1,6 +1,7 @@
 # Reservation System in Java with Conductor
 
 Manages restaurant reservations end-to-end: checking table availability, booking, sending confirmation and reminder, and seating the party on arrival. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage restaurant reservations from booking to seating. The workflow checks table availability for the requested date, time, and party size, creates the reservation, sends a confirmation to the guest, sends a reminder before the reservation, and seats the party when they arrive. Double-booking a table ruins the dining experience; forgetting to send reminders leads to no-shows.

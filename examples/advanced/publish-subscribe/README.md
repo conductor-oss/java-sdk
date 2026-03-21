@@ -1,6 +1,7 @@
 # Publish-Subscribe in Java Using Conductor :  Publish Event, Fan Out to Subscribers in Parallel, Confirm
 
 A Java Conductor workflow example for publish-subscribe. publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## One Event, Multiple Subscribers, All Must Succeed
 
 A user signs up and three things need to happen: the welcome email service sends an onboarding email, the analytics service records the signup event, and the provisioning service creates the user's workspace. These are independent subscribers. none depends on the others; but all three must eventually succeed. If the email service is down, the signup shouldn't block provisioning, and you need to know which subscribers processed the event and which didn't.
@@ -133,7 +134,7 @@ conductor workflow search -w pbs_publish_subscribe -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker represents one subscriber's processing logic. replace the simulated event handlers with real email, analytics, or provisioning service calls and the fan-out pipeline runs unchanged.
+Each worker represents one subscriber's processing logic. replace the demo event handlers with real email, analytics, or provisioning service calls and the fan-out pipeline runs unchanged.
 
 - **PbsPublishWorker** (`pbs_publish`): publish to a real SNS topic, Kafka topic, or Redis Pub/Sub channel instead of simulating the event publish
 - **PbsSubscriber*Workers** (`pbs_subscriber_1/2/3`). implement real subscriber logic: send emails via SES, write analytics events to Segment/Mixpanel, provision resources via cloud APIs

@@ -1,6 +1,7 @@
 # Supply Chain IoT in Java with Conductor :  Shipment Tracking, Condition Monitoring, and Alert-Based Rerouting
 
 A Java Conductor workflow example that orchestrates supply chain monitoring. tracking shipment location from origin to destination, monitoring in-transit environmental conditions (temperature for cold chain compliance), and routing to different handlers via SWITCH based on condition status: continue the shipment if conditions are normal, or trigger an alert and initiate rerouting if conditions breach thresholds. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Supply Chain Monitoring Needs Orchestration
 
 Shipping perishable goods or sensitive materials requires continuous monitoring throughout transit. You track the shipment's GPS position to know where it is. You check the in-transit environmental conditions. temperature inside the container, humidity levels, door-open events. Based on those conditions, you take entirely different actions: if everything is within spec, you log the checkpoint and continue. If the temperature exceeds the cold chain threshold, you trigger an alert, notify the logistics team, and initiate rerouting to a closer destination before the cargo is compromised.

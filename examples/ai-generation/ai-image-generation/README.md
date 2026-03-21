@@ -21,14 +21,14 @@ The pipeline splits image generation into five focused workers, from prompt refi
 | Worker | Task | What It Does |
 |---|---|---|
 | **PromptWorker** | `aig_prompt` | Engineers the user prompt for optimal model output. processes prompt text and style parameters, returns a refined prompt with token count |
-| **GenerateWorker** | `aig_generate` | Generates the image at 1024x1024 resolution using the processed prompt and style settings | **Real (DALL-E 3)** when `CONDUCTOR_OPENAI_API_KEY` is set, Simulated otherwise |
+| **GenerateWorker** | `aig_generate` | Generates the image at 1024x1024 resolution using the processed prompt and style settings | **Real (DALL-E 3)** when `CONDUCTOR_OPENAI_API_KEY` is set, Demo otherwise |
 | **EnhanceWorker** | `aig_enhance` | Upscales the generated image and applies color correction for final output quality |
 | **ValidateWorker** | `aig_validate` | Validates content safety and quality (quality score: 0.94, safe: true) against specifications |
 | **DeliverWorker** | `aig_deliver` | Delivers the final image as PNG format to the specified output destination |
 
-**Live mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `GenerateWorker` calls the real OpenAI DALL-E 3 API to generate images. The response includes `imageUrl` (a temporary URL to the generated image) and `revisedPrompt` (DALL-E's refined version of your prompt). When the key is not set, the worker runs in simulated mode with `[SIMULATED]` prefixed output.
+**Live mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `GenerateWorker` calls the real OpenAI DALL-E 3 API to generate images. The response includes `imageUrl` (a temporary URL to the generated image) and `revisedPrompt` (DALL-E's refined version of your prompt). When the key is not set, the worker runs in demo mode with `[DEMO]` prefixed output.
 
-The remaining simulated workers produce realistic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call. the worker interface stays the same, and no workflow changes are needed.
+The remaining demo workers produce realistic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call. the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 
@@ -107,7 +107,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | *(unset)* | OpenAI API key. When set, `GenerateWorker` calls the real DALL-E 3 API to generate images. When unset, it runs in simulated mode. |
+| `CONDUCTOR_OPENAI_API_KEY` | *(unset)* | OpenAI API key. When set, `GenerateWorker` calls the real DALL-E 3 API to generate images. When unset, it runs in demo mode. |
 
 ## Using the Conductor CLI
 

@@ -1,6 +1,7 @@
 # ML Model Registry in Java Using Conductor :  Register, Version, Validate, Approve, Deploy
 
 A Java Conductor workflow example for ML model lifecycle management. registering a trained model with its artifact and metrics, assigning a version number, validating performance against quality gates, routing through an approval process, and deploying the approved model to production. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Models Without a Registry Are Unmanageable
 
 Your team trains dozens of models a month. Without a registry, model artifacts live in S3 buckets with names like `model-final-v2-FIXED.pkl`, nobody knows which version is in production, and deploying a new model means SSH-ing into a server and swapping a file. When the new model degrades accuracy, there's no way to roll back to the previous version because nobody recorded which artifact, metrics, or approval was associated with it.
@@ -135,13 +136,13 @@ conductor workflow search -w model_registry_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one model lifecycle gate. replace the simulated registry operations with real MLflow or SageMaker Model Registry APIs and the version-validate-approve-deploy pipeline runs unchanged.
+Each worker manages one model lifecycle gate. replace the demo registry operations with real MLflow or SageMaker Model Registry APIs and the version-validate-approve-deploy pipeline runs unchanged.
 
 - **MrgRegisterWorker** (`mrg_register`): store model artifacts in MLflow Model Registry, SageMaker Model Registry, or Vertex AI Model Registry with associated training metadata
 - **MrgValidateWorker** (`mrg_validate`): run real validation: load the model, score against a held-out dataset, check accuracy/latency/fairness metrics against configurable thresholds
 - **MrgDeployWorker** (`mrg_deploy`): deploy to SageMaker endpoints, Kubernetes (Seldon/KServe), or TorchServe via their respective APIs
 
-The registration and validation contract stays fixed. Swap the simulated store for a real MLflow Model Registry or SageMaker Model Registry and the approve-deploy pipeline runs unchanged.
+The registration and validation contract stays fixed. Swap the demo store for a real MLflow Model Registry or SageMaker Model Registry and the approve-deploy pipeline runs unchanged.
 
 ## SDK
 

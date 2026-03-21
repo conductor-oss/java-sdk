@@ -123,7 +123,7 @@ conductor workflow search -w predictive_monitoring -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one prediction stage. replace the simulated calls with Prometheus range queries, Prophet time-series forecasting, or PagerDuty proactive alerts, and the monitoring workflow runs unchanged.
+Each worker handles one prediction stage. replace the demo calls with Prometheus range queries, Prophet time-series forecasting, or PagerDuty proactive alerts, and the monitoring workflow runs unchanged.
 
 - **CollectHistory** (`pdm_collect_history`): query Prometheus range queries, CloudWatch GetMetricData, or InfluxDB for historical metric data with proper aggregation and gap handling
 - **TrainModel** (`pdm_train_model`): use Prophet for time-series forecasting with automatic seasonality detection, scikit-learn for linear models, or AWS Forecast for managed ML-based predictions

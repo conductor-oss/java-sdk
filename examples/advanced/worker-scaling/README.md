@@ -1,6 +1,7 @@
 # Worker Auto-Scaling in Java Using Conductor :  Monitor Queue, Calculate Capacity, Scale, Verify
 
 A Java Conductor workflow example for worker auto-scaling. monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Fixed Worker Counts Waste Money or Miss SLAs
 
 Your task queue processes 100 messages per second during business hours and 5 per second overnight. Running enough workers for peak load 24/7 wastes 95% of compute during off-hours. Running for average load means queue depth explodes during peaks and latency exceeds your SLA. You need to dynamically scale workers based on current queue depth and target latency.
@@ -131,13 +132,13 @@ conductor workflow search -w wks_worker_scaling -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one auto-scaling concern. replace the simulated queue monitoring with real CloudWatch or Prometheus metrics APIs and the monitor-calculate-scale loop runs unchanged.
+Each worker covers one auto-scaling concern. replace the demo queue monitoring with real CloudWatch or Prometheus metrics APIs and the monitor-calculate-scale loop runs unchanged.
 
 - **WksMonitorQueueWorker** (`wks_monitor_queue`): query real queue metrics: SQS `getQueueAttributes()` for depth, CloudWatch for processing rate, or Conductor's own task queue metrics via the API
 - **WksScaleWorkersWorker** (`wks_scale_workers`): call real scaling APIs: Kubernetes HPA (`kubectl scale`), AWS Auto Scaling `setDesiredCapacity()`, or ECS `updateService()` to adjust task count
 - **WksVerifyScalingWorker** (`wks_verify_scaling`): poll the scaling target to confirm new workers are running: check Kubernetes pod count, EC2 instance status, or queue depth trending downward
 
-The monitoring and scaling contract stays fixed. Swap the simulated queue metrics for real CloudWatch or Prometheus queries and the calculate-scale-verify cycle runs unchanged.
+The monitoring and scaling contract stays fixed. Swap the demo queue metrics for real CloudWatch or Prometheus queries and the calculate-scale-verify cycle runs unchanged.
 
 ## SDK
 

@@ -132,15 +132,15 @@ conductor workflow search -w service_discovery_devops_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one service discovery step. Replace the simulated calls with Consul, Eureka, or Kubernetes Service APIs for real registration and routing updates, and the discovery workflow runs unchanged.
+Each worker handles one service discovery step. Replace the demo calls with Consul, Eureka, or Kubernetes Service APIs for real registration and routing updates, and the discovery workflow runs unchanged.
 
-- **`RegisterWorker`**: Replace the simulated registration with a call to [HashiCorp Consul](https://www.consul.io/) service catalog, [Netflix Eureka](https://github.com/Netflix/eureka) registry, or the [Kubernetes Service API](https://kubernetes.io/docs/concepts/services-networking/service/) to register the instance in a real service mesh.
+- **`RegisterWorker`**: Replace the demo registration with a call to [HashiCorp Consul](https://www.consul.io/) service catalog, [Netflix Eureka](https://github.com/Netflix/eureka) registry, or the [Kubernetes Service API](https://kubernetes.io/docs/concepts/services-networking/service/) to register the instance in a real service mesh.
 
-- **`HealthCheckWorker`**: Replace the simulated health probe with real HTTP or gRPC health checks against the service endpoint, or integrate with [Kubernetes readiness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) to verify the instance is ready to receive traffic.
+- **`HealthCheckWorker`**: Replace the demo health probe with real HTTP or gRPC health checks against the service endpoint, or integrate with [Kubernetes readiness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) to verify the instance is ready to receive traffic.
 
-- **`UpdateRoutingWorker`**: Replace the simulated routing update with calls to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) configuration, NGINX upstream config updates, or [AWS ALB target group](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) registration to route real traffic to the new instance.
+- **`UpdateRoutingWorker`**: Replace the demo routing update with calls to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) configuration, NGINX upstream config updates, or [AWS ALB target group](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) registration to route real traffic to the new instance.
 
-- **`NotifyConsumersWorker`**: Replace the simulated notification with DNS record updates, webhook callbacks to downstream services, or service mesh sidecar configuration refresh (e.g., Envoy xDS push) so consumers discover the new endpoint.
+- **`NotifyConsumersWorker`**: Replace the demo notification with DNS record updates, webhook callbacks to downstream services, or service mesh sidecar configuration refresh (e.g., Envoy xDS push) so consumers discover the new endpoint.
 
 Integrate with Consul or Eureka for real service registration; the discovery pipeline preserves the same register-verify-route interface.
 

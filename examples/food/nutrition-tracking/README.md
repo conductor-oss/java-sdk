@@ -1,6 +1,7 @@
 # Nutrition Tracking in Java with Conductor
 
 Tracks a user's nutritional intake: logging meals, looking up calories and macros, calculating daily totals against goals, and generating a nutrition report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to track a user's nutritional intake for a meal. The workflow logs what foods were consumed, looks up the nutritional information (calories, macros, micronutrients) for each food item, calculates daily totals by combining the meal with previous meals that day, and generates a nutrition report. Tracking without accurate nutritional data gives users a false sense of their intake; not calculating daily totals means missing calorie or macro targets.

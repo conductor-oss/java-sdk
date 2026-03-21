@@ -92,7 +92,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `TEAMS_WEBHOOK_URL` | _(none)_ | Teams Incoming Webhook URL. When set, PostCardWorker posts real cards to Teams. When unset, all workers run in simulated mode with `[SIMULATED]` output prefix. |
+| `TEAMS_WEBHOOK_URL` | _(none)_ | Teams Incoming Webhook URL. When set, PostCardWorker posts real cards to Teams. When unset, all workers run in demo mode with `[DEMO]` output prefix. |
 
 ## Using the Conductor CLI
 

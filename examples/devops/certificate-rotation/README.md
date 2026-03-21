@@ -123,7 +123,7 @@ conductor workflow search -w certificate_rotation_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one certificate lifecycle step. Replace the simulated calls with Let's Encrypt ACME, AWS Certificate Manager, or HashiCorp Vault PKI, and the rotation workflow runs unchanged.
+Each worker handles one certificate lifecycle step. Replace the demo calls with Let's Encrypt ACME, AWS Certificate Manager, or HashiCorp Vault PKI, and the rotation workflow runs unchanged.
 
 - **`DiscoverWorker`**: Query AWS Certificate Manager, Let's Encrypt, or scan endpoints with OpenSSL to find certificates approaching expiration.
 

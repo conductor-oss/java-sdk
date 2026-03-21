@@ -1,6 +1,7 @@
 # Message Broker Pipeline in Java Using Conductor :  Receive, Route, Deliver, Acknowledge, Log
 
 A Java Conductor workflow example for message brokering. receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Messages Need Reliable Routing, Not Just Transport
 
 A message arrives on the `orders` topic with `high` priority. It needs to be routed to the order processing service, not the analytics pipeline. Another message arrives on `notifications` with `low` priority. it should go to the batch notification queue, not the real-time push service. Topic-based routing, priority handling, delivery confirmation, and audit logging are the core responsibilities of a message broker.
@@ -135,13 +136,13 @@ conductor workflow search -w mbr_message_broker -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one brokering responsibility. replace the simulated topic routing with real RabbitMQ exchange bindings or Kafka partition logic and the route-deliver-acknowledge pipeline runs unchanged.
+Each worker handles one brokering responsibility. replace the demo topic routing with real RabbitMQ exchange bindings or Kafka partition logic and the route-deliver-acknowledge pipeline runs unchanged.
 
 - **MbrRouteWorker** (`mbr_route`): implement real topic-based routing using a routing table in Redis or a database, or integrate with RabbitMQ exchange bindings or Kafka topic partitioning
 - **MbrDeliverWorker** (`mbr_deliver`): publish to real subscriber endpoints via HTTP POST (webhooks), Kafka `producer.send()`, SQS `sendMessage()`, or gRPC streaming
 - **MbrLogWorker** (`mbr_log`): write audit records to Elasticsearch for searchable message history, or CloudWatch Logs / Splunk for compliance tracking
 
-The routing and acknowledgment contract stays fixed. Swap simulated topic resolution for real RabbitMQ exchanges or Kafka topic routing and the deliver-acknowledge-log pipeline runs unchanged.
+The routing and acknowledgment contract stays fixed. Swap demo topic resolution for real RabbitMQ exchanges or Kafka topic routing and the deliver-acknowledge-log pipeline runs unchanged.
 
 ## SDK
 

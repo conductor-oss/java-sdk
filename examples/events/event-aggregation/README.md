@@ -1,6 +1,7 @@
 # Event Aggregation in Java Using Conductor
 
 Event Aggregation Pipeline: collect events from a time window, aggregate metrics, generate a summary report, and publish the batch. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to aggregate events from a time window into summary metrics. The pipeline must collect all events within a specified window, compute aggregate statistics (counts, sums, averages, percentiles), generate a human-readable summary report, and publish the aggregated batch downstream. Without aggregation, downstream systems are overwhelmed by high-volume raw events; without windowing, you lose temporal context.

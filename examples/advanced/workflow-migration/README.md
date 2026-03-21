@@ -1,6 +1,7 @@
 # Workflow Migration in Java Using Conductor :  Export from Legacy, Transform, Import to New, Verify
 
 A Java Conductor workflow example for workflow migration. exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Migrating from Legacy Orchestration Without Losing History
 
 You're moving from Airflow to Conductor (or Jenkins to Conductor, or a custom cron-based system). The legacy system has 200 workflow definitions, execution history that auditors need, and active runs that can't be interrupted. Migration means exporting the old definitions and history, transforming them into the target format (different task naming, different input/output schemas), importing them into the new system, and verifying that the migrated workflows produce identical results.
@@ -131,13 +132,13 @@ conductor workflow search -w workflow_migration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one migration phase. replace the simulated legacy exports with real Airflow or Jenkins API calls and the export-transform-import-verify pipeline runs unchanged.
+Each worker handles one migration phase. replace the demo legacy exports with real Airflow or Jenkins API calls and the export-transform-import-verify pipeline runs unchanged.
 
 - **WmExportOldWorker** (`wm_export_old`): export from real systems: Airflow `dag export` API, Jenkins job config XML, or Conductor's own `workflow/metadata` API for cross-cluster migration
 - **WmTransformWorker** (`wm_transform`): implement real format transformation: JOLT for JSON-to-JSON mapping, custom translators for Airflow DAG Python to Conductor JSON, or XSLT for XML-based legacy systems
 - **WmVerifyWorker** (`wm_verify`): run real verification: execute the migrated workflow with test inputs and diff the outputs against recorded legacy results using JSON diff tools
 
-The export and transform contract stays fixed. Swap the simulated legacy connector for a real Airflow or Jenkins API client and the import-verify pipeline runs unchanged.
+The export and transform contract stays fixed. Swap the demo legacy connector for a real Airflow or Jenkins API client and the import-verify pipeline runs unchanged.
 
 ## SDK
 

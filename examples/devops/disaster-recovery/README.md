@@ -132,7 +132,7 @@ conductor workflow search -w disaster_recovery_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one failover step. replace the simulated calls with AWS RDS promote-replica, Route53, or Azure Service Health APIs, and the DR workflow runs unchanged.
+Each worker owns one failover step. replace the demo calls with AWS RDS promote-replica, Route53, or Azure Service Health APIs, and the DR workflow runs unchanged.
 
 - **DetectWorker** (`dr_detect`): integrate with AWS Health API, Azure Service Health, or synthetic monitoring (e.g., Pingdom, Checkly) to detect region failures
 - **FailoverDbWorker** (`dr_failover_db`): call AWS RDS promote-read-replica, Aurora Global Database failover, or equivalent cloud DB failover APIs

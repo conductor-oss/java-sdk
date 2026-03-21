@@ -138,7 +138,7 @@ Each worker handles one stage of the conversation turn. connect your NLU service
 - **GenerateResponseWorker** (`cbo_generate_response`): swap in an LLM (GPT-4, Claude) for dynamic, context-aware response generation
 - **ReceiveWorker** (`cbo_receive`): integrate with a session store (Redis, DynamoDB) to load and persist conversation history
 
-Replace the simulated NLU with Dialogflow or Amazon Lex and the conversation-turn pipeline continues to function unchanged.
+Replace the demo NLU with Dialogflow or Amazon Lex and the conversation-turn pipeline continues to function unchanged.
 
 ## SDK
 

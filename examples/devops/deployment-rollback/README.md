@@ -132,7 +132,7 @@ conductor workflow search -w deployment_rollback_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one rollback step. replace the simulated calls with Datadog anomaly detection, Kubernetes rollout undo, or ArgoCD sync for real failure detection and recovery, and the rollback workflow runs unchanged.
+Each worker handles one rollback step. replace the demo calls with Datadog anomaly detection, Kubernetes rollout undo, or ArgoCD sync for real failure detection and recovery, and the rollback workflow runs unchanged.
 
 - **DetectFailureWorker** (`rb_detect_failure`): query Datadog, New Relic, or Prometheus for error rate spikes correlated with deployment timestamps, with automatic threshold-based detection
 - **IdentifyVersionWorker** (`rb_identify_version`): look up the last successful deployment in Argo CD, Spinnaker, or a deploy history database, returning the stable version tag and Git revision hash

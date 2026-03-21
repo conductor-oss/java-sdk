@@ -1,6 +1,7 @@
 # Education Enrollment in Java with Conductor :  Application, Review, Admission, Registration, and Orientation
 
 A Java Conductor workflow example for student enrollment. accepting an application, reviewing academic qualifications (GPA-based scoring), making an admission decision, registering the admitted student in their program, and scheduling their orientation session. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process new student enrollments from application to orientation. A prospective student submits an application for a program, the admissions office reviews their academic record and assigns a score based on GPA and other criteria, an admission decision is made, the admitted student is registered in the program, and finally an orientation session is scheduled. Each step depends on the previous. you cannot admit without a review score, and you cannot enroll without an admission decision.

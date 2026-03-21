@@ -22,12 +22,12 @@ Four workers implement the multi-provider fallback. One per LLM provider (GPT-4,
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **FbCallGpt4Worker** | `fb_call_gpt4` | Calls GPT-4 (the preferred model). In live mode, calls the OpenAI Chat Completions API. In simulated mode, returns a `503 Service Unavailable` failure to trigger the fallback chain |
-| **FbCallClaudeWorker** | `fb_call_claude` | Calls Claude (first fallback). In live mode, calls the Anthropic Messages API. In simulated mode, returns a `429 Too Many Requests` failure to trigger the next fallback |
-| **FbCallGeminiWorker** | `fb_call_gemini` | Calls Gemini (last resort). In live mode, calls the Google Generative Language API. In simulated mode, returns a `` success response completing the fallback chain |
+| **FbCallGpt4Worker** | `fb_call_gpt4` | Calls GPT-4 (the preferred model). In live mode, calls the OpenAI Chat Completions API. In demo mode, returns a `503 Service Unavailable` failure to trigger the fallback chain |
+| **FbCallClaudeWorker** | `fb_call_claude` | Calls Claude (first fallback). In live mode, calls the Anthropic Messages API. In demo mode, returns a `429 Too Many Requests` failure to trigger the next fallback |
+| **FbCallGeminiWorker** | `fb_call_gemini` | Calls Gemini (last resort). In live mode, calls the Google Generative Language API. In demo mode, returns a `` success response completing the fallback chain |
 | **FbFormatResultWorker** | `fb_format_result` | Inspects the status of each model's response, selects the first successful response, and reports which model was used and how many fallbacks were triggered (0 = GPT-4 succeeded, 1 = Claude, 2 = Gemini) | Always runs locally |
 
-Each worker auto-detects whether to make live API calls or return simulated responses based on the corresponding environment variable. No code changes are needed to switch between modes. Just set or unset the API key. All API calls use `java.net.http.HttpClient` (built into Java 21) with Jackson for JSON serialization.
+Each worker auto-detects whether to make live API calls or return demo responses based on the corresponding environment variable. No code changes are needed to switch between modes. Just set or unset the API key. All API calls use `java.net.http.HttpClient` (built into Java 21) with Jackson for JSON serialization.
 
 ### The Workflow
 
@@ -58,7 +58,7 @@ docker compose up --build
 
 ```
 
-Starts Conductor on port 8080 and runs the example automatically in simulated mode.
+Starts Conductor on port 8080 and runs the example automatically in demo mode.
 
 To run with live API calls, pass your API keys:
 
@@ -83,7 +83,7 @@ docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 
-# Build and run (simulated mode)
+# Build and run (demo mode)
 mvn package -DskipTests
 java -jar target/llm-fallback-chain-1.0.0.jar
 
@@ -121,7 +121,7 @@ CONDUCTOR_OPENAI_API_KEY=sk-... CONDUCTOR_ANTHROPIC_API_KEY=sk-ant-... GOOGLE_AP
 | `CONDUCTOR_ANTHROPIC_API_KEY` | _(not set)_ | Anthropic API key. When set, `FbCallClaudeWorker` makes live API calls to Claude |
 | `GOOGLE_API_KEY` | _(not set)_ | Google API key. When set, `FbCallGeminiWorker` makes live API calls to Gemini |
 
-Each LLM worker independently checks for its API key. You can set any combination, for example, set only `GOOGLE_API_KEY` to make live Gemini calls while GPT-4 and Claude run in simulated mode.
+Each LLM worker independently checks for its API key. You can set any combination, for example, set only `GOOGLE_API_KEY` to make live Gemini calls while GPT-4 and Claude run in demo mode.
 
 ## Using the Conductor CLI
 
@@ -153,7 +153,7 @@ conductor workflow search -w llm_fallback_chain_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker wraps one LLM provider call with live/simulated dual-mode. The real API integrations are already built in. Just set the corresponding environment variable to enable live calls.
+Each worker wraps one LLM provider call with live/demo dual-mode. The real API integrations are already built in. Just set the corresponding environment variable to enable live calls.
 
 - **FbCallGpt4Worker** (`fb_call_gpt4`): calls OpenAI Chat Completions API (`gpt-4`) when `CONDUCTOR_OPENAI_API_KEY` is set. Customize the model, max_tokens, or add system prompts by editing the request body
 - **FbCallClaudeWorker** (`fb_call_claude`): calls Anthropic Messages API (`claude-sonnet-4-6`) when `CONDUCTOR_ANTHROPIC_API_KEY` is set. Handles rate limits (429) and server errors as `status: "failed"`
@@ -191,9 +191,9 @@ llm-fallback-chain/
 │   ├── ConductorClientHelper.java   # SDK v5 client setup
 │   ├── LlmFallbackChainExample.java # Main entry point (supports --workers mode)
 │   └── workers/
-│       ├── FbCallClaudeWorker.java   # Claude call (live Anthropic API / simulated 429)
-│       ├── FbCallGeminiWorker.java   # Gemini call (live Google API / simulated success)
-│       ├── FbCallGpt4Worker.java     # GPT-4 call (live OpenAI API / simulated 503)
+│       ├── FbCallClaudeWorker.java   # Claude call (live Anthropic API / demo 429)
+│       ├── FbCallGeminiWorker.java   # Gemini call (live Google API / demo success)
+│       ├── FbCallGpt4Worker.java     # GPT-4 call (live OpenAI API / demo 503)
 │       └── FbFormatResultWorker.java # Picks first success, reports fallback count
 └── src/test/java/llmfallbackchain/workers/
     ├── FbCallClaudeWorkerTest.java

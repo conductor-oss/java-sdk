@@ -103,7 +103,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 | `ZENDESK_SUBDOMAIN` | _(none)_ | Zendesk subdomain (e.g., `yourcompany` for `yourcompany.zendesk.com`). Required for live mode. |
 | `ZENDESK_EMAIL` | _(none)_ | Zendesk agent email for API auth. Required for live mode. |
-| `ZENDESK_API_TOKEN` | _(none)_ | Zendesk API token. When set with `ZENDESK_SUBDOMAIN`, CreateTicketWorker calls the Zendesk REST API. When unset, all workers run in simulated mode with `[SIMULATED]` output prefix. |
+| `ZENDESK_API_TOKEN` | _(none)_ | Zendesk API token. When set with `ZENDESK_SUBDOMAIN`, CreateTicketWorker calls the Zendesk REST API. When unset, all workers run in demo mode with `[DEMO]` output prefix. |
 
 ## Using the Conductor CLI
 

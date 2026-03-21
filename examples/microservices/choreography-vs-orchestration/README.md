@@ -138,7 +138,7 @@ Connect each worker to your real order database, Stripe or Braintree payment gat
 - **ProcessPaymentWorker** (`cvo_process_payment`): integrate with a payment gateway (Stripe, Braintree, Adyen) to charge the customer
 - **ReserveInventoryWorker** (`cvo_reserve_inventory`): query your inventory management system (ERP, warehouse API) for real stock reservation
 
-Swapping from a simulated payment gateway to Stripe or Braintree leaves the orchestrated order flow unchanged.
+Swapping from a demo payment gateway to Stripe or Braintree leaves the orchestrated order flow unchanged.
 
 ## SDK
 

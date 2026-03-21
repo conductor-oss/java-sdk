@@ -1,6 +1,7 @@
 # Multi-Level Approval Chain in Java Using Conductor :  Manager, Director, VP Sequential WAIT/SWITCH with Early Rejection Termination
 
 A Java Conductor workflow example for sequential multi-level approval. routing a request through Manager, Director, and VP, each using a WAIT task for human input followed by a SWITCH to check the decision. If any level rejects, the workflow terminates immediately without advancing to the next level. All three must approve for finalization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## High-Value Requests Must Pass Through Manager, Director, and VP Approval
 
 Some requests require sequential approval from multiple levels of management. First a Manager, then a Director, then a VP. Each level uses a WAIT task for human input, followed by a SWITCH that checks the decision. If any level rejects, the workflow terminates immediately. If all three approve, the request is finalized. If finalization fails after VP approval, you need to retry it without asking all three approvers to re-approve.

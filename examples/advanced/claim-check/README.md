@@ -1,6 +1,7 @@
 # Claim Check Pattern in Java Using Conductor :  Offload Large Payloads, Pass by Reference
 
 A Java Conductor workflow example for the claim check pattern. storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Keeping Large Payloads Out of Your Message Bus
 
 Workflow tasks exchange data through their inputs and outputs, but passing a 50 MB medical image or a 200 MB CSV dataset directly between tasks bloats every message, slows serialization, and can hit broker size limits. The claim check pattern solves this: store the large payload in blob storage, pass a small reference ID (the "claim check") through the pipeline, and retrieve the full data only in the task that actually needs it.
@@ -131,13 +132,13 @@ conductor workflow search -w clc_claim_check -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one part of the store-reference-retrieve lifecycle. replace the simulated blob storage calls with real S3 or Azure Blob APIs and the claim check pipeline runs unchanged.
+Each worker handles one part of the store-reference-retrieve lifecycle. replace the demo blob storage calls with real S3 or Azure Blob APIs and the claim check pipeline runs unchanged.
 
 - **StorePayloadWorker** (`clc_store_payload`): upload to S3 (`s3.putObject()`), Azure Blob Storage, or GCS and return the object key as the claim check ID
 - **RetrieveWorker** (`clc_retrieve`): download from S3 (`s3.getObject()`), generate a presigned URL, or stream the payload directly to the processing step
 - **ProcessWorker** (`clc_process`): run real processing on the retrieved data: image thumbnail generation with ImageMagick, CSV aggregation with Apache Commons CSV, or PDF text extraction with Apache Tika
 
-The claim check reference contract stays fixed. Swap simulated blob storage for real S3 or Azure Blob and the reference-passing pipeline runs unchanged.
+The claim check reference contract stays fixed. Swap demo blob storage for real S3 or Azure Blob and the reference-passing pipeline runs unchanged.
 
 ## SDK
 

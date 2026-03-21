@@ -1,6 +1,7 @@
 # Tax Calculation in Java Using Conductor :  Determine Jurisdiction, Calculate Rates, Apply, Report
 
 A Java Conductor workflow example for sales tax calculation. resolving the tax jurisdiction from a shipping address, computing the applicable federal/state/local/district tax rates, applying the combined rate to the order subtotal, and recording the tax obligation for compliance reporting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Sales Tax Is Surprisingly Complex
 
 A $100 order shipping to Boulder, Colorado has four layers of sales tax: Colorado state (2.9%), Boulder County (0.985%), City of Boulder (3.86%), and RTD special district (1.0%). totaling 8.745%, or $8.75 in tax. Ship the same order to Portland, Oregon, and the tax is $0 (Oregon has no sales tax). Ship it to Chicago, and the rate depends on the product category,  clothing, food, and electronics have different rates.

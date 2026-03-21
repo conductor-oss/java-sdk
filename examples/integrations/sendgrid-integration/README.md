@@ -25,7 +25,7 @@ Four workers handle email delivery: ComposeEmailWorker loads templates, Personal
 | **SendEmailWorker** | `sgd_send_email` | Sends an email via SendGrid. |
 | **TrackOpensWorker** | `sgd_track_opens` | Tracks email opens. |
 
-The workers auto-detect SendGrid credentials at startup. When `SENDGRID_API_KEY` is set, SendEmailWorker uses the real SendGrid Mail Send API (v3, via `java.net.http`) to deliver emails. Without the key, it falls back to simulated mode with realistic output shapes so the workflow runs end-to-end without a SendGrid account.
+The workers auto-detect SendGrid credentials at startup. When `SENDGRID_API_KEY` is set, SendEmailWorker uses the real SendGrid Mail Send API (v3, via `java.net.http`) to deliver emails. Without the key, it falls back to demo mode with realistic output shapes so the workflow runs end-to-end without a SendGrid account.
 
 ### The Workflow
 
@@ -133,7 +133,7 @@ conductor workflow search -w sendgrid_integration_437 -s COMPLETED -c 5
 
 ## How to Extend
 
-SendEmailWorker already uses the real SendGrid Mail Send API (v3, via java.net.http) when `SENDGRID_API_KEY` is provided. The remaining workers are simulated:
+SendEmailWorker already uses the real SendGrid Mail Send API (v3, via java.net.http) when `SENDGRID_API_KEY` is provided. The remaining workers are demo:
 
 - **ComposeEmailWorker** (`sgd_compose_email`): use the SendGrid Dynamic Templates API to load real email templates
 - **TrackOpensWorker** (`sgd_track_opens`): use SendGrid's open/click tracking settings or webhooks for real engagement tracking

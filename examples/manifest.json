@@ -12,7 +12,7 @@
       "aggregationKey"
     ],
     "inputTypes": {
-      "messages": "string",
+      "messages": "array",
       "expectedCount": "integer",
       "aggregationKey": "string"
     },
@@ -154,7 +154,7 @@
     ],
     "inputTypes": {
       "payload": "object",
-      "storageType": "string"
+      "storageType": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -219,7 +219,7 @@
     ],
     "inputTypes": {
       "serviceName": "string",
-      "imageTag": "string",
+      "imageTag": "integer",
       "replicas": "string"
     },
     "taskTypes": [
@@ -250,7 +250,7 @@
       "enrichmentSources"
     ],
     "inputTypes": {
-      "message": "string",
+      "message": "integer",
       "enrichmentSources": "string"
     },
     "taskTypes": [
@@ -281,7 +281,7 @@
       "correlationField"
     ],
     "inputTypes": {
-      "messages": "string",
+      "messages": "array",
       "correlationField": "string"
     },
     "taskTypes": [
@@ -716,7 +716,7 @@
       "priority"
     ],
     "inputTypes": {
-      "message": "string",
+      "message": "integer",
       "topic": "string",
       "priority": "string"
     },
@@ -888,7 +888,7 @@
       "partitionKey"
     ],
     "inputTypes": {
-      "messages": "string",
+      "messages": "array",
       "partitionKey": "string"
     },
     "taskTypes": [
@@ -1160,7 +1160,7 @@
       "compositeMessage"
     ],
     "inputTypes": {
-      "compositeMessage": "string"
+      "compositeMessage": "integer"
     },
     "taskTypes": [
       "FORK_JOIN",
@@ -1304,7 +1304,7 @@
       "auditLevel"
     ],
     "inputTypes": {
-      "message": "string",
+      "message": "integer",
       "auditLevel": "string"
     },
     "taskTypes": [
@@ -1637,7 +1637,7 @@
     ],
     "inputTypes": {
       "batchId": "string (identifier)",
-      "options": "string"
+      "options": "object"
     },
     "taskTypes": [
       "SIMPLE"
@@ -1730,7 +1730,7 @@
     ],
     "inputTypes": {
       "customerId": "string (identifier)",
-      "message": "string"
+      "message": "integer"
     },
     "taskTypes": [
       "SIMPLE",
@@ -1766,7 +1766,7 @@
     ],
     "inputTypes": {
       "userId": "string (identifier)",
-      "userMessage": "string"
+      "userMessage": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -1996,7 +1996,7 @@
     ],
     "inputTypes": {
       "request": "string",
-      "attendees": "string",
+      "attendees": "array",
       "duration": "string",
       "preferredDate": "ISO-8601 datetime"
     },
@@ -2398,7 +2398,7 @@
     ],
     "inputTypes": {
       "code": "string",
-      "language": "string"
+      "language": "integer"
     },
     "taskTypes": [
       "FORK_JOIN",
@@ -3188,7 +3188,7 @@
     ],
     "inputTypes": {
       "question": "string",
-      "maxPages": "string"
+      "maxPages": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -3539,7 +3539,7 @@
     "inputTypes": {
       "speakerId": "string (identifier)",
       "targetText": "string",
-      "language": "string"
+      "language": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -3573,7 +3573,7 @@
     ],
     "inputTypes": {
       "requirements": "string",
-      "language": "string",
+      "language": "integer",
       "framework": "string"
     },
     "taskTypes": [
@@ -3902,7 +3902,7 @@
       "model"
     ],
     "inputTypes": {
-      "userMessage": "string",
+      "userMessage": "integer",
       "systemPrompt": "string",
       "model": "string"
     },
@@ -3969,7 +3969,7 @@
     ],
     "inputTypes": {
       "userId": "string (identifier)",
-      "message": "string",
+      "message": "integer",
       "sessionId": "string (identifier)"
     },
     "taskTypes": [
@@ -4025,7 +4025,7 @@
     ],
     "inputTypes": {
       "sessionId": "string (identifier)",
-      "userMessage": "string"
+      "userMessage": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -4735,7 +4735,7 @@
     ],
     "inputTypes": {
       "prompt": "string",
-      "systemMessage": "string",
+      "systemMessage": "integer",
       "model": "string"
     },
     "taskTypes": [
@@ -4927,7 +4927,7 @@
     ],
     "inputTypes": {
       "question": "string",
-      "language": "string"
+      "language": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -5783,7 +5783,7 @@
     "inputTypes": {
       "audioUrl": "url",
       "callerId": "string (identifier)",
-      "language": "string"
+      "language": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -5907,7 +5907,7 @@
       "message"
     ],
     "inputTypes": {
-      "message": "string"
+      "message": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -6031,7 +6031,7 @@
       "message"
     ],
     "inputTypes": {
-      "message": "string"
+      "message": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -6125,7 +6125,7 @@
     ],
     "inputTypes": {
       "productId": "string (identifier)",
-      "quantity": "string",
+      "quantity": "integer",
       "couponCode": "string"
     },
     "taskTypes": [
@@ -6159,7 +6159,7 @@
     "inputTypes": {
       "campaignName": "string",
       "type": "string",
-      "budget": "string"
+      "budget": "number"
     },
     "taskTypes": [
       "SIMPLE"
@@ -6255,7 +6255,7 @@
     ],
     "inputTypes": {
       "leadId": "string (identifier)",
-      "leadStage": "string",
+      "leadStage": "integer",
       "interests": "string"
     },
     "taskTypes": [
@@ -6321,7 +6321,7 @@
     ],
     "inputTypes": {
       "audioUrl": "url",
-      "language": "string",
+      "language": "integer",
       "speakerCount": "integer"
     },
     "taskTypes": [
@@ -6554,7 +6554,7 @@
     "inputTypes": {
       "records": "string",
       "retentionDays": "string",
-      "coldStoragePath": "string"
+      "coldStoragePath": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -6923,7 +6923,7 @@
     ],
     "inputTypes": {
       "records": "string",
-      "sampleRate": "string",
+      "sampleRate": "number",
       "threshold": "string"
     },
     "taskTypes": [
@@ -6964,7 +6964,7 @@
       "systemA": "string",
       "systemB": "string",
       "syncMode": "string",
-      "conflictStrategy": "string"
+      "conflictStrategy": "number"
     },
     "taskTypes": [
       "SIMPLE"
@@ -7328,7 +7328,7 @@
     "inputTypes": {
       "imageUrl": "url",
       "documentType": "string",
-      "language": "string"
+      "language": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -7361,7 +7361,7 @@
     "inputTypes": {
       "pdfBase64": "string",
       "pdfPath": "string",
-      "options": "string"
+      "options": "object"
     },
     "taskTypes": [
       "SIMPLE"
@@ -7427,7 +7427,7 @@
     "inputTypes": {
       "reportType": "string",
       "dateRange": "ISO-8601 datetime",
-      "recipients": "string"
+      "recipients": "array"
     },
     "taskTypes": [
       "SIMPLE"
@@ -8180,7 +8180,7 @@
     ],
     "inputTypes": {
       "database": "object",
-      "storage": "string",
+      "storage": "integer",
       "retention": "string",
       "notification": "string"
     },
@@ -9179,7 +9179,7 @@
     ],
     "inputTypes": {
       "sourceFile": "string",
-      "language": "string",
+      "language": "integer",
       "framework": "string"
     },
     "taskTypes": [
@@ -11416,8 +11416,8 @@
       "topic": "string",
       "partition": "string",
       "offset": "string",
-      "messageKey": "string",
-      "messageValue": "string"
+      "messageKey": "integer",
+      "messageValue": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -11911,7 +11911,7 @@
     "inputTypes": {
       "pair": "string",
       "portfolioId": "string (identifier)",
-      "strategy": "string"
+      "strategy": "number"
     },
     "taskTypes": [
       "SIMPLE",
@@ -12022,7 +12022,7 @@
     "inputTypes": {
       "applicationId": "string (identifier)",
       "applicantName": "string",
-      "coverageType": "string",
+      "coverageType": "integer",
       "coverageAmount": "number"
     },
     "taskTypes": [
@@ -12263,7 +12263,7 @@
     "inputTypes": {
       "portfolioId": "string (identifier)",
       "accountId": "string (identifier)",
-      "strategy": "string"
+      "strategy": "number"
     },
     "taskTypes": [
       "SIMPLE"
@@ -12407,7 +12407,7 @@
       "accountId": "string (identifier)",
       "symbol": "string",
       "side": "string (identifier)",
-      "quantity": "string",
+      "quantity": "integer",
       "orderType": "string"
     },
     "taskTypes": [
@@ -13986,7 +13986,7 @@
       "prescriptionId": "string (identifier)",
       "patientId": "string (identifier)",
       "medication": "string",
-      "dosage": "string"
+      "dosage": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -14336,7 +14336,7 @@
     "inputTypes": {
       "candidateName": "string (identifier)",
       "position": "string",
-      "salary": "string",
+      "salary": "number",
       "response": "string"
     },
     "taskTypes": [
@@ -15647,7 +15647,7 @@
     ],
     "inputTypes": {
       "agentId": "string (identifier)",
-      "agentName": "string",
+      "agentName": "integer",
       "state": "string"
     },
     "taskTypes": [
@@ -15817,7 +15817,7 @@
     ],
     "inputTypes": {
       "applicantId": "string (identifier)",
-      "coverageType": "string",
+      "coverageType": "integer",
       "requestedAmount": "number"
     },
     "taskTypes": [
@@ -15850,7 +15850,7 @@
     ],
     "inputTypes": {
       "policyType": "string",
-      "applicantAge": "string",
+      "applicantAge": "integer",
       "coverageAmount": "number"
     },
     "taskTypes": [
@@ -15917,7 +15917,7 @@
     "inputTypes": {
       "claimId": "string (identifier)",
       "vehicleId": "string (identifier)",
-      "damageType": "string"
+      "damageType": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -16183,7 +16183,7 @@
       "repo": "string",
       "branch": "string",
       "baseBranch": "string",
-      "commitMessage": "string"
+      "commitMessage": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -16490,7 +16490,7 @@
     "inputTypes": {
       "topicArn": "string",
       "queueUrl": "url",
-      "messageBody": "string"
+      "messageBody": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -16593,7 +16593,7 @@
     "inputTypes": {
       "toNumber": "string",
       "fromNumber": "string",
-      "messageBody": "string"
+      "messageBody": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -17691,7 +17691,7 @@
     "inputTypes": {
       "campaignId": "string (identifier)",
       "advertiserId": "string (identifier)",
-      "budget": "string",
+      "budget": "number",
       "objective": "string"
     },
     "taskTypes": [
@@ -17757,7 +17757,7 @@
     ],
     "inputTypes": {
       "archiveJobId": "string (identifier)",
-      "ageThresholdDays": "string",
+      "ageThresholdDays": "integer",
       "contentCategory": "string"
     },
     "taskTypes": [
@@ -18074,7 +18074,7 @@
     "inputTypes": {
       "userId": "string (identifier)",
       "sessionId": "string (identifier)",
-      "pageContext": "string"
+      "pageContext": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -18143,7 +18143,7 @@
     "inputTypes": {
       "assetId": "string (identifier)",
       "licenseId": "string (identifier)",
-      "usageType": "string",
+      "usageType": "integer",
       "territory": "string"
     },
     "taskTypes": [
@@ -18211,7 +18211,7 @@
     "inputTypes": {
       "campaignId": "string (identifier)",
       "platform": "string",
-      "message": "string",
+      "message": "integer",
       "mediaUrl": "url"
     },
     "taskTypes": [
@@ -18245,7 +18245,7 @@
     "inputTypes": {
       "contentId": "string (identifier)",
       "sourceText": "string",
-      "targetLanguage": "string"
+      "targetLanguage": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -18489,7 +18489,7 @@
     "inputTypes": {
       "serviceName": "string",
       "newVersion": "string",
-      "imageTag": "string"
+      "imageTag": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -18555,7 +18555,7 @@
     "inputTypes": {
       "serviceName": "string",
       "newVersion": "string",
-      "canaryPercentage": "string"
+      "canaryPercentage": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -19026,7 +19026,7 @@
     "inputTypes": {
       "flagName": "boolean",
       "targetSegment": "string",
-      "rolloutPercentage": "string"
+      "rolloutPercentage": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -19572,7 +19572,7 @@
     "inputTypes": {
       "userId": "string (identifier)",
       "productId": "string (identifier)",
-      "quantity": "string"
+      "quantity": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -20100,7 +20100,7 @@
     "inputTypes": {
       "projectId": "string (identifier)",
       "projectName": "string",
-      "manager": "string"
+      "manager": "integer"
     },
     "taskTypes": [
       "SIMPLE"
@@ -20133,7 +20133,7 @@
     "inputTypes": {
       "projectName": "string",
       "sponsor": "string",
-      "budget": "string"
+      "budget": "number"
     },
     "taskTypes": [
       "SIMPLE"
@@ -22214,7 +22214,7 @@
     "inputTypes": {
       "reportType": "string",
       "dateRange": "ISO-8601 datetime",
-      "recipients": "string"
+      "recipients": "array"
     },
     "taskTypes": [
       "SIMPLE"
@@ -22347,7 +22347,7 @@
     "inputTypes": {
       "serviceName": "string",
       "traceId": "string (identifier)",
-      "samplingRate": "string"
+      "samplingRate": "number"
     },
     "taskTypes": [
       "SIMPLE"
@@ -23393,7 +23393,7 @@
     ],
     "inputTypes": {
       "projectName": "string",
-      "budget": "string",
+      "budget": "number",
       "vendors": "string"
     },
     "taskTypes": [
@@ -23768,8 +23768,8 @@
     ],
     "inputTypes": {
       "item": "string",
-      "quantity": "string",
-      "budget": "string",
+      "quantity": "integer",
+      "budget": "number",
       "requester": "string"
     },
     "taskTypes": [
@@ -23975,7 +23975,7 @@
     ],
     "inputTypes": {
       "product": "string",
-      "quantity": "string",
+      "quantity": "integer",
       "destination": "string"
     },
     "taskTypes": [
@@ -24304,7 +24304,7 @@
       "images"
     ],
     "inputTypes": {
-      "images": "string"
+      "images": "integer"
     },
     "taskTypes": [
       "FORK_JOIN_DYNAMIC",
@@ -25383,7 +25383,7 @@
     "inputTypes": {
       "customerId": "string (identifier)",
       "accountAge": "integer",
-      "usageTrend": "string"
+      "usageTrend": "integer"
     },
     "taskTypes": [
       "SIMPLE"

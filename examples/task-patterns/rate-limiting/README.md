@@ -22,7 +22,7 @@ A single worker demonstrates zero-code rate limiting: RlApiCallWorker processes 
 |---|---|---|
 | **RlApiCallWorker** | `rl_api_call` | Takes a batchId (string or number) and returns result="batch-{batchId}-done". Defaults batchId to "unknown" if null or blank. The rate limiting (5 per 10s, max 2 concurrent) is enforced by Conductor via the task definition, the worker has no throttling logic. |
 
-The simulated worker produces a realistic output shape so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo worker produces a realistic output shape so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 

@@ -1,6 +1,7 @@
 # Data Sync in Java Using Conductor :  Bidirectional Change Detection, Conflict Resolution, and Consistency Verification
 
 A Java Conductor workflow example for bidirectional data synchronization: detecting changes in two systems since last sync, resolving conflicts when both systems modified the same record (using configurable strategies like "latest wins"), applying the resolved updates to both systems, and verifying that the two systems are consistent after sync. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You have data in two systems that need to stay in sync: a CRM and an ERP, a mobile app's local database and the cloud backend, a primary database and a partner system. Changes happen on both sides between sync cycles. You need to detect what changed in each system, identify conflicts where both systems modified the same record, resolve those conflicts using a configurable strategy (latest timestamp wins, source-of-truth priority, manual review), apply the merged updates to both systems, and verify consistency after the sync completes. If the apply step fails after updating system A but before updating system B, the systems are now out of sync, worse than before.

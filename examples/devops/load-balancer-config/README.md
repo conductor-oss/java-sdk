@@ -132,7 +132,7 @@ conductor workflow search -w load_balancer_config_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one load balancer concern. replace the simulated calls with AWS ALB APIs, NGINX Plus configuration, or HAProxy Data Plane API, and the configuration workflow runs unchanged.
+Each worker handles one load balancer concern. replace the demo calls with AWS ALB APIs, NGINX Plus configuration, or HAProxy Data Plane API, and the configuration workflow runs unchanged.
 
 - **DiscoverBackendsWorker** (`lb_discover_backends`): query Kubernetes Service endpoints, Consul service catalog, or AWS EC2 describe-instances for real backend discovery
 - **ConfigureRulesWorker** (`lb_configure_rules`): define path-based routing rules, header-based routing, weighted traffic splitting, or sticky sessions based on the service topology and deployment strategy

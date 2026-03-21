@@ -1,6 +1,7 @@
 # Employee Onboarding in Java with Conductor :  Profile Creation, System Provisioning, Mentor Assignment, and Training Plan
 
 A Java Conductor workflow example for employee onboarding. creating the new hire's profile in the HRIS, provisioning IT systems (laptop, email, Slack, Jira), assigning a department mentor, and generating a personalized training plan. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to onboard a new employee across multiple departments and systems. When a hire is confirmed, the HR team must create the employee's profile with their name, department, and start date. IT must provision a laptop, create email and Slack accounts, and grant access to Jira and other department-specific tools. A mentor from the same department must be assigned to guide the new hire through their first weeks. Finally, a training plan must be generated with required compliance courses, department-specific skills training, and scheduled check-ins. Each step depends on the previous one. IT cannot provision accounts without the employee profile, and the training plan needs to know who the mentor is.

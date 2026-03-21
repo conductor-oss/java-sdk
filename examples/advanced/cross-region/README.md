@@ -1,6 +1,7 @@
 # Cross-Region Data Replication in Java Using Conductor :  Replicate, Sync, Verify Consistency
 
 A Java Conductor workflow example for cross-region data replication. copying a dataset from a primary region to a replica region, synchronizing the data and computing checksums, and verifying consistency between the two regions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Keeping Data Consistent Across Regions
 
 Multi-region architectures improve latency and availability, but replicating data from us-east-1 to eu-west-1 is not a simple copy. You need to initiate the replication, wait for the data to sync, compute checksums on both sides, and verify they match. If the checksums diverge. because a write landed on the primary during sync, or a network partition caused partial replication,  you need to know immediately, not discover it hours later when a user in Europe sees stale data.
@@ -127,13 +128,13 @@ conductor workflow search -w cross_region_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one replication concern. replace the simulated cross-region copies with real S3 replication or DynamoDB Global Tables APIs and the sync-and-verify pipeline runs unchanged.
+Each worker manages one replication concern. replace the demo cross-region copies with real S3 replication or DynamoDB Global Tables APIs and the sync-and-verify pipeline runs unchanged.
 
 - **XrReplicateWorker** (`xr_replicate`): call AWS S3 Cross-Region Replication API, DynamoDB Global Tables, or `pg_dump`/`pg_restore` across PostgreSQL instances in different regions
 - **XrSyncWorker** (`xr_sync`): poll the replication status endpoint (e.g., `describeTable` for DynamoDB, S3 replication metrics) and compute MD5/SHA-256 checksums on both sides
 - **XrVerifyConsistencyWorker** (`xr_verify_consistency`): query both regions and compare row counts, checksums, or last-modified timestamps; alert via PagerDuty or Slack if drift is detected
 
-The replication and checksum output contract stays fixed. Swap the simulated region APIs for real DynamoDB Global Tables or S3 Cross-Region Replication and the consistency pipeline runs unchanged.
+The replication and checksum output contract stays fixed. Swap the demo region APIs for real DynamoDB Global Tables or S3 Cross-Region Replication and the consistency pipeline runs unchanged.
 
 ## SDK
 

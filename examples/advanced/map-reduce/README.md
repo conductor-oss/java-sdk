@@ -138,13 +138,13 @@ conductor workflow search -w mpr_map_reduce -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one map-reduce phase. Replace the simulated document searches with real Elasticsearch or Lucene queries and the parallel split-map-reduce pipeline runs unchanged.
+Each worker handles one map-reduce phase. Replace the demo document searches with real Elasticsearch or Lucene queries and the parallel split-map-reduce pipeline runs unchanged.
 
 - **MprSplitInputWorker** (`mpr_split_input`): read real document sets from S3, HDFS, or Elasticsearch and partition them by shard, date range, or document ID range
 - **MprMap*Workers** (`mpr_map_1/2/3`). Execute real search using Lucene, Elasticsearch `_search` API, or full-text PostgreSQL queries against each document partition
 - **MprReduceWorker** (`mpr_reduce`): merge and rank results using TF-IDF scoring, BM25, or custom relevance algorithms, deduplicating across partitions
 
-The per-partition result contract stays fixed. Swap the simulated document search for a real Elasticsearch or Solr query and the reduce-merge pipeline runs unchanged.
+The per-partition result contract stays fixed. Swap the demo document search for a real Elasticsearch or Solr query and the reduce-merge pipeline runs unchanged.
 
 ## SDK
 

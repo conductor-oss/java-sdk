@@ -1,6 +1,7 @@
 # Feature Store Pipeline in Java Using Conductor :  Compute, Validate, Register, Serve
 
 A Java Conductor workflow example for feature store management. computing features from a source table, validating them against quality constraints, registering the validated feature group in the feature registry, and enabling the features for online serving. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Features Rot Without a Pipeline
 
 ML models depend on features. user_lifetime_value, avg_session_duration, days_since_last_purchase,  that are computed from raw data. When a data scientist computes features in a notebook, they work for that one training run. But serving those same features in production requires computing them on a schedule, validating that distributions haven't drifted, registering the new version in a catalog so models know where to find them, and enabling low-latency serving for real-time inference.
@@ -131,13 +132,13 @@ conductor workflow search -w feature_store_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker manages one feature lifecycle step. replace the simulated compute and validation with real Feast or Tecton APIs and the feature registration pipeline runs unchanged.
+Each worker manages one feature lifecycle step. replace the demo compute and validation with real Feast or Tecton APIs and the feature registration pipeline runs unchanged.
 
 - **FstComputeFeaturesWorker** (`fst_compute_features`): run real feature engineering with Feast (`feast materialize`), Spark SQL queries against your data warehouse, or Tecton feature pipelines
 - **FstValidateWorker** (`fst_validate`): use Great Expectations or Deequ for data quality validation, checking for distribution drift, null rates, and schema conformance
 - **FstServeWorker** (`fst_serve`): enable online serving via Feast Online Store (Redis/DynamoDB backend), SageMaker Feature Store, or Vertex AI Feature Store
 
-The feature vector output contract stays fixed. Swap the simulated computation for a real Feast or Tecton integration and the validate-register-serve pipeline runs unchanged.
+The feature vector output contract stays fixed. Swap the demo computation for a real Feast or Tecton integration and the validate-register-serve pipeline runs unchanged.
 
 ## SDK
 

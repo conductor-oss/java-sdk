@@ -1,6 +1,7 @@
 # Web Browsing Agent in Java Using Conductor :  Plan Search, Execute, Select Pages, Read, Extract Answer
 
 Web Browsing Agent. plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Answering Questions by Actually Reading Web Pages
 
 Search engine snippets are often insufficient. "What are the specific system requirements for running Kubernetes 1.29 on bare metal?" requires actually reading the documentation page, not just the snippet. A web browsing agent goes deeper than search: it plans the right query, gets search results, selects which pages are most likely to contain the answer, reads the full page content, and extracts the specific information needed.
@@ -19,7 +20,7 @@ Five workers browse the web. Planning search queries, executing the search, sele
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ExecuteSearchWorker** | `wb_execute_search` | Executes search queries and returns simulated search results. Returns a list of results with url, title, snippet, and... |
+| **ExecuteSearchWorker** | `wb_execute_search` | Executes search queries and returns demo search results. Returns a list of results with url, title, snippet, and... |
 | **ExtractAnswerWorker** | `wb_extract_answer` | Extracts and synthesizes an answer from the page contents. Returns the answer, sources, confidence score, and word co... |
 | **PlanSearchWorker** | `wb_plan_search` | Plans search queries for a given question. Returns a list of search queries, the search engine to use, and the strategy. |
 | **ReadPageWorker** | `wb_read_page` | Reads the content of selected pages. Simulates page loading and content extraction. Returns page contents with url, t... |

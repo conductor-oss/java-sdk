@@ -25,7 +25,7 @@ Four workers process payments: CreateCustomerWorker registers the payer, Payment
 | **ChargeWorker** | `stp_charge` | Confirms and captures a payment intent. |
 | **SendReceiptWorker** | `stp_send_receipt` | Sends a receipt email. |
 
-The workers auto-detect Stripe credentials at startup. When `STRIPE_API_KEY` is set, CreateCustomerWorker, PaymentIntentWorker, and ChargeWorker use the real Stripe REST API (via `java.net.http`) to create customers, payment intents, and confirm charges. Without the key, they fall back to simulated mode with realistic output shapes so the workflow runs end-to-end without a Stripe account.
+The workers auto-detect Stripe credentials at startup. When `STRIPE_API_KEY` is set, CreateCustomerWorker, PaymentIntentWorker, and ChargeWorker use the real Stripe REST API (via `java.net.http`) to create customers, payment intents, and confirm charges. Without the key, they fall back to demo mode with realistic output shapes so the workflow runs end-to-end without a Stripe account.
 
 ### The Workflow
 
@@ -133,7 +133,7 @@ conductor workflow search -w stripe_integration_435 -s COMPLETED -c 5
 
 ## How to Extend
 
-CreateCustomerWorker, PaymentIntentWorker, and ChargeWorker already use the real Stripe REST API (via java.net.http) when `STRIPE_API_KEY` is provided. The remaining worker is simulated:
+CreateCustomerWorker, PaymentIntentWorker, and ChargeWorker already use the real Stripe REST API (via java.net.http) when `STRIPE_API_KEY` is provided. The remaining worker is demo:
 
 - **SendReceiptWorker** (`stp_send_receipt`): integrate with an email service (e.g., SendGrid) to send real receipt emails after a charge succeeds
 

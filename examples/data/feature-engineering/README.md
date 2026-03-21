@@ -1,6 +1,7 @@
 # Feature Engineering in Java Using Conductor :  Feature Extraction, Transformation, Normalization, and Validation
 
 A Java Conductor workflow example for ML feature engineering: extracting raw features from source data, applying transformations (log, polynomial, ratio-based derived features), normalizing numeric features to a [0,1] range via min-max scaling, and validating the final feature set for null values and range compliance before model training. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Before your ML model can train, raw data needs to become features. That means extracting useful signals from raw fields (parsing dates into day-of-week, computing ratios from absolute values), transforming them (log transforms for skewed distributions, polynomial features for capturing non-linear relationships), normalizing to a consistent [0,1] range so gradient-based models converge properly, and validating that no feature has null values or falls outside the expected range. Each step depends on the previous one: you can't normalize features that haven't been transformed, and you can't validate until normalization is complete.

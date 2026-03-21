@@ -1,6 +1,7 @@
 # Demand Forecasting in Java with Conductor :  Data Collection, Trend Analysis, Forecast Generation, and Procurement Planning
 
 A Java Conductor workflow example for demand forecasting. collecting historical sales and market data for a product category (e.g., consumer electronics in North America), analyzing seasonal trends and growth patterns, generating a 6-month demand forecast, and creating procurement plans based on predicted volumes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to forecast demand for consumer electronics across North America over the next 6 months. This requires pulling historical sales data from your ERP, POS systems, and market intelligence feeds, analyzing the data for seasonal patterns (holiday spikes, back-to-school), growth trends, and market shifts, running forecasting models to predict future demand by SKU and region, and translating those forecasts into procurement plans with order quantities and timing. If the forecast over-predicts, you carry excess inventory; if it under-predicts, you stock out during peak demand.

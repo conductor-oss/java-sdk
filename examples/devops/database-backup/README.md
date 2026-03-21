@@ -94,7 +94,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `PGPASSWORD` | _(none, mock mode)_ | PostgreSQL password. Required for real `pg_dump` backups. If unset, TakeSnapshot runs in mock mode with simulated output. |
+| `PGPASSWORD` | _(none, mock mode)_ | PostgreSQL password. Required for real `pg_dump` backups. If unset, TakeSnapshot runs in mock mode with demo output. |
 
 ## Using the Conductor CLI
 
@@ -126,7 +126,7 @@ conductor workflow search -w database_backup -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one backup stage. Replace the simulated calls with pg_dump, AWS RDS snapshots, or S3 uploads for real database snapshots and offsite storage, and the backup workflow runs unchanged.
+Each worker handles one backup stage. Replace the demo calls with pg_dump, AWS RDS snapshots, or S3 uploads for real database snapshots and offsite storage, and the backup workflow runs unchanged.
 
 Connect to your database and S3 APIs; the backup pipeline continues to work with the same snapshot-upload-verify interface.
 

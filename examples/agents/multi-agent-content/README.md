@@ -1,6 +1,7 @@
 # Multi-Agent Content Creation in Java Using Conductor :  Research, Write, SEO Optimize, Edit, Publish
 
 Multi-Agent Content Creation. research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Quality Content Requires Specialized Roles
 
 Asking an LLM to "write a blog post about Kubernetes" in a single call produces generic, unresearched content with no SEO optimization and no editorial review. Quality content creation mirrors a real editorial workflow: a researcher gathers facts and sources, a writer crafts the narrative for a specific audience and word count, an SEO specialist adds keywords and meta descriptions and optimizes headings, an editor improves readability and catches errors, and a publisher formats and delivers the final piece.

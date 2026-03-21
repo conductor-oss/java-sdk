@@ -1,6 +1,7 @@
 # Supplier Evaluation in Java with Conductor :  Performance Data Collection, Scoring, Ranking, and Quarterly Reporting
 
 A Java Conductor workflow example for supplier evaluation. collecting performance data across all raw-materials suppliers for a quarterly review period (e.g., Q4 2024), scoring each supplier on delivery, quality, cost, and responsiveness metrics, ranking suppliers against each other within the category, and generating the quarterly supplier performance report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to evaluate your raw-materials suppliers at the end of each quarter. Performance data must be collected from multiple sources. on-time delivery rates from the TMS, quality rejection rates from the QMS, cost variance from the ERP, and responsiveness scores from buyer surveys. Each supplier must be scored on a consistent rubric. Suppliers must be ranked within their category so procurement knows which to grow, maintain, or phase out. The final report must be ready for the quarterly business review.

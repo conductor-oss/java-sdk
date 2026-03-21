@@ -20,7 +20,7 @@ Five workers manage time-delayed processing: ReceiveEventWorker ingests the even
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ApplyDelayWorker** | `de_apply_delay` | Applies the computed delay (simulated, instant in mock). |
+| **ApplyDelayWorker** | `de_apply_delay` | Applies the computed delay (demo, instant in mock). |
 | **ComputeDelayWorker** | `de_compute_delay` | Computes the delay duration in milliseconds from delaySeconds. |
 | **LogCompletionWorker** | `de_log_completion` | Logs the completion of the delayed event processing. |
 | **ProcessEventWorker** | `de_process_event` | Processes the delayed event. |

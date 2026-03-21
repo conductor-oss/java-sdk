@@ -123,7 +123,7 @@ conductor workflow search -w apm_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one APM analysis step. replace the simulated calls with Jaeger trace queries, Datadog APM metrics, or New Relic span analysis, and the performance investigation workflow runs unchanged.
+Each worker handles one APM analysis step. replace the demo calls with Jaeger trace queries, Datadog APM metrics, or New Relic span analysis, and the performance investigation workflow runs unchanged.
 
 - **CollectTraces** (`apm_collect_traces`): integrate with Jaeger, Zipkin, or AWS X-Ray APIs to pull real distributed traces with span-level timing data for the specified service and time range
 - **AnalyzeLatency** (`apm_analyze_latency`): query Prometheus `histogram_quantile()` or Datadog APM metrics for real p50/p95/p99 latency distributions, identifying slow endpoints like `/api/search` and `/api/export`

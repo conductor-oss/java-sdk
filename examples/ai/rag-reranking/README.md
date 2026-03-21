@@ -101,7 +101,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, EmbedWorker calls text-embedding-3-small and GenerateWorker calls gpt-4o-mini instead of using simulated output |
+| `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, EmbedWorker calls text-embedding-3-small and GenerateWorker calls gpt-4o-mini instead of using demo output |
 
 ## Using the Conductor CLI
 

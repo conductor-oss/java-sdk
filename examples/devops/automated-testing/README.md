@@ -134,7 +134,7 @@ conductor workflow search -w automated_testing_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker runs one test suite or setup task. replace the simulated calls with Maven Surefire, Testcontainers, or k6 for real test execution and coverage reporting, and the testing workflow runs unchanged.
+Each worker runs one test suite or setup task. replace the demo calls with Maven Surefire, Testcontainers, or k6 for real test execution and coverage reporting, and the testing workflow runs unchanged.
 
 - **Test suite workers**: execute real test suites via Maven Surefire (unit), Testcontainers (integration), or k6/Gatling (performance) with actual pass/fail results and coverage reports
 - **SetupEnvWorker** (`at_setup_env`): provision ephemeral test environments using Docker Compose, Kubernetes namespaces, or Terraform workspaces with automatic cleanup after test completion

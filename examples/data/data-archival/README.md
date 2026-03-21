@@ -1,6 +1,7 @@
 # Data Archival in Java Using Conductor :  Stale Record Detection, Cold Storage Transfer, and Verified Purge
 
 A Java Conductor workflow example for data archival. identifying records that exceed a configurable retention period, snapshotting them, transferring the snapshot to cold storage, verifying archive integrity via checksum, and purging the stale records from hot storage only after verification passes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Your hot storage (production database, Elasticsearch cluster, fast SSD-backed store) is growing without bound. Old records that haven't been accessed in months are consuming expensive resources and slowing down queries. You need to move stale data to cheaper cold storage while guaranteeing nothing is lost. That means identifying which records exceed your retention policy, creating a consistent snapshot, transferring the snapshot to cold storage (S3 Glacier, Azure Archive, tape), verifying the archive is intact by comparing checksums and record counts, and only then purging the originals from hot storage. The order is critical: if you purge before verifying the archive, data is gone forever.

@@ -1,6 +1,7 @@
 # Population Health Management in Java Using Conductor :  Data Aggregation, Risk Stratification, Care Gap Identification, and Intervention
 
 A Java Conductor workflow example for population health management. aggregating clinical and claims data across a patient cohort, stratifying members by risk level, identifying care gaps (missed screenings, overdue vaccinations, uncontrolled chronic conditions), and triggering targeted interventions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage population health for a patient cohort with a specific condition during a reporting period. Clinical and claims data must be aggregated from multiple sources. EHRs, claims feeds, pharmacy records, and lab results. Members must be risk-stratified into tiers (low, moderate, high, rising risk) based on HCC scores, utilization patterns, and social determinants. Care gaps must be identified. patients overdue for A1C tests, mammograms, colonoscopies, or flu vaccines per HEDIS/STAR quality measures. Targeted interventions must then be triggered,  outreach calls, care coordinator assignments, appointment scheduling, or pharmacy consultations. Each step depends on the previous one,  you cannot identify care gaps without risk stratification, and you cannot intervene without knowing which gaps exist.
@@ -140,7 +141,7 @@ Connect AggregateDataWorker to your data warehouse and HIE feeds, StratifyRiskWo
 - Add a **SDOHScreenWorker** after data aggregation to identify social determinants of health barriers (food insecurity, transportation, housing)
 - Add a **ReportWorker** at the end to generate CMS STARS or MIPS quality measure submission files
 
-Replace simulated data sources with real warehouse queries and care management platforms while keeping the same output fields, and the population health pipeline needs no workflow changes.
+Replace demo data sources with real warehouse queries and care management platforms while keeping the same output fields, and the population health pipeline needs no workflow changes.
 
 ## SDK
 

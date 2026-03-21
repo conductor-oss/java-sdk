@@ -132,7 +132,7 @@ conductor workflow search -w dns_management_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one DNS lifecycle step. replace the simulated calls with Route53, Cloudflare, or Google Cloud DNS APIs, and the management workflow runs unchanged.
+Each worker handles one DNS lifecycle step. replace the demo calls with Route53, Cloudflare, or Google Cloud DNS APIs, and the management workflow runs unchanged.
 
 - **ApplyWorker** (`dns_apply`): call AWS Route53 ChangeResourceRecordSets, Cloudflare DNS API, or Google Cloud DNS to apply record changes
 - **PlanWorker** (`dns_plan`): query your DNS provider's API to list existing records and generate a diff-based change plan

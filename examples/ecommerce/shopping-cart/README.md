@@ -1,6 +1,7 @@
 # Shopping Cart in Java Using Conductor :  Add Items, Calculate Total, Apply Discounts, Reserve Inventory
 
 A Java Conductor workflow example for shopping cart processing. adding items to a cart, calculating the subtotal, applying coupon-code discounts, and reserving inventory so items are not oversold before checkout. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Shopping Carts Are More Complex Than They Look
 
 A customer adds 3 items to their cart with a coupon code. The system must validate each item (in stock, valid price, quantity limits), calculate the correct total (unit prices, quantity discounts, bundle pricing), apply the coupon (validate code, check eligibility, calculate discount), and reserve inventory (so the items aren't sold out before checkout).

@@ -1,6 +1,7 @@
 # Workflow Debugging in Java Using Conductor :  Instrument, Execute, Trace, Analyze, Report
 
 A Java Conductor workflow example for workflow debugging. instrumenting a workflow with debug hooks, executing it with tracing enabled, collecting execution traces, analyzing the trace data for anomalies and bottlenecks, and generating a debug report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## When Workflows Fail, You Need More Than a Stack Trace
 
 A 20-step workflow fails at step 14. The error says "null pointer exception." But the real question is: what were the inputs at step 14? What did step 13 output? How long did each step take? Did step 7 produce unexpected output that propagated silently until step 14 crashed? You need distributed tracing across the entire workflow execution. not just the error at the failure point.
@@ -135,9 +136,9 @@ conductor workflow search -w wfd_workflow_debugging -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker covers one debugging phase. replace the simulated trace collection with real distributed tracing APIs like Jaeger or OpenTelemetry and the instrument-analyze-report pipeline runs unchanged.
+Each worker covers one debugging phase. replace the demo trace collection with real distributed tracing APIs like Jaeger or OpenTelemetry and the instrument-analyze-report pipeline runs unchanged.
 
-The trace and report output contract stays fixed. Swap the simulated instrumentation for real OpenTelemetry spans or Jaeger traces and the analyze-report pipeline runs unchanged.
+The trace and report output contract stays fixed. Swap the demo instrumentation for real OpenTelemetry spans or Jaeger traces and the analyze-report pipeline runs unchanged.
 
 ## SDK
 

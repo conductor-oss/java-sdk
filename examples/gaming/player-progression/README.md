@@ -1,6 +1,7 @@
 # Player Progression in Java Using Conductor
 
 Processes player progression after completing a quest: recording the completion, awarding XP, checking for level-up, unlocking level rewards (items, abilities, titles), and notifying the player. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process a player's progression after completing a quest or challenge. The player completes a task, earns experience points (XP), the system checks whether they have leveled up, unlocks any rewards associated with the new level (items, abilities, titles), and notifies the player of their achievements. Awarding XP without checking for level-up means players miss their rewards; not notifying means they do not feel the satisfaction of progression.

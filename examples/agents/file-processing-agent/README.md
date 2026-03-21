@@ -1,6 +1,7 @@
 # File Processing Agent in Java Using Conductor :  Detect Type, Extract Content, Analyze, Summarize
 
 File Processing Agent. detect file type, extract content, analyze, and generate summary through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Different File Types Need Different Processing
 
 A user uploads a file. Is it a PDF contract that needs text extraction and clause identification? A CSV dataset that needs column analysis and statistical summaries? A JSON config file that needs schema validation? An image that needs OCR or object detection? The processing pipeline must adapt to the file type.

@@ -123,7 +123,7 @@ conductor workflow search -w network_automation -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one network operation. replace the simulated calls with Netmiko, NAPALM, or Ansible Network modules for real multi-vendor device configuration, and the automation workflow runs unchanged.
+Each worker handles one network operation. replace the demo calls with Netmiko, NAPALM, or Ansible Network modules for real multi-vendor device configuration, and the automation workflow runs unchanged.
 
 - **PlanChanges** (`na_plan_changes`): generate a network change plan by diffing desired configuration against current device state, identifying which routers, switches, or firewalls need updates
 - **ApplyConfig** (`na_apply_config`): use Netmiko or Napalm (via subprocess) for multi-vendor device configuration, Ansible Network modules for playbook-based automation, or Terraform with the relevant network provider

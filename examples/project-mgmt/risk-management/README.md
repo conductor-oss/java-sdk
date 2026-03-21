@@ -1,6 +1,7 @@
 # Project Risk Management in Java with Conductor :  Identification, Severity Assessment, and Mitigation Planning
 
 A Java Conductor workflow example for project risk management. identifying risks, assessing their severity (high/medium/low), routing to severity-appropriate handling, and producing mitigation plans. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage risks across a project portfolio. When a new risk is reported. "key vendor may miss delivery deadline," "database migration could cause downtime",  someone has to identify and categorize it, assess severity and probability, route it to the right response process (executive escalation for high-severity, team-level review for medium, backlog tracking for low), and generate a mitigation plan. Each of these steps depends on the output of the previous one, and the routing logic changes based on the assessed severity.

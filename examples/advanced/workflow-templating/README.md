@@ -1,6 +1,7 @@
 # ETL Workflow Templating in Java Using Conductor :  Extract, Transform, Load, Verify
 
 A Java Conductor workflow example for ETL workflow templating. extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Every ETL Job Is Extract-Transform-Load, but the Details Differ
 
 Your company runs 50 ETL jobs. Each extracts from a different source (PostgreSQL, Salesforce API, S3 CSV files), transforms differently (currency conversion, deduplication, schema mapping), and loads to a different destination (Snowflake, Redshift, BigQuery). But the structure is always the same: extract, transform, load, verify. Without a template, each ETL job is built from scratch, duplicating retry logic, error handling, and verification.
@@ -131,13 +132,13 @@ conductor workflow search -w wtm_etl_postgres_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker implements one ETL stage. replace the simulated extracts and loads with real database connectors or data warehouse APIs and the extract-transform-load-verify template runs unchanged.
+Each worker implements one ETL stage. replace the demo extracts and loads with real database connectors or data warehouse APIs and the extract-transform-load-verify template runs unchanged.
 
 - **WtmExtractWorker** (`wtm_extract`): connect to real data sources: JDBC queries against PostgreSQL/MySQL, Salesforce SOQL via the REST API, S3 `getObject()` for CSV/Parquet files, or Kafka consumer for streaming ETL
 - **WtmTransformWorker** (`wtm_transform`): apply real transformations: Apache Spark for large-scale transforms, dbt models for SQL-based transformations, or custom Jackson/JOLT mappings for JSON restructuring
 - **WtmLoadWorker** (`wtm_load`): write to real destinations: Snowflake `COPY INTO` via JDBC, BigQuery `insertAll()`, Redshift `COPY` from S3 staging, or Elasticsearch bulk index API
 
-The extract-transform-load interface stays fixed. Swap the simulated source for a real PostgreSQL or Salesforce connector and the template runs the same verification step unchanged.
+The extract-transform-load interface stays fixed. Swap the demo source for a real PostgreSQL or Salesforce connector and the template runs the same verification step unchanged.
 
 ## SDK
 

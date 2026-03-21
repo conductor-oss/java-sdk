@@ -1,6 +1,7 @@
 # Data Deduplication in Java Using Conductor :  Key Computation, Duplicate Detection, and Record Merging
 
 A Java Conductor workflow example for data deduplication: loading records, computing dedup keys from configurable match fields (normalized and lowercased), grouping records by key to find duplicates, merging duplicate groups into a single canonical record, and emitting the clean, deduplicated dataset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Your dataset has duplicate records, the same customer entered twice with slightly different casing, the same order submitted by two systems, the same product listed with trailing whitespace in the name. You need to find and eliminate these duplicates before the data goes into your analytics pipeline, CRM, or data warehouse. That means computing dedup keys from configurable match fields (lowercased, trimmed for consistency), grouping records that share the same key, deciding which record to keep when duplicates are found (first seen, most complete, most recent), and emitting a clean dataset with a summary of how many duplicates were removed.

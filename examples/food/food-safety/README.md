@@ -1,6 +1,7 @@
 # Food Safety in Java with Conductor
 
 Conducts a food safety inspection: visiting the facility, checking temperatures, verifying hygiene, issuing certification, and recording results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to conduct a food safety inspection at a restaurant. An inspector visits the facility, checks temperature logs for food storage and cooking equipment, verifies hygiene practices (handwashing, cross-contamination prevention, pest control), issues a safety certification if standards are met, and records the inspection results. Certifying without thorough temperature and hygiene checks puts public health at risk.

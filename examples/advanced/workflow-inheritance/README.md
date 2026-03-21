@@ -1,6 +1,7 @@
 # Workflow Inheritance in Java Using Conductor :  Base Workflow with Init, Validate, Process, Finalize
 
 A Java Conductor workflow example for workflow inheritance. defining a base workflow pattern (init, validate, process, finalize) that can be specialized for different processing tiers. The standard variant processes requests with standard logic, while other variants (premium, enterprise) can override the processing step while keeping the same init/validate/finalize structure. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Different Customer Tiers Need Different Processing, Same Structure
 
 Every customer request follows the same lifecycle: initialize the processing context, validate the input, process the request, and finalize (cleanup, notifications). But premium customers get faster processing with dedicated resources, enterprise customers get custom transformation logic, and standard customers get the default path. Without inheritance, you'd duplicate the entire workflow for each tier, copy-pasting the init/validate/finalize steps and only changing the processing step.
@@ -132,7 +133,7 @@ conductor workflow search -w workflow_inheritance_standard_demo -s COMPLETED -c 
 
 ## How to Extend
 
-Each worker implements one lifecycle phase. replace the simulated tier-specific processing with real premium or enterprise service integrations and the init-validate-process-finalize skeleton runs unchanged.
+Each worker implements one lifecycle phase. replace the demo tier-specific processing with real premium or enterprise service integrations and the init-validate-process-finalize skeleton runs unchanged.
 
 - **WiProcessStandardWorker** (`wi_process_standard`): implement real tier-specific processing: standard database queries tier, dedicated Redis cache lookups for premium, or custom ML inference for enterprise
 - **WiValidateWorker** (`wi_validate`): run real input validation: JSON Schema validation, business rule engines (Drools), or tier-specific validation rules from a config database

@@ -1,6 +1,7 @@
 # Tutoring Match in Java with Conductor :  Request Intake, Tutor Matching, Session Scheduling, and Confirmation
 
 A Java Conductor workflow example for matching students with tutors. receiving a tutoring request with subject and time preferences, finding an available tutor qualified in that subject, scheduling a session at the preferred time, and confirming the booking with both student and tutor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to connect students who need help with qualified tutors. A student requests tutoring in a specific subject at a preferred time, the system must find a tutor who is both qualified in that subject and available during that time slot, a session is scheduled, and both parties need confirmation with the session details. Matching a student with a tutor who is unavailable wastes everyone's time; scheduling without confirming availability leads to no-shows.

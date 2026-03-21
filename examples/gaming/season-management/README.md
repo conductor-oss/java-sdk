@@ -1,6 +1,7 @@
 # Season Management in Java Using Conductor
 
 Manages a competitive season lifecycle: creating the season with a theme, defining reward tiers and battle pass structure, launching to all players, tracking progress, and closing with final reward distribution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage a competitive season lifecycle in your game. The workflow creates a new season with a theme and duration, defines the reward tiers and battle pass structure, launches the season to all players, tracks progress and engagement throughout, and closes the season with final reward distribution. Launching without properly defined rewards means players have nothing to earn; not closing properly means lingering rewards and confused players.

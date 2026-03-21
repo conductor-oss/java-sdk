@@ -1,6 +1,7 @@
 # Property Valuation in Java with Conductor :  Comparable Sales, Market Analysis, Appraisal, and Report
 
 A Java Conductor workflow example for automated property valuation. collecting comparable sales data (comps), analyzing market trends, generating an appraisal estimate, and producing a formal valuation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to determine the market value of a property. An accurate valuation requires gathering recent comparable sales in the same neighborhood (same size, age, features), analyzing how the comps compare to the subject property (adjusting for differences in square footage, lot size, upgrades), producing an appraised value based on the analysis, and generating a formal report that lenders and buyers can rely on. Each step depends on the previous one. the analysis needs comps, the appraisal needs the analysis, and the report needs everything.

@@ -1,6 +1,7 @@
 # Task Routing in Java Using Conductor :  Analyze Requirements, Select Worker Pool, Dispatch, Verify
 
 A Java Conductor workflow example for intelligent task routing. analyzing a task's resource requirements (CPU, GPU, memory) and region constraints, selecting the optimal worker pool to handle it, dispatching the task to that pool, and verifying successful execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Tasks Have Different Resource Needs :  Send Them to the Right Pool
 
 An ML inference task needs a GPU-equipped worker in us-east-1. A data transformation task needs a high-memory worker in any region. A simple validation task can run on any small worker anywhere. Sending all tasks to the same pool wastes GPU resources on validation and starves inference tasks when the general pool is full.
@@ -131,13 +132,13 @@ conductor workflow search -w trt_task_routing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one routing decision. replace the simulated pool selection with real Kubernetes node affinity or cloud resource APIs and the analyze-select-dispatch pipeline runs unchanged.
+Each worker handles one routing decision. replace the demo pool selection with real Kubernetes node affinity or cloud resource APIs and the analyze-select-dispatch pipeline runs unchanged.
 
 - **TrtAnalyzeRequirementsWorker** (`trt_analyze_requirements`): parse real resource requirements from task metadata: Kubernetes resource requests, AWS instance type requirements, or custom resource labels
 - **TrtSelectPoolWorker** (`trt_select_pool`): query real cluster capacity via Kubernetes API (`kubectl get nodes --show-labels`), AWS Auto Scaling group status, or a custom resource broker to find the best-fit pool
 - **TrtDispatchWorker** (`trt_dispatch`): submit to real compute pools: Kubernetes Job with nodeSelector/tolerations, AWS Batch `submitJob()` with compute environment selection, or SLURM `sbatch` with partition targeting
 
-The requirements and dispatch contract stays fixed. Swap the simulated pool selection for real Kubernetes node selectors or Nomad job placement and the analyze-select-verify pipeline runs unchanged.
+The requirements and dispatch contract stays fixed. Swap the demo pool selection for real Kubernetes node selectors or Nomad job placement and the analyze-select-verify pipeline runs unchanged.
 
 ## SDK
 

@@ -1,6 +1,7 @@
 # Content Personalization in Java Using Conductor :  User Profiling, Segmentation, Content Selection, Ranking, and Serving
 
 A Java Conductor workflow example that orchestrates content personalization. collecting user profiles (interests, demographics, region, account age), segmenting users into behavioral cohorts with confidence scores, selecting content candidates matching the segment, ranking candidates by predicted relevance using ML models, and serving personalized content with sub-200ms response time tracking and experiment assignment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Personalization Pipelines Need Orchestration
 
 Personalizing content for each user request requires a real-time decision pipeline. You collect the user's profile. interests, demographics, geographic region, account age. You assign them to a behavioral segment (power user, casual browser, new visitor) with a confidence score. You select content candidates that match the segment's preferences. You rank those candidates using a personalization model that weighs recency, relevance, and engagement history. Finally, you serve the ranked list and record the experiment ID for A/B analysis.

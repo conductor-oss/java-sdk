@@ -20,12 +20,12 @@ Four workers form a sequential processing chain: prompt construction from custom
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ChainGenerateWorker** | `chain_generate` | LLM generation. Takes formattedPrompt, model, temperature, maxTokens. Calls OpenAI API in live mode, returns deterministic output in simulated mode. |
+| **ChainGenerateWorker** | `chain_generate` | LLM generation. Takes formattedPrompt, model, temperature, maxTokens. Calls OpenAI API in live mode, returns deterministic output in demo mode. |
 | **ChainParseWorker** | `chain_parse` | Worker 3: Parses rawText JSON string into a Map. Returns FAILED status if parsing fails. | Processing only |
 | **ChainPromptWorker** | `chain_prompt` | Worker 1: Takes customerEmail and productCatalog, builds a structured prompt with few-shot examples and expected JSON format. | Processing only |
 | **ChainValidateWorker** | `chain_validate` | Worker 4: Validates parsedData against business rules. Runs 4 checks: valid_intent, valid_sentiment, products_in_catalog, reply_length. | Processing only |
 
-**Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `ChainGenerateWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in simulated mode with deterministic output prefixed with ``. Non-LLM workers (prompt building, parsing, validation) always run their real logic.
+**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `ChainGenerateWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in demo mode with deterministic output prefixed with ``. Non-LLM workers (prompt building, parsing, validation) always run their real logic.
 
 ### The Workflow
 
@@ -101,7 +101,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `ChainGenerateWorker` calls the real API. When absent, runs in simulated mode. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `ChainGenerateWorker` calls the real API. When absent, runs in demo mode. |
 
 ## Using the Conductor CLI
 

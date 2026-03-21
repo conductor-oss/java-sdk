@@ -1,6 +1,7 @@
 # GPU Job Orchestration in Java Using Conductor :  Check, Allocate, Submit, Collect, Release
 
 A Java Conductor workflow example for GPU resource orchestration. checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## GPUs Are Expensive and Scarce
 
 A team of ML engineers shares a cluster of 8 A100 GPUs. Without resource management, jobs compete for the same GPU, one engineer's runaway training job holds a GPU for 12 hours while others wait, and when a job crashes the GPU isn't released. it sits idle until someone manually frees it. At $30+/hour per GPU, wasted allocation is real money.
@@ -135,13 +136,13 @@ conductor workflow search -w gpu_orchestration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one GPU lifecycle phase. replace the simulated NVIDIA queries with real SLURM or Kubernetes device plugin APIs and the allocate-run-release pipeline runs unchanged.
+Each worker handles one GPU lifecycle phase. replace the demo NVIDIA queries with real SLURM or Kubernetes device plugin APIs and the allocate-run-release pipeline runs unchanged.
 
 - **GpuCheckAvailabilityWorker** (`gpu_check_availability`): query NVIDIA DCGM (`nvidia-smi`), Kubernetes device plugin (`kubectl describe node`), or SLURM (`sinfo -g gpu`) for real GPU availability
 - **GpuSubmitJobWorker** (`gpu_submit_job`): submit real training jobs via SLURM (`sbatch`), Kubernetes Job with GPU resource requests, or AWS Batch with `p4d.24xlarge` instances
 - **GpuReleaseWorker** (`gpu_release`): release GPU reservations via SLURM `scancel`, Kubernetes Job cleanup, or terminate the EC2 instance to stop billing
 
-The allocation and release contract stays fixed. Swap the simulated cluster for real NVIDIA MIG or Kubernetes GPU scheduling and the allocate-submit-release lifecycle runs unchanged.
+The allocation and release contract stays fixed. Swap the demo cluster for real NVIDIA MIG or Kubernetes GPU scheduling and the allocate-submit-release lifecycle runs unchanged.
 
 ## SDK
 

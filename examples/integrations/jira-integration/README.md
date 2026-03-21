@@ -20,7 +20,7 @@ Four workers manage the issue lifecycle: CreateIssueWorker opens tickets, Transi
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue via the Jira REST API (POST /rest/api/3/issue). When `JIRA_URL` and `JIRA_API_TOKEN` are set, calls the real Jira API. When unset, runs in simulated mode with deterministic issue keys. |
+| **CreateIssueWorker** | `jra_create_issue` | Creates a Jira issue via the Jira REST API (POST /rest/api/3/issue). When `JIRA_URL` and `JIRA_API_TOKEN` are set, calls the real Jira API. When unset, runs in demo mode with deterministic issue keys. |
 | **TransitionWorker** | `jra_transition` | Transitions the issue. moves the issue through workflow statuses (To Do -> In Progress -> Done) and returns the new status |
 | **TrackStatusWorker** | `jra_track_status` | Tracks the issue status: queries the current status, assignee, and last update timestamp for the issue |
 | **NotifyWorker** | `jra_notify` | Notifies the assignee. sends a notification about the status change with the issue key and new status |
@@ -94,7 +94,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 | `JIRA_URL` | _(none)_ | Jira instance URL (e.g., `https://yoursite.atlassian.net`). Required for live mode. |
 | `JIRA_EMAIL` | _(none)_ | Jira account email for Basic auth. Required for live mode. |
-| `JIRA_API_TOKEN` | _(none)_ | Jira API token. When set with `JIRA_URL`, CreateIssueWorker calls the Jira REST API. When unset, all workers run in simulated mode with `` output prefix. |
+| `JIRA_API_TOKEN` | _(none)_ | Jira API token. When set with `JIRA_URL`, CreateIssueWorker calls the Jira REST API. When unset, all workers run in demo mode with `` output prefix. |
 
 ## Using the Conductor CLI
 

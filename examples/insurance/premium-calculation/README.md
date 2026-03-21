@@ -1,6 +1,7 @@
 # Premium Calculation in Java with Conductor :  Collect Rating Factors, Calculate Base, Apply Modifiers, Finalize
 
 A Java Conductor workflow example for multi-step insurance premium calculation. collecting rating factors (policy type, applicant age), computing the base premium from those factors and the coverage amount, applying discount and surcharge modifiers (good driver -10%, multi-policy -5%), and finalizing the adjusted premium. Each step builds on the previous: collected factors feed into the base rate calculation, the base premium and factors together determine which modifiers apply, and the adjusted premium is finalized into the quoted amount ($1,530/year from a $1,800 base). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Premium Calculation Requires Sequential Factor Collection, Base Rating, and Modifier Application
 
 Insurance premiums are not a single calculation. they require gathering rating factors (age, location, coverage type), computing a base premium from actuarial rate tables, applying eligible discounts and surcharges, and finalizing the quoted amount. Each step depends on the previous: you cannot apply modifiers without knowing the base premium, and you cannot calculate the base without collecting the factors. If the modifier step fails, you need to retry it without recalculating the base premium.

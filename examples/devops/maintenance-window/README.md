@@ -132,7 +132,7 @@ conductor workflow search -w maintenance_window_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one maintenance phase. replace the simulated calls with Statuspage.io, PagerDuty maintenance windows, or Ansible upgrade playbooks, and the maintenance workflow runs unchanged.
+Each worker handles one maintenance phase. replace the demo calls with Statuspage.io, PagerDuty maintenance windows, or Ansible upgrade playbooks, and the maintenance workflow runs unchanged.
 
 - **NotifyStartWorker** (`mw_notify_start`): update Statuspage.io to "Under Maintenance," post to Slack #ops channels, and send customer notification emails via SendGrid with expected downtime duration
 - **SuppressAlertsWorker** (`mw_suppress_alerts`): create maintenance windows in PagerDuty, Opsgenie, or Datadog via their APIs to suppress alerts for specific services during the planned downtime

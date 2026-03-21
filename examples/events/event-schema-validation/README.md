@@ -1,6 +1,7 @@
 # Event Schema Validation in Java Using Conductor
 
 Event Schema Validation. validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to validate incoming events against a schema before processing them. Malformed events (missing required fields, wrong data types, extra fields) must be caught early and routed to a dead-letter queue rather than corrupting downstream systems. Valid events proceed to normal processing. Without schema validation, one malformed event can crash a consumer, corrupt a database, or produce silently incorrect results.
@@ -132,7 +133,7 @@ Wire each worker to your real JSON Schema or Avro validator, event processing pi
 - **Processing worker**: implement your actual event processing logic for validated events
 - **DLQ worker**: route invalid events to a dead-letter topic/queue with validation error details for debugging and remediation
 
-Switching from simulated validation to a real schema registry (Confluent, Apicurio) requires no workflow changes.
+Switching from demo validation to a real schema registry (Confluent, Apicurio) requires no workflow changes.
 
 ## SDK
 

@@ -138,7 +138,7 @@ Connect each worker to your real feature flag provider (LaunchDarkly, Unleash, F
 - **EnableSegmentWorker** (`ff_enable_segment`): configure segment targeting and percentage rollout via your flag provider's API
 - **FullRolloutWorker** (`ff_full_rollout`): set the flag to 100% in your flag provider (LaunchDarkly, Unleash) or roll back by disabling it
 
-Connecting to LaunchDarkly or Unleash instead of a simulated flag store preserves the create-enable-monitor-rollout pipeline.
+Connecting to LaunchDarkly or Unleash instead of a demo flag store preserves the create-enable-monitor-rollout pipeline.
 
 ## SDK
 

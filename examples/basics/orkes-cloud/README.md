@@ -22,7 +22,7 @@ One verification worker confirms connectivity to your Orkes Cloud environment, v
 |---|---|---|
 | **CloudGreetWorker** | `` | Worker that greets a user with a cloud/local indicator. In cloud mode, the task name is "cloud_greet" and the greetin |
 
-Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the simulated logic for your real service calls, the worker contract stays the same.
+Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the demo logic for your real service calls, the worker contract stays the same.
 
 ### The Workflow
 

@@ -20,7 +20,7 @@ Three workers manage local model inference. checking that the Ollama model is lo
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **OllamaCheckModelWorker** | `ollama_check_model` | Worker that verifies an Ollama model is available (simulated). Takes model and ollamaHost, returns resolvedModel and ... |
+| **OllamaCheckModelWorker** | `ollama_check_model` | Worker that verifies an Ollama model is available (demo). Takes model and ollamaHost, returns resolvedModel and ... |
 | **OllamaGenerateWorker** | `ollama_generate` | Worker that simulates Ollama text generation. Takes prompt, model, ollamaHost, and options. Returns a fixed response ... |
 | **OllamaPostProcessWorker** | `ollama_post_process` | Worker that post-processes the Ollama generation response. Takes response and wraps it in a review field. |
 
@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `OLLAMA_HOST` | `localhost:11434` | Ollama server host. When Ollama is running, `OllamaGenerateWorker` calls the real `/api/generate` endpoint. When Ollama is not reachable, returns simulated responses with `[SIMULATED]` prefix. |
+| `OLLAMA_HOST` | `localhost:11434` | Ollama server host. When Ollama is running, `OllamaGenerateWorker` calls the real `/api/generate` endpoint. When Ollama is not reachable, returns demo responses with `[DEMO]` prefix. |
 
 ## Using the Conductor CLI
 

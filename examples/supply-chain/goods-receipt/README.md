@@ -1,6 +1,7 @@
 # Goods Receipt in Java with Conductor :  Shipment Receiving, Quality Inspection, PO Matching, Warehouse Storage, and Inventory Update
 
 A Java Conductor workflow example for inbound goods receipt processing. receiving a shipment at the dock (e.g., 5,000 M10 bolts and 5,000 M10 nuts against PO-654-001), inspecting items for quality and damage, matching received quantities to the purchase order, assigning storage locations in the warehouse, and updating inventory records. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process inbound shipments at your warehouse receiving dock. When shipment SHP-2024-655 arrives, the dock team must log receipt against purchase order PO-654-001, inspect the goods for damage and spec compliance, verify that received quantities match the PO line items (did we get 5,000 bolts or only 4,800?), assign bin locations for putaway, and update the inventory management system so the stock is available for picking. If the PO match step reveals a shortage, procurement needs to be notified to arrange a replacement shipment.

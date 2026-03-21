@@ -1,6 +1,7 @@
 # Parallel Chunk Processing in Java Using Conductor :  Split, Process in Parallel, Merge
 
 A Java Conductor workflow example for parallel data processing. splitting a dataset into chunks based on a configurable chunk size, processing each chunk simultaneously via `FORK_JOIN`, and merging the per-chunk results into a single output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Processing Large Datasets Sequentially Wastes Time
 
 A 10 GB CSV file needs to be processed. parsing rows, applying transformations, computing aggregates. Doing it sequentially takes an hour. Splitting it into three chunks and processing them in parallel takes 20 minutes, but you need to manage the chunking logic, wait for all three to finish, handle a chunk that fails while the others succeed, and merge the partial results into a coherent whole.
@@ -133,13 +134,13 @@ conductor workflow search -w ppr_parallel_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker processes one data chunk independently. replace the simulated transformations with real ETL or batch processing logic and the parallel split-process-merge pipeline runs unchanged.
+Each worker processes one data chunk independently. replace the demo transformations with real ETL or batch processing logic and the parallel split-process-merge pipeline runs unchanged.
 
 - **PprSplitWorkWorker** (`ppr_split_work`): implement real chunking: split files by byte offset, partition database tables by ID range, or use Spark's partitioning to create balanced chunks
 - **PprChunk*Workers** (`ppr_chunk_1/2/3`). run real per-chunk processing: ETL transformations, image resizing batches, or ML inference on data partitions using your compute framework of choice
 - **PprMergeWorker** (`ppr_merge`): merge real outputs: concatenate processed CSV files, union database result sets, or aggregate per-chunk metrics into global totals
 
-The per-chunk result contract stays fixed. Swap the simulated transformation for real Spark or pandas processing and the split-merge pipeline runs unchanged.
+The per-chunk result contract stays fixed. Swap the demo transformation for real Spark or pandas processing and the split-merge pipeline runs unchanged.
 
 ## SDK
 

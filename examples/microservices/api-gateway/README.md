@@ -132,7 +132,7 @@ conductor workflow search -w api_gateway_292 -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace each simulated worker with a call to your identity provider, service mesh, or response-formatting layer, the authenticate-route-transform-respond workflow stays exactly the same.
+Replace each demo worker with a call to your identity provider, service mesh, or response-formatting layer, the authenticate-route-transform-respond workflow stays exactly the same.
 
 - **AgAuthenticateWorker** (`ag_authenticate`): validate API keys or JWTs against your identity provider or API-key store
 - **RouteRequestWorker** (`ag_route_request`): make a real HTTP call to the target backend service via service discovery or a load balancer

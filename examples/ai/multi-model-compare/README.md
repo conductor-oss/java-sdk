@@ -20,12 +20,12 @@ Four workers run a model comparison. calling GPT-4, Claude, and Gemini in parall
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **McCallGpt4Worker** | `mc_call_gpt4` | Calls GPT-4 via OpenAI Chat Completions API. Uses `CONDUCTOR_OPENAI_API_KEY` env var; falls back to simulated when unset. | Both |
-| **McCallClaudeWorker** | `mc_call_claude` | Calls Claude via Anthropic Messages API. Uses `CONDUCTOR_ANTHROPIC_API_KEY` env var; falls back to simulated when unset. | Both |
-| **McCallGeminiWorker** | `mc_call_gemini` | Calls Gemini via Google Generative AI API. Uses `GOOGLE_API_KEY` env var; falls back to simulated when unset. | Both |
+| **McCallGpt4Worker** | `mc_call_gpt4` | Calls GPT-4 via OpenAI Chat Completions API. Uses `CONDUCTOR_OPENAI_API_KEY` env var; falls back to demo when unset. | Both |
+| **McCallClaudeWorker** | `mc_call_claude` | Calls Claude via Anthropic Messages API. Uses `CONDUCTOR_ANTHROPIC_API_KEY` env var; falls back to demo when unset. | Both |
+| **McCallGeminiWorker** | `mc_call_gemini` | Calls Gemini via Google Generative AI API. Uses `GOOGLE_API_KEY` env var; falls back to demo when unset. | Both |
 | **McCompareWorker** | `mc_compare` | Compares results from GPT-4, Claude, and Gemini model calls. Determines the winner (highest quality), fastest, cheapest. | N/A |
 
-Each worker auto-detects its API key at startup. When a key is present, the worker makes real API calls; when absent, it returns a deterministic simulated response prefixed with `[SIMULATED]`. You can set any combination. for example, set only `CONDUCTOR_OPENAI_API_KEY` to get live GPT-4 results alongside simulated Claude and Gemini.
+Each worker auto-detects its API key at startup. When a key is present, the worker makes real API calls; when absent, it returns a deterministic demo response prefixed with `[DEMO]`. You can set any combination. for example, set only `CONDUCTOR_OPENAI_API_KEY` to get live GPT-4 results alongside demo Claude and Gemini.
 
 ### The Workflow
 

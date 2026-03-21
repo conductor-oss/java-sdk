@@ -123,7 +123,7 @@ conductor workflow search -w custom_metrics -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one metrics pipeline step. replace the simulated calls with Prometheus custom exporters, Grafana dashboard APIs, or CloudWatch PutMetricData, and the metrics workflow runs unchanged.
+Each worker handles one metrics pipeline step. replace the demo calls with Prometheus custom exporters, Grafana dashboard APIs, or CloudWatch PutMetricData, and the metrics workflow runs unchanged.
 
 - **DefineMetrics** (`cm_define_metrics`): load metric specifications from a YAML config or API, defining which custom metrics to collect, their data types, labels, and expected ranges
 - **CollectData** (`cm_collect_data`): query real data sources: CloudWatch custom metrics, Prometheus custom metric endpoints, or application log files parsed with regex/JSON extractors

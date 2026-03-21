@@ -1,6 +1,7 @@
 # Property Inspection in Java with Conductor :  Schedule, Inspect, Document, and Report
 
 A Java Conductor workflow example for managing property inspections. scheduling the inspection with an inspector, conducting the on-site evaluation (structural, plumbing, electrical, HVAC), documenting findings with photos and notes, and generating the final inspection report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to coordinate property inspections for real estate transactions. When a buyer makes an offer contingent on inspection, an inspector must be scheduled, the on-site inspection must cover all systems (roof, foundation, plumbing, electrical, HVAC), findings must be documented with photos and severity ratings, and a formal report must be generated for the buyer, seller, and their agents. Each step depends on the previous one. you can't document findings before the inspection, and the report can't be generated without documentation.

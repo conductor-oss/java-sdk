@@ -132,7 +132,7 @@ conductor workflow search -w service_migration_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one migration phase. replace the simulated calls with AWS DMS, Istio traffic shifting, or Kubernetes resource cloning, and the migration workflow runs unchanged.
+Each worker handles one migration phase. replace the demo calls with AWS DMS, Istio traffic shifting, or Kubernetes resource cloning, and the migration workflow runs unchanged.
 
 - **AssessWorker** (`sm_assess`): query your service mesh (Istio, Linkerd) or CMDB to discover dependencies, and AWS DMS for data store replication readiness
 - **CutoverWorker** (`sm_cutover`): update load balancer backends, service mesh routing rules, or DNS weighted records to shift traffic

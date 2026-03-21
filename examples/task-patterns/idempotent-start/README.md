@@ -1,6 +1,7 @@
 # Idempotent Start in Java with Conductor
 
 Idempotent start demo. demonstrates correlationId-based dedup and search-based idempotency. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to ensure that processing the same order twice does not charge the customer twice. When a webhook fires or a message is redelivered, the same orderId and amount can arrive multiple times. Starting a new workflow for each duplicate request means the order gets processed repeatedly. double charges, duplicate shipments, or inconsistent state. You need a way to guarantee that the second (and third, and fourth) request for the same order is recognized as a duplicate and returns the existing result instead of processing again.
@@ -119,11 +120,11 @@ conductor workflow search -w idempotent_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Replace the simulated order processor with your real payment or fulfillment logic, the correlationId dedup and search-based idempotency work unchanged.
+Replace the demo order processor with your real payment or fulfillment logic, the correlationId dedup and search-based idempotency work unchanged.
 
 - **IdemProcessWorker** (`idem_process`): process the real order: charge the payment via Stripe/Braintree, create the order record in your database, trigger fulfillment, and return a receipt; the worker should be naturally idempotent (check-before-write) so that even if Conductor retries the task, the order is not double-processed
 
-Replacing the simulated processing with real order fulfillment does not affect the idempotency guarantees, since deduplication is managed by Conductor's correlationId tracking rather than the worker code.
+Replacing the demo processing with real order fulfillment does not affect the idempotency guarantees, since deduplication is managed by Conductor's correlationId tracking rather than the worker code.
 
 ## SDK
 

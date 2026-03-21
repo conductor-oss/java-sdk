@@ -1,6 +1,7 @@
 # Ordered Message Processing in Java Using Conductor :  Receive, Sort by Sequence, Process in Order, Verify
 
 A Java Conductor workflow example for ordered message processing. receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Messages Arrive Out of Order, but Must Be Processed Sequentially
 
 A financial trading system emits order updates. placed, partially filled, fully filled, cancelled. These events arrive over a message queue that doesn't guarantee ordering. Processing a cancellation before the placement, or a fill before the partial fill, produces incorrect portfolio state. The sequence numbers are embedded in the messages, but reconstructing order from a shuffled batch requires buffering, sorting, and then processing each message one at a time.
@@ -131,13 +132,13 @@ conductor workflow search -w opr_ordered_processing -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker addresses one resequencing concern. replace the simulated message sorting with real Kafka partition consumers or Redis sorted sets and the sort-then-process pipeline runs unchanged.
+Each worker addresses one resequencing concern. replace the demo message sorting with real Kafka partition consumers or Redis sorted sets and the sort-then-process pipeline runs unchanged.
 
 - **OprReceiveWorker** (`opr_receive`): consume real messages from a Kafka partition (where ordering is per-partition) or SQS FIFO queue with message group IDs
 - **OprSortBySequenceWorker** (`opr_sort_by_sequence`): use a resequencing buffer backed by Redis sorted sets (`ZADD`/`ZRANGEBYSCORE`) for cross-batch ordering with gap detection
 - **OprProcessInOrderWorker** (`opr_process_in_order`): execute real sequential business logic: apply financial transactions in order, replay event-sourced aggregates, or update database state in sequence-number order
 
-The sorted-sequence output contract stays fixed. Swap the simulated message source for a real Kafka consumer or SQS reader and the sort-process-verify pipeline runs unchanged.
+The sorted-sequence output contract stays fixed. Swap the demo message source for a real Kafka consumer or SQS reader and the sort-process-verify pipeline runs unchanged.
 
 ## SDK
 

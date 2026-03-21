@@ -21,10 +21,10 @@ Three workers enable system prompt experimentation. building the full prompt wit
 | Worker | Task | What It Does |
 |---|---|---|
 | **SpBuildPromptWorker** | `sp_build_prompt` | Builds a full prompt by combining a system prompt, few-shot examples, and the user's prompt based on the requested style. | Processing only |
-| **SpCallLlmWorker** | `sp_call_llm` | Calls an LLM with the assembled prompt. Uses OpenAI API in live mode, returns style-based deterministic output in simulated mode. |
+| **SpCallLlmWorker** | `sp_call_llm` | Calls an LLM with the assembled prompt. Uses OpenAI API in live mode, returns style-based deterministic output in demo mode. |
 | **SpCompareOutputsWorker** | `sp_compare_outputs` | Compares the formal and casual LLM responses, reporting length differences and tone insights. | Processing only |
 
-**Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `SpCallLlmWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) with system prompt, few-shot examples, and user message. Without the key, it runs in simulated mode with style-based deterministic output prefixed with `[SIMULATED]`. Non-LLM workers (prompt building, comparison) always run their real logic.
+**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `SpCallLlmWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) with system prompt, few-shot examples, and user message. Without the key, it runs in demo mode with style-based deterministic output prefixed with `[DEMO]`. Non-LLM workers (prompt building, comparison) always run their real logic.
 
 ### The Workflow
 
@@ -103,7 +103,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `SpCallLlmWorker` calls the real API. When absent, runs in simulated mode. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `SpCallLlmWorker` calls the real API. When absent, runs in demo mode. |
 
 ## Using the Conductor CLI
 

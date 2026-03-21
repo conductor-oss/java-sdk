@@ -123,7 +123,7 @@ conductor workflow search -w threshold_alerting -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one severity response. replace the simulated calls with Prometheus metric queries, Slack Webhooks, or PagerDuty Events API for real threshold monitoring and escalation, and the alerting workflow runs unchanged.
+Each worker handles one severity response. replace the demo calls with Prometheus metric queries, Slack Webhooks, or PagerDuty Events API for real threshold monitoring and escalation, and the alerting workflow runs unchanged.
 
 - **CheckMetric** (`ta_check_metric`): query Prometheus, Datadog, or CloudWatch for real-time metric values with configurable warning and critical thresholds per metric and per environment
 - **LogOk** (`ta_log_ok`): record that the metric is within normal range for audit and trend tracking, pushing the data point to a time-series database or logging platform

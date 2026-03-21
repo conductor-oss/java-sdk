@@ -1,6 +1,7 @@
 # Event Batching in Java Using Conductor
 
 Event Batching. collects events, creates batches, then processes each batch in a DO_WHILE loop. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to batch high-volume events into manageable chunks before processing. When events arrive continuously, processing them one by one is inefficient. database inserts, API calls, and network round trips are much cheaper in batches. The workflow must collect incoming events, split them into fixed-size batches, and process each batch in a loop until all events are handled.

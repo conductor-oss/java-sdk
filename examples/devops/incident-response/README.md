@@ -123,7 +123,7 @@ conductor workflow search -w incident_response_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker owns one incident response stage. Replace the simulated calls with PagerDuty, Kubernetes, or Prometheus APIs, and the response workflow runs unchanged.
+Each worker owns one incident response stage. Replace the demo calls with PagerDuty, Kubernetes, or Prometheus APIs, and the response workflow runs unchanged.
 
 - **`CreateIncidentWorker`**: Create incidents in PagerDuty, Opsgenie, or ServiceNow via their REST APIs instead of returning a hardcoded incident ID.
 
@@ -131,7 +131,7 @@ Each worker owns one incident response stage. Replace the simulated calls with P
 
 - **`AutoRemediateWorker`**: Call the Kubernetes API to scale deployments, invoke AWS Auto Scaling actions, or trigger Ansible runbooks for automated recovery.
 
-Replace the simulated calls with real PagerDuty and diagnostics APIs; the workflow contract stays unchanged.
+Replace the demo calls with real PagerDuty and diagnostics APIs; the workflow contract stays unchanged.
 
 ## SDK
 

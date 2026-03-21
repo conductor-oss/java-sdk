@@ -1,6 +1,7 @@
 # Task Definitions in Java with Conductor
 
 Task definitions test. runs td_fast_task to verify task definition configuration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to configure per-task behavior: retry counts, retry strategies (FIXED vs EXPONENTIAL_BACKOFF), timeout durations, and response timeouts, independently from the workflow definition. Task definitions let you set these policies once and have them apply everywhere the task is used, across multiple workflows.

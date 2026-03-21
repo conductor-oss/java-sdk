@@ -1,6 +1,7 @@
 # Escalation Timer in Java Using Conductor :  Request Submission, WAIT with Timeout for Auto-Approval, and Decision Processing
 
 A Java Conductor workflow example demonstrating timeout-based auto-approval. submitting a request, pausing at a WAIT task for human approval, and auto-approving if the approver does not respond within the configured deadline. The process worker handles both human-approved and auto-approved decisions identically, recording the method (human vs, auto) for audit purposes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 Pending approvals that sit indefinitely block business processes. If an approver is on vacation, overwhelmed, or simply forgets, the request should not languish forever. The workflow must submit the request, wait for a human decision, and if no decision arrives within the configured deadline (autoApproveAfterMs), automatically approve the request so work can proceed. The processing step must know whether the decision came from a human or was auto-approved, since auto-approved items may need additional audit scrutiny. Without timeout-based escalation, stale requests accumulate and SLAs are violated.

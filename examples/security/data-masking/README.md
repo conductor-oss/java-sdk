@@ -1,6 +1,7 @@
 # Implementing Data Masking in Java with Conductor :  Field Identification, Strategy Selection, Masking Application, and Output Validation
 
 A Java Conductor workflow example automating data masking. scanning a data source to identify sensitive fields (SSNs, emails, credit card numbers), selecting the appropriate masking strategy (tokenization, redaction, format-preserving encryption, pseudonymization) based on the data's intended purpose, applying the masks to every sensitive field, and validating that no PII remains in the output while referential integrity is preserved. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to share production-like data with development teams, analytics pipelines, or third-party vendors; but the data contains Social Security numbers, email addresses, credit card numbers, health records, and other regulated PII that cannot be exposed. Each field type requires a different masking approach: SSNs should be redacted or tokenized, emails need format-preserving pseudonymization so downstream systems still process them correctly, credit card numbers must preserve the BIN prefix for payment testing. After masking, you must verify that no PII leaked through (partial masks, edge cases, NULL handling) and that referential integrity is maintained (the same customer ID maps to the same masked ID across all tables).

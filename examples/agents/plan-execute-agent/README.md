@@ -26,7 +26,7 @@ Five workers implement plan-then-execute. Creating a structured plan, executing 
 | **ExecuteStep3Worker** | `pe_execute_step_3` | Executes step 3: generates strategic recommendations. Receives the step 2 result as context. Returns prioritized recommendations with ROI estimates (API platform at capacity-planning%, enterprise tier at 210%). |
 | **CompileResultsWorker** | `pe_compile_results` | Compiles all three step results into a single report string formatted as "Objective: .. | Step 1: .. | Step 2: .. | Step 3: ...". |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 

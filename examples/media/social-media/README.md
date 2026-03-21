@@ -1,6 +1,7 @@
 # Social Media Management in Java Using Conductor :  Content Creation, Scheduling, Publishing, Engagement Monitoring, and Community Response
 
 A Java Conductor workflow example that orchestrates social media management. creating formatted posts with hashtag optimization and optimal posting time selection, scheduling for peak engagement windows, publishing to social platforms, monitoring engagement metrics (impressions, likes, shares, comments, mentions, engagement rate), and handling community responses (replies, likes, flagging for review). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Social Media Management Needs Orchestration
 
 Managing social media presence involves a lifecycle for every post. You create the content. formatting the message, selecting relevant hashtags, and determining the optimal posting time based on audience analytics. You schedule the post for the peak engagement window. You publish to the platform and capture the post URL and ID. You monitor engagement over time,  tracking impressions, likes, shares, comments, mentions, and computing the overall engagement rate. You respond to community interactions,  replying to comments, liking fan responses, and flagging negative interactions for review.

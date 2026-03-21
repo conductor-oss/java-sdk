@@ -124,7 +124,7 @@ Replace the event processor with your real business logic for handling webhooks,
 
 - **ProcessEventWorker** (`eh_process_event`): route events by type to real handlers: write `order.created` events to your order database, send `user.signup` events to your CRM (Salesforce, HubSpot), publish `payment.failed` events to a Slack channel or PagerDuty incident, or forward events to a data lake (S3, BigQuery) for analytics
 
-Replacing the simulated processing with real event handling logic (order creation, payment processing, etc.) does not require workflow changes, since the event-to-workflow triggering mechanism remains the same.
+Replacing the demo processing with real event handling logic (order creation, payment processing, etc.) does not require workflow changes, since the event-to-workflow triggering mechanism remains the same.
 
 ## SDK
 

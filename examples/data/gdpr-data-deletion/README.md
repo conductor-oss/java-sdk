@@ -1,6 +1,7 @@
 # GDPR Data Deletion in Java Using Conductor :  Record Discovery, Identity Verification, Cross-System Erasure, and Audit Logging
 
 A Java Conductor workflow example for GDPR Article 17 right-to-erasure compliance. discovering all records associated with a user across multiple systems (user accounts, analytics, billing, support, marketing), verifying the requester's identity before any deletion occurs, erasing the user's data from every system where records were found, and generating a GDPR-compliant audit log that proves the deletion was completed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 When a user submits a GDPR erasure request, their data lives in five or more systems: profile and credentials in the user accounts database, clickstream and session events in analytics, invoices and payment info in billing, ticket messages and attachments in support, and email preferences in marketing. You need to find every record tied to that user across all of these systems, verify the requester's identity before touching anything (a deletion request from an unverified source must be rejected), delete from every system, and produce an audit trail that proves to regulators exactly what was found, when it was deleted, and from which systems. You have 30 days to comply.

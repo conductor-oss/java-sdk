@@ -1,6 +1,7 @@
 # Trouble Ticket in Java Using Conductor
 
 A Java Conductor workflow example that orchestrates the telecom trouble ticket lifecycle. opening a ticket when a customer reports a service issue, diagnosing the problem to determine its category, assigning the ticket to the appropriate technician based on the diagnosis, resolving the issue, and closing the ticket with the resolution details. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Trouble Ticket Management Needs Orchestration
 
 Handling a customer trouble ticket requires a structured progression where each step depends on the outcome of the previous one. You open a ticket with the customer's ID, issue type, and description. You diagnose the reported issue to categorize it (network fault, equipment failure, billing dispute, provisioning error). You assign the ticket to a technician with the right skills for that category. The assigned technician resolves the issue and records the resolution. Finally, you close the ticket with the resolution details and timestamp.

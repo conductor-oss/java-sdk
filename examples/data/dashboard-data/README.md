@@ -1,6 +1,7 @@
 # Dashboard Data in Java Using Conductor :  Metric Aggregation, KPI Computation, Widget Assembly, and Caching
 
 A Java Conductor workflow example for dashboard data preparation: aggregating raw metrics over a time range, computing KPIs like conversion rates and growth percentages, assembling widget configurations for charts and gauges, and caching the assembled dashboard for fast retrieval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to power a real-time dashboard that shows business metrics. Revenue trends, user activity, conversion rates, error counts. That means querying multiple data sources to aggregate raw metrics over a configurable time range, computing derived KPIs (growth rates, percentages, comparisons to previous periods), building widget configurations that map KPIs to specific chart types (line graphs, bar charts, gauges), and caching the assembled dashboard with a TTL so the frontend loads instantly. Each step depends on the one before it: KPIs require aggregated metrics, widgets require computed KPIs, and caching requires fully assembled widgets.

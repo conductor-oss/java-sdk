@@ -1,6 +1,7 @@
 # Dynamic Data Pipeline in Java Using Conductor :  Validate, Transform, Enrich, Publish
 
 A Java Conductor workflow example for dynamic data pipelines. validating incoming payloads against configurable rules, transforming them into the target format (JSON, Avro, Parquet), enriching with data from external APIs, and publishing to an event bus. Each step is driven by its own JSON configuration, making the pipeline composable and reconfigurable without code changes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Configurable Pipelines Without Hard-Coded Steps
 
 Different data sources need different processing. an API webhook payload needs schema validation and JSON normalization, a batch CSV upload needs field mapping and type coercion, and a Kafka event needs enrichment from a lookup table before publishing. Hard-coding each pipeline variant means duplicating orchestration logic, and adding a new step (e.g., deduplication, PII masking) means touching every pipeline.
@@ -131,7 +132,7 @@ conductor workflow search -w dynamic_workflow_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker is a config-driven pipeline stage. replace the simulated validation and transformation with real JSON Schema validators or JOLT transforms and the dynamic pipeline runs unchanged.
+Each worker is a config-driven pipeline stage. replace the demo validation and transformation with real JSON Schema validators or JOLT transforms and the dynamic pipeline runs unchanged.
 
 - **DwValidateWorker** (`dw_validate`): integrate JSON Schema validation (`everit-org/json-schema`), Apache Avro schema validation, or custom business rule engines for real payload validation
 - **DwTransformWorker** (`dw_transform`): use Jackson for JSON transformations, Apache Avro for schema-based conversions, or JOLT for declarative JSON-to-JSON transforms

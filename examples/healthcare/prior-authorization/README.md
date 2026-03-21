@@ -1,6 +1,7 @@
 # Prior Authorization in Java Using Conductor :  Request Submission, Clinical Criteria Review, Three-Way Decision Routing, and Provider Notification
 
 A Java Conductor workflow example for prior authorization. submitting authorization requests with clinical justification, reviewing against medical necessity criteria, routing to auto-approve, auto-deny, or manual clinical review via SWITCH, and notifying the provider of the determination. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to process prior authorization requests for medical procedures, imaging studies, or specialty medications. A provider submits a request with the patient ID, procedure code, and clinical justification. The request must be reviewed against the payer's medical necessity criteria. InterQual, MCG, or custom clinical guidelines. Based on the criteria review, the request is routed to one of three paths: auto-approve if all criteria are met, auto-deny if the procedure clearly does not meet medical necessity, or escalate to a medical director for manual peer review if the case is ambiguous. Regardless of the determination, the provider must be notified with the decision, authorization number (if approved), or denial reason with appeal instructions. State prompt-decision laws require turnaround within specific timeframes.

@@ -1,6 +1,7 @@
 # Splitter Pattern in Java Using Conductor :  Receive Composite Message, Split, Process Parts in Parallel, Combine
 
 A Java Conductor workflow example for the splitter pattern. receiving a composite message containing multiple items, splitting it into individual parts, processing each part independently and in parallel via `FORK_JOIN`, and combining the per-part results into a single unified response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Composite Messages Contain Independent Items That Can Be Processed in Parallel
 
 An order arrives with three line items. a laptop, a monitor, and a keyboard. Each item needs independent processing: inventory check, pricing lookup, tax calculation. Processing them sequentially triples the latency. Processing them in parallel requires splitting the order into individual items, dispatching each to its own processing pipeline, waiting for all three to complete, and reassembling the results into a single order response.
@@ -137,13 +138,13 @@ conductor workflow search -w spl_splitter_pattern -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker processes one item from the composite message. replace the simulated per-item handlers with real inventory, pricing, or tax service calls and the split-process-combine pipeline runs unchanged.
+Each worker processes one item from the composite message. replace the demo per-item handlers with real inventory, pricing, or tax service calls and the split-process-combine pipeline runs unchanged.
 
 - **SplSplitWorker** (`spl_split`): parse real composite messages: split multi-item orders from your e-commerce API, extract individual records from a batch CSV upload, or decompose a multi-part MIME message
 - **SplProcessPart*Workers** (`spl_process_part_1/2/3`). run real per-item processing: inventory checks via your warehouse API, pricing lookups from a product catalog, or tax calculations via Avalara/TaxJar
 - **SplCombineWorker** (`spl_combine`): reassemble into a real response: build an order confirmation with per-item status, generate a batch processing report, or create a composite API response
 
-The per-item result contract stays fixed. Swap simulated fulfillment for real inventory and pricing APIs and the split-process-combine pipeline runs unchanged.
+The per-item result contract stays fixed. Swap demo fulfillment for real inventory and pricing APIs and the split-process-combine pipeline runs unchanged.
 
 ## SDK
 

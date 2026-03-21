@@ -18,9 +18,9 @@ Three workers integrate Weaviate into the RAG pipeline. embedding the query, sea
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **WeavEmbedWorker** | `weav_embed` | Converts a text question into a fixed embedding vector (simulated). |
-| **WeavGenerateWorker** | `weav_generate` | Generates an answer from the user question and retrieved Weaviate objects (simulated). |
-| **WeavSearchWorker** | `weav_search` | Performs a vector-similarity search against Weaviate (simulated). |
+| **WeavEmbedWorker** | `weav_embed` | Converts a text question into a fixed embedding vector (demo). |
+| **WeavGenerateWorker** | `weav_generate` | Generates an answer from the user question and retrieved Weaviate objects (demo). |
+| **WeavSearchWorker** | `weav_search` | Performs a vector-similarity search against Weaviate (demo). |
 
 Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
 
@@ -95,7 +95,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use simulated responses. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use demo responses. |
 
 ## Using the Conductor CLI
 

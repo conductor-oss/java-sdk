@@ -1,6 +1,7 @@
 # Implementing Role-Based Access Control (RBAC) in Java with Conductor :  Role Resolution, Permission Evaluation, Context Check, and Decision Enforcement
 
 A Java Conductor workflow example implementing role-based access control. resolving a user's roles from the identity store, evaluating whether those roles grant the requested permission on the target resource, checking contextual constraints (time of day, network location, device trust), and enforcing the allow/deny decision with a full audit log. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to authorize every access request against a role-based policy model. When a user requests to perform an action (read, write, delete, admin) on a resource (document, API endpoint, database table), the system must resolve their assigned roles (admin, editor, viewer) from the identity store, evaluate whether any of those roles grant the requested permission, apply contextual constraints (is the request within business hours? from a trusted network? on a managed device?), and enforce the final allow or deny decision. all while logging every decision for compliance audits.

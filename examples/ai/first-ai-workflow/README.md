@@ -24,7 +24,7 @@ Three workers form the simplest possible LLM pipeline. Preparing the prompt with
 | **AiParseResponseWorker** | `ai_parse_response` | Worker that parses the raw LLM response and validates it. |
 | **AiPreparePromptWorker** | `ai_prepare_prompt` | Worker that prepares a formatted prompt from a question and model name. |
 
-Workers run in simulated mode by default, returning realistic outputs so you can run the full pipeline without API keys. Set `CONDUCTOR_OPENAI_API_KEY` to switch to live mode (see Configuration below). The workflow and worker interfaces stay the same.
+Workers run in demo mode by default, returning realistic outputs so you can run the full pipeline without API keys. Set `CONDUCTOR_OPENAI_API_KEY` to switch to live mode (see Configuration below). The workflow and worker interfaces stay the same.
 
 ### The Workflow
 
@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `AiCallLlmWorker` calls the real OpenAI Chat Completions API. When unset, returns simulated responses with `` prefix. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `AiCallLlmWorker` calls the real OpenAI Chat Completions API. When unset, returns demo responses with `` prefix. |
 
 ## Using the Conductor CLI
 

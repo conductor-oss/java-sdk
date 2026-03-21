@@ -1,6 +1,7 @@
 # Edge Computing Orchestration in Java Using Conductor :  Dispatch, Process, Collect, Merge
 
 A Java Conductor workflow example for edge computing orchestration. dispatching a job to multiple edge nodes, executing processing on each node, collecting results from all nodes, and merging them into a single unified output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Processing Data at the Edge
 
 Edge computing pushes computation close to the data source. IoT sensors on a factory floor, cameras at retail locations, or CDN nodes across geographies. A central system needs to dispatch an inference job to edge nodes, wait for each node to process its local data (video frames, sensor readings, log files), collect the partial results, and merge them into a global view. If one node is slow or fails, the central system needs to know, not silently drop that node's results.
@@ -131,13 +132,13 @@ conductor workflow search -w edge_orchestration_demo -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one phase of the dispatch-process-collect cycle. replace the simulated edge node calls with real IoT Greengrass or MQTT APIs and the edge orchestration logic runs unchanged.
+Each worker handles one phase of the dispatch-process-collect cycle. replace the demo edge node calls with real IoT Greengrass or MQTT APIs and the edge orchestration logic runs unchanged.
 
 - **EorDispatchWorker** (`eor_dispatch`): call AWS IoT Greengrass `createDeployment`, Azure IoT Edge, or send MQTT messages to edge devices to dispatch real jobs
 - **EorEdgeProcessWorker** (`eor_edge_process`): invoke real edge-side inference (TensorFlow Lite, ONNX Runtime) or data processing via SSH, gRPC, or the AWS IoT Jobs API
 - **EorMergeWorker** (`eor_merge`): aggregate edge results into a dashboard (Grafana API), write to a time-series database (InfluxDB, TimescaleDB), or publish to a Kafka topic for downstream analytics
 
-The per-node result contract stays fixed. Swap the simulated edge calls for real gRPC or MQTT dispatch and the collect-merge pipeline runs unchanged.
+The per-node result contract stays fixed. Swap the demo edge calls for real gRPC or MQTT dispatch and the collect-merge pipeline runs unchanged.
 
 ## SDK
 

@@ -26,7 +26,7 @@ Five workers deliver the morning briefing. Planning which tools to call, then di
 | **CallStocksWorker** | `tp_call_stocks` | Fetches stock market quotes for requested tickers. Returns 4 quotes with price, change, and change percent (AAPL +1.33%, GOOGL +1.11%, MSFT -0.20%, AMZN +1.74%), plus overall market sentiment (bullish). |
 | **CombineResultsWorker** | `tp_combine_results` | Merges parallel weather, news, and stocks data into a unified morning briefing object. Produces a human-readable summary paragraph and records the list of tools used and generation timestamp. |
 
-The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
+The demo workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
 ### The Workflow
 

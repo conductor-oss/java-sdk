@@ -1,6 +1,7 @@
 # Content Moderation Pipeline in Java Using Conductor :  Auto-Check, Toxicity Scoring, Human Review, and Policy Enforcement
 
 A Java Conductor workflow example that orchestrates content moderation. submitting user content for review, running automated toxicity and policy violation checks with confidence scores, routing via SWITCH to approve safe content, escalate flagged content to human reviewers, or immediately block clearly violating content, and finalizing the decision with an audit log. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Content Moderation Needs Orchestration
 
 Moderating user content requires a decision pipeline with multiple possible outcomes. You receive a submission and queue it. You run automated checks. toxicity scoring, policy violation detection, confidence assessment. Based on the auto-check results, you route to three different paths: safe content (high confidence, low toxicity) is approved automatically; flagged content (medium confidence, potential violations) goes to a human moderator for manual review; clearly violating content (high toxicity, obvious violations) is blocked immediately with user notification and appeal options.

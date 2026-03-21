@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `HUGGINGFACE_TOKEN` | _(none)_ | HuggingFace API token. When set, `HfInferenceWorker` calls the real HuggingFace Inference API. When unset, returns simulated responses with `[SIMULATED]` prefix. |
+| `HUGGINGFACE_TOKEN` | _(none)_ | HuggingFace API token. When set, `HfInferenceWorker` calls the real HuggingFace Inference API. When unset, returns demo responses with `[DEMO]` prefix. |
 
 ## Using the Conductor CLI
 

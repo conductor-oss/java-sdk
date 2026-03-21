@@ -1,6 +1,7 @@
 # Bulk Operations in Java with Conductor
 
 Bulk operations demo. two-step workflow used for bulk start, pause, resume, and terminate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to manage hundreds or thousands of workflow instances at once. starting a batch of data processing jobs, pausing them while a dependent system is down, resuming them when it recovers, or terminating stale runs. Each batch is identified by a batchId, and each instance runs a two-step pipeline (step1 produces intermediate data, step2 produces the final result). Operating on workflows one at a time through the UI is impractical at scale.

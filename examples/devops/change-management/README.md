@@ -123,7 +123,7 @@ conductor workflow search -w change_management -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one ITIL change stage. replace the simulated calls with ServiceNow, Jira Service Management, or Ansible for real ticketing, approval gates, and change execution, and the management workflow runs unchanged.
+Each worker handles one ITIL change stage. replace the demo calls with ServiceNow, Jira Service Management, or Ansible for real ticketing, approval gates, and change execution, and the management workflow runs unchanged.
 
 - **SubmitChange** (`cm_submit_change`): create change records in ServiceNow, Jira Service Management, or a custom change tracking system with description, risk category, and affected services
 - **AssessRisk** (`cm_assess_risk`): use historical change data from ServiceNow or Jira to score risk based on similar past changes and their success/failure rates

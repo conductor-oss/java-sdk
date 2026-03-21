@@ -131,7 +131,7 @@ conductor workflow search -w smoke_testing_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker validates one layer of the deployment. replace the simulated calls with real HTTP clients, JDBC checks, and Stripe or SendGrid connectivity tests, and the smoke testing workflow runs unchanged.
+Each worker validates one layer of the deployment. replace the demo calls with real HTTP clients, JDBC checks, and Stripe or SendGrid connectivity tests, and the smoke testing workflow runs unchanged.
 
 - **CheckEndpointsWorker** → hit real endpoints: HTTP GET/POST with expected status codes and response schema validation using OkHttp or Java HttpClient, with configurable retry for cold-start latency
 - **VerifyDataWorker** → query real databases: JDBC checks for migration version tables, row count assertions on critical tables, and sample queries that exercise key indexes

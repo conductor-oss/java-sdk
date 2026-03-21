@@ -1,6 +1,7 @@
 # Analytics Reporting Pipeline in Java Using Conductor :  Event Collection, Data Aggregation, KPI Computation, and Dashboard Generation
 
 A Java Conductor workflow example that orchestrates an analytics reporting pipeline. collecting raw user events from multiple data sources into Parquet files, aggregating them into session-level metrics (total sessions, unique users, page views), computing business KPIs (DAU, WAU, MAU, bounce rate, conversion rate, revenue per user), and generating interactive dashboard reports with scheduled delivery via email and Slack. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Analytics Pipelines Need Orchestration
 
 Building an analytics report requires a strict data pipeline. You collect 1.25 million raw events from multiple sources and write them to a staging area. You aggregate those events into session-level summaries. 85K total sessions, 42K unique users, 320K page views, 245-second average session duration. You compute business-critical KPIs from the aggregated data: daily/weekly/monthly active users, 38.5% bounce rate, 4.2% conversion rate. Finally, you generate an interactive dashboard report and schedule delivery to stakeholders.

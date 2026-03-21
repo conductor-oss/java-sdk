@@ -1,6 +1,7 @@
 # Tournament Bracket in Java Using Conductor
 
 Runs a competitive tournament from registration to finals: accepting registrations, seeding by skill, generating brackets, managing match rounds, and finalizing results with prize distribution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## The Problem
 
 You need to run a competitive tournament from registration to finals. The workflow accepts player registrations, seeds participants based on skill rating, generates the tournament bracket (single elimination, double elimination, or round robin), manages each round of matches, and finalizes results with prize distribution. Unseeded brackets produce lopsided first-round matchups; mismanaged rounds can deadlock the tournament.

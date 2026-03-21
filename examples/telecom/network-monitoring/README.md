@@ -1,6 +1,7 @@
 # Network Monitoring in Java Using Conductor
 
 A Java Conductor workflow example that orchestrates telecom network monitoring. polling metrics from a network segment, detecting issues such as high latency, packet loss, or link failures, diagnosing root causes, executing automated repairs, and verifying the network segment is healthy after repair. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Why Network Monitoring Needs Orchestration
 
 Monitoring a telecom network segment requires a closed-loop process from detection through resolution. You poll performance metrics (latency, jitter, packet loss, throughput) from the network segment's switches and routers. You analyze those metrics to detect issues. threshold breaches, trending degradation, or outright failures. You diagnose the root cause by correlating the detected issues with topology, recent changes, and known failure patterns. You execute the repair,  rerouting traffic, resetting interfaces, or rolling back a bad configuration. Finally, you verify the segment is healthy by re-polling metrics and confirming the issue is resolved.

@@ -105,7 +105,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `DB_URL` | _(none)_ | JDBC database URL (e.g., `jdbc:postgresql://localhost:5432/mydb`). Currently unused, all workers run in simulated mode with `[SIMULATED]` output prefix. Swap in JDBC or HikariCP for production. |
+| `DB_URL` | _(none)_ | JDBC database URL (e.g., `jdbc:postgresql://localhost:5432/mydb`). Currently unused, all workers run in demo mode with `[DEMO]` output prefix. Swap in JDBC or HikariCP for production. |
 
 ## Using the Conductor CLI
 

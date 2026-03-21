@@ -143,7 +143,7 @@ Connect OcrExtractWorker to your OCR service (ABBYY, AWS Textract), MatchPoWorke
 - **Approver**: route to the correct approver based on amount thresholds and vendor category; use a WAIT task for human approval
 - **Payment processor**: trigger payment via your AP system (SAP, Oracle AP, Bill.com) with proper GL coding and payment terms
 
-Replace simulated OCR and PO matching with real document intelligence and ERP integrations while preserving the same output fields, and the invoice pipeline requires no workflow changes.
+Replace demo OCR and PO matching with real document intelligence and ERP integrations while preserving the same output fields, and the invoice pipeline requires no workflow changes.
 
 ## SDK
 

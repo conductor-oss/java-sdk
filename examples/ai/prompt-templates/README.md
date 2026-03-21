@@ -20,11 +20,11 @@ Three workers manage templated LLM calls. resolving a versioned template with va
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **CallLlmWorker** | `pt_call_llm` | Calls an LLM with a prompt. Uses OpenAI API in live mode, returns deterministic output in simulated mode. |
+| **CallLlmWorker** | `pt_call_llm` | Calls an LLM with a prompt. Uses OpenAI API in live mode, returns deterministic output in demo mode. |
 | **CollectWorker** | `pt_collect` | Collects and logs the results of the prompt template pipeline. | Processing only |
 | **ResolveTemplateWorker** | `pt_resolve_template` | Resolves a prompt template by substituting variables into placeholders. Template store contains versioned prompt templates. | Processing only |
 
-**Live vs Simulated mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CallLlmWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in simulated mode with deterministic output prefixed with `[SIMULATED]`. Non-LLM workers (template resolution, collection) always run their real logic.
+**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CallLlmWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in demo mode with deterministic output prefixed with `[DEMO]`. Non-LLM workers (template resolution, collection) always run their real logic.
 
 ### The Workflow
 
@@ -97,7 +97,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `CallLlmWorker` calls the real API. When absent, runs in simulated mode. |
+| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `CallLlmWorker` calls the real API. When absent, runs in demo mode. |
 
 ## Using the Conductor CLI
 

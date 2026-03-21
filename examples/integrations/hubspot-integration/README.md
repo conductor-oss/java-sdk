@@ -101,7 +101,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 |---|---|---|
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `HUBSPOT_API_KEY` | _(none)_ | HubSpot private app access token. When set, CreateContactWorker calls the HubSpot Contacts API. When unset, all workers run in simulated mode with `[SIMULATED]` output prefix. |
+| `HUBSPOT_API_KEY` | _(none)_ | HubSpot private app access token. When set, CreateContactWorker calls the HubSpot Contacts API. When unset, all workers run in demo mode with `[DEMO]` output prefix. |
 
 ## Using the Conductor CLI
 

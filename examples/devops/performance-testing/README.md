@@ -131,7 +131,7 @@ conductor workflow search -w performance_testing_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one testing stage. replace the simulated calls with k6, Gatling, or JMeter for real load generation and latency analysis, and the testing workflow runs unchanged.
+Each worker handles one testing stage. replace the demo calls with k6, Gatling, or JMeter for real load generation and latency analysis, and the testing workflow runs unchanged.
 
 - **PrepareEnvWorker** → provision real test environments: Terraform/Pulumi for infrastructure, Kubernetes namespaces for isolation, or AWS CloudFormation for ephemeral stacks with pre-warmed caches and seeded databases
 - **RunLoadTestWorker** → execute real load tests: k6 for script-based HTTP testing, Gatling for Scala-based scenarios, JMeter for complex test plans, or Locust for Python-based distributed load generation

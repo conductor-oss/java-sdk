@@ -1,6 +1,7 @@
 # Endorsement Processing in Java with Conductor :  Request Change, Assess Impact, Price, Approve, Apply
 
 A Java Conductor workflow example for mid-term policy endorsement processing. receiving a change request (adding a driver, changing coverage limits, updating a vehicle), assessing the impact on the policy, repricing the premium adjustment (+$150/year), approving the endorsement, and applying the amendment to the active policy. Each step depends on the previous: the impact assessment feeds into repricing, the premium change feeds into approval, and the endorsement is only applied after approval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Mid-Term Policy Changes Require Impact Assessment, Repricing, and Approval Before Amendment
 
 When a policyholder requests a mid-term change (adding a driver, increasing coverage, changing a deductible), the insurer must assess the coverage impact, calculate the premium adjustment, obtain approval for the change, and apply the endorsement to the active policy. The premium adjustment depends on the impact assessment, and the endorsement is only applied after approval. If the pricing step fails, you need to retry it without re-assessing the impact.

@@ -132,7 +132,7 @@ conductor workflow search -w gitops_workflow -s COMPLETED -c 5
 
 ## How to Extend
 
-Each worker handles one reconciliation step. replace the simulated calls with ArgoCD sync APIs, Flux reconciliation, or kubectl diff for real Git-to-cluster state management, and the GitOps workflow runs unchanged.
+Each worker handles one reconciliation step. replace the demo calls with ArgoCD sync APIs, Flux reconciliation, or kubectl diff for real Git-to-cluster state management, and the GitOps workflow runs unchanged.
 
 - **DetectDriftWorker** (`go_detect_drift`): use `kubectl diff` or ArgoCD's drift detection API to compare live state against Git manifests, with structured output showing exactly what changed
 - **PlanSyncWorker** (`go_plan_sync`): generate a sync plan showing which resources will be created, updated, or deleted, similar to `terraform plan` output, for review before applying

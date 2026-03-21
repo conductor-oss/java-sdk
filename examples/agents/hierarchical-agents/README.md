@@ -1,6 +1,7 @@
 # Hierarchical Agents in Java Using Conductor :  Manager, Team Leads, and Workers in a Development Org
 
 Hierarchical agents. manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
 ## Software Projects Need Hierarchical Coordination
 
 A real development team has a manager who plans the work, team leads who coordinate their teams, and individual contributors who write code. The backend lead assigns API and database tasks; the frontend lead assigns UI and styling tasks. Both teams work simultaneously. The manager reviews everything at the end.
