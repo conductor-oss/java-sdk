@@ -2,7 +2,10 @@
   "name": "ur_user_registration",
   "version": 1,
   "schemaVersion": 2,
-  "inputParameters": ["username", "email", "password"],
+  "inputParameters": [
+    "username",
+    "email"
+  ],
   "tasks": [
     {
       "name": "ur_validate",

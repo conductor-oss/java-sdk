@@ -3,8 +3,7 @@
   "version": 1,
   "schemaVersion": 2,
   "inputParameters": [
-    "email",
-    "newPassword"
+    "email"
   ],
   "tasks": [
     {
@@ -31,7 +30,7 @@
       "inputParameters": {
         "userId": "${pwd_request_ref.output.userId}",
         "verified": "${pwd_verify_ref.output.verified}",
-        "newPassword": "${workflow.input.newPassword}"
+        "newPassword": "${workflow.secrets.reset_password}"
       }
     },
     {

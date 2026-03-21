@@ -9,6 +9,10 @@ import webhooksecurity.workers.RejectWebhookWorker;
 
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * Webhook Security Workflow Demo
@@ -64,9 +68,19 @@ public class WebhookSecurityExample {
 
         // Step 4 — Start the workflow
         System.out.println("Step 4: Starting workflow...\n");
+        
+        // Store secret via Conductor Secrets API
+        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_BASE_URL", "http://localhost:8080/api");
+        HttpClient http = HttpClient.newHttpClient();
+        http.send(HttpRequest.newBuilder()
+                .uri(URI.create(conductorUrl + "/secrets/webhook_secret"))
+                .PUT(HttpRequest.BodyPublishers.ofString("\"whsec_test_secret_2026\""))
+                .header("Content-Type", "application/json")
+                .build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println("  Secret \'webhook_secret\' stored via Conductor Secrets API");
+
         String workflowId = client.startWorkflow("webhook_security_wf", 1,
                 Map.of("payload", "{\"event\":\"push\",\"repo\":\"my-repo\"}",
-                        "secret", "webhook-secret-key",
                         "providedSignature", "hmac_sha256_fixedvalue"));
         System.out.println("  Workflow ID: " + workflowId + "\n");
 

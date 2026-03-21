@@ -5,7 +5,6 @@
   "schemaVersion": 2,
   "inputParameters": [
     "payload",
-    "secret",
     "providedSignature"
   ],
   "tasks": [
@@ -15,7 +14,7 @@
       "type": "SIMPLE",
       "inputParameters": {
         "payload": "${workflow.input.payload}",
-        "secret": "${workflow.input.secret}"
+        "secret": "${workflow.secrets.webhook_secret}"
       }
     },
     {

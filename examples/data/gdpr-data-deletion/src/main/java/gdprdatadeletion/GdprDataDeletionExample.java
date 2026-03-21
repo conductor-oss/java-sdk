@@ -9,6 +9,10 @@ import gdprdatadeletion.workers.GenerateAuditLogWorker;
 
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * GDPR Data Deletion Workflow Demo
@@ -62,10 +66,20 @@ public class GdprDataDeletionExample {
 
         // Step 4 - Start the workflow
         System.out.println("Step 4: Starting workflow...\n");
+        
+        // Store secret via Conductor Secrets API
+        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_BASE_URL", "http://localhost:8080/api");
+        HttpClient http = HttpClient.newHttpClient();
+        http.send(HttpRequest.newBuilder()
+                .uri(URI.create(conductorUrl + "/secrets/gdpr_verification_token"))
+                .PUT(HttpRequest.BodyPublishers.ofString("\"gdpr-verify-token-2026\""))
+                .header("Content-Type", "application/json")
+                .build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println("  Secret \'gdpr_verification_token\' stored via Conductor Secrets API");
+
         String workflowId = client.startWorkflow("gdpr_data_deletion", 1,
                 Map.of("userId", "USR-7042",
-                        "requestId", "GDPR-REQ-2024-0315",
-                        "verificationToken", "verified-token-abc123"));
+                        "requestId", "GDPR-REQ-2024-0315"));
         System.out.println("  Workflow ID: " + workflowId + "\n");
 
         // Step 5 - Wait for completion

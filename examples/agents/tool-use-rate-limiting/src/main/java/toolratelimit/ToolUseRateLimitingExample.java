@@ -9,6 +9,10 @@ import toolratelimit.workers.DelayedExecuteWorker;
 
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * Tool Use Rate Limiting Demo
@@ -63,11 +67,21 @@ public class ToolUseRateLimitingExample {
 
         // Step 4 — Start the workflow
         System.out.println("Step 4: Starting workflow...\n");
+        
+        // Store secret via Conductor Secrets API
+        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_BASE_URL", "http://localhost:8080/api");
+        HttpClient http = HttpClient.newHttpClient();
+        http.send(HttpRequest.newBuilder()
+                .uri(URI.create(conductorUrl + "/secrets/rate_limit_api_key"))
+                .PUT(HttpRequest.BodyPublishers.ofString("\"sk-test-rate-limit-key\""))
+                .header("Content-Type", "application/json")
+                .build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println("  Secret \'rate_limit_api_key\' stored via Conductor Secrets API");
+
         String workflowId = client.startWorkflow("tool_use_rate_limiting", 1,
                 Map.of("toolName", "translation_api",
                         "toolArgs", Map.of("text", "Hello, how are you today?",
-                                "from", "en", "to", "fr"),
-                        "apiKey", "key-prod-abc123"));
+                                "from", "en", "to", "fr")));
         System.out.println("  Workflow ID: " + workflowId + "\n");
 
         // Step 5 — Wait for completion

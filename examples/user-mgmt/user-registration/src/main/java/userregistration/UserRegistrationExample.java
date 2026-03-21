@@ -9,6 +9,10 @@ import userregistration.workers.ActivateWorker;
 
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * Example 602: User Registration — Validate, Create, Confirm, Activate
@@ -52,8 +56,19 @@ public class UserRegistrationExample {
         Thread.sleep(2000);
 
         System.out.println("Step 4: Starting workflow...\n");
+        
+        // Store secret via Conductor Secrets API
+        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_BASE_URL", "http://localhost:8080/api");
+        HttpClient http = HttpClient.newHttpClient();
+        http.send(HttpRequest.newBuilder()
+                .uri(URI.create(conductorUrl + "/secrets/registration_password"))
+                .PUT(HttpRequest.BodyPublishers.ofString("\"Str0ng!Pass#2026\""))
+                .header("Content-Type", "application/json")
+                .build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println("  Secret \'registration_password\' stored via Conductor Secrets API");
+
         String workflowId = client.startWorkflow("ur_user_registration", 1,
-                Map.of("username", "bob_dev", "email", "bob@example.com", "password", "hashed_secret"));
+                Map.of("username", "bob_dev", "email", "bob@example.com"));
         System.out.println("  Workflow ID: " + workflowId + "\n");
 
         System.out.println("Step 5: Waiting for completion...");

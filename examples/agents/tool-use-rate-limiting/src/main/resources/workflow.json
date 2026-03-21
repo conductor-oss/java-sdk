@@ -1,9 +1,12 @@
 {
   "name": "tool_use_rate_limiting",
-  "description": "Tool Use Rate Limiting — checks API rate limits before tool execution, queuing and delaying requests when throttled.",
+  "description": "Tool Use Rate Limiting \u2014 checks API rate limits before tool execution, queuing and delaying requests when throttled.",
   "version": 1,
   "schemaVersion": 2,
-  "inputParameters": ["toolName", "toolArgs", "apiKey"],
+  "inputParameters": [
+    "toolName",
+    "toolArgs"
+  ],
   "tasks": [
     {
       "name": "rl_check_rate_limit",
@@ -11,7 +14,7 @@
       "type": "SIMPLE",
       "inputParameters": {
         "toolName": "${workflow.input.toolName}",
-        "apiKey": "${workflow.input.apiKey}"
+        "apiKey": "${workflow.secrets.rate_limit_api_key}"
       }
     },
     {
