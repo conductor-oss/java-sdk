@@ -1,6 +1,8 @@
 # Goods Receipt in Java with Conductor :  Shipment Receiving, Quality Inspection, PO Matching, Warehouse Storage, and Inventory Update
 
-A Java Conductor workflow example for inbound goods receipt processing .  receiving a shipment at the dock (e.g., 5,000 M10 bolts and 5,000 M10 nuts against PO-654-001), inspecting items for quality and damage, matching received quantities to the purchase order, assigning storage locations in the warehouse, and updating inventory records. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for inbound goods receipt processing .  receiving a shipment at the dock (e.g., 5,000 M10 bolts and 5,000 M10 nuts against PO-654-001), inspecting items for quality and damage, matching received quantities to the purchase order, assigning storage locations in the warehouse, and updating inventory records. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process inbound shipments at your warehouse receiving dock. When shipment SHP-2024-655 arrives, the dock team must log receipt against purchase order PO-654-001, inspect the goods for damage and spec compliance, verify that received quantities match the PO line items (did we get 5,000 bolts or only 4,800?), assign bin locations for putaway, and update the inventory management system so the stock is available for picking. If the PO match step reveals a shortage, procurement needs to be notified to arrange a replacement shipment.
 
@@ -42,6 +44,7 @@ grc_store
     │
     ▼
 grc_update_inventory
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ grc_update_inventory
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/goods-receipt-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/goods-receipt-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow grc_goods_receipt \
   --version 1 \
-  --input '{"shipmentId": "TEST-001", "poNumber": "test-value", "items": "test-value"}'
+  --input '{"shipmentId": "TEST-001", "poNumber": "sample-poNumber", "items": [{"id": "ITEM-001", "quantity": 2}]}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w grc_goods_receipt -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ goods-receipt/
     ├── ReceiveWorkerTest.java        # 3 tests
     ├── StoreWorkerTest.java        # 2 tests
     └── UpdateInventoryWorkerTest.java        # 2 tests
+
 ```

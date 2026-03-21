@@ -1,6 +1,8 @@
 # Graphql API in Java with Conductor
 
-GraphQL API demo .  single task workflow to demonstrate REST vs GraphQL query patterns. Uses [Conductor](https://github.## The Problem
+GraphQL API demo .  single task workflow to demonstrate REST vs GraphQL query patterns. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to trigger a deployment operation through a GraphQL API .  sending a project name and target environment, and getting back a structured deployment result. Unlike REST endpoints where you might need multiple calls to different URLs, a GraphQL query lets the client specify exactly what data it needs in a single request. The workflow takes the project and environment as inputs, executes the deployment via a GraphQL mutation or query, and returns the result.
 
@@ -26,6 +28,7 @@ Workers simulate their processing steps so you can see the pattern in action wit
 
 ```
 gql_task
+
 ```
 
 ## Running It
@@ -40,6 +43,7 @@ gql_task
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -48,6 +52,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -62,6 +67,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/graphql-api-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -74,6 +80,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -89,6 +96,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/graphql-api-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -97,7 +105,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow graphql_demo \
   --version 1 \
-  --input '{"project": "test-value", "env": "test-value"}'
+  --input '{"project": "sample-project", "env": "staging"}'
+
 ```
 
 ### Check workflow status
@@ -106,6 +115,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w graphql_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -126,6 +136,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -145,4 +156,5 @@ graphql-api/
 │       └── GraphqlTaskWorker.java
 └── src/test/java/graphqlapi/workers/
     └── GraphqlTaskWorkerTest.java        # 8 tests
+
 ```

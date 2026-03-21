@@ -1,6 +1,8 @@
 # Game Analytics in Java Using Conductor
 
-Runs a game analytics pipeline: collecting raw event data, processing it into structured records, aggregating time-series metrics, computing KPIs (DAU, retention, ARPU), and generating a report. Uses [Conductor](https://github.## The Problem
+Runs a game analytics pipeline: collecting raw event data, processing it into structured records, aggregating time-series metrics, computing KPIs (DAU, retention, ARPU), and generating a report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to analyze game performance metrics over a date range. The workflow collects raw event data (sessions, purchases, achievements, crashes), processes it into structured records, aggregates it into time-series summaries, computes key performance indicators (DAU, retention, ARPU, session length), and generates an analytics report. Without analytics, you are flying blind .  you do not know which features drive engagement, where players churn, or whether a new update improved retention.
 
@@ -42,6 +44,7 @@ gan_compute_kpis
     │
     ▼
 gan_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ gan_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/game-analytics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/game-analytics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow game_analytics_747 \
   --version 1 \
   --input '{"gameId": "TEST-001", "dateRange": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w game_analytics_747 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ game-analytics/
 └── src/test/java/gameanalytics/workers/
     ├── CollectEventsWorkerTest.java
     └── ReportWorkerTest.java
+
 ```

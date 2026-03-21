@@ -1,6 +1,8 @@
 # Insurance Compliance in Java with Conductor :  Audit, Assess, File Reports, Track, Certify
 
-A Java Conductor workflow example demonstrating compliance-insurance Compliance Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Insurance Compliance Spans Multiple Regulatory Bodies
+A Java Conductor workflow example demonstrating compliance-insurance Compliance Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Insurance Compliance Spans Multiple Regulatory Bodies
 
 An insurance company must comply with state DOI regulations (rate filings, market conduct), NAIC requirements (financial reporting, RBC ratios), federal regulations (OFAC sanctions screening, anti-money laundering), and industry standards (data security, claims handling best practices). Each regulatory body has different reporting requirements, filing deadlines, and audit expectations.
 
@@ -42,6 +44,7 @@ cpi_track
     │
     ▼
 cpi_certify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cpi_certify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/compliance-insurance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/compliance-insurance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cpi_compliance_insurance \
   --version 1 \
-  --input '{"companyId": "TEST-001", "regulatoryBody": "test-value", "compliancePeriod": "test-value"}'
+  --input '{"companyId": "TEST-001", "regulatoryBody": "sample-regulatoryBody", "compliancePeriod": "sample-compliancePeriod"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cpi_compliance_insurance -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ compliance-insurance-compliance-insurance/
 └── src/test/java/complianceinsurance/workers/
     ├── AuditWorkerTest.java        # 1 tests
     └── CertifyWorkerTest.java        # 1 tests
+
 ```

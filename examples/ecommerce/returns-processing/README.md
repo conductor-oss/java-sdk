@@ -1,6 +1,8 @@
 # Returns Processing in Java Using Conductor :  Receive, Inspect, Route Decision via SWITCH
 
-A Java Conductor workflow example for e-commerce returns .  receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.## Return Outcomes Depend on Product Condition and Policy
+A Java Conductor workflow example for e-commerce returns .  receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.
+
+## Return Outcomes Depend on Product Condition and Policy
 
 A customer returns a pair of shoes they bought 10 days ago. The outcome depends on several factors: Is it within the 30-day return window? What's the product condition .  unworn with tags (full refund eligible), worn but undamaged (store credit only), or damaged (rejection)? Is the return reason covered by policy (wrong size vs, changed mind vs, defective)?
 
@@ -39,6 +41,7 @@ SWITCH (switch_ref)
     ├── refund: ret_refund
     ├── exchange: ret_exchange
     ├── reject: ret_reject
+
 ```
 
 ## Running It
@@ -53,6 +56,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -61,6 +65,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -75,6 +80,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/returns-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -87,6 +93,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -102,6 +109,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/returns-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,7 +118,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow returns_processing \
   --version 1 \
-  --input '{"orderId": "TEST-001", "returnReason": "test-value", "items": "test-value", "customerId": "TEST-001"}'
+  --input '{"orderId": "TEST-001", "returnReason": "sample-returnReason", "items": [{"id": "ITEM-001", "quantity": 2}], "customerId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -119,6 +128,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w returns_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ returns-processing/
     ├── ReceiveReturnWorkerTest.java        # 3 tests
     ├── RefundWorkerTest.java        # 2 tests
     └── RejectWorkerTest.java        # 2 tests
+
 ```

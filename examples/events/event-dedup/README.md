@@ -1,6 +1,8 @@
 # Event Dedup in Java Using Conductor
 
-Event deduplication workflow .  computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. Uses [Conductor](https://github.## The Problem
+Event deduplication workflow .  computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to deduplicate events so that the same event is never processed twice. In distributed systems, at-least-once delivery guarantees mean consumers may receive duplicate messages. The workflow must compute a content hash of the event payload, check whether that hash has been seen before, and either process the event (if new) or skip it (if duplicate). Processing duplicates can lead to double charges, duplicate notifications, or corrupted state.
 
@@ -38,6 +40,7 @@ SWITCH (dedup_switch_ref)
     ├── new: dd_process_event
     ├── duplicate: dd_skip_event
     └── default: dd_skip_event
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ SWITCH (dedup_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-dedup-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-dedup-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_dedup \
   --version 1 \
-  --input '{"eventId": "TEST-001", "eventPayload": "test-value"}'
+  --input '{"eventId": "TEST-001", "eventPayload": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_dedup -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ event-dedup/
     ├── ComputeHashWorkerTest.java        # 8 tests
     ├── ProcessEventWorkerTest.java        # 8 tests
     └── SkipEventWorkerTest.java        # 9 tests
+
 ```

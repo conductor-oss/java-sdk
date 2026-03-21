@@ -1,6 +1,8 @@
 # Workflow Patterns Showcase in Java Using Conductor :  Chain, Fork-Join, and Loop in One Workflow
 
-A Java Conductor workflow example showcasing multiple workflow patterns in a single definition .  a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.## Real Workflows Combine Multiple Patterns
+A Java Conductor workflow example showcasing multiple workflow patterns in a single definition .  a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.
+
+## Real Workflows Combine Multiple Patterns
 
 Real-world processes don't fit a single pattern. An ETL pipeline starts with a sequential validation step (chain), then splits data processing across multiple workers (fork-join), then iterates over remaining unprocessed records until the batch is complete (loop). Most workflow tutorials show one pattern at a time, but production workflows combine sequential steps, parallel fan-out, and iterative loops in the same definition.
 
@@ -43,6 +45,7 @@ wp_merge_results
     ▼
 DO_WHILE
     └── wp_loop_iteration
+
 ```
 
 ## Running It
@@ -57,6 +60,7 @@ DO_WHILE
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,6 +69,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -79,6 +84,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-patterns-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,6 +97,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -106,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-patterns-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,7 +122,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow workflow_patterns_demo \
   --version 1 \
-  --input '{"inputData": "test-value", "iterations": "test-value"}'
+  --input '{"inputData": {"key": "value"}, "iterations": "sample-iterations"}'
+
 ```
 
 ### Check workflow status
@@ -123,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w workflow_patterns_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ workflow-patterns/
     ├── WpMergeResultsWorkerTest.java        # 8 tests
     ├── WpSplitAWorkerTest.java        # 7 tests
     └── WpSplitBWorkerTest.java        # 7 tests
+
 ```

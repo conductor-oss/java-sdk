@@ -1,6 +1,8 @@
 # Circuit Breaker Microservice in Java with Conductor
 
-Circuit breaker pattern for resilient service calls. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Circuit breaker pattern for resilient service calls. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 When a downstream service is failing, continuing to send requests wastes resources and can cascade failures to the caller. The circuit breaker pattern tracks failure counts and, when a threshold is exceeded, short-circuits requests to a fallback response until the downstream recovers. This workflow checks circuit state, routes to either a live call or a fallback, and records the result to update the circuit's failure counter.
 
@@ -34,6 +36,7 @@ cb_check_circuit
 SWITCH (switch_ref)
     ├── open: cb_fallback
     └── default: cb_call_service -> cb_record_result
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/circuit-breaker-microservice-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/circuit-breaker-microservice-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow circuit_breaker_workflow \
   --version 1 \
-  --input '{"serviceName": "test", "request": "test-value"}'
+  --input '{"serviceName": "test", "request": "sample-request"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w circuit_breaker_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ circuit-breaker-microservice/
     ├── CheckCircuitWorkerTest.java        # 2 tests
     ├── FallbackWorkerTest.java        # 2 tests
     └── RecordResultWorkerTest.java        # 2 tests
+
 ```

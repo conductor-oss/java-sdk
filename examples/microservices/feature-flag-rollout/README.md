@@ -1,6 +1,8 @@
 # Feature Flag Rollout in Java with Conductor
 
-Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or rollback. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or rollback. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Rolling out a feature flag involves creating the flag, enabling it for a target user segment at a specified percentage, monitoring its impact on key metrics (conversion rate, error rate), and then deciding whether to fully activate or roll back. Each step depends on the previous one. You cannot monitor impact until the flag is enabled for a segment.
 
@@ -38,6 +40,7 @@ ff_monitor_impact
     │
     ▼
 ff_full_rollout
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ff_full_rollout
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/feature-flag-rollout-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/feature-flag-rollout-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow feature_flag_rollout \
   --version 1 \
-  --input '{"flagName": "test", "targetSegment": "test-value", "rolloutPercentage": "test-value"}'
+  --input '{"flagName": "test", "targetSegment": "production", "rolloutPercentage": "sample-rolloutPercentage"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w feature_flag_rollout -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -160,4 +171,5 @@ feature-flag-rollout/
 │       ├── EnableSegmentWorker.java
 │       ├── FullRolloutWorker.java
 │       └── MonitorImpactWorker.java
+
 ```

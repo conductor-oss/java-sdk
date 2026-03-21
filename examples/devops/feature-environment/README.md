@@ -1,6 +1,8 @@
 # Feature Environment in Java with Conductor
 
-Automates on-demand feature environment provisioning using [Conductor](https://github.com/conductor-oss/conductor). This workflow provisions an isolated Kubernetes namespace for a feature branch, deploys the branch code, configures a preview DNS URL, and posts the preview link back to the pull request.## Preview Environments for Every PR
+Automates on-demand feature environment provisioning using [Conductor](https://github.com/conductor-oss/conductor). This workflow provisions an isolated Kubernetes namespace for a feature branch, deploys the branch code, configures a preview DNS URL, and posts the preview link back to the pull request.
+
+## Preview Environments for Every PR
 
 A developer opens a pull request for `feature-auth-v2`. Reviewers want to click a link and see it running. Not read diffs. The workflow provisions a namespace, deploys the branch, sets up a preview URL like `feature-auth-v2.preview.example.com`, and comments the link on the PR. When the PR is merged, the environment gets torn down.
 
@@ -38,6 +40,7 @@ fe_configure_dns
     │
     ▼
 fe_notify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ fe_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/feature-environment-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/feature-environment-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow feature_environment_workflow \
   --version 1 \
-  --input '{"branch": "test-value", "repository": "test-value"}'
+  --input '{"branch": "sample-branch", "repository": "sample-repository"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w feature_environment_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ feature-environment-feature-environment/
 │       └── ProvisionWorker.java
 └── src/test/java/featureenvironment/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

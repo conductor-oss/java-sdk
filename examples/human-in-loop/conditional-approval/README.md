@@ -1,6 +1,8 @@
 # Conditional Approval Routing in Java Using Conductor :  Amount-Based Tier Classification and Multi-Level Approval Chains via SWITCH
 
-Conditional approval routing .  classifies a request amount into a tier (low/medium/high), then uses SWITCH to route to different approval chains: low-amount requests need only manager approval, medium requests need manager + director, and high-amount requests need manager + director + VP. Each approval level is a WAIT task pausing for that approver's human decision. Uses [Conductor](https://github.## The Problem
+Conditional approval routing .  classifies a request amount into a tier (low/medium/high), then uses SWITCH to route to different approval chains: low-amount requests need only manager approval, medium requests need manager + director, and high-amount requests need manager + director + VP. Each approval level is a WAIT task pausing for that approver's human decision. Uses [Conductor](https://github.
+
+## The Problem
 
 You need approval chains that vary based on the request amount. A $500 office supply purchase needs only a manager's sign-off. A $5,000 conference budget needs the manager and director. A $50,000 vendor contract needs manager, director, and VP. The system must classify the amount into a tier (low: under $1,000, medium: $1,000-$9,999, high: $10,000+), then route to the correct approval chain .  each level pausing for a human decision before advancing to the next. If any approver rejects, the chain stops. Hardcoding these rules in if/else blocks makes them impossible to change without a code deploy, and there is no visibility into which tier a request was classified as or where it is in the approval chain.
 
@@ -38,6 +40,7 @@ SWITCH (route_ref)
     │
     ▼
 car_process
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ car_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/conditional-approval-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/conditional-approval-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow conditional_approval_demo \
   --version 1 \
-  --input '{"requestId": "TEST-001", "amount": 100, "requester": "test-value"}'
+  --input '{"requestId": "TEST-001", "amount": 100, "requester": "sample-requester"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w conditional_approval_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ conditional-approval/
 └── src/test/java/conditionalapproval/workers/
     ├── ClassifyWorkerTest.java        # 11 tests
     └── ProcessWorkerTest.java        # 6 tests
+
 ```

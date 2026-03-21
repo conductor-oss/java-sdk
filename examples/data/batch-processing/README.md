@@ -12,7 +12,7 @@ Without orchestration, you'd write a `for` loop with manual batch slicing, wrap 
 
 **You just write the batch preparation, per-batch processing, and summarization workers. Conductor handles DO_WHILE iteration, per-batch retry on failure, and crash recovery that resumes from the exact batch where processing stopped.**
 
-Each concern is a simple, independent worker. The batch preparation worker splits records into chunks based on the configured batch size. The processing worker handles a single batch. It receives a batch index, computes the record range, and processes those records. The summarizer aggregates results across all batches. Conductor's `DO_WHILE` loop drives the iteration, automatically advancing the batch index, retrying any batch that fails, and resuming from the exact batch where it left off if the process crashes. You get all of that for free, without writing a single line of loop management code.
+Each concern is a simple, independent worker. The batch preparation worker splits records into chunks based on the configured batch size. The processing worker handles a single batch. It receives a batch index, computes the record range, and processes those records. The summarizer aggregates results across all batches. Conductor's `DO_WHILE` loop drives the iteration, automatically advancing the batch index, retrying any batch that fails, and resuming from the exact batch where it left off if the process crashes. You get all of that, without writing a single line of loop management code.
 
 ### What You Write: Workers
 
@@ -26,16 +26,6 @@ Three workers divide batch processing into distinct responsibilities: splitting 
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -47,6 +37,7 @@ DO_WHILE
     │
     ▼
 bp_summarize
+
 ```
 
 ## Running It
@@ -61,6 +52,7 @@ bp_summarize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -69,13 +61,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -83,6 +76,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/batch-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -95,6 +89,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ### Sample Output
@@ -127,6 +122,7 @@ Step 5: Waiting for completion...
   Output: {totalRecords=10, totalBatches=4, iterationsCompleted=4, summary=Batch processing complete: 10 records in 4 batches}
 
 Result: PASSED
+
 ```
 
 ## Configuration
@@ -142,6 +138,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/batch-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -150,7 +147,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow batch_processing \
   --version 1 \
-  --input '{"records": [{"id":1,"data":"rec-1"},{"id":2,"data":"rec-2"},{"id":3,"data":"rec-3"},{"id":4,"data":"rec-4"},{"id":5,"data":"rec-5"}], "batchSize": 2}'
+  --input '{"records": [{"id": 1, "data": "rec-1"}, {"id": 2, "data": "rec-2"}, {"id": 3, "data": "rec-3"}, {"id": 4, "data": "rec-4"}, {"id": 5, "data": "rec-5"}], "batchSize": 2}'
+
 ```
 
 ### Check workflow status
@@ -159,6 +157,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w batch_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -185,6 +184,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -208,4 +208,5 @@ batch-processing/
     ├── PrepareBatchesWorkerTest.java
     ├── ProcessBatchWorkerTest.java
     └── SummarizeWorkerTest.java
+
 ```

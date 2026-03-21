@@ -1,6 +1,8 @@
 # Quality Gate in Java Using Conductor :  Automated Test Suite, SWITCH on Pass/Fail, QA Engineer WAIT Sign-Off, and Production Deployment
 
-A Java Conductor workflow example for deployment quality gates .  running an automated test suite (42 tests), using a SWITCH to block deployment immediately if any test fails (TERMINATE with reason), or advancing to a QA engineer WAIT task for manual sign-off before deploying to production. The SWITCH ensures failed builds never reach a human reviewer, and the WAIT ensures passing builds still require human judgment before going live. If the deployment step fails after QA sign-off, Conductor retries the deploy without requiring the QA engineer to re-approve. Uses [Conductor](https://github.## Deployments Need Automated Tests and Human QA Sign-Off
+A Java Conductor workflow example for deployment quality gates .  running an automated test suite (42 tests), using a SWITCH to block deployment immediately if any test fails (TERMINATE with reason), or advancing to a QA engineer WAIT task for manual sign-off before deploying to production. The SWITCH ensures failed builds never reach a human reviewer, and the WAIT ensures passing builds still require human judgment before going live. If the deployment step fails after QA sign-off, Conductor retries the deploy without requiring the QA engineer to re-approve. Uses [Conductor](https://github.
+
+## Deployments Need Automated Tests and Human QA Sign-Off
 
 Before deploying to production, code must pass automated tests. If tests pass, a QA engineer must sign off via a WAIT task. If tests fail, deployment is blocked. The SWITCH task routes between the QA approval path and the failure path based on test results. This ensures no code ships without both automated and human verification.
 
@@ -32,6 +34,7 @@ qg_run_tests
 SWITCH (test_result_switch_ref)
     ├── false: tests_failed_terminate
     └── default: qa_signoff -> qg_deploy
+
 ```
 
 ## Running It
@@ -46,6 +49,7 @@ SWITCH (test_result_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -54,6 +58,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -68,6 +73,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/quality-gate-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -80,6 +86,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -95,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/quality-gate-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -104,6 +112,7 @@ conductor workflow start \
   --workflow quality_gate_demo \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -112,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w quality_gate_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -133,6 +143,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -154,4 +165,5 @@ quality-gate/
 └── src/test/java/qualitygate/workers/
     ├── DeployWorkerTest.java        # 5 tests
     └── RunTestsWorkerTest.java        # 6 tests
+
 ```

@@ -1,6 +1,6 @@
 # Video Processing Pipeline in Java Using Conductor: Upload, Adaptive Transcode, Thumbnail Generation, Metadata Indexing, and Publishing
 
-A creator uploads a 742MB 4K video. Your monolithic transcoder starts the 1080p rendition, runs out of memory halfway through the 720p, and dies. The thumbnail generator, which somebody wired to run concurrently. extracts a frame from the half-transcoded file and gets a green-and-black glitch image. The metadata indexer never ran at all, so the video doesn't appear in search. The publish step has no idea any of this happened and pushes a broken HLS manifest to the CDN. Now there's a live watch URL serving a video that plays for 40 seconds and then freezes. This example orchestrates the full video pipeline with Conductor: upload with codec detection, adaptive bitrate transcoding (1080p/720p/480p), thumbnail extraction at a computed keyframe, metadata indexing, and publishing, each step sequenced with proper dependency handling and per-step retries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A creator uploads a 742MB 4K video. Your monolithic transcoder starts the 1080p rendition, runs out of memory halfway through the 720p, and dies. The thumbnail generator, which somebody wired to run concurrently. extracts a frame from the half-transcoded file and gets a green-and-black glitch image. The metadata indexer never ran at all, so the video doesn't appear in search. The publish step has no idea any of this happened and pushes a broken HLS manifest to the CDN. Now there's a live watch URL serving a video that plays for 40 seconds and then freezes. This example orchestrates the full video pipeline with Conductor: upload with codec detection, adaptive bitrate transcoding (1080p/720p/480p), thumbnail extraction at a computed keyframe, metadata indexing, and publishing, each step sequenced with proper dependency handling and per-step retries. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Why Video Processing Needs Orchestration
 
@@ -28,15 +28,6 @@ Five workers process each video: UploadWorker ingests the source with codec dete
 
 Workers simulate media processing stages: transcoding, thumbnail generation, metadata extraction, with realistic output artifacts. Replace with real media tools (FFmpeg, ImageMagick) and the pipeline stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ vid_metadata
     │
     ▼
 vid_publish
+
 ```
 
 ### Sample Output
@@ -82,6 +74,7 @@ When the workflow runs with `videoId=VID-001`, the workers produce these artifac
 [vid_publish] Publishing...
   Watch URL: https://watch.example.com/v/VID-001
   Status: published
+
 ```
 
 ## Example Output
@@ -111,6 +104,7 @@ Step 4: Starting workflow...
   Output: {videoId=VID-001, publishUrl=https://api.example.com/v1, resolutions=sample-resolutions, duration=185}
 
 Result: PASSED
+
 ```
 
 ## Running It
@@ -125,6 +119,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -133,13 +128,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -147,6 +143,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/video-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -159,6 +156,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -174,6 +172,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/video-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -183,6 +182,7 @@ conductor workflow start \
   --workflow video_processing_workflow \
   --version 1 \
   --input '{"videoId": "VID-001", "sourceUrl": "https://uploads.example.com/raw/VID-001.mp4", "title": "Introduction to Conductor Workflows", "creatorId": "creator-42"}'
+
 ```
 
 ### Check workflow status
@@ -191,6 +191,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w video_processing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -215,6 +216,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -242,4 +244,5 @@ video-processing/
     ├── ThumbnailWorkerTest.java     # Tests capture position derived from duration
     ├── MetadataWorkerTest.java      # Tests metadata map assembly
     └── PublishWorkerTest.java       # Tests publish URL and status
+
 ```

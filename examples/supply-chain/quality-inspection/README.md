@@ -1,6 +1,8 @@
 # Quality Inspection in Java with Conductor :  Sampling, Testing, Pass/Fail Routing, and Results Recording
 
-A Java Conductor workflow example for quality inspection .  pulling samples from a production batch, running standardized tests against acceptance criteria, routing to pass or fail handlers based on test results, and recording the inspection outcome for compliance and traceability. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for quality inspection .  pulling samples from a production batch, running standardized tests against acceptance criteria, routing to pass or fail handlers based on test results, and recording the inspection outcome for compliance and traceability. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to inspect production batches before they ship. A sample must be pulled from the batch according to AQL (Acceptable Quality Level) sampling tables. The sample undergoes standardized tests .  dimensional measurements, material composition, functional testing. Based on results, the batch is either accepted for shipment (pass) or quarantined for rework/scrap (fail). Regardless of outcome, the inspection results must be recorded for traceability, regulatory compliance (ISO 9001, FDA 21 CFR Part 820), and supplier quality scorecards.
 
@@ -40,6 +42,7 @@ SWITCH (qi_switch_ref)
     │
     ▼
 qi_record
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ qi_record
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/quality-inspection-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/quality-inspection-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow qi_quality_inspection \
   --version 1 \
-  --input '{"batchId": "TEST-001", "product": "test-value", "sampleSize": 10}'
+  --input '{"batchId": "TEST-001", "product": "widget-pro", "sampleSize": 10}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w qi_quality_inspection -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ quality-inspection/
     ├── RecordWorkerTest.java        # 2 tests
     ├── SampleWorkerTest.java        # 2 tests
     └── TestWorkerTest.java        # 2 tests
+
 ```

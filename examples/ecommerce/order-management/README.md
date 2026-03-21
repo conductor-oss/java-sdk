@@ -1,6 +1,6 @@
 # Order Management in Java Using Conductor: Create, Validate, Fulfill, Ship, Deliver
 
-A customer orders a laptop and a USB-C hub. The warehouse picks the laptop but grabs the wrong hub: someone else's return, repackaged with the wrong SKU label. The customer opens the box, finds a used cable they didn't order, and initiates a return. But the returns system doesn't cross-reference the original pick list, so it marks the laptop as returned too and issues a full refund for items the customer still has. One mis-pick cascades into a $2,000 inventory discrepancy that takes three departments a week to untangle. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate each order stage as independent workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer orders a laptop and a USB-C hub. The warehouse picks the laptop but grabs the wrong hub: someone else's return, repackaged with the wrong SKU label. The customer opens the box, finds a used cable they didn't order, and initiates a return. But the returns system doesn't cross-reference the original pick list, so it marks the laptop as returned too and issues a full refund for items the customer still has. One mis-pick cascades into a $2,000 inventory discrepancy that takes three departments a week to untangle. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate each order stage as independent workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Orders Have Five Stages, Each With Different Failure Modes
 
@@ -28,15 +28,6 @@ Five workers track an order from creation through validation, fulfillment, shipp
 
 Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ ord_ship
     │
     ▼
 ord_deliver
+
 ```
 
 ## Example Output
@@ -82,7 +74,9 @@ Step 4: Starting workflow...
   Output: {orderId=ORD-, fulfillmentId=FUL-, trackingNumber=TRK, delivered=True}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -95,6 +89,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -103,13 +98,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -117,6 +113,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/order-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -129,6 +126,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -144,6 +142,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/order-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -153,6 +152,7 @@ conductor workflow start \
   --workflow order_management \
   --version 1 \
   --input '{"customerId": "cust-301", "items": [{"sku": "LAPTOP-PRO", "name": "Laptop Pro 16", "price": 1999.0, "qty": 1}, {"sku": "USB-C-HUB", "name": "USB-C Hub", "price": 49.99, "qty": 1}], "shippingAddress": {"street": "742 Evergreen Terrace", "city": "Springfield", "state": "IL", "zip": "62701"}, "shippingMethod": "express"}'
+
 ```
 
 ### Check workflow status
@@ -161,6 +161,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w order_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -203,4 +204,5 @@ order-management/
     ├── FulfillOrderWorkerTest.java        # 3 tests
     ├── ShipOrderWorkerTest.java        # 4 tests
     └── ValidateOrderWorkerTest.java        # 2 tests
+
 ```

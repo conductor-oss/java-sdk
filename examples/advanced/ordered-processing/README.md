@@ -1,6 +1,8 @@
 # Ordered Message Processing in Java Using Conductor :  Receive, Sort by Sequence, Process in Order, Verify
 
-A Java Conductor workflow example for ordered message processing .  receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.## Messages Arrive Out of Order, but Must Be Processed Sequentially
+A Java Conductor workflow example for ordered message processing .  receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.
+
+## Messages Arrive Out of Order, but Must Be Processed Sequentially
 
 A financial trading system emits order updates .  placed, partially filled, fully filled, cancelled. These events arrive over a message queue that doesn't guarantee ordering. Processing a cancellation before the placement, or a fill before the partial fill, produces incorrect portfolio state. The sequence numbers are embedded in the messages, but reconstructing order from a shuffled batch requires buffering, sorting, and then processing each message one at a time.
 
@@ -38,6 +40,7 @@ opr_process_in_order
     │
     ▼
 opr_verify_order
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ opr_verify_order
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/ordered-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/ordered-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow opr_ordered_processing \
   --version 1 \
-  --input '{"messages": "test-value", "partitionKey": "test-value"}'
+  --input '{"messages": "Process this order for customer C-100", "partitionKey": "sample-partitionKey"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w opr_ordered_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ ordered-processing/
     ├── OprReceiveWorkerTest.java        # 4 tests
     ├── OprSortBySequenceWorkerTest.java        # 4 tests
     └── OprVerifyOrderWorkerTest.java        # 4 tests
+
 ```

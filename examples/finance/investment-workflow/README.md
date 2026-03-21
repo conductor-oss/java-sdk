@@ -1,6 +1,8 @@
 # Investment Workflow in Java with Conductor
 
-Investment lifecycle: research, analyze, decide, execute, monitor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Investment lifecycle: research, analyze, decide, execute, monitor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to manage the full investment lifecycle for a security. This means researching the investment opportunity (fundamentals, market conditions), analyzing risk and return potential, making a buy/hold/pass decision, executing the trade if appropriate, and monitoring the position post-investment. Making investment decisions without research leads to uninformed bets; executing without analysis means ignoring risk-return tradeoffs.
 
@@ -42,6 +44,7 @@ ivt_execute
     │
     ▼
 ivt_monitor
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ivt_monitor
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/investment-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/investment-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow investment_workflow \
   --version 1 \
-  --input '{"tickerSymbol": "test-value", "investorId": "TEST-001", "maxInvestment": "test-value"}'
+  --input '{"tickerSymbol": "sample-tickerSymbol", "investorId": "TEST-001", "maxInvestment": "sample-maxInvestment"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w investment_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ investment-workflow/
 └── src/test/java/investmentworkflow/workers/
     ├── DecideWorkerTest.java        # 2 tests
     └── MonitorWorkerTest.java        # 2 tests
+
 ```

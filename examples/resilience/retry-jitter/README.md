@@ -26,6 +26,7 @@ Workers simulate success and failure scenarios so you can observe the resilience
 
 ```
 jitter_api_call
+
 ```
 
 ## Running It
@@ -40,6 +41,7 @@ jitter_api_call
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -48,6 +50,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -62,6 +65,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/retry-jitter-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -74,6 +78,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -89,6 +94,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/retry-jitter-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -97,7 +103,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow retry_jitter_demo \
   --version 1 \
-  --input '{"endpoint": "test-value"}'
+  --input '{"endpoint": "sample-endpoint"}'
+
 ```
 
 ### Check workflow status
@@ -106,13 +113,14 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w retry_jitter_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
 
 Each worker calls a real shared dependency .  connect to your external API or database, add jitter to the retry delay, and the thundering-herd prevention stays the same.
 
-- **JitterApiCallWorker** (`jitter_api_call`): replace with your real API call that's shared across many concurrent workers .  the jitter prevents all workers from retrying a recovering service at the same instant
+- **JitterApiCallWorker** (`jitter_api_call`): replace with your real API call that's shared across many concurrent workers.  the jitter prevents all workers from retrying a recovering service at the same instant
 
 Swap in your real shared-dependency API call, and the jitter-based retry spreading prevents thundering herd without any orchestration changes.
 
@@ -126,6 +134,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -145,4 +154,5 @@ retry-jitter/
 │       └── JitterApiCallWorker.java
 └── src/test/java/retryjitter/workers/
     └── JitterApiCallWorkerTest.java        # 9 tests
+
 ```

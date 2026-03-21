@@ -1,6 +1,8 @@
 # Remote Patient Monitoring in Java Using Conductor :  Vital Signs Collection, Trend Analysis, Alert Routing, and Clinical Action
 
-A Java Conductor workflow example for remote patient monitoring (RPM) .  collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for remote patient monitoring (RPM) .  collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to monitor patients remotely using connected medical devices. Vital signs .  blood pressure, heart rate, blood glucose, weight, oxygen saturation ,  are transmitted from the patient's home device. Those readings must be analyzed against the patient's individual baseline and clinical thresholds to detect concerning trends (rising blood pressure over 3 days, weight gain suggesting fluid retention in CHF patients, glucose spikes in diabetics). Based on the analysis, the system must route to different clinical actions ,  log the reading as normal, or trigger an alert that notifies the care team and may schedule an intervention. A missed alert on a deteriorating trend can result in an avoidable hospitalization or emergency visit.
 
@@ -38,6 +40,7 @@ SWITCH (rpm_switch_ref)
     ├── normal: rpm_normal_action
     ├── alert: rpm_alert_action
     └── default: rpm_alert_action
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ SWITCH (rpm_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/remote-monitoring-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/remote-monitoring-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow remote_monitoring_workflow \
   --version 1 \
   --input '{"patientId": "TEST-001", "deviceId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w remote_monitoring_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ remote-monitoring/
     ├── AnalyzeTrendsWorkerTest.java        # 2 tests
     ├── CollectVitalsWorkerTest.java        # 2 tests
     └── NormalActionWorkerTest.java        # 2 tests
+
 ```

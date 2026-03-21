@@ -1,6 +1,8 @@
 # Student Progress in Java with Conductor :  Grade Collection, GPA Analysis, Progress Reports, and Notifications
 
-A Java Conductor workflow example for tracking student academic progress .  collecting all course grades for a semester, analyzing performance to compute GPA and academic standing, generating a progress report, and notifying the student of their results. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for tracking student academic progress .  collecting all course grades for a semester, analyzing performance to compute GPA and academic standing, generating a progress report, and notifying the student of their results. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to evaluate a student's academic progress at the end of each semester. This means pulling grades from all enrolled courses, computing the semester GPA and cumulative standing (good standing, probation, dean's list), generating a formal progress report for the student's academic record, and notifying the student of their standing. Sending a progress report with incorrect GPA calculations undermines institutional credibility; failing to flag probation status delays critical academic interventions.
 
@@ -38,6 +40,7 @@ spr_generate_report
     │
     ▼
 spr_notify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ spr_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/student-progress-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/student-progress-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow spr_student_progress \
   --version 1 \
-  --input '{"studentId": "TEST-001", "semester": "test-value"}'
+  --input '{"studentId": "TEST-001", "semester": "sample-semester"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w spr_student_progress -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ student-progress/
     ├── CollectGradesWorkerTest.java        # 2 tests
     ├── GenerateReportWorkerTest.java        # 2 tests
     └── NotifyWorkerTest.java        # 2 tests
+
 ```

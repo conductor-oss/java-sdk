@@ -1,6 +1,8 @@
 # Recommendation Engine in Java Using Conductor :  Collect Behavior, Compute Similarity, Rank, Personalize
 
-A Java Conductor workflow example demonstrating Recommendation Engine. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Generic "Popular Items" Lists Don't Convert
+A Java Conductor workflow example demonstrating Recommendation Engine. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Generic "Popular Items" Lists Don't Convert
 
 Showing every customer the same "Top Sellers" list misses the point of personalization. A customer who buys hiking gear should see trail shoes and backpacks, not kitchen appliances. Collaborative filtering finds patterns: "Customers who bought X also bought Y." Content-based filtering uses item attributes: "This hiking boot is similar to the one you viewed." A good recommendation engine combines both.
 
@@ -38,6 +40,7 @@ rec_rank_candidates
     │
     ▼
 rec_personalize
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ rec_personalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/recommendation-engine-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/recommendation-engine-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow recommendation_engine_workflow \
   --version 1 \
-  --input '{"userId": "TEST-001", "context": "test-value"}'
+  --input '{"userId": "TEST-001", "context": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w recommendation_engine_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ recommendation-engine/
     ├── ComputeSimilarityWorkerTest.java        # 8 tests
     ├── PersonalizeWorkerTest.java        # 8 tests
     └── RankCandidatesWorkerTest.java        # 8 tests
+
 ```

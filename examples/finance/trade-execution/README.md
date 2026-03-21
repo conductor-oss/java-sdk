@@ -1,6 +1,8 @@
 # Trade Execution in Java with Conductor
 
-Trade execution workflow that validates orders, checks compliance, routes to optimal exchange, executes, and confirms. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Trade execution workflow that validates orders, checks compliance, routes to optimal exchange, executes, and confirms. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to execute a securities trade from order validation to confirmation. An order is validated for completeness and market hours, checked against compliance rules (position limits, restricted lists, wash sale prevention), routed to the optimal exchange or dark pool, executed at the best available price, and confirmed with fill details. Executing without compliance checks violates regulations; routing to the wrong venue results in worse execution prices.
 
@@ -42,6 +44,7 @@ trd_execute
     │
     ▼
 trd_confirm
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ trd_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/trade-execution-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/trade-execution-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow trade_execution_workflow \
   --version 1 \
-  --input '{"orderId": "TEST-001", "accountId": "TEST-001", "symbol": "test-value", "side": "TEST-001", "quantity": "test-value"}'
+  --input '{"orderId": "TEST-001", "accountId": "TEST-001", "symbol": "sample-symbol", "side": "TEST-001", "quantity": "sample-quantity"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w trade_execution_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ trade-execution/
     ├── ConfirmWorkerTest.java        # 2 tests
     ├── ExecuteWorkerTest.java        # 4 tests
     └── ValidateOrderWorkerTest.java        # 3 tests
+
 ```

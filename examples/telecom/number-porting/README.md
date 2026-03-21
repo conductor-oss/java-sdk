@@ -1,6 +1,8 @@
 # Number Porting in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates phone number porting between carriers .  submitting a port request for a phone number, validating the number's eligibility with the losing carrier, coordinating the port window between both carriers, executing the number port in the routing database, and verifying the number is reachable on the new carrier. Uses [Conductor](https://github.## Why Number Porting Needs Orchestration
+A Java Conductor workflow example that orchestrates phone number porting between carriers .  submitting a port request for a phone number, validating the number's eligibility with the losing carrier, coordinating the port window between both carriers, executing the number port in the routing database, and verifying the number is reachable on the new carrier. Uses [Conductor](https://github.
+
+## Why Number Porting Needs Orchestration
 
 Porting a phone number between carriers requires precise coordination across independent systems. You submit a port request with the subscriber's phone number and destination carrier. You validate that the number is portable .  confirming the number exists on the losing carrier's network and is not under contract lock. You coordinate with both the gaining and losing carriers to agree on a port window. You execute the actual port by updating routing tables in the Number Portability Administration Center (NPAC). Finally, you verify the number is reachable on the new carrier's network.
 
@@ -42,6 +44,7 @@ npt_port
     │
     ▼
 npt_verify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ npt_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/number-porting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/number-porting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow npt_number_porting \
   --version 1 \
-  --input '{"phoneNumber": "test-value", "fromCarrier": "test-value", "toCarrier": "test-value"}'
+  --input '{"phoneNumber": "sample-phoneNumber", "fromCarrier": "sample-fromCarrier", "toCarrier": "sample-toCarrier"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w npt_number_porting -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ number-porting-number-porting/
 └── src/test/java/numberporting/workers/
     ├── PortWorkerTest.java        # 1 tests
     └── RequestWorkerTest.java        # 1 tests
+
 ```

@@ -1,6 +1,8 @@
 # Public Health Surveillance in Java with Conductor :  Disease Monitoring, Outbreak Detection, and Response Coordination
 
-A Java Conductor workflow example for public health surveillance .  monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for public health surveillance .  monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to run disease surveillance for a public health department. Case reports come in for a specific disease and region. The system must pull baseline epidemiological data, compare the current case count against expected levels to detect whether an outbreak is occurring, and then take the right action .  issue a public health alert if cases exceed the threshold, or schedule continued monitoring if levels are elevated but not yet critical. Regardless of the branch taken, a response plan must be executed. The decision to alert versus monitor must be automatic and auditable.
 
@@ -41,6 +43,7 @@ SWITCH (phw_switch_ref)
     │
     ▼
 phw_respond
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ phw_respond
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/public-health-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/public-health-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow phw_public_health \
   --version 1 \
-  --input '{"region": "test-value", "disease": "test-value", "caseCount": 10}'
+  --input '{"region": "us-east-1", "disease": "sample-disease", "caseCount": 10}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w phw_public_health -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ public-health-public-health/
 └── src/test/java/publichealth/workers/
     ├── AlertWorkerTest.java
     └── DetectOutbreakWorkerTest.java
+
 ```

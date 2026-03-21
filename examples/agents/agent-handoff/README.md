@@ -27,16 +27,6 @@ The triage worker classifies incoming messages, and Conductor routes them to the
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Conditional routing** | `SWITCH` task routes to billing, technical, or general specialist based on triage output.; no if/else chains in your code |
-| **Retries with backoff** | If a specialist worker fails (network blip, timeout), Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every triage decision and specialist resolution is tracked with inputs, outputs, timing, and status, routing analytics without custom logging |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -47,6 +37,7 @@ SWITCH (route_to_specialist_ref)
     |-- billing: ah_billing
     |-- technical: ah_tech
     +-- default: ah_general
+
 ```
 
 ## Running It
@@ -61,6 +52,7 @@ SWITCH (route_to_specialist_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -69,13 +61,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -83,6 +76,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/agent-handoff-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -95,6 +89,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,39 +99,13 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Agent Handoff Demo: Triage and Route to Specialist ===
-
-Step 1: Registering task definitions...
-  Registered: ah_triage, ah_billing, ah_tech, ah_general
-
-Step 2: Registering workflow 'agent_handoff'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  [ah_triage] Classifying message from customer CUST-9042
-  [ah_tech] Handling technical issue for customer CUST-9042
-
-  Workflow ID: 9a1b2c3d-4e5f-6789-abcd-ef0123456789
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {category=technical, confidence=0.8, resolution=Detected elevated API latency for CUST-9042. ..., ticketId=TECH-5738}
-
-Result: PASSED
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:
 
 ```bash
 java -jar target/agent-handoff-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -159,6 +128,7 @@ conductor workflow start \
   --workflow agent_handoff \
   --version 1 \
   --input '{"customerId": "CUST-1058", "message": "What pricing plans do you offer for teams?"}'
+
 ```
 
 ### Check workflow status
@@ -167,6 +137,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w agent_handoff -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -191,6 +162,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -216,4 +188,5 @@ agent-handoff/
     ├── BillingWorkerTest.java       # 13 tests
     ├── TechWorkerTest.java          # 12 tests
     └── GeneralWorkerTest.java       # 11 tests
+
 ```

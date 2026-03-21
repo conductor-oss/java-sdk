@@ -1,6 +1,8 @@
 # File Processing Agent in Java Using Conductor :  Detect Type, Extract Content, Analyze, Summarize
 
-File Processing Agent .  detect file type, extract content, analyze, and generate summary through a sequential pipeline. Uses [Conductor](https://github.## Different File Types Need Different Processing
+File Processing Agent .  detect file type, extract content, analyze, and generate summary through a sequential pipeline. Uses [Conductor](https://github.
+
+## Different File Types Need Different Processing
 
 A user uploads a file. Is it a PDF contract that needs text extraction and clause identification? A CSV dataset that needs column analysis and statistical summaries? A JSON config file that needs schema validation? An image that needs OCR or object detection? The processing pipeline must adapt to the file type.
 
@@ -38,6 +40,7 @@ fp_analyze_content
     │
     ▼
 fp_generate_summary
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ fp_generate_summary
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/file-processing-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/file-processing-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow file_processing_agent \
   --version 1 \
-  --input '{"fileName": "test", "fileSize": 10, "mimeType": "test-value"}'
+  --input '{"fileName": "test", "fileSize": 10, "mimeType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w file_processing_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ file-processing-agent/
     ├── DetectFileTypeWorkerTest.java        # 9 tests
     ├── ExtractContentWorkerTest.java        # 9 tests
     └── GenerateSummaryWorkerTest.java        # 9 tests
+
 ```

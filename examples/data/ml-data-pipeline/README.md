@@ -1,6 +1,8 @@
 # ML Data Pipeline in Java Using Conductor :  Data Collection, Cleaning, Train/Test Split, Model Training, and Evaluation
 
-A Java Conductor workflow example for an end-to-end ML training pipeline: collecting labeled data from a source, cleaning it (removing records with null features or invalid labels), splitting into train and test sets at a configurable ratio, training a model (e.g., random forest) on the training set, and evaluating accuracy and metrics against the held-out test set. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for an end-to-end ML training pipeline: collecting labeled data from a source, cleaning it (removing records with null features or invalid labels), splitting into train and test sets at a configurable ratio, training a model (e.g., random forest) on the training set, and evaluating accuracy and metrics against the held-out test set. Uses [Conductor](https://github.
+
+## The Problem
 
 Training a model requires a strict sequence of data preparation steps, and each depends on the output of the previous one. You collect labeled records from a data source, but some have null features or malformed labels that would corrupt training. You clean those out, but then you need to split the surviving records into train and test sets at a specific ratio (say, 80/20), and the split must happen after cleaning, not before, or your test set contains dirty data. You train the model (a random forest classifier, for example) on the training partition, but evaluation must use the held-out test partition from the same split. Not a different random sample. If training crashes after 30 minutes of GPU time, you don't want to re-collect and re-clean the data from scratch.
 
@@ -42,6 +44,7 @@ ml_train_model
     │
     ▼
 ml_evaluate_model
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ml_evaluate_model
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/ml-data-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/ml-data-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ml_data_pipeline \
   --version 1 \
-  --input '{"dataSource": "test-value", "modelType": "test-value", "splitRatio": "test-value"}'
+  --input '{"dataSource": "api", "modelType": "standard", "splitRatio": "sample-splitRatio"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ml_data_pipeline -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ ml-data-pipeline/
     ├── EvaluateModelWorkerTest.java        # 8 tests
     ├── SplitDataWorkerTest.java        # 8 tests
     └── TrainModelWorkerTest.java        # 8 tests
+
 ```

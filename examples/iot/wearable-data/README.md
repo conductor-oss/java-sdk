@@ -1,6 +1,8 @@
 # Wearable Health Data Pipeline in Java with Conductor :  Vitals Collection, Processing, Anomaly Detection, and Notifications
 
-A Java Conductor workflow example that orchestrates a wearable health data pipeline .  collecting vital signs from wearable devices (heart rate, SpO2, step count, sleep data), processing raw readings into derived metrics (average heart rate, activity summaries), detecting anomalies in vital signs (irregular heartbeat, abnormal SpO2 drops), and notifying users or caregivers when health anomalies are found. Uses [Conductor](https://github.## Why Wearable Health Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates a wearable health data pipeline .  collecting vital signs from wearable devices (heart rate, SpO2, step count, sleep data), processing raw readings into derived metrics (average heart rate, activity summaries), detecting anomalies in vital signs (irregular heartbeat, abnormal SpO2 drops), and notifying users or caregivers when health anomalies are found. Uses [Conductor](https://github.
+
+## Why Wearable Health Pipelines Need Orchestration
 
 Processing health data from wearable devices involves a pipeline where each stage builds on the previous one. You sync raw vitals from the wearable .  heart rate samples, blood oxygen readings, accelerometer data, sleep stages. You process those raw readings into meaningful metrics: average heart rate over the collection window, resting vs: active heart rate zones, step counts normalized to the user's baseline. You run anomaly detection against the processed data to flag irregular patterns ,  sustained elevated heart rate without activity, SpO2 drops below safe thresholds, abnormal sleep fragmentation. If anomalies are detected, you notify the user, their healthcare provider, or emergency contacts depending on severity.
 
@@ -38,6 +40,7 @@ wer_detect_anomalies
     │
     ▼
 wer_notify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ wer_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/wearable-data-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/wearable-data-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow wearable_data_demo \
   --version 1 \
   --input '{"userId": "TEST-001", "deviceId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wearable_data_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ wearable-data/
 └── src/test/java/wearabledata/workers/
     ├── CollectVitalsWorkerTest.java        # 2 tests
     └── ProcessDataWorkerTest.java        # 2 tests
+
 ```

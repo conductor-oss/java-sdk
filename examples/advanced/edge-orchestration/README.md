@@ -1,6 +1,8 @@
 # Edge Computing Orchestration in Java Using Conductor :  Dispatch, Process, Collect, Merge
 
-A Java Conductor workflow example for edge computing orchestration .  dispatching a job to multiple edge nodes, executing processing on each node, collecting results from all nodes, and merging them into a single unified output. Uses [Conductor](https://github.## Processing Data at the Edge
+A Java Conductor workflow example for edge computing orchestration .  dispatching a job to multiple edge nodes, executing processing on each node, collecting results from all nodes, and merging them into a single unified output. Uses [Conductor](https://github.
+
+## Processing Data at the Edge
 
 Edge computing pushes computation close to the data source. IoT sensors on a factory floor, cameras at retail locations, or CDN nodes across geographies. A central system needs to dispatch an inference job to edge nodes, wait for each node to process its local data (video frames, sensor readings, log files), collect the partial results, and merge them into a global view. If one node is slow or fails, the central system needs to know, not silently drop that node's results.
 
@@ -38,6 +40,7 @@ eor_collect
     │
     ▼
 eor_merge
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ eor_merge
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/edge-orchestration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/edge-orchestration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edge_orchestration_demo \
   --version 1 \
-  --input '{"jobId": "TEST-001", "edgeNodes": "test-value"}'
+  --input '{"jobId": "TEST-001", "edgeNodes": "sample-edgeNodes"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w edge_orchestration_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ edge-orchestration/
     ├── EorDispatchWorkerTest.java        # 4 tests
     ├── EorEdgeProcessWorkerTest.java        # 4 tests
     └── EorMergeWorkerTest.java        # 4 tests
+
 ```

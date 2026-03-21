@@ -1,6 +1,8 @@
 # Dataset Versioning in Java Using Conductor :  Snapshot, Tag, Diff, and Rollback
 
-A Java Conductor workflow example for dataset versioning .  taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.## Datasets Change, and You Need to Track How
+A Java Conductor workflow example for dataset versioning .  taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.
+
+## Datasets Change, and You Need to Track How
 
 A data pipeline updates your ML training dataset daily. Yesterday's model performed well, but today's retrained model has degraded accuracy. Was it the new data? Which rows changed? Can you roll back to yesterday's version and retrain? Without versioning, you're guessing .  there's no snapshot to compare against, no diff to show what changed, and no tag to identify which version produced the good model.
 
@@ -42,6 +44,7 @@ dvr_diff
     │
     ▼
 dvr_rollback
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ dvr_rollback
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-versioning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-versioning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_versioning_demo \
   --version 1 \
-  --input '{"datasetId": "TEST-001", "tagName": "test", "previousTag": "test-value"}'
+  --input '{"datasetId": "TEST-001", "tagName": "test", "previousTag": "sample-previousTag"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_versioning_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ data-versioning/
     ├── DvrSnapshotWorkerTest.java        # 4 tests
     ├── DvrStoreWorkerTest.java        # 4 tests
     └── DvrTagWorkerTest.java        # 4 tests
+
 ```

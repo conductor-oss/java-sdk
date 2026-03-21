@@ -1,6 +1,8 @@
 # Bid Management in Java with Conductor :  RFP Creation, Vendor Distribution, Bid Collection, Evaluation, and Award
 
-A Java Conductor workflow example for competitive bid management .  creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for competitive bid management .  creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to run a competitive bidding process across multiple vendors. The procurement team creates a bid package with project specs and budget, distributes it to a shortlist of vendors (Alpha Corp, Beta Ltd, Gamma Inc), collects their proposals by a deadline, evaluates each bid on cost, schedule, and qualifications, and awards the contract. If a vendor's submission fails to upload, you need to retry without losing other submissions. If the evaluation step crashes, you need to resume without re-soliciting bids.
 
@@ -42,6 +44,7 @@ bid_evaluate
     │
     ▼
 bid_award
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ bid_award
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/bid-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/bid-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bid_management \
   --version 1 \
-  --input '{"projectName": "test", "budget": "test-value", "vendors": "test-value"}'
+  --input '{"projectName": "test", "budget": "sample-budget", "vendors": "sample-vendors"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w bid_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ bid-management/
     ├── CreateWorkerTest.java        # 2 tests
     ├── DistributeWorkerTest.java        # 2 tests
     └── EvaluateWorkerTest.java        # 2 tests
+
 ```

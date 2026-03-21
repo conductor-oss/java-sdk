@@ -1,6 +1,8 @@
 # Content Review Pipeline in Java Using Conductor :  AI Draft Generation, Human Review via WAIT, and Publishing
 
-A Java Conductor workflow example for AI-assisted content creation .  an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for AI-assisted content creation .  an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.
+
+## The Problem
 
 You need a content pipeline where AI generates first drafts and humans review them before publishing. An AI model produces content for a given topic and audience .  a blog post, marketing copy, product description, or documentation page. The draft includes the generated text, word count, and model used. A human editor must review the AI output for accuracy, tone, brand voice, and factual correctness. The editor may approve it as-is, edit it and approve the revised version, or reject it entirely. Only approved content should be published. Without a review step, AI hallucinations, off-brand tone, or factual errors reach your audience.
 
@@ -34,6 +36,7 @@ crp_human_review [WAIT]
     │
     ▼
 crp_publish
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ crp_publish
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/content-review-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/content-review-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_review_pipeline \
   --version 1 \
-  --input '{"topic": "test-value", "audience": "test-value"}'
+  --input '{"topic": "microservices best practices", "audience": "sample-audience"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w content_review_pipeline -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -139,6 +149,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -160,4 +171,5 @@ content-review-pipeline/
 └── src/test/java/contentreviewpipeline/workers/
     ├── CrpAiDraftWorkerTest.java        # 8 tests
     └── CrpPublishWorkerTest.java        # 8 tests
+
 ```

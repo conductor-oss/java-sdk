@@ -1,6 +1,8 @@
 # Idempotent Operations in Java with Conductor
 
-Idempotent operations with duplicate detection. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Idempotent operations with duplicate detection. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 In a distributed system, duplicate requests are inevitable (network retries, user double-clicks). Each operation must be idempotent. Executing it twice must produce the same result. This workflow generates a deterministic idempotency key, checks whether the operation was already executed, and either skips execution (duplicate) or executes and records the completion.
 
@@ -37,6 +39,7 @@ io_check_duplicate
 SWITCH (decision_ref)
     ├── true: 
     └── default: io_execute -> io_record_completion
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ SWITCH (decision_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/idempotent-operations-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/idempotent-operations-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow idempotent_operations_workflow \
   --version 1 \
-  --input '{"operationId": "TEST-001", "action": "test-value", "data": "test-value"}'
+  --input '{"operationId": "TEST-001", "action": "process", "data": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w idempotent_operations_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -139,6 +149,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ idempotent-operations/
     ├── ExecuteWorkerTest.java        # 2 tests
     ├── GenerateKeyWorkerTest.java        # 2 tests
     └── RecordCompletionWorkerTest.java        # 2 tests
+
 ```

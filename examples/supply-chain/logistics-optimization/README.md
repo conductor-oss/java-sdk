@@ -1,6 +1,8 @@
 # Logistics Optimization in Java with Conductor :  Demand Analysis, Route Optimization, Vehicle Scheduling, and Fleet Dispatch
 
-A Java Conductor workflow example for logistics optimization .  analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for logistics optimization .  analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to optimize logistics for a batch of 40+ orders spread across different ZIP codes. Demand must be analyzed to identify geographic clusters and volume patterns. Routes must be optimized across all delivery points to minimize total mileage. Vehicles must be scheduled based on load capacity, driver hours-of-service, and delivery time windows. The fleet must then be dispatched with each driver receiving their optimized stop list.
 
@@ -38,6 +40,7 @@ lo_schedule
     │
     ▼
 lo_dispatch
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ lo_dispatch
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/logistics-optimization-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/logistics-optimization-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lo_logistics_optimization \
   --version 1 \
-  --input '{"region": "test-value", "date": "2026-01-01T00:00:00Z", "orders": "test-value"}'
+  --input '{"region": "us-east-1", "date": "2026-01-01T00:00:00Z", "orders": "sample-orders"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w lo_logistics_optimization -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ logistics-optimization/
     ├── DispatchWorkerTest.java        # 2 tests
     ├── OptimizeRoutesWorkerTest.java        # 2 tests
     └── ScheduleWorkerTest.java        # 2 tests
+
 ```

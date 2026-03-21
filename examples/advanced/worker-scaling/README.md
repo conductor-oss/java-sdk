@@ -1,6 +1,8 @@
 # Worker Auto-Scaling in Java Using Conductor :  Monitor Queue, Calculate Capacity, Scale, Verify
 
-A Java Conductor workflow example for worker auto-scaling .  monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.## Fixed Worker Counts Waste Money or Miss SLAs
+A Java Conductor workflow example for worker auto-scaling .  monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.
+
+## Fixed Worker Counts Waste Money or Miss SLAs
 
 Your task queue processes 100 messages per second during business hours and 5 per second overnight. Running enough workers for peak load 24/7 wastes 95% of compute during off-hours. Running for average load means queue depth explodes during peaks and latency exceeds your SLA. You need to dynamically scale workers based on current queue depth and target latency.
 
@@ -38,6 +40,7 @@ wks_scale_workers
     │
     ▼
 wks_verify_scaling
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ wks_verify_scaling
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/worker-scaling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/worker-scaling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wks_worker_scaling \
   --version 1 \
-  --input '{"queueName": "test", "currentWorkers": "test-value", "targetLatencyMs": "test-value"}'
+  --input '{"queueName": "test", "currentWorkers": "sample-currentWorkers", "targetLatencyMs": "production"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wks_worker_scaling -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ worker-scaling/
     ├── WksMonitorQueueWorkerTest.java        # 4 tests
     ├── WksScaleWorkersWorkerTest.java        # 4 tests
     └── WksVerifyScalingWorkerTest.java        # 4 tests
+
 ```

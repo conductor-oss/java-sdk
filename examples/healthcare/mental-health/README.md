@@ -1,6 +1,8 @@
 # Mental Health Workflow in Java Using Conductor :  Intake, Clinical Assessment, Treatment Planning, and Progress Tracking
 
-A Java Conductor workflow example for mental health care management .  performing patient intake with referral reason, conducting clinical assessments (PHQ-9, GAD-7, Columbia Suicide Severity), building an individualized treatment plan, and tracking therapeutic progress over time. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for mental health care management .  performing patient intake with referral reason, conducting clinical assessments (PHQ-9, GAD-7, Columbia Suicide Severity), building an individualized treatment plan, and tracking therapeutic progress over time. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage the clinical pathway for behavioral health patients. A referral comes in with a patient ID, referral reason, and assigned provider. The patient must go through intake .  collecting demographics, insurance, presenting concerns, and safety screening. A clinical assessment must be performed using validated instruments (PHQ-9 for depression, GAD-7 for anxiety, AUDIT for substance use). Based on the assessment scores, an individualized treatment plan is created with therapy modality (CBT, DBT, EMDR), medication management if indicated, session frequency, and measurable goals. Progress must then be tracked against the treatment plan using outcome measures at each session. A missed safety screening or delayed treatment plan can result in harm to the patient and regulatory consequences.
 
@@ -38,6 +40,7 @@ mh_treatment_plan
     │
     ▼
 mh_track_progress
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ mh_track_progress
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/mental-health-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/mental-health-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mental_health_workflow \
   --version 1 \
-  --input '{"patientId": "TEST-001", "referralReason": "test-value", "provider": "TEST-001"}'
+  --input '{"patientId": "TEST-001", "referralReason": "sample-referralReason", "provider": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w mental_health_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ mental-health/
     ├── IntakeWorkerTest.java        # 2 tests
     ├── TrackProgressWorkerTest.java        # 2 tests
     └── TreatmentPlanWorkerTest.java        # 2 tests
+
 ```

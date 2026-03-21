@@ -1,6 +1,8 @@
 # Pubsub Consumer in Java Using Conductor
 
-Pub/Sub Consumer .  receive a Pub/Sub message, decode the base64 payload, process sensor data with threshold checks, and acknowledge the message. Uses [Conductor](https://github.## The Problem
+Pub/Sub Consumer .  receive a Pub/Sub message, decode the base64 payload, process sensor data with threshold checks, and acknowledge the message. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process messages from a Google Cloud Pub/Sub subscription. Each message arrives base64-encoded with attributes metadata, must be decoded, processed (e.g., sensor data with threshold checks), and acknowledged so Pub/Sub stops redelivering it. Failing to acknowledge means the message is redelivered indefinitely; acknowledging before processing means you lose it on failure.
 
@@ -38,6 +40,7 @@ ps_process_data
     │
     ▼
 ps_ack_message
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ps_ack_message
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/pubsub-consumer-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/pubsub-consumer-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pubsub_consumer_wf \
   --version 1 \
-  --input '{"subscription": "test-value", "messageId": "TEST-001", "publishTime": "2026-01-01T00:00:00Z", "data": "test-value", "attributes": "test-value"}'
+  --input '{"subscription": "sample-subscription", "messageId": "TEST-001", "publishTime": "2026-01-01T00:00:00Z", "data": {"key": "value"}, "attributes": "sample-attributes"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w pubsub_consumer_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ pubsub-consumer/
     ├── PsDecodePayloadWorkerTest.java        # 9 tests
     ├── PsProcessDataWorkerTest.java        # 10 tests
     └── PsReceiveMessageWorkerTest.java        # 9 tests
+
 ```

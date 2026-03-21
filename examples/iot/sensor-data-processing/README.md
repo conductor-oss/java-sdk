@@ -1,6 +1,8 @@
 # Sensor Data Processing in Java with Conductor :  Collection, Validation, Aggregation, Anomaly Detection, and Alerting
 
-A Java Conductor workflow example that orchestrates a sensor data processing pipeline .  collecting batches of temperature and humidity readings from sensor groups, validating data quality (null checks, offline sensor detection), computing aggregate statistics (avg, min, max, std dev), detecting anomalies like temperature spikes above thresholds, and triggering escalation alerts via email and SMS when anomalies are found. Uses [Conductor](https://github.## Why Sensor Data Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates a sensor data processing pipeline .  collecting batches of temperature and humidity readings from sensor groups, validating data quality (null checks, offline sensor detection), computing aggregate statistics (avg, min, max, std dev), detecting anomalies like temperature spikes above thresholds, and triggering escalation alerts via email and SMS when anomalies are found. Uses [Conductor](https://github.
+
+## Why Sensor Data Pipelines Need Orchestration
 
 Processing IoT sensor data at scale is a multi-stage pipeline where data quality and ordering matter. You collect 1,200 readings from 50 sensors in a time window. You validate each reading for data quality .  flagging null values, detecting offline sensors, and filtering bad data. You aggregate the validated readings into summary statistics: average temperature, min/max bounds, standard deviation, humidity averages. You analyze those aggregated metrics for patterns and anomalies ,  is the temperature trend rising? Did any sensor exceed the 85F threshold? If anomalies are detected, you trigger alerts at the appropriate escalation level.
 
@@ -30,6 +32,7 @@ Workers simulate device telemetry and control operations with realistic sensor d
 
 ```
 Input -> AggregateReadingsWorker -> AnalyzePatternsWorker -> CollectReadingsWorker -> TriggerAlertsWorker -> ValidateDataWorker -> Output
+
 ```
 
 ## Running It
@@ -44,6 +47,7 @@ Input -> AggregateReadingsWorker -> AnalyzePatternsWorker -> CollectReadingsWork
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -52,6 +56,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -66,6 +71,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/sensor-data-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -78,6 +84,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -93,6 +100,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/sensor-data-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -102,6 +110,7 @@ conductor workflow start \
   --workflow sensor_data_processing \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -110,6 +119,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w sensor_data_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -134,6 +144,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ sensor-data-processing/
     ├── CollectReadingsWorkerTest.java        # 8 tests
     ├── TriggerAlertsWorkerTest.java        # 9 tests
     └── ValidateDataWorkerTest.java        # 8 tests
+
 ```

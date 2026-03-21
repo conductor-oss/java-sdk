@@ -26,15 +26,6 @@ Three workers handle the OpenAI integration. Building the chat completion reques
 
 Without `CONDUCTOR_OPENAI_API_KEY`, the `Gpt4CallApiWorker` runs in simulated mode with `` output. Set the environment variable to make real OpenAI API calls. The default chat model is `gpt-4o-mini`, configurable through `OPENAI_CHAT_MODEL` or workflow input `model`, and the worker interface stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Configurable retry policy** | These example task definitions intentionally use `retryCount=0` so provider failures fail fast during development. Increase retries per task when you want automatic replay behavior. |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,36 +36,7 @@ gpt4_call_api
     │
     ▼
 gpt4_extract_result
-```
 
-## Example Output
-
-```
-=== OpenAI GPT-4 Integration Workflow ===
-
-Mode: LIVE (CONDUCTOR_OPENAI_API_KEY detected)
-Model: gpt-4o-mini
-
-Step 1: Registering task definitions...
-  Registered: gpt4_build_request, gpt4_call_api, gpt4_extract_result
-
-Step 2: Registering workflow 'openai_gpt4_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: fc3c1826-3366-44c6-571c-5169f94c69e3
-
-  [gpt4_build_request worker] Built request for model: gpt-4o-mini
-  [gpt4_call_api worker] Response from OpenAI API (LIVE): North America and APAC drove growth while Europe contracted and SMB churn worsened...
-  [gpt4_extract_result worker] Extracted summary (214 chars)
-
-  Status: COMPLETED
-  Output: {summary=North America and APAC drove growth while Europe contracted and SMB churn worsened...}
-
-Result: PASSED
 ```
 
 ## Running It
@@ -89,6 +51,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -97,13 +60,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -111,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/openai-gpt4-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -123,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 `run.sh` auto-loads the nearest `.env` file it finds while walking up parent directories, so a repo-root `.env` works without manual `export` commands.
@@ -142,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/openai-gpt4-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -150,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow openai_gpt4_workflow \
   --version 1 \
-  --input '{"model":"gpt-4o-mini","prompt":"Analyze these Q3 revenue figures: North America $12.4M->$14.1M, Europe $8.2M->$7.9M, APAC $5.1M->$6.8M, LATAM $2.3M->$2.5M. Total Q3 $31.3M vs Q2 $28.0M. Enterprise deals were 62% of new bookings and SMB churn rose from 4.2% to 5.1%.","systemMessage":"You are a senior financial analyst. Be specific with numbers and actionable recommendations."}'
+  --input '{"model": "gpt-4o-mini", "prompt": "Analyze these Q3 revenue figures: North America $12.4M->$14.1M, Europe $8.2M->$7.9M, APAC $5.1M->$6.8M, LATAM $2.3M->$2.5M. Total Q3 $31.3M vs Q2 $28.0M. Enterprise deals were 62% of new bookings and SMB churn rose from 4.2% to 5.1%.", "systemMessage": "You are a senior financial analyst. Be specific with numbers and actionable recommendations."}'
+
 ```
 
 ### Check workflow status
@@ -159,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w openai_gpt4_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -181,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -204,4 +174,5 @@ openai-gpt4/
     ├── Gpt4BuildRequestWorkerTest.java        # 5 tests
     ├── Gpt4CallApiWorkerTest.java        # 5 tests
     └── Gpt4ExtractResultWorkerTest.java        # 6 tests
+
 ```

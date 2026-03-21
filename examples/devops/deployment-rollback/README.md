@@ -1,6 +1,8 @@
 # Deployment Rollback in Java with Conductor :  Detect Failure, Identify Version, Rollback, Verify
 
-Automates deployment rollback using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects a failing deployment (error rate spikes, health check failures), identifies the last known stable version, rolls back the deployment to that version, and verifies the service is healthy again.## When a Deploy Goes Wrong
+Automates deployment rollback using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects a failing deployment (error rate spikes, health check failures), identifies the last known stable version, rolls back the deployment to that version, and verifies the service is healthy again.
+
+## When a Deploy Goes Wrong
 
 Your checkout-service just deployed version 2.5.0 and the error rate is spiking. Customers are seeing 500 errors. You need to act fast: confirm the deployment is actually failing (not just a transient blip), find the last stable version (2.4.3, deployed 3 days ago), roll back to it, and verify the error rate normalizes. Every minute of delay means lost revenue and frustrated users.
 
@@ -38,6 +40,7 @@ rb_rollback_deploy
     │
     ▼
 rb_verify_rollback
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ rb_verify_rollback
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/deployment-rollback-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/deployment-rollback-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow deployment_rollback_workflow \
   --version 1 \
-  --input '{"service": "test-value", "reason": "test-value"}'
+  --input '{"service": "order-service", "reason": "sample-reason"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w deployment_rollback_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -155,4 +165,5 @@ deployment-rollback-deployment-rollback/
 │       └── VerifyRollbackWorker.java
 └── src/test/java/deploymentrollback/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

@@ -1,6 +1,6 @@
 # Function Calling in Java Using Conductor: LLM Plans, Extract Call, Execute, Synthesize
 
-You ask "What's Apple's stock price?" and the model calls `get_stock_price(ticker="APPL")`. a ticker that doesn't exist. Or it invents a function called `fetch_realtime_quote` that was never in the schema. Or it calls `get_stock_price` with `{"user_id": "12345"}` because it confused the parameters from a different function. When an LLM has direct API access, every hallucinated function name, wrong parameter type, or confused argument is a live production call. This example separates intent from execution: the LLM decides what to call, a validation layer checks it against the real function registry, and only then does execution happen. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You ask "What's Apple's stock price?" and the model calls `get_stock_price(ticker="APPL")`. a ticker that doesn't exist. Or it invents a function called `fetch_realtime_quote` that was never in the schema. Or it calls `get_stock_price` with `{"user_id": "12345"}` because it confused the parameters from a different function. When an LLM has direct API access, every hallucinated function name, wrong parameter type, or confused argument is a live production call. This example separates intent from execution: the LLM decides what to call, a validation layer checks it against the real function registry, and only then does execution happen. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Giving LLMs the Ability to Call Functions
 
@@ -27,15 +27,6 @@ Four workers implement function calling, the LLM plans which function to invoke,
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ fc_execute_function
     │
     ▼
 fc_llm_synthesize
+
 ```
 
 ## Example Output
@@ -78,7 +70,9 @@ Step 4: Starting workflow...
   Output: {answer=I was unable to retrieve the requested information for your query: , confidence=0.97, sourceFunctionUsed=unknown, executionStatus=error}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -91,6 +85,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -99,13 +94,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -113,6 +109,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/function-calling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -125,6 +122,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -140,6 +138,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/function-calling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -149,6 +148,7 @@ conductor workflow start \
   --workflow function_calling \
   --version 1 \
   --input '{"userQuery": "What's the current price of Apple stock?", "functionDefinitions": [{"name": "get_stock_price", "description": "Get the current stock price for a given ticker symbol", "parameters": {"ticker": {"type": "string", "description": "Stock ticker symbol"}, "includeChange": {"type": "boolean", "description": "Include price change data"}}}, {"name": "get_weather", "description": "Get the current weather for a location", "parameters": {"location": {"type": "string", "description": "City name or coordinates"}, "units": {"type": "string", "description": "Temperature units: celsius or fahrenheit"}}}, {"name": "search_web", "description": "Search the web for information", "parameters": {"query": {"type": "string", "description": "Search query"}, "maxResults": {"type": "integer", "description": "Maximum number of results"}}}]}'
+
 ```
 
 ### Check workflow status
@@ -157,6 +157,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w function_calling -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -197,4 +198,5 @@ function-calling/
     ├── ExtractFunctionCallWorkerTest.java        # 9 tests
     ├── LlmPlanWorkerTest.java        # 8 tests
     └── LlmSynthesizeWorkerTest.java        # 9 tests
+
 ```

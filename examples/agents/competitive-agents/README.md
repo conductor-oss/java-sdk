@@ -1,6 +1,8 @@
 # Competitive Agents in Java Using Conductor :  Parallel Solvers, Judge, and Winner Selection
 
-Competitive Agents .  three solvers propose solutions in parallel, a judge scores them, and a winner is selected. Uses [Conductor](https://github.## Better Solutions Through Competition
+Competitive Agents .  three solvers propose solutions in parallel, a judge scores them, and a winner is selected. Uses [Conductor](https://github.
+
+## Better Solutions Through Competition
 
 A single AI agent solving a problem gives you one perspective. Three agents solving the same problem independently give you three perspectives, and the best one is almost always better than a random single attempt. Agent 1 might take an analytical approach (data-driven, quantitative). Agent 2 might take a creative approach (novel angles, unconventional solutions). Agent 3 might take a practical approach (implementation-focused, risk-aware).
 
@@ -40,6 +42,7 @@ comp_judge_agent
     │
     ▼
 comp_select_winner
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ comp_select_winner
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/competitive-agents-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/competitive-agents-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow competitive_agents_demo \
   --version 1 \
-  --input '{"problem": "test-value", "criteria": "test-value"}'
+  --input '{"problem": "sample-problem", "criteria": "sample-criteria"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w competitive_agents_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -161,4 +171,5 @@ competitive-agents/
     ├── Solver1WorkerTest.java        # 7 tests
     ├── Solver2WorkerTest.java        # 7 tests
     └── Solver3WorkerTest.java        # 7 tests
+
 ```

@@ -1,6 +1,8 @@
 # Implementing Data Masking in Java with Conductor :  Field Identification, Strategy Selection, Masking Application, and Output Validation
 
-A Java Conductor workflow example automating data masking .  scanning a data source to identify sensitive fields (SSNs, emails, credit card numbers), selecting the appropriate masking strategy (tokenization, redaction, format-preserving encryption, pseudonymization) based on the data's intended purpose, applying the masks to every sensitive field, and validating that no PII remains in the output while referential integrity is preserved. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example automating data masking .  scanning a data source to identify sensitive fields (SSNs, emails, credit card numbers), selecting the appropriate masking strategy (tokenization, redaction, format-preserving encryption, pseudonymization) based on the data's intended purpose, applying the masks to every sensitive field, and validating that no PII remains in the output while referential integrity is preserved. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to share production-like data with development teams, analytics pipelines, or third-party vendors; but the data contains Social Security numbers, email addresses, credit card numbers, health records, and other regulated PII that cannot be exposed. Each field type requires a different masking approach: SSNs should be redacted or tokenized, emails need format-preserving pseudonymization so downstream systems still process them correctly, credit card numbers must preserve the BIN prefix for payment testing. After masking, you must verify that no PII leaked through (partial masks, edge cases, NULL handling) and that referential integrity is maintained (the same customer ID maps to the same masked ID across all tables).
 
@@ -38,6 +40,7 @@ dm_apply_masking
     │
     ▼
 dm_validate_output
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ dm_validate_output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-masking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-masking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow data_masking \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_masking -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ data-masking/
     ├── DmIdentifyFieldsWorkerTest.java        # 7 tests
     ├── DmSelectStrategyWorkerTest.java        # 8 tests
     └── DmValidateOutputWorkerTest.java        # 8 tests
+
 ```

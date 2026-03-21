@@ -1,6 +1,8 @@
 # Capacity Mgmt Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom network capacity management .  monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.## Why Capacity Management Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom network capacity management .  monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.
+
+## Why Capacity Management Needs Orchestration
 
 Managing network capacity requires a proactive pipeline from measurement through expansion. You monitor current utilization and subscriber growth rates for a region's network type (RAN, transport, core). You forecast when existing capacity will be exhausted based on current utilization and growth trends. You plan the expansion .  determining what equipment, spectrum, or backhaul capacity to add and where. You provision the planned resources by deploying and configuring new network elements. Finally, you verify the provisioned capacity is live and the region's utilization has dropped to acceptable levels.
 
@@ -42,6 +44,7 @@ cmt_provision
     │
     ▼
 cmt_verify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cmt_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/capacity-mgmt-telecom-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/capacity-mgmt-telecom-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cmt_capacity_mgmt_telecom \
   --version 1 \
-  --input '{"region": "test-value", "networkType": "test-value"}'
+  --input '{"region": "us-east-1", "networkType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cmt_capacity_mgmt_telecom -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ capacity-mgmt-telecom-capacity-mgmt-telecom/
 └── src/test/java/capacitymgmttelecom/workers/
     ├── MonitorWorkerTest.java        # 1 tests
     └── ProvisionWorkerTest.java        # 1 tests
+
 ```

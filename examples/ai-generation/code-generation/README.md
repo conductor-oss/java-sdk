@@ -39,6 +39,7 @@ cdg_validate
     │
     ▼
 cdg_test
+
 ```
 
 ## Running It
@@ -53,6 +54,7 @@ cdg_test
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -61,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -75,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/code-generation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -87,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -102,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/code-generation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cdg_code_generation \
   --version 1 \
-  --input '{"requirements": "test-value", "language": "test-value", "framework": "test-value"}'
+  --input '{"requirements": "sample-requirements", "language": "en", "framework": "sample-framework"}'
+
 ```
 
 ### Check workflow status
@@ -119,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cdg_code_generation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +149,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +174,5 @@ code-generation/
     ├── ParseRequirementsWorkerTest.java        # 2 tests
     ├── TestWorkerTest.java        # 2 tests
     └── ValidateWorkerTest.java        # 2 tests
+
 ```

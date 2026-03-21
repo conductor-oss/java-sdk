@@ -1,6 +1,6 @@
 # Expense Approval in Java Using Conductor: Policy Validation, SWITCH for Auto-Approve vs. Manager Approval via WAIT, and Processing
 
-A Java Conductor workflow example for expense approval. validating an expense against policy rules (amount > $100 or category "travel" requires approval), using SWITCH to route expenses that need approval to a WAIT task for manager review, and processing the expense after approval or auto-approval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for expense approval. validating an expense against policy rules (amount > $100 or category "travel" requires approval), using SWITCH to route expenses that need approval to a WAIT task for manager review, and processing the expense after approval or auto-approval. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Expenses Above Policy Thresholds Need Human Approval
 
@@ -25,17 +25,6 @@ ValidatePolicyWorker checks expense amounts and categories, while ProcessWorker 
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-| **Human-in-the-loop** | WAIT tasks pause the workflow until an external signal (API call) resumes it.; no polling, no state management |
-
 ### The Workflow
 
 ```
@@ -47,6 +36,7 @@ SWITCH (approval_switch)
     │
     ▼
 exp_process
+
 ```
 
 ## Running It
@@ -61,6 +51,7 @@ exp_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -69,13 +60,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -83,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/expense-approval-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -95,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -130,6 +124,7 @@ Step 5: Waiting for completion...
   Output: {approvalRequired=false, processed=true}
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -140,6 +135,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/expense-approval-1.0.0.jar --workers
+
 ```
 
 Then use the CLI in a separate terminal to start and manage workflows.
@@ -155,6 +151,7 @@ npm install -g @conductor-oss/conductor-cli
 
 # or direct download
 curl -fsSL https://raw.githubusercontent.com/conductor-oss/conductor-cli/main/install.sh | sh
+
 ```
 
 ### Start Conductor locally
@@ -162,6 +159,7 @@ curl -fsSL https://raw.githubusercontent.com/conductor-oss/conductor-cli/main/in
 ```bash
 conductor server start
 conductor server status
+
 ```
 
 ### Register tasks and workflow
@@ -172,6 +170,7 @@ conductor task create src/main/resources/task-defs.json
 
 # Register the workflow
 conductor workflow create src/main/resources/workflow.json
+
 ```
 
 ### Start a workflow run
@@ -183,6 +182,7 @@ conductor workflow start \
   --workflow expense_approval \
   --version 1 \
   --input '{"amount": 50, "category": "office", "submitter": "alice@example.com", "description": "Printer paper and toner"}'
+
 ```
 
 Large expense (requires manager approval via WAIT):
@@ -192,6 +192,7 @@ conductor workflow start \
   --workflow expense_approval \
   --version 1 \
   --input '{"amount": 2500, "category": "conference", "submitter": "alice@example.com", "description": "AWS re:Invent registration and travel"}'
+
 ```
 
 Travel expense (requires manager approval regardless of amount):
@@ -201,6 +202,7 @@ conductor workflow start \
   --workflow expense_approval \
   --version 1 \
   --input '{"amount": 75, "category": "travel", "submitter": "bob@example.com", "description": "Taxi to client site"}'
+
 ```
 
 ### Check workflow status
@@ -214,6 +216,7 @@ conductor workflow get-execution <workflow_id> -c
 
 # Search for recent runs
 conductor workflow search -w expense_approval -s COMPLETED -c 5
+
 ```
 
 ### Completing the WAIT task (human approval)
@@ -225,6 +228,7 @@ When the workflow hits the `wait_for_approval` WAIT task, it pauses until an ext
 ```bash
 # Get the execution details: look for the task named "wait_for_approval"
 conductor workflow get-execution <workflow_id> -c
+
 ```
 
 The task ID is in the `taskId` field of the `wait_for_approval` task.
@@ -234,16 +238,8 @@ The task ID is in the `taskId` field of the `wait_for_approval` task.
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "approved": true,
-      "approvedBy": "manager@example.com",
-      "approvedAt": "2026-03-14T10:30:00Z"
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "COMPLETED", "outputData": {"approved": true, "approvedBy": "manager@example.com", "approvedAt": "2026-03-14T10:30:00Z"}}'
+
 ```
 
 **Step 2 (alternative): Reject the expense**
@@ -251,17 +247,8 @@ curl -X POST http://localhost:8080/api/tasks \
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<task_id>",
-    "status": "FAILED",
-    "reasonForIncompletion": "Expense rejected. Exceeds department budget",
-    "outputData": {
-      "approved": false,
-      "rejectedBy": "manager@example.com",
-      "reason": "Exceeds department budget for Q1"
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "FAILED", "reasonForIncompletion": "Expense rejected. Exceeds department budget", "outputData": {"approved": false, "rejectedBy": "manager@example.com", "reason": "Exceeds department budget for Q1"}}'
+
 ```
 
 After approval, the workflow automatically resumes and the `exp_process` worker finalizes the expense.
@@ -280,6 +267,7 @@ conductor workflow retry <workflow_id>
 
 # Restart from the beginning
 conductor workflow restart <workflow_id>
+
 ```
 
 ### List registered definitions
@@ -287,6 +275,7 @@ conductor workflow restart <workflow_id>
 ```bash
 conductor workflow list
 conductor task list
+
 ```
 
 ## How to Extend
@@ -304,6 +293,7 @@ PolicyEngine engine = PolicyEngine.forDepartment(submitterDepartment);
 boolean needsApproval = engine.evaluate(amount, category, submitter);
 // Supports per-department thresholds, category-specific rules,
 // and spending limits that update without code changes
+
 ```
 
 Swap in a real policy engine and the expense approval pipeline continues without any workflow changes.
@@ -324,6 +314,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -346,4 +337,5 @@ expense-approval/
 └── src/test/java/expenseapproval/workers/
     ├── ValidatePolicyWorkerTest.java  # 10 tests. Boundary values, categories, types
     └── ProcessWorkerTest.java         # 4 tests. Completion, output shape
+
 ```

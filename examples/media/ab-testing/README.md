@@ -1,6 +1,8 @@
 # A/B Testing Pipeline in Java Using Conductor :  Variant Definition, User Assignment, Metric Collection, and Statistical Analysis
 
-A Java Conductor workflow example that orchestrates an end-to-end A/B test .  defining experiment variants with traffic splits, assigning users to control and treatment groups via random hashing, collecting engagement metrics (clicks, impressions, conversion rates), running statistical significance analysis (p-value, uplift, confidence intervals, effect size), and deciding a winner with a rollout recommendation. Uses [Conductor](https://github.## Why A/B Test Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an end-to-end A/B test .  defining experiment variants with traffic splits, assigning users to control and treatment groups via random hashing, collecting engagement metrics (clicks, impressions, conversion rates), running statistical significance analysis (p-value, uplift, confidence intervals, effect size), and deciding a winner with a rollout recommendation. Uses [Conductor](https://github.
+
+## Why A/B Test Pipelines Need Orchestration
 
 Running a rigorous A/B test involves a strict sequence where each stage depends on the previous one. You define the variants (control vs. treatment) and traffic split percentages. You assign users to groups using deterministic hashing so the same user always sees the same variant. You collect behavioral metrics .  clicks, impressions, conversion rates ,  for each group over the experiment window. You run statistical analysis to compute p-values, measure uplift, and determine whether results are statistically significant at your target confidence level. Finally, you decide a winner and generate a rollout recommendation.
 
@@ -42,6 +44,7 @@ abt_analyze_results
     │
     ▼
 abt_decide_winner
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ abt_decide_winner
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/ab-testing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/ab-testing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ab_testing_workflow \
   --version 1 \
-  --input '{"testId": "TEST-001", "testName": "test", "variantA": "test-value", "variantB": "test-value", "sampleSize": 10}'
+  --input '{"testId": "TEST-001", "testName": "test", "variantA": "sample-variantA", "variantB": "sample-variantB", "sampleSize": 10}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ab_testing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ ab-testing/
 └── src/test/java/abtesting/workers/
     ├── AssignUsersWorkerTest.java        # 2 tests
     └── DefineVariantsWorkerTest.java        # 2 tests
+
 ```

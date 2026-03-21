@@ -1,6 +1,8 @@
 # Content Syndication Pipeline in Java Using Conductor :  Content Selection, Platform Formatting, Multi-Channel Distribution, and Performance Tracking
 
-A Java Conductor workflow example that orchestrates content syndication .  selecting content from your CMS with metadata and word counts, reformatting for each target platform's requirements (Medium, Dev.to, Hashnode character limits and markup), distributing to all platforms simultaneously, and setting up UTM-tagged tracking pixels for cross-platform performance measurement. Uses [Conductor](https://github.## Why Content Syndication Needs Orchestration
+A Java Conductor workflow example that orchestrates content syndication .  selecting content from your CMS with metadata and word counts, reformatting for each target platform's requirements (Medium, Dev.to, Hashnode character limits and markup), distributing to all platforms simultaneously, and setting up UTM-tagged tracking pixels for cross-platform performance measurement. Uses [Conductor](https://github.
+
+## Why Content Syndication Needs Orchestration
 
 Syndicating content to multiple platforms requires adapting the same source content for each destination's format constraints. You select the content and extract its body, category, and word count. You reformat it for each platform. Medium requires specific HTML, Dev.to uses front matter with liquid tags, Hashnode has its own markdown flavor, each with different character limits. You distribute to all platforms and collect the published URLs. You set up tracking with UTM campaign parameters and pixel tags to measure which syndication channels drive the most traffic back to your site.
 
@@ -38,6 +40,7 @@ syn_distribute
     │
     ▼
 syn_track_performance
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ syn_track_performance
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/content-syndication-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/content-syndication-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_syndication_workflow \
   --version 1 \
-  --input '{"contentId": "TEST-001", "title": "test-value", "platforms": "test-value", "publishDate": "2026-01-01T00:00:00Z"}'
+  --input '{"contentId": "TEST-001", "title": "sample-title", "platforms": "sample-platforms", "publishDate": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w content_syndication_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ content-syndication/
 └── src/test/java/contentsyndication/workers/
     ├── FormatPerPlatformWorkerTest.java        # 2 tests
     └── SelectContentWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # Group Assignment with Claim Pattern in Java Using Conductor :  Ticket Intake, WAIT for Group Claim, and Resolution
 
-A Java Conductor workflow example for group-based task assignment .  processing a ticket intake and queuing it to an assigned group (like a support queue), pausing at a WAIT task until any available team member claims and works the ticket, then resolving and closing it. Demonstrates the claim pattern where tasks are published to a pool and pulled by the first available person. Uses [Conductor](https://github.## Tasks Can Be Assigned to a Group and Claimed by Any Member
+A Java Conductor workflow example for group-based task assignment .  processing a ticket intake and queuing it to an assigned group (like a support queue), pausing at a WAIT task until any available team member claims and works the ticket, then resolving and closing it. Demonstrates the claim pattern where tasks are published to a pool and pulled by the first available person. Uses [Conductor](https://github.
+
+## Tasks Can Be Assigned to a Group and Claimed by Any Member
 
 Some tasks do not have a specific assignee. They are published to a group (like a support queue), and any available team member can claim and work on it. The workflow processes intake, pauses at a WAIT task visible to the group, and after someone claims and completes it, the resolution step closes the ticket. If resolution fails, you need to retry it without asking someone to re-claim the task.
 
@@ -32,6 +34,7 @@ group_assigned_wait [WAIT]
     │
     ▼
 hgc_resolve
+
 ```
 
 ## Running It
@@ -46,6 +49,7 @@ hgc_resolve
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -54,6 +58,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -68,6 +73,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/human-group-claim-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -80,6 +86,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -95,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/human-group-claim-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -104,6 +112,7 @@ conductor workflow start \
   --workflow human_group_claim \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -112,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w human_group_claim -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -133,6 +143,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -154,4 +165,5 @@ human-group-claim/
 └── src/test/java/humangroupclaim/workers/
     ├── IntakeWorkerTest.java        # 5 tests
     └── ResolveWorkerTest.java        # 5 tests
+
 ```

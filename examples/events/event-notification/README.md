@@ -1,6 +1,6 @@
 # Event Notification in Java Using Conductor
 
-A customer's payment fails. They need to know immediately: via email, SMS, and push. But your notification code sends them sequentially: email first, then SMS, then push. The SMS provider is having a bad day and hangs for 30 seconds before timing out. Now your push notification arrives a minute late, and the email, which actually succeeded, is sitting in a retry loop because the whole pipeline is blocked. The customer sees nothing, retries the payment, gets double-charged, and opens a support ticket. This workflow sends notifications across all channels in parallel, so a slow SMS never blocks the email, and every delivery attempt is tracked. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer's payment fails. They need to know immediately: via email, SMS, and push. But your notification code sends them sequentially: email first, then SMS, then push. The SMS provider is having a bad day and hangs for 30 seconds before timing out. Now your push notification arrives a minute late, and the email, which actually succeeded, is sitting in a retry loop because the whole pipeline is blocked. The customer sees nothing, retries the payment, gets double-charged, and opens a support ticket. This workflow sends notifications across all channels in parallel, so a slow SMS never blocks the email, and every delivery attempt is tracked. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd spawn threads for each notification channel, manage
 
 **You just write the event-parse, email, SMS, push, and delivery-recording workers. Conductor handles parallel multi-channel delivery, per-channel retry isolation, and unified delivery status tracking.**
 
-Each notification channel is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of parsing the event, sending across all three channels in parallel via FORK_JOIN, recording delivery status for each, retrying any failed channel independently, and tracking the entire notification lifecycle. You get all of that for free, without writing a single line of orchestration code.
+Each notification channel is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of parsing the event, sending across all three channels in parallel via FORK_JOIN, recording delivery status for each, retrying any failed channel independently, and tracking the entire notification lifecycle. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +28,6 @@ Five workers deliver multi-channel notifications: ParseEventWorker extracts reci
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 en_record_delivery
+
 ```
 
 ## Example Output
@@ -82,7 +73,9 @@ Step 5: Waiting for completion...
   Output: {recipientId=user-9001, channelsUsed=3, overallDelivery=all_delivered}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -95,6 +88,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -103,13 +97,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -117,6 +112,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-notification-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -129,6 +125,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -144,6 +141,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-notification-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -153,6 +151,7 @@ conductor workflow start \
   --workflow event_notification \
   --version 1 \
   --input '{"event": {"type": "order.shipped", "message": "Your order has been shipped!"}, "recipientId": "user-9001"}'
+
 ```
 
 ### Check workflow status
@@ -161,6 +160,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_notification -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -184,6 +184,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -211,4 +212,5 @@ event-notification/
     ├── SendEmailWorkerTest.java        # 8 tests
     ├── SendPushWorkerTest.java        # 8 tests
     └── SendSmsWorkerTest.java        # 8 tests
+
 ```

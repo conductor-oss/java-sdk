@@ -1,6 +1,8 @@
 # CRM Agent in Java Using Conductor :  Customer Lookup, History Check, Record Update, Response Generation
 
-CRM Agent .  lookup customer, check history, update record, and generate response through a sequential pipeline. Uses [Conductor](https://github.## Personalized Responses Require Full Customer Context
+CRM Agent .  lookup customer, check history, update record, and generate response through a sequential pipeline. Uses [Conductor](https://github.
+
+## Personalized Responses Require Full Customer Context
 
 A customer contacts support saying "My order hasn't arrived." A generic response helps nobody. A good response requires knowing who they are (gold tier member, customer since 2019), what their history looks like (three prior shipping issues, last contacted two weeks ago about a different order), updating the CRM with this new interaction, and generating a response that acknowledges their loyalty and history.
 
@@ -38,6 +40,7 @@ cm_update_record
     │
     ▼
 cm_generate_response
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cm_generate_response
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/crm-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/crm-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crm_agent \
   --version 1 \
-  --input '{"customerId": "TEST-001", "inquiry": "test-value", "channel": "test-value"}'
+  --input '{"customerId": "TEST-001", "inquiry": "sample-inquiry", "channel": "email"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w crm_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ crm-agent/
     ├── GenerateResponseWorkerTest.java        # 9 tests
     ├── LookupCustomerWorkerTest.java        # 8 tests
     └── UpdateRecordWorkerTest.java        # 9 tests
+
 ```

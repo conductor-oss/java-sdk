@@ -1,6 +1,6 @@
 # Workflow Testing in Java Using Conductor: Fixture Setup, Assertions, Teardown, and Report Generation
 
-A Java Conductor workflow example for automated workflow test orchestration: defining test fixtures, executing the workflow under test against golden inputs, asserting that actual outputs match expected outputs field-by-field, tearing down test resources, and generating a pass/fail report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for automated workflow test orchestration: defining test fixtures, executing the workflow under test against golden inputs, asserting that actual outputs match expected outputs field-by-field, tearing down test resources, and generating a pass/fail report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -30,15 +30,6 @@ Five workers orchestrate the test lifecycle. Fixture setup, workflow execution a
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 The five tasks run sequentially. Each task's output feeds into the next task's input via Conductor's expression language.; no custom wiring code.
@@ -57,6 +48,7 @@ wft_teardown       (release fixtures, report cleanedUp status)
     |
     v
 wft_report         (compute report: total/passed assertions, PASSED/FAILED verdict)
+
 ```
 
 ## Running It
@@ -71,6 +63,7 @@ wft_report         (compute report: total/passed assertions, PASSED/FAILED verdi
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -79,13 +72,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -93,6 +87,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-testing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -105,6 +100,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -147,13 +143,16 @@ Step 5: Waiting for completion...
   Output: {testSuite=order-processing-tests, allPassed=true, assertions=[check1, check2], report={suite=testSuite, result=passed ? "PASSED" : "FAILED", totalAssertions=totalAssertions, passedAssertions=passedAssertions, teardownClean=teardownClean}}
 
 Result: PASSED
+
 ```
+
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:
 
 ```bash
 java -jar target/workflow-testing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -162,11 +161,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wft_workflow_testing \
   --version 1 \
-  --input '{
-    "testSuite": "order-processing-tests",
-    "workflowUnderTest": "order_processing_workflow",
-    "expectedOutput": {"status": "SUCCESS", "processed": 2}
-  }'
+  --input '{"testSuite": "order-processing-tests", "workflowUnderTest": "order_processing_workflow", "expectedOutput": {"status": "SUCCESS", "processed": 2}}'
+
 ```
 
 ### Check workflow status
@@ -175,6 +171,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wft_workflow_testing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -199,6 +196,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -226,4 +224,5 @@ workflow-testing/
     ├── ReportWorkerTest.java        # 13 tests. Assertion counting, verdict, teardown
     ├── SetupWorkerTest.java         # 8 tests. Fixture structure, null handling
     └── TeardownWorkerTest.java      # 8 tests. Cleanup status, resource list
+
 ```

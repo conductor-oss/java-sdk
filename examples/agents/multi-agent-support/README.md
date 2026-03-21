@@ -29,16 +29,6 @@ Six workers handle support tickets. Classifying the category, routing to bug/fea
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Conditional routing** | `SWITCH` task routes to bug, feature, or general handler based on classification output.; no if/else chains in your code |
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status, routing analytics without custom logging |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,6 +42,7 @@ SWITCH (route_by_category_ref)
     |
     v
 cs_qa_validate
+
 ```
 
 ## Running It
@@ -66,6 +57,7 @@ cs_qa_validate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -74,13 +66,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -88,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/multi-agent-support-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -100,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -136,6 +131,7 @@ Step 5: Waiting for completion...
   Output: {ticketId=TKT-9182, category=bug, approved=true, finalResponse=Dear Customer, your ticket TKT-9182 (category: bug) has been reviewed and validated. Our team has ensured the response meets quality standards. Please review the proposed solution and let us know if you need further assistance.}
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -144,6 +140,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/multi-agent-support-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -166,6 +163,7 @@ conductor workflow start \
   --workflow multi_agent_customer_support \
   --version 1 \
   --input '{"ticketId": "TKT-9184", "subject": "How do I reset my password?", "description": "I forgot my password and need help resetting it.", "customerTier": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -174,6 +172,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w multi_agent_customer_support -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -199,6 +198,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -228,4 +228,5 @@ multi-agent-support/
     ├── FeatureEvaluateWorkerTest.java # 7 tests
     ├── GeneralRespondWorkerTest.java  # 7 tests
     └── QaValidateWorkerTest.java    # 9 tests
+
 ```

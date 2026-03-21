@@ -1,6 +1,8 @@
 # Tool Use Validation in Java Using Conductor :  Generate Call, Validate Input, Execute, Validate Output, Deliver
 
-Tool Use Validation .  generate tool call, validate input, execute tool, validate output, and deliver results through a sequential pipeline. Uses [Conductor](https://github.## Tool Calls Need Guardrails on Both Sides
+Tool Use Validation .  generate tool call, validate input, execute tool, validate output, and deliver results through a sequential pipeline. Uses [Conductor](https://github.
+
+## Tool Calls Need Guardrails on Both Sides
 
 An LLM generates a tool call: `search(query="DROP TABLE users")`. Without input validation, that malicious query goes straight to the search API. Or it generates `calculate(expression="1/0")`. Without output validation, the division-by-zero error crashes the pipeline.
 
@@ -42,6 +44,7 @@ tv_validate_output
     │
     ▼
 tv_deliver
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ tv_deliver
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-validation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-validation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_validation \
   --version 1 \
-  --input '{"userRequest": "test-value", "toolName": "test"}'
+  --input '{"userRequest": "sample-userRequest", "toolName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_validation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -163,4 +173,5 @@ tool-use-validation/
     ├── GenerateToolCallWorkerTest.java        # 8 tests
     ├── ValidateInputWorkerTest.java        # 9 tests
     └── ValidateOutputWorkerTest.java        # 9 tests
+
 ```

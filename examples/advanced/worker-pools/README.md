@@ -1,6 +1,8 @@
 # Worker Pool Management in Java Using Conductor :  Categorize, Assign Pool, Execute, Return
 
-A Java Conductor workflow example for worker pool management .  categorizing incoming tasks by type, assigning them to the appropriate specialized worker pool, executing the task on a worker from that pool, and returning the worker to the pool when done. Uses [Conductor](https://github.## Specialized Tasks Need Specialized Workers
+A Java Conductor workflow example for worker pool management .  categorizing incoming tasks by type, assigning them to the appropriate specialized worker pool, executing the task on a worker from that pool, and returning the worker to the pool when done. Uses [Conductor](https://github.
+
+## Specialized Tasks Need Specialized Workers
 
 A video transcoding task needs workers with high-CPU instances and FFmpeg installed. An image recognition task needs GPU workers with CUDA drivers. A PDF generation task just needs a basic worker with LibreOffice. Sending all tasks to a single general-purpose pool wastes expensive GPU time on PDF generation and leaves transcoding tasks waiting behind image recognition jobs.
 
@@ -38,6 +40,7 @@ wpl_execute_task
     │
     ▼
 wpl_return_to_pool
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ wpl_return_to_pool
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/worker-pools-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/worker-pools-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wpl_worker_pools \
   --version 1 \
-  --input '{"taskPayload": "test-value", "taskCategory": "test-value"}'
+  --input '{"taskPayload": {"key": "value"}, "taskCategory": "general"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wpl_worker_pools -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ worker-pools/
     ├── WplCategorizeTaskWorkerTest.java        # 4 tests
     ├── WplExecuteTaskWorkerTest.java        # 4 tests
     └── WplReturnToPoolWorkerTest.java        # 4 tests
+
 ```

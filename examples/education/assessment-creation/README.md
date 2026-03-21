@@ -1,6 +1,8 @@
 # Assessment Creation in Java with Conductor :  Criteria Definition, Question Generation, Review, and Publishing
 
-A Java Conductor workflow example for creating educational assessments .  defining grading criteria from course topics, generating questions that align with those criteria, reviewing questions for quality and accuracy, and publishing the finalized assessment to the course. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for creating educational assessments .  defining grading criteria from course topics, generating questions that align with those criteria, reviewing questions for quality and accuracy, and publishing the finalized assessment to the course. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to create exams, quizzes, or assignments for a course. This means defining the assessment criteria based on the course's topics and desired difficulty level, generating questions that cover those criteria (multiple choice, short answer, essay), having an instructor or peer review the question bank for accuracy and fairness, and publishing the finalized assessment so students can access it. Each step depends on the previous .  you cannot generate questions without criteria, and you cannot publish without review.
 
@@ -38,6 +40,7 @@ asc_review
     │
     ▼
 asc_publish
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ asc_publish
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/assessment-creation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/assessment-creation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow asc_assessment_creation \
   --version 1 \
-  --input '{"courseId": "TEST-001", "assessmentType": "test-value", "topics": "test-value"}'
+  --input '{"courseId": "TEST-001", "assessmentType": "standard", "topics": "microservices best practices"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w asc_assessment_creation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ assessment-creation/
     ├── DefineCriteriaWorkerTest.java        # 2 tests
     ├── PublishWorkerTest.java        # 2 tests
     └── ReviewWorkerTest.java        # 2 tests
+
 ```

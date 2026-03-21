@@ -1,6 +1,8 @@
 # Event Ttl in Java Using Conductor
 
-Event TTL workflow that checks if an event has expired, processes it if still valid, or logs it if the TTL has passed. Uses SWITCH to branch on expiry status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Event TTL workflow that checks if an event has expired, processes it if still valid, or logs it if the TTL has passed. Uses SWITCH to branch on expiry status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to enforce time-to-live (TTL) on events so expired events are discarded rather than processed. When an event arrives, the workflow checks whether it was created within the allowed TTL window. If still valid, it proceeds to processing; if expired, it is logged and discarded. Processing stale events (e.g., a price update from 2 hours ago) can produce incorrect results when the data has already been superseded.
 
@@ -34,6 +36,7 @@ xl_check_expiry
 SWITCH (switch_ref)
     ├── valid: xl_process_event -> xl_acknowledge
     ├── expired: xl_log_expired
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-ttl-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-ttl-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_ttl \
   --version 1 \
-  --input '{"eventId": "TEST-001", "payload": "test-value", "ttlSeconds": "test-value", "createdAt": "test-value"}'
+  --input '{"eventId": "TEST-001", "payload": {"key": "value"}, "ttlSeconds": "sample-ttlSeconds", "createdAt": "sample-createdAt"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_ttl -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ event-ttl/
     ├── CheckExpiryWorkerTest.java        # 10 tests
     ├── LogExpiredWorkerTest.java        # 8 tests
     └── ProcessEventWorkerTest.java        # 8 tests
+
 ```

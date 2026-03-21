@@ -1,6 +1,8 @@
 # Service Versioning in Java with Conductor
 
-API version management with version routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+API version management with version routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 When an API evolves, clients on different versions must be served correctly. This workflow resolves the requested API version (mapping aliases like 'latest' to 'v2'), routes to the correct versioned handler (v1 or v2), and logs the version usage for deprecation tracking.
 
@@ -37,6 +39,7 @@ SWITCH (route_ref)
     │
     ▼
 sv_log_version_usage
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ sv_log_version_usage
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/service-versioning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/service-versioning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_versioning_workflow \
   --version 1 \
-  --input '{"apiVersion": "test-value", "request": "test-value"}'
+  --input '{"apiVersion": "1.0", "request": "sample-request"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w service_versioning_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -139,6 +149,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ service-versioning/
     ├── CallV2WorkerTest.java        # 2 tests
     ├── LogVersionUsageWorkerTest.java        # 2 tests
     └── ResolveVersionWorkerTest.java        # 2 tests
+
 ```

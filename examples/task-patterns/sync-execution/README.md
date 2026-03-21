@@ -1,6 +1,8 @@
 # Sync Execution in Java with Conductor
 
-Simple workflow for demonstrating sync vs async execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Simple workflow for demonstrating sync vs async execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to execute a workflow and get the result back immediately in the same API call .  like a synchronous function call that happens to be a full workflow under the hood. For example, adding two numbers and returning the sum to the caller without them needing to poll for the result. The caller sends `{a: 5, b: 3}` and gets `{sum: 8}` back in the HTTP response, even though the computation ran through the full Conductor workflow engine with retries, durability, and tracking.
 
@@ -26,6 +28,7 @@ Workers simulate their processing steps so you can see the pattern in action wit
 
 ```
 sync_add
+
 ```
 
 ## Running It
@@ -40,6 +43,7 @@ sync_add
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -48,6 +52,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -62,6 +67,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/sync-execution-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -74,6 +80,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -89,6 +96,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/sync-execution-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -97,7 +105,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sync_exec_demo \
   --version 1 \
-  --input '{"a": "test-value", "b": "test-value"}'
+  --input '{"a": "sample-a", "b": "sample-b"}'
+
 ```
 
 ### Check workflow status
@@ -106,6 +115,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w sync_exec_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -126,6 +136,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -145,4 +156,5 @@ sync-execution/
 │       └── AddWorker.java
 └── src/test/java/syncexecution/workers/
     └── AddWorkerTest.java        # 10 tests
+
 ```

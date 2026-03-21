@@ -21,11 +21,12 @@ class TakeSnapshotTest {
     }
 
     @Test
-    void postgresqlRequiresPgPassword() {
-        // Without PGPASSWORD, should throw IllegalStateException
+    void postgresqlRunsInMockModeWithoutPgPassword() {
+        // Without PGPASSWORD, should run in mock mode (not throw)
         if (System.getenv("PGPASSWORD") == null) {
             Task task = taskWith("postgresql", "db.internal", "orders_production");
-            assertThrows(IllegalStateException.class, () -> worker.execute(task));
+            TaskResult result = worker.execute(task);
+            assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         }
     }
 

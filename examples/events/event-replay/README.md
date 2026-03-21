@@ -1,6 +1,8 @@
 # Event Replay in Java Using Conductor
 
-Event Replay Workflow .  load event history, filter by criteria, replay failed events, and generate a summary report. Uses [Conductor](https://github.## The Problem
+Event Replay Workflow .  load event history, filter by criteria, replay failed events, and generate a summary report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to replay failed or historical events from an event stream. The workflow loads event history from a source stream for a given time range, filters events by criteria (e.g., only failed events, specific event types), replays the filtered events through your processing pipeline, and generates a summary report of replay outcomes. Without replay capability, failed events are lost forever and historical reprocessing requires manual intervention.
 
@@ -38,6 +40,7 @@ ep_replay_events
     │
     ▼
 ep_generate_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ep_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-replay-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-replay-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_replay_wf \
   --version 1 \
-  --input '{"sourceStream": "test-value", "startTime": "2026-01-01T00:00:00Z", "endTime": "2026-01-01T00:00:00Z", "filterCriteria": "test-value"}'
+  --input '{"sourceStream": "api", "startTime": "2026-01-01T00:00:00Z", "endTime": "2026-01-01T00:00:00Z", "filterCriteria": "sample-filterCriteria"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_replay_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ event-replay/
     ├── GenerateReportWorkerTest.java        # 9 tests
     ├── LoadHistoryWorkerTest.java        # 8 tests
     └── ReplayEventsWorkerTest.java        # 8 tests
+
 ```

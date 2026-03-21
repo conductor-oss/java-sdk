@@ -1,6 +1,8 @@
 # SEO Optimization Pipeline in Java Using Conductor :  Site Audit, Keyword Research, Content Optimization, Sitemap Submission, and Rank Monitoring
 
-A Java Conductor workflow example that orchestrates an SEO optimization pipeline .  auditing site health with SEO scoring and issue detection, researching target keywords with search volume and difficulty metrics, optimizing page content (meta descriptions, heading structure, internal linking), submitting updated sitemaps to search engines, and setting up ongoing rank monitoring with alert thresholds. Uses [Conductor](https://github.## Why SEO Workflows Need Orchestration
+A Java Conductor workflow example that orchestrates an SEO optimization pipeline .  auditing site health with SEO scoring and issue detection, researching target keywords with search volume and difficulty metrics, optimizing page content (meta descriptions, heading structure, internal linking), submitting updated sitemaps to search engines, and setting up ongoing rank monitoring with alert thresholds. Uses [Conductor](https://github.
+
+## Why SEO Workflows Need Orchestration
 
 Improving search rankings requires a pipeline where each step informs the next. You audit the site to identify SEO issues .  missing meta descriptions, poor heading structure, broken internal links, and compute an overall SEO score with current rankings. You research keywords to find opportunities ,  identifying terms with high search volume but achievable difficulty where the site does not currently rank. You optimize content pages based on the audit findings and keyword research ,  adding meta descriptions, restructuring headings, inserting internal links. You submit the updated sitemap to search engines so changes are crawled promptly. Finally, you set up rank monitoring with alert thresholds to track whether the optimizations are improving positions.
 
@@ -42,6 +44,7 @@ seo_submit_sitemap
     │
     ▼
 seo_monitor_rankings
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ seo_monitor_rankings
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/seo-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/seo-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow seo_workflow \
   --version 1 \
-  --input '{"siteUrl": "https://example.com", "targetKeywords": "test-value", "pageUrl": "https://example.com"}'
+  --input '{"siteUrl": "https://example.com", "targetKeywords": "production", "pageUrl": "https://example.com"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w seo_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ seo-workflow/
 └── src/test/java/seoworkflow/workers/
     ├── AuditSiteWorkerTest.java        # 2 tests
     └── ResearchKeywordsWorkerTest.java        # 2 tests
+
 ```

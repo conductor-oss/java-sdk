@@ -1,6 +1,8 @@
 # Message Aggregation in Java Using Conductor :  Collect, Combine, and Forward Correlated Messages
 
-A Java Conductor workflow example for message aggregation .  collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.## Why Message Aggregation Needs Orchestration
+A Java Conductor workflow example for message aggregation .  collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.
+
+## Why Message Aggregation Needs Orchestration
 
 In distributed systems, a single business event often produces multiple messages .  an order generates a payment confirmation, an inventory reservation, and a shipping request. These messages arrive at different times from different services, and you need to collect all of them before you can compute a meaningful aggregate (total order value, item count, combined status) and forward it to the next stage.
 
@@ -38,6 +40,7 @@ agp_aggregate
     │
     ▼
 agp_forward
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ agp_forward
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/aggregator-pattern-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/aggregator-pattern-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agp_aggregator_pattern \
   --version 1 \
-  --input '{"messages": "test-value", "expectedCount": 10, "aggregationKey": "test-value"}'
+  --input '{"messages": [{"source": "sensor-1", "value": 23.5}, {"source": "sensor-2", "value": 24.1}], "aggregationType": "average", "windowSize": 5}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w agp_aggregator_pattern -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ aggregator-pattern/
     ├── AgpCheckCompleteWorkerTest.java        # 4 tests
     ├── AgpCollectWorkerTest.java        # 4 tests
     └── AgpForwardWorkerTest.java        # 4 tests
+
 ```

@@ -1,6 +1,8 @@
 # Event Fanout in Java Using Conductor
 
-Event fan-out workflow that receives an event, fans out to analytics, storage, and notification processing in parallel via FORK_JOIN, then aggregates the results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Event fan-out workflow that receives an event, fans out to analytics, storage, and notification processing in parallel via FORK_JOIN, then aggregates the results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to distribute a single event to multiple downstream consumers simultaneously. When an event arrives, it must be processed by analytics (for tracking), storage (for persistence), and notification (for alerting) .  all in parallel so no single slow consumer delays the others. After all consumers finish, results must be aggregated into a unified response.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 fo_aggregate
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ fo_aggregate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-fanout-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-fanout-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_fanout_wf \
   --version 1 \
-  --input '{"eventId": "TEST-001", "eventType": "test-value", "payload": "test-value"}'
+  --input '{"eventId": "TEST-001", "eventType": "standard", "payload": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_fanout_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ event-fanout/
     ├── NotificationWorkerTest.java        # 8 tests
     ├── ReceiveEventWorkerTest.java        # 9 tests
     └── StorageWorkerTest.java        # 8 tests
+
 ```

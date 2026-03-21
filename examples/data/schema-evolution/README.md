@@ -1,6 +1,8 @@
 # Schema Evolution in Java Using Conductor :  Change Detection, Transform Generation, Data Migration, and Validation
 
-A Java Conductor workflow example for schema evolution. comparing a current schema against a target schema to detect changes (added fields, removed fields, type changes, renamed columns), generating the transform operations needed to migrate data from the current schema to the target, applying those transforms to existing data, and validating that the transformed data conforms to the target schema with the expected compatibility level. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for schema evolution. comparing a current schema against a target schema to detect changes (added fields, removed fields, type changes, renamed columns), generating the transform operations needed to migrate data from the current schema to the target, applying those transforms to existing data, and validating that the transformed data conforms to the target schema with the expected compatibility level. Uses [Conductor](https://github.
+
+## The Problem
 
 Your database schema needs to evolve, a new `phone_number` column is being added, the `address` field is being split into `street`, `city`, and `zip`, and the `status` column is changing from a string to an integer enum. You need to detect exactly what changed between the current and target schemas, generate the right migration transforms (ALTER TABLE for additions, data conversion for type changes, column splitting for restructured fields), apply those transforms to the existing data, and validate that every record in the migrated table conforms to the target schema. If you apply the transforms but skip validation, you might discover weeks later that 2% of records have null values in the new required `zip` field because the address splitting logic didn't handle PO boxes.
 
@@ -38,6 +40,7 @@ sh_apply_transform
     │
     ▼
 sh_validate_schema
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ sh_validate_schema
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/schema-evolution-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/schema-evolution-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow schema_evolution \
   --version 1 \
-  --input '{"currentSchema": "test-value", "targetSchema": "test-value", "sampleData": "test-value"}'
+  --input '{"currentSchema": "sample-currentSchema", "targetSchema": "production", "sampleData": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w schema_evolution -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ schema-evolution/
     ├── DetectChangesWorkerTest.java        # 3 tests
     ├── GenerateTransformWorkerTest.java        # 4 tests
     └── ValidateSchemaWorkerTest.java        # 5 tests
+
 ```

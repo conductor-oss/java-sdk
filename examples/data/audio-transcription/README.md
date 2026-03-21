@@ -1,6 +1,8 @@
 # Audio Transcription in Java Using Conductor :  Speech-to-Text, Speaker Diarization, and Keyword Extraction
 
-A Java Conductor workflow example for audio transcription pipelines: preprocessing raw audio, running speech-to-text with speaker diarization, generating word-level timestamps, and extracting keywords. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for audio transcription pipelines: preprocessing raw audio, running speech-to-text with speaker diarization, generating word-level timestamps, and extracting keywords. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to turn raw audio recordings into structured, searchable text. That means normalizing audio levels and reducing background noise, running speech-to-text transcription with speaker identification, aligning words to timestamps so you can jump to any point in the recording, and extracting keywords for indexing and search. Each step depends on the output of the one before it. You can't generate timestamps without a transcript, and you can't transcribe without clean audio.
 
@@ -8,7 +10,7 @@ Without orchestration, you'd chain all of this in a single monolithic class. Cal
 
 ## The Solution
 
-**You just write the audio processing workers .  preprocessing, transcription, timestamping, keyword extraction. Conductor handles sequential execution, crash recovery mid-transcription, and automatic retries when speech APIs time out.**
+**You just write the audio processing workers.  preprocessing, transcription, timestamping, keyword extraction. Conductor handles sequential execution, crash recovery mid-transcription, and automatic retries when speech APIs time out.**
 
 Each stage of the transcription pipeline is a simple, independent worker, a plain Java class that does one thing. The preprocessing worker normalizes audio. The transcription worker converts speech to text. The timestamp worker aligns words to time codes. The keyword worker extracts topics. Conductor executes them in sequence, passes each worker's output to the next, retries if a speech API call fails, and resumes from exactly where it left off if the process crashes mid-transcription. You get all of that, without writing a single line of orchestration code.
 
@@ -38,6 +40,7 @@ au_generate_timestamps
     │
     ▼
 au_extract_keywords
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ au_extract_keywords
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/audio-transcription-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/audio-transcription-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow audio_transcription \
   --version 1 \
-  --input '{"audioUrl": "https://example.com", "language": "test-value", "speakerCount": 10}'
+  --input '{"audioUrl": "https://example.com", "language": "en", "speakerCount": 10}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w audio_transcription -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ audio-transcription/
     ├── GenerateTimestampsWorkerTest.java        # 6 tests
     ├── PreprocessAudioWorkerTest.java        # 6 tests
     └── TranscribeWorkerTest.java        # 6 tests
+
 ```

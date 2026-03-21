@@ -1,6 +1,8 @@
 # Web Browsing Agent in Java Using Conductor :  Plan Search, Execute, Select Pages, Read, Extract Answer
 
-Web Browsing Agent .  plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.## Answering Questions by Actually Reading Web Pages
+Web Browsing Agent .  plans search queries, executes searches, selects relevant pages, reads content, and extracts a synthesized answer. Uses [Conductor](https://github.
+
+## Answering Questions by Actually Reading Web Pages
 
 Search engine snippets are often insufficient. "What are the specific system requirements for running Kubernetes 1.29 on bare metal?" requires actually reading the documentation page, not just the snippet. A web browsing agent goes deeper than search: it plans the right query, gets search results, selects which pages are most likely to contain the answer, reads the full page content, and extracts the specific information needed.
 
@@ -42,6 +44,7 @@ wb_read_page
     │
     ▼
 wb_extract_answer
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ wb_extract_answer
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/web-browsing-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/web-browsing-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow web_browsing_agent \
   --version 1 \
-  --input '{"question": "test-value", "maxPages": "test-value"}'
+  --input '{"question": "What is workflow orchestration?", "maxPages": "sample-maxPages"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w web_browsing_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -163,4 +173,5 @@ web-browsing-agent/
     ├── PlanSearchWorkerTest.java        # 8 tests
     ├── ReadPageWorkerTest.java        # 9 tests
     └── SelectPagesWorkerTest.java        # 9 tests
+
 ```

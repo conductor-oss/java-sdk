@@ -1,6 +1,8 @@
 # Queue Backpressure in Java Using Conductor :  Monitor Depth, Throttle Producers, Shed Load
 
-A Java Conductor workflow example for queue backpressure management .  monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.## When Queues Overflow
+A Java Conductor workflow example for queue backpressure management .  monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.
+
+## When Queues Overflow
 
 A downstream service slows down, consumers fall behind, and your queue depth starts climbing. At 10,000 messages, latency creeps up. At 50,000, memory pressure kicks in. At 100,000, the broker starts rejecting publishes and upstream services cascade-fail. The difference between a minor slowdown and a full outage is whether you react to queue pressure before it becomes critical.
 
@@ -36,6 +38,7 @@ SWITCH (bkp_switch_ref)
     ├── high: bkp_throttle
     ├── critical: bkp_shed_load
     └── default: bkp_handle_ok
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ SWITCH (bkp_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/backpressure-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/backpressure-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bkp_backpressure \
   --version 1 \
-  --input '{"queueName": "test", "thresholdHigh": "test-value", "thresholdCritical": "test-value"}'
+  --input '{"queueName": "test", "thresholdHigh": "sample-thresholdHigh", "thresholdCritical": "sample-thresholdCritical"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w bkp_backpressure -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -138,6 +148,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ backpressure/
     ├── BkpMonitorQueueWorkerTest.java        # 4 tests
     ├── BkpShedLoadWorkerTest.java        # 4 tests
     └── BkpThrottleWorkerTest.java        # 4 tests
+
 ```

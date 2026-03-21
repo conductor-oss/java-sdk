@@ -1,6 +1,8 @@
 # Catering Management in Java with Conductor
 
-Orchestrates a catering order from client inquiry through menu planning, event execution, and invoicing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Orchestrates a catering order from client inquiry through menu planning, event execution, and invoicing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to manage a catering order from initial inquiry to final invoice. A client reaches out with event details (date, guest count), a customized quote is prepared, the menu is planned based on dietary requirements and budget, the catering event is executed, and the final invoice is sent. Providing a quote without understanding guest count leads to cost overruns; executing without a planned menu results in food shortages or waste.
 
@@ -42,6 +44,7 @@ cat_execute
     │
     ▼
 cat_invoice
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cat_invoice
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/catering-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/catering-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow catering_management_740 \
   --version 1 \
   --input '{"clientName": "test", "eventDate": "2026-01-01T00:00:00Z", "guestCount": 10}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w catering_management_740 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ catering-management/
 └── src/test/java/cateringmanagement/workers/
     ├── InquiryWorkerTest.java
     └── InvoiceWorkerTest.java
+
 ```

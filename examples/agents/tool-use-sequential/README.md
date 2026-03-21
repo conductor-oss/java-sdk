@@ -1,6 +1,8 @@
 # Sequential Tool Use in Java Using Conductor :  Search, Read Page, Extract Data, Summarize
 
-Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of simulated tool calls. Uses [Conductor](https://github.## Some Tools Need to Be Called in Order
+Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of simulated tool calls. Uses [Conductor](https://github.
+
+## Some Tools Need to Be Called in Order
 
 "Find the latest quarterly revenue for Acme Corp and summarize the key drivers" requires four sequential steps: search the web for Acme Corp quarterly results, read the most relevant page (likely an earnings report or press release), extract the revenue figures and key metrics from the page content, and summarize the findings in natural language.
 
@@ -38,6 +40,7 @@ ts_extract_data
     │
     ▼
 ts_summarize
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ts_summarize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-sequential-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-sequential-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_sequential \
   --version 1 \
-  --input '{"query": "test-value", "maxResults": "test-value"}'
+  --input '{"query": "What is workflow orchestration?", "maxResults": "sample-maxResults"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_sequential -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ tool-use-sequential/
     ├── ReadPageWorkerTest.java        # 9 tests
     ├── SearchWebWorkerTest.java        # 8 tests
     └── SummarizeWorkerTest.java        # 9 tests
+
 ```

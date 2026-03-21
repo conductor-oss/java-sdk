@@ -1,6 +1,8 @@
 # Code Interpreter Agent in Java Using Conductor :  Analyze, Generate, Execute, Interpret
 
-Code Interpreter Agent .  analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. Uses [Conductor](https://github.## Answering Data Questions Requires Running Code, Not Just Generating It
+Code Interpreter Agent .  analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. Uses [Conductor](https://github.
+
+## Answering Data Questions Requires Running Code, Not Just Generating It
 
 "What's the correlation between marketing spend and revenue in Q3?" can't be answered by an LLM alone .  it requires loading the dataset, computing a Pearson correlation coefficient, and possibly generating a scatter plot. The LLM can generate the code, but someone needs to run it, capture the output (including any charts), and explain what the results mean.
 
@@ -38,6 +40,7 @@ ci_execute_sandbox
     │
     ▼
 ci_interpret_result
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ci_interpret_result
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/code-interpreter-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/code-interpreter-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow code_interpreter_agent \
   --version 1 \
-  --input '{"question": "test-value", "dataset": "test-value"}'
+  --input '{"question": "What is workflow orchestration?", "dataset": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w code_interpreter_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ code-interpreter/
     ├── ExecuteSandboxWorkerTest.java        # 9 tests
     ├── GenerateCodeWorkerTest.java        # 9 tests
     └── InterpretResultWorkerTest.java        # 9 tests
+
 ```

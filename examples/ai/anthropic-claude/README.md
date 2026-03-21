@@ -26,15 +26,6 @@ Three workers isolate each phase of the Claude integration. Message construction
 
 **Live vs Simulated mode:** The `ClaudeCallApiWorker` auto-detects the `CONDUCTOR_ANTHROPIC_API_KEY` environment variable at startup. When the key is present and has access to the configured model (`ANTHROPIC_MODEL`, default `claude-sonnet-4-20250514`), it makes real HTTP calls to `https://api.anthropic.com/v1/messages` using `java.net.http.HttpClient` (built into Java 21) and parses the response with Jackson. When the key is absent, it returns a deterministic simulated response so the workflow runs end-to-end without credentials. Live-mode 4xx failures are surfaced immediately with the failed task name plus a truncated response body so you can diagnose model-access and request-shape issues quickly.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Configurable retry policy** | These example task definitions intentionally use `retryCount=0` so provider 4xx/429 failures fail fast during development. Increase retries per task when you want automatic replay behavior. |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,6 +36,7 @@ claude_call_api
     │
     ▼
 claude_process_response
+
 ```
 
 ## Example Output
@@ -78,6 +70,7 @@ Step 4: Starting workflow...
   Usage: {input_tokens=92, output_tokens=118}
 
 Result: PASSED
+
 ```
 
 ## Running It
@@ -92,6 +85,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -100,13 +94,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -114,6 +109,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/anthropic-claude-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -126,6 +122,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 `run.sh` auto-loads the nearest `.env` file it finds while walking up parent directories, so a repo-root `.env` works without manually exporting variables each time.
@@ -145,6 +142,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 export CONDUCTOR_ANTHROPIC_API_KEY=sk-ant-api03-...
 export ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ./run.sh
+
 ```
 
 The example will print `Mode: LIVE` plus the configured model at startup and make real calls to the Claude Messages API. If the key lacks access to that model, the example fails fast and prints the failed task plus Anthropic's error body.
@@ -155,6 +153,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/anthropic-claude-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -163,7 +162,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow anthropic_claude_workflow \
   --version 1 \
-  --input '{"userMessage":"Perform a security audit of our authentication module and list vulnerabilities by severity.","systemPrompt":"You are a senior application security engineer. Provide structured audit findings with severity levels and remediation steps.","model":"claude-sonnet-4-20250514"}'
+  --input '{"userMessage": "Perform a security audit of our authentication module and list vulnerabilities by severity.", "systemPrompt": "You are a senior application security engineer. Provide structured audit findings with severity levels and remediation steps.", "model": "claude-sonnet-4-20250514"}'
+
 ```
 
 ### Check workflow status
@@ -172,6 +172,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w anthropic_claude_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -194,6 +195,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -217,4 +219,5 @@ anthropic-claude/
     ├── ClaudeBuildMessagesWorkerTest.java        # 5 tests
     ├── ClaudeCallApiWorkerTest.java        # 8 tests
     └── ClaudeProcessResponseWorkerTest.java        # 6 tests
+
 ```

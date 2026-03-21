@@ -1,6 +1,8 @@
 # Image Processing in Java Using Conductor :  Parallel Resize, Watermark, Optimize, and Finalize
 
-A Java Conductor workflow example for image processing: loading an image from a URL, then running three operations in parallel (resizing to multiple size variants, applying a text watermark, and compressing/optimizing the file size), then finalizing by assembling all outputs into a single result. Uses a FORK_JOIN to process resize, watermark, and optimize concurrently, no operation waits for another, so a 4000x3000 image gets all three treatments at the same time. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for image processing: loading an image from a URL, then running three operations in parallel (resizing to multiple size variants, applying a text watermark, and compressing/optimizing the file size), then finalizing by assembling all outputs into a single result. Uses a FORK_JOIN to process resize, watermark, and optimize concurrently, no operation waits for another, so a 4000x3000 image gets all three treatments at the same time. Uses [Conductor](https://github.
+
+## The Problem
 
 When a user uploads a product photo, you need to generate multiple size variants (thumbnail, medium, large for responsive images), stamp it with a copyright watermark, and compress it for web delivery. all before the image is available on the site. These three operations are independent of each other: resizing doesn't need the watermark, and optimization doesn't need the resized variants. Running them sequentially wastes time, a 10-megapixel image takes seconds per operation, and waiting for resize before starting watermark triples the latency. But they all depend on the same loaded image data, and the final step needs all three results to assemble the output.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 ip_finalize
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ ip_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/image-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/image-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow image_processing \
   --version 1 \
-  --input '{"imageUrl": "https://example.com", "sizes": 10, "watermarkText": "test-value"}'
+  --input '{"imageUrl": "https://example.com", "sizes": 10, "watermarkText": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w image_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ image-processing/
     ├── OptimizeWorkerTest.java        # 8 tests
     ├── ResizeWorkerTest.java        # 8 tests
     └── WatermarkWorkerTest.java        # 8 tests
+
 ```

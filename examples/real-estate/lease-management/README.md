@@ -1,6 +1,8 @@
 # Lease Management in Java with Conductor :  Create, Sign, Activate, Renew, or Terminate
 
-A Java Conductor workflow example for managing the full lease lifecycle .  creating a lease agreement, collecting signatures, activating the lease, and then routing to renewal or termination based on the requested action. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for managing the full lease lifecycle .  creating a lease agreement, collecting signatures, activating the lease, and then routing to renewal or termination based on the requested action. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage residential or commercial leases from creation through completion. A new lease must be drafted with terms (rent amount, duration, deposit), signed by both tenant and landlord, and then activated to begin the tenancy. At the end of the lease term, the workflow needs to handle either renewal (new terms, rent escalation) or termination (security deposit return, move-out inspection). The path taken depends on whether the tenant or landlord requests renewal or termination, and every action must be recorded for legal compliance.
 
@@ -41,6 +43,7 @@ lse_activate
 SWITCH (lse_switch_ref)
     ├── renew: lse_renew
     ├── terminate: lse_terminate
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ SWITCH (lse_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/lease-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/lease-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lse_lease_management \
   --version 1 \
-  --input '{"tenantId": "TEST-001", "propertyId": "TEST-001", "action": "test-value"}'
+  --input '{"tenantId": "TEST-001", "propertyId": "TEST-001", "action": "process"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w lse_lease_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ lease-management/
     ├── RenewLeaseWorkerTest.java        # 2 tests
     ├── SignLeaseWorkerTest.java        # 2 tests
     └── TerminateLeaseWorkerTest.java        # 2 tests
+
 ```

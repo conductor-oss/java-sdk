@@ -1,6 +1,6 @@
 # Map-Reduce in Java Using Conductor: Split Documents, Search in Parallel, Reduce Results
 
-You have 10 million log entries and need to find every occurrence of "ERROR" with context. A single-threaded scan takes four hours. You split the corpus into partitions and spin up parallel workers; but partition 2 hits a corrupt record and crashes, so you restart the entire four-hour job. Even when it works, you have no visibility into which partition found the most hits, how long each took, or whether the merge step deduplicated correctly. This example implements map-reduce with Conductor: split a document corpus into partitions, search each in parallel via `FORK_JOIN`, retry any failed partition independently, and reduce the per-partition results into a unified ranked output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You have 10 million log entries and need to find every occurrence of "ERROR" with context. A single-threaded scan takes four hours. You split the corpus into partitions and spin up parallel workers; but partition 2 hits a corrupt record and crashes, so you restart the entire four-hour job. Even when it works, you have no visibility into which partition found the most hits, how long each took, or whether the merge step deduplicated correctly. This example implements map-reduce with Conductor: split a document corpus into partitions, search each in parallel via `FORK_JOIN`, retry any failed partition independently, and reduce the per-partition results into a unified ranked output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Searching Large Document Sets Sequentially Is Too Slow
 
@@ -29,16 +29,6 @@ Six workers implement the map-reduce pattern: corpus splitting, three parallel p
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -56,6 +46,7 @@ mpr_reduce
     │
     ▼
 mpr_output
+
 ```
 
 ## Example Output
@@ -104,12 +95,13 @@ Step 4: Starting workflow...
   [map-3] Processing
 
 
-
   Status: COMPLETED
   Output: {searchTerm=error, totalOccurrences=5, result=Success}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -122,6 +114,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -130,13 +123,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -144,6 +138,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/map-reduce-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -156,6 +151,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -171,6 +167,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/map-reduce-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -180,6 +177,7 @@ conductor workflow start \
   --workflow mpr_map_reduce \
   --version 1 \
   --input '{"documents": ["doc1", "doc2", "doc3"], "searchTerm": "error"}'
+
 ```
 
 ### Check workflow status
@@ -188,6 +186,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w mpr_map_reduce -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -210,6 +209,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -239,4 +239,5 @@ map-reduce/
     ├── MprOutputWorkerTest.java        # 4 tests
     ├── MprReduceWorkerTest.java        # 4 tests
     └── MprSplitInputWorkerTest.java        # 4 tests
+
 ```

@@ -1,6 +1,8 @@
 # Reservation System in Java with Conductor
 
-Manages restaurant reservations end-to-end: checking table availability, booking, sending confirmation and reminder, and seating the party on arrival. Uses [Conductor](https://github.## The Problem
+Manages restaurant reservations end-to-end: checking table availability, booking, sending confirmation and reminder, and seating the party on arrival. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage restaurant reservations from booking to seating. The workflow checks table availability for the requested date, time, and party size, creates the reservation, sends a confirmation to the guest, sends a reminder before the reservation, and seats the party when they arrive. Double-booking a table ruins the dining experience; forgetting to send reminders leads to no-shows.
 
@@ -42,6 +44,7 @@ rsv_remind
     │
     ▼
 rsv_seat
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ rsv_seat
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/reservation-system-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/reservation-system-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow reservation_system_736 \
   --version 1 \
   --input '{"guestName": "test", "date": "2026-01-01T00:00:00Z", "time": "2026-01-01T00:00:00Z", "partySize": 10}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w reservation_system_736 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ reservation-system/
 └── src/test/java/reservationsystem/workers/
     ├── CheckAvailabilityWorkerTest.java
     └── SeatWorkerTest.java
+
 ```

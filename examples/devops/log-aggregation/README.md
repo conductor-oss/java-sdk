@@ -1,6 +1,8 @@
 # Log Aggregation in Java with Conductor :  Collect, Parse, Enrich, Store
 
-Aggregate logs: collect raw logs, parse them into structured format, enrich with metadata, and store in the log store. Pattern: collect -> parse -> enrich -> store. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Raw Logs Are Useless Without Processing
+Aggregate logs: collect raw logs, parse them into structured format, enrich with metadata, and store in the log store. Pattern: collect -> parse -> enrich -> store. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Raw Logs Are Useless Without Processing
 
 A production system generates gigabytes of logs daily across dozens of services. Raw log lines like `2025-01-15T14:32:01Z INFO [payment-svc] Payment processed for order ORD-12345` are useless in raw form .  they need to be collected from all sources (files, stdout, syslog), parsed into structured fields (timestamp, level, service, message, order ID), enriched with context (deployment version, environment, geo-IP of the request), and stored in a searchable system (Elasticsearch, Loki, CloudWatch).
 
@@ -38,6 +40,7 @@ la_enrich_logs
     │
     ▼
 la_store_logs
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ la_store_logs
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/log-aggregation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/log-aggregation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow log_aggregation_412 \
   --version 1 \
-  --input '{"sources": "test-value", "timeRange": "2026-01-01T00:00:00Z", "logLevel": "test-value"}'
+  --input '{"sources": "api", "timeRange": "2026-01-01T00:00:00Z", "logLevel": "info"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w log_aggregation_412 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -156,4 +166,5 @@ log-aggregation/
 └── src/test/java/logaggregation/workers/
     ├── CollectLogsTest.java        # 8 tests
     └── ParseLogsTest.java        # 8 tests
+
 ```

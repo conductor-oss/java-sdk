@@ -1,6 +1,8 @@
 # Data Archival in Java Using Conductor :  Stale Record Detection, Cold Storage Transfer, and Verified Purge
 
-A Java Conductor workflow example for data archival. identifying records that exceed a configurable retention period, snapshotting them, transferring the snapshot to cold storage, verifying archive integrity via checksum, and purging the stale records from hot storage only after verification passes. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for data archival. identifying records that exceed a configurable retention period, snapshotting them, transferring the snapshot to cold storage, verifying archive integrity via checksum, and purging the stale records from hot storage only after verification passes. Uses [Conductor](https://github.
+
+## The Problem
 
 Your hot storage (production database, Elasticsearch cluster, fast SSD-backed store) is growing without bound. Old records that haven't been accessed in months are consuming expensive resources and slowing down queries. You need to move stale data to cheaper cold storage while guaranteeing nothing is lost. That means identifying which records exceed your retention policy, creating a consistent snapshot, transferring the snapshot to cold storage (S3 Glacier, Azure Archive, tape), verifying the archive is intact by comparing checksums and record counts, and only then purging the originals from hot storage. The order is critical: if you purge before verifying the archive, data is gone forever.
 
@@ -42,6 +44,7 @@ arc_verify_archive
     │
     ▼
 arc_purge_hot
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ arc_purge_hot
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-archival-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-archival-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_archival \
   --version 1 \
-  --input '{"records": "test-value", "retentionDays": "test-value", "coldStoragePath": "test-value"}'
+  --input '{"records": "sample-records", "retentionDays": "sample-retentionDays", "coldStoragePath": "sample-coldStoragePath"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_archival -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ data-archival/
     ├── SnapshotRecordsWorkerTest.java        # 6 tests
     ├── TransferToColdWorkerTest.java        # 6 tests
     └── VerifyArchiveWorkerTest.java        # 6 tests
+
 ```

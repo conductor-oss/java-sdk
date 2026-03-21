@@ -1,6 +1,8 @@
 # Customs Clearance in Java with Conductor :  Declaration, Document Validation, Duty Calculation, Clearance, and Cargo Release
 
-A Java Conductor workflow example for international customs clearance .  filing customs declarations for imported goods (e.g., electronic components from Shanghai to Los Angeles), validating HS codes and commercial documents, calculating import duties and tariffs based on goods value and classification, obtaining customs clearance approval, and releasing cargo for domestic delivery. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for international customs clearance .  filing customs declarations for imported goods (e.g., electronic components from Shanghai to Los Angeles), validating HS codes and commercial documents, calculating import duties and tariffs based on goods value and classification, obtaining customs clearance approval, and releasing cargo for domestic delivery. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to clear imported shipments through customs. A container of electronic components (HS code 8542, $45K value) and packaging materials (HS code 4819, $5K value) arriving from Shanghai must be declared to US Customs, documents validated (commercial invoice, packing list, bill of lading), duties calculated based on tariff schedules and trade agreements, clearance obtained from CBP, and cargo released from the port. Each step depends on the previous one .  you cannot calculate duty without validated HS codes, and cargo cannot be released without clearance.
 
@@ -42,6 +44,7 @@ cst_clear
     │
     ▼
 cst_release
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cst_release
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/customs-clearance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/customs-clearance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cst_customs_clearance \
   --version 1 \
-  --input '{"shipmentId": "TEST-001", "origin": "test-value", "destination": "test-value", "goods": "test-value"}'
+  --input '{"shipmentId": "TEST-001", "origin": "sample-origin", "destination": "production", "goods": "sample-goods"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cst_customs_clearance -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ customs-clearance/
     ├── DeclareWorkerTest.java        # 2 tests
     ├── ReleaseWorkerTest.java        # 2 tests
     └── ValidateWorkerTest.java        # 2 tests
+
 ```

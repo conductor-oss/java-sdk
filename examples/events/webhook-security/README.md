@@ -1,6 +1,8 @@
 # Webhook Security in Java Using Conductor
 
-Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to verify the authenticity of incoming webhooks using HMAC signatures. The workflow computes an HMAC hash of the payload using the shared secret, compares it to the signature provided by the sender, and routes to processing (if valid) or rejection (if forged). Without signature verification, an attacker can send forged webhooks that trigger unauthorized actions in your system.
 
@@ -37,6 +39,7 @@ ws_verify_signature
 SWITCH (validity_switch_ref)
     ├── valid: ws_process_webhook
     ├── invalid: ws_reject_webhook
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ SWITCH (validity_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/webhook-security-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/webhook-security-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow webhook_security_wf \
   --version 1 \
-  --input '{"payload": "test-value", "secret": "test-value", "providedSignature": "TEST-001"}'
+  --input '{"payload": {"key": "value"}, "secret": "sample-secret", "providedSignature": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w webhook_security_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ webhook-security/
     ├── ProcessWebhookWorkerTest.java        # 8 tests
     ├── RejectWebhookWorkerTest.java        # 8 tests
     └── VerifySignatureWorkerTest.java        # 9 tests
+
 ```

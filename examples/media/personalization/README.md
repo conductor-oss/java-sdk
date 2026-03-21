@@ -1,6 +1,8 @@
 # Content Personalization in Java Using Conductor :  User Profiling, Segmentation, Content Selection, Ranking, and Serving
 
-A Java Conductor workflow example that orchestrates content personalization .  collecting user profiles (interests, demographics, region, account age), segmenting users into behavioral cohorts with confidence scores, selecting content candidates matching the segment, ranking candidates by predicted relevance using ML models, and serving personalized content with sub-200ms response time tracking and experiment assignment. Uses [Conductor](https://github.## Why Personalization Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates content personalization .  collecting user profiles (interests, demographics, region, account age), segmenting users into behavioral cohorts with confidence scores, selecting content candidates matching the segment, ranking candidates by predicted relevance using ML models, and serving personalized content with sub-200ms response time tracking and experiment assignment. Uses [Conductor](https://github.
+
+## Why Personalization Pipelines Need Orchestration
 
 Personalizing content for each user request requires a real-time decision pipeline. You collect the user's profile .  interests, demographics, geographic region, account age. You assign them to a behavioral segment (power user, casual browser, new visitor) with a confidence score. You select content candidates that match the segment's preferences. You rank those candidates using a personalization model that weighs recency, relevance, and engagement history. Finally, you serve the ranked list and record the experiment ID for A/B analysis.
 
@@ -42,6 +44,7 @@ per_rank_content
     │
     ▼
 per_serve_content
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ per_serve_content
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/personalization-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/personalization-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow personalization_workflow \
   --version 1 \
-  --input '{"userId": "TEST-001", "sessionId": "TEST-001", "pageContext": "test-value"}'
+  --input '{"userId": "TEST-001", "sessionId": "TEST-001", "pageContext": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w personalization_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ personalization/
 └── src/test/java/personalization/workers/
     ├── CollectProfileWorkerTest.java        # 2 tests
     └── SegmentUserWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # Message Broker Pipeline in Java Using Conductor :  Receive, Route, Deliver, Acknowledge, Log
 
-A Java Conductor workflow example for message brokering .  receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.## Messages Need Reliable Routing, Not Just Transport
+A Java Conductor workflow example for message brokering .  receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.
+
+## Messages Need Reliable Routing, Not Just Transport
 
 A message arrives on the `orders` topic with `high` priority. It needs to be routed to the order processing service, not the analytics pipeline. Another message arrives on `notifications` with `low` priority .  it should go to the batch notification queue, not the real-time push service. Topic-based routing, priority handling, delivery confirmation, and audit logging are the core responsibilities of a message broker.
 
@@ -42,6 +44,7 @@ mbr_acknowledge
     │
     ▼
 mbr_log
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ mbr_log
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/message-broker-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/message-broker-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mbr_message_broker \
   --version 1 \
-  --input '{"message": "test-value", "topic": "test-value", "priority": "test-value"}'
+  --input '{"message": "Process this order for customer C-100", "topic": "microservices best practices", "priority": "high"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w mbr_message_broker -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ message-broker/
     ├── MbrLogWorkerTest.java        # 4 tests
     ├── MbrReceiveWorkerTest.java        # 4 tests
     └── MbrRouteWorkerTest.java        # 4 tests
+
 ```

@@ -1,6 +1,8 @@
 # Connected Vehicles in Java with Conductor
 
-A Java Conductor workflow example that orchestrates connected vehicle monitoring .  collecting vehicle telemetry (engine RPM, fuel level, battery voltage, speed), running on-board diagnostics to assess overall vehicle health, tracking geolocation, and compiling a comprehensive vehicle status report combining health, location, and speed data. Uses [Conductor](https://github.## Why Connected Vehicle Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates connected vehicle monitoring .  collecting vehicle telemetry (engine RPM, fuel level, battery voltage, speed), running on-board diagnostics to assess overall vehicle health, tracking geolocation, and compiling a comprehensive vehicle status report combining health, location, and speed data. Uses [Conductor](https://github.
+
+## Why Connected Vehicle Monitoring Needs Orchestration
 
 Monitoring a connected vehicle requires collecting data from multiple on-board systems and combining it into an actionable status report. You pull telemetry from the vehicle's OBD-II or CAN bus .  engine RPM, fuel level, battery voltage, and speed. You run diagnostics against those readings to assess overall vehicle health (engine performance, electrical system, fuel efficiency). You track the vehicle's geolocation using its GPS module. Finally, you compile health status, location, and speed into a unified status report for fleet operators or the vehicle owner.
 
@@ -38,6 +40,7 @@ veh_geolocation
     │
     ▼
 veh_status_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ veh_status_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/connected-vehicles-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/connected-vehicles-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow connected_vehicles_demo \
   --version 1 \
-  --input '{"vehicleId": "TEST-001", "vin": "test-value"}'
+  --input '{"vehicleId": "TEST-001", "vin": "sample-vin"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w connected_vehicles_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ connected-vehicles/
 └── src/test/java/connectedvehicles/workers/
     ├── DiagnosticsWorkerTest.java        # 2 tests
     └── TelemetryWorkerTest.java        # 2 tests
+
 ```

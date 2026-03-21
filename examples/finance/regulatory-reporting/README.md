@@ -1,6 +1,8 @@
 # Regulatory Reporting in Java with Conductor
 
-Regulatory reporting workflow: collect data, validate, format, submit, and confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Regulatory reporting workflow: collect data, validate, format, submit, and confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to submit a regulatory report to a governing body. This involves collecting the required data from source systems, validating it against regulatory rules and completeness checks, formatting it according to the regulator's specifications, submitting the report electronically, and confirming acceptance. Late or inaccurate filings result in fines, enforcement actions, or loss of operating licenses.
 
@@ -42,6 +44,7 @@ reg_submit
     │
     ▼
 reg_confirm
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ reg_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/regulatory-reporting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/regulatory-reporting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow regulatory_reporting_workflow \
   --version 1 \
-  --input '{"reportId": "TEST-001", "reportType": "test-value", "reportingPeriod": "test-value", "entity": "test-value"}'
+  --input '{"reportId": "TEST-001", "reportType": "standard", "reportingPeriod": "sample-reportingPeriod", "entity": "sample-entity"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w regulatory_reporting_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ regulatory-reporting/
 └── src/test/java/regulatoryreporting/workers/
     ├── CollectDataWorkerTest.java        # 2 tests
     └── ValidateWorkerTest.java        # 3 tests
+
 ```

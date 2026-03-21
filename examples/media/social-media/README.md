@@ -1,6 +1,8 @@
 # Social Media Management in Java Using Conductor :  Content Creation, Scheduling, Publishing, Engagement Monitoring, and Community Response
 
-A Java Conductor workflow example that orchestrates social media management .  creating formatted posts with hashtag optimization and optimal posting time selection, scheduling for peak engagement windows, publishing to social platforms, monitoring engagement metrics (impressions, likes, shares, comments, mentions, engagement rate), and handling community responses (replies, likes, flagging for review). Uses [Conductor](https://github.## Why Social Media Management Needs Orchestration
+A Java Conductor workflow example that orchestrates social media management .  creating formatted posts with hashtag optimization and optimal posting time selection, scheduling for peak engagement windows, publishing to social platforms, monitoring engagement metrics (impressions, likes, shares, comments, mentions, engagement rate), and handling community responses (replies, likes, flagging for review). Uses [Conductor](https://github.
+
+## Why Social Media Management Needs Orchestration
 
 Managing social media presence involves a lifecycle for every post. You create the content .  formatting the message, selecting relevant hashtags, and determining the optimal posting time based on audience analytics. You schedule the post for the peak engagement window. You publish to the platform and capture the post URL and ID. You monitor engagement over time ,  tracking impressions, likes, shares, comments, mentions, and computing the overall engagement rate. You respond to community interactions ,  replying to comments, liking fan responses, and flagging negative interactions for review.
 
@@ -42,6 +44,7 @@ soc_monitor_engagement
     │
     ▼
 soc_engage_responses
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ soc_engage_responses
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/social-media-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/social-media-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow social_media_workflow \
   --version 1 \
-  --input '{"campaignId": "TEST-001", "platform": "test-value", "message": "test-value", "mediaUrl": "https://example.com"}'
+  --input '{"campaignId": "TEST-001", "platform": "sample-platform", "message": "Process this order for customer C-100", "mediaUrl": "https://example.com"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w social_media_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ social-media/
 └── src/test/java/socialmedia/workers/
     ├── CreateContentWorkerTest.java        # 2 tests
     └── SchedulePostWorkerTest.java        # 2 tests
+
 ```

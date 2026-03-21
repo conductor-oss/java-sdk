@@ -1,6 +1,8 @@
 # User-Assigned Human Task in Java Using Conductor :  Document Preparation, WAIT Assigned to Specific Reviewer, and Post-Review Finalization
 
-A Java Conductor workflow example demonstrating user-specific task assignment .  preparing a document, pausing at a WAIT task assigned to a designated reviewer (not a group), and finalizing the document after the assigned person completes their review. Unlike group claims where anyone can pick up the task, this pattern ensures only the specified user can act. Uses [Conductor](https://github.## Review Tasks Need to Be Assigned to a Specific Person
+A Java Conductor workflow example demonstrating user-specific task assignment .  preparing a document, pausing at a WAIT task assigned to a designated reviewer (not a group), and finalizing the document after the assigned person completes their review. Unlike group claims where anyone can pick up the task, this pattern ensures only the specified user can act. Uses [Conductor](https://github.
+
+## Review Tasks Need to Be Assigned to a Specific Person
 
 Unlike group assignments, some tasks must go to a specific user, the document's author, a designated reviewer, or a subject-matter expert. The workflow prepares the document, pauses at a WAIT task assigned to the specific user, and after they complete their review, a post-review step finalizes the document. If finalization fails, you need to retry it without re-assigning the review.
 
@@ -32,6 +34,7 @@ assigned_review [WAIT]
     │
     ▼
 hua_post_review
+
 ```
 
 ## Running It
@@ -46,6 +49,7 @@ hua_post_review
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -54,6 +58,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -68,6 +73,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/human-user-assignment-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -80,6 +86,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -95,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/human-user-assignment-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -103,7 +111,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow human_user_assignment_demo \
   --version 1 \
-  --input '{"documentId": "TEST-001", "assignedTo": "test-value"}'
+  --input '{"documentId": "TEST-001", "assignedTo": "sample-assignedTo"}'
+
 ```
 
 ### Check workflow status
@@ -112,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w human_user_assignment_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -133,6 +143,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -154,4 +165,5 @@ human-user-assignment/
 └── src/test/java/humanuserassignment/workers/
     ├── HuaPostReviewWorkerTest.java        # 5 tests
     └── HuaPrepareWorkerTest.java        # 5 tests
+
 ```

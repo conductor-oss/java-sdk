@@ -1,6 +1,8 @@
 # Nested Switch in Java with Conductor
 
-Multi-level decision tree using nested SWITCH tasks with value-param. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Multi-level decision tree using nested SWITCH tasks with value-param. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to route a request through a multi-level decision tree based on region and subscription tier. A US premium customer gets different processing than an EU standard customer or a customer from an unlisted region. The first level routes by region (US, EU, or other), and within each region, a second level routes by tier (premium or standard/default). Each combination. US/premium, US/standard, EU/premium, EU/standard, other/any .  runs completely different processing logic. After the region-and-tier-specific processing completes, a final completion step runs regardless of which branch was taken.
 
@@ -37,6 +39,7 @@ SWITCH (region_switch_ref)
     │
     ▼
 ns_complete
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ ns_complete
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/nested-switch-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/nested-switch-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nested_switch_demo \
   --version 1 \
-  --input '{"region": "test-value", "tier": "test-value", "amount": 100}'
+  --input '{"region": "us-east-1", "tier": "standard", "amount": 100}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w nested_switch_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ nested-switch/
     ├── NsOtherRegionWorkerTest.java        # 4 tests
     ├── NsUsPremiumWorkerTest.java        # 4 tests
     └── NsUsStandardWorkerTest.java        # 4 tests
+
 ```

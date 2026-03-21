@@ -1,6 +1,8 @@
 # Title Search in Java with Conductor :  Record Search, Ownership Verification, Lien Check, and Certification
 
-A Java Conductor workflow example for performing property title searches .  searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for performing property title searches .  searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to confirm that a property's title is clear before a sale can close. County records must be searched for the complete chain of title, current ownership must be verified against the recorded deeds, any outstanding liens (tax liens, mechanic's liens, HOA liens, judgments) must be identified, and only if ownership is verified and liens are clear can a title certificate be issued. If the certification step runs before lien checks complete, the buyer risks purchasing a property with hidden encumbrances. Missing a single lien can cost hundreds of thousands of dollars.
 
@@ -38,6 +40,7 @@ tts_check_liens
     │
     ▼
 tts_certify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ tts_certify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/title-search-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/title-search-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tts_title_search \
   --version 1 \
-  --input '{"propertyId": "TEST-001", "address": "test-value", "county": 10}'
+  --input '{"propertyId": "TEST-001", "address": "sample-address", "county": 10}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tts_title_search -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ title-search/
     ├── CheckLiensWorkerTest.java        # 2 tests
     ├── SearchRecordsWorkerTest.java        # 2 tests
     └── VerifyOwnershipWorkerTest.java        # 2 tests
+
 ```

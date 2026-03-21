@@ -1,6 +1,8 @@
 # Conditional Tool Use in Java Using Conductor :  Classify Query, Route to Calculator/Interpreter/Search
 
-Tool Use Conditional .  classifies a user query and routes to the appropriate tool (calculator, interpreter, or web search) via a SWITCH task. Uses [Conductor](https://github.## Different Questions Need Different Tools
+Tool Use Conditional .  classifies a user query and routes to the appropriate tool (calculator, interpreter, or web search) via a SWITCH task. Uses [Conductor](https://github.
+
+## Different Questions Need Different Tools
 
 "What's the square root of 144?" needs a calculator. "Write a Python function to sort a list" needs a code interpreter. "What happened at the G7 summit?" needs web search. A tool-using agent must first determine which type of question it's looking at, then route to the appropriate tool.
 
@@ -36,6 +38,7 @@ SWITCH (route_to_tool_ref)
     ├── code: tc_interpreter
     ├── search: tc_web_search
     └── default: tc_web_search
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ SWITCH (route_to_tool_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-conditional-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-conditional-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_conditional \
   --version 1 \
-  --input '{"userQuery": "test-value"}'
+  --input '{"userQuery": "What is workflow orchestration?"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_conditional -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -155,4 +165,5 @@ tool-use-conditional/
     ├── ClassifyQueryWorkerTest.java        # 9 tests
     ├── InterpreterWorkerTest.java        # 9 tests
     └── WebSearchWorkerTest.java        # 9 tests
+
 ```

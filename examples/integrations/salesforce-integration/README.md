@@ -40,6 +40,7 @@ sfc_update_records
     │
     ▼
 sfc_sync_crm
+
 ```
 
 ## Running It
@@ -54,6 +55,7 @@ sfc_sync_crm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/salesforce-integration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -107,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/salesforce-integration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -115,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow salesforce_integration_438 \
   --version 1 \
-  --input '{"query": "test-value", "scoringModel": "test-value", "syncTarget": "test-value"}'Technology' AND status = 'New'": "pending", "scoringModel": "sample-scoringModel", "ml-lead-v2": "sample-ml-lead-v2", "syncTarget": "sample-syncTarget"}'
+  --input '{"query": "What is workflow orchestration?", "scoringModel": "gpt-4o-mini", "syncTarget": "production"}'Technology' AND status = 'New'": "pending", "scoringModel": "sample-scoringModel", "ml-lead-v2": "sample-ml-lead-v2", "syncTarget": "sample-syncTarget"}'
+
 ```
 
 ### Check workflow status
@@ -124,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w salesforce_integration_438 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +180,5 @@ salesforce-integration/
     ├── ScoreLeadsWorkerTest.java        # 2 tests
     ├── SyncCrmWorkerTest.java        # 2 tests
     └── UpdateRecordsWorkerTest.java        # 2 tests
+
 ```

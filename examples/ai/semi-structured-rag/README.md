@@ -1,6 +1,6 @@
 # Semi-Structured RAG in Java Using Conductor :  Parallel Structured and Unstructured Search with Classification
 
-A Java Conductor workflow that classifies a question's data needs (structured, unstructured, or both), searches structured sources (databases, APIs) and unstructured sources (document stores, vector databases) in parallel, merges the results, and generates a unified answer. Questions like "What's the average revenue for companies mentioned in our research reports?" need both SQL query results (structured) and document context (unstructured). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate classification, parallel search, merging, and generation as independent workers .  you write the search logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that classifies a question's data needs (structured, unstructured, or both), searches structured sources (databases, APIs) and unstructured sources (document stores, vector databases) in parallel, merges the results, and generates a unified answer. Questions like "What's the average revenue for companies mentioned in our research reports?" need both SQL query results (structured) and document context (unstructured). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate classification, parallel search, merging, and generation as independent workers.  you write the search logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## When Answers Live in Both Tables and Documents
 
@@ -44,6 +44,7 @@ ss_merge_results
     │
     ▼
 ss_generate
+
 ```
 
 ## Running It
@@ -58,6 +59,7 @@ ss_generate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -66,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -80,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/semi-structured-rag-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -92,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -108,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/semi-structured-rag-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -116,7 +122,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow semi_structured_rag_workflow \
   --version 1 \
-  --input '{"question": "test-value", "dataContext": "test-value"}'
+  --input '{"question": "What is workflow orchestration?", "dataContext": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -125,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w semi_structured_rag_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -176,4 +185,5 @@ semi-structured-rag/
     ├── MergeResultsWorkerTest.java        # 8 tests
     ├── SearchStructuredWorkerTest.java        # 6 tests
     └── SearchUnstructuredWorkerTest.java        # 7 tests
+
 ```

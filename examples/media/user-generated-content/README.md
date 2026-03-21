@@ -1,6 +1,8 @@
 # User-Generated Content Pipeline in Java Using Conductor :  Submission, Moderation, Approval, Enrichment, and Publishing
 
-A Java Conductor workflow example that orchestrates a UGC pipeline .  receiving user submissions with queue positioning, running automated moderation (spam detection, adult content filtering, toxicity scoring), approving content that passes moderation, enriching with auto-generated metadata (tags, sentiment analysis, readability scores, language detection), and publishing to the platform. Uses [Conductor](https://github.## Why UGC Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates a UGC pipeline .  receiving user submissions with queue positioning, running automated moderation (spam detection, adult content filtering, toxicity scoring), approving content that passes moderation, enriching with auto-generated metadata (tags, sentiment analysis, readability scores, language detection), and publishing to the platform. Uses [Conductor](https://github.
+
+## Why UGC Pipelines Need Orchestration
 
 Processing user-generated content requires a pipeline that balances speed (users expect fast publication) with safety (you must not publish harmful content). You receive the submission and assign a queue position. You run automated moderation .  spam detection, adult content classification, toxicity scoring ,  to catch clearly violating content. Content that passes moderation is approved (automatically or by a human moderator, depending on your confidence threshold). Approved content is enriched with auto-generated tags, sentiment analysis, readability scores, and language detection to improve discoverability. Finally, the enriched content is published with a public URL.
 
@@ -42,6 +44,7 @@ ugc_enrich
     │
     ▼
 ugc_publish
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ugc_publish
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/user-generated-content-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/user-generated-content-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow user_generated_content_workflow \
   --version 1 \
-  --input '{"submissionId": "TEST-001", "userId": "TEST-001", "contentType": "test-value", "contentBody": "test-value", "title": "test-value"}'
+  --input '{"submissionId": "TEST-001", "userId": "TEST-001", "contentType": "Process this order for customer C-100", "contentBody": "Process this order for customer C-100", "title": "sample-title"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w user_generated_content_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ user-generated-content/
 └── src/test/java/usergeneratedcontent/workers/
     ├── ModerateWorkerTest.java        # 2 tests
     └── SubmitWorkerTest.java        # 2 tests
+
 ```

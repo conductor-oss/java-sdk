@@ -1,6 +1,8 @@
 # Data Format Normalizer in Java Using Conductor :  Detect Format, Convert JSON/XML/CSV, Output Canonical Form
 
-A Java Conductor workflow example for data normalization .  detecting the input format of incoming data (JSON, XML, or CSV), routing to the appropriate format-specific converter via a `SWITCH` task, and producing a canonical output regardless of the source format. Uses [Conductor](https://github.## Every Source System Speaks a Different Format
+A Java Conductor workflow example for data normalization .  detecting the input format of incoming data (JSON, XML, or CSV), routing to the appropriate format-specific converter via a `SWITCH` task, and producing a canonical output regardless of the source format. Uses [Conductor](https://github.
+
+## Every Source System Speaks a Different Format
 
 Your ERP sends XML, your CRM sends JSON, and your partner's FTP drop is CSV. Downstream analytics expects a single canonical format. Each integration point needs its own parser, and when a new source system joins with YAML or fixed-width files, you add another branch to a growing if/else chain.
 
@@ -40,6 +42,7 @@ SWITCH (nrm_switch_ref)
     │
     ▼
 nrm_output
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ nrm_output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/normalizer-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/normalizer-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nrm_normalizer \
   --version 1 \
-  --input '{"rawInput": "test-value", "sourceSystem": "test-value"}'
+  --input '{"rawInput": "sample-rawInput", "sourceSystem": "api"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w nrm_normalizer -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ normalizer/
     ├── NrmConvertXmlWorkerTest.java        # 4 tests
     ├── NrmDetectFormatWorkerTest.java        # 4 tests
     └── NrmOutputWorkerTest.java        # 4 tests
+
 ```

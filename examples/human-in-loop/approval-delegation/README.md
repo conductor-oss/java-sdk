@@ -1,6 +1,8 @@
 # Approval Delegation in Java Using Conductor :  Request Preparation, WAIT for Approver, SWITCH to Delegate, and Finalization
 
-Approval delegation .  prepares a request, pauses at a WAIT task for the initial approver, then uses a SWITCH to handle delegation: if the approver responds with "delegate" and a delegateTo target, a second WAIT task pauses for the delegate's decision. Whether approved directly or via delegation, the workflow finalizes the result. Uses [Conductor](https://github.## The Problem
+Approval delegation .  prepares a request, pauses at a WAIT task for the initial approver, then uses a SWITCH to handle delegation: if the approver responds with "delegate" and a delegateTo target, a second WAIT task pauses for the delegate's decision. Whether approved directly or via delegation, the workflow finalizes the result. Uses [Conductor](https://github.
+
+## The Problem
 
 You need approvals where the assigned approver can delegate to someone else. A manager receives an approval request but is on vacation, overloaded, or not the right person .  they need to reassign it to a colleague or their backup. The original WAIT task must accept three possible actions: approve (finalize immediately), reject (finalize immediately), or delegate (specify who should handle it, then wait for that person). The delegation must be tracked ,  who delegated to whom, when, and what the final decision was. Without a SWITCH after the WAIT, you cannot route delegation to a second WAIT task for the delegate's input.
 
@@ -40,6 +42,7 @@ SWITCH (delegation_switch_ref)
     │
     ▼
 ad_finalize
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ ad_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/approval-delegation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/approval-delegation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,6 +120,7 @@ conductor workflow start \
   --workflow approval_delegation_demo \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w approval_delegation_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ approval-delegation/
 └── src/test/java/approvaldelegation/workers/
     ├── FinalizeWorkerTest.java        # 4 tests
     └── PrepareWorkerTest.java        # 4 tests
+
 ```

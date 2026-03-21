@@ -1,6 +1,8 @@
 # ML Experiment Tracking in Java Using Conductor :  Define, Run, Log Metrics, Compare, Decide
 
-A Java Conductor workflow example for ML experiment tracking .  defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.## Experiments Without Reproducibility Are Guesswork
+A Java Conductor workflow example for ML experiment tracking .  defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.
+
+## Experiments Without Reproducibility Are Guesswork
 
 You tuned a hyperparameter, retrained the model, and accuracy went up 2%. Was it the hyperparameter change, or did the training data shift? Without a structured experiment record .  hypothesis, configuration, metrics, baseline comparison ,  you can't answer that question. Teams run dozens of experiments a week, and without systematic tracking, knowledge about what was tried and what worked lives in Slack threads and Jupyter notebooks that nobody can find six months later.
 
@@ -42,6 +44,7 @@ ext_compare
     │
     ▼
 ext_decide
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ext_decide
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/experiment-tracking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/experiment-tracking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow experiment_tracking_demo \
   --version 1 \
-  --input '{"experimentName": "test", "hypothesis": "test-value", "baselineMetric": "test-value"}'
+  --input '{"experimentName": "test", "hypothesis": "sample-hypothesis", "baselineMetric": "sample-baselineMetric"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w experiment_tracking_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ experiment-tracking/
     ├── ExtDefineExperimentWorkerTest.java        # 4 tests
     ├── ExtLogMetricsWorkerTest.java        # 4 tests
     └── ExtRunExperimentWorkerTest.java        # 4 tests
+
 ```

@@ -1,6 +1,8 @@
 # Image Processing Pipeline in Java Using Conductor :  Upload, Resize, Optimize, Watermark, and CDN Push
 
-A Java Conductor workflow example that orchestrates an image processing pipeline .  uploading original images with dimension and format detection, resizing to multiple responsive breakpoints, optimizing file sizes with quality-aware compression, applying watermarks for brand protection, and pushing final assets to CDN with cache invalidation and TTL configuration. Uses [Conductor](https://github.## Why Image Processing Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an image processing pipeline .  uploading original images with dimension and format detection, resizing to multiple responsive breakpoints, optimizing file sizes with quality-aware compression, applying watermarks for brand protection, and pushing final assets to CDN with cache invalidation and TTL configuration. Uses [Conductor](https://github.
+
+## Why Image Processing Pipelines Need Orchestration
 
 Processing images for web delivery requires a strict transformation chain. You upload the original and extract its dimensions, format, and file size. You resize it to multiple breakpoints (thumbnail, mobile, tablet, desktop, retina). You optimize each variant .  reducing file size by 40-60% while maintaining visual quality. You apply watermarks to protect intellectual property. Finally, you push all variants to the CDN with appropriate cache headers and TTLs.
 
@@ -42,6 +44,7 @@ imp_watermark_image
     │
     ▼
 imp_push_cdn
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ imp_push_cdn
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/image-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/image-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow image_pipeline_workflow \
   --version 1 \
-  --input '{"imageId": "TEST-001", "sourceUrl": "https://example.com", "targetSizes": 10, "watermarkText": "test-value"}'
+  --input '{"imageId": "TEST-001", "sourceUrl": "https://example.com", "targetSizes": 10, "watermarkText": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w image_pipeline_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ image-pipeline/
 └── src/test/java/imagepipeline/workers/
     ├── ResizeImageWorkerTest.java        # 2 tests
     └── UploadImageWorkerTest.java        # 2 tests
+
 ```

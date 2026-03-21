@@ -1,6 +1,8 @@
 # Environment Management in Java with Conductor :  Create, Configure, Seed Data, Verify
 
-Environment lifecycle orchestration: create, configure, seed data, and verify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Developers Need Environments on Demand
+Environment lifecycle orchestration: create, configure, seed data, and verify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Developers Need Environments on Demand
 
 "I need a staging environment for my feature branch" shouldn't take a week of DevOps tickets. Ephemeral environments should spin up in minutes: provision infrastructure from a template (Kubernetes namespace, database, message queue), configure the environment with the right service versions and feature flags, seed it with realistic test data, and run health checks to confirm everything is ready.
 
@@ -38,6 +40,7 @@ em_seed_data
     │
     ▼
 em_verify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ em_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/environment-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/environment-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow environment_management_workflow \
   --version 1 \
-  --input '{"envName": "test", "template": "test-value", "ttlHours": "test-value"}'
+  --input '{"envName": "test", "template": "sample-template", "ttlHours": "sample-ttlHours"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w environment_management_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ environment-management/
     ├── CreateEnvTest.java        # 7 tests
     ├── SeedDataTest.java        # 7 tests
     └── VerifyEnvTest.java        # 7 tests
+
 ```

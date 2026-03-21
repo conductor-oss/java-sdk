@@ -1,6 +1,8 @@
 # WAIT Task Completion via REST API in Java Using Conductor :  Prepare, WAIT for External HTTP Callback, SWITCH on Decision, and Route to Approved/Rejected Handlers
 
-A Java Conductor workflow example demonstrating how external systems resume paused workflows via REST API .  preparing a request, pausing at a WAIT task, and completing it when an external system sends `POST /tasks/{taskId}` with a decision payload. A SWITCH then routes based on the decision: "rejected" goes to a rejection handler, while the default path goes to an approval handler. Both paths use the same HandleDecisionWorker but receive different hardcoded decision values, demonstrating how a single worker can handle multiple SWITCH branches. Uses [Conductor](https://github.## External Systems Need to Resume Workflows via REST API
+A Java Conductor workflow example demonstrating how external systems resume paused workflows via REST API .  preparing a request, pausing at a WAIT task, and completing it when an external system sends `POST /tasks/{taskId}` with a decision payload. A SWITCH then routes based on the decision: "rejected" goes to a rejection handler, while the default path goes to an approval handler. Both paths use the same HandleDecisionWorker but receive different hardcoded decision values, demonstrating how a single worker can handle multiple SWITCH branches. Uses [Conductor](https://github.
+
+## External Systems Need to Resume Workflows via REST API
 
 Sometimes the signal to continue a workflow comes from an external system, a webhook, a third-party service callback, or an admin tool. The WAIT task pauses the workflow, and a REST API call completes it with the decision payload. The workflow prepares the request, pauses, then handles the decision when the external system calls back. If decision handling fails, you need to retry it without waiting for another external callback.
 
@@ -35,6 +37,7 @@ WAIT [WAIT]
 SWITCH (decision_switch_ref)
     ├── rejected: wapi_handle_decision
     └── default: wapi_handle_decision
+
 ```
 
 ## Running It
@@ -49,6 +52,7 @@ SWITCH (decision_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -57,6 +61,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -71,6 +76,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/wait-rest-api-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -83,6 +89,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -98,6 +105,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/wait-rest-api-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,6 +115,7 @@ conductor workflow start \
   --workflow wait_rest_api_demo \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -115,6 +124,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wait_rest_api_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -157,4 +168,5 @@ wait-rest-api/
 └── src/test/java/waitrestapi/workers/
     ├── HandleDecisionWorkerTest.java        # 7 tests
     └── PrepareWorkerTest.java        # 4 tests
+
 ```

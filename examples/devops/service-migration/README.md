@@ -1,6 +1,8 @@
 # Service Migration in Java with Conductor
 
-Orchestrates a service migration between environments using [Conductor](https://github.com/conductor-oss/conductor). This workflow assesses dependencies, replicates the service to the target environment, performs the traffic cutover, and validates that all endpoints are responding correctly.## Moving Services Without Downtime
+Orchestrates a service migration between environments using [Conductor](https://github.com/conductor-oss/conductor). This workflow assesses dependencies, replicates the service to the target environment, performs the traffic cutover, and validates that all endpoints are responding correctly.
+
+## Moving Services Without Downtime
 
 Your payment-service needs to move from the legacy environment to the new Kubernetes cluster. It has 3 downstream dependencies and 2 data stores. You need to assess what will break, replicate the service, cut over traffic at the right moment, and validate every endpoint still works. A botched migration means payment failures and revenue loss.
 
@@ -38,6 +40,7 @@ sm_cutover
     │
     ▼
 sm_validate
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ sm_validate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/service-migration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/service-migration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_migration_workflow \
   --version 1 \
-  --input '{"service": "test-value", "sourceEnv": "test-value", "targetEnv": "test-value"}'
+  --input '{"service": "order-service", "sourceEnv": "api", "targetEnv": "production"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w service_migration_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -162,4 +173,5 @@ service-migration-service-migration/
 │       └── ValidateWorker.java
 └── src/test/java/servicemigration/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

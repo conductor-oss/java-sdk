@@ -1,6 +1,8 @@
 # Portfolio Rebalancing in Java with Conductor
 
-Portfolio rebalancing workflow that analyzes drift, determines trades, executes, verifies, and reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Portfolio rebalancing workflow that analyzes drift, determines trades, executes, verifies, and reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to rebalance an investment portfolio back to its target allocation. The workflow analyzes how far the current holdings have drifted from the target allocation, determines the trades needed to bring allocations back in line, executes those trades, verifies the resulting positions, and generates a rebalancing report. Without periodic rebalancing, a portfolio's risk profile drifts away from the investor's strategy as different asset classes outperform or underperform.
 
@@ -42,6 +44,7 @@ prt_verify
     │
     ▼
 prt_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ prt_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/portfolio-rebalancing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/portfolio-rebalancing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow portfolio_rebalancing_workflow \
   --version 1 \
-  --input '{"portfolioId": "TEST-001", "accountId": "TEST-001", "strategy": "test-value"}'
+  --input '{"portfolioId": "TEST-001", "accountId": "TEST-001", "strategy": "sample-strategy"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w portfolio_rebalancing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ portfolio-rebalancing/
 └── src/test/java/portfoliorebalancing/workers/
     ├── AnalyzeDriftWorkerTest.java        # 2 tests
     └── ReportWorkerTest.java        # 2 tests
+
 ```

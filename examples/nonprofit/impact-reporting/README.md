@@ -1,6 +1,8 @@
 # Impact Reporting in Java with Conductor
 
-A Java Conductor workflow example demonstrating Impact Reporting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+A Java Conductor workflow example demonstrating Impact Reporting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Your nonprofit needs to produce its annual impact report for donors and board members. The reporting team must collect raw data across all programs (beneficiaries served, events held, volunteer hours), aggregate the totals into organization-wide metrics, analyze year-over-year growth and cost-effectiveness, format the report with charts, metrics, and narrative sections, and publish the final report as a downloadable document. Each step depends on the previous one's output.
 
@@ -42,6 +44,7 @@ ipr_format
     │
     ▼
 ipr_publish
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ipr_publish
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/impact-reporting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/impact-reporting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow impact_reporting_756 \
   --version 1 \
-  --input '{"programName": "test", "reportYear": "test-value"}'
+  --input '{"programName": "test", "reportYear": "sample-reportYear"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w impact_reporting_756 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ impact-reporting/
 └── src/test/java/impactreporting/workers/
     ├── CollectDataWorkerTest.java        # 1 tests
     └── PublishWorkerTest.java        # 1 tests
+
 ```

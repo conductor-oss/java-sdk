@@ -1,6 +1,8 @@
 # Multi-Agent Planning in Java Using Conductor :  Architect, Parallel Estimators, Project Manager Timeline
 
-Multi-Agent Project Planning .  architect designs the system, three estimators run in parallel (frontend, backend, infra), then PM builds the timeline. Uses [Conductor](https://github.## Project Planning Needs Multiple Expert Perspectives
+Multi-Agent Project Planning .  architect designs the system, three estimators run in parallel (frontend, backend, infra), then PM builds the timeline. Uses [Conductor](https://github.
+
+## Project Planning Needs Multiple Expert Perspectives
 
 A project estimate from a single person is always biased toward their specialty. The backend engineer underestimates frontend work. The infrastructure engineer forgets about API development. An accurate plan needs domain experts estimating their own areas independently .  frontend complexity, backend API surface, infrastructure provisioning ,  with an architect providing the overall design and a PM resolving the estimates into a realistic timeline.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 pp_pm_timeline
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ pp_pm_timeline
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/multi-agent-planning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/multi-agent-planning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_agent_planning \
   --version 1 \
-  --input '{"projectName": "test", "requirements": "test-value"}'
+  --input '{"projectName": "test", "requirements": "sample-requirements"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w multi_agent_planning -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -161,4 +171,5 @@ multi-agent-planning/
     ├── EstimateFrontendWorkerTest.java        # 9 tests
     ├── EstimateInfraWorkerTest.java        # 9 tests
     └── PmTimelineWorkerTest.java        # 10 tests
+
 ```

@@ -1,6 +1,8 @@
 # System Tasks in Java with Conductor
 
-Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks .  no workers needed. Uses [Conductor](https://github.## The Problem
+Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks .  no workers needed. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to build an employee compensation summary: look up a user's profile (name, department, base salary, performance rating), calculate their bonus based on performance tiers (15% for ratings 4.5+, 10% for 4.0+, 5% for 3.0+), and format the results into a structured summary with compensation breakdown and performance classification. None of these steps require external API calls .  it is all data lookup, calculation, and reshaping. Deploying three separate worker services for this logic is unnecessary overhead.
 
@@ -10,7 +12,7 @@ Without system tasks, you'd write three worker classes, each containing a few li
 
 **You just write INLINE JavaScript and JQ expressions in the workflow definition. Conductor runs them server-side. No workers needed for pure data lookup, calculation, and reshaping.**
 
-This example uses zero workers .  everything runs as Conductor system tasks on the server. The `lookup_user` step (INLINE/GraalJS) takes a userId and looks up the employee profile from an in-memory map, returning name, department, base salary, and performance rating. The `calculate_bonus` step (INLINE/GraalJS) applies tiered bonus rules: Gold tier (15% bonus) for ratings 4.5+, Silver (10%) for 4.0+, Bronze (5%) for 3.0+, computing the dollar amount and total compensation. The `format_output` step (JSON_JQ_TRANSFORM) reshapes the user and bonus data into a structured summary with nested compensation and performance sections using a JQ expression. No worker deployment, no polling, no Docker containers ,  just expressions evaluated server-side.
+This example uses zero workers.  everything runs as Conductor system tasks on the server. The `lookup_user` step (INLINE/GraalJS) takes a userId and looks up the employee profile from an in-memory map, returning name, department, base salary, and performance rating. The `calculate_bonus` step (INLINE/GraalJS) applies tiered bonus rules: Gold tier (15% bonus) for ratings 4.5+, Silver (10%) for 4.0+, Bronze (5%) for 3.0+, computing the dollar amount and total compensation. The `format_output` step (JSON_JQ_TRANSFORM) reshapes the user and bonus data into a structured summary with nested compensation and performance sections using a JQ expression. No worker deployment, no polling, no Docker containers ,  just expressions evaluated server-side.
 
 ### What You Write: Workers
 
@@ -28,6 +30,7 @@ calculate_bonus [INLINE]
     │
     ▼
 format_output [JSON_JQ_TRANSFORM]
+
 ```
 
 ## Running It
@@ -42,6 +45,7 @@ format_output [JSON_JQ_TRANSFORM]
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -50,6 +54,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -64,6 +69,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/system-tasks-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -76,6 +82,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -91,6 +98,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/system-tasks-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -100,6 +108,7 @@ conductor workflow start \
   --workflow system_tasks_demo \
   --version 1 \
   --input '{"userId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -108,6 +117,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w system_tasks_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -130,6 +140,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -148,4 +159,5 @@ system-tasks/
 │   └── workers/
 └── src/test/java/systemtasks/workers/
     └── WorkflowDefinitionTest.java        # 19 tests
+
 ```

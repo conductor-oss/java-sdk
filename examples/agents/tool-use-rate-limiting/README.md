@@ -1,6 +1,8 @@
 # Tool Use Rate Limiting in Java Using Conductor :  Check Limits, Execute-or-Queue, Delayed Execution
 
-Tool Use Rate Limiting .  checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.## APIs Have Rate Limits :  Respect Them
+Tool Use Rate Limiting .  checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.
+
+## APIs Have Rate Limits :  Respect Them
 
 Most external APIs enforce rate limits: OpenAI allows a certain number of requests per minute, Google Maps has a daily quota, and many services return 429 (Too Many Requests) when you exceed the limit. Hitting rate limits causes errors, potential API key suspension, and degraded user experience.
 
@@ -34,6 +36,7 @@ rl_check_rate_limit
 SWITCH (rate_limit_decision_ref)
     ├── allowed: rl_execute_tool
     └── default: rl_queue_request -> rl_delayed_execute
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (rate_limit_decision_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-rate-limiting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-rate-limiting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_rate_limiting \
   --version 1 \
-  --input '{"toolName": "test", "toolArgs": "test-value", "apiKey": "test-value"}'
+  --input '{"toolName": "test", "toolArgs": "sample-toolArgs", "apiKey": "sample-apiKey"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_rate_limiting -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -153,4 +163,5 @@ tool-use-rate-limiting/
     ├── DelayedExecuteWorkerTest.java        # 9 tests
     ├── ExecuteToolWorkerTest.java        # 7 tests
     └── QueueRequestWorkerTest.java        # 8 tests
+
 ```

@@ -1,6 +1,8 @@
 # Grading Workflow in Java with Conductor :  Submission, Scoring, Review, Recording, and Student Notification
 
-A Java Conductor workflow example for assignment grading .  receiving a student submission, scoring it against the rubric, reviewing the grade for accuracy, recording the final score in the gradebook, and notifying the student of their result. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for assignment grading .  receiving a student submission, scoring it against the rubric, reviewing the grade for accuracy, recording the final score in the gradebook, and notifying the student of their result. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to grade student assignments end-to-end. A student submits their work, the grading system scores it against the assignment rubric, an instructor or peer reviews the score for fairness and accuracy, the final grade is recorded in the course gradebook, and the student is notified of their result. Recording a grade before review is complete risks posting inaccurate scores; failing to notify leaves students in the dark about their performance.
 
@@ -42,6 +44,7 @@ grd_record
     │
     ▼
 grd_notify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ grd_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/grading-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/grading-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow grd_grading \
   --version 1 \
   --input '{"studentId": "TEST-001", "courseId": "TEST-001", "assignmentId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w grd_grading -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ grading-workflow/
     ├── RecordWorkerTest.java        # 2 tests
     ├── ReviewWorkerTest.java        # 2 tests
     └── SubmitWorkerTest.java        # 2 tests
+
 ```

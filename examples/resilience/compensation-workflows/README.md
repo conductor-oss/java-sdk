@@ -22,7 +22,7 @@ The compensation pattern solves this with a separate compensation workflow that 
 
 **You just write the forward steps and their matching undo operations. Conductor handles forward execution sequencing, reverse-order compensation on failure, retries on each undo step, and a full audit trail of every forward and compensation action with their inputs and outputs.**
 
-Each forward step and its corresponding undo are simple, independent workers. Step A creates a resource, UndoA deletes it. Step B inserts a record, UndoB removes it. When Step C fails, the main workflow ends with FAILED status. You then start the compensation workflow, which runs the undo workers in reverse order automatically. Every compensation action is tracked, so you can see exactly which steps were undone and whether the rollback completed successfully. You get all of that for free, without writing a single line of orchestration code.
+Each forward step and its corresponding undo are simple, independent workers. Step A creates a resource, UndoA deletes it. Step B inserts a record, UndoB removes it. When Step C fails, the main workflow ends with FAILED status. You then start the compensation workflow, which runs the undo workers in reverse order automatically. Every compensation action is tracked, so you can see exactly which steps were undone and whether the rollback completed successfully. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -38,27 +38,22 @@ Three forward workers. CompStepAWorker, CompStepBWorker, and CompStepCWorker. Ex
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflows
 
 **Main workflow** (`compensatable_workflow`):
+
 ```
 comp_step_a  -->  comp_step_b  -->  comp_step_c
                                      (can fail)
+
 ```
 
 **Compensation workflow** (`compensation_workflow`): runs when main fails:
+
 ```
 comp_undo_b  -->  comp_undo_a
 (reverse order: undo B first, then A. Skip C since it never completed)
+
 ```
 
 ## Running It
@@ -73,6 +68,7 @@ comp_undo_b  -->  comp_undo_a
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -81,13 +77,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -95,6 +92,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/compensation-workflows-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -107,6 +105,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Example Output
@@ -150,6 +149,7 @@ Step 3: Starting workers...
   Key: compensation runs in reverse order of completed steps
 
 Result: PASSED
+
 ```
 
 ## Configuration
@@ -165,6 +165,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/compensation-workflows-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -187,6 +188,7 @@ conductor workflow start \
   --workflow compensation_workflow \
   --version 1 \
   --input '{"failedWorkflowId": "<failed_workflow_id>", "stepAResult": "resource-A-created", "stepBResult": "record-B-inserted"}'
+
 ```
 
 ### Check workflow status
@@ -195,6 +197,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w compensatable_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -220,6 +223,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -248,4 +252,5 @@ compensation-workflows/
     ├── CompStepCWorkerTest.java     # 8 tests
     ├── CompUndoAWorkerTest.java     # 5 tests
     └── CompUndoBWorkerTest.java     # 5 tests
+
 ```

@@ -1,6 +1,8 @@
 # Data Sync in Java Using Conductor :  Bidirectional Change Detection, Conflict Resolution, and Consistency Verification
 
-A Java Conductor workflow example for bidirectional data synchronization: detecting changes in two systems since last sync, resolving conflicts when both systems modified the same record (using configurable strategies like "latest wins"), applying the resolved updates to both systems, and verifying that the two systems are consistent after sync. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for bidirectional data synchronization: detecting changes in two systems since last sync, resolving conflicts when both systems modified the same record (using configurable strategies like "latest wins"), applying the resolved updates to both systems, and verifying that the two systems are consistent after sync. Uses [Conductor](https://github.
+
+## The Problem
 
 You have data in two systems that need to stay in sync: a CRM and an ERP, a mobile app's local database and the cloud backend, a primary database and a partner system. Changes happen on both sides between sync cycles. You need to detect what changed in each system, identify conflicts where both systems modified the same record, resolve those conflicts using a configurable strategy (latest timestamp wins, source-of-truth priority, manual review), apply the merged updates to both systems, and verify consistency after the sync completes. If the apply step fails after updating system A but before updating system B, the systems are now out of sync, worse than before.
 
@@ -38,6 +40,7 @@ sy_apply_updates
     │
     ▼
 sy_verify_consistency
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ sy_verify_consistency
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-sync-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-sync-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_sync \
   --version 1 \
-  --input '{"systemA": "test-value", "systemB": "test-value", "syncMode": "test-value", "conflictStrategy": "test-value"}'
+  --input '{"systemA": "sample-systemA", "systemB": "sample-systemB", "syncMode": "standard", "conflictStrategy": "sample-conflictStrategy"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_sync -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ data-sync/
     ├── DetectChangesWorkerTest.java        # 5 tests
     ├── ResolveConflictsWorkerTest.java        # 4 tests
     └── VerifyConsistencyWorkerTest.java        # 5 tests
+
 ```

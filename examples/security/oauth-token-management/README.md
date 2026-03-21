@@ -1,6 +1,8 @@
 # Implementing OAuth Token Management in Java with Conductor :  Grant Validation, Token Issuance, and Compliance Auditing
 
-A Java Conductor workflow example for OAuth 2.0 token lifecycle management .  validating client credentials and grant types, issuing access and refresh tokens, persisting token metadata for revocation, and logging every issuance for compliance. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for OAuth 2.0 token lifecycle management .  validating client credentials and grant types, issuing access and refresh tokens, persisting token metadata for revocation, and logging every issuance for compliance. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to handle OAuth 2.0 token requests end-to-end: validate that the client ID is registered and the grant type (authorization_code, client_credentials, etc.) is permitted, issue scoped access and refresh tokens, store token metadata so tokens can be revoked or introspected later, and write an immutable audit trail for every issuance event.
 
@@ -29,6 +31,7 @@ Workers simulate security checks and remediation actions with realistic findings
 
 ```
 Input -> AuditLogWorker -> IssueTokensWorker -> StoreTokenWorker -> ValidateGrantWorker -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> AuditLogWorker -> IssueTokensWorker -> StoreTokenWorker -> ValidateGran
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/oauth-token-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/oauth-token-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow oauth_token_management \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w oauth_token_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -132,6 +142,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -157,4 +168,5 @@ oauth-token-management/
     ├── IssueTokensWorkerTest.java        # 8 tests
     ├── StoreTokenWorkerTest.java        # 8 tests
     └── ValidateGrantWorkerTest.java        # 8 tests
+
 ```

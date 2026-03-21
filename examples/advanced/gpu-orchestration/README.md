@@ -1,6 +1,8 @@
 # GPU Job Orchestration in Java Using Conductor :  Check, Allocate, Submit, Collect, Release
 
-A Java Conductor workflow example for GPU resource orchestration .  checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.## GPUs Are Expensive and Scarce
+A Java Conductor workflow example for GPU resource orchestration .  checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.
+
+## GPUs Are Expensive and Scarce
 
 A team of ML engineers shares a cluster of 8 A100 GPUs. Without resource management, jobs compete for the same GPU, one engineer's runaway training job holds a GPU for 12 hours while others wait, and when a job crashes the GPU isn't released .  it sits idle until someone manually frees it. At $30+/hour per GPU, wasted allocation is real money.
 
@@ -42,6 +44,7 @@ gpu_collect_results
     │
     ▼
 gpu_release
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ gpu_release
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/gpu-orchestration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/gpu-orchestration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gpu_orchestration_demo \
   --version 1 \
-  --input '{"jobId": "TEST-001", "gpuType": "test-value", "modelPath": "test-value"}'
+  --input '{"jobId": "TEST-001", "gpuType": "standard", "modelPath": "gpt-4o-mini"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w gpu_orchestration_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ gpu-orchestration/
     ├── GpuCollectResultsWorkerTest.java        # 4 tests
     ├── GpuReleaseWorkerTest.java        # 4 tests
     └── GpuSubmitJobWorkerTest.java        # 4 tests
+
 ```

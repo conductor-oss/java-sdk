@@ -1,6 +1,8 @@
 # ETL Workflow Templating in Java Using Conductor :  Extract, Transform, Load, Verify
 
-A Java Conductor workflow example for ETL workflow templating .  extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job ,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.## Every ETL Job Is Extract-Transform-Load, but the Details Differ
+A Java Conductor workflow example for ETL workflow templating .  extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job ,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.
+
+## Every ETL Job Is Extract-Transform-Load, but the Details Differ
 
 Your company runs 50 ETL jobs. Each extracts from a different source (PostgreSQL, Salesforce API, S3 CSV files), transforms differently (currency conversion, deduplication, schema mapping), and loads to a different destination (Snowflake, Redshift, BigQuery). But the structure is always the same: extract, transform, load, verify. Without a template, each ETL job is built from scratch, duplicating retry logic, error handling, and verification.
 
@@ -38,6 +40,7 @@ wtm_load
     │
     ▼
 wtm_verify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ wtm_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-templating-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-templating-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wtm_etl_postgres_demo \
   --version 1 \
-  --input '{"batchId": "TEST-001", "options": "test-value"}'
+  --input '{"batchId": "TEST-001", "options": "sample-options"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wtm_etl_postgres_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ workflow-templating/
     ├── WtmLoadWorkerTest.java        # 4 tests
     ├── WtmTransformWorkerTest.java        # 4 tests
     └── WtmVerifyWorkerTest.java        # 4 tests
+
 ```

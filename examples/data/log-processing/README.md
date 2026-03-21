@@ -1,6 +1,8 @@
 # Log Processing in Java Using Conductor :  Ingestion, Structured Parsing, Pattern Extraction, and Metric Aggregation
 
-A Java Conductor workflow example for log processing. ingesting raw log entries from a source within a time range, parsing each entry into structured fields (timestamp, level, service, message, isError flag), extracting recurring patterns to identify the most common log signatures, and aggregating metrics like error counts, warning counts, and per-service breakdowns. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for log processing. ingesting raw log entries from a source within a time range, parsing each entry into structured fields (timestamp, level, service, message, isError flag), extracting recurring patterns to identify the most common log signatures, and aggregating metrics like error counts, warning counts, and per-service breakdowns. Uses [Conductor](https://github.
+
+## The Problem
 
 Your services generate thousands of log entries per minute, each with a raw timestamp, severity level, service name, and message. Before you can answer questions like "which service is producing the most errors?" or "is there a recurring NullPointerException pattern?", you need to ingest the logs from the source for a specific time range, parse each raw entry into structured fields (normalizing `ts` to `timestamp`, `msg` to `message`, flagging ERROR-level entries), extract recurring patterns to identify the most frequent log signatures (repeated exceptions, timeout messages, connection errors), and aggregate metrics (total entries, error count, warning count, top patterns by frequency). Each step depends on the previous one: you can't extract patterns from unparsed logs, and you can't aggregate metrics without knowing which entries are errors.
 
@@ -38,6 +40,7 @@ lp_extract_patterns
     │
     ▼
 lp_aggregate_metrics
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ lp_aggregate_metrics
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/log-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/log-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow log_processing \
   --version 1 \
-  --input '{"logSource": "test-value", "timeRange": "2026-01-01T00:00:00Z", "filters": "test-value"}'
+  --input '{"logSource": "api", "timeRange": "2026-01-01T00:00:00Z", "filters": "sample-filters"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w log_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ log-processing/
     ├── ExtractPatternsWorkerTest.java        # 5 tests
     ├── IngestLogsWorkerTest.java        # 4 tests
     └── ParseEntriesWorkerTest.java        # 4 tests
+
 ```

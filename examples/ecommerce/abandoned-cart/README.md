@@ -1,6 +1,8 @@
 # Abandoned Cart Recovery in Java Using Conductor :  Detect, Wait, Remind, Discount, Convert
 
-Abandoned cart recovery: detect, wait, remind, offer discount, convert. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## 70% of Shopping Carts Are Abandoned
+Abandoned cart recovery: detect, wait, remind, offer discount, convert. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## 70% of Shopping Carts Are Abandoned
 
 A customer adds $150 worth of items to their cart and leaves. Without intervention, that revenue is lost. Abandoned cart recovery sends a reminder email after a delay (typically 1-4 hours), and if the customer still hasn't returned, offers a discount to incentivize completion. This sequence recovers 5-15% of abandoned carts on average.
 
@@ -41,6 +43,7 @@ abc_offer_discount
     │
     ▼
 abc_convert
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ abc_convert
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/abandoned-cart-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/abandoned-cart-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow abandoned_cart_workflow \
   --version 1 \
-  --input '{"cartId": "TEST-001", "customerId": "TEST-001", "cartTotal": "test-value"}'
+  --input '{"cartId": "TEST-001", "customerId": "TEST-001", "cartTotal": "sample-cartTotal"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w abandoned_cart_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ abandoned-cart/
     ├── ConvertWorkerTest.java        # 2 tests
     ├── DetectAbandonmentWorkerTest.java        # 2 tests
     └── OfferDiscountWorkerTest.java        # 3 tests
+
 ```

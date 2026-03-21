@@ -1,6 +1,8 @@
 # Loyalty Program in Java Using Conductor :  Earn Points, Check Tier, Upgrade, Reward
 
-Loyalty program: earn points, check tier, upgrade, deliver rewards. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Loyalty Programs Drive Repeat Purchases When They Work Right
+Loyalty program: earn points, check tier, upgrade, deliver rewards. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Loyalty Programs Drive Repeat Purchases When They Work Right
 
 A customer spends $85 and should earn 85 points (1 point per dollar). Their total reaches 950 points, putting them past the 900-point Gold tier threshold. They should be upgraded to Gold and receive the Gold welcome reward (10% off next purchase + free shipping for 30 days). Getting any of these steps wrong .  miscounted points, missed upgrade, wrong reward ,  erodes trust in the program.
 
@@ -38,6 +40,7 @@ loy_upgrade_tier
     │
     ▼
 loy_reward
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ loy_reward
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/loyalty-program-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/loyalty-program-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow loyalty_program_workflow \
   --version 1 \
-  --input '{"customerId": "TEST-001", "purchaseAmount": 100, "currentTier": "test-value"}'
+  --input '{"customerId": "TEST-001", "purchaseAmount": 100, "currentTier": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w loyalty_program_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -156,4 +166,5 @@ loyalty-program/
     ├── CheckTierWorkerTest.java        # 3 tests
     ├── EarnPointsWorkerTest.java        # 3 tests
     └── RewardWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # On Call Rotation in Java with Conductor
 
-Automates on-call rotation handoffs using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks the rotation schedule, hands off active incidents between engineers, updates PagerDuty/alerting routing rules, and confirms the new on-call has acknowledged.## Seamless On-Call Handoffs
+Automates on-call rotation handoffs using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks the rotation schedule, hands off active incidents between engineers, updates PagerDuty/alerting routing rules, and confirms the new on-call has acknowledged.
+
+## Seamless On-Call Handoffs
 
 It is Monday morning and on-call shifts from Alice to Bob. Two incidents are still active. The handoff needs to happen cleanly: Alice briefs Bob on open issues, PagerDuty routing updates so new alerts go to Bob, and Bob confirms he is ready. If any step is missed, alerts fall into a black hole or wake up the wrong person at 3 AM.
 
@@ -38,6 +40,7 @@ oc_update_routing
     │
     ▼
 oc_confirm
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ oc_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/on-call-rotation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/on-call-rotation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow on_call_rotation_workflow \
   --version 1 \
-  --input '{"team": "test-value", "rotationType": "test-value"}'
+  --input '{"team": "sample-team", "rotationType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w on_call_rotation_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ on-call-rotation-on-call-rotation/
 │       └── UpdateRoutingWorker.java
 └── src/test/java/oncallrotation/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

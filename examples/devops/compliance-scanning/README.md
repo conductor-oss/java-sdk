@@ -1,6 +1,8 @@
 # Compliance Scanning in Java with Conductor :  Resource Discovery, Policy Scanning, Report Generation, and Auto-Remediation
 
-Orchestrates infrastructure compliance scanning using [Conductor](https://github.com/conductor-oss/conductor). This workflow discovers all resources in a target environment, scans them against a compliance framework's policies (SOC 2, HIPAA, PCI-DSS, CIS benchmarks), generates an audit-ready compliance report with pass/fail results per policy, and auto-remediates fixable violations like open security groups or unencrypted storage.## Staying Compliant at Scale
+Orchestrates infrastructure compliance scanning using [Conductor](https://github.com/conductor-oss/conductor). This workflow discovers all resources in a target environment, scans them against a compliance framework's policies (SOC 2, HIPAA, PCI-DSS, CIS benchmarks), generates an audit-ready compliance report with pass/fail results per policy, and auto-remediates fixable violations like open security groups or unencrypted storage.
+
+## Staying Compliant at Scale
 
 Your auditor asks for evidence that every S3 bucket has encryption enabled, every security group restricts SSH access, and every database has automated backups configured. You have 200 resources across three AWS accounts. Manually checking each one takes days, and by the time you finish, someone has already created a new unencrypted bucket. You need automated discovery of all resources in the environment, policy scanning against the specified compliance framework, a report that the auditor can read, and automatic remediation of the violations you can fix without human intervention.
 
@@ -38,6 +40,7 @@ cs_generate_report
     │
     ▼
 cs_remediate
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cs_remediate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/compliance-scanning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/compliance-scanning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow compliance_scanning_workflow \
   --version 1 \
-  --input '{"environment": "test-value", "framework": "test-value"}'
+  --input '{"environment": "staging", "framework": "sample-framework"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w compliance_scanning_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ compliance-scanning-compliance-scanning/
 │       └── ScanPoliciesWorker.java
 └── src/test/java/compliancescanning/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

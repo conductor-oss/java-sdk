@@ -1,6 +1,8 @@
 # Implementing Compliance Reporting in Java with Conductor :  Evidence Collection, Control Mapping, Gap Assessment, and Report Generation
 
-A Java Conductor workflow example automating compliance report generation .  collecting evidence artifacts (access logs, configuration snapshots, policy documents) for a target framework (SOC 2, ISO 27001, HIPAA, PCI-DSS), mapping each evidence item to the control objectives it satisfies, identifying gaps where controls lack sufficient evidence, and generating the final compliance report for auditor review. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example automating compliance report generation .  collecting evidence artifacts (access logs, configuration snapshots, policy documents) for a target framework (SOC 2, ISO 27001, HIPAA, PCI-DSS), mapping each evidence item to the control objectives it satisfies, identifying gaps where controls lack sufficient evidence, and generating the final compliance report for auditor review. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to produce compliance reports that demonstrate your organization meets the requirements of a regulatory framework. This means gathering hundreds of evidence items .  access review logs, network diagrams, encryption configurations, incident response records, change management tickets, and mapping each one to the specific control objective it satisfies (e.g., SOC 2 CC6.1 for logical access, ISO 27001 A.12.3 for backup verification). After mapping, you must identify gaps where a control has insufficient or missing evidence, so remediation can happen before the audit. The final report must be structured for auditor consumption, with clear traceability from each control to its supporting evidence.
 
@@ -38,6 +40,7 @@ cr_assess_gaps
     │
     ▼
 cr_generate_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cr_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/compliance-reporting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/compliance-reporting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow compliance_reporting \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w compliance_reporting -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ compliance-reporting/
     ├── CollectEvidenceWorkerTest.java        # 8 tests
     ├── GenerateReportWorkerTest.java        # 8 tests
     └── MapControlsWorkerTest.java        # 8 tests
+
 ```

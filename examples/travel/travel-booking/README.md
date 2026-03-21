@@ -1,6 +1,6 @@
 # Travel Booking Workflow in Java with Conductor
 
-A traveler books a flight from SFO to JFK, a hotel in Manhattan, and then the car rental fails. the rental company's API returns a 503 at 2 AM. Now they have a confirmed flight landing at JFK, a hotel room waiting in Midtown, and no way to get from the airport. The flight is non-refundable. The hotel has a 24-hour cancellation policy that expires in 6 hours. Nobody is awake to notice the partial failure, and the traveler finds out when they land and check their itinerary. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a multi-step booking pipeline, you write the booking logic, Conductor handles retries, failure routing, durability, and observability for free.
+A traveler books a flight from SFO to JFK, a hotel in Manhattan, and then the car rental fails. the rental company's API returns a 503 at 2 AM. Now they have a confirmed flight landing at JFK, a hotel room waiting in Midtown, and no way to get from the airport. The flight is non-refundable. The hotel has a 24-hour cancellation policy that expires in 6 hours. Nobody is awake to notice the partial failure, and the traveler finds out when they land and check their itinerary. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate a multi-step booking pipeline, you write the booking logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Multi-Step Booking Problem
 
@@ -28,15 +28,6 @@ Five workers divide the booking flow. Search, compare, book, confirm, and itiner
 
 Workers simulate travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ tvb_confirm
     |
     v
 tvb_itinerary
+
 ```
 
 ## Example Output
@@ -82,6 +74,7 @@ Step 4: Starting workflow...
   Output: {bookingId=BK-545, totalCost=420}
 
 Result: PASSED
+
 ```
 
 ## Running It
@@ -96,6 +89,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -104,13 +98,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -118,6 +113,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/travel-booking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -130,6 +126,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ### Sample Output
@@ -147,6 +144,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
   Total cost: 420
 
 Result: PASSED
+
 ```
 
 ## Configuration
@@ -162,6 +160,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/travel-booking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -171,6 +170,7 @@ conductor workflow start \
   --workflow tvb_travel_booking \
   --version 1 \
   --input '{"travelerId": "TRV-100", "origin": "SFO", "destination": "JFK", "departDate": "2024-04-15"}'
+
 ```
 
 ### Check workflow status
@@ -179,6 +179,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tvb_travel_booking -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -207,6 +208,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -234,4 +236,5 @@ travel-booking-travel-booking/
     ├── ConfirmWorkerTest.java
     ├── ItineraryWorkerTest.java
     └── SearchWorkerTest.java
+
 ```

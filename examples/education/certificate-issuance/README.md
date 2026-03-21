@@ -1,6 +1,8 @@
 # Certificate Issuance in Java with Conductor :  Completion Verification, Generation, Signing, Delivery, and Record-Keeping
 
-A Java Conductor workflow example for issuing educational certificates .  verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for issuing educational certificates .  verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to issue certificates when students complete a course. Before generating anything, you must verify the student actually finished all required coursework, assignments, and exams. Then you generate a certificate with the student's name, course title, and completion date, digitally sign it so it cannot be forged, deliver it to the student, and record the issued credential in the registrar's system. Issuing a certificate without verified completion is an institutional liability; losing the record makes the credential unverifiable.
 
@@ -42,6 +44,7 @@ cer_issue
     │
     ▼
 cer_record
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cer_record
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/certificate-issuance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/certificate-issuance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow cer_certificate_issuance \
   --version 1 \
   --input '{"studentId": "TEST-001", "courseId": "TEST-001", "courseName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cer_certificate_issuance -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ certificate-issuance/
     ├── RecordCertificateWorkerTest.java        # 2 tests
     ├── SignCertificateWorkerTest.java        # 2 tests
     └── VerifyCompletionWorkerTest.java        # 2 tests
+
 ```

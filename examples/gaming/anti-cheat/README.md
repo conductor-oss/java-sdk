@@ -1,6 +1,8 @@
 # Anti Cheat in Java Using Conductor
 
-Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task. Uses [Conductor](https://github.## The Problem
+Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to detect and act on cheating in an online game. The workflow monitors a player's in-game behavior during a match, runs anomaly detection algorithms on metrics like aim accuracy, movement speed, and reaction time, and routes to one of three outcomes: clean (no action), suspect (flag for manual review), or confirmed cheat (ban or penalty). Failing to detect cheats ruins the experience for honest players; false positives unfairly punish legitimate players.
 
@@ -43,6 +45,7 @@ SWITCH (switch_ref)
     │
     ▼
 ach_act
+
 ```
 
 ## Running It
@@ -57,6 +60,7 @@ ach_act
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,6 +69,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -79,6 +84,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/anti-cheat-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,6 +97,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -106,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/anti-cheat-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -115,6 +123,7 @@ conductor workflow start \
   --workflow anti_cheat_746 \
   --version 1 \
   --input '{"playerId": "TEST-001", "matchId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -123,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w anti_cheat_746 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ anti-cheat/
 └── src/test/java/anticheat/workers/
     ├── ActWorkerTest.java
     └── DetectAnomalyWorkerTest.java
+
 ```

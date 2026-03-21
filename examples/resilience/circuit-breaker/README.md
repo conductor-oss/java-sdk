@@ -22,6 +22,7 @@ The circuit breaker pattern tracks failure counts and transitions between three 
      +--- HALF_OPEN ----+
           (test one       failure -> back to OPEN
            request)       success -> back to CLOSED
+
 ```
 
 - **CLOSED**: Normal operation. Requests go through to the real service. Failures are counted.
@@ -34,7 +35,7 @@ Without orchestration, implementing circuit breakers means embedding state manag
 
 **You just write the service call and fallback logic. Conductor handles SWITCH-based state routing between OPEN and CLOSED paths, retries on the service call, and visibility into every circuit evaluation showing which state was active and whether the live or fallback path was taken.**
 
-Each circuit breaker concern is a simple, independent worker. One evaluates the circuit state from failure count and threshold, one makes the actual service call, one returns fallback data. Conductor's SWITCH task handles the routing: when the circuit is OPEN, it skips the service call entirely and routes to the fallback path. Every circuit evaluation is tracked with inputs, outputs, and timing, giving you full visibility into which circuits tripped and when. You get all of that for free, without writing a single line of orchestration code.
+Each circuit breaker concern is a simple, independent worker. One evaluates the circuit state from failure count and threshold, one makes the actual service call, one returns fallback data. Conductor's SWITCH task handles the routing: when the circuit is OPEN, it skips the service call entirely and routes to the fallback path. Every circuit evaluation is tracked with inputs, outputs, and timing, giving you full visibility into which circuits tripped and when. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -48,16 +49,6 @@ CheckCircuitWorker evaluates the circuit state from failure counts and threshold
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -67,6 +58,7 @@ cb_check_circuit
 SWITCH (circuit_switch_ref) on state:
     |-- "OPEN":    cb_fallback  --> returns cached data (source: "cache")
     |-- default:   cb_call_service --> returns live data (source: "live")
+
 ```
 
 ## Running It
@@ -81,6 +73,7 @@ SWITCH (circuit_switch_ref) on state:
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -89,13 +82,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -103,6 +97,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/circuit-breaker-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -115,6 +110,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Example Output
@@ -156,6 +152,7 @@ Step 6: Scenario C. Circuit forced OPEN (manual override)...
   Output: {circuitState=OPEN, result=Fallback data for payment-api, source=cache}
 
 Result: PASSED
+
 ```
 
 ## Configuration
@@ -171,6 +168,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/circuit-breaker-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -199,6 +197,7 @@ conductor workflow start \
   --workflow circuit_breaker_demo \
   --version 1 \
   --input '{"circuitState": "HALF_OPEN", "serviceName": "inventory-api"}'
+
 ```
 
 ### Check workflow status
@@ -207,6 +206,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w circuit_breaker_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -230,6 +230,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -253,4 +254,5 @@ circuit-breaker/
     ├── CallServiceWorkerTest.java   # 4 tests
     ├── CheckCircuitWorkerTest.java  # 12 tests
     └── FallbackWorkerTest.java      # 4 tests
+
 ```

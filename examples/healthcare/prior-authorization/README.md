@@ -1,6 +1,8 @@
 # Prior Authorization in Java Using Conductor :  Request Submission, Clinical Criteria Review, Three-Way Decision Routing, and Provider Notification
 
-A Java Conductor workflow example for prior authorization .  submitting authorization requests with clinical justification, reviewing against medical necessity criteria, routing to auto-approve, auto-deny, or manual clinical review via SWITCH, and notifying the provider of the determination. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for prior authorization .  submitting authorization requests with clinical justification, reviewing against medical necessity criteria, routing to auto-approve, auto-deny, or manual clinical review via SWITCH, and notifying the provider of the determination. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process prior authorization requests for medical procedures, imaging studies, or specialty medications. A provider submits a request with the patient ID, procedure code, and clinical justification. The request must be reviewed against the payer's medical necessity criteria. InterQual, MCG, or custom clinical guidelines. Based on the criteria review, the request is routed to one of three paths: auto-approve if all criteria are met, auto-deny if the procedure clearly does not meet medical necessity, or escalate to a medical director for manual peer review if the case is ambiguous. Regardless of the determination, the provider must be notified with the decision, authorization number (if approved), or denial reason with appeal instructions. State prompt-decision laws require turnaround within specific timeframes.
 
@@ -44,6 +46,7 @@ SWITCH (pa_switch_ref)
     │
     ▼
 pa_notify
+
 ```
 
 ## Running It
@@ -58,6 +61,7 @@ pa_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -66,6 +70,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -80,6 +85,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/prior-authorization-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -92,6 +98,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -107,6 +114,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/prior-authorization-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -115,7 +123,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow prior_authorization_workflow \
   --version 1 \
-  --input '{"authId": "TEST-001", "patientId": "TEST-001", "procedure": "test-value", "clinicalReason": "test-value"}'
+  --input '{"authId": "TEST-001", "patientId": "TEST-001", "procedure": "sample-procedure", "clinicalReason": "sample-clinicalReason"}'
+
 ```
 
 ### Check workflow status
@@ -124,6 +133,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w prior_authorization_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,6 +159,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -178,4 +189,5 @@ prior-authorization/
     ├── NotifyWorkerTest.java        # 2 tests
     ├── ReviewCriteriaWorkerTest.java        # 3 tests
     └── SubmitRequestWorkerTest.java        # 2 tests
+
 ```

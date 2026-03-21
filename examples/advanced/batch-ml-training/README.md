@@ -1,6 +1,8 @@
 # Batch ML Model Training in Java Using Conductor :  Prepare Data, Train in Parallel, Evaluate
 
-A Java Conductor workflow example for batch ML training .  loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.## Running ML Experiments Without Losing Your Mind
+A Java Conductor workflow example for batch ML training .  loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.
+
+## Running ML Experiments Without Losing Your Mind
 
 Training a single model is straightforward. Comparing multiple model architectures on the same dataset is where things get messy. You need to prepare the raw data (cleaning, feature engineering), split it consistently so every model trains on the same 80/20 partition, train a random forest and a gradient boosting model simultaneously to cut wall-clock time in half, then evaluate both against the held-out test set to determine which one wins.
 
@@ -42,6 +44,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 bml_evaluate
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ bml_evaluate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/batch-ml-training-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/batch-ml-training-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow batch_ml_training_demo \
   --version 1 \
   --input '{"datasetId": "TEST-001", "experimentName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w batch_ml_training_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ batch-ml-training/
     ├── BmlSplitDataWorkerTest.java        # 4 tests
     ├── BmlTrainModel1WorkerTest.java        # 4 tests
     └── BmlTrainModel2WorkerTest.java        # 4 tests
+
 ```

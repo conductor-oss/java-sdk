@@ -1,6 +1,8 @@
 # Workflow Optimization in Java Using Conductor :  Analyze Execution, Find Waste, Parallelize, Benchmark
 
-A Java Conductor workflow example for workflow optimization .  analyzing execution history to measure task durations, identifying wasted time (sequential tasks that could run in parallel, unnecessary waits), recommending parallelization opportunities, and benchmarking the optimized version against the original. Uses [Conductor](https://github.## Slow Workflows Need Data-Driven Optimization, Not Guessing
+A Java Conductor workflow example for workflow optimization .  analyzing execution history to measure task durations, identifying wasted time (sequential tasks that could run in parallel, unnecessary waits), recommending parallelization opportunities, and benchmarking the optimized version against the original. Uses [Conductor](https://github.
+
+## Slow Workflows Need Data-Driven Optimization, Not Guessing
 
 Your order fulfillment workflow takes 45 seconds end-to-end, but the SLA is 30 seconds. Which tasks are the bottleneck? Are there sequential tasks with no data dependency that could run in parallel? Is there a task that always takes 10 seconds but only does a simple lookup .  suggesting it's waiting on a slow dependency?
 
@@ -38,6 +40,7 @@ wfo_parallelize
     │
     ▼
 wfo_benchmark
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ wfo_benchmark
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-optimization-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-optimization-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wfo_workflow_optimization \
   --version 1 \
-  --input '{"workflowName": "test", "executionHistory": "test-value"}'
+  --input '{"workflowName": "test", "executionHistory": "sample-executionHistory"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wfo_workflow_optimization -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ workflow-optimization/
     ├── WfoBenchmarkWorkerTest.java        # 4 tests
     ├── WfoIdentifyWasteWorkerTest.java        # 4 tests
     └── WfoParallelizeWorkerTest.java        # 4 tests
+
 ```

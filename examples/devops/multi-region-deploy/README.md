@@ -1,6 +1,8 @@
 # Multi-Region Deploy in Java with Conductor :  Deploy Primary, Verify, Deploy Secondary, Verify Global
 
-Automates multi-region deployments using [Conductor](https://github.com/conductor-oss/conductor). This workflow deploys a service to the primary region first, verifies it is healthy, then rolls out to secondary regions, and runs a global verification to confirm all regions are serving traffic correctly.## Deploying Across Regions Safely
+Automates multi-region deployments using [Conductor](https://github.com/conductor-oss/conductor). This workflow deploys a service to the primary region first, verifies it is healthy, then rolls out to secondary regions, and runs a global verification to confirm all regions are serving traffic correctly.
+
+## Deploying Across Regions Safely
 
 You run your payment service in us-east-1, eu-west-1, and ap-southeast-1. A new version needs to go out, but deploying to all three regions simultaneously is risky. If the release has a bug, all regions go down at once. The safe approach: deploy to the primary region first, verify it is healthy, then fan out to the secondary regions, and finally run a global check to confirm every region is serving traffic. If the primary deployment fails health checks, the secondary regions never get the bad version.
 
@@ -38,6 +40,7 @@ mrd_deploy_secondary
     │
     ▼
 mrd_verify_global
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ mrd_verify_global
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/multi-region-deploy-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/multi-region-deploy-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_region_deploy_workflow \
   --version 1 \
-  --input '{"service": "test-value", "version": "test-value", "regions": "test-value"}'
+  --input '{"service": "order-service", "version": "1.0", "regions": "us-east-1"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w multi_region_deploy_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ multi-region-deploy/
     ├── DeploySecondaryWorkerTest.java        # 8 tests
     ├── VerifyGlobalWorkerTest.java        # 7 tests
     └── VerifyPrimaryWorkerTest.java        # 7 tests
+
 ```

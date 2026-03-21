@@ -1,6 +1,8 @@
 # Reflection Agent in Java Using Conductor :  Generate, Reflect, Improve in Iterative Refinement Loop
 
-Reflection Agent .  generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output. Uses [Conductor](https://github.## First Drafts Are Never Good Enough
+Reflection Agent .  generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output. Uses [Conductor](https://github.
+
+## First Drafts Are Never Good Enough
 
 An LLM's first response to "Write an essay about climate change solutions" is serviceable but rarely excellent. It might lack specific examples, have a weak conclusion, or miss an important perspective. A reflection agent catches these weaknesses: after generating the initial draft, a separate reflection step identifies specific issues ("Paragraph 3 lacks a concrete example", "The economic analysis is superficial"), and an improvement step addresses each issue.
 
@@ -37,6 +39,7 @@ DO_WHILE
     │
     ▼
 rn_final_output
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ rn_final_output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/reflection-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/reflection-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow reflection_agent \
   --version 1 \
-  --input '{"topic": "test-value"}'
+  --input '{"topic": "microservices best practices"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w reflection_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -156,4 +166,5 @@ reflection-agent/
     ├── ImproveWorkerTest.java        # 8 tests
     ├── InitialGenerationWorkerTest.java        # 8 tests
     └── ReflectWorkerTest.java        # 9 tests
+
 ```

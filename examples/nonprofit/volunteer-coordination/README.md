@@ -1,6 +1,8 @@
 # Volunteer Coordination in Java with Conductor
 
-A Java Conductor workflow example demonstrating Volunteer Coordination. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+A Java Conductor workflow example demonstrating Volunteer Coordination. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 A new volunteer signs up to help at your nonprofit. The volunteer coordination team needs to register the volunteer with their skills and availability, match them to an appropriate opportunity (e.g., food bank sorting), schedule their shift at a specific location and time, track their hours worked and events attended, and send a personalized thank-you acknowledging their contribution. Each step depends on the previous one's output.
 
@@ -42,6 +44,7 @@ vol_track
     │
     ▼
 vol_thank
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ vol_thank
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/volunteer-coordination-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/volunteer-coordination-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow volunteer_coordination_753 \
   --version 1 \
-  --input '{"volunteerName": "test", "skills": "test-value", "availability": "test-value"}'
+  --input '{"volunteerName": "test", "skills": "sample-skills", "availability": "sample-availability"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w volunteer_coordination_753 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ volunteer-coordination/
 └── src/test/java/volunteercoordination/workers/
     ├── RegisterWorkerTest.java        # 1 tests
     └── ThankWorkerTest.java        # 1 tests
+
 ```

@@ -12,7 +12,7 @@ Without orchestration, you'd chain identity verification API calls, credit burea
 
 **You just write the account opening workers. Document collection, identity verification, credit check, account provisioning, and welcome package. Conductor handles step ordering, automatic retries when the credit bureau API times out, and complete application lifecycle tracking.**
 
-Each account-opening concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (collect info, verify identity, credit check, open account, send welcome), retrying if the credit bureau API times out, tracking every application's full lifecycle, and resuming from the last successful step if the process crashes mid-verification. You get all of that for free, without writing a single line of orchestration code.
+Each account-opening concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (collect info, verify identity, credit check, open account, send welcome), retrying if the credit bureau API times out, tracking every application's full lifecycle, and resuming from the last successful step if the process crashes mid-verification. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Five workers cover the onboarding pipeline: CollectInfoWorker gathers identity d
 | **WelcomeWorker** | `acc_welcome` | Sends the welcome package to the new account holder. Includes debit card, checks, online banking enrollment, and mobile app setup |
 
 Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,6 +44,7 @@ acc_open_account
     │
     ▼
 acc_welcome
+
 ```
 
 ## Example Output
@@ -82,6 +74,7 @@ Step 4: Starting workflow...
   Output: {applicationId=ACCTAPP-2024-001, accountNumber=3, accountType=checking, welcomeSent=true}
 
 Result: PASSED
+
 ```
 
 ## Running It
@@ -96,6 +89,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -104,13 +98,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -118,6 +113,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/account-opening-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -130,6 +126,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -145,6 +142,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/account-opening-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -154,6 +152,7 @@ conductor workflow start \
   --workflow account_opening_workflow \
   --version 1 \
   --input '{"applicationId": "ACCTAPP-2024-001", "applicantName": "Emily Davis", "accountType": "checking", "initialDeposit": 1000}'
+
 ```
 
 ### Check workflow status
@@ -162,6 +161,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w account_opening_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -185,6 +185,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -209,4 +210,5 @@ account-opening/
 └── src/test/java/accountopening/workers/
     ├── OpenAccountWorkerTest.java        # 2 tests
     └── WelcomeWorkerTest.java        # 2 tests
+
 ```

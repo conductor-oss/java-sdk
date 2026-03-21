@@ -40,6 +40,7 @@ red_pub_sub
     │
     ▼
 red_cache_mgmt
+
 ```
 
 ## Running It
@@ -54,6 +55,7 @@ red_cache_mgmt
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/redis-integration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +109,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/redis-integration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +118,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow redis_integration_445 \
   --version 1 \
-  --input '{"redisHost": "test-value", "cacheKey": "test-value", "cacheValue": "test-value", "channel": "test-value"}'
+  --input '{"redisHost": "sample-redisHost", "cacheKey": "sample-cacheKey", "cacheValue": "sample-cacheValue", "channel": "email"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +128,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w redis_integration_445 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +177,5 @@ redis-integration/
     ├── GetSetWorkerTest.java        # 2 tests
     ├── PubSubWorkerTest.java        # 2 tests
     └── RedisConnectWorkerTest.java        # 2 tests
+
 ```

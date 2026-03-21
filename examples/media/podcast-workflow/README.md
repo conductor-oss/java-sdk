@@ -1,6 +1,8 @@
 # Podcast Production Pipeline in Java Using Conductor :  Recording, Audio Editing, Transcription, Publishing, and Directory Distribution
 
-A Java Conductor workflow example that orchestrates podcast production .  ingesting raw audio recordings with sample rate and channel metadata, editing (silence removal, normalization, compression, bitrate optimization), transcribing speech to text with language detection and word-level confidence, publishing the episode with RSS feed generation, and distributing to podcast directories (Apple Podcasts, Spotify, Google Podcasts). Uses [Conductor](https://github.## Why Podcast Production Needs Orchestration
+A Java Conductor workflow example that orchestrates podcast production .  ingesting raw audio recordings with sample rate and channel metadata, editing (silence removal, normalization, compression, bitrate optimization), transcribing speech to text with language detection and word-level confidence, publishing the episode with RSS feed generation, and distributing to podcast directories (Apple Podcasts, Spotify, Google Podcasts). Uses [Conductor](https://github.
+
+## Why Podcast Production Needs Orchestration
 
 Producing a podcast episode involves a multi-stage pipeline where each step transforms or enriches the audio. You ingest the raw recording .  capturing duration, sample rate, and channel count. You edit the audio ,  removing silence, normalizing levels, applying compression, and encoding at the target bitrate to reduce file size. You transcribe the edited audio for show notes, accessibility, and SEO. You publish the episode ,  generating the RSS feed entry with metadata, duration, and file URLs. Finally, you ping all major podcast directories so the new episode appears in listeners' feeds.
 
@@ -42,6 +44,7 @@ pod_publish
     │
     ▼
 pod_distribute
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ pod_distribute
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/podcast-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/podcast-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow podcast_workflow \
   --version 1 \
-  --input '{"episodeId": "TEST-001", "showName": "test", "episodeTitle": "test-value", "hostId": "TEST-001"}'
+  --input '{"episodeId": "TEST-001", "showName": "test", "episodeTitle": "sample-episodeTitle", "hostId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w podcast_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ podcast-workflow/
 └── src/test/java/podcastworkflow/workers/
     ├── EditWorkerTest.java        # 2 tests
     └── RecordWorkerTest.java        # 2 tests
+
 ```

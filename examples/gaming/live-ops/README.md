@@ -1,6 +1,8 @@
 # Live Ops in Java Using Conductor
 
-Runs a time-limited live ops event in a game: scheduling the event, configuring rewards and difficulty, deploying to servers across regions, monitoring engagement, and closing with reward distribution. Uses [Conductor](https://github.## The Problem
+Runs a time-limited live ops event in a game: scheduling the event, configuring rewards and difficulty, deploying to servers across regions, monitoring engagement, and closing with reward distribution. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to run a live operations event in your game .  a time-limited in-game event with special content, challenges, and rewards. The workflow schedules the event for a start/end date, configures the event parameters (rewards, difficulty, matchmaking rules), deploys the configuration to game servers, monitors player engagement and server health during the event, and closes the event when it ends. Deploying without proper configuration breaks the player experience; not monitoring means missing critical issues during the event.
 
@@ -42,6 +44,7 @@ lop_monitor
     │
     ▼
 lop_close
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ lop_close
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/live-ops-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/live-ops-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow live_ops_748 \
   --version 1 \
   --input '{"eventName": "test", "startDate": "2026-01-01T00:00:00Z", "endDate": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w live_ops_748 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ live-ops/
 └── src/test/java/liveops/workers/
     ├── CloseWorkerTest.java
     └── ScheduleEventWorkerTest.java
+
 ```

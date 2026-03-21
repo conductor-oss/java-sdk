@@ -1,6 +1,8 @@
 # Dependency Update in Java with Conductor :  Outdated Scanning, Version Bumping, Test Verification, and PR Creation
 
-Orchestrates automated dependency updates using [Conductor](https://github.com/conductor-oss/conductor). This workflow scans a repository for outdated dependencies, updates them to the latest compatible versions (patch, minor, or major depending on the update type), runs the test suite to verify nothing breaks, and creates a pull request with the changes.## The Stale Dependency Problem
+Orchestrates automated dependency updates using [Conductor](https://github.com/conductor-oss/conductor). This workflow scans a repository for outdated dependencies, updates them to the latest compatible versions (patch, minor, or major depending on the update type), runs the test suite to verify nothing breaks, and creates a pull request with the changes.
+
+## The Stale Dependency Problem
 
 Your project has 47 dependencies, and 12 of them are behind by at least one minor version. Three have known CVEs. Updating them manually means editing pom.xml or package.json, running tests, finding that one update broke something, reverting it, trying the next one, and eventually giving up because it's Friday. The dependencies stay stale until a security scanner flags them as critical, by which point you're four versions behind and the upgrade path involves breaking changes.
 
@@ -37,6 +39,7 @@ du_run_tests
     │
     ▼
 du_create_pr
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ du_create_pr
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/dependency-update-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/dependency-update-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow dependency_update_workflow \
   --version 1 \
-  --input '{"repository": "test-value", "updateType": "2026-01-01T00:00:00Z"}'
+  --input '{"repository": "sample-repository", "updateType": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w dependency_update_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ dependency-update-dependency-update/
 │       └── UpdateDepsWorker.java
 └── src/test/java/dependencyupdate/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

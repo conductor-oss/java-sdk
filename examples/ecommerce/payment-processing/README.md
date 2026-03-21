@@ -1,6 +1,6 @@
 # Payment Processing in Java Using Conductor: Validate, Authorize, Capture, Receipt, Reconcile
 
-A customer pays $259.97 for their order. The payment gateway charges the card successfully, but the confirmation response times out on the network hop back. Your system assumes the charge failed and retries. Now the customer is double-charged, their bank shows two pending holds, and they file a chargeback before your support team even sees the ticket. The second charge eventually settles, the chargeback reverses the first, and your reconciliation report is off by $259.97 for a month until someone manually traces the duplicate. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full payment lifecycle as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer pays $259.97 for their order. The payment gateway charges the card successfully, but the confirmation response times out on the network hop back. Your system assumes the charge failed and retries. Now the customer is double-charged, their bank shows two pending holds, and they file a chargeback before your support team even sees the ticket. The second charge eventually settles, the chargeback reverses the first, and your reconciliation report is off by $259.97 for a month until someone manually traces the duplicate. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full payment lifecycle as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Payments Have a Two-Phase Lifecycle: Authorize Then Capture
 
@@ -28,15 +28,6 @@ Payment workers isolate authorization, capture, settlement, and notification int
 
 All workers run in mock mode by default when `STRIPE_API_KEY` is not set, producing realistic deterministic output. Set `STRIPE_API_KEY=sk_test_...` to use the real Stripe API. The workflow stays the same either way.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ pay_receipt
     │
     ▼
 pay_reconcile
+
 ```
 
 ## Example Output
@@ -82,6 +74,7 @@ Step 4: Starting workflow...
   Output: {authorizationId=AUTHORIZATION-001, captureId=CAPTURE-001, receiptId=RECEIPT-001, reconciled=true}
 
 Result: PASSED
+
 ```
 
 ## Running It
@@ -96,6 +89,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -104,13 +98,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -118,6 +113,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/payment-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -130,6 +126,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -146,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/payment-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -155,6 +153,7 @@ conductor workflow start \
   --workflow payment_processing \
   --version 1 \
   --input '{"orderId": "ORD-8801", "amount": 259.97, "currency": "USD", "paymentMethod": {"type": "credit_card", "brand": "visa", "last4": "1234"}, "merchantId": "merch-100"}'
+
 ```
 
 ### Check workflow status
@@ -163,6 +162,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w payment_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -205,4 +205,5 @@ payment-processing/
     ├── ReceiptWorkerTest.java        # 3 tests
     ├── ReconcileWorkerTest.java        # 3 tests
     └── ValidatePaymentWorkerTest.java        # 4 tests
+
 ```

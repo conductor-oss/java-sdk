@@ -1,6 +1,6 @@
 # Agentic Loop in Java Using Conductor: Think-Act-Observe Iteration Until Goal Completion
 
-You tell the agent "research distributed consensus algorithms." It searches, finds three papers, and searches again. And again. And again. Forty minutes and $50 in API calls later, it's still searching because nobody told it when to stop. The agent has no concept of "done".; no iteration cap, no goal-completion check, no kill switch. This example builds a think-act-observe loop with Conductor's `DO_WHILE` that gives the agent autonomy within guardrails: it reasons about what to do next, executes the plan, evaluates the result, and terminates when the goal is met or the iteration limit is hit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You tell the agent "research distributed consensus algorithms." It searches, finds three papers, and searches again. And again. And again. Forty minutes and $50 in API calls later, it's still searching because nobody told it when to stop. The agent has no concept of "done".; no iteration cap, no goal-completion check, no kill switch. This example builds a think-act-observe loop with Conductor's `DO_WHILE` that gives the agent autonomy within guardrails: it reasons about what to do next, executes the plan, evaluates the result, and terminates when the goal is met or the iteration limit is hit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Complex Goals Require Iterative Reasoning
 
@@ -28,16 +28,6 @@ Five workers drive the iterative loop. Setting the goal, then cycling through th
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -51,6 +41,7 @@ DO_WHILE
     │
     ▼
 al_summarize
+
 ```
 
 ## Example Output
@@ -81,7 +72,9 @@ Step 4: Starting workflow...
   Output: {goal=Research best practices for distributed systems, iterations=3, summary=Achieved goal '}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -94,6 +87,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -102,13 +96,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -116,6 +111,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/agentic-loop-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -128,6 +124,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -143,6 +140,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/agentic-loop-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -152,6 +150,7 @@ conductor workflow start \
   --workflow agentic_loop \
   --version 1 \
   --input '{"goal": "Research best practices for distributed systems"}'
+
 ```
 
 ### Check workflow status
@@ -160,6 +159,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w agentic_loop -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -202,4 +202,5 @@ agentic-loop/
     ├── SetGoalWorkerTest.java        # 8 tests
     ├── SummarizeWorkerTest.java        # 8 tests
     └── ThinkWorkerTest.java        # 9 tests
+
 ```

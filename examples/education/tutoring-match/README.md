@@ -1,6 +1,8 @@
 # Tutoring Match in Java with Conductor :  Request Intake, Tutor Matching, Session Scheduling, and Confirmation
 
-A Java Conductor workflow example for matching students with tutors .  receiving a tutoring request with subject and time preferences, finding an available tutor qualified in that subject, scheduling a session at the preferred time, and confirming the booking with both student and tutor. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for matching students with tutors .  receiving a tutoring request with subject and time preferences, finding an available tutor qualified in that subject, scheduling a session at the preferred time, and confirming the booking with both student and tutor. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to connect students who need help with qualified tutors. A student requests tutoring in a specific subject at a preferred time, the system must find a tutor who is both qualified in that subject and available during that time slot, a session is scheduled, and both parties need confirmation with the session details. Matching a student with a tutor who is unavailable wastes everyone's time; scheduling without confirming availability leads to no-shows.
 
@@ -38,6 +40,7 @@ tut_schedule
     │
     ▼
 tut_confirm
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ tut_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tutoring-match-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tutoring-match-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tut_tutoring_match \
   --version 1 \
-  --input '{"studentId": "TEST-001", "subject": "test-value", "preferredTime": "2026-01-01T00:00:00Z"}'
+  --input '{"studentId": "TEST-001", "subject": "microservices best practices", "preferredTime": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tut_tutoring_match -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ tutoring-match/
     ├── MatchTutorWorkerTest.java        # 2 tests
     ├── ScheduleWorkerTest.java        # 2 tests
     └── StudentRequestWorkerTest.java        # 2 tests
+
 ```

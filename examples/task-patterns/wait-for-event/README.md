@@ -1,6 +1,6 @@
 # Wait-for-Event in Java with Conductor
 
-WAIT task demo. pauses a workflow durably until an external system sends a signal (approval, webhook callback, or third-party notification), then processes the signal data. The workflow survives process restarts while waiting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+WAIT task demo. pauses a workflow durably until an external system sends a signal (approval, webhook callback, or third-party notification), then processes the signal data. The workflow survives process restarts while waiting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -25,16 +25,6 @@ Two workers bookend the durable WAIT pause: PrepareWorker readies the request an
 
 The WAIT task (`wait_for_signal`) is a Conductor system task.; no worker is needed. It pauses the workflow until an external system completes it via the Conductor API.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | The WAIT task survives process restarts, the workflow resumes exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status. Including how long the WAIT lasted |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline; the WAIT task can have its own timeout |
-| **External integration** | The WAIT task provides a clean API endpoint for external systems to resume workflow execution |
-
 ### The Workflow
 
 ```
@@ -45,6 +35,7 @@ wait_for_signal [WAIT]  ← pauses here until external API call
     │
     ▼
 we_process_signal
+
 ```
 
 ## Running It
@@ -59,6 +50,7 @@ we_process_signal
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -67,13 +59,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -81,6 +74,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/wait-for-event-1.0.0.jar --workers
+
 ```
 
 ### Option 3: Use the run script
@@ -93,6 +87,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -108,6 +103,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/wait-for-event-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal, start a workflow and complete the WAIT task:
@@ -132,6 +128,7 @@ curl -X POST http://localhost:8080/api/tasks \
 
 # 5. Check workflow status again: it should now be COMPLETED
 conductor workflow status <workflow_id>
+
 ```
 
 ### Check workflow status
@@ -140,6 +137,7 @@ conductor workflow status <workflow_id>
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wait_event_demo -s COMPLETED -c 5
+
 ```
 
 ## Example Output
@@ -177,7 +175,9 @@ Example:
 
   Status: COMPLETED
   Output: {requestId=REQ-001, decision=approved, processed=true}
+
 ```
+
 ## How to Extend
 
 Connect the preparation step to a real notification system (email, Slack, PagerDuty) and the signal processing to your fulfillment service, and the durable WAIT pattern works unchanged.
@@ -198,6 +198,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -219,4 +220,5 @@ wait-for-event/
 └── src/test/java/waitforevent/workers/
     ├── PrepareWorkerTest.java       # 6 tests
     └── ProcessSignalWorkerTest.java # 8 tests
+
 ```

@@ -1,6 +1,6 @@
 # Dead Letter Events in Java Using Conductor
 
-A `payment.charge` event hits your processor with a malformed payload. The catch block logs a warning. Nobody reads the log. Three days later, a customer calls: "Where's my order?" It's not stuck in a retry loop. It's not in a dead letter queue. It's gone. silently swallowed by a `catch (Exception e) { log.warn(...) }` that your team wrote at 4 PM on a Friday. There are 47 more just like it, and you only know about the one customer who bothered to call. This example builds a dead letter event pipeline with Conductor: receive the event, attempt processing, and route failures to a DLQ with alerting via a `SWITCH` task, so no failed event is ever silently dropped. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A `payment.charge` event hits your processor with a malformed payload. The catch block logs a warning. Nobody reads the log. Three days later, a customer calls: "Where's my order?" It's not stuck in a retry loop. It's not in a dead letter queue. It's gone. silently swallowed by a `catch (Exception e) { log.warn(...) }` that your team wrote at 4 PM on a Friday. There are 47 more just like it, and you only know about the one customer who bothered to call. This example builds a dead letter event pipeline with Conductor: receive the event, attempt processing, and route failures to a DLQ with alerting via a `SWITCH` task, so no failed event is ever silently dropped. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd wrap your event processor in try/catch blocks, manu
 
 **You just write the event-receive, processing-attempt, DLQ-routing, and alert workers. Conductor handles failure-path SWITCH routing, guaranteed DLQ delivery via retries, and a full audit of every event's fate.**
 
-Each dead-letter concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of receiving the event, attempting processing, routing failures via a SWITCH task to the DLQ path with alerting or routing successes to finalization, retrying transient failures automatically, and tracking every event's fate. You get all of that for free, without writing a single line of orchestration code.
+Each dead-letter concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of receiving the event, attempting processing, routing failures via a SWITCH task to the DLQ path with alerting or routing successes to finalization, retrying transient failures automatically, and tracking every event's fate. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -28,16 +28,6 @@ Five workers manage failed-event routing: DlReceiveEventWorker ingests the event
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -50,6 +40,7 @@ dl_attempt_process
 SWITCH (result_switch_ref)
     ├── success: dl_finalize_success
     └── default: dl_route_to_dlq -> dl_send_alert
+
 ```
 
 ## Example Output
@@ -78,7 +69,9 @@ Step 4: Starting workflow...
   Output: {eventId=evt-fixed-001, processingResult=success, errorReason=errorReason-value}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -91,6 +84,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -99,13 +93,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -113,6 +108,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/dead-letter-events-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -125,6 +121,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -140,6 +137,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/dead-letter-events-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -149,6 +147,7 @@ conductor workflow start \
   --workflow dead_letter_events_wf \
   --version 1 \
   --input '{"eventId": "evt-fixed-001", "eventType": "payment.charge", "payload": {"amount": 99.99, "currency": "USD"}, "retryCount": 3}'
+
 ```
 
 ### Check workflow status
@@ -157,6 +156,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w dead_letter_events_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -181,6 +181,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -208,4 +209,5 @@ dead-letter-events/
     ├── DlReceiveEventWorkerTest.java        # 9 tests
     ├── DlRouteToDlqWorkerTest.java        # 8 tests
     └── DlSendAlertWorkerTest.java        # 9 tests
+
 ```

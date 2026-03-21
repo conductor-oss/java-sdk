@@ -1,6 +1,8 @@
 # Webhook Rate Limiting in Java Using Conductor
 
-Rate limit incoming webhooks per sender. Identifies the sender, checks their request rate, and uses SWITCH to allow processing or queue for throttling. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Rate limit incoming webhooks per sender. Identifies the sender, checks their request rate, and uses SWITCH to allow processing or queue for throttling. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to rate-limit incoming webhooks per sender to protect your system from webhook floods. Each incoming webhook must be identified by sender, checked against their rate limit, and either allowed through for processing or queued for throttled delivery. Without rate limiting, a misbehaving sender can overwhelm your processing pipeline and degrade service for all other senders.
 
@@ -37,6 +39,7 @@ wl_check_rate
 SWITCH (switch_ref)
     ├── allowed: wl_process_allowed
     ├── throttled: wl_queue_throttled
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/webhook-rate-limiting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/webhook-rate-limiting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow webhook_rate_limiting \
   --version 1 \
-  --input '{"senderId": "TEST-001", "payload": "test-value", "rateLimit": 10}'
+  --input '{"senderId": "TEST-001", "payload": {"key": "value"}, "rateLimit": 10}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w webhook_rate_limiting -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ webhook-rate-limiting/
     ├── IdentifySenderWorkerTest.java        # 8 tests
     ├── ProcessAllowedWorkerTest.java        # 8 tests
     └── QueueThrottledWorkerTest.java        # 9 tests
+
 ```

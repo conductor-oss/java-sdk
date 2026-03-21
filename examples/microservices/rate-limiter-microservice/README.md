@@ -1,6 +1,8 @@
 # Rate Limiter Microservice in Java with Conductor
 
-Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates counters per client. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates counters per client. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 API rate limiting protects backend services from being overwhelmed. Each incoming request must have its client quota checked, and based on the result, the request is either processed (with the counter incremented) or rejected with a retry-after hint. The check and update must be consistent to avoid exceeding the limit.
 
@@ -34,6 +36,7 @@ rl_check_quota
 SWITCH (decision_ref)
     ├── false: rl_reject_request
     └── default: rl_process_request -> rl_update_counter
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (decision_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/rate-limiter-microservice-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/rate-limiter-microservice-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rate_limiter_workflow \
   --version 1 \
-  --input '{"clientId": "TEST-001", "endpoint": "test-value", "request": "test-value"}'
+  --input '{"clientId": "TEST-001", "endpoint": "sample-endpoint", "request": "sample-request"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rate_limiter_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ rate-limiter-microservice/
     ├── ProcessRequestWorkerTest.java        # 7 tests
     ├── RejectRequestWorkerTest.java        # 8 tests
     └── UpdateCounterWorkerTest.java        # 7 tests
+
 ```

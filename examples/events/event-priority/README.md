@@ -1,6 +1,8 @@
 # Event Priority in Java Using Conductor
 
-Event priority workflow that classifies events by priority and routes to the appropriate processing lane via a SWITCH task, then records the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Event priority workflow that classifies events by priority and routes to the appropriate processing lane via a SWITCH task, then records the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to classify incoming events by priority and route each to the appropriate processing lane. Critical events require immediate processing, normal events go through standard pipelines, and low-priority events are handled in batch. The result of each processing lane must be recorded for auditing. Without priority-based routing, critical system alerts wait behind thousands of routine telemetry events.
 
@@ -39,6 +41,7 @@ SWITCH (priority_switch_ref)
     │
     ▼
 pr_record_processing
+
 ```
 
 ## Running It
@@ -53,6 +56,7 @@ pr_record_processing
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -61,6 +65,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -75,6 +80,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-priority-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -87,6 +93,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -102,6 +109,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-priority-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,7 +118,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_priority_wf \
   --version 1 \
-  --input '{"eventId": "TEST-001", "eventType": "test-value"}'
+  --input '{"eventId": "TEST-001", "eventType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -119,6 +128,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_priority_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ event-priority/
     ├── ProcessNormalWorkerTest.java        # 8 tests
     ├── ProcessUrgentWorkerTest.java        # 8 tests
     └── RecordProcessingWorkerTest.java        # 9 tests
+
 ```

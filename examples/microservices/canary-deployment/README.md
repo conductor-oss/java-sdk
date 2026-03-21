@@ -1,6 +1,6 @@
 # Canary Deployment in Java with Conductor
 
-You merge the PR, CI goes green, and you deploy to prod. Two minutes later, 100% of your users are hitting the new code, and the new code has a subtle bug that doubles response latency on the `/checkout` endpoint. By the time your on-call notices the Datadog alert and rolls back, 40,000 users have experienced broken checkouts. The postmortem is always the same: "we should have tested with a small percentage of traffic first." But doing that manually: deploying a canary, shifting 5% of traffic, watching error rates, deciding whether to promote or rollback, is tedious and error-prone, so teams skip it. This workflow automates the entire canary lifecycle: deploy, shift traffic gradually, analyze metrics, and promote or roll back automatically. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You merge the PR, CI goes green, and you deploy to prod. Two minutes later, 100% of your users are hitting the new code, and the new code has a subtle bug that doubles response latency on the `/checkout` endpoint. By the time your on-call notices the Datadog alert and rolls back, 40,000 users have experienced broken checkouts. The postmortem is always the same: "we should have tested with a small percentage of traffic first." But doing that manually: deploying a canary, shifting 5% of traffic, watching error rates, deciding whether to promote or rollback, is tedious and error-prone, so teams skip it. This workflow automates the entire canary lifecycle: deploy, shift traffic gradually, analyze metrics, and promote or roll back automatically. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -27,15 +27,6 @@ Four workers drive the canary lifecycle: DeployCanaryWorker provisions the new v
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ cd_analyze_metrics
     │
     ▼
 cd_promote_or_rollback
+
 ```
 
 ## Example Output
@@ -78,7 +70,9 @@ Step 4: Starting workflow...
   Output: {decision=approved, errorRate=0.3}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -91,6 +85,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -99,13 +94,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -113,6 +109,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/canary-deployment-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -125,6 +122,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -140,6 +138,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/canary-deployment-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -149,6 +148,7 @@ conductor workflow start \
   --workflow canary_deployment_workflow \
   --version 1 \
   --input '{"serviceName": "user-service", "newVersion": "4.1.0", "canaryPercentage": 10}'
+
 ```
 
 ### Check workflow status
@@ -157,6 +157,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w canary_deployment_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -179,6 +180,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -204,4 +206,5 @@ canary-deployment/
     ├── DeployCanaryWorkerTest.java        # 8 tests
     ├── PromoteOrRollbackWorkerTest.java        # 9 tests
     └── ShiftTrafficWorkerTest.java        # 8 tests
+
 ```

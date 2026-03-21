@@ -1,6 +1,8 @@
 # Video Transcoding in Java Using Conductor :  Source Analysis, Parallel 720p/1080p/4K Encoding, and Output Packaging
 
-A Java Conductor workflow example for adaptive bitrate video transcoding: analyzing the source video to detect codec, resolution, and duration, then transcoding to three resolutions (720p, 1080p, 4K) in parallel via FORK_JOIN so all three encodes run simultaneously, then packaging all outputs into a manifest with total file sizes. The 720p encode doesn't wait for the 4K encode, and if one resolution fails, the others are unaffected. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for adaptive bitrate video transcoding: analyzing the source video to detect codec, resolution, and duration, then transcoding to three resolutions (720p, 1080p, 4K) in parallel via FORK_JOIN so all three encodes run simultaneously, then packaging all outputs into a manifest with total file sizes. The 720p encode doesn't wait for the 4K encode, and if one resolution fails, the others are unaffected. Uses [Conductor](https://github.
+
+## The Problem
 
 When a creator uploads a video, your streaming platform needs to deliver it at multiple quality levels. 720p for mobile on cellular, 1080p for laptops, 4K for smart TVs. Each resolution requires a separate transcode pass with different bitrate targets, and a 2-hour 4K source video takes significant compute time per resolution. These three encodes are completely independent of each other: the 720p encode uses the same source video as the 4K encode, and neither needs the other's output. Running them sequentially triples the total transcoding time. But before any encoding can start, you need to analyze the source video to detect its codec, resolution, frame rate, and duration, because the encode settings depend on the source format. And after all three resolutions are ready, you need to package them into an adaptive bitrate manifest (HLS/DASH) that the player uses to switch quality based on network conditions.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 vt_package_outputs
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ vt_package_outputs
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/video-transcoding-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/video-transcoding-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow video_transcoding \
   --version 1 \
-  --input '{"videoUrl": "TEST-001", "outputFormats": "test-value"}'
+  --input '{"videoUrl": "TEST-001", "outputFormats": "json"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w video_transcoding -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,6 +154,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -160,4 +171,5 @@ video-transcoding/
 │   ├── ConductorClientHelper.java   # SDK v5 client setup
 │   ├── VideoTranscodingExample.java          # Main entry point (supports --workers mode)
 │   └── workers/
+
 ```

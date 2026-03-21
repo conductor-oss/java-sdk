@@ -1,6 +1,8 @@
 # Benefits Enrollment in Java with Conductor :  Plan Presentation, Selection, Validation, Enrollment, and Confirmation
 
-A Java Conductor workflow example for employee benefits enrollment .  presenting available medical, dental, and vision plan options based on the employee's eligibility, capturing their selections, validating choices against plan rules and dependent eligibility, enrolling in the carrier systems, and sending confirmation with effective dates and premium costs. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for employee benefits enrollment .  presenting available medical, dental, and vision plan options based on the employee's eligibility, capturing their selections, validating choices against plan rules and dependent eligibility, enrolling in the carrier systems, and sending confirmation with effective dates and premium costs. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage open enrollment for employee benefits. During the enrollment period, each employee must see their eligible plan options .  medical (PPO, HMO, HDHP), dental (basic, premium), and vision (standard). The employee makes selections for themselves and their dependents. Those selections must be validated ,  checking that chosen plans are available in the employee's region, dependents meet age and relationship eligibility rules, and HSA elections are only paired with HDHP medical plans. Validated selections are enrolled with each insurance carrier, generating a monthly premium total and an effective date. Finally, the employee receives confirmation with their benefit summary, ID card information, and payroll deduction details. If enrollment happens out of order ,  selecting before seeing options, or enrolling without validating ,  employees end up with ineligible plan combinations or missed coverage.
 
@@ -42,6 +44,7 @@ ben_enroll
     │
     ▼
 ben_confirm
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ben_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/benefits-enrollment-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/benefits-enrollment-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ben_benefits_enrollment \
   --version 1 \
-  --input '{"employeeId": "TEST-001", "enrollmentPeriod": "test-value"}'
+  --input '{"employeeId": "TEST-001", "enrollmentPeriod": "sample-enrollmentPeriod"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ben_benefits_enrollment -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ benefits-enrollment-benefits-enrollment/
     ├── PresentWorkerTest.java        # 2 tests
     ├── SelectWorkerTest.java        # 2 tests
     └── ValidateWorkerTest.java        # 2 tests
+
 ```

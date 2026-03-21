@@ -1,6 +1,8 @@
 # Data Deduplication in Java Using Conductor :  Key Computation, Duplicate Detection, and Record Merging
 
-A Java Conductor workflow example for data deduplication: loading records, computing dedup keys from configurable match fields (normalized and lowercased), grouping records by key to find duplicates, merging duplicate groups into a single canonical record, and emitting the clean, deduplicated dataset. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for data deduplication: loading records, computing dedup keys from configurable match fields (normalized and lowercased), grouping records by key to find duplicates, merging duplicate groups into a single canonical record, and emitting the clean, deduplicated dataset. Uses [Conductor](https://github.
+
+## The Problem
 
 Your dataset has duplicate records, the same customer entered twice with slightly different casing, the same order submitted by two systems, the same product listed with trailing whitespace in the name. You need to find and eliminate these duplicates before the data goes into your analytics pipeline, CRM, or data warehouse. That means computing dedup keys from configurable match fields (lowercased, trimmed for consistency), grouping records that share the same key, deciding which record to keep when duplicates are found (first seen, most complete, most recent), and emitting a clean dataset with a summary of how many duplicates were removed.
 
@@ -42,6 +44,7 @@ dp_merge_groups
     │
     ▼
 dp_emit_deduped
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ dp_emit_deduped
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-dedup-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-dedup-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_dedup \
   --version 1 \
-  --input '{"records": "test-value", "matchFields": "test-value"}'
+  --input '{"records": "sample-records", "matchFields": "sample-matchFields"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_dedup -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ data-dedup/
     ├── FindDuplicatesWorkerTest.java        # 9 tests
     ├── LoadRecordsWorkerTest.java        # 8 tests
     └── MergeGroupsWorkerTest.java        # 8 tests
+
 ```

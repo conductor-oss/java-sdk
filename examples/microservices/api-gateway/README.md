@@ -1,6 +1,6 @@
 # API Gateway in Java with Conductor
 
-A mobile client hits your API. The request needs to be authenticated, routed to the right backend, and the response transformed before it goes back. You built this as a single Spring controller: authenticate inline, make the backend call, transform the response, return. Then the auth service starts taking 2 seconds instead of 200ms. Your entire gateway blocks. You add a retry loop for the backend call, but now a transient auth failure retries the backend too. A customer reports getting someone else's response, the response-transform step was reading from a shared variable that another thread overwrote. Every fix makes the controller harder to reason about, and when something fails, you have no idea which of the four steps caused it. This workflow breaks the gateway into independent, observable steps, authenticate, route, transform, respond, each with its own retries and timeouts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A mobile client hits your API. The request needs to be authenticated, routed to the right backend, and the response transformed before it goes back. You built this as a single Spring controller: authenticate inline, make the backend call, transform the response, return. Then the auth service starts taking 2 seconds instead of 200ms. Your entire gateway blocks. You add a retry loop for the backend call, but now a transient auth failure retries the backend too. A customer reports getting someone else's response, the response-transform step was reading from a shared variable that another thread overwrote. Every fix makes the controller harder to reason about, and when something fails, you have no idea which of the four steps caused it. This workflow breaks the gateway into independent, observable steps, authenticate, route, transform, respond, each with its own retries and timeouts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -27,15 +27,6 @@ The gateway pipeline breaks into four focused workers: authenticating API keys, 
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ ag_transform_response
     │
     ▼
 ag_send_response
+
 ```
 
 ## Example Output
@@ -78,7 +70,9 @@ Step 5: Waiting for completion...
   Output: {statusCode=200, body={data={users=[{id=1, name=Alice, email=alice@example.com}, {id=2, name=Bob, email=bob@example.com}]}, meta={count=2, page=1, totalPages=1}}, headers={Content-Type=application/json, X-Request-Id=req-abc-123, X-RateLimit-Remaining=9999}}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -91,6 +85,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -99,13 +94,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -113,6 +109,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/api-gateway-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -125,6 +122,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -140,6 +138,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/api-gateway-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -149,6 +148,7 @@ conductor workflow start \
   --workflow api_gateway_292 \
   --version 1 \
   --input '{"apiKey": "ak-premium-xyz789", "endpoint": "/api/v1/users", "method": "GET", "payload": {}}'
+
 ```
 
 ### Check workflow status
@@ -157,6 +157,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w api_gateway_292 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -179,6 +180,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -204,4 +206,5 @@ api-gateway/
     ├── RouteRequestWorkerTest.java        # 8 tests
     ├── SendResponseWorkerTest.java        # 8 tests
     └── TransformResponseWorkerTest.java        # 8 tests
+
 ```

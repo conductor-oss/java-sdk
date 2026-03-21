@@ -1,6 +1,6 @@
 # Blue Green Deploy in Java with Conductor
 
-You need to ship v2.5.0 of the payment service. The old deploy process takes the service down for 90 seconds while the new containers start up, and last time, the health check took longer than expected, so the outage stretched to four minutes during peak checkout hours. Your Slack exploded. You could spin up the new version alongside the old one and flip traffic over, but the last time someone tried that manually, they updated the load balancer target group but forgot to run smoke tests on the new environment first. Traffic shifted to containers that couldn't connect to the database. Rolling back meant another manual LB change under pressure, at 2 AM, with the VP of Engineering watching. This workflow automates blue-green deployment: stand up the new environment, run smoke tests, switch traffic atomically, and verify. with a full audit trail so you know exactly what happened and when. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You need to ship v2.5.0 of the payment service. The old deploy process takes the service down for 90 seconds while the new containers start up, and last time, the health check took longer than expected, so the outage stretched to four minutes during peak checkout hours. Your Slack exploded. You could spin up the new version alongside the old one and flip traffic over, but the last time someone tried that manually, they updated the load balancer target group but forgot to run smoke tests on the new environment first. Traffic shifted to containers that couldn't connect to the database. Rolling back meant another manual LB change under pressure, at 2 AM, with the VP of Engineering watching. This workflow automates blue-green deployment: stand up the new environment, run smoke tests, switch traffic atomically, and verify. with a full audit trail so you know exactly what happened and when. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -26,15 +26,6 @@ Three workers carry out the deployment: PrepareGreenWorker stands up the new env
 
 Workers simulate service calls with realistic request/response shapes so you can see the coordination pattern without running the full service mesh. Replace with real HTTP clients, the workflow coordination stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -48,6 +39,7 @@ bg_switch_traffic
     │
     ▼
 bg_verify_deployment
+
 ```
 
 ## Example Output
@@ -76,6 +68,7 @@ Step 4: Starting workflow...
   Output: {deploymentStatus=success, activeEnvironment=production, version=2.5.0}
 
 Result: PASSED
+
 ```
 
 ## Running It
@@ -90,6 +83,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -98,13 +92,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -112,6 +107,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/blue-green-deploy-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -124,6 +120,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -139,6 +136,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/blue-green-deploy-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -148,6 +146,7 @@ conductor workflow start \
   --workflow blue_green_deploy_296 \
   --version 1 \
   --input '{"appName": "payment-service", "newVersion": "2.5.0", "currentEnv": "blue"}'
+
 ```
 
 ### Check workflow status
@@ -156,6 +155,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w blue_green_deploy_296 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -178,6 +178,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -202,4 +203,5 @@ blue-green-deploy/
     ├── SwitchTrafficWorkerTest.java        # 2 tests
     ├── TestGreenWorkerTest.java        # 2 tests
     └── VerifyDeploymentWorkerTest.java        # 2 tests
+
 ```

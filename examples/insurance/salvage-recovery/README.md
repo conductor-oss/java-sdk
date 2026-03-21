@@ -1,6 +1,8 @@
 # Salvage Recovery in Java with Conductor :  Assess Damage, Salvage, Auction, Settle, Close
 
-A Java Conductor workflow example demonstrating salvage-recovery Salvage Recovery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Total Loss Vehicles Need Salvage, Not Repair
+A Java Conductor workflow example demonstrating salvage-recovery Salvage Recovery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Total Loss Vehicles Need Salvage, Not Repair
 
 A 2020 sedan with $18K in damage and a pre-loss value of $22K .  repair cost exceeds the total loss threshold (typically 70-80% of value). The vehicle is a total loss. The salvage recovery process assesses the damage and confirms total loss, arranges salvage (tow the vehicle to a salvage yard), auctions the salvage (sell the wreck for parts value), settles with the policyholder (pay the actual cash value minus deductible, minus salvage proceeds if the owner retains the vehicle), and closes the claim.
 
@@ -42,6 +44,7 @@ slv_settle
     │
     ▼
 slv_close
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ slv_close
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/salvage-recovery-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/salvage-recovery-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow slv_salvage_recovery \
   --version 1 \
-  --input '{"claimId": "TEST-001", "vehicleId": "TEST-001", "damageType": "test-value"}'
+  --input '{"claimId": "TEST-001", "vehicleId": "TEST-001", "damageType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w slv_salvage_recovery -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ salvage-recovery-salvage-recovery/
 └── src/test/java/salvagerecovery/workers/
     ├── AssessDamageWorkerTest.java        # 1 tests
     └── AuctionWorkerTest.java        # 1 tests
+
 ```

@@ -1,6 +1,8 @@
 # Environmental Monitoring in Java with Conductor :  Air Quality Sensing, Threshold Alerts, and Compliance Reporting
 
-A Java Conductor workflow example that orchestrates environmental monitoring .  collecting air quality readings (PM2.5, PM10, CO2, NO2, ozone), checking pollutant concentrations against regulatory thresholds, triggering alerts when AQI breaches occur, and generating compliance reports. Uses [Conductor](https://github.## Why Air Quality Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates environmental monitoring .  collecting air quality readings (PM2.5, PM10, CO2, NO2, ozone), checking pollutant concentrations against regulatory thresholds, triggering alerts when AQI breaches occur, and generating compliance reports. Uses [Conductor](https://github.
+
+## Why Air Quality Monitoring Needs Orchestration
 
 Environmental monitoring stations collect readings across multiple pollutants .  particulate matter (PM2.5, PM10), gases (CO2, NO2, ozone), and ambient conditions (temperature, humidity). Each reading must be checked against regulatory thresholds to compute an Air Quality Index. When the AQI exceeds safe levels, alerts go out to environmental teams and the monitoring dashboard. Regardless of alert status, a compliance report must be generated for regulatory review.
 
@@ -38,6 +40,7 @@ env_trigger_alert
     │
     ▼
 env_generate_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ env_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/environmental-monitoring-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/environmental-monitoring-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow environmental_monitoring_workflow \
   --version 1 \
-  --input '{"stationId": "TEST-001", "region": "test-value", "monitoringType": "test-value"}'
+  --input '{"stationId": "TEST-001", "region": "us-east-1", "monitoringType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w environmental_monitoring_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ environmental-monitoring/
 └── src/test/java/environmentalmonitoring/workers/
     ├── CheckThresholdsWorkerTest.java        # 2 tests
     └── CollectDataWorkerTest.java        # 2 tests
+
 ```

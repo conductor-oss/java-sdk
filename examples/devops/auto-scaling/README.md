@@ -1,6 +1,8 @@
 # Auto-Scaling in Java with Conductor :  Analyze Metrics, Plan Scaling, Execute, Verify
 
-Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Scaling Decisions Need Analysis, Not Just Thresholds
+Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Scaling Decisions Need Analysis, Not Just Thresholds
 
 CPU is at 80%. Should you scale up? Maybe, or maybe it's a transient spike from a batch job that ends in 5 minutes. Auto-scaling needs more than simple threshold crossing: analyze the metric trend (is it sustained or transient?), plan the scaling (how many instances, which instance type?), execute the scaling operation, and verify the new instances are healthy and handling traffic.
 
@@ -38,6 +40,7 @@ as_execute
     │
     ▼
 as_verify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ as_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/auto-scaling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/auto-scaling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow auto_scaling_workflow \
   --version 1 \
-  --input '{"service": "test-value", "metric": "test-value", "threshold": "test-value"}'
+  --input '{"service": "order-service", "metric": "sample-metric", "threshold": "sample-threshold"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w auto_scaling_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ auto-scaling/
     ├── ExecuteTest.java        # 8 tests
     ├── PlanTest.java        # 10 tests
     └── VerifyTest.java        # 9 tests
+
 ```

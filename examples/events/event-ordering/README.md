@@ -1,6 +1,8 @@
 # Event Ordering in Java Using Conductor
 
-Event Ordering .  buffers incoming events, sorts them by sequence number, and processes each in order using a DO_WHILE loop. Uses [Conductor](https://github.## The Problem
+Event Ordering .  buffers incoming events, sorts them by sequence number, and processes each in order using a DO_WHILE loop. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process events in strict sequence order, even when they arrive out of order. In distributed systems, events with sequence numbers 1, 3, 2, 5, 4 may arrive in any order due to network jitter or parallel producers. The workflow must buffer incoming events, sort them by sequence number, and process each one in order using a loop. Processing out-of-order events corrupts state in systems that depend on causal ordering (e.g., bank transactions, state machines).
 
@@ -35,6 +37,7 @@ oo_sort_events
     ▼
 DO_WHILE
     └── oo_process_next
+
 ```
 
 ## Running It
@@ -49,6 +52,7 @@ DO_WHILE
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -57,6 +61,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -71,6 +76,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-ordering-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -83,6 +89,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -98,6 +105,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-ordering-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -106,7 +114,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_ordering \
   --version 1 \
-  --input '{"events": "test-value"}'
+  --input '{"events": "sample-events"}'
+
 ```
 
 ### Check workflow status
@@ -115,6 +124,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_ordering -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -137,6 +147,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -160,4 +171,5 @@ event-ordering/
     ├── BufferEventsWorkerTest.java        # 8 tests
     ├── ProcessNextWorkerTest.java        # 9 tests
     └── SortEventsWorkerTest.java        # 9 tests
+
 ```

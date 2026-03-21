@@ -1,6 +1,8 @@
 # React Approval Dashboard in Java Using Conductor :  Task Processing and Priority-Based Pending Approval via WAIT Task
 
-A Java Conductor workflow example paired with a React dashboard .  a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example paired with a React dashboard .  a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.
+
+## The Problem
 
 You need a React-based approval dashboard where approvers can see their pending tasks, filter by priority (high, medium, low), and act on them. Each request comes in with a title describing what needs approval, a priority level, and the assigned approver. The system must process the request and then wait for the human approver to make a decision .  which could take minutes or days depending on the priority. The dashboard needs to query for all pending tasks assigned to a specific person and display them sorted by priority, with real-time status updates as approvals are completed.
 
@@ -30,6 +32,7 @@ dash_task
     │
     ▼
 pending_approval [WAIT]
+
 ```
 
 ## Running It
@@ -44,6 +47,7 @@ pending_approval [WAIT]
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -52,6 +56,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -66,6 +71,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/approval-dashboard-react-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -78,6 +84,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -93,6 +100,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/approval-dashboard-react-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,7 +109,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow approval_dashboard_react_demo \
   --version 1 \
-  --input '{"title": "test-value", "priority": "test-value", "assignee": "test-value"}'
+  --input '{"title": "sample-title", "priority": "high", "assignee": "sample-assignee"}'
+
 ```
 
 ### Check workflow status
@@ -110,6 +119,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w approval_dashboard_react_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -134,6 +144,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -153,4 +164,5 @@ approval-dashboard-react/
 │       └── DashTaskWorker.java
 └── src/test/java/approvaldashboardreact/workers/
     └── DashTaskWorkerTest.java        # 8 tests
+
 ```

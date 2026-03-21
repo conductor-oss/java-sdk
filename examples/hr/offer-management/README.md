@@ -1,6 +1,8 @@
 # Offer Management in Java with Conductor :  Generation, Approval, Delivery, and Accept/Decline Routing
 
-A Java Conductor workflow example for job offer management .  generating an offer letter with position and salary details, routing for compensation committee approval, delivering the offer to the candidate, and using SWITCH to route the candidate's response to either the acceptance path (trigger onboarding) or the decline path (reopen the requisition). Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for job offer management .  generating an offer letter with position and salary details, routing for compensation committee approval, delivering the offer to the candidate, and using SWITCH to route the candidate's response to either the acceptance path (trigger onboarding) or the decline path (reopen the requisition). Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage job offers from generation through candidate response. After the hiring team selects a candidate, an offer letter must be generated with the position title, base salary, equity package, benefits summary, and start date. The offer must be approved by the compensation committee or hiring VP to ensure it falls within the approved salary band and headcount budget. Once approved, the offer is sent to the candidate with an expiration deadline. The candidate either accepts .  triggering the onboarding pipeline, background check, and equipment provisioning, or declines ,  reopening the requisition and notifying the recruiter to extend the offer to the next candidate in the pipeline. If the system sends an offer before approval, the company may commit to an unauthorized salary. If a decline is not handled, the requisition sits idle and the role goes unfilled.
 
@@ -41,6 +43,7 @@ ofm_send
 SWITCH (ofm_switch_ref)
     ├── accept: ofm_accept
     ├── decline: ofm_decline
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ SWITCH (ofm_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/offer-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/offer-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ofm_offer_management \
   --version 1 \
-  --input '{"candidateName": "test", "position": "test-value", "salary": "test-value", "response": "test-value"}'
+  --input '{"candidateName": "test", "position": "sample-position", "salary": "sample-salary", "response": "sample-response"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ofm_offer_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -174,4 +185,5 @@ offer-management-offer-management/
     ├── DeclineWorkerTest.java        # 2 tests
     ├── GenerateWorkerTest.java        # 2 tests
     └── SendWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # Policy Issuance in Java with Conductor :  Underwrite, Approve, Generate Policy, Issue, Deliver
 
-A Java Conductor workflow example for end-to-end insurance policy issuance .  underwriting the applicant to determine risk class, approving the application and setting the premium, generating the policy document, officially issuing the policy in the system of record, and delivering the policy documents to the policyholder. Each step feeds into the next: underwriting produces the riskClass that approval uses to set the premium, the approved premium feeds into document generation which produces the policyId, and that policyId flows through issuance and delivery. Uses [Conductor](https://github.## New Insurance Applications Must Flow Through Underwriting, Approval, and Issuance
+A Java Conductor workflow example for end-to-end insurance policy issuance .  underwriting the applicant to determine risk class, approving the application and setting the premium, generating the policy document, officially issuing the policy in the system of record, and delivering the policy documents to the policyholder. Each step feeds into the next: underwriting produces the riskClass that approval uses to set the premium, the approved premium feeds into document generation which produces the policyId, and that policyId flows through issuance and delivery. Uses [Conductor](https://github.
+
+## New Insurance Applications Must Flow Through Underwriting, Approval, and Issuance
 
 When a new insurance application arrives, the insurer must underwrite the applicant (assess risk class based on coverage type), approve the application (determine the premium from the underwriting result), generate the policy document with all terms and conditions, officially issue the policy in the administration system, and deliver the documents to the policyholder. If document generation fails after approval, you need to retry it without re-underwriting or re-approving the application.
 
@@ -40,6 +42,7 @@ pis_issue
     │
     ▼
 pis_deliver
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ pis_deliver
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/policy-issuance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/policy-issuance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pis_policy_issuance \
   --version 1 \
-  --input '{"applicantId": "TEST-001", "coverageType": "test-value", "requestedAmount": 100}'
+  --input '{"applicantId": "TEST-001", "coverageType": "standard", "requestedAmount": 100}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w pis_policy_issuance -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ policy-issuance-policy-issuance/
 └── src/test/java/policyissuance/workers/
     ├── IssueWorkerTest.java        # 1 tests
     └── UnderwriteWorkerTest.java        # 1 tests
+
 ```

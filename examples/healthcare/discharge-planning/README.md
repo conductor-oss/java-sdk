@@ -1,6 +1,8 @@
 # Hospital Discharge Planning in Java Using Conductor :  Readiness Assessment, Care Plan, Education, and Follow-Up Scheduling
 
-A Java Conductor workflow example for hospital discharge planning .  assessing patient readiness for discharge, creating a discharge care plan with post-acute needs, coordinating services (home health, DME, pharmacy), educating the patient on self-care, and scheduling follow-up appointments. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for hospital discharge planning .  assessing patient readiness for discharge, creating a discharge care plan with post-acute needs, coordinating services (home health, DME, pharmacy), educating the patient on self-care, and scheduling follow-up appointments. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to safely discharge patients from the hospital while preventing readmissions. Each discharge requires assessing whether the patient meets clinical readiness criteria (stable vitals, ambulatory status, pain management). A discharge plan must be created covering medications, activity restrictions, wound care, and post-acute services. Services like home health nursing, durable medical equipment, and prescription delivery must be coordinated. The patient and family need education on medication schedules, warning signs, and when to seek emergency care. Finally, follow-up appointments must be scheduled with the PCP and any specialists within the appropriate timeframe. A missed step .  like failing to schedule follow-up or educate the patient on medication changes ,  directly increases 30-day readmission risk.
 
@@ -42,6 +44,7 @@ dsc_educate
     │
     ▼
 dsc_schedule_followup
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ dsc_schedule_followup
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/discharge-planning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/discharge-planning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow discharge_planning_workflow \
   --version 1 \
-  --input '{"patientId": "TEST-001", "admissionId": "TEST-001", "diagnosis": "test-value"}'
+  --input '{"patientId": "TEST-001", "admissionId": "TEST-001", "diagnosis": "sample-diagnosis"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w discharge_planning_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ discharge-planning/
     ├── AssessReadinessWorkerTest.java        # 8 tests
     ├── CoordinateWorkerTest.java        # 8 tests
     └── CreateDischargePlanWorkerTest.java        # 8 tests
+
 ```

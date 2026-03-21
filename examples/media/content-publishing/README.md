@@ -1,6 +1,8 @@
 # Content Publishing Pipeline in Java Using Conductor :  Drafting, Editorial Review, Approval, Formatting, Publishing, and Multi-Channel Distribution
 
-A Java Conductor workflow example that orchestrates a content publishing pipeline .  creating drafts with word counts and SEO slugs, routing through editorial review with quality scores, obtaining editorial approval, formatting content with SEO metadata for multiple output formats, publishing to the website with CDN cache invalidation, and distributing to social and newsletter channels on a schedule. Uses [Conductor](https://github.## Why Content Publishing Needs Orchestration
+A Java Conductor workflow example that orchestrates a content publishing pipeline .  creating drafts with word counts and SEO slugs, routing through editorial review with quality scores, obtaining editorial approval, formatting content with SEO metadata for multiple output formats, publishing to the website with CDN cache invalidation, and distributing to social and newsletter channels on a schedule. Uses [Conductor](https://github.
+
+## Why Content Publishing Needs Orchestration
 
 Publishing content involves a strict editorial pipeline where each stage gates the next. A draft must be reviewed before it can be approved. Approved content must be formatted with SEO metadata before publishing. Publishing must invalidate CDN caches. Distribution to social channels and newsletters must happen only after the content is live. If a reviewer rejects the draft, it should loop back to editing .  not proceed to publishing.
 
@@ -46,6 +48,7 @@ pub_publish_content
     │
     ▼
 pub_distribute_content
+
 ```
 
 ## Running It
@@ -60,6 +63,7 @@ pub_distribute_content
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -68,6 +72,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -82,6 +87,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/content-publishing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -94,6 +100,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -109,6 +116,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/content-publishing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -117,7 +125,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_publishing_workflow \
   --version 1 \
-  --input '{"contentId": "TEST-001", "authorId": "TEST-001", "contentType": "test-value", "title": "test-value"}'
+  --input '{"contentId": "TEST-001", "authorId": "TEST-001", "contentType": "Process this order for customer C-100", "title": "sample-title"}'
+
 ```
 
 ### Check workflow status
@@ -126,6 +135,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w content_publishing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -151,6 +161,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -180,4 +191,5 @@ content-publishing/
     ├── FormatContentWorkerTest.java        # 8 tests
     ├── PublishContentWorkerTest.java        # 8 tests
     └── ReviewContentWorkerTest.java        # 8 tests
+
 ```

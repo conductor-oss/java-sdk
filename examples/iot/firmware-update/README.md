@@ -1,6 +1,8 @@
 # OTA Firmware Update in Java with Conductor :  Version Check, Download, Validation, Deployment, and Verification
 
-A Java Conductor workflow example that orchestrates over-the-air firmware updates for IoT devices .  checking for new versions, downloading firmware binaries, validating checksums and code signatures, deploying to the device with scheduled reboots, and verifying the device boots successfully on the new version. Uses [Conductor](https://github.## Why Firmware Updates Need Orchestration
+A Java Conductor workflow example that orchestrates over-the-air firmware updates for IoT devices .  checking for new versions, downloading firmware binaries, validating checksums and code signatures, deploying to the device with scheduled reboots, and verifying the device boots successfully on the new version. Uses [Conductor](https://github.
+
+## Why Firmware Updates Need Orchestration
 
 Pushing a firmware update to an IoT device is a multi-step process where failure at any stage can brick the device. You check whether a newer version exists and get the download URL and SHA-256 checksum. You download the binary (potentially over a slow, unreliable link). You validate the checksum matches, the code signature is authentic, and the firmware is compatible with the device hardware. You deploy the firmware and schedule a reboot. After reboot, you verify the device came back online running the correct version, the self-test passed, and a rollback image is available.
 
@@ -42,6 +44,7 @@ fw_deploy
     │
     ▼
 fw_verify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ fw_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/firmware-update-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/firmware-update-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow firmware_update_workflow \
   --version 1 \
-  --input '{"deviceId": "TEST-001", "currentVersion": "test-value", "targetVersion": "test-value"}'
+  --input '{"deviceId": "TEST-001", "currentVersion": "1.0", "targetVersion": "production"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w firmware_update_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ firmware-update/
 └── src/test/java/firmwareupdate/workers/
     ├── CheckVersionWorkerTest.java        # 2 tests
     └── DownloadWorkerTest.java        # 2 tests
+
 ```

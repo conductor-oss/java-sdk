@@ -1,6 +1,8 @@
 # Set Variable in Java with Conductor
 
-Demonstrates SET_VARIABLE system task for storing intermediate state accessible via ${workflow.variables.key} Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Demonstrates SET_VARIABLE system task for storing intermediate state accessible via ${workflow.variables.key} Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to accumulate state across multiple workflow steps .  processing a list of items to compute a total amount and category, then applying business rules based on those intermediate results (does this order need approval? what is the risk level?), and finally producing a decision that uses variables from both steps. The rules step needs the total amount and category from the processing step. The finalize step needs the original totals plus the approval and risk results. Intermediate state must be accessible from any downstream task without threading it through every task's input/output mapping.
 
@@ -40,6 +42,7 @@ store_rule_results [SET_VARIABLE]
     │
     ▼
 sv_finalize
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ sv_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/set-variable-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/set-variable-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow set_variable_demo \
   --version 1 \
-  --input '{"items": "test-value"}'
+  --input '{"items": [{"id": "ITEM-001", "quantity": 2}]}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w set_variable_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ set-variable/
     ├── ApplyRulesWorkerTest.java        # 6 tests
     ├── FinalizeWorkerTest.java        # 6 tests
     └── ProcessItemsWorkerTest.java        # 6 tests
+
 ```

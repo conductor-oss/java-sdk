@@ -1,6 +1,8 @@
 # Idempotent Start in Java with Conductor
 
-Idempotent start demo .  demonstrates correlationId-based dedup and search-based idempotency. Uses [Conductor](https://github.## The Problem
+Idempotent start demo .  demonstrates correlationId-based dedup and search-based idempotency. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to ensure that processing the same order twice does not charge the customer twice. When a webhook fires or a message is redelivered, the same orderId and amount can arrive multiple times. Starting a new workflow for each duplicate request means the order gets processed repeatedly .  double charges, duplicate shipments, or inconsistent state. You need a way to guarantee that the second (and third, and fourth) request for the same order is recognized as a duplicate and returns the existing result instead of processing again.
 
@@ -26,6 +28,7 @@ Workers simulate their processing steps so you can see the pattern in action wit
 
 ```
 idem_process
+
 ```
 
 ## Running It
@@ -40,6 +43,7 @@ idem_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -48,6 +52,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -62,6 +67,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/idempotent-start-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -74,6 +80,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -89,6 +96,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/idempotent-start-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -98,6 +106,7 @@ conductor workflow start \
   --workflow idempotent_demo \
   --version 1 \
   --input '{"orderId": "TEST-001", "amount": 100}'
+
 ```
 
 ### Check workflow status
@@ -106,6 +115,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w idempotent_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -126,6 +136,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -145,4 +156,5 @@ idempotent-start/
 │       └── IdemProcessWorker.java
 └── src/test/java/idempotentstart/workers/
     └── IdemProcessWorkerTest.java        # 9 tests
+
 ```

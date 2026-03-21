@@ -1,6 +1,8 @@
 # Tool Use Caching in Java Using Conductor :  Check Cache, Execute-or-Return-Cached, Store Results
 
-Tool Use Caching .  checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss. Uses [Conductor](https://github.## Tool Calls Are Expensive :  Don't Repeat Them
+Tool Use Caching .  checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss. Uses [Conductor](https://github.
+
+## Tool Calls Are Expensive :  Don't Repeat Them
 
 Tool calls cost time and often money. A web search API charges per query. A database query consumes compute resources. A calculation takes CPU time. If the same tool is called with the same arguments within a short window (same weather query, same stock lookup, same calculation), returning the cached result saves time and cost.
 
@@ -34,6 +36,7 @@ uc_check_cache
 SWITCH (cache_decision_ref)
     ├── hit: uc_return_cached
     └── default: uc_execute_tool -> uc_cache_result
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (cache_decision_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-caching-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-caching-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_caching \
   --version 1 \
-  --input '{"toolName": "test", "toolArgs": "test-value", "cacheTtlSeconds": "test-value"}'
+  --input '{"toolName": "test", "toolArgs": "sample-toolArgs", "cacheTtlSeconds": "sample-cacheTtlSeconds"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_caching -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -153,4 +163,5 @@ tool-use-caching/
     ├── CheckCacheWorkerTest.java        # 9 tests
     ├── ExecuteToolWorkerTest.java        # 9 tests
     └── ReturnCachedWorkerTest.java        # 9 tests
+
 ```

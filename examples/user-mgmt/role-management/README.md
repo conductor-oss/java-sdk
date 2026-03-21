@@ -1,6 +1,8 @@
 # Role Management in Java Using Conductor
 
-A Java Conductor workflow example demonstrating Role Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+A Java Conductor workflow example demonstrating Role Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 An admin requests to assign the "editor" role to a team member. The system needs to log the role request with the requester's identity, validate that the assignment complies with access policies and doesn't conflict with existing roles, assign the role with its associated permissions (read, write), and sync those permissions to the IAM provider, API gateway, and database layer. Each step depends on the previous one's output.
 
@@ -38,6 +40,7 @@ rom_assign
     │
     ▼
 rom_sync_permissions
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ rom_sync_permissions
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/role-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/role-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rom_role_management \
   --version 1 \
-  --input '{"userId": "TEST-001", "requestedRole": "test-value", "requestedBy": "test-value"}'
+  --input '{"userId": "TEST-001", "requestedRole": "user", "requestedBy": "sample-requestedBy"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rom_role_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ role-management/
     ├── AssignRoleWorkerTest.java        # 4 tests
     ├── RequestRoleWorkerTest.java        # 3 tests
     └── SyncPermissionsWorkerTest.java        # 3 tests
+
 ```

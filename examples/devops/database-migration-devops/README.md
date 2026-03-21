@@ -1,6 +1,8 @@
 # Database Migration in Java with Conductor :  Backup, Migrate Schema, Validate, Update Application
 
-Automates database schema migrations using [Conductor](https://github.com/conductor-oss/conductor). This workflow creates a pre-migration backup, applies ALTER statements and schema changes, validates the new schema matches the expected state, and deploys the application with updated schema mappings.## Schema Changes Without the Fear
+Automates database schema migrations using [Conductor](https://github.com/conductor-oss/conductor). This workflow creates a pre-migration backup, applies ALTER statements and schema changes, validates the new schema matches the expected state, and deploys the application with updated schema mappings.
+
+## Schema Changes Without the Fear
 
 You need to add a column to the orders table in production. A wrong ALTER statement could lock the table, corrupt data, or leave the application pointing at a schema that no longer matches its code. The safe path: snapshot the database first, apply the migration, validate that every expected table and column exists, then deploy the app version that knows about the new schema. If validation fails, you have the backup to restore from.
 
@@ -38,6 +40,7 @@ dbm_validate_schema
     │
     ▼
 dbm_update_app
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ dbm_update_app
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/database-migration-devops-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/database-migration-devops-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow database_migration_devops_workflow \
   --version 1 \
-  --input '{"database": "test-value", "migrationVersion": "test-value"}'
+  --input '{"database": {"key": "value"}, "migrationVersion": "1.0"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w database_migration_devops_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ database-migration-devops/
     ├── MigrateWorkerTest.java        # 7 tests
     ├── UpdateAppWorkerTest.java        # 7 tests
     └── ValidateSchemaWorkerTest.java        # 7 tests
+
 ```

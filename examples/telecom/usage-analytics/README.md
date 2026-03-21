@@ -1,6 +1,8 @@
 # Usage Analytics in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom usage analytics .  collecting call detail records (CDRs) for a region and time period, processing raw records into normalized usage events, aggregating metrics and detecting anomalies, generating the usage analytics report, and raising alerts for any anomalies found. Uses [Conductor](https://github.## Why Usage Analytics Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom usage analytics .  collecting call detail records (CDRs) for a region and time period, processing raw records into normalized usage events, aggregating metrics and detecting anomalies, generating the usage analytics report, and raising alerts for any anomalies found. Uses [Conductor](https://github.
+
+## Why Usage Analytics Needs Orchestration
 
 Analyzing telecom usage data requires a pipeline where each transformation depends on the previous one. You collect raw CDRs from network switches and media gateways for a region and time period. You process each record .  normalizing formats, enriching with subscriber metadata, filtering duplicates, and converting to a standard usage event schema. You aggregate the processed records into metrics (total minutes, data volume, peak hours, geographic distribution) and detect anomalies (usage spikes, fraud patterns, revenue leakage). You generate the analytics report for business stakeholders. Finally, you raise alerts for any anomalies that need immediate attention.
 
@@ -42,6 +44,7 @@ uag_report
     │
     ▼
 uag_alert
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ uag_alert
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/usage-analytics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/usage-analytics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow uag_usage_analytics \
   --version 1 \
-  --input '{"region": "test-value", "period": "test-value"}'
+  --input '{"region": "us-east-1", "period": "sample-period"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w uag_usage_analytics -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ usage-analytics-usage-analytics/
 └── src/test/java/usageanalytics/workers/
     ├── CollectCdrsWorkerTest.java        # 1 tests
     └── ReportWorkerTest.java        # 1 tests
+
 ```

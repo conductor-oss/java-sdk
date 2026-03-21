@@ -1,6 +1,8 @@
 # Signals in Java with Conductor
 
-Signals demo .  send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. Uses [Conductor](https://github.## The Problem
+Signals demo .  send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. Uses [Conductor](https://github.
+
+## The Problem
 
 You need an order fulfillment workflow that pauses and waits for external events at two points: first, it waits for a shipping confirmation (tracking number and carrier) from the warehouse or shipping partner, and second, it waits for a delivery confirmation (delivery timestamp and recipient signature) from the carrier. The workflow cannot continue past each wait point until the external system sends the signal with the required data. Between signals, the order sits in a known state .  prepared, shipped, or delivered ,  potentially for hours or days.
 
@@ -40,6 +42,7 @@ wait_delivery [WAIT]
     │
     ▼
 sig_complete
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ sig_complete
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/signals-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/signals-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,6 +120,7 @@ conductor workflow start \
   --workflow signal_demo \
   --version 1 \
   --input '{"orderId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w signal_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ signals/
     ├── SigCompleteWorkerTest.java        # 6 tests
     ├── SigPrepareWorkerTest.java        # 6 tests
     └── SigProcessShippingWorkerTest.java        # 6 tests
+
 ```

@@ -40,6 +40,7 @@ vr_review_soc2
     │
     ▼
 vr_make_decision
+
 ```
 
 ## Running It
@@ -54,6 +55,7 @@ vr_make_decision
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/vendor-risk-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/vendor-risk-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow vendor_risk_workflow \
   --version 1 \
-  --input '{"vendorName": "test", "dataAccess": "test-value"}'
+  --input '{"vendorName": "test", "dataAccess": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w vendor_risk_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +173,5 @@ vendor-risk-vendor-risk/
 │       └── ReviewSoc2Worker.java
 └── src/test/java/vendorrisk/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

@@ -1,6 +1,8 @@
 # Tenant Screening in Java with Conductor :  Application, Background Check, Credit Check, and Decision
 
-A Java Conductor workflow example for screening prospective tenants .  accepting the rental application, running a criminal background check, pulling a credit report against monthly rent, and making an approve/deny decision based on combined results. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for screening prospective tenants .  accepting the rental application, running a criminal background check, pulling a credit report against monthly rent, and making an approve/deny decision based on combined results. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to screen rental applicants before signing a lease. Each applicant submits their information, and you must run a background check (criminal history, eviction records, identity verification) and a credit check (credit score, debt-to-income ratio relative to monthly rent). Both checks must complete before the decision step can weigh the results and issue an approve, conditional approve, or deny decision. Screening must be consistent across applicants and comply with Fair Housing regulations .  every applicant must go through the same steps with the same criteria.
 
@@ -38,6 +40,7 @@ tsc_credit
     │
     ▼
 tsc_decision
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ tsc_decision
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tenant-screening-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tenant-screening-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tsc_tenant_screening \
   --version 1 \
-  --input '{"applicantName": "test", "propertyId": "TEST-001", "monthlyRent": "test-value"}'
+  --input '{"applicantName": "test", "propertyId": "TEST-001", "monthlyRent": "sample-monthlyRent"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tsc_tenant_screening -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ tenant-screening/
     ├── BackgroundCheckWorkerTest.java        # 2 tests
     ├── CreditCheckWorkerTest.java        # 2 tests
     └── DecisionWorkerTest.java        # 2 tests
+
 ```

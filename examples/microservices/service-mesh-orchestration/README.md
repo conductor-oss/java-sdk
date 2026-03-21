@@ -1,6 +1,8 @@
 # Service Mesh Orchestration in Java with Conductor
 
-Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Onboarding a service into a service mesh requires deploying a sidecar proxy (e.g., Envoy), configuring mutual TLS for encrypted service-to-service communication, setting traffic policies (retries, timeouts, circuit breaking), and validating end-to-end connectivity. Each step depends on the previous one. MTLS cannot be configured until the sidecar is deployed.
 
@@ -38,6 +40,7 @@ mesh_set_traffic_policy
     │
     ▼
 mesh_validate
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ mesh_validate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/service-mesh-orchestration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/service-mesh-orchestration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_mesh_orchestration \
   --version 1 \
-  --input '{"serviceName": "test", "namespace": "test", "meshType": "test-value"}'
+  --input '{"serviceName": "test", "namespace": "test", "meshType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w service_mesh_orchestration -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ service-mesh-orchestration/
     ├── DeploySidecarWorkerTest.java        # 8 tests
     ├── SetTrafficPolicyWorkerTest.java        # 7 tests
     └── ValidateWorkerTest.java        # 8 tests
+
 ```

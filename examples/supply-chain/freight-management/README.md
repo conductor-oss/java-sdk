@@ -1,6 +1,8 @@
 # Freight Management in Java with Conductor :  Carrier Booking, Shipment Tracking, Delivery Confirmation, Invoicing, and Reconciliation
 
-A Java Conductor workflow example for freight management .  booking a carrier (e.g., FastFreight Express for a 2,500 lb shipment from Detroit to Houston), tracking the shipment in transit, confirming delivery at destination, generating the freight invoice, and reconciling charges against the contracted rate. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for freight management .  booking a carrier (e.g., FastFreight Express for a 2,500 lb shipment from Detroit to Houston), tracking the shipment in transit, confirming delivery at destination, generating the freight invoice, and reconciling charges against the contracted rate. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage freight shipments end-to-end. A 2,500 lb load needs to move from Detroit, MI to Houston, TX .  you book a carrier at a quoted rate, track the shipment through pickup, in-transit, and delivery milestones, confirm proof of delivery at the destination, receive the carrier's freight invoice, and reconcile the billed amount against the contracted rate (catching accessorial charges, fuel surcharges, or billing errors). If tracking data from the carrier API goes missing, you lose visibility into a $3K+ shipment.
 
@@ -42,6 +44,7 @@ frm_invoice
     │
     ▼
 frm_reconcile
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ frm_reconcile
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/freight-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/freight-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow frm_freight_management \
   --version 1 \
-  --input '{"origin": "test-value", "destination": "test-value", "weight": "test-value", "carrier": "test-value"}'
+  --input '{"origin": "sample-origin", "destination": "production", "weight": "sample-weight", "carrier": "sample-carrier"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w frm_freight_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ freight-management/
     ├── InvoiceWorkerTest.java        # 2 tests
     ├── ReconcileWorkerTest.java        # 2 tests
     └── TrackWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # Sequential Tasks in Java with Conductor
 
-Sequential ETL pipeline .  extract, transform, load. Three workers process data in order. Uses [Conductor](https://github.## The Problem
+Sequential ETL pipeline .  extract, transform, load. Three workers process data in order. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to run an ETL pipeline where each phase strictly depends on the previous one: extract raw records from a data source, transform them by adding computed fields (grade classification, normalized scores) in a specified format, then load the transformed records into a destination system. The transform step cannot start until extraction is complete because it needs the raw data. The load step cannot start until transformation is complete because it needs the enriched records. If the load step fails after transforming 1,000 records, you need to resume from the load step .  not re-extract and re-transform.
 
@@ -34,6 +36,7 @@ seq_transform
     │
     ▼
 seq_load
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ seq_load
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/sequential-tasks-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/sequential-tasks-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sequential_etl \
   --version 1 \
-  --input '{"source": "test-value", "format": "test-value"}'
+  --input '{"source": "api", "format": "json"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w sequential_etl -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -159,4 +170,5 @@ sequential-tasks/
     ├── ExtractWorkerTest.java        # 6 tests
     ├── LoadWorkerTest.java        # 5 tests
     └── TransformWorkerTest.java        # 7 tests
+
 ```

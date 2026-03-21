@@ -1,6 +1,8 @@
 # Cohere Marketing Copy Generation in Java Using Conductor :  Build Prompt, Generate Candidates, Select Best
 
-A Java Conductor workflow example for generating marketing copy using Cohere .  building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.## One Generation Is Not Enough for Production Copy
+A Java Conductor workflow example for generating marketing copy using Cohere .  building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.
+
+## One Generation Is Not Enough for Production Copy
 
 Asking an LLM to write marketing copy once gives you one option, and it might be mediocre. The best practice is to generate multiple candidates with different temperature settings or prompt variations, then select the one that best matches your criteria: engagement score, reading level, brand voice alignment, and call-to-action strength. But generating multiple candidates, scoring each one, and selecting the winner requires coordinating three distinct steps.
 
@@ -34,6 +36,7 @@ cohere_generate
     │
     ▼
 cohere_select_best
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ cohere_select_best
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/cohere-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -98,6 +105,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/cohere-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,6 +115,7 @@ conductor workflow start \
   --workflow cohere_text_generation \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -115,6 +124,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cohere_text_generation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -137,6 +147,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -160,4 +171,5 @@ cohere/
     ├── CohereBuildPromptWorkerTest.java        # 4 tests
     ├── CohereGenerateWorkerTest.java        # 5 tests
     └── CohereSelectBestWorkerTest.java        # 6 tests
+
 ```

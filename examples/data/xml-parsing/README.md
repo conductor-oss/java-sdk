@@ -1,6 +1,8 @@
 # XML Parsing in Java Using Conductor :  XML Reception, Tag Parsing, Field Extraction, JSON Conversion, and Record Emission
 
-A Java Conductor workflow example for XML-to-JSON transformation. receiving raw XML content with a configurable root element, parsing the XML tags into structured elements, extracting typed fields from each element (id, name, price as double, category), converting the extracted data to JSON records with source metadata and timestamps, and emitting the final records for downstream consumption. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for XML-to-JSON transformation. receiving raw XML content with a configurable root element, parsing the XML tags into structured elements, extracting typed fields from each element (id, name, price as double, category), converting the extracted data to JSON records with source metadata and timestamps, and emitting the final records for downstream consumption. Uses [Conductor](https://github.
+
+## The Problem
 
 Your partners send product catalog updates as XML files. Each file contains nested elements under a configurable root tag, and each element has fields like `id`, `name`, `price`, and `category` buried inside XML tags. Your downstream systems: the product database, the search index, the pricing engine, all consume JSON. You need to receive the XML, parse it into its constituent elements under the root tag, extract typed fields from each element (treating `price` as a double, not a string), convert the extracted data to JSON records with metadata (source, parsedAt timestamp), and emit the records for downstream consumers. Each step depends on the previous one: you can't extract fields from unparsed XML, and you can't convert to JSON without typed field values.
 
@@ -42,6 +44,7 @@ xp_convert_to_json
     │
     ▼
 xp_emit_records
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ xp_emit_records
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/xml-parsing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/xml-parsing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow xml_parsing_wf \
   --version 1 \
-  --input '{"xmlContent": "test-value", "rootElement": "test-value"}'
+  --input '{"xmlContent": "Process this order for customer C-100", "rootElement": "sample-rootElement"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w xml_parsing_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ xml-parsing/
     ├── ExtractFieldsWorkerTest.java        # 9 tests
     ├── ParseTagsWorkerTest.java        # 8 tests
     └── ReceiveXmlWorkerTest.java        # 9 tests
+
 ```

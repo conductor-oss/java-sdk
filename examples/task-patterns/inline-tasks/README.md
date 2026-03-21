@@ -1,6 +1,8 @@
 # Inline Tasks in Java with Conductor
 
-Demonstrates INLINE tasks. JavaScript that runs on the Conductor server with no workers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Demonstrates INLINE tasks. JavaScript that runs on the Conductor server with no workers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to perform lightweight data transformations between workflow steps .  computing a sum and average from a list of numbers, converting text to uppercase and generating a URL slug, classifying a score into tiers (gold/silver/bronze), and assembling a final response object. These operations are simple enough that deploying a dedicated worker service for each one is overkill. You just need a few lines of logic to run without the overhead of a separate Java process, Docker container, or network round-trip.
 
@@ -29,6 +31,7 @@ conditional_logic [INLINE]
     │
     ▼
 build_response [INLINE]
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ build_response [INLINE]
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/inline-tasks-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/inline-tasks-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -100,7 +108,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow inline_tasks_demo \
   --version 1 \
-  --input '{"numbers": "test-value", "text": "test-value", "config": "test-value"}'
+  --input '{"numbers": "sample-numbers", "text": "Process this order for customer C-100", "config": "sample-config"}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w inline_tasks_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -132,6 +142,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -150,4 +161,5 @@ inline-tasks/
 │   └── workers/
 └── src/test/java/inlinetasks/workers/
     └── WorkflowJsonTest.java        # 17 tests
+
 ```

@@ -1,6 +1,8 @@
 # GitOps Workflow in Java with Conductor :  Detect Drift, Plan Sync, Apply, Verify State
 
-Automates GitOps reconciliation using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects configuration drift between a Git repository and a target Kubernetes cluster, plans the synchronization actions needed, applies the changes to bring the cluster into the desired state, and verifies the cluster matches Git after sync.## Git Is the Source of Truth
+Automates GitOps reconciliation using [Conductor](https://github.com/conductor-oss/conductor). This workflow detects configuration drift between a Git repository and a target Kubernetes cluster, plans the synchronization actions needed, applies the changes to bring the cluster into the desired state, and verifies the cluster matches Git after sync.
+
+## Git Is the Source of Truth
 
 Someone ran `kubectl edit` on the production deployment and changed the replica count. Now the cluster does not match what is in Git. GitOps reconciliation detects this drift, plans the sync to restore the desired state, applies the changes, and verifies the cluster is back in alignment. Without this, manual changes accumulate silently until the next Git-based deploy overwrites them, or worse, they persist and nobody knows the cluster differs from what the repo says.
 
@@ -38,6 +40,7 @@ go_apply_sync
     │
     ▼
 go_verify_state
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ go_verify_state
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/gitops-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/gitops-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gitops_workflow \
   --version 1 \
-  --input '{"repository": "test-value", "targetCluster": "test-value"}'
+  --input '{"repository": "sample-repository", "targetCluster": "production"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w gitops_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ gitops-workflow/
     ├── DetectDriftWorkerTest.java        # 8 tests
     ├── PlanSyncWorkerTest.java        # 7 tests
     └── VerifyStateWorkerTest.java        # 7 tests
+
 ```

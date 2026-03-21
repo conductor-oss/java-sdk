@@ -1,6 +1,8 @@
 # Course Management in Java with Conductor :  Course Creation, Scheduling, Instructor Assignment, and Catalog Publishing
 
-A Java Conductor workflow example for setting up a new course .  creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for setting up a new course .  creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to stand up a new course offering each semester. This means creating the course record in your student information system with the correct department and credit hours, scheduling class sessions into available time slots and rooms, assigning an instructor whose qualifications and availability match, and finally publishing the course to the catalog so students can register. Publishing a course without an assigned instructor or without scheduled sessions creates registration chaos.
 
@@ -38,6 +40,7 @@ crs_assign_instructor
     │
     ▼
 crs_publish
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ crs_publish
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/course-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/course-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crs_course_management \
   --version 1 \
-  --input '{"courseName": "test", "department": "test-value", "credits": "test-value", "semester": "test-value"}'
+  --input '{"courseName": "test", "department": "engineering", "credits": "sample-credits", "semester": "sample-semester"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w crs_course_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ course-management/
     ├── CreateCourseWorkerTest.java        # 3 tests
     ├── PublishCourseWorkerTest.java        # 2 tests
     └── ScheduleCourseWorkerTest.java        # 2 tests
+
 ```

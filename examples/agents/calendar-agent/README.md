@@ -1,6 +1,8 @@
 # Calendar Agent in Java Using Conductor :  Parse Requests, Check Availability, Find Slots, Book Meetings
 
-Calendar Agent .  parse meeting request, check attendee calendars, find available slots, and book the meeting through a sequential pipeline. Uses [Conductor](https://github.## Meeting Scheduling Is a Constraint Satisfaction Problem
+Calendar Agent .  parse meeting request, check attendee calendars, find available slots, and book the meeting through a sequential pipeline. Uses [Conductor](https://github.
+
+## Meeting Scheduling Is a Constraint Satisfaction Problem
 
 Finding a time that works for three people across different time zones with existing commitments is tedious. The agent needs to parse the request ("1-hour meeting with Alice and Bob, preferably next Tuesday afternoon"), check each attendee's calendar for existing events, find overlapping free windows that satisfy the duration and preference constraints, and book the meeting with proper invitations.
 
@@ -38,6 +40,7 @@ cl_find_slots
     │
     ▼
 cl_book_meeting
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cl_book_meeting
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/calendar-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/calendar-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow calendar_agent \
   --version 1 \
-  --input '{"request": "test-value", "attendees": "test-value", "duration": "test-value", "preferredDate": "2026-01-01T00:00:00Z"}'
+  --input '{"action": "schedule", "title": "Team standup", "date": "2026-03-25", "time": "09:00", "attendees": ["alice@example.com"]}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w calendar_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ calendar-agent/
     ├── CheckCalendarWorkerTest.java        # 9 tests
     ├── FindSlotsWorkerTest.java        # 9 tests
     └── ParseRequestWorkerTest.java        # 9 tests
+
 ```

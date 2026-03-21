@@ -1,6 +1,8 @@
 # Mortgage Application in Java with Conductor :  Apply, Credit Check, Underwriting, Approval, and Closing
 
-A Java Conductor workflow example for processing mortgage applications .  accepting the application, running a credit check, performing underwriting analysis against loan-to-value ratios, issuing an approval decision, and closing the loan. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for processing mortgage applications .  accepting the application, running a credit check, performing underwriting analysis against loan-to-value ratios, issuing an approval decision, and closing the loan. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process mortgage applications from submission to closing. An applicant requests a loan .  the application must be logged, a credit check must be run to pull their score, underwriting must evaluate the risk by comparing credit score, loan amount, and property value (LTV ratio), an approval or denial decision must be issued, and approved loans must proceed to closing with final documentation. Each step feeds into the next: underwriting can't start without the credit score, approval can't happen without the underwriting assessment.
 
@@ -42,6 +44,7 @@ mtg_approve
     │
     ▼
 mtg_close
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ mtg_close
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/mortgage-application-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/mortgage-application-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mtg_mortgage_application \
   --version 1 \
-  --input '{"applicantId": "TEST-001", "loanAmount": 100, "propertyValue": "test-value"}'
+  --input '{"applicantId": "TEST-001", "loanAmount": 100, "propertyValue": "sample-propertyValue"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w mtg_mortgage_application -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ mortgage-application/
     ├── CloseWorkerTest.java        # 2 tests
     ├── CreditCheckWorkerTest.java        # 2 tests
     └── UnderwriteWorkerTest.java        # 2 tests
+
 ```

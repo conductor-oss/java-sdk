@@ -1,6 +1,8 @@
 # Edge Computing Pipeline in Java with Conductor :  Task Offloading, On-Device Inference, and Cloud Sync
 
-A Java Conductor workflow example that orchestrates an edge computing pipeline .  offloading compute jobs to edge nodes, running on-device ML inference (object detection, classification), syncing results back to the cloud, and aggregating edge analytics into dashboards and time-series stores. Uses [Conductor](https://github.## Why Edge Compute Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an edge computing pipeline .  offloading compute jobs to edge nodes, running on-device ML inference (object detection, classification), syncing results back to the cloud, and aggregating edge analytics into dashboards and time-series stores. Uses [Conductor](https://github.
+
+## Why Edge Compute Pipelines Need Orchestration
 
 Edge computing pushes inference and data processing out to devices at the network edge .  cameras running object detection, gateways classifying sensor readings, robots making real-time decisions. But the results still need to flow back to the cloud for aggregation, dashboarding, and long-term storage. That creates a multi-hop pipeline: schedule the compute job on the right edge node, run the inference, sync the results over a potentially unreliable link, and aggregate everything centrally.
 
@@ -38,6 +40,7 @@ edg_sync_results
     │
     ▼
 edg_aggregate_cloud
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ edg_aggregate_cloud
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/edge-computing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/edge-computing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edge_computing_workflow \
   --version 1 \
-  --input '{"jobId": "TEST-001", "edgeNodeId": "TEST-001", "taskType": "test-value", "payload": "test-value"}'
+  --input '{"jobId": "TEST-001", "edgeNodeId": "TEST-001", "taskType": "standard", "payload": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w edge_computing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ edge-computing/
 └── src/test/java/edgecomputing/workers/
     ├── OffloadTaskWorkerTest.java        # 2 tests
     └── ProcessEdgeWorkerTest.java        # 2 tests
+
 ```

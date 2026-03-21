@@ -1,6 +1,8 @@
 # Task Input Templates in Java with Conductor
 
-Shows reusable parameter mapping patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Shows reusable parameter mapping patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to wire data between tasks, a user lookup returns a profile, a context builder enriches it with permissions, and an action executor needs fields from both previous steps plus the original workflow input. Input templates let you map outputs from any previous task into the next task's input using expressions like `${task_ref.output.field}`, composing complex objects from multiple sources without writing glue code.
 
@@ -34,6 +36,7 @@ tpl_build_context
     │
     ▼
 tpl_execute_action
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ tpl_execute_action
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/task-input-templates-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/task-input-templates-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow input_templates_demo \
   --version 1 \
-  --input '{"userId": "TEST-001", "action": "test-value", "metadata": "test-value"}'
+  --input '{"userId": "TEST-001", "action": "process", "metadata": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w input_templates_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -159,4 +170,5 @@ task-input-templates/
     ├── BuildContextWorkerTest.java        # 4 tests
     ├── ExecuteActionWorkerTest.java        # 6 tests
     └── LookupUserWorkerTest.java        # 5 tests
+
 ```

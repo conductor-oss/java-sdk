@@ -1,6 +1,8 @@
 # Stream Processing in Java Using Conductor :  Event Ingestion, Time Windowing, Window Aggregation, Anomaly Detection, and Result Emission
 
-A Java Conductor workflow example for stream processing with windowed analytics: ingesting a batch of timestamped events, grouping them into configurable time windows (e.g., 5-second or 1-minute tumbling windows), computing per-window aggregates (event counts, averages, distributions), detecting anomalies where window metrics deviate significantly from the norm, and emitting the combined aggregates and anomaly alerts as the final output. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for stream processing with windowed analytics: ingesting a batch of timestamped events, grouping them into configurable time windows (e.g., 5-second or 1-minute tumbling windows), computing per-window aggregates (event counts, averages, distributions), detecting anomalies where window metrics deviate significantly from the norm, and emitting the combined aggregates and anomaly alerts as the final output. Uses [Conductor](https://github.
+
+## The Problem
 
 Events are arriving continuously. API requests, sensor readings, user actions, financial transactions, and you need to analyze them in near-real-time using time windows. A configurable window size (say, 60,000ms for 1-minute windows) groups events by time, and each window needs aggregate statistics: how many events occurred, what was the average value, what was the distribution. Then anomaly detection needs to run across windows: a window with 10x the normal event count might indicate a traffic spike or DDoS, while a window with zero events might indicate a service outage. The results: both normal aggregates and anomaly alerts, need to be emitted to downstream consumers.
 
@@ -42,6 +44,7 @@ st_detect_anomalies
     │
     ▼
 st_emit_results
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ st_emit_results
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/stream-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/stream-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow stream_processing \
   --version 1 \
-  --input '{"events": "test-value", "windowSizeMs": 10}'
+  --input '{"events": "sample-events", "windowSizeMs": 10}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w stream_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ stream-processing/
     ├── EmitResultsWorkerTest.java        # 8 tests
     ├── IngestStreamWorkerTest.java        # 8 tests
     └── WindowEventsWorkerTest.java        # 8 tests
+
 ```

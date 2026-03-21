@@ -1,6 +1,8 @@
 # Event Windowing in Java Using Conductor
 
-Event Windowing .  collect events into a time window, compute aggregate statistics, and emit the windowed result. Uses [Conductor](https://github.## The Problem
+Event Windowing .  collect events into a time window, compute aggregate statistics, and emit the windowed result. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to group events into time-based windows and compute aggregate statistics per window. Events arrive continuously, but analysis requires bounded windows .  computing event count, sum, average, min, max, and standard deviation across all events within a configurable time window (e.g., 5 seconds, 1 minute). Without windowing, you either process events one at a time (losing temporal context) or accumulate unbounded state.
 
@@ -34,6 +36,7 @@ ew_compute_stats
     │
     ▼
 ew_emit_result
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ ew_emit_result
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-windowing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-windowing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_windowing \
   --version 1 \
-  --input '{"events": "test-value", "windowSizeMs": 10}'
+  --input '{"events": "sample-events", "windowSizeMs": 10}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_windowing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -159,4 +170,5 @@ event-windowing/
     ├── CollectWindowWorkerTest.java        # 9 tests
     ├── ComputeStatsWorkerTest.java        # 10 tests
     └── EmitResultWorkerTest.java        # 8 tests
+
 ```

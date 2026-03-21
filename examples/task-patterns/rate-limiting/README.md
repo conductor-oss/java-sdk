@@ -1,6 +1,6 @@
 # Rate Limiting in Java with Conductor
 
-Rate limiting demo. demonstrates task-level rate limiting with concurrency and frequency constraints configured entirely in the task definition. The worker code contains zero throttling logic. Conductor enforces the limits across all workflow instances automatically. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Rate limiting demo. demonstrates task-level rate limiting with concurrency and frequency constraints configured entirely in the task definition. The worker code contains zero throttling logic. Conductor enforces the limits across all workflow instances automatically. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -24,21 +24,11 @@ A single worker demonstrates zero-code rate limiting: RlApiCallWorker processes 
 
 The simulated worker produces a realistic output shape so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Rate limiting** | `rateLimitPerFrequency` and `rateLimitFrequencyInSeconds` cap executions per time window |
-| **Concurrency control** | `concurrentExecLimit` caps how many instances of this task run simultaneously |
-
 ### The Workflow
 
 ```
 rl_api_call (rate-limited: 5 per 10s, max 2 concurrent)
+
 ```
 
 ### Rate Limit Configuration
@@ -52,6 +42,7 @@ The rate limiting is set on the **task definition**, not in the workflow or work
   "rateLimitFrequencyInSeconds": 10,
   "concurrentExecLimit": 2
 }
+
 ```
 
 ## Running It
@@ -66,6 +57,7 @@ The rate limiting is set on the **task definition**, not in the workflow or work
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -74,13 +66,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -88,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/rate-limiting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -100,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -115,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/rate-limiting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -133,6 +129,7 @@ for i in $(seq 1 10); do
     --version 1 \
     --input "{\"batchId\": $i}"
 done
+
 ```
 
 ### Check workflow status
@@ -141,6 +138,7 @@ done
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rate_limit_demo -s COMPLETED -c 5
+
 ```
 
 ## Example Output
@@ -170,6 +168,7 @@ Step 5: Waiting for completion...
   Output: {result=batch-42-done}
 
 Result: PASSED
+
 ```
 
 ## How to Extend
@@ -192,6 +191,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -211,4 +211,5 @@ rate-limiting/
 │       └── RlApiCallWorker.java
 └── src/test/java/ratelimiting/workers/
     └── RlApiCallWorkerTest.java     # 7 tests
+
 ```

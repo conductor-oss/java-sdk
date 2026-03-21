@@ -1,6 +1,8 @@
 # DNS Management in Java with Conductor
 
-Orchestrates safe DNS record changes using [Conductor](https://github.com/conductor-oss/conductor). This workflow plans a DNS change, validates it against existing records for conflicts, applies it to the DNS provider, and verifies propagation.## DNS Changes Without the Risk
+Orchestrates safe DNS record changes using [Conductor](https://github.com/conductor-oss/conductor). This workflow plans a DNS change, validates it against existing records for conflicts, applies it to the DNS provider, and verifies propagation.
+
+## DNS Changes Without the Risk
 
 Updating a DNS record sounds simple until you realize a typo can take down your entire domain. The change needs to be planned, validated for conflicts (does this CNAME clash with an existing A record?), applied to the DNS provider, and then verified to have propagated globally. Doing this manually in the Route53 console at 11 PM is how outages happen.
 
@@ -38,6 +40,7 @@ dns_apply
     │
     ▼
 dns_verify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ dns_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/dns-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/dns-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow dns_management_workflow \
   --version 1 \
-  --input '{"domain": "test-value", "recordType": "test-value", "target": "test-value"}'
+  --input '{"domain": "sample-domain", "recordType": "standard", "target": "production"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w dns_management_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -162,4 +173,5 @@ dns-management-dns-management/
 │       └── VerifyWorker.java
 └── src/test/java/dnsmanagement/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

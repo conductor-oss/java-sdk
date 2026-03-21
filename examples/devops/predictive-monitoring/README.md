@@ -1,6 +1,8 @@
 # Predictive Monitoring in Java with Conductor :  Collect History, Train Model, Predict, Alert
 
-Automates predictive monitoring using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects historical metric data, trains a forecasting model (e.g., Prophet), predicts future metric values and breach likelihood, and sends proactive alerts before thresholds are actually crossed.## Fixing Problems Before They Happen
+Automates predictive monitoring using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects historical metric data, trains a forecasting model (e.g., Prophet), predicts future metric values and breach likelihood, and sends proactive alerts before thresholds are actually crossed.
+
+## Fixing Problems Before They Happen
 
 Your CPU usage has been climbing steadily for 30 days. Will it breach 90% this week? Instead of waiting for an alert to fire at 3 AM, predictive monitoring analyzes 30 days of historical data (43,200 data points at 1-minute granularity), trains a forecasting model, and tells you there is a 72.3% chance of breach with a predicted peak of 88.5% by tomorrow afternoon. You get a warning alert now, while you can still scale up or optimize. Not a critical page when it is already too late.
 
@@ -29,6 +31,7 @@ Workers simulate infrastructure operations with realistic output so you can see 
 
 ```
 Input -> CollectHistory -> PdmAlert -> Predict -> TrainModel -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> CollectHistory -> PdmAlert -> Predict -> TrainModel -> Output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/predictive-monitoring-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/predictive-monitoring-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow predictive_monitoring \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w predictive_monitoring -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -144,4 +154,5 @@ predictive-monitoring/
 │       ├── PdmAlert.java
 │       ├── Predict.java
 │       └── TrainModel.java
+
 ```

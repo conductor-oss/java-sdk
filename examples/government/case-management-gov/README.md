@@ -1,6 +1,8 @@
 # Government Case Management in Java with Conductor :  Intake, Investigation, Evaluation, and Resolution
 
-A Java Conductor workflow example for government case management .  opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for government case management .  opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage government cases from intake through resolution. A citizen or agency files a report, which opens a case. An investigator gathers evidence and interviews witnesses. An evaluator reviews the findings and assesses severity. A decision-maker renders a formal determination based on the evaluation. Finally, the case is closed with a timestamp and resolution record. Each step depends on the output of the previous one .  you cannot evaluate without investigation findings, and you cannot decide without an evaluation.
 
@@ -42,6 +44,7 @@ cmg_decide
     │
     ▼
 cmg_close
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cmg_close
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/case-management-gov-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/case-management-gov-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cmg_case_management_gov \
   --version 1 \
-  --input '{"caseType": "test-value", "reporterId": "TEST-001", "description": "test-value"}'
+  --input '{"caseType": "standard", "reporterId": "TEST-001", "description": "sample-description"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cmg_case_management_gov -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ case-management-gov-case-management-gov/
 └── src/test/java/casemanagementgov/workers/
     ├── DecideWorkerTest.java
     └── OpenCaseWorkerTest.java
+
 ```

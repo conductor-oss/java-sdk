@@ -1,6 +1,8 @@
 # Task Priority Routing in Java Using Conductor :  Classify Urgency, Route to Priority-Specific Queues
 
-A Java Conductor workflow example for task priority routing .  classifying incoming tasks by urgency and impact into high/medium/low priority, then routing each to the appropriate processing queue via a `SWITCH` task. Uses [Conductor](https://github.## Not All Tasks Are Equal :  High Priority Must Jump the Queue
+A Java Conductor workflow example for task priority routing .  classifying incoming tasks by urgency and impact into high/medium/low priority, then routing each to the appropriate processing queue via a `SWITCH` task. Uses [Conductor](https://github.
+
+## Not All Tasks Are Equal :  High Priority Must Jump the Queue
 
 A production incident alert, a routine log rotation, and a monthly report request arrive at the same time. The incident needs immediate attention with dedicated resources. The log rotation can wait. The report can run overnight. Without priority classification and routing, all three compete for the same worker pool, and the incident sits behind the report in the queue.
 
@@ -36,6 +38,7 @@ SWITCH (tpr_switch_ref)
     ├── medium: tpr_route_medium
     ├── low: tpr_route_low
     └── default: tpr_route_medium
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ SWITCH (tpr_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/task-priority-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/task-priority-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tpr_task_priority \
   --version 1 \
-  --input '{"taskId": "TEST-001", "urgency": "test-value", "impact": "test-value"}'
+  --input '{"taskId": "TEST-001", "urgency": "sample-urgency", "impact": "sample-impact"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tpr_task_priority -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -138,6 +148,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ task-priority/
     ├── TprRouteHighWorkerTest.java        # 4 tests
     ├── TprRouteLowWorkerTest.java        # 4 tests
     └── TprRouteMediumWorkerTest.java        # 4 tests
+
 ```

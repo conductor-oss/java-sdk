@@ -1,6 +1,8 @@
 # Service Decomposition in Java with Conductor
 
-Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with optional shadow comparison. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with optional shadow comparison. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Migrating from a monolith to microservices cannot happen all at once. The strangler fig pattern uses feature flags to gradually route requests from the monolith to new microservices. This workflow checks a feature flag to decide the routing target (monolith, microservice, or shadow mode), and in shadow mode runs both in parallel to compare results before committing to the new service.
 
@@ -35,6 +37,7 @@ SWITCH (route_ref)
     ├── microservice: sd_call_microservice
     ├── shadow: parallel_compare -> join_compare -> sd_compare_results
     └── default: sd_call_monolith
+
 ```
 
 ## Running It
@@ -49,6 +52,7 @@ SWITCH (route_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -57,6 +61,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -71,6 +76,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/service-decomposition-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -83,6 +89,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -98,6 +105,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/service-decomposition-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -106,7 +114,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_decomposition_workflow \
   --version 1 \
-  --input '{"feature": "test-value", "request": "test-value"}'
+  --input '{"feature": "sample-feature", "request": "sample-request"}'
+
 ```
 
 ### Check workflow status
@@ -115,6 +124,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w service_decomposition_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -137,6 +147,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -157,4 +168,5 @@ service-decomposition/
 │       ├── CallMonolithWorker.java
 │       ├── CheckFeatureFlagWorker.java
 │       └── CompareResultsWorker.java
+
 ```

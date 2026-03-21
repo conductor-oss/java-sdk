@@ -1,6 +1,8 @@
 # Advertising Campaign Pipeline in Java Using Conductor :  Creative Setup, Audience Targeting, Bid Strategy, Ad Serving, and Performance Reporting
 
-A Java Conductor workflow example that orchestrates a digital advertising campaign lifecycle .  creating ad creatives in multiple formats (banner, video, native), defining target audiences by demographics and interest segments, configuring bid strategies (target CPA, daily budgets, max bids), serving ads and tracking impressions/clicks/conversions, and generating campaign performance reports. Uses [Conductor](https://github.## Why Ad Campaign Management Needs Orchestration
+A Java Conductor workflow example that orchestrates a digital advertising campaign lifecycle .  creating ad creatives in multiple formats (banner, video, native), defining target audiences by demographics and interest segments, configuring bid strategies (target CPA, daily budgets, max bids), serving ads and tracking impressions/clicks/conversions, and generating campaign performance reports. Uses [Conductor](https://github.
+
+## Why Ad Campaign Management Needs Orchestration
 
 Launching a digital ad campaign involves a strict sequence where each step depends on the previous one. You create the campaign creative .  specifying ad formats (banner 300x250, video pre-roll, native cards) and associating creative assets. You define the target audience ,  selecting interest segments (tech professionals), demographic filters (age, location), and reaching an estimated audience of 2.5 million. You configure the bid strategy ,  target CPA, daily budget derived from the total campaign budget, and maximum bid caps. You activate ad serving and collect performance data: 850K impressions, 12.7K clicks, 425 conversions, $8,500 spend. Finally, you generate a campaign report summarizing ROI and delivery metrics.
 
@@ -42,6 +44,7 @@ adv_serve_ads
     │
     ▼
 adv_generate_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ adv_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/advertising-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/advertising-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow advertising_workflow \
   --version 1 \
-  --input '{"campaignId": "TEST-001", "advertiserId": "TEST-001", "budget": "test-value", "objective": "test-value"}'
+  --input '{"campaignId": "TEST-001", "advertiserId": "TEST-001", "budget": "sample-budget", "objective": "sample-objective"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w advertising_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ advertising-workflow/
 └── src/test/java/advertisingworkflow/workers/
     ├── CreateCampaignWorkerTest.java        # 2 tests
     └── TargetAudienceWorkerTest.java        # 2 tests
+
 ```

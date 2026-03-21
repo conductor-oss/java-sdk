@@ -1,6 +1,8 @@
 # WAIT Task Basics in Java Using Conductor :  Pre-WAIT Preparation, Pause for External Approval Signal, and Post-WAIT Processing with Approval Payload
 
-A Java Conductor workflow example demonstrating the fundamental WAIT task pattern .  running a preparation step that validates the requestId, pausing at a WAIT task until an external signal (REST API, SDK, or UI) completes it with an approval payload, then processing the approval response. The post-WAIT worker receives both the original requestId and the approval value from the WAIT task's output, demonstrating how data flows through WAIT tasks: the external completer provides the output, and the next task can reference it via `${wait_for_approval_ref.output.approval}`. Uses [Conductor](https://github.## Workflows Need to Pause and Wait for External Signals
+A Java Conductor workflow example demonstrating the fundamental WAIT task pattern .  running a preparation step that validates the requestId, pausing at a WAIT task until an external signal (REST API, SDK, or UI) completes it with an approval payload, then processing the approval response. The post-WAIT worker receives both the original requestId and the approval value from the WAIT task's output, demonstrating how data flows through WAIT tasks: the external completer provides the output, and the next task can reference it via `${wait_for_approval_ref.output.approval}`. Uses [Conductor](https://github.
+
+## Workflows Need to Pause and Wait for External Signals
 
 The WAIT task is the fundamental building block for human-in-the-loop workflows. It pauses execution until an external signal (REST API call, SDK call, or UI interaction) completes the task with a payload. The workflow prepares data before the pause, waits, then processes the data provided when the WAIT task is completed. This example demonstrates the core WAIT task mechanics.
 
@@ -32,6 +34,7 @@ wait_for_approval [WAIT]
     │
     ▼
 wait_after
+
 ```
 
 ## Running It
@@ -46,6 +49,7 @@ wait_after
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -54,6 +58,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -68,6 +73,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/wait-task-basics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -80,6 +86,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -95,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/wait-task-basics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -104,6 +112,7 @@ conductor workflow start \
   --workflow wait_task_basics_demo \
   --version 1 \
   --input '{"requestId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -112,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wait_task_basics_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -133,6 +143,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -154,4 +165,5 @@ wait-task-basics/
 └── src/test/java/waittaskbasics/workers/
     ├── WaitAfterWorkerTest.java        # 7 tests
     └── WaitBeforeWorkerTest.java        # 4 tests
+
 ```

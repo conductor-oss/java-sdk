@@ -1,6 +1,8 @@
 # Live Streaming Pipeline in Java Using Conductor :  Stream Setup, Encoding, CDN Distribution, Quality Monitoring, and Archival
 
-A Java Conductor workflow example that orchestrates a live streaming pipeline .  provisioning ingest URLs and stream keys, encoding to adaptive bitrate HLS streams with low-latency codecs, distributing across CDN nodes with multi-region viewer support, monitoring stream quality (peak viewers, average bitrate, buffer ratio, quality scores), and archiving the completed stream with thumbnails for VOD playback. Uses [Conductor](https://github.## Why Live Streaming Workflows Need Orchestration
+A Java Conductor workflow example that orchestrates a live streaming pipeline .  provisioning ingest URLs and stream keys, encoding to adaptive bitrate HLS streams with low-latency codecs, distributing across CDN nodes with multi-region viewer support, monitoring stream quality (peak viewers, average bitrate, buffer ratio, quality scores), and archiving the completed stream with thumbnails for VOD playback. Uses [Conductor](https://github.
+
+## Why Live Streaming Workflows Need Orchestration
 
 Managing a live stream involves a sequence of infrastructure operations that must happen in the right order. You set up the stream .  provisioning an RTMP ingest URL and stream key. You configure encoding ,  setting up adaptive bitrate transcoding at multiple quality levels with low-latency settings. You distribute the encoded stream to CDN edge nodes across viewer regions. You monitor quality throughout ,  tracking peak concurrent viewers, average bitrate, buffer ratios, and computing an overall quality score. After the stream ends, you archive the recording with generated thumbnails for on-demand playback.
 
@@ -30,6 +32,7 @@ Workers simulate media processing stages .  transcoding, thumbnail generation, m
 
 ```
 Input -> ArchiveStreamWorker -> DistributeStreamWorker -> EncodeStreamWorker -> MonitorQualityWorker -> SetupStreamWorker -> Output
+
 ```
 
 ## Running It
@@ -44,6 +47,7 @@ Input -> ArchiveStreamWorker -> DistributeStreamWorker -> EncodeStreamWorker -> 
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -52,6 +56,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -66,6 +71,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/live-streaming-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -78,6 +84,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -93,6 +100,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/live-streaming-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -102,6 +110,7 @@ conductor workflow start \
   --workflow live_streaming \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -110,6 +119,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w live_streaming -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -134,6 +144,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ live-streaming/
     ├── EncodeStreamWorkerTest.java        # 8 tests
     ├── MonitorQualityWorkerTest.java        # 8 tests
     └── SetupStreamWorkerTest.java        # 8 tests
+
 ```

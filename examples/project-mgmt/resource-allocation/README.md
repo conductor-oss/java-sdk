@@ -1,6 +1,8 @@
 # Resource Allocation Automation in Java with Conductor :  Demand Assessment, Capacity Checking, Resource Assignment, and Allocation Confirmation
 
-A Java Conductor workflow example that automates resource allocation for projects .  assessing demand by hours needed with priority and start date, checking available capacity by resource type to find team members with free hours, allocating the best-fit resource to the project, and confirming the allocation with a locked commitment. Uses [Conductor](https://github.## Why Resource Allocation Needs Orchestration
+A Java Conductor workflow example that automates resource allocation for projects .  assessing demand by hours needed with priority and start date, checking available capacity by resource type to find team members with free hours, allocating the best-fit resource to the project, and confirming the allocation with a locked commitment. Uses [Conductor](https://github.
+
+## Why Resource Allocation Needs Orchestration
 
 Allocating people to projects requires a pipeline where each step narrows the decision based on real data. You assess demand .  the project needs a specific number of hours (e.g., 30h), has a priority level (high), and a start date (2026-03-10). You check capacity for the requested resource type ,  querying which team members have free hours, producing a ranked list (Alice with 30 free hours, Bob with 20). You allocate by matching the demand to the best available resource ,  selecting Alice because her 30 free hours exactly cover the project's 30-hour need. Finally, you confirm the allocation ,  locking Alice's hours against the project so no other allocation can double-book her.
 
@@ -38,6 +40,7 @@ ral_allocate
     │
     ▼
 ral_confirm
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ral_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/resource-allocation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/resource-allocation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow resource_allocation_resource-allocation \
   --version 1 \
   --input '{"projectId": "PROJ-42", "PROJ-42": "resourceType", "resourceType": "developer", "developer": "hoursNeeded", "hoursNeeded": 40}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w resource_allocation_resource-allocation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ resource-allocation-resource-allocation/
     ├── AssessDemandWorkerTest.java        # 2 tests
     ├── CheckCapacityWorkerTest.java        # 2 tests
     └── ConfirmWorkerTest.java        # 2 tests
+
 ```

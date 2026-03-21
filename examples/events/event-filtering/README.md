@@ -1,6 +1,8 @@
 # Event Filtering in Java Using Conductor
 
-Event filtering workflow that receives events, classifies them by priority, and routes to urgent, standard, or drop handlers via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Event filtering workflow that receives events, classifies them by priority, and routes to urgent, standard, or drop handlers via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to filter incoming events by priority and route each to the appropriate processing lane. High-severity events must be handled urgently with fast-track processing and immediate alerting. Standard events go through normal processing. Low-priority or noise events are dropped to avoid wasting resources. Treating all events equally means critical alerts are delayed by a backlog of low-priority noise.
 
@@ -39,6 +41,7 @@ SWITCH (switch_ref)
     ├── urgent: ef_urgent_handler
     ├── standard: ef_standard_handler
     └── default: ef_drop_event
+
 ```
 
 ## Running It
@@ -53,6 +56,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -61,6 +65,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -75,6 +80,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-filtering-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -87,6 +93,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -102,6 +109,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-filtering-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,7 +118,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_filtering_wf \
   --version 1 \
-  --input '{"eventId": "TEST-001", "eventType": "test-value", "severity": "test-value", "payload": "test-value"}'
+  --input '{"eventId": "TEST-001", "eventType": "standard", "severity": "sample-severity", "payload": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -119,6 +128,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_filtering_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ event-filtering/
     ├── ReceiveEventWorkerTest.java        # 8 tests
     ├── StandardHandlerWorkerTest.java        # 8 tests
     └── UrgentHandlerWorkerTest.java        # 8 tests
+
 ```

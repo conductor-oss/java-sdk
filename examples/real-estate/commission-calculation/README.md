@@ -1,6 +1,8 @@
 # Real Estate Commission Calculation in Java with Conductor :  Base Rate, Tiered Adjustments, Deductions, and Payout
 
-A Java Conductor workflow example for calculating real estate agent commissions .  computing the base commission from sale price, applying tiered adjustments based on agent performance, subtracting brokerage fees and deductions, and finalizing the payout. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for calculating real estate agent commissions .  computing the base commission from sale price, applying tiered adjustments based on agent performance, subtracting brokerage fees and deductions, and finalizing the payout. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to calculate agent commissions when a property sale closes. The calculation is never as simple as "sale price times percentage." You start with a base commission rate, then apply tiered adjustments .  senior agents earn a higher split, top performers get bonus percentages, team leads take an override. Then you subtract deductions: brokerage desk fees, marketing costs, referral fees paid to other agents. Finally, the net commission is finalized and a payment is issued. Each step depends on the previous one, and any error in the chain means an agent gets paid the wrong amount.
 
@@ -38,6 +40,7 @@ cmc_deductions
     │
     ▼
 cmc_finalize
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cmc_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/commission-calculation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/commission-calculation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow cmc_commission_calculation \
   --version 1 \
   --input '{"agentId": "TEST-001", "salePrice": 100, "transactionId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cmc_commission_calculation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ commission-calculation/
     ├── DeductionsWorkerTest.java        # 2 tests
     ├── FinalizeWorkerTest.java        # 2 tests
     └── TiersWorkerTest.java        # 2 tests
+
 ```

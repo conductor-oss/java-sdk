@@ -1,6 +1,8 @@
 # Lesson Planning in Java with Conductor :  Learning Objectives, Content Creation, Review, and Publishing
 
-A Java Conductor workflow example for building lesson plans .  defining learning objectives for a course topic, creating instructional content aligned to those objectives, reviewing the lesson plan for quality and curriculum alignment, and publishing it to the course schedule for a given week. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for building lesson plans .  defining learning objectives for a course topic, creating instructional content aligned to those objectives, reviewing the lesson plan for quality and curriculum alignment, and publishing it to the course schedule for a given week. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to prepare lesson plans for each week of a course. This means defining measurable learning objectives for the lesson topic, creating instructional content (lecture materials, activities, readings) that aligns with those objectives, having the plan reviewed for pedagogical quality and curriculum fit, and publishing it to the course so students and co-instructors can see the upcoming schedule. Creating content without clear objectives leads to unfocused lessons; publishing without review risks distributing incomplete or misaligned materials.
 
@@ -38,6 +40,7 @@ lpl_review
     │
     ▼
 lpl_publish
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ lpl_publish
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/lesson-planning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/lesson-planning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lpl_lesson_planning \
   --version 1 \
-  --input '{"courseId": "TEST-001", "lessonTitle": "test-value", "week": "test-value"}'
+  --input '{"courseId": "TEST-001", "lessonTitle": "sample-lessonTitle", "week": "sample-week"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w lpl_lesson_planning -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ lesson-planning/
     ├── DefineObjectivesWorkerTest.java        # 2 tests
     ├── PublishWorkerTest.java        # 2 tests
     └── ReviewWorkerTest.java        # 2 tests
+
 ```

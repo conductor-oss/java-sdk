@@ -1,6 +1,8 @@
 # Shipping Workflow in Java Using Conductor :  Select Carrier, Create Label, Track, Deliver, Confirm
 
-A Java Conductor workflow example for end-to-end shipment fulfillment .  selecting the optimal carrier based on package weight and dimensions, generating a shipping label, tracking the parcel in transit, confirming delivery, and closing out the order. Uses [Conductor](https://github.## Shipping Involves Multiple Carriers and Real-Time Tracking
+A Java Conductor workflow example for end-to-end shipment fulfillment .  selecting the optimal carrier based on package weight and dimensions, generating a shipping label, tracking the parcel in transit, confirming delivery, and closing out the order. Uses [Conductor](https://github.
+
+## Shipping Involves Multiple Carriers and Real-Time Tracking
 
 A 5 lb package going from New York to Los Angeles with next-day shipping. FedEx quotes $32, UPS quotes $29, USPS doesn't offer next-day for this weight. The system must compare rates across carriers, select the cheapest qualifying option, generate a shipping label with barcode and customs information (for international), track the package through pickup, transit, and delivery, and confirm delivery with signature verification if required.
 
@@ -42,6 +44,7 @@ shp_deliver
     │
     ▼
 shp_confirm
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ shp_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/shipping-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/shipping-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow shipping_workflow \
   --version 1 \
-  --input '{"orderId": "TEST-001", "weight": "test-value", "dimensions": "test-value", "origin": "test-value", "destination": "test-value"}'
+  --input '{"orderId": "TEST-001", "weight": "sample-weight", "dimensions": "sample-dimensions", "origin": "sample-origin", "destination": "production"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w shipping_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -163,4 +173,5 @@ shipping-workflow/
     ├── DeliverShipmentWorkerTest.java        # 2 tests
     ├── SelectCarrierWorkerTest.java        # 3 tests
     └── TrackShipmentWorkerTest.java        # 2 tests
+
 ```

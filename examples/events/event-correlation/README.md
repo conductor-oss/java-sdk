@@ -1,6 +1,8 @@
 # Event Correlation in Java Using Conductor
 
-Event Correlation .  init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process. Uses [Conductor](https://github.## The Problem
+Event Correlation .  init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to correlate related events that arrive independently from different sources. An order event, a payment event, and a shipping event may arrive at different times from different services, but they all belong to the same business transaction. The workflow must initialize a correlation session, receive all expected events (potentially in parallel), correlate them by matching fields, and process the fully correlated result.
 
@@ -44,6 +46,7 @@ ec_correlate_events
     │
     ▼
 ec_process_correlated
+
 ```
 
 ## Running It
@@ -58,6 +61,7 @@ ec_process_correlated
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -66,6 +70,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -80,6 +85,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-correlation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -92,6 +98,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -107,6 +114,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-correlation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -115,7 +123,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_correlation_wf \
   --version 1 \
-  --input '{"correlationId": "TEST-001", "expectedEvents": "test-value"}'
+  --input '{"correlationId": "TEST-001", "expectedEvents": "sample-expectedEvents"}'
+
 ```
 
 ### Check workflow status
@@ -124,6 +133,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_correlation_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ event-correlation/
     ├── ReceiveOrderWorkerTest.java        # 8 tests
     ├── ReceivePaymentWorkerTest.java        # 8 tests
     └── ReceiveShippingWorkerTest.java        # 8 tests
+
 ```

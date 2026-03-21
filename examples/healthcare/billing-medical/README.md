@@ -1,6 +1,8 @@
 # Medical Billing in Java Using Conductor :  CPT/ICD Coding, Coverage Verification, Claim Submission, and Payment Tracking
 
-A Java Conductor workflow example for medical billing .  coding clinical encounters with CPT and ICD codes, verifying patient insurance coverage, submitting claims to payers, and tracking reimbursement payments. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for medical billing .  coding clinical encounters with CPT and ICD codes, verifying patient insurance coverage, submitting claims to payers, and tracking reimbursement payments. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to bill for a clinical encounter. After a patient visit, the encounter must be coded with CPT procedure codes (e.g., 99213 for an office visit, 36415 for venipuncture) and ICD diagnosis codes (e.g., E11.9 for type 2 diabetes, I10 for hypertension). The patient's insurance coverage must be verified against the coded procedures. A claim is then submitted to the payer with the coded line items and total charge. Finally, the payment must be tracked through adjudication to reconcile what was billed versus what was reimbursed.
 
@@ -38,6 +40,7 @@ mbl_submit_claim
     │
     ▼
 mbl_track_payment
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ mbl_track_payment
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/billing-medical-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/billing-medical-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow medical_billing_workflow \
   --version 1 \
-  --input '{"encounterId": "TEST-001", "patientId": "TEST-001", "providerId": "TEST-001", "procedures": "test-value"}'
+  --input '{"encounterId": "TEST-001", "patientId": "TEST-001", "providerId": "TEST-001", "procedures": "sample-procedures"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w medical_billing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ billing-medical/
     ├── SubmitClaimWorkerTest.java        # 2 tests
     ├── TrackPaymentWorkerTest.java        # 2 tests
     └── VerifyCoverageWorkerTest.java        # 2 tests
+
 ```

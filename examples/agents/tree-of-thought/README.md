@@ -1,6 +1,8 @@
 # Tree of Thought in Java Using Conductor :  Explore Three Solution Paths in Parallel, Evaluate, Select Best
 
-Tree of Thought .  define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution. Uses [Conductor](https://github.## Some Problems Have Multiple Solution Approaches
+Tree of Thought .  define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution. Uses [Conductor](https://github.
+
+## Some Problems Have Multiple Solution Approaches
 
 "How should we reduce cloud infrastructure costs by 30%?" has at least three valid approaches: right-sizing instances (analyze usage, downsize over-provisioned resources), reserved capacity (commit to 1-3 year reservations for predictable workloads), or architectural changes (move to serverless, consolidate services). Each approach has different risk profiles, implementation timelines, and savings potential.
 
@@ -44,6 +46,7 @@ tt_evaluate_paths
     │
     ▼
 tt_select_best
+
 ```
 
 ## Running It
@@ -58,6 +61,7 @@ tt_select_best
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -66,6 +70,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -80,6 +85,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tree-of-thought-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -92,6 +98,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -107,6 +114,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tree-of-thought-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -115,7 +123,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tree_of_thought \
   --version 1 \
-  --input '{"problem": "test-value"}'
+  --input '{"problem": "sample-problem"}'
+
 ```
 
 ### Check workflow status
@@ -124,6 +133,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tree_of_thought -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -167,4 +177,5 @@ tree-of-thought/
     ├── PathBWorkerTest.java        # 9 tests
     ├── PathCWorkerTest.java        # 9 tests
     └── SelectBestWorkerTest.java        # 9 tests
+
 ```

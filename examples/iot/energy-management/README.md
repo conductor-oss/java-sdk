@@ -1,6 +1,8 @@
 # Building Energy Management in Java with Conductor :  Consumption Monitoring, Pattern Analysis, and Optimization
 
-A Java Conductor workflow example that orchestrates building energy management .  collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.## Why Energy Optimization Needs Orchestration
+A Java Conductor workflow example that orchestrates building energy management .  collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.
+
+## Why Energy Optimization Needs Orchestration
 
 Managing energy consumption in a building involves a pipeline where each step depends on what came before. You pull meter readings over a time period to get per-hour kW consumption and total kWh. You feed those readings into pattern analysis to identify when demand spikes .  midday HVAC peaks, overnight baseline loads, equipment-dominant periods. Those patterns drive optimization recommendations: shift HVAC schedules, reduce lighting during low-occupancy hours, project dollar savings. Finally, you compile everything into a report for facilities management.
 
@@ -38,6 +40,7 @@ erg_optimize
     │
     ▼
 erg_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ erg_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/energy-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/energy-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow energy_management_demo \
   --version 1 \
-  --input '{"buildingId": "TEST-001", "period": "test-value"}'
+  --input '{"buildingId": "TEST-001", "period": "sample-period"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w energy_management_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ energy-management/
     ├── MonitorConsumptionWorkerTest.java        # 8 tests
     ├── OptimizeWorkerTest.java        # 8 tests
     └── ReportWorkerTest.java        # 7 tests
+
 ```

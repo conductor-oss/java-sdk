@@ -1,6 +1,8 @@
 # Insurance Underwriting in Java with Conductor
 
-Insurance underwriting with SWITCH decision routing for accept/decline/refer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Insurance underwriting with SWITCH decision routing for accept/decline/refer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to underwrite an insurance application. The workflow collects applicant information and coverage requirements, assesses the risk based on applicant profile and coverage type, makes an underwriting decision (accept at standard rates, accept with modified terms, decline, or refer for manual review), and communicates the decision. Accepting high-risk applicants at standard rates leads to adverse selection; declining without proper assessment loses good business.
 
@@ -48,6 +50,7 @@ SWITCH (uw_switch_ref)
     │
     ▼
 uw_bind
+
 ```
 
 ## Running It
@@ -62,6 +65,7 @@ uw_bind
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -70,6 +74,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -84,6 +89,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/insurance-underwriting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -96,6 +102,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -111,6 +118,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/insurance-underwriting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -119,7 +127,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow insurance_underwriting_workflow \
   --version 1 \
-  --input '{"applicationId": "TEST-001", "applicantName": "test", "coverageType": "test-value", "coverageAmount": 100}'
+  --input '{"applicationId": "TEST-001", "applicantName": "test", "coverageType": "standard", "coverageAmount": 100}'
+
 ```
 
 ### Check workflow status
@@ -128,6 +137,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w insurance_underwriting_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -151,6 +161,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -177,4 +188,5 @@ insurance-underwriting/
 └── src/test/java/insuranceunderwriting/workers/
     ├── BindWorkerTest.java        # 3 tests
     └── QuoteWorkerTest.java        # 3 tests
+
 ```

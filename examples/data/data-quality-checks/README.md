@@ -12,7 +12,7 @@ Without orchestration, you'd run all three checks sequentially in a single metho
 
 **You just write the completeness, accuracy, consistency, and report generation workers. Conductor handles parallel check execution via FORK_JOIN, per-check retries, and automatic join-then-report sequencing so scores are always complete before grading.**
 
-Each quality check is a simple, independent worker. The completeness checker counts filled required fields across all records. The accuracy checker validates email formats and status value enums. The consistency checker looks for duplicate IDs and cross-field contradictions. Conductor's `FORK_JOIN` runs all three checks simultaneously against the same dataset, waits for all to complete, and then the report generator computes a weighted overall score and letter grade. If one check fails, Conductor retries just that check. You get all of that for free, without writing a single line of thread pool or join logic.
+Each quality check is a simple, independent worker. The completeness checker counts filled required fields across all records. The accuracy checker validates email formats and status value enums. The consistency checker looks for duplicate IDs and cross-field contradictions. Conductor's `FORK_JOIN` runs all three checks simultaneously against the same dataset, waits for all to complete, and then the report generator computes a weighted overall score and letter grade. If one check fails, Conductor retries just that check. You get all of that, without writing a single line of thread pool or join logic.
 
 ### What You Write: Workers
 
@@ -28,16 +28,6 @@ Five workers run the quality assessment: loading records, then checking complete
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 qc_generate_report
+
 ```
 
 ## Running It
@@ -66,6 +57,7 @@ qc_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -74,13 +66,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -88,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-quality-checks-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -100,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ### Sample Output
@@ -131,6 +126,7 @@ Step 5: Waiting for completion...
   Output: {totalRecords=6, completenessScore=0.96, accuracyScore=0.83, consistencyScore=1.0, overallScore=0.93, grade=A}
 
 Result: PASSED
+
 ```
 
 ## Configuration
@@ -146,6 +142,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-quality-checks-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -154,7 +151,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_quality_checks \
   --version 1 \
-  --input '{"records": [{"id":1,"name":"Alice","email":"alice@example.com","status":"active"},{"id":2,"name":"Bob","email":"invalid-email","status":"active"},{"id":3,"name":"","email":"charlie@example.com","status":"pending"}]}'
+  --input '{"records": [{"id": 1, "name": "Alice", "email": "alice@example.com", "status": "active"}, {"id": 2, "name": "Bob", "email": "invalid-email", "status": "active"}, {"id": 3, "name": "", "email": "charlie@example.com", "status": "pending"}]}'
+
 ```
 
 ### Check workflow status
@@ -163,6 +161,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_quality_checks -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -193,6 +192,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -220,4 +220,5 @@ data-quality-checks/
     ├── CheckConsistencyWorkerTest.java
     ├── GenerateReportWorkerTest.java
     └── LoadDataWorkerTest.java
+
 ```

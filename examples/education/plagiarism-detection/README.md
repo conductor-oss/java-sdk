@@ -1,6 +1,8 @@
 # Plagiarism Detection in Java with Conductor :  Submission, Scanning, Comparison, Verdict Routing, and Reporting
 
-A Java Conductor workflow example for academic plagiarism detection .  ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for academic plagiarism detection .  ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to check student submissions for plagiarism before grades are assigned. The document must be ingested, scanned to extract textual fingerprints and n-grams, compared against a database of published papers, web content, and prior student submissions, and then a similarity score determines the verdict. If the submission is clean, it proceeds to grading; if flagged, it must be routed to the academic integrity office for review. Either way, an originality report is generated for the instructor's records.
 
@@ -45,6 +47,7 @@ SWITCH (plg_switch_ref)
     │
     ▼
 plg_report
+
 ```
 
 ## Running It
@@ -59,6 +62,7 @@ plg_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -67,6 +71,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -81,6 +86,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/plagiarism-detection-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -93,6 +99,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -108,6 +115,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/plagiarism-detection-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -116,7 +124,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow plg_plagiarism_detection \
   --version 1 \
-  --input '{"studentId": "TEST-001", "assignmentId": "TEST-001", "documentText": "test-value"}'
+  --input '{"studentId": "TEST-001", "assignmentId": "TEST-001", "documentText": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -125,6 +134,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w plg_plagiarism_detection -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,6 +159,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -178,4 +189,5 @@ plagiarism-detection/
     ├── ReportWorkerTest.java        # 2 tests
     ├── ScanWorkerTest.java        # 3 tests
     └── SubmitWorkerTest.java        # 2 tests
+
 ```

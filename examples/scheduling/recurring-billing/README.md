@@ -26,6 +26,7 @@ The workflow relies on Conductor's built-in task types. To go to production, add
 
 ```
 Input ->  -> Output
+
 ```
 
 ## Running It
@@ -40,6 +41,7 @@ Input ->  -> Output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -48,6 +50,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -62,6 +65,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/recurring-billing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -74,6 +78,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -89,6 +94,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/recurring-billing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -97,7 +103,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow recurring_billing \
   --version 1 \
-  --input '{"customerId": "TEST-001", "planId": "TEST-001", "billingCycleStart": "test-value", "billingCycleEnd": "test-value", "subscriptionStart": "test-value"}'
+  --input '{"customerId": "TEST-001", "planId": "TEST-001", "billingCycleStart": "sample-billingCycleStart", "billingCycleEnd": "sample-billingCycleEnd", "subscriptionStart": "sample-subscriptionStart"}'
+
 ```
 
 ### Check workflow status
@@ -106,6 +113,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w recurring_billing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -124,6 +132,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -140,4 +149,5 @@ recurring-billing/
 │   ├── ConductorClientHelper.java   # SDK v5 client setup
 │   ├── RecurringBillingExample.java          # Main entry point (supports --workers mode)
 │   └── workers/
+
 ```

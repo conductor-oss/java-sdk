@@ -1,6 +1,8 @@
 # At-Least-Once Message Delivery in Java Using Conductor :  Receive, Process, Acknowledge, Verify
 
-A Java Conductor workflow example for at-least-once message delivery .  receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.## Guaranteeing Every Message Gets Processed
+A Java Conductor workflow example for at-least-once message delivery .  receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.
+
+## Guaranteeing Every Message Gets Processed
 
 Message queues like SQS and Kafka deliver messages with a receipt handle and a visibility timeout. If your consumer crashes after processing but before acknowledging, the message reappears on the queue and gets delivered again. If it crashes after acknowledging but before recording delivery, you lose the audit trail. The gap between "processed" and "acknowledged" is where messages get lost or silently duplicated.
 
@@ -38,6 +40,7 @@ alo_acknowledge
     │
     ▼
 alo_verify_delivery
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ alo_verify_delivery
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/at-least-once-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/at-least-once-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow alo_at_least_once \
   --version 1 \
-  --input '{"messageId": "TEST-001", "payload": "test-value", "topic": "test-value"}'
+  --input '{"messageId": "TEST-001", "payload": {"key": "value"}, "topic": "microservices best practices"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w alo_at_least_once -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ at-least-once/
     ├── AloProcessWorkerTest.java        # 4 tests
     ├── AloReceiveWorkerTest.java        # 4 tests
     └── AloVerifyDeliveryWorkerTest.java        # 4 tests
+
 ```

@@ -26,15 +26,6 @@ Three workers cover the full RAG pipeline: embedding the query, searching the ve
 
 **Important:** Vector search is always simulated in this example, even in live mode. `CONDUCTOR_OPENAI_API_KEY` only turns on real embedding and generation calls. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples. Without the key, all three workers produce deterministic simulated output so the workflow runs end-to-end without any external dependencies.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Configurable retry policy** | These example task definitions intentionally use `retryCount=0` so provider failures fail fast during development. Increase retries per task when you want automatic replay behavior. |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,6 +36,7 @@ brag_search_vectors
     │
     ▼
 brag_generate_answer
+
 ```
 
 ## Running It
@@ -59,6 +51,7 @@ brag_generate_answer
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically (simulated mode).
@@ -67,19 +60,21 @@ With real OpenAI API calls:
 
 ```bash
 CONDUCTOR_OPENAI_API_KEY=sk-... docker compose up --build
+
 ```
 
 If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -91,6 +86,7 @@ java -jar target/basic-rag-1.0.0.jar
 # Or with real OpenAI API calls for embedding + generation:
 export CONDUCTOR_OPENAI_API_KEY=sk-...
 java -jar target/basic-rag-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -103,6 +99,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 `run.sh` auto-loads the nearest `.env` file it finds while walking up parent directories, so a repo-root `.env` works without manual exports.
@@ -162,6 +159,7 @@ Step 5: Waiting for completion...
   3. Generate: LLM produces answer grounded in retrieved context
 
 Result: PASSED
+
 ```
 
 ### Real mode (with CONDUCTOR_OPENAI_API_KEY)
@@ -208,6 +206,7 @@ Step 5: Waiting for completion...
   3. Generate: LLM produces answer grounded in retrieved context
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -216,6 +215,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/basic-rag-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -225,6 +225,7 @@ conductor workflow start \
   --workflow basic_rag_workflow \
   --version 1 \
   --input '{"question": "What is Conductor and how does RAG work?"}'
+
 ```
 
 ### Check workflow status
@@ -233,6 +234,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w basic_rag_workflow -s COMPLETED -c 5
+
 ```
 
 ## The RAG Pipeline
@@ -268,6 +270,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -291,4 +294,5 @@ basic-rag/
     ├── EmbedQueryWorkerTest.java    # 5 tests. Embedding shape, metadata, edge cases
     ├── GenerateAnswerWorkerTest.java # 4 tests. Context size, tokens, null handling
     └── SearchVectorsWorkerTest.java # 6 tests. Document count, scores, topK default
+
 ```

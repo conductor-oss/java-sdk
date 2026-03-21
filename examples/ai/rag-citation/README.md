@@ -27,15 +27,6 @@ Four workers form the citation lifecycle. Document retrieval, cited answer gener
 
 Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ cr_extract_citations
     │
     ▼
 cr_verify_citations
+
 ```
 
 ## Running It
@@ -63,6 +55,7 @@ cr_verify_citations
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -71,13 +64,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -85,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/rag-citation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -97,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -142,6 +138,7 @@ Step 5: Waiting for completion...
   Citations: 4 verified, all passed
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -150,6 +147,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/rag-citation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -159,6 +157,7 @@ conductor workflow start \
   --workflow citation_rag_workflow \
   --version 1 \
   --input '{"question": "How does Conductor handle workflow orchestration?"}'
+
 ```
 
 ### Check workflow status
@@ -167,6 +166,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w citation_rag_workflow -s COMPLETED -c 5
+
 ```
 
 ## The Citation-Verified RAG Pipeline
@@ -187,8 +187,8 @@ Each worker handles one citation lifecycle step. Swap in a real vector store for
 
 - **RetrieveDocsWorker** (`cr_retrieve_docs`): swap in a real vector store query against Pinecone, Weaviate, Qdrant, pgvector, or Elasticsearch. Include document metadata (title, page, URL) so citations can link to the source
 - **GenerateCitedWorker** (`cr_generate_cited`): call Claude or GPT-4 with a system prompt that instructs inline citations: "Cite sources using [1], [2], etc. Every factual claim must have a citation." Parse the structured citations from the LLM response
-- **ExtractCitationsWorker** (`cr_extract_citations`): the parsing logic is already deterministic and production-ready. Enhance it with regex-based extraction of citation markers from free-text LLM output
-- **VerifyCitationsWorker** (`cr_verify_citations`): the verification logic is already deterministic and production-ready. Add content verification: check that the cited claim is actually supported by the referenced document's text (semantic similarity check)
+- **ExtractCitationsWorker** (`cr_extract_citations`): the parsing logic is already deterministic and well-tested. Enhance it with regex-based extraction of citation markers from free-text LLM output
+- **VerifyCitationsWorker** (`cr_verify_citations`): the verification logic is already deterministic and well-tested. Add content verification: check that the cited claim is actually supported by the referenced document's text (semantic similarity check)
 - **Add a citation rejection loop**: if `allVerified` is false, re-generate the answer with stricter citation instructions (Conductor DO_WHILE task)
 
 Each worker keeps its output contract stable, so upgrading the retrieval backend or tightening the citation verification logic requires no workflow changes.
@@ -203,6 +203,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -228,4 +229,5 @@ rag-citation/
     ├── GenerateCitedWorkerTest.java     # Tests. Citation structure, answer format
     ├── RetrieveDocsWorkerTest.java      # Tests. Document count, metadata fields
     └── VerifyCitationsWorkerTest.java   # 7 tests. Verified/unverified, null handling
+
 ```

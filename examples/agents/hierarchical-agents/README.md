@@ -1,6 +1,8 @@
 # Hierarchical Agents in Java Using Conductor :  Manager, Team Leads, and Workers in a Development Org
 
-Hierarchical agents .  manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.## Software Projects Need Hierarchical Coordination
+Hierarchical agents .  manager plans, team leads delegate to workers in parallel branches, manager merges results. Uses [Conductor](https://github.
+
+## Software Projects Need Hierarchical Coordination
 
 A real development team has a manager who plans the work, team leads who coordinate their teams, and individual contributors who write code. The backend lead assigns API and database tasks; the frontend lead assigns UI and styling tasks. Both teams work simultaneously. The manager reviews everything at the end.
 
@@ -42,6 +44,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 hier_manager_merge
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ hier_manager_merge
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/hierarchical-agents-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/hierarchical-agents-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow hierarchical_agents \
   --version 1 \
-  --input '{"project": "test-value", "deadline": "test-value"}'
+  --input '{"project": "sample-project", "deadline": "sample-deadline"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w hierarchical_agents -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -169,4 +179,5 @@ hierarchical-agents/
     ├── WorkerDbWorkerTest.java        # 5 tests
     ├── WorkerStylingWorkerTest.java        # 5 tests
     └── WorkerUiWorkerTest.java        # 5 tests
+
 ```

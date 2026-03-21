@@ -1,6 +1,6 @@
 # End-to-End App in Java with Conductor: Support Ticket Pipeline. Classify, Assign, Notify
 
-A complete Java Conductor application that processes support tickets end-to-end: classifying the ticket by category (billing, technical, account), assigning it to the right team based on classification, and notifying the customer with a confirmation email. This is a realistic mini-application that shows how all the Conductor pieces fit together: workflow definition, multiple workers, data flow between tasks, and a main entry point. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the ticket pipeline, you write the classification, assignment, and notification logic, Conductor handles sequencing, retries, durability, and observability for free.
+A complete Java Conductor application that processes support tickets end-to-end: classifying the ticket by category (billing, technical, account), assigning it to the right team based on classification, and notifying the customer with a confirmation email. This is a realistic mini-application that shows how all the Conductor pieces fit together: workflow definition, multiple workers, data flow between tasks, and a main entry point. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the ticket pipeline, you write the classification, assignment, and notification logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## From Hello World to a Real Application
 
@@ -22,15 +22,6 @@ The support ticket pipeline uses three workers: classify, assign, and notify, to
 | **AssignTicketWorker** | `assign_ticket` | Maps category to team (billing -> Finance Support, technical -> Engineering) and upgrades response time for CRITICAL (30 min) and HIGH (1 hour) tickets. |
 | **NotifyCustomerWorker** | `notify_customer` | Logs a notification to the customer with ticket details (priority, assigned team, response time). Returns `sent: true` and `channel: email`. |
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -41,6 +32,7 @@ assign_ticket
     │
     ▼
 notify_customer
+
 ```
 
 ## Running It
@@ -55,6 +47,7 @@ notify_customer
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,13 +56,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -77,6 +71,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/end-to-end-app-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +84,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ### Example Output
@@ -122,6 +118,7 @@ Step 5: Waiting for all tickets to be processed...
   TKT-003    | MEDIUM     | Account Management     | 8 hours
 
 Result: PASSED. All 3 tickets processed successfully.
+
 ```
 
 ## Configuration
@@ -137,6 +134,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/end-to-end-app-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -146,6 +144,7 @@ conductor workflow start \
   --workflow support_ticket_pipeline \
   --version 1 \
   --input '{"ticketId": "TKT-100", "subject": "Cannot login to my account", "description": "Password reset is not working", "category": "account", "customerEmail": "user@example.com"}'
+
 ```
 
 ### Check workflow status
@@ -154,6 +153,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w support_ticket_pipeline -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -172,6 +172,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -195,4 +196,5 @@ end-to-end-app/
     ├── AssignTicketWorkerTest.java
     ├── ClassifyTicketWorkerTest.java
     └── NotifyCustomerWorkerTest.java
+
 ```

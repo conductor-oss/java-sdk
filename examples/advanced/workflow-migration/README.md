@@ -1,6 +1,8 @@
 # Workflow Migration in Java Using Conductor :  Export from Legacy, Transform, Import to New, Verify
 
-A Java Conductor workflow example for workflow migration .  exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.## Migrating from Legacy Orchestration Without Losing History
+A Java Conductor workflow example for workflow migration .  exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.
+
+## Migrating from Legacy Orchestration Without Losing History
 
 You're moving from Airflow to Conductor (or Jenkins to Conductor, or a custom cron-based system). The legacy system has 200 workflow definitions, execution history that auditors need, and active runs that can't be interrupted. Migration means exporting the old definitions and history, transforming them into the target format (different task naming, different input/output schemas), importing them into the new system, and verifying that the migrated workflows produce identical results.
 
@@ -38,6 +40,7 @@ wm_import_new
     │
     ▼
 wm_verify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ wm_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-migration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-migration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow workflow_migration_demo \
   --version 1 \
-  --input '{"sourceSystem": "test-value", "targetSystem": "test-value", "workflowName": "test"}'
+  --input '{"sourceSystem": "api", "targetSystem": "production", "workflowName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w workflow_migration_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ workflow-migration/
     ├── WmImportNewWorkerTest.java        # 4 tests
     ├── WmTransformWorkerTest.java        # 4 tests
     └── WmVerifyWorkerTest.java        # 4 tests
+
 ```

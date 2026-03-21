@@ -1,6 +1,8 @@
 # Tool Use Logging in Java Using Conductor :  Request Log, Execute, Response Log, Audit Trail
 
-Tool Use Logging: log tool requests and responses, execute tools, and create audit entries through a sequential pipeline. Uses [Conductor](https://github.## Every Tool Call Needs an Audit Trail
+Tool Use Logging: log tool requests and responses, execute tools, and create audit entries through a sequential pipeline. Uses [Conductor](https://github.
+
+## Every Tool Call Needs an Audit Trail
 
 When an AI agent calls tools on behalf of users, you need to know exactly what was called, with what arguments, what it returned, how long it took, and who initiated it. Compliance (SOC2, HIPAA) requires audit logs. Debugging requires request-response pairs. Cost tracking requires knowing which tools are called how often.
 
@@ -38,6 +40,7 @@ tl_log_response
     │
     ▼
 tl_create_audit_entry
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ tl_create_audit_entry
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-logging-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-logging-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_logging \
   --version 1 \
-  --input '{"toolName": "test", "toolArgs": "test-value", "userId": "TEST-001", "sessionId": "TEST-001"}'
+  --input '{"toolName": "test", "toolArgs": "sample-toolArgs", "userId": "TEST-001", "sessionId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_logging -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ tool-use-logging/
     ├── ExecuteToolWorkerTest.java        # 9 tests
     ├── LogRequestWorkerTest.java        # 8 tests
     └── LogResponseWorkerTest.java        # 8 tests
+
 ```

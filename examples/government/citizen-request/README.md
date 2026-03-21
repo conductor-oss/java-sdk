@@ -1,6 +1,8 @@
 # Citizen Request in Java with Conductor
 
-Processes citizen service requests (pothole repairs, streetlight outages, noise complaints): submitting, classifying by type and urgency, routing to the responsible department, resolving, and notifying the citizen. Uses [Conductor](https://github.## The Problem
+Processes citizen service requests (pothole repairs, streetlight outages, noise complaints): submitting, classifying by type and urgency, routing to the responsible department, resolving, and notifying the citizen. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process a citizen service request (pothole repair, streetlight outage, noise complaint, etc.). The request is submitted, classified by type and urgency, routed to the appropriate department or crew, resolved by the responsible team, and the citizen is notified of the resolution. Misclassifying a request sends it to the wrong department; failing to notify leaves citizens wondering if their government is responsive.
 
@@ -42,6 +44,7 @@ ctz_resolve
     │
     ▼
 ctz_notify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ctz_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/citizen-request-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/citizen-request-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ctz_citizen_request \
   --version 1 \
-  --input '{"citizenId": "TEST-001", "requestType": "test-value", "description": "test-value"}'
+  --input '{"citizenId": "TEST-001", "requestType": "standard", "description": "sample-description"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ctz_citizen_request -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ citizen-request-citizen-request/
     ├── ResolveWorkerTest.java
     ├── RouteWorkerTest.java
     └── SubmitWorkerTest.java
+
 ```

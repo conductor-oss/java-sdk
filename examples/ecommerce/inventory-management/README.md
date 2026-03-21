@@ -1,6 +1,6 @@
 # Inventory Management in Java Using Conductor: Check Stock, Reserve, Update, Reorder
 
-It's Black Friday. Your product page shows 500 units of the hot new headphones "in stock"; but that number is a lie. The website sees 500, the Amazon channel sees 500, and the outlet app sees 500, because all three read from a cache that hasn't synced with the warehouse. Physically, 200 units sit on the shelf. By noon, you've sold 800 headphones you don't have, customer service is fielding cancellation calls, and your supplier can't restock for three weeks. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate atomic stock checks, reservations, updates, and reorders as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+It's Black Friday. Your product page shows 500 units of the hot new headphones "in stock"; but that number is a lie. The website sees 500, the Amazon channel sees 500, and the outlet app sees 500, because all three read from a cache that hasn't synced with the warehouse. Physically, 200 units sit on the shelf. By noon, you've sold 800 headphones you don't have, customer service is fielding cancellation calls, and your supplier can't restock for three weeks. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate atomic stock checks, reservations, updates, and reorders as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Inventory Must Be Accurate, Atomic, and Proactive
 
@@ -27,15 +27,6 @@ Stock checking, reservation, inventory updates, and reorder workers manage wareh
 
 Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ inv_update
     │
     ▼
 inv_reorder
+
 ```
 
 ## Example Output
@@ -79,7 +71,9 @@ Step 4: Starting workflow...
   Output: {availableQty=45, reserved=reserved-value, remainingQty=remainingQty-value, reorderPlaced=true}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -92,6 +86,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -100,13 +95,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -114,6 +110,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/inventory-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -126,6 +123,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -141,6 +139,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/inventory-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -150,6 +149,7 @@ conductor workflow start \
   --workflow inventory_management \
   --version 1 \
   --input '{"sku": "WH-1000XM5", "requestedQty": 20, "warehouseId": "WH-EAST-01", "reorderThreshold": 30}'
+
 ```
 
 ### Check workflow status
@@ -158,6 +158,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w inventory_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -198,4 +199,5 @@ inventory-management/
     ├── ReorderWorkerTest.java        # 3 tests
     ├── ReserveStockWorkerTest.java        # 4 tests
     └── UpdateInventoryWorkerTest.java        # 3 tests
+
 ```

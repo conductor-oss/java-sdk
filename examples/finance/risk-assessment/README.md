@@ -1,6 +1,8 @@
 # Risk Assessment in Java with Conductor
 
-Risk assessment workflow with parallel market, credit, and operational risk analysis via FORK_JOIN. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Risk assessment workflow with parallel market, credit, and operational risk analysis via FORK_JOIN. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to assess the total risk exposure of a portfolio across multiple risk dimensions simultaneously. Market risk (price volatility, interest rate sensitivity), credit risk (counterparty default probability), and operational risk (process failures, fraud) must all be analyzed in parallel since they are independent calculations. The combined results provide a holistic view of the portfolio's risk profile. Running these assessments sequentially wastes time when each can take minutes to compute.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 rsk_aggregate
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ rsk_aggregate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/risk-assessment-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/risk-assessment-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,6 +120,7 @@ conductor workflow start \
   --workflow risk_assessment_workflow \
   --version 1 \
   --input '{"portfolioId": "TEST-001", "assessmentDate": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w risk_assessment_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -167,4 +178,5 @@ risk-assessment/
 └── src/test/java/riskassessment/workers/
     ├── AggregateWorkerTest.java        # 5 tests
     └── CollectFactorsWorkerTest.java        # 2 tests
+
 ```

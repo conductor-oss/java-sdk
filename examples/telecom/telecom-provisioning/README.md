@@ -1,6 +1,8 @@
 # Telecom Provisioning in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service provisioning .  creating a service order for a customer, validating the order against the selected plan, configuring network resources for the service type, activating the service on the network, and sending a confirmation to the customer. Uses [Conductor](https://github.## Why Service Provisioning Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom service provisioning .  creating a service order for a customer, validating the order against the selected plan, configuring network resources for the service type, activating the service on the network, and sending a confirmation to the customer. Uses [Conductor](https://github.
+
+## Why Service Provisioning Needs Orchestration
 
 Provisioning a new telecom service requires a strict sequence where each step depends on the previous one. You create a service order with the customer's details and service type. You validate that the order is compatible with the selected plan. You configure the network equipment (switches, routers, HLR/HSS entries) for the service. You activate the configured service so the customer can start using it. Finally, you send a provisioning confirmation to the customer.
 
@@ -42,6 +44,7 @@ tpv_activate
     │
     ▼
 tpv_confirm
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ tpv_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/telecom-provisioning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/telecom-provisioning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tpv_telecom_provisioning \
   --version 1 \
-  --input '{"customerId": "TEST-001", "serviceType": "test-value", "planId": "TEST-001"}'
+  --input '{"customerId": "TEST-001", "serviceType": "standard", "planId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tpv_telecom_provisioning -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ telecom-provisioning-telecom-provisioning/
 └── src/test/java/telecomprovisioning/workers/
     ├── ActivateWorkerTest.java        # 1 tests
     └── OrderWorkerTest.java        # 1 tests
+
 ```

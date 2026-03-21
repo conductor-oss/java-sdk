@@ -1,6 +1,6 @@
 # CDC Pipeline in Java Using Conductor
 
-A customer updates their shipping address at 2:03 PM. The downstream cache still shows the old address at 2:18 PM because the sync job runs on a 15-minute cron. The warehouse ships to the wrong address. The real-time price update your marketing team pushed to the products table at 11:00 AM doesn't reach the storefront until 11:15. after 200 customers have already checked out at the old price. Every minute your CDC pipeline lags is a minute your downstream systems are lying to users. This example builds a change-data-capture pipeline with Conductor that detects INSERTs, UPDATEs, and DELETEs from a source table, transforms them into structured events, publishes downstream, and confirms delivery, all orchestrated with retries and a full audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A customer updates their shipping address at 2:03 PM. The downstream cache still shows the old address at 2:18 PM because the sync job runs on a 15-minute cron. The warehouse ships to the wrong address. The real-time price update your marketing team pushed to the products table at 11:00 AM doesn't reach the storefront until 11:15. after 200 customers have already checked out at the old price. Every minute your CDC pipeline lags is a minute your downstream systems are lying to users. This example builds a change-data-capture pipeline with Conductor that detects INSERTs, UPDATEs, and DELETEs from a source table, transforms them into structured events, publishes downstream, and confirms delivery, all orchestrated with retries and a full audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a single CDC polling service that queries the
 
 **You just write the change-detection, transform, publish, and delivery-confirmation workers. Conductor handles pipeline sequencing, automatic retry when the broker is unavailable, and a durable record of every CDC run.**
 
-Each CDC concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (detect changes, transform, publish, confirm), retrying when the message broker is temporarily unavailable, tracking every pipeline run with full change-record details, and resuming from the last successful step if the process crashes mid-publish. You get all of that for free, without writing a single line of orchestration code.
+Each CDC concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (detect changes, transform, publish, confirm), retrying when the message broker is temporarily unavailable, tracking every pipeline run with full change-record details, and resuming from the last successful step if the process crashes mid-publish. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers form the CDC pipeline: DetectChangesWorker polls a source table for
 
 Workers simulate event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources, the workflow and routing logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ cd_publish_downstream
     │
     ▼
 cd_confirm_delivery
+
 ```
 
 ## Example Output
@@ -78,7 +70,9 @@ Step 4: Starting workflow...
   Output: {sourceTable=users, changesDetected=4, changesPublished=3, allDelivered=True}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -91,6 +85,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -99,13 +94,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -113,6 +109,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/cdc-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -125,6 +122,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -140,6 +138,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/cdc-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -149,6 +148,7 @@ conductor workflow start \
   --workflow cdc_pipeline_wf \
   --version 1 \
   --input '{"sourceTable": "users", "sinceTimestamp": "2026-03-08T10:00:00Z", "targetTopic": "cdc.users.changes"}'
+
 ```
 
 ### Check workflow status
@@ -157,6 +157,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cdc_pipeline_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -180,6 +181,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -205,4 +207,5 @@ cdc-pipeline/
     ├── DetectChangesWorkerTest.java        # 10 tests
     ├── PublishDownstreamWorkerTest.java        # 8 tests
     └── TransformChangesWorkerTest.java        # 10 tests
+
 ```

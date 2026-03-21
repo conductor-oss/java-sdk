@@ -1,6 +1,8 @@
 # Cloud Cost Optimization in Java with Conductor :  Billing Collection, Usage Analysis, Savings Recommendations, and Auto-Apply
 
-Orchestrates cloud cost optimization using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects billing data for a specified account and period, analyzes resource utilization to identify waste (idle instances, over-provisioned databases, unused EBS volumes), generates savings recommendations with estimated dollar impact, and auto-applies safe optimizations like purchasing reserved instances or deleting orphaned snapshots.## The Cloud Bill Problem
+Orchestrates cloud cost optimization using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects billing data for a specified account and period, analyzes resource utilization to identify waste (idle instances, over-provisioned databases, unused EBS volumes), generates savings recommendations with estimated dollar impact, and auto-applies safe optimizations like purchasing reserved instances or deleting orphaned snapshots.
+
+## The Cloud Bill Problem
 
 Your AWS bill jumped 40% last month. Somewhere in your account, there are EC2 instances running at 5% CPU, over-provisioned RDS databases with 2TB allocated but only 50GB used, and EBS snapshots from instances deleted six months ago. Finding these wastes requires collecting billing data, cross-referencing it with utilization metrics, computing how much each optimization would save, and then actually applying the changes. Rightsizing instances, deleting orphaned resources, converting on-demand to reserved capacity. Missing even one step means money leaking out every hour.
 
@@ -38,6 +40,7 @@ co_recommend
     │
     ▼
 co_apply_savings
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ co_apply_savings
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/cost-optimization-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/cost-optimization-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cost_optimization_workflow \
   --version 1 \
-  --input '{"account": 10, "period": "test-value"}'
+  --input '{"account": 10, "period": "sample-period"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cost_optimization_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ cost-optimization-cost-optimization/
 │       └── RecommendWorker.java
 └── src/test/java/costoptimization/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

@@ -1,6 +1,8 @@
 # Change Management in Java with Conductor :  Submit, Assess Risk, Approve, Implement
 
-Automates ITIL-style change management using [Conductor](https://github.com/conductor-oss/conductor). This workflow submits a change request with a tracking ID, assesses the risk level (low/medium/high), routes through Change Advisory Board (CAB) approval, and implements the approved change.## Controlled Changes, Not Cowboy Deploys
+Automates ITIL-style change management using [Conductor](https://github.com/conductor-oss/conductor). This workflow submits a change request with a tracking ID, assesses the risk level (low/medium/high), routes through Change Advisory Board (CAB) approval, and implements the approved change.
+
+## Controlled Changes, Not Cowboy Deploys
 
 An engineer wants to modify the production database connection pool settings. Without a process, they SSH in and change it. With change management, the request is submitted and tracked, risk is assessed (is this a low-risk config change or a high-risk schema migration?), CAB approval is obtained for anything above low risk, and only then is the change implemented. If the approval is denied or the risk assessment flags concerns, the workflow stops cleanly.
 
@@ -29,6 +31,7 @@ Workers simulate infrastructure operations with realistic output so you can see 
 
 ```
 Input -> ApproveChange -> AssessRisk -> ImplementChange -> SubmitChange -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> ApproveChange -> AssessRisk -> ImplementChange -> SubmitChange -> Outpu
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/change-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/change-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow change_management \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w change_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,4 +159,5 @@ change-management/
     ├── AssessRiskTest.java        # 8 tests
     ├── ImplementChangeTest.java        # 8 tests
     └── SubmitChangeTest.java        # 9 tests
+
 ```

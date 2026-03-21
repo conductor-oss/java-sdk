@@ -1,6 +1,6 @@
 # Data Aggregation in Java Using Conductor: Group-By, Statistical Computation, and Report Generation
 
-The VP of Sales opens the regional revenue dashboard Monday morning and it takes 45 seconds to load. The dashboard runs a query that scans 12 million raw transaction rows, groups them by region, and computes sum/average/min/max: live, on every page load. By Wednesday, when the table has grown by another 2 million rows, the query times out entirely. So someone adds a materialized view, but it's stale by the time the next sales call happens. The real problem is that aggregation is happening at read time against raw data, instead of being computed once, stored, and served instantly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+The VP of Sales opens the regional revenue dashboard Monday morning and it takes 45 seconds to load. The dashboard runs a query that scans 12 million raw transaction rows, groups them by region, and computes sum/average/min/max: live, on every page load. By Wednesday, when the table has grown by another 2 million rows, the query times out entirely. So someone adds a materialized view, but it's stale by the time the next sales call happens. The real problem is that aggregation is happening at read time against raw data, instead of being computed once, stored, and served instantly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd write a single method that reads data, does the gro
 
 **You just write the data loading, grouping, aggregation, formatting, and emission workers. Conductor handles the load-group-aggregate-format-emit sequence, retries on data source failures, and detailed observability into record counts at every stage.**
 
-Each stage of the aggregation pipeline is a simple, independent worker. The loader reads records from the data source. The grouper partitions records by the specified dimension field. The aggregator computes count, sum, average, min, and max for each group on the specified numeric field. The formatter turns raw aggregates into human-readable report lines. The emitter delivers the final output. Conductor executes them in sequence, passes grouped data between steps, retries if a data source query fails, and resumes from exactly where it left off if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the aggregation pipeline is a simple, independent worker. The loader reads records from the data source. The grouper partitions records by the specified dimension field. The aggregator computes count, sum, average, min, and max for each group on the specified numeric field. The formatter turns raw aggregates into human-readable report lines. The emitter delivers the final output. Conductor executes them in sequence, passes grouped data between steps, retries if a data source query fails, and resumes from exactly where it left off if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Five workers cover the full aggregation lifecycle: loading records, grouping by 
 | **LoadDataWorker** | `agg_load_data` | Loads input records and passes them through with a count. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,6 +44,7 @@ agg_format_report
     │
     ▼
 agg_emit_results
+
 ```
 
 ## Example Output
@@ -79,12 +71,13 @@ Step 4: Starting workflow...
   [agg_emit_results] Aggregation complete: " + groupCount + " groups reported
 
 
-
   Status: COMPLETED
   Output: {summary=Aggregation complete: " + groupCount + " groups reported, report=Processing complete, groupCount=3}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -97,6 +90,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -105,13 +99,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -119,6 +114,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-aggregation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -131,6 +127,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -146,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-aggregation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -155,6 +153,7 @@ conductor workflow start \
   --workflow data_aggregation_wf \
   --version 1 \
   --input '{"records": [{"region": "east", "amount": 100}, {"region": "west", "amount": 200}, {"region": "east", "amount": 150}], "groupBy": "region", "aggregateField": "amount"}'
+
 ```
 
 ### Check workflow status
@@ -163,6 +162,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_aggregation_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -189,6 +189,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -216,4 +217,5 @@ data-aggregation/
     ├── FormatReportWorkerTest.java        # 8 tests
     ├── GroupByDimensionWorkerTest.java        # 8 tests
     └── LoadDataWorkerTest.java        # 8 tests
+
 ```

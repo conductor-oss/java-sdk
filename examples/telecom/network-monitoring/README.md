@@ -1,6 +1,8 @@
 # Network Monitoring in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom network monitoring .  polling metrics from a network segment, detecting issues such as high latency, packet loss, or link failures, diagnosing root causes, executing automated repairs, and verifying the network segment is healthy after repair. Uses [Conductor](https://github.## Why Network Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom network monitoring .  polling metrics from a network segment, detecting issues such as high latency, packet loss, or link failures, diagnosing root causes, executing automated repairs, and verifying the network segment is healthy after repair. Uses [Conductor](https://github.
+
+## Why Network Monitoring Needs Orchestration
 
 Monitoring a telecom network segment requires a closed-loop process from detection through resolution. You poll performance metrics (latency, jitter, packet loss, throughput) from the network segment's switches and routers. You analyze those metrics to detect issues .  threshold breaches, trending degradation, or outright failures. You diagnose the root cause by correlating the detected issues with topology, recent changes, and known failure patterns. You execute the repair ,  rerouting traffic, resetting interfaces, or rolling back a bad configuration. Finally, you verify the segment is healthy by re-polling metrics and confirming the issue is resolved.
 
@@ -42,6 +44,7 @@ nmn_repair
     │
     ▼
 nmn_verify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ nmn_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/network-monitoring-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/network-monitoring-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow nmn_network_monitoring \
   --version 1 \
-  --input '{"networkSegment": "test-value", "checkType": "test-value"}'
+  --input '{"networkSegment": "sample-networkSegment", "checkType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w nmn_network_monitoring -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ network-monitoring-network-monitoring/
 └── src/test/java/networkmonitoring/workers/
     ├── MonitorWorkerTest.java        # 1 tests
     └── RepairWorkerTest.java        # 1 tests
+
 ```

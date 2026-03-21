@@ -1,6 +1,8 @@
 # Tool-Augmented Generation in Java Using Conductor :  Generate, Detect Gaps, Call Tools, Incorporate, Complete
 
-Tool-Augmented Generation .  detect knowledge gaps during text generation, invoke external tools to fill them, and produce enriched output. Uses [Conductor](https://github.## LLMs Need Tools When Their Knowledge Runs Out
+Tool-Augmented Generation .  detect knowledge gaps during text generation, invoke external tools to fill them, and produce enriched output. Uses [Conductor](https://github.
+
+## LLMs Need Tools When Their Knowledge Runs Out
 
 An LLM generating a response about current stock prices will hallucinate numbers because its training data is months old. Tool-augmented generation detects these knowledge gaps mid-generation and pauses to call external tools .  a stock API for prices, a calculator for computations, a database for customer data ,  then resumes generation with real data incorporated.
 
@@ -42,6 +44,7 @@ tg_incorporate_result
     │
     ▼
 tg_complete_generation
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ tg_complete_generation
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-augmented-generation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-augmented-generation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_augmented_generation \
   --version 1 \
-  --input '{"prompt": "test-value"}'
+  --input '{"prompt": "What is workflow orchestration?"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_augmented_generation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -163,4 +173,5 @@ tool-augmented-generation/
     ├── DetectGapWorkerTest.java        # 8 tests
     ├── IncorporateResultWorkerTest.java        # 8 tests
     └── StartGenerationWorkerTest.java        # 8 tests
+
 ```

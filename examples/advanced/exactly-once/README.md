@@ -1,6 +1,6 @@
 # Exactly-Once Processing in Java Using Conductor: Lock, Dedup, Process, Commit, Unlock
 
-The payment service processes the $49.99 debit, then crashes before acknowledging the message. The broker retries. Another instance picks it up and processes it again, customer double-charged. You add an idempotency check, but two instances grab the same message simultaneously and both pass the check before either records it. You add a distributed lock, but the lock holder crashes mid-processing and the TTL expires before cleanup. Every fix opens a new failure mode. Exactly-once delivery is impossible, but exactly-once processing is achievable with the right protocol. This example implements the full lock-check-process-commit-unlock sequence with Conductor, ensuring the business effect happens once even when messages arrive twice. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+The payment service processes the $49.99 debit, then crashes before acknowledging the message. The broker retries. Another instance picks it up and processes it again, customer double-charged. You add an idempotency check, but two instances grab the same message simultaneously and both pass the check before either records it. You add a distributed lock, but the lock holder crashes mid-processing and the TTL expires before cleanup. Every fix opens a new failure mode. Exactly-once delivery is impossible, but exactly-once processing is achievable with the right protocol. This example implements the full lock-check-process-commit-unlock sequence with Conductor, ensuring the business effect happens once even when messages arrive twice. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Preventing Duplicate Processing in Distributed Systems
 
@@ -28,15 +28,6 @@ Five workers enforce the exactly-once protocol: distributed locking, state check
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ exo_commit
     │
     ▼
 exo_unlock
+
 ```
 
 ## Example Output
@@ -79,12 +71,13 @@ Step 4: Starting workflow...
   [unlock] Processing
 
 
-
   Status: COMPLETED
   Output: {messageId=TXN-2024-5678, processed=true, committed=true, unlocked=true}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -97,6 +90,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -105,13 +99,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -119,6 +114,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/exactly-once-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -131,6 +127,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -146,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/exactly-once-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -155,6 +153,7 @@ conductor workflow start \
   --workflow exo_exactly_once \
   --version 1 \
   --input '{"messageId": "TXN-2024-5678", "payload": "debit_49.99", "resourceKey": "account:ACC-001"}'
+
 ```
 
 ### Check workflow status
@@ -163,6 +162,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w exo_exactly_once -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -185,6 +185,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -212,4 +213,5 @@ exactly-once/
     ├── ExoLockWorkerTest.java        # 4 tests
     ├── ExoProcessWorkerTest.java        # 4 tests
     └── ExoUnlockWorkerTest.java        # 4 tests
+
 ```

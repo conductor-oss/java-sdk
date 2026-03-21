@@ -1,6 +1,6 @@
 # Four-Eyes Approval in Java Using Conductor: Dual Independent Approvals via Parallel WAIT Tasks in FORK/JOIN
 
-A Java Conductor workflow example implementing the four-eyes principle: submitting a request, then running two independent WAIT tasks in parallel via FORK/JOIN so two different approvers must both approve before finalization proceeds. Neither approver can see the other's decision until both have acted, ensuring independence. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example implementing the four-eyes principle: submitting a request, then running two independent WAIT tasks in parallel via FORK/JOIN so two different approvers must both approve before finalization proceeds. Neither approver can see the other's decision until both have acted, ensuring independence. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Some Decisions Require Two Independent Approvals (Four-Eyes Principle)
 
@@ -26,16 +26,6 @@ SubmitWorker prepares the request for dual review, and FinalizeWorker records bo
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -49,6 +39,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 fep_finalize
+
 ```
 
 ## Running It
@@ -63,6 +54,7 @@ fep_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -71,13 +63,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -85,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/four-eyes-approval-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -97,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -131,6 +126,7 @@ Step 5: Waiting for completion (WAIT tasks require external signals)...
   Status: RUNNING
 
 Note: Workflow is paused at WAIT tasks. Complete approver_1 and approver_2 externally.
+
 ```
 
 ## Using the Conductor CLI
@@ -139,6 +135,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/four-eyes-approval-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -148,6 +145,7 @@ conductor workflow start \
   --workflow four_eyes_approval_demo \
   --version 1 \
   --input '{"requestId": "REQ-2026-0042"}'
+
 ```
 
 ### Check workflow status
@@ -156,6 +154,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w four_eyes_approval_demo -s COMPLETED -c 5
+
 ```
 
 ### Completing the WAIT tasks (human approval)
@@ -167,6 +166,7 @@ When the workflow reaches the FORK/JOIN, two parallel WAIT tasks (`approver_1` a
 ```bash
 # Get the execution details: look for tasks named "approver_1" and "approver_2"
 conductor workflow get-execution <workflow_id> -c
+
 ```
 
 The task IDs are in the `taskId` field of the `approver_1_ref` and `approver_2_ref` tasks.
@@ -176,16 +176,8 @@ The task IDs are in the `taskId` field of the `approver_1_ref` and `approver_2_r
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<approver_1_task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "approval": true,
-      "approvedBy": "senior-analyst@example.com",
-      "approvedAt": "2026-03-14T09:15:00Z"
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<approver_1_task_id>", "status": "COMPLETED", "outputData": {"approval": true, "approvedBy": "senior-analyst@example.com", "approvedAt": "2026-03-14T09:15:00Z"}}'
+
 ```
 
 **Step 3: Approver 2 approves (independently)**
@@ -193,16 +185,8 @@ curl -X POST http://localhost:8080/api/tasks \
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<approver_2_task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "approval": true,
-      "approvedBy": "compliance-officer@example.com",
-      "approvedAt": "2026-03-14T10:30:00Z"
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<approver_2_task_id>", "status": "COMPLETED", "outputData": {"approval": true, "approvedBy": "compliance-officer@example.com", "approvedAt": "2026-03-14T10:30:00Z"}}'
+
 ```
 
 **Rejecting (either approver can reject):**
@@ -210,16 +194,8 @@ curl -X POST http://localhost:8080/api/tasks \
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<approver_task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "approval": false,
-      "rejectedBy": "compliance-officer@example.com",
-      "reason": "Insufficient supporting documentation"
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<approver_task_id>", "status": "COMPLETED", "outputData": {"approval": false, "rejectedBy": "compliance-officer@example.com", "reason": "Insufficient supporting documentation"}}'
+
 ```
 
 After both WAIT tasks are completed, the JOIN gate opens and the `fep_finalize` worker receives both approvers' decisions.
@@ -245,6 +221,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -266,4 +243,5 @@ four-eyes-approval/
 └── src/test/java/foureyesapproval/workers/
     ├── FinalizeWorkerTest.java      # 5 tests. Completion, output shape, determinism
     └── SubmitWorkerTest.java        # 5 tests. Completion, output shape, determinism
+
 ```

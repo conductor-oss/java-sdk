@@ -1,6 +1,8 @@
 # Cold Chain Monitoring in Java with Conductor :  Temperature Sensing, Threshold Checks, Alert Routing, and Corrective Action
 
-A Java Conductor workflow example for cold chain monitoring .  reading temperature sensor data for shipments of temperature-sensitive goods (e.g., frozen pharmaceuticals requiring 2-8C), checking readings against configured thresholds, routing to alert or OK handlers based on compliance status, and triggering corrective actions when excursions are detected. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for cold chain monitoring .  reading temperature sensor data for shipments of temperature-sensitive goods (e.g., frozen pharmaceuticals requiring 2-8C), checking readings against configured thresholds, routing to alert or OK handlers based on compliance status, and triggering corrective actions when excursions are detected. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to continuously monitor temperature conditions for cold chain shipments. Frozen pharmaceuticals, vaccines, and biologics must stay within a narrow temperature range (e.g., 2-8C) throughout transit. When a sensor reading breaches the threshold, the logistics team needs an immediate alert, and corrective action must be triggered .  rerouting to a backup refrigerated warehouse, dispatching a replacement shipment, or flagging the batch for quality review. Regulatory requirements (FDA 21 CFR Part 211, EU GDP) demand a documented chain of custody proving temperatures were maintained.
 
@@ -41,6 +43,7 @@ SWITCH (cch_switch_ref)
     │
     ▼
 cch_act
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ cch_act
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/cold-chain-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/cold-chain-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cch_cold_chain \
   --version 1 \
-  --input '{"shipmentId": "TEST-001", "product": "test-value", "minTemp": "test-value", "maxTemp": "test-value"}'
+  --input '{"shipmentId": "TEST-001", "product": "widget-pro", "minTemp": "sample-minTemp", "maxTemp": "sample-maxTemp"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cch_cold_chain -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ cold-chain/
     ├── HandleAlertWorkerTest.java        # 2 tests
     ├── HandleOkWorkerTest.java        # 2 tests
     └── MonitorTempWorkerTest.java        # 2 tests
+
 ```

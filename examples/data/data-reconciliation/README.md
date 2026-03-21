@@ -1,6 +1,8 @@
 # Data Reconciliation in Java Using Conductor :  Cross-System Comparison and Discrepancy Reporting
 
-A Java Conductor workflow example for data reconciliation. fetching records from two independent sources (e.g., billing system and fulfillment system), comparing them by a configurable key field to find matches, mismatches, and records missing from either side, and generating a discrepancy report with reconciliation rate. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for data reconciliation. fetching records from two independent sources (e.g., billing system and fulfillment system), comparing them by a configurable key field to find matches, mismatches, and records missing from either side, and generating a discrepancy report with reconciliation rate. Uses [Conductor](https://github.
+
+## The Problem
 
 You have the same data in two systems. Orders in billing and orders in fulfillment, transactions in the ledger and transactions in the payment gateway, inventory in the warehouse system and inventory in the ERP. These systems should agree, but they drift. You need to fetch records from both sources, join them by a key field (order ID, transaction ID), identify records that match perfectly, records that exist in both but have different values (amount mismatches, status discrepancies), and records that exist in one system but not the other. The result is a reconciliation report showing exactly where the systems disagree.
 
@@ -38,6 +40,7 @@ rc_compare_records
     │
     ▼
 rc_generate_discrepancy_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ rc_generate_discrepancy_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-reconciliation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-reconciliation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_reconciliation \
   --version 1 \
-  --input '{"sourceA": "test-value", "sourceB": "test-value", "keyField": "test-value"}'
+  --input '{"sourceA": "api", "sourceB": "api", "keyField": "sample-keyField"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_reconciliation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ data-reconciliation/
     ├── FetchSourceAWorkerTest.java        # 3 tests
     ├── FetchSourceBWorkerTest.java        # 3 tests
     └── GenerateDiscrepancyReportWorkerTest.java        # 4 tests
+
 ```

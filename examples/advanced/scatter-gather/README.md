@@ -1,6 +1,6 @@
 # Scatter-Gather in Java Using Conductor: Broadcast Query, Gather from Sources in Parallel, Aggregate
 
-You need a price quote from five vendors. Vendor A responds in 200ms. Vendor B in 400ms. Vendor C is having a bad day and takes 30 seconds. If you query them sequentially, every customer waits 31 seconds for a price comparison page. If you query them in parallel, you're managing thread pools, countdown latches, partial failure handling (vendor C timed out but A and B are fine), and response merging, all hand-rolled. And when vendor D starts returning prices in euros instead of dollars, your aggregation logic silently produces garbage. This example broadcasts a query to multiple sources in parallel using Conductor's `FORK_JOIN`, gathers responses from each, and aggregates them into a single ranked result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You need a price quote from five vendors. Vendor A responds in 200ms. Vendor B in 400ms. Vendor C is having a bad day and takes 30 seconds. If you query them sequentially, every customer waits 31 seconds for a price comparison page. If you query them in parallel, you're managing thread pools, countdown latches, partial failure handling (vendor C timed out but A and B are fine), and response merging, all hand-rolled. And when vendor D starts returning prices in euros instead of dollars, your aggregation logic silently produces garbage. This example broadcasts a query to multiple sources in parallel using Conductor's `FORK_JOIN`, gathers responses from each, and aggregates them into a single ranked result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Best Prices Require Querying Multiple Sources Simultaneously
 
@@ -28,16 +28,6 @@ Five workers implement the scatter-gather: query broadcasting, three parallel so
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
-
 ### The Workflow
 
 ```
@@ -52,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 sgr_aggregate
+
 ```
 
 ## Example Output
@@ -99,12 +90,13 @@ Step 4: Starting workflow...
   [gather-3] Processing
 
 
-
   Status: COMPLETED
   Output: {query=laptop_model_X500, bestPrice=4500, aggregated=2026-03-16}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -117,6 +109,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -125,13 +118,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -139,6 +133,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/scatter-gather-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -151,6 +146,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -166,6 +162,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/scatter-gather-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -175,6 +172,7 @@ conductor workflow start \
   --workflow sgr_scatter_gather \
   --version 1 \
   --input '{"query": "laptop_model_X500"}'
+
 ```
 
 ### Check workflow status
@@ -183,6 +181,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w sgr_scatter_gather -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -205,6 +204,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -232,4 +232,5 @@ scatter-gather/
     ├── SgrGather1WorkerTest.java        # 4 tests
     ├── SgrGather2WorkerTest.java        # 4 tests
     └── SgrGather3WorkerTest.java        # 4 tests
+
 ```

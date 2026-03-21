@@ -1,6 +1,8 @@
 # Rolling Update in Java with Conductor :  Analyze, Plan, Execute, Verify
 
-Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Zero-Downtime Updates Need Careful Orchestration
+Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Zero-Downtime Updates Need Careful Orchestration
 
 Updating 20 instances of a service simultaneously causes a full outage while the new version starts up. A rolling update replaces instances in batches .  update 2, verify they're healthy, update the next 2, and so on. If a batch fails health checks, the rollout stops before affecting more instances.
 
@@ -38,6 +40,7 @@ ru_execute
     │
     ▼
 ru_verify
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ru_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/rolling-update-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/rolling-update-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rolling_update_workflow \
   --version 1 \
-  --input '{"service": "test-value", "newVersion": "test-value"}'
+  --input '{"service": "order-service", "newVersion": "1.0"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rolling_update_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ rolling-update/
     ├── ExecuteUpdateTest.java        # 8 tests
     ├── PlanUpdateTest.java        # 8 tests
     └── VerifyUpdateTest.java        # 8 tests
+
 ```

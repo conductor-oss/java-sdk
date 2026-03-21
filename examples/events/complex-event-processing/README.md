@@ -1,6 +1,8 @@
 # Complex Event Processing in Java Using Conductor
 
-Complex event processing workflow that ingests events, detects sequences, absences, and timing violations, then routes via SWITCH to trigger alerts or log normal activity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Complex event processing workflow that ingests events, detects sequences, absences, and timing violations, then routes via SWITCH to trigger alerts or log normal activity. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to analyze streams of events for patterns that signal anomalies. This means ingesting a batch of events, checking whether expected sequences occurred (e.g., login before purchase), detecting the absence of required events (e.g., missing confirmation), and identifying timing violations where gaps between events exceed acceptable thresholds. When any pattern is anomalous, the system must trigger an alert; otherwise, it logs normal activity. Each detection pass depends on the ingested events, and the final routing depends on the combined results.
 
@@ -45,6 +47,7 @@ cp_detect_timing
 SWITCH (switch_ref)
     ├── pattern_found: cp_trigger_alert
     └── default: cp_log_normal
+
 ```
 
 ## Running It
@@ -59,6 +62,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -67,6 +71,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -81,6 +86,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/complex-event-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -93,6 +99,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -108,6 +115,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/complex-event-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -116,7 +124,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow complex_event_processing \
   --version 1 \
-  --input '{"events": "test-value", "patternRules": "test-value"}'
+  --input '{"events": "sample-events", "patternRules": "sample-patternRules"}'
+
 ```
 
 ### Check workflow status
@@ -125,6 +134,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w complex_event_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,6 +159,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -178,4 +189,5 @@ complex-event-processing/
     ├── IngestEventsWorkerTest.java        # 8 tests
     ├── LogNormalWorkerTest.java        # 8 tests
     └── TriggerAlertWorkerTest.java        # 8 tests
+
 ```

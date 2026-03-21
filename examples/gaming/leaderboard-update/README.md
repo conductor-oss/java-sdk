@@ -1,6 +1,8 @@
 # Leaderboard Update in Java Using Conductor
 
-Updates a game's leaderboard for a season: collecting match scores, validating for integrity, ranking players, updating the public leaderboard, and broadcasting results to connected players. Uses [Conductor](https://github.## The Problem
+Updates a game's leaderboard for a season: collecting match scores, validating for integrity, ranking players, updating the public leaderboard, and broadcasting results to connected players. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to update a game's leaderboard for a season. The workflow collects scores from all completed matches, validates them for integrity (checking for cheating flags, impossible scores, or data corruption), ranks players by their validated scores, updates the public leaderboard, and broadcasts the updated rankings to all connected players. Posting invalid scores to the leaderboard undermines competitive integrity; stale leaderboards reduce player engagement.
 
@@ -42,6 +44,7 @@ lbu_update
     │
     ▼
 lbu_broadcast
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ lbu_broadcast
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/leaderboard-update-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/leaderboard-update-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow leaderboard_update_742 \
   --version 1 \
-  --input '{"gameId": "TEST-001", "season": "test-value"}'
+  --input '{"gameId": "TEST-001", "season": "sample-season"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w leaderboard_update_742 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ leaderboard-update/
 └── src/test/java/leaderboardupdate/workers/
     ├── BroadcastWorkerTest.java
     └── CollectScoresWorkerTest.java
+
 ```

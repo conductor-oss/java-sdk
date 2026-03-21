@@ -27,15 +27,6 @@ Four workers manage service registration. Registering the instance, running heal
 
 Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,35 +40,9 @@ sd_update_routing
     │
     ▼
 sd_notify_consumers
-```
-
-## Example Output
 
 ```
-=== Service Discovery (DevOps) Demo ===
 
-Step 1: Registering task definitions...
-  Registered: sd_register, sd_health_check, sd_update_routing, sd_notify_consumers
-
-Step 2: Registering workflow 'service_discovery_devops_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 7a440491-9740-17e3-332a-455b6eb74fa0
-
-[sd_register] Registering service: recommendation-engine v2.4.1 at http://rec-svc.prod.internal:8080
-[sd_health_check] Health check on endpoint-value -> HTTP 200 OK (12ms)
-[sd_update_routing] Added endpoint-value to routing table for default
-[sd_notify_consumers] Notified 5 consumers about default availability update
-
-  Status: COMPLETED
-  Output: {registerResult=Success, notify_consumersResult=Success}
-
-Result: PASSED
-```
 ## Running It
 
 ### Prerequisites
@@ -90,6 +55,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -98,13 +64,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -112,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/service-discovery-devops-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -124,36 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
 
-### Sample Output
-
-```
-=== Service Discovery (DevOps) Demo ===
-
-Step 1: Registering task definitions...
-  Registered.
-
-Step 2: Registering workflow...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-
-[sd_register] Registering service: recommendation-engine v2.4.1 at http://rec-svc.prod.internal:8080
-[sd_health_check] Health check on http://rec-svc.prod.internal:8080 -> HTTP 200 OK (12ms)
-[sd_update_routing] Added http://rec-svc.prod.internal:8080 to routing table for recommendation-engine
-[sd_notify_consumers] Notified 5 consumers about recommendation-engine availability update
-
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {registerResult={registrationId=reg-recommendation-engine-2.4.1, ...}, notify_consumersResult={notified=true, ...}}
-
-Result: PASSED
 ```
 
 ## Configuration
@@ -169,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/service-discovery-devops-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -178,6 +118,7 @@ conductor workflow start \
   --workflow service_discovery_devops_workflow \
   --version 1 \
   --input '{"serviceName": "recommendation-engine", "endpoint": "http://rec-svc.prod.internal:8080", "version": "2.4.1", "healthCheckUrl": "http://rec-svc.prod.internal:8080/health"}'
+
 ```
 
 ### Check workflow status
@@ -186,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w service_discovery_devops_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -229,4 +171,5 @@ service-discovery-devops/
     ├── HealthCheckWorkerTest.java   # Tests health status, response time presence
     ├── UpdateRoutingWorkerTest.java # Tests routing update outputs
     └── NotifyConsumersWorkerTest.java # Tests notification count, consumer list
+
 ```

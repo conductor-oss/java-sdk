@@ -1,6 +1,8 @@
 # Hybrid Cloud Data Routing in Java Using Conductor :  Classify Sensitivity, Route to On-Prem or Cloud
 
-A Java Conductor workflow example for hybrid cloud data routing .  classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.## Sensitive Data Can't Leave Your Data Center
+A Java Conductor workflow example for hybrid cloud data routing .  classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.
+
+## Sensitive Data Can't Leave Your Data Center
 
 Regulations like GDPR, HIPAA, and PCI-DSS require that certain data .  patient records, financial transactions, PII ,  stays within controlled environments. But running everything on-premises wastes cloud elasticity for workloads that have no compliance constraints. The challenge is automatically determining which data must stay on-prem and which can be processed in the cloud, then routing each record to the right infrastructure.
 
@@ -33,6 +35,7 @@ hyb_classify_data
 SWITCH (hyb_switch_ref)
     ├── onprem: hyb_process_onprem
     ├── cloud: hyb_process_cloud
+
 ```
 
 ## Running It
@@ -47,6 +50,7 @@ SWITCH (hyb_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -55,6 +59,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -69,6 +74,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/hybrid-cloud-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -81,6 +87,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -96,6 +103,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/hybrid-cloud-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -104,7 +112,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow hybrid_cloud_demo \
   --version 1 \
-  --input '{"dataId": "TEST-001", "dataType": "test-value", "payload": "test-value"}'
+  --input '{"dataId": "TEST-001", "dataType": "standard", "payload": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -113,6 +122,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w hybrid_cloud_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -135,6 +145,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -158,4 +169,5 @@ hybrid-cloud/
     ├── HybClassifyDataWorkerTest.java        # 4 tests
     ├── HybProcessCloudWorkerTest.java        # 4 tests
     └── HybProcessOnpremWorkerTest.java        # 4 tests
+
 ```

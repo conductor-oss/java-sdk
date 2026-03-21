@@ -1,6 +1,8 @@
 # Service Orchestration in Java with Conductor
 
-Orchestrate auth, catalog, cart, and checkout microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Orchestrate auth, catalog, cart, and checkout microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 A typical e-commerce purchase flow spans four microservices: authenticate the user, look up the product in the catalog, add it to the shopping cart, and process checkout. Each step depends on the output of the previous one, the catalog lookup needs an auth token, the cart needs the product details, and checkout needs the cart total.
 
@@ -38,6 +40,7 @@ so_add_to_cart
     │
     ▼
 so_checkout
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ so_checkout
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/service-orchestration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/service-orchestration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow service_orchestration_291 \
   --version 1 \
-  --input '{"userId": "TEST-001", "productId": "TEST-001", "quantity": "test-value"}'
+  --input '{"userId": "TEST-001", "productId": "TEST-001", "quantity": "sample-quantity"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w service_orchestration_291 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ service-orchestration/
     ├── AuthenticateWorkerTest.java        # 8 tests
     ├── CatalogLookupWorkerTest.java        # 8 tests
     └── CheckoutWorkerTest.java        # 8 tests
+
 ```

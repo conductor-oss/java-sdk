@@ -1,6 +1,8 @@
 # Telemedicine Visit in Java Using Conductor :  Scheduling, Video Connection, Clinical Consultation, e-Prescribing, and Follow-Up
 
-A Java Conductor workflow example for telemedicine visits .  scheduling the virtual appointment, establishing the secure video connection, conducting the clinical consultation, writing and transmitting e-prescriptions, and scheduling follow-up care. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for telemedicine visits .  scheduling the virtual appointment, establishing the secure video connection, conducting the clinical consultation, writing and transmitting e-prescriptions, and scheduling follow-up care. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage the full lifecycle of a telemedicine visit. A patient requests a virtual visit with a provider for a specific clinical reason. The appointment must be scheduled on both the patient's and provider's calendars. At the appointment time, a secure healthcare-pattern video connection must be established. The provider conducts the consultation .  reviewing the chief complaint, taking history, and making an assessment. If medication is indicated, an e-prescription must be transmitted to the patient's preferred pharmacy. Finally, follow-up care must be arranged ,  a future appointment, lab orders, or referral to a specialist. Each step must complete before the next ,  you cannot consult without a connection, and you cannot prescribe without a consultation.
 
@@ -42,6 +44,7 @@ tlm_prescribe
     │
     ▼
 tlm_followup
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ tlm_followup
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/telemedicine-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/telemedicine-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow telemedicine_workflow \
   --version 1 \
-  --input '{"visitId": "TEST-001", "patientId": "TEST-001", "providerId": "TEST-001", "reason": "test-value"}'
+  --input '{"visitId": "TEST-001", "patientId": "TEST-001", "providerId": "TEST-001", "reason": "sample-reason"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w telemedicine_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -174,4 +185,5 @@ telemedicine/
     ├── FollowUpWorkerTest.java        # 2 tests
     ├── PrescribeWorkerTest.java        # 2 tests
     └── ScheduleWorkerTest.java        # 2 tests
+
 ```

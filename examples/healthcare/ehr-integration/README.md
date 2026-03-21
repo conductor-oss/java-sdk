@@ -1,6 +1,8 @@
 # EHR Integration in Java Using Conductor :  Patient Record Query, Cross-System Merge, Validation, and Master Record Update
 
-A Java Conductor workflow example for EHR integration .  querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for EHR integration .  querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to integrate patient records across multiple EHR systems. When a patient has data in more than one system (e.g., hospital Epic, clinic Cerner, lab system), the records must be queried by patient ID, merged into a unified view that reconciles demographics, medications, allergies, and diagnoses, validated against data quality rules (missing fields, conflicting entries, duplicate records), and then written back to the master patient index. Each step depends on the previous one .  you cannot merge without querying, and you cannot update the master record with unvalidated data. A bad merge that promotes incorrect allergy data or drops a medication can directly harm the patient.
 
@@ -38,6 +40,7 @@ ehr_validate
     │
     ▼
 ehr_update
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ehr_update
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/ehr-integration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/ehr-integration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ehr_integration_workflow \
   --version 1 \
-  --input '{"patientId": "TEST-001", "sourceSystem": "test-value"}'
+  --input '{"patientId": "TEST-001", "sourceSystem": "api"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ehr_integration_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -167,4 +178,5 @@ ehr-integration/
     ├── QueryPatientWorkerTest.java        # 2 tests
     ├── UpdateRecordWorkerTest.java        # 2 tests
     └── ValidateRecordWorkerTest.java        # 2 tests
+
 ```

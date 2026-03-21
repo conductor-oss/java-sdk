@@ -1,6 +1,8 @@
 # Training Data Labeling in Java Using Conductor :  Batch Preparation, Parallel Annotator WAIT Tasks via FORK_JOIN, Inter-Annotator Agreement Computation, and Label Storage
 
-A Java Conductor workflow example for ML training data quality .  preparing a labeling batch, using FORK_JOIN to run two parallel WAIT tasks so independent annotators label the same items simultaneously, computing inter-annotator agreement (matching vs: differing labels, agreement percentage) after both annotators complete, and storing the final labels with quality metrics. The FORK_JOIN ensures neither annotator sees the other's labels, and the agreement computation compares label arrays element-by-element to produce agreements, disagreements, total, and agreementPct. Uses [Conductor](https://github.## Training Data Labeling Needs Parallel Annotators and Agreement Computation
+A Java Conductor workflow example for ML training data quality .  preparing a labeling batch, using FORK_JOIN to run two parallel WAIT tasks so independent annotators label the same items simultaneously, computing inter-annotator agreement (matching vs: differing labels, agreement percentage) after both annotators complete, and storing the final labels with quality metrics. The FORK_JOIN ensures neither annotator sees the other's labels, and the agreement computation compares label arrays element-by-element to produce agreements, disagreements, total, and agreementPct. Uses [Conductor](https://github.
+
+## Training Data Labeling Needs Parallel Annotators and Agreement Computation
 
 High-quality training data requires multiple annotators to label the same items independently (via parallel WAIT tasks), then compute inter-annotator agreement to measure label reliability. The workflow prepares a batch, two annotators label it in parallel, agreement is computed (e.g., Cohen's kappa), and the final labels are stored. If the agreement computation fails, you need to retry it without asking the annotators to re-label.
 
@@ -39,6 +41,7 @@ tdl_compute_agreement
     │
     ▼
 tdl_store_labels
+
 ```
 
 ## Running It
@@ -53,6 +56,7 @@ tdl_store_labels
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -61,6 +65,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -75,6 +80,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/training-data-labeling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -87,6 +93,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -102,6 +109,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/training-data-labeling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,6 +119,7 @@ conductor workflow start \
   --workflow training_data_labeling \
   --version 1 \
   --input '{"batchId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -119,6 +128,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w training_data_labeling -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ training-data-labeling/
     ├── ComputeAgreementWorkerTest.java        # 9 tests
     ├── PrepareBatchWorkerTest.java        # 3 tests
     └── StoreLabelsWorkerTest.java        # 3 tests
+
 ```

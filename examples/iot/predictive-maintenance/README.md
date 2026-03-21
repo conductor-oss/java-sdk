@@ -1,6 +1,8 @@
 # Predictive Maintenance in Java with Conductor :  Sensor Data Collection, Trend Analysis, Failure Prediction, and Maintenance Scheduling
 
-A Java Conductor workflow example that orchestrates predictive maintenance for industrial assets .  collecting operational data (temperature, vibration, operating hours), analyzing degradation trends over time, predicting failure dates with confidence scores and recommended actions, and automatically scheduling maintenance work orders with cost estimates and parts procurement. Uses [Conductor](https://github.## Why Predictive Maintenance Needs Orchestration
+A Java Conductor workflow example that orchestrates predictive maintenance for industrial assets .  collecting operational data (temperature, vibration, operating hours), analyzing degradation trends over time, predicting failure dates with confidence scores and recommended actions, and automatically scheduling maintenance work orders with cost estimates and parts procurement. Uses [Conductor](https://github.
+
+## Why Predictive Maintenance Needs Orchestration
 
 Preventing unplanned downtime requires turning raw sensor data into maintenance decisions. You collect current operational data .  bearing temperature at 178F, vibration at 3.8 mm/s, 18,500 operating hours since install, 2,500 hours since last maintenance. You analyze trends by computing temperature and vibration slopes over time to derive an overall health score. You feed those trends into a failure prediction model that estimates when the asset will fail (e.g., "May 25, compressor valve, 82% confidence, medium risk"). If maintenance is warranted, you schedule a work order two weeks before the predicted failure date, order the replacement parts (compressor valve CV-300), and estimate the cost.
 
@@ -38,6 +40,7 @@ pmn_predict_failure
     │
     ▼
 pmn_schedule_maintenance
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ pmn_schedule_maintenance
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/predictive-maintenance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/predictive-maintenance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow predictive_maintenance_workflow \
   --version 1 \
-  --input '{"assetId": "TEST-001", "assetType": "test-value", "siteId": "TEST-001"}'
+  --input '{"assetId": "TEST-001", "assetType": "standard", "siteId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w predictive_maintenance_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ predictive-maintenance/
 └── src/test/java/predictivemaintenance/workers/
     ├── AnalyzeTrendsWorkerTest.java        # 2 tests
     └── CollectDataWorkerTest.java        # 2 tests
+
 ```

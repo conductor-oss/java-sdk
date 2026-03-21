@@ -1,6 +1,8 @@
 # Content Moderation Pipeline in Java Using Conductor :  Auto-Check, Toxicity Scoring, Human Review, and Policy Enforcement
 
-A Java Conductor workflow example that orchestrates content moderation .  submitting user content for review, running automated toxicity and policy violation checks with confidence scores, routing via SWITCH to approve safe content, escalate flagged content to human reviewers, or immediately block clearly violating content, and finalizing the decision with an audit log. Uses [Conductor](https://github.## Why Content Moderation Needs Orchestration
+A Java Conductor workflow example that orchestrates content moderation .  submitting user content for review, running automated toxicity and policy violation checks with confidence scores, routing via SWITCH to approve safe content, escalate flagged content to human reviewers, or immediately block clearly violating content, and finalizing the decision with an audit log. Uses [Conductor](https://github.
+
+## Why Content Moderation Needs Orchestration
 
 Moderating user content requires a decision pipeline with multiple possible outcomes. You receive a submission and queue it. You run automated checks .  toxicity scoring, policy violation detection, confidence assessment. Based on the auto-check results, you route to three different paths: safe content (high confidence, low toxicity) is approved automatically; flagged content (medium confidence, potential violations) goes to a human moderator for manual review; clearly violating content (high toxicity, obvious violations) is blocked immediately with user notification and appeal options.
 
@@ -43,6 +45,7 @@ SWITCH (mod_switch_ref)
     │
     ▼
 mod_finalize
+
 ```
 
 ## Running It
@@ -57,6 +60,7 @@ mod_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,6 +69,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -79,6 +84,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/content-moderation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,6 +97,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -106,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/content-moderation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,7 +122,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_moderation_workflow \
   --version 1 \
-  --input '{"contentId": "TEST-001", "contentType": "test-value", "userId": "TEST-001", "contentText": "test-value"}'
+  --input '{"contentId": "TEST-001", "contentType": "Process this order for customer C-100", "userId": "TEST-001", "contentText": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -123,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w content_moderation_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ content-moderation/
 └── src/test/java/contentmoderation/workers/
     ├── AutoCheckWorkerTest.java        # 2 tests
     └── SubmitContentWorkerTest.java        # 2 tests
+
 ```

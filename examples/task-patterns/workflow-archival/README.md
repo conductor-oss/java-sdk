@@ -1,6 +1,8 @@
 # Workflow Archival in Java with Conductor
 
-Archival demo workflow .  single task for demonstrating cleanup policies. Uses [Conductor](https://github.## The Problem
+Archival demo workflow .  single task for demonstrating cleanup policies. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage the lifecycle of completed workflow executions. Archiving old runs to keep the active database lean and queries fast. This demo shows a simple batch-processing workflow whose completed executions can be archived using Conductor's archival APIs and cleanup policies.
 
@@ -26,6 +28,7 @@ Workers simulate their processing steps so you can see the pattern in action wit
 
 ```
 arch_task
+
 ```
 
 ## Running It
@@ -40,6 +43,7 @@ arch_task
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -48,6 +52,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -62,6 +67,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-archival-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -74,6 +80,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -89,6 +96,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-archival-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -97,7 +105,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow archival_demo \
   --version 1 \
-  --input '{"batch": "test-value"}'
+  --input '{"batch": "sample-batch"}'
+
 ```
 
 ### Check workflow status
@@ -106,6 +115,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w archival_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -126,6 +136,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -145,4 +156,5 @@ workflow-archival/
 │       └── ArchivalTaskWorker.java
 └── src/test/java/workflowarchival/workers/
     └── ArchivalTaskWorkerTest.java        # 6 tests
+
 ```

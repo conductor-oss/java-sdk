@@ -1,6 +1,8 @@
 # Tax Calculation in Java Using Conductor :  Determine Jurisdiction, Calculate Rates, Apply, Report
 
-A Java Conductor workflow example for sales tax calculation .  resolving the tax jurisdiction from a shipping address, computing the applicable federal/state/local/district tax rates, applying the combined rate to the order subtotal, and recording the tax obligation for compliance reporting. Uses [Conductor](https://github.## Sales Tax Is Surprisingly Complex
+A Java Conductor workflow example for sales tax calculation .  resolving the tax jurisdiction from a shipping address, computing the applicable federal/state/local/district tax rates, applying the combined rate to the order subtotal, and recording the tax obligation for compliance reporting. Uses [Conductor](https://github.
+
+## Sales Tax Is Surprisingly Complex
 
 A $100 order shipping to Boulder, Colorado has four layers of sales tax: Colorado state (2.9%), Boulder County (0.985%), City of Boulder (3.86%), and RTD special district (1.0%) .  totaling 8.745%, or $8.75 in tax. Ship the same order to Portland, Oregon, and the tax is $0 (Oregon has no sales tax). Ship it to Chicago, and the rate depends on the product category ,  clothing, food, and electronics have different rates.
 
@@ -38,6 +40,7 @@ tax_apply
     │
     ▼
 tax_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ tax_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tax-calculation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tax-calculation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tax_calculation_workflow \
   --version 1 \
-  --input '{"orderId": "TEST-001", "subtotal": "test-value", "shippingAddress": "test-value"}'
+  --input '{"orderId": "TEST-001", "subtotal": "sample-subtotal", "shippingAddress": "sample-shippingAddress"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tax_calculation_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -155,4 +165,5 @@ tax-calculation/
 └── src/test/java/taxcalculation/workers/
     ├── ApplyTaxWorkerTest.java        # 2 tests
     └── CalculateRatesWorkerTest.java        # 2 tests
+
 ```

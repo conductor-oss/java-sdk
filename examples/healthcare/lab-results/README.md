@@ -1,6 +1,8 @@
 # Lab Results Processing in Java Using Conductor :  Sample Collection, Processing, Analysis, Reporting, and Physician Notification
 
-A Java Conductor workflow example for laboratory results processing .  collecting patient samples, processing specimens through the lab, running analyses to produce test results, generating the lab report with reference ranges and interpretations, and notifying the ordering physician. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for laboratory results processing .  collecting patient samples, processing specimens through the lab, running analyses to produce test results, generating the lab report with reference ranges and interpretations, and notifying the ordering physician. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage the lifecycle of a lab order from sample collection through physician notification. A lab order comes in with a patient ID, order ID, and test type (CBC, BMP, lipid panel, etc.). The sample must be collected and accessioned with a barcode linking it to the order. The specimen is processed (centrifuged, aliquoted, loaded onto the analyzer). The analyzer runs the test and produces raw values. Those results must be formatted into a report with reference ranges, abnormal flags, and critical value alerts. Finally, the ordering physician must be notified .  immediately for critical values, routinely for normal results. A lost sample or unreported critical value can delay diagnosis or endanger the patient.
 
@@ -42,6 +44,7 @@ lab_report
     │
     ▼
 lab_notify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ lab_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/lab-results-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/lab-results-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lab_results_workflow \
   --version 1 \
-  --input '{"orderId": "TEST-001", "patientId": "TEST-001", "testType": "test-value"}'
+  --input '{"orderId": "TEST-001", "patientId": "TEST-001", "testType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w lab_results_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +182,5 @@ lab-results/
 └── src/test/java/labresults/workers/
     ├── AnalyzeSampleWorkerTest.java        # 2 tests
     └── LabNotifyWorkerTest.java        # 2 tests
+
 ```

@@ -22,9 +22,7 @@ With Conductor's persistence, the workflow resumes at order 4,001 automatically.
 
 ## The Solution
 
-**You just write the processing steps. Conductor handles durability, crash recovery, and resume-from-checkpoint for free.**
-
-Conductor persists every workflow execution to durable storage. When the server restarts, all in-flight workflows are recovered automatically and resume from their last completed task. No data is lost, no steps are re-executed, and no manual intervention is needed. The example demonstrates this by running a workflow, verifying it completes, then looking up the same workflow by ID to confirm the state was persisted. You get all of that for free, without writing a single line of orchestration code.
+Conductor persists every workflow execution to durable storage. When the server restarts, all in-flight workflows are recovered automatically and resume from their last completed task. No data is lost, no steps are re-executed, and no manual intervention is needed. The example demonstrates this by running a workflow, verifying it completes, then looking up the same workflow by ID to confirm the state was persisted. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -36,15 +34,6 @@ DurableTaskWorker processes batches while Conductor persists every execution to 
 
 The simulated worker produces a realistic output shape so the workflow runs end-to-end. To go to production, replace the simulation with the real batch processing logic, the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -52,9 +41,10 @@ wr_durable_task
     |
     v
 (workflow output persisted to durable storage)
+
 ```
 
-The key insight is not the workflow structure. It is intentionally simple to highlight that **any** workflow, no matter how complex, gets durability for free. The persistence guarantee applies equally to a single-task workflow and a 50-task pipeline with forks, joins, and switches.
+The key insight is not the workflow structure. It is intentionally simple to highlight that **any** workflow, no matter how complex, gets durability. The persistence guarantee applies equally to a single-task workflow and a 50-task pipeline with forks, joins, and switches.
 
 ## Running It
 
@@ -68,6 +58,7 @@ The key insight is not the workflow structure. It is intentionally simple to hig
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -76,13 +67,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -90,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-recovery-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -102,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Example Output
@@ -134,6 +128,7 @@ Step 6: Looking up workflow to verify persistence...
   Persisted output: {processed=true, batch=batch-001}
 
 Result: PASSED. Workflow completed and state persisted successfully.
+
 ```
 
 ## Configuration
@@ -149,6 +144,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-recovery-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -165,6 +161,7 @@ conductor workflow status <workflow_id>
 
 # Restart Conductor, then look up the same workflow: it is still there
 conductor workflow get-execution <workflow_id> -c
+
 ```
 
 ### Check workflow status
@@ -173,6 +170,7 @@ conductor workflow get-execution <workflow_id> -c
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w workflow_recovery_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -195,6 +193,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -214,4 +213,5 @@ workflow-recovery/
 │       └── DurableTaskWorker.java
 └── src/test/java/workflowrecovery/workers/
     └── DurableTaskWorkerTest.java   # 8 tests
+
 ```

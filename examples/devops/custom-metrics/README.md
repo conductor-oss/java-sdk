@@ -1,6 +1,8 @@
 # Custom Metrics Pipeline in Java with Conductor :  Define, Collect, Aggregate, Dashboard Update
 
-Automates custom metrics pipelines using [Conductor](https://github.com/conductor-oss/conductor). This workflow defines custom metric definitions, collects raw data points for those metrics, aggregates them over a time window (sum, average, percentiles), and updates dashboards with the results.## Business Metrics That Infrastructure Tools Cannot See
+Automates custom metrics pipelines using [Conductor](https://github.com/conductor-oss/conductor). This workflow defines custom metric definitions, collects raw data points for those metrics, aggregates them over a time window (sum, average, percentiles), and updates dashboards with the results.
+
+## Business Metrics That Infrastructure Tools Cannot See
 
 Your standard monitoring covers CPU, memory, and request latency. But the business needs to track checkout conversion rate, cart abandonment by region, and API quota usage per tenant. These custom metrics require defining what to measure, collecting the raw events, aggregating them into meaningful numbers over time windows, and pushing the results to a dashboard the team actually watches.
 
@@ -29,6 +31,7 @@ Workers simulate infrastructure operations with realistic output so you can see 
 
 ```
 Input -> Aggregate -> CollectData -> DefineMetrics -> UpdateDashboard -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> Aggregate -> CollectData -> DefineMetrics -> UpdateDashboard -> Output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/custom-metrics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/custom-metrics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow custom_metrics \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w custom_metrics -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,4 +159,5 @@ custom-metrics/
     ├── CollectDataTest.java        # 7 tests
     ├── DefineMetricsTest.java        # 7 tests
     └── UpdateDashboardTest.java        # 7 tests
+
 ```

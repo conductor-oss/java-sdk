@@ -1,6 +1,8 @@
 # Customer Segmentation in Java Using Conductor :  Collect Data, Cluster, Label Segments, Target
 
-Customer segmentation: collect data, cluster, label segments, target. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## One-Size-Fits-All Marketing Wastes Budget
+Customer segmentation: collect data, cluster, label segments, target. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## One-Size-Fits-All Marketing Wastes Budget
 
 Sending the same promotion to all customers means high-value VIPs get the same generic email as price-sensitive bargain hunters. Customer segmentation groups customers by behavior .  frequency of purchase, average order value, product preferences, engagement level ,  so each group gets tailored messaging.
 
@@ -38,6 +40,7 @@ seg_label_segments
     │
     ▼
 seg_target
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ seg_target
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/customer-segmentation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/customer-segmentation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow customer_segmentation_workflow \
   --version 1 \
-  --input '{"datasetId": "TEST-001", "numSegments": "test-value"}'
+  --input '{"datasetId": "TEST-001", "numSegments": "sample-numSegments"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w customer_segmentation_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ customer-segmentation/
     ├── CollectDataWorkerTest.java        # 2 tests
     ├── LabelSegmentsWorkerTest.java        # 2 tests
     └── TargetWorkerTest.java        # 2 tests
+
 ```

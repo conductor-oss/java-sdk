@@ -1,6 +1,8 @@
 # Real-Time Analytics in Java Using Conductor :  Event Ingestion, Windowed Stream Processing, Aggregate Updates, and Alert Checking
 
-A Java Conductor workflow example for real-time analytics: ingesting a batch of events, processing them within a configurable time window to compute windowed metrics and flag anomalies, updating running aggregates with the latest window results, and evaluating alert rules against the current aggregates to trigger notifications when thresholds are breached. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for real-time analytics: ingesting a batch of events, processing them within a configurable time window to compute windowed metrics and flag anomalies, updating running aggregates with the latest window results, and evaluating alert rules against the current aggregates to trigger notifications when thresholds are breached. Uses [Conductor](https://github.
+
+## The Problem
 
 Events are arriving in batches from your application: page views, API calls, purchases, error occurrences, and you need analytics that reflect what's happening right now, not what happened yesterday. Each batch of events needs to be processed within a time window (last 5 minutes, last hour) to compute windowed metrics like requests per second, error rate, and 95th percentile latency. Those window metrics need to update running aggregates so dashboards show cumulative trends. And when an aggregate crosses a threshold, error rate exceeds 5%, latency spikes above 500ms, purchase volume drops below normal, alert rules need to fire immediately, not after a nightly batch job.
 
@@ -38,6 +40,7 @@ ry_update_aggregates
     │
     ▼
 ry_check_alerts
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ry_check_alerts
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/real-time-analytics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/real-time-analytics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow real_time_analytics \
   --version 1 \
-  --input '{"eventBatch": "test-value", "windowSize": 10, "alertRules": "test-value"}'
+  --input '{"eventBatch": "sample-eventBatch", "windowSize": 10, "alertRules": "sample-alertRules"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w real_time_analytics -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ real-time-analytics/
     ├── IngestEventsWorkerTest.java        # 5 tests
     ├── ProcessStreamWorkerTest.java        # 5 tests
     └── UpdateAggregatesWorkerTest.java        # 4 tests
+
 ```

@@ -1,6 +1,8 @@
 # Event Driven Microservices in Java with Conductor
 
-Event-driven microservices choreography via Conductor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Event-driven microservices choreography via Conductor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 In an event-driven architecture, a domain event must be emitted, processed by business logic, used to update read-side projections, and fanned out to interested subscribers. Each step depends on the previous one. Subscribers cannot be notified until the event is processed, and the projection must reflect the latest state.
 
@@ -38,6 +40,7 @@ edm_update_projection
     │
     ▼
 edm_notify_subscribers
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ edm_notify_subscribers
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-driven-microservices-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-driven-microservices-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_driven_microservices \
   --version 1 \
-  --input '{"eventType": "test-value", "payload": "test-value", "source": "test-value"}'
+  --input '{"eventType": "standard", "payload": {"key": "value"}, "source": "api"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_driven_microservices -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ event-driven-microservices/
     ├── NotifySubscribersWorkerTest.java        # 2 tests
     ├── ProcessEventWorkerTest.java        # 2 tests
     └── UpdateProjectionWorkerTest.java        # 2 tests
+
 ```

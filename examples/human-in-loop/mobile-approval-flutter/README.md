@@ -1,6 +1,8 @@
 # Mobile Approval with Flutter in Java Using Conductor :  Request Submission, FCM Push Notification, WAIT for Mobile Response, and Finalization
 
-A Java Conductor workflow example for mobile-first approvals .  submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.## Mobile Users Need Push Notifications for Approvals
+A Java Conductor workflow example for mobile-first approvals .  submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.
+
+## Mobile Users Need Push Notifications for Approvals
 
 When an approval is needed, the approver might not be at their desk. The workflow submits the request, sends a push notification to the approver's mobile device, and pauses at a WAIT task until the mobile app sends back the decision. If the push notification fails to send, you need to retry it without re-submitting the request. And you need to track whether the approval came via mobile or another channel.
 
@@ -36,6 +38,7 @@ mobile_response [WAIT]
     │
     ▼
 mob_finalize
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ mob_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/mobile-approval-flutter-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/mobile-approval-flutter-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,6 +116,7 @@ conductor workflow start \
   --workflow mobile_approval_flutter \
   --version 1 \
   --input '{"requestId": "TEST-001", "userId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w mobile_approval_flutter -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -138,6 +148,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ mobile-approval-flutter/
     ├── MobFinalizeWorkerTest.java        # 6 tests
     ├── MobSendPushWorkerTest.java        # 5 tests
     └── MobSubmitWorkerTest.java        # 5 tests
+
 ```

@@ -28,15 +28,6 @@ Five workers bridge natural language to API calls. Planning the endpoint, authen
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If an API call fails (rate limit, timeout), Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes after authentication but before the API call, Conductor resumes from exactly where it left off with the token still available |
-| **Observability** | Every step is tracked with inputs, outputs, timing, and status. Full audit trail of which API was called, what response was received, and how it was formatted |
-| **Timeout management** | Per-task timeouts prevent hung API calls from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ ap_parse_response
     |
     v
 ap_format_output
+
 ```
 
 ## Running It
@@ -67,6 +59,7 @@ ap_format_output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -75,13 +68,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -89,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/api-calling-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -101,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -138,6 +134,7 @@ Step 5: Waiting for completion...
   Output: {answer=The repository conductor-oss/conductor is Conductor is an event driven orchestration platform. It is written in Java and has 16500 stars and 2100 forks. It is licensed under Apache License 2.0., dataSource=github_api, fieldsUsed=7, validationPassed=true}
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -146,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/api-calling-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -168,6 +166,7 @@ conductor workflow start \
   --workflow api_calling_agent \
   --version 1 \
   --input '{"userRequest": "Show me the top tech news headlines", "apiCatalog": [{"name": "news", "baseUrl": "https://newsapi.org", "description": "News API for top headlines and article search"}]}'
+
 ```
 
 ### Check workflow status
@@ -176,6 +175,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w api_calling_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -201,6 +201,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -228,4 +229,5 @@ api-calling-agent/
     ├── CallApiWorkerTest.java       # 9 tests
     ├── ParseResponseWorkerTest.java # 9 tests
     └── FormatOutputWorkerTest.java  # 9 tests
+
 ```

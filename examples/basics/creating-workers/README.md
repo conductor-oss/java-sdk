@@ -24,15 +24,6 @@ This example demonstrates three common patterns for writing Conductor workers: s
 | **FetchDataWorker** | `fetch_data` | Takes a `source` name and returns 3 deterministic records prefixed with the source name (e.g., `"my-api-record-1"`). Includes a 100ms sleep to simulate API latency. |
 | **SafeProcessWorker** | `safe_process` | Takes a list of records and scores each one using a deterministic hash-based algorithm (PASS if score >= 50, FAIL otherwise). Wraps all logic in try/catch. On exception, returns `FAILED` status so Conductor can retry. |
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -43,6 +34,7 @@ fetch_data
     │
     ▼
 safe_process
+
 ```
 
 ## Running It
@@ -57,6 +49,7 @@ safe_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,13 +58,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -79,6 +73,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/creating-workers-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,36 +86,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
 
-### Example Output
-
-```
-=== Worker Patterns: Sync, Async, and Error Handling ===
-
-Step 1: Registering task definitions...
-  Registered: simple_transform, fetch_data, safe_process
-
-Step 2: Registering workflow 'worker_demo_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-
-  [simple_transform] Transforming: "Hello Conductor"
-  [fetch_data] Fetching records from source: "example-api"
-  [fetch_data] Fetched 3 records.
-  [safe_process] Processing 3 records...
-  [safe_process] Done: 2 passed, 1 failed.
-  Workflow ID: <workflow-id>
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {transformedText=HELLO CONDUCTOR, textLength=15, fetchedRecords=3, processingSummary=Processed 3 records: 2 passed, 1 failed, processedResults=[...]}
-
-Result: PASSED
 ```
 
 ## Configuration
@@ -136,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/creating-workers-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -145,6 +112,7 @@ conductor workflow start \
   --workflow worker_demo_workflow \
   --version 1 \
   --input '{"text": "Hello Conductor", "source": "example-api"}'
+
 ```
 
 ### Check workflow status
@@ -153,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w worker_demo_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -171,6 +140,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -194,4 +164,5 @@ creating-workers/
     ├── FetchDataWorkerTest.java
     ├── SafeProcessWorkerTest.java
     └── SimpleTransformWorkerTest.java
+
 ```

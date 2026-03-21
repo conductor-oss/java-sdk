@@ -1,6 +1,6 @@
 # Data Enrichment in Java Using Conductor: Geographic, Company, and Credit Lookups with Record Merging
 
-Marketing hands you a spreadsheet of 10,000 leads. Each row has a name, an email, and a zip code. Sales asks: "Which of these are at enterprise companies? What industry? What's their credit risk?" You can't answer any of that from the raw data. So you write a script that calls a geocoding API for each zip, a company-lookup API for each email domain, and a credit bureau API for each record. The geocoding API rate-limits you at row 500. Your script crashes. You restart it and re-enrich all 500 rows you already processed because there's no checkpoint. Then the company-lookup API returns a 503 on row 2,400, and you start over again. Each enrichment source is a different API with different failure modes, and your monolithic script treats them all the same. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Marketing hands you a spreadsheet of 10,000 leads. Each row has a name, an email, and a zip code. Sales asks: "Which of these are at enterprise companies? What industry? What's their credit risk?" You can't answer any of that from the raw data. So you write a script that calls a geocoding API for each zip, a company-lookup API for each email domain, and a credit bureau API for each record. The geocoding API rate-limits you at row 500. Your script crashes. You restart it and re-enrich all 500 rows you already processed because there's no checkpoint. Then the company-lookup API returns a 503 on row 2,400, and you start over again. Each enrichment source is a different API with different failure modes, and your monolithic script treats them all the same. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd write a single enrichment method that calls a geoco
 
 **You just write the geo lookup, company lookup, credit lookup, and merge workers. Conductor handles sequential enrichment passes, automatic retries when third-party APIs are rate-limited, and crash recovery that resumes from the exact enrichment step that failed.**
 
-Each enrichment source is a simple, independent worker. The geo lookup worker resolves zip codes to city, state, and timezone. The company lookup worker maps email domains to company profiles (industry, employee count, revenue range). The credit lookup worker retrieves credit scores and risk tiers. The merger combines all enrichment layers with the original records and summarizes how many fields were added. Conductor executes them in sequence, passes progressively enriched records between steps, retries if an API call is rate-limited or times out, and resumes from the exact enrichment step where it left off if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each enrichment source is a simple, independent worker. The geo lookup worker resolves zip codes to city, state, and timezone. The company lookup worker maps email domains to company profiles (industry, employee count, revenue range). The credit lookup worker retrieves credit scores and risk tiers. The merger combines all enrichment layers with the original records and summarizes how many fields were added. Conductor executes them in sequence, passes progressively enriched records between steps, retries if an API call is rate-limited or times out, and resumes from the exact enrichment step where it left off if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Five workers handle multi-source enrichment: loading customer records, resolving
 | **MergeEnrichedWorker** | `dr_merge_enriched` | Merges all enriched data and produces a summary. |
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,6 +44,7 @@ dr_lookup_credit
     │
     ▼
 dr_merge_enriched
+
 ```
 
 ## Example Output
@@ -83,7 +75,9 @@ Step 4: Starting workflow...
   Output: {originalCount=3, enrichedCount=3, fieldsAdded=3, summary=Enriched }
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -96,6 +90,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -104,13 +99,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -118,6 +114,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-enrichment-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -130,6 +127,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -145,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-enrichment-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -154,6 +153,7 @@ conductor workflow start \
   --workflow data_enrichment \
   --version 1 \
   --input '{"records": ["item-1", "item-2", "item-3"]}'
+
 ```
 
 ### Check workflow status
@@ -162,6 +162,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_enrichment -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -188,6 +189,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -215,4 +217,5 @@ data-enrichment/
     ├── LookupCreditWorkerTest.java        # 9 tests
     ├── LookupGeoWorkerTest.java        # 9 tests
     └── MergeEnrichedWorkerTest.java        # 9 tests
+
 ```

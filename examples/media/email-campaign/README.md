@@ -1,6 +1,8 @@
 # Email Campaign Pipeline in Java Using Conductor :  Audience Segmentation, Personalization, Sending, Engagement Tracking, and Performance Analysis
 
-A Java Conductor workflow example that orchestrates an email marketing campaign .  segmenting subscribers by behavior and demographics with suppression list filtering, personalizing email content with merge fields and A/B variant creation, sending the campaign in batches with bounce tracking, monitoring engagement metrics (open rate, click rate, unsubscribes), and analyzing results against industry benchmarks. Uses [Conductor](https://github.## Why Email Campaigns Need Orchestration
+A Java Conductor workflow example that orchestrates an email marketing campaign .  segmenting subscribers by behavior and demographics with suppression list filtering, personalizing email content with merge fields and A/B variant creation, sending the campaign in batches with bounce tracking, monitoring engagement metrics (open rate, click rate, unsubscribes), and analyzing results against industry benchmarks. Uses [Conductor](https://github.
+
+## Why Email Campaigns Need Orchestration
 
 Running an email campaign involves a strict pipeline where sending before segmentation or tracking before sending produces incorrect results. You segment your subscriber list into targeted cohorts, suppress unsubscribed users, and count recipients. You personalize the email template with merge fields (first name, purchase history, recommended products) and create A/B variants. You send the campaign in batches, handling bounces in real time. You track engagement .  open rates, click-through rates, unique opens, unique clicks, unsubscribe rates. Finally, you analyze the results against industry benchmarks to measure campaign effectiveness.
 
@@ -42,6 +44,7 @@ eml_track_engagement
     │
     ▼
 eml_analyze_results
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ eml_analyze_results
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/email-campaign-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/email-campaign-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow email_campaign_workflow \
   --version 1 \
-  --input '{"campaignId": "TEST-001", "subject": "test-value", "templateId": "TEST-001", "listId": "TEST-001"}'
+  --input '{"campaignId": "TEST-001", "subject": "microservices best practices", "templateId": "TEST-001", "listId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w email_campaign_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ email-campaign/
 └── src/test/java/emailcampaign/workers/
     ├── PersonalizeWorkerTest.java        # 2 tests
     └── SegmentAudienceWorkerTest.java        # 2 tests
+
 ```

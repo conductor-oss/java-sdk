@@ -1,6 +1,8 @@
 # Data Validation in Java Using Conductor :  Required Fields, Type Checking, Range Validation, and Reporting
 
-A Java Conductor workflow example for multi-layer data validation: loading records, checking that required fields (name, email, age) are present and non-empty, verifying data types (name is String, age is Number), validating value ranges (age between 0-150, email contains "@"), and generating a validation report with error counts per category and the number of records that passed all checks. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for multi-layer data validation: loading records, checking that required fields (name, email, age) are present and non-empty, verifying data types (name is String, age is Number), validating value ranges (age between 0-150, email contains "@"), and generating a validation report with error counts per category and the number of records that passed all checks. Uses [Conductor](https://github.
+
+## The Problem
 
 You receive data from external partners, user submissions, or upstream systems, and you need to validate it before it enters your production database. Validation is layered: first check that required fields exist (a record without an email is immediately invalid), then verify data types (age must be a number, not a string), then validate value ranges (age must be 0-150, email must contain "@"). Each layer filters out invalid records, so type checking only runs on records that passed required field checks. You need a report showing exactly how many records failed at each stage and why.
 
@@ -42,6 +44,7 @@ vd_check_ranges
     │
     ▼
 vd_generate_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ vd_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-validation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-validation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_validation \
   --version 1 \
-  --input '{"records": "test-value", "schema": "test-value"}'
+  --input '{"records": "sample-records", "schema": "sample-schema"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_validation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ data-validation/
     ├── CheckTypesWorkerTest.java        # 9 tests
     ├── GenerateReportWorkerTest.java        # 9 tests
     └── LoadRecordsWorkerTest.java        # 8 tests
+
 ```

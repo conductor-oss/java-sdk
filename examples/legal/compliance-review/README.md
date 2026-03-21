@@ -1,6 +1,8 @@
 # Compliance Review in Java with Conductor
 
-A Java Conductor workflow example demonstrating Compliance Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+A Java Conductor workflow example demonstrating Compliance Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 A regulatory audit is approaching. You need to identify the applicable compliance requirements (e.g., 45 controls), assess your organization's current posture against each one, perform a gap analysis to find the 7 unmet controls (like missing encryption), and create a remediation plan to close those gaps before the deadline. Failing to identify a critical gap can result in regulatory fines, consent orders, or loss of operating licenses.
 
@@ -38,6 +40,7 @@ cmr_gap_analysis
     │
     ▼
 cmr_remediate
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cmr_remediate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/compliance-review-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/compliance-review-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cmr_compliance_review \
   --version 1 \
-  --input '{"regulationType": "test-value", "entityId": "TEST-001"}'
+  --input '{"regulationType": "standard", "entityId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cmr_compliance_review -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ compliance-review/
     ├── GapAnalysisWorkerTest.java        # 2 tests
     ├── IdentifyWorkerTest.java        # 2 tests
     └── RemediateWorkerTest.java        # 2 tests
+
 ```

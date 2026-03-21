@@ -1,6 +1,8 @@
 # End-to-End Supply Chain Management in Java with Conductor :  Plan, Source, Make, Deliver, and Return
 
-A Java Conductor workflow example for end-to-end supply chain management following the SCOR model .  creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for end-to-end supply chain management following the SCOR model .  creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to orchestrate the complete supply chain from demand to delivery. A production plan must be created specifying what to build and how much. Raw materials must be sourced from approved suppliers with the right lead times. Manufacturing must execute the production plan using the sourced materials. The finished goods must be shipped to the customer or distribution center. Finally, the return policy and reverse logistics path must be configured for the delivery. Each step depends on the previous one .  you cannot manufacture without sourced materials, and you cannot ship without finished goods.
 
@@ -42,6 +44,7 @@ scm_deliver
     │
     ▼
 scm_return
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ scm_return
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/supply-chain-mgmt-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/supply-chain-mgmt-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow scm_supply_chain \
   --version 1 \
-  --input '{"product": "test-value", "quantity": "test-value", "destination": "test-value"}'
+  --input '{"product": "widget-pro", "quantity": "sample-quantity", "destination": "production"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w scm_supply_chain -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ supply-chain-mgmt/
     ├── PlanWorkerTest.java        # 4 tests
     ├── ReturnWorkerTest.java        # 3 tests
     └── SourceWorkerTest.java        # 4 tests
+
 ```

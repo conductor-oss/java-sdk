@@ -1,6 +1,8 @@
 # Translation Pipeline in Java Using Conductor :  Language Detection, Machine Translation, Human Review, and Locale Publishing
 
-A Java Conductor workflow example that orchestrates a content translation pipeline .  detecting the source language with confidence scores and alternative language candidates, performing machine translation with quality scoring, routing through human review for corrections and quality assurance, and publishing the approved translation to locale-specific URLs. Uses [Conductor](https://github.## Why Translation Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates a content translation pipeline .  detecting the source language with confidence scores and alternative language candidates, performing machine translation with quality scoring, routing through human review for corrections and quality assurance, and publishing the approved translation to locale-specific URLs. Uses [Conductor](https://github.
+
+## Why Translation Pipelines Need Orchestration
 
 Translating content for international audiences involves a pipeline where quality gates prevent bad translations from going live. You detect the source language .  sometimes user-submitted content is mislabeled or contains mixed languages, so automated detection with confidence scoring prevents translation from the wrong source. You run machine translation to produce a draft with word counts and quality scores. A human reviewer checks the machine output ,  correcting errors, improving fluency, and assigning a review score. Only after human approval does the translation get published to its locale-specific URL.
 
@@ -38,6 +40,7 @@ trn_review_translation
     │
     ▼
 trn_publish_translation
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ trn_publish_translation
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/translation-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/translation-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow translation_pipeline_workflow \
   --version 1 \
-  --input '{"contentId": "TEST-001", "sourceText": "test-value", "targetLanguage": "test-value"}'
+  --input '{"contentId": "TEST-001", "sourceText": "Process this order for customer C-100", "targetLanguage": "production"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w translation_pipeline_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ translation-pipeline/
 └── src/test/java/translationpipeline/workers/
     ├── DetectLanguageWorkerTest.java        # 2 tests
     └── TranslateWorkerTest.java        # 2 tests
+
 ```

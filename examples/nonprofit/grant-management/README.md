@@ -1,6 +1,8 @@
 # Grant Management in Java with Conductor
 
-A Java Conductor workflow example demonstrating Grant Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+A Java Conductor workflow example demonstrating Grant Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Your nonprofit is applying for a foundation grant to fund a community program. The grants team needs to submit the application with the organization name and requested amount, have the grant committee review and score the application, approve the grant based on the review score, disburse the funds to the organization, and file a grant usage report documenting expenditures and outcomes. Each step depends on the previous one's output.
 
@@ -42,6 +44,7 @@ gmt_fund
     │
     ▼
 gmt_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ gmt_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/grant-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/grant-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow grant_management_752 \
   --version 1 \
-  --input '{"organizationName": "test", "grantProgram": "test-value", "requestedAmount": 100}'
+  --input '{"organizationName": "test", "grantProgram": "sample-grantProgram", "requestedAmount": 100}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w grant_management_752 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ grant-management/
 └── src/test/java/grantmanagement/workers/
     ├── ApplyWorkerTest.java        # 1 tests
     └── ReportWorkerTest.java        # 1 tests
+
 ```

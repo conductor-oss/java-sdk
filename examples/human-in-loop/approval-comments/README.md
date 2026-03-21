@@ -1,6 +1,8 @@
 # Approval with Comments and Attachments in Java Using Conductor :  Document Preparation, Human Review via WAIT, and Feedback Application
 
-Human-in-the-loop approval with rich feedback .  prepares a document for review, pauses the workflow with a WAIT task until a human reviewer submits their decision along with comments, attachments, ratings, and tags, then applies that feedback to the document. Uses [Conductor](https://github.## The Problem
+Human-in-the-loop approval with rich feedback .  prepares a document for review, pauses the workflow with a WAIT task until a human reviewer submits their decision along with comments, attachments, ratings, and tags, then applies that feedback to the document. Uses [Conductor](https://github.
+
+## The Problem
 
 You need approvals that go beyond a simple approve/reject button. A reviewer needs to provide structured feedback .  a decision (approve, reject, revise), free-text comments explaining their reasoning, file attachments (annotated screenshots, supporting documents, redlined versions), a quality rating, and classification tags. The workflow must pause and wait for this human input, then pass every piece of that feedback to downstream processing. Without a WAIT mechanism, you'd poll a database or queue for the reviewer's response, building your own timeout and notification logic.
 
@@ -34,6 +36,7 @@ review_with_comments [WAIT]
     │
     ▼
 ac_apply_feedback
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ ac_apply_feedback
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/approval-comments-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/approval-comments-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -106,6 +114,7 @@ conductor workflow start \
   --workflow approval_comments_demo \
   --version 1 \
   --input '{"documentId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w approval_comments_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -138,6 +148,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -159,4 +170,5 @@ approval-comments/
 └── src/test/java/approvalcomments/workers/
     ├── ApplyFeedbackWorkerTest.java        # 10 tests
     └── PrepareDocWorkerTest.java        # 4 tests
+
 ```

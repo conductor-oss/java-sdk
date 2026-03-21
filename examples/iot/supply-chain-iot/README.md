@@ -1,6 +1,8 @@
 # Supply Chain IoT in Java with Conductor :  Shipment Tracking, Condition Monitoring, and Alert-Based Rerouting
 
-A Java Conductor workflow example that orchestrates supply chain monitoring .  tracking shipment location from origin to destination, monitoring in-transit environmental conditions (temperature for cold chain compliance), and routing to different handlers via SWITCH based on condition status: continue the shipment if conditions are normal, or trigger an alert and initiate rerouting if conditions breach thresholds. Uses [Conductor](https://github.## Why Supply Chain Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates supply chain monitoring .  tracking shipment location from origin to destination, monitoring in-transit environmental conditions (temperature for cold chain compliance), and routing to different handlers via SWITCH based on condition status: continue the shipment if conditions are normal, or trigger an alert and initiate rerouting if conditions breach thresholds. Uses [Conductor](https://github.
+
+## Why Supply Chain Monitoring Needs Orchestration
 
 Shipping perishable goods or sensitive materials requires continuous monitoring throughout transit. You track the shipment's GPS position to know where it is. You check the in-transit environmental conditions .  temperature inside the container, humidity levels, door-open events. Based on those conditions, you take entirely different actions: if everything is within spec, you log the checkpoint and continue. If the temperature exceeds the cold chain threshold, you trigger an alert, notify the logistics team, and initiate rerouting to a closer destination before the cargo is compromised.
 
@@ -37,6 +39,7 @@ sci_monitor_conditions
 SWITCH (sci_switch_ref)
     ├── ok: sci_handle_ok
     ├── alert: sci_handle_alert
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ SWITCH (sci_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/supply-chain-iot-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/supply-chain-iot-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow supply_chain_iot_demo \
   --version 1 \
-  --input '{"shipmentId": "TEST-001", "origin": "test-value", "destination": "test-value"}'
+  --input '{"shipmentId": "TEST-001", "origin": "sample-origin", "destination": "production"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w supply_chain_iot_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ supply-chain-iot/
 └── src/test/java/supplychainiot/workers/
     ├── MonitorConditionsWorkerTest.java        # 2 tests
     └── TrackShipmentWorkerTest.java        # 2 tests
+
 ```

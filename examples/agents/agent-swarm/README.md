@@ -1,6 +1,8 @@
 # Agent Swarm in Java Using Conductor :  Decompose Research into Parallel Specialist Investigations
 
-Agent Swarm .  decompose a research topic into subtasks, run 4 swarm agents in parallel, then merge findings into a unified report. Uses [Conductor](https://github.## Research at Scale Needs Parallel Specialization
+Agent Swarm .  decompose a research topic into subtasks, run 4 swarm agents in parallel, then merge findings into a unified report. Uses [Conductor](https://github.
+
+## Research at Scale Needs Parallel Specialization
 
 Researching a topic like "edge computing adoption" thoroughly requires four distinct perspectives: market analysis (market size, growth rates, competitive landscape), technical landscape (architectures, key innovations, standards), real-world use cases (deployments, case studies, ROI data), and future trends (emerging developments, potential disruptions). A single agent doing all four sequentially takes four times as long and tends to produce shallow coverage across all areas.
 
@@ -42,6 +44,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 as_merge
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ as_merge
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/agent-swarm-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/agent-swarm-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agent_swarm_demo \
   --version 1 \
-  --input '{"researchTopic": "test-value"}'
+  --input '{"researchTopic": "microservices best practices"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w agent_swarm_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -165,4 +175,5 @@ agent-swarm/
     ├── Swarm2WorkerTest.java        # 8 tests
     ├── Swarm3WorkerTest.java        # 8 tests
     └── Swarm4WorkerTest.java        # 8 tests
+
 ```

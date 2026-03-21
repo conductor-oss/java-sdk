@@ -1,6 +1,8 @@
 # Feature Engineering in Java Using Conductor :  Feature Extraction, Transformation, Normalization, and Validation
 
-A Java Conductor workflow example for ML feature engineering: extracting raw features from source data, applying transformations (log, polynomial, ratio-based derived features), normalizing numeric features to a [0,1] range via min-max scaling, and validating the final feature set for null values and range compliance before model training. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for ML feature engineering: extracting raw features from source data, applying transformations (log, polynomial, ratio-based derived features), normalizing numeric features to a [0,1] range via min-max scaling, and validating the final feature set for null values and range compliance before model training. Uses [Conductor](https://github.
+
+## The Problem
 
 Before your ML model can train, raw data needs to become features. That means extracting useful signals from raw fields (parsing dates into day-of-week, computing ratios from absolute values), transforming them (log transforms for skewed distributions, polynomial features for capturing non-linear relationships), normalizing to a consistent [0,1] range so gradient-based models converge properly, and validating that no feature has null values or falls outside the expected range. Each step depends on the previous one: you can't normalize features that haven't been transformed, and you can't validate until normalization is complete.
 
@@ -38,6 +40,7 @@ fe_normalize_features
     │
     ▼
 fe_validate_features
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ fe_validate_features
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/feature-engineering-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/feature-engineering-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow feature_engineering \
   --version 1 \
-  --input '{"rawData": "test-value", "featureConfig": "test-value"}'
+  --input '{"rawData": {"key": "value"}, "featureConfig": "sample-featureConfig"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w feature_engineering -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ feature-engineering/
     ├── NormalizeFeaturesWorkerTest.java        # 8 tests
     ├── TransformFeaturesWorkerTest.java        # 9 tests
     └── ValidateFeaturesWorkerTest.java        # 8 tests
+
 ```

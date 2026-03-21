@@ -1,6 +1,8 @@
 # Price Optimization in Java Using Conductor :  Collect Market Data, Analyze Demand, Optimize, Update Prices
 
-A Java Conductor workflow example demonstrating Price Optimization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Static Prices Leave Money on the Table
+A Java Conductor workflow example demonstrating Price Optimization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Static Prices Leave Money on the Table
 
 Your competitor just dropped their price by 15%. Your demand hasn't changed yet, but it will. A product priced at $49.99 might sell 100 units/week, but at $44.99 it might sell 150 units .  increasing total revenue despite the lower price. Or at $54.99 it might sell 80 units with higher margins. The optimal price depends on competitor pricing, demand elasticity, inventory levels, and margin targets.
 
@@ -38,6 +40,7 @@ prz_optimize_price
     │
     ▼
 prz_update_price
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ prz_update_price
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/price-optimization-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/price-optimization-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow price_optimization_workflow \
   --version 1 \
-  --input '{"productId": "TEST-001", "currentPrice": 100, "category": "test-value"}'
+  --input '{"productId": "TEST-001", "currentPrice": 100, "category": "general"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w price_optimization_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ price-optimization/
     ├── CollectMarketDataWorkerTest.java        # 8 tests
     ├── OptimizePriceWorkerTest.java        # 8 tests
     └── UpdatePriceWorkerTest.java        # 8 tests
+
 ```

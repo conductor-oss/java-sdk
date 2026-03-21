@@ -1,6 +1,8 @@
 # Pipeline Pattern in Java Using Conductor :  Sequential Data Processing Through Stages
 
-A Java Conductor workflow example for the pipeline pattern .  passing raw data through a series of sequential processing stages where each stage transforms the data and passes its output to the next. Uses [Conductor](https://github.## Data Transformation Requires a Clean Stage-by-Stage Flow
+A Java Conductor workflow example for the pipeline pattern .  passing raw data through a series of sequential processing stages where each stage transforms the data and passes its output to the next. Uses [Conductor](https://github.
+
+## Data Transformation Requires a Clean Stage-by-Stage Flow
 
 Raw sensor data arrives as unstructured readings. Stage 1 parses the binary payload into structured fields. Stage 2 converts units (Fahrenheit to Celsius, PSI to bar). Stage 3 applies calibration offsets. Stage 4 writes the calibrated data to the time-series database. Each stage must receive the exact output of the previous stage .  feeding uncalibrated data to the database stage produces incorrect readings.
 
@@ -38,6 +40,7 @@ pip_stage_3
     │
     ▼
 pip_stage_4
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ pip_stage_4
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/pipeline-pattern-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/pipeline-pattern-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pip_pipeline_pattern \
   --version 1 \
-  --input '{"rawData": "test-value", "pipelineId": "TEST-001"}'
+  --input '{"rawData": {"key": "value"}, "pipelineId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w pip_pipeline_pattern -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ pipeline-pattern/
     ├── PipStage2WorkerTest.java        # 4 tests
     ├── PipStage3WorkerTest.java        # 4 tests
     └── PipStage4WorkerTest.java        # 4 tests
+
 ```

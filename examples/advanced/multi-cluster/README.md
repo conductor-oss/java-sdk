@@ -1,6 +1,8 @@
 # Multi-Cluster Processing in Java Using Conductor :  Partition Data, Process in Parallel Across Clusters, Aggregate
 
-A Java Conductor workflow example for multi-cluster data processing .  preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.## One Cluster Is Not Enough
+A Java Conductor workflow example for multi-cluster data processing .  preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.
+
+## One Cluster Is Not Enough
 
 Your dataset has grown beyond what a single cluster can process in the required time window. You need to split the workload across clusters in different regions .  sending partition A to us-east-1 and partition B to us-west-2 ,  then merge the results. This cuts processing time in half, adds geographic redundancy, and keeps data closer to regional users.
 
@@ -38,6 +40,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 mcl_aggregate
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ mcl_aggregate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/multi-cluster-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/multi-cluster-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow multi_cluster_demo \
   --version 1 \
   --input '{"jobId": "TEST-001", "datasetSize": 10}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w multi_cluster_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ multi-cluster/
     ├── MclClusterEastWorkerTest.java        # 4 tests
     ├── MclClusterWestWorkerTest.java        # 4 tests
     └── MclPrepareWorkerTest.java        # 4 tests
+
 ```

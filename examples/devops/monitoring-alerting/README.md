@@ -1,6 +1,8 @@
 # Monitoring Alerting in Java with Conductor
 
-Orchestrates a monitoring and alerting pipeline using [Conductor](https://github.com/conductor-oss/conductor). Incoming alerts are evaluated for severity, deduplicated against recent history, enriched with deployment context, and routed to the appropriate on-call channel.## When Every Alert Counts
+Orchestrates a monitoring and alerting pipeline using [Conductor](https://github.com/conductor-oss/conductor). Incoming alerts are evaluated for severity, deduplicated against recent history, enriched with deployment context, and routed to the appropriate on-call channel.
+
+## When Every Alert Counts
 
 A metric threshold is breached and a raw alert fires. Before anyone gets paged, the system needs to decide whether this alert is real or a duplicate, determine its severity, pull in deployment context (was there a recent deploy?), and route the notification to the right Slack channel or PagerDuty escalation. Doing this manually means flapping alerts wake people up at 3 AM for problems that already have open incidents.
 
@@ -38,6 +40,7 @@ ma_enrich
     │
     ▼
 ma_route
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ma_route
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/monitoring-alerting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/monitoring-alerting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow monitoring_alerting_workflow \
   --version 1 \
-  --input '{"alertName": "test", "metric": "test-value", "value": "test-value"}'
+  --input '{"alertName": "test", "metric": "sample-metric", "value": "sample-value"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w monitoring_alerting_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -162,4 +173,5 @@ monitoring-alerting-monitoring-alerting/
 │       └── RouteWorker.java
 └── src/test/java/monitoringalerting/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

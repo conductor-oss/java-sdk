@@ -1,6 +1,8 @@
 # Data Warehouse Load in Java Using Conductor :  Staging, Pre-Load Checks, Upsert, Post-Load Validation, and Metadata Update
 
-A Java Conductor workflow example for data warehouse loading: staging incoming records to a temporary table, running pre-load quality checks against the schema, upserting validated records into the target table, running post-load validation to confirm the data landed correctly, and updating warehouse metadata with load statistics. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for data warehouse loading: staging incoming records to a temporary table, running pre-load quality checks against the schema, upserting validated records into the target table, running post-load validation to confirm the data landed correctly, and updating warehouse metadata with load statistics. Uses [Conductor](https://github.
+
+## The Problem
 
 Loading data into a warehouse is not just an INSERT statement. You need to stage records in a temporary table so the target table isn't locked during quality checks. You need to run pre-load validation (schema compliance, null checks, referential integrity) before touching production tables. You need to upsert. Inserting new records and updating existing ones based on a key. After loading, you need to verify the target table has the expected record count and the data is queryable. Finally, you need to update warehouse metadata (last load time, row counts, freshness) so downstream dashboards and dbt models know the data is current.
 
@@ -42,6 +44,7 @@ wh_post_load_validation
     │
     ▼
 wh_update_metadata
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ wh_update_metadata
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-warehouse-load-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-warehouse-load-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_warehouse_load \
   --version 1 \
-  --input '{"records": "test-value", "targetTable": "test-value", "schema": "test-value"}'
+  --input '{"records": "sample-records", "targetTable": "production", "schema": "sample-schema"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_warehouse_load -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ data-warehouse-load/
     ├── StageDataWorkerTest.java        # 6 tests
     ├── UpdateMetadataWorkerTest.java        # 6 tests
     └── UpsertTargetWorkerTest.java        # 6 tests
+
 ```

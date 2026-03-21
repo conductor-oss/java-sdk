@@ -1,6 +1,8 @@
 # Fleet Management in Java with Conductor :  Vehicle Tracking, Route Optimization, Dispatch, and Trip Monitoring
 
-A Java Conductor workflow example that orchestrates fleet operations .  tracking vehicle GPS positions and fuel levels, optimizing routes with distance and fuel estimates, dispatching drivers with ETA notifications, monitoring trip progress (speed, fuel consumption, duration), and generating delivery reports with cost breakdowns. Uses [Conductor](https://github.## Why Fleet Dispatch Needs Orchestration
+A Java Conductor workflow example that orchestrates fleet operations .  tracking vehicle GPS positions and fuel levels, optimizing routes with distance and fuel estimates, dispatching drivers with ETA notifications, monitoring trip progress (speed, fuel consumption, duration), and generating delivery reports with cost breakdowns. Uses [Conductor](https://github.
+
+## Why Fleet Dispatch Needs Orchestration
 
 Running a delivery or logistics fleet means coordinating a pipeline of decisions for every trip. You query GPS trackers to find available vehicles with their locations and fuel levels. You feed those positions into a route optimizer that assigns the best vehicle and driver, calculates estimated distance, duration, and fuel consumption. You dispatch the assignment, notify the driver, and provide an ETA. You monitor the trip in real time .  tracking actual distance, speed, fuel used, and completion time. Finally, you generate a report comparing actuals against estimates and calculating cost.
 
@@ -42,6 +44,7 @@ flt_monitor_trip
     │
     ▼
 flt_generate_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ flt_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/fleet-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/fleet-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow fleet_management_workflow \
   --version 1 \
-  --input '{"tripId": "TEST-001", "origin": "test-value", "destination": "test-value", "fleetId": "TEST-001"}'
+  --input '{"tripId": "TEST-001", "origin": "sample-origin", "destination": "production", "fleetId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w fleet_management_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ fleet-management/
 └── src/test/java/fleetmanagement/workers/
     ├── OptimizeRoutesWorkerTest.java        # 2 tests
     └── TrackVehiclesWorkerTest.java        # 2 tests
+
 ```

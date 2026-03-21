@@ -1,6 +1,8 @@
 # Billing Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates the telecom billing cycle .  collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.## Why Telecom Billing Needs Orchestration
+A Java Conductor workflow example that orchestrates the telecom billing cycle .  collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.
+
+## Why Telecom Billing Needs Orchestration
 
 Running a billing cycle requires a strict pipeline where each step depends on the previous one. You collect all usage records (CDRs, IPDRs) for the customer's billing period. You rate each record by applying the correct tariff based on the customer's plan, time of day, destination, and any bundled allowances. You generate an invoice that itemizes the rated charges and calculates the total. You send the invoice to the customer via their preferred channel. Finally, you collect payment by charging the customer's payment method on file.
 
@@ -42,6 +44,7 @@ btl_send
     │
     ▼
 btl_collect_payment
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ btl_collect_payment
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/billing-telecom-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/billing-telecom-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow btl_billing_telecom \
   --version 1 \
-  --input '{"customerId": "TEST-001", "billingPeriod": "test-value"}'
+  --input '{"customerId": "TEST-001", "billingPeriod": "sample-billingPeriod"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w btl_billing_telecom -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ billing-telecom-billing-telecom/
 └── src/test/java/billingtelecom/workers/
     ├── CollectUsageWorkerTest.java        # 1 tests
     └── InvoiceWorkerTest.java        # 1 tests
+
 ```

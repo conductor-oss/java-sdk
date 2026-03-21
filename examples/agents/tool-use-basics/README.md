@@ -1,6 +1,6 @@
 # Tool Use Basics in Java Using Conductor: Analyze Request, Select Tool, Execute, Format Result
 
-Your AI chatbot can eloquently explain how to check the weather in Tokyo. It just can't actually check the weather in Tokyo. It can describe the steps to calculate 15% of 230, but it can't call a calculator. It reasons beautifully about what should happen, then hands back a paragraph of text instead of a result. The gap between "knowing what to do" and "doing it" is the tool-use problem. This example wires an LLM to real tools through a four-step Conductor pipeline: analyze the request, select the right tool, execute it, and format the result into a natural language answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Your AI chatbot can eloquently explain how to check the weather in Tokyo. It just can't actually check the weather in Tokyo. It can describe the steps to calculate 15% of 230, but it can't call a calculator. It reasons beautifully about what should happen, then hands back a paragraph of text instead of a result. The gap between "knowing what to do" and "doing it" is the tool-use problem. This example wires an LLM to real tools through a four-step Conductor pipeline: analyze the request, select the right tool, execute it, and format the result into a natural language answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Foundation of Tool-Using Agents
 
@@ -27,15 +27,6 @@ Four workers implement the tool-use pattern. Analyzing the request, selecting th
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ tu_execute_tool
     │
     ▼
 tu_format_result
+
 ```
 
 ## Example Output
@@ -78,7 +70,9 @@ Step 4: Starting workflow...
   Output: {answer=Success, toolUsed=weather_api, sourceData={location=location, temperature=62, units=units, condition=Partly Cloudy, humidity=72, windSpeed=12, windDirection=W, forecast=[{day=Tomorrow, high=65, low=54, condition=Sunny}, {day=Day After, high=63, low=52, condition=Cloudy}]}}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -91,6 +85,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -99,13 +94,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -113,6 +109,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-basics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -125,6 +122,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -140,6 +138,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-basics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -149,6 +148,7 @@ conductor workflow start \
   --workflow tool_use_basics \
   --version 1 \
   --input '{"userRequest": "What's the weather like in San Francisco?", "availableTools": [{"name": "weather_api", "description": "Fetches current weather data", "parameters": ["location", "units"]}, {"name": "calculator", "description": "Performs mathematical calculations", "parameters": ["expression", "precision"]}, {"name": "web_search", "description": "Searches the web for information", "parameters": ["query", "maxResults"]}]}'
+
 ```
 
 ### Check workflow status
@@ -157,6 +157,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_basics -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -197,4 +198,5 @@ tool-use-basics/
     ├── ExecuteToolWorkerTest.java        # 9 tests
     ├── FormatResultWorkerTest.java        # 9 tests
     └── SelectToolWorkerTest.java        # 9 tests
+
 ```

@@ -26,17 +26,6 @@ Three workers implement the dynamic fanout: PrepareTasksWorker generates one tas
 
 Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Dynamic parallelism** | FORK_JOIN_DYNAMIC creates parallel branches at runtime based on input data |
-| **Automatic joining** | JOIN waits for all dynamically forked tasks to complete |
-
 ### The Workflow
 
 ```
@@ -48,6 +37,7 @@ FORK_JOIN_DYNAMIC (parallel, determined at runtime)
     ▼
 JOIN (wait for all branches)
 df_aggregate
+
 ```
 
 ## Example Output
@@ -79,6 +69,7 @@ Step 5: Waiting for completion...
   Output: {results=Success, totalProcessed=3, totalSize=45600}
 
 Result: PASSED
+
 ```
 
 ## Running It
@@ -93,6 +84,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -101,13 +93,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -115,6 +108,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/dynamic-fork-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -127,6 +121,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -142,6 +137,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/dynamic-fork-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -151,6 +147,7 @@ conductor workflow start \
   --workflow dynamic_fork_demo \
   --version 1 \
   --input '{"urls": ["https://example.com", "https://openai.com", "https://conductor.netflix.com"]}'
+
 ```
 
 ### Check workflow status
@@ -159,6 +156,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w dynamic_fork_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -181,6 +179,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -204,4 +203,5 @@ dynamic-fork/
     ├── AggregateWorkerTest.java        # 7 tests
     ├── FetchUrlWorkerTest.java        # 8 tests
     └── PrepareTasksWorkerTest.java        # 7 tests
+
 ```

@@ -1,6 +1,6 @@
 # Content Enricher in Java Using Conductor: Augment Messages with External Customer Data
 
-A webhook fires: `{"customerId": "CUST-42", "orderId": "ORD-999", "amount": 1250.00}`. That's it. Your fulfillment service needs the customer's region, account tier, and credit limit to route the order. Your analytics pipeline needs the company name and lifetime value. But the event is just an ID and a dollar amount, a skeleton with no context. So your handler starts making inline API calls to the CRM, the customer database, and the geo-IP service, tangling enrichment logic with transport logic until adding one new data source means rewriting the whole consumer. This example builds a content enrichment pipeline with Conductor: extract the customer ID, look up account data from external sources, merge it into the original payload, and forward the enriched message downstream. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A webhook fires: `{"customerId": "CUST-42", "orderId": "ORD-999", "amount": 1250.00}`. That's it. Your fulfillment service needs the customer's region, account tier, and credit limit to route the order. Your analytics pipeline needs the company name and lifetime value. But the event is just an ID and a dollar amount, a skeleton with no context. So your handler starts making inline API calls to the CRM, the customer database, and the geo-IP service, tangling enrichment logic with transport logic until adding one new data source means rewriting the whole consumer. This example builds a content enrichment pipeline with Conductor: extract the customer ID, look up account data from external sources, merge it into the original payload, and forward the enriched message downstream. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Incomplete Messages Need Context
 
@@ -27,15 +27,6 @@ Four workers form the enrichment pipeline: message reception, external data look
 
 Workers simulate the pattern behavior with realistic inputs and outputs so you can observe the advanced workflow mechanics. Replace with real implementations, the pattern and Conductor orchestration stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ enr_enrich
     │
     ▼
 enr_forward
+
 ```
 
 ## Example Output
@@ -78,7 +70,9 @@ Step 4: Starting workflow...
   Output: {originalMessage=Operation completed successfully, enrichedMessage=Operation completed successfully, forwarded=true}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -91,6 +85,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -99,13 +94,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -113,6 +109,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/content-enricher-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -125,6 +122,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -140,6 +138,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/content-enricher-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -148,14 +147,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow enr_content_enricher \
   --version 1 \
-  --input '{
-    "message": {
-      "customerId": "CUST-42",
-      "orderId": "ORD-999",
-      "amount": 1250.00
-    },
-    "enrichmentSources": ["customer_db", "crm_system"]
-  }'
+  --input '{"message": {"customerId": "CUST-42", "orderId": "ORD-999", "amount": 1250.0}, "enrichmentSources": ["customer_db", "crm_system"]}'
+
 ```
 
 ### Check workflow status
@@ -164,6 +157,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w enr_content_enricher -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -186,6 +180,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -211,4 +206,5 @@ content-enricher/
     ├── LookupDataWorkerTest.java      # 7 tests
     ├── EnrichWorkerTest.java          # 7 tests
     └── ForwardWorkerTest.java         # 7 tests
+
 ```

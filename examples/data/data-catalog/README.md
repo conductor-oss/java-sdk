@@ -1,6 +1,8 @@
 # Data Catalog in Java Using Conductor :  Asset Discovery, Classification, Tagging, and Search Indexing
 
-A Java Conductor workflow example for building a data catalog. discovering data assets across schemas and data sources, classifying them by content type and PII sensitivity, applying metadata tags, and indexing everything for searchable catalog lookups. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for building a data catalog. discovering data assets across schemas and data sources, classifying them by content type and PII sensitivity, applying metadata tags, and indexing everything for searchable catalog lookups. Uses [Conductor](https://github.
+
+## The Problem
 
 Your organization has data scattered across databases, data lakes, APIs, and file stores. Nobody knows what data exists, where it lives, whether it contains PII, or who owns it. You need to build a catalog that answers these questions. That means crawling data sources to discover tables, columns, and datasets at a configurable scan depth, classifying each asset by category and PII sensitivity (using rule-based patterns for emails, SSNs, phone numbers), tagging assets with metadata labels (owner, domain, freshness, quality tier), and indexing everything into a searchable catalog so analysts and engineers can find what they need.
 
@@ -38,6 +40,7 @@ cg_tag_metadata
     │
     ▼
 cg_index_catalog
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cg_index_catalog
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-catalog-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-catalog-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_catalog \
   --version 1 \
-  --input '{"dataSource": "test-value", "scanDepth": "test-value", "classificationRules": "test-value"}'
+  --input '{"dataSource": "api", "scanDepth": "sample-scanDepth", "classificationRules": "sample-classificationRules"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_catalog -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ data-catalog/
     ├── DiscoverAssetsWorkerTest.java        # 8 tests
     ├── IndexCatalogWorkerTest.java        # 8 tests
     └── TagMetadataWorkerTest.java        # 8 tests
+
 ```

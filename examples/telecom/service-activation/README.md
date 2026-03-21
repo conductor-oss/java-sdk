@@ -1,6 +1,8 @@
 # Service Activation in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service activation .  validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.## Why Service Activation Needs Orchestration
+A Java Conductor workflow example that orchestrates telecom service activation .  validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.
+
+## Why Service Activation Needs Orchestration
 
 Activating a new telecom service requires a strict sequence where each step must succeed before proceeding. You validate the service order .  confirming the order exists, the customer's account is in good standing, and the requested service type is available at their location. You provision the network resources ,  creating subscriber profiles in the HLR/HSS, configuring access ports, and allocating bandwidth. You test the provisioned service by running automated checks to confirm connectivity and quality. You activate the service so the customer can start using it. Finally, you notify the customer with their service ID and activation details.
 
@@ -41,6 +43,7 @@ sac_activate
     │
     ▼
 sac_notify
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ sac_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/service-activation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/service-activation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow sac_service_activation \
   --version 1 \
-  --input '{"orderId": "TEST-001", "customerId": "TEST-001", "serviceType": "test-value"}'
+  --input '{"orderId": "TEST-001", "customerId": "TEST-001", "serviceType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w sac_service_activation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ service-activation-service-activation/
 └── src/test/java/serviceactivation/workers/
     ├── ActivateWorkerTest.java        # 1 tests
     └── ValidateOrderWorkerTest.java        # 1 tests
+
 ```

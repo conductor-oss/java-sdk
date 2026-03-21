@@ -1,6 +1,8 @@
 # Implementing Role-Based Access Control (RBAC) in Java with Conductor :  Role Resolution, Permission Evaluation, Context Check, and Decision Enforcement
 
-A Java Conductor workflow example implementing role-based access control .  resolving a user's roles from the identity store, evaluating whether those roles grant the requested permission on the target resource, checking contextual constraints (time of day, network location, device trust), and enforcing the allow/deny decision with a full audit log. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example implementing role-based access control .  resolving a user's roles from the identity store, evaluating whether those roles grant the requested permission on the target resource, checking contextual constraints (time of day, network location, device trust), and enforcing the allow/deny decision with a full audit log. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to authorize every access request against a role-based policy model. When a user requests to perform an action (read, write, delete, admin) on a resource (document, API endpoint, database table), the system must resolve their assigned roles (admin, editor, viewer) from the identity store, evaluate whether any of those roles grant the requested permission, apply contextual constraints (is the request within business hours? from a trusted network? on a managed device?), and enforce the final allow or deny decision .  all while logging every decision for compliance audits.
 
@@ -38,6 +40,7 @@ rbac_check_context
     │
     ▼
 rbac_enforce_decision
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ rbac_enforce_decision
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/authorization-rbac-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/authorization-rbac-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow authorization_rbac \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w authorization_rbac -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ authorization-rbac/
     ├── EnforceDecisionWorkerTest.java        # 8 tests
     ├── EvaluatePermissionsWorkerTest.java        # 8 tests
     └── ResolveRolesWorkerTest.java        # 8 tests
+
 ```

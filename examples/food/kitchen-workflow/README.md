@@ -1,6 +1,8 @@
 # Kitchen Workflow in Java with Conductor
 
-Manages the kitchen flow for a restaurant order: receiving it from the POS, prepping ingredients, cooking, plating with garnishes, and serving to the table. Uses [Conductor](https://github.## The Problem
+Manages the kitchen flow for a restaurant order: receiving it from the POS, prepping ingredients, cooking, plating with garnishes, and serving to the table. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage the kitchen workflow for a restaurant order .  from the moment it arrives in the kitchen to when it reaches the customer's table. The order is received from the POS system, ingredients are prepped (chopping, marinating, portioning), the dishes are cooked, plated with garnishes and presentation, and served to the table. Kitchen delays cascade ,  late prep means late cooking, which means cold plated food sitting under heat lamps.
 
@@ -42,6 +44,7 @@ kit_plate
     │
     ▼
 kit_serve
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ kit_serve
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/kitchen-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/kitchen-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow kitchen_workflow_735 \
   --version 1 \
-  --input '{"orderId": "TEST-001", "tableId": "TEST-001", "items": "test-value"}'
+  --input '{"orderId": "TEST-001", "tableId": "TEST-001", "items": [{"id": "ITEM-001", "quantity": 2}]}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w kitchen_workflow_735 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ kitchen-workflow/
 └── src/test/java/kitchenworkflow/workers/
     ├── ReceiveOrderWorkerTest.java
     └── ServeWorkerTest.java
+
 ```

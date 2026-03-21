@@ -1,6 +1,8 @@
 # Debate Agents in Java Using Conductor :  Pro and Con Arguments in Iterative Rounds with Moderation
 
-Debate Agents. PRO and CON agents argue over a topic for multiple rounds, then a moderator summarizes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Exploring Both Sides of an Issue Systematically
+Debate Agents. PRO and CON agents argue over a topic for multiple rounds, then a moderator summarizes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Exploring Both Sides of an Issue Systematically
 
 Asking an LLM for pros and cons in a single call produces a superficial list. A structured debate produces deeper analysis: the pro agent makes a strong argument, the con agent directly counters it, and the pro agent responds to the counter .  each round sharpening the analysis. After three rounds, the moderator has six substantive arguments to synthesize into a balanced summary.
 
@@ -37,6 +39,7 @@ DO_WHILE
     │
     ▼
 da_moderator_summarize
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ da_moderator_summarize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/debate-agents-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/debate-agents-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow debate_agents_demo \
   --version 1 \
-  --input '{"topic": "test-value"}'
+  --input '{"topic": "microservices best practices"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w debate_agents_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -156,4 +166,5 @@ debate-agents/
     ├── AgentProWorkerTest.java        # 12 tests
     ├── ModeratorSummarizeWorkerTest.java        # 10 tests
     └── SetTopicWorkerTest.java        # 6 tests
+
 ```

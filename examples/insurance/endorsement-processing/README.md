@@ -1,6 +1,8 @@
 # Endorsement Processing in Java with Conductor :  Request Change, Assess Impact, Price, Approve, Apply
 
-A Java Conductor workflow example for mid-term policy endorsement processing .  receiving a change request (adding a driver, changing coverage limits, updating a vehicle), assessing the impact on the policy, repricing the premium adjustment (+$150/year), approving the endorsement, and applying the amendment to the active policy. Each step depends on the previous: the impact assessment feeds into repricing, the premium change feeds into approval, and the endorsement is only applied after approval. Uses [Conductor](https://github.## Mid-Term Policy Changes Require Impact Assessment, Repricing, and Approval Before Amendment
+A Java Conductor workflow example for mid-term policy endorsement processing .  receiving a change request (adding a driver, changing coverage limits, updating a vehicle), assessing the impact on the policy, repricing the premium adjustment (+$150/year), approving the endorsement, and applying the amendment to the active policy. Each step depends on the previous: the impact assessment feeds into repricing, the premium change feeds into approval, and the endorsement is only applied after approval. Uses [Conductor](https://github.
+
+## Mid-Term Policy Changes Require Impact Assessment, Repricing, and Approval Before Amendment
 
 When a policyholder requests a mid-term change (adding a driver, increasing coverage, changing a deductible), the insurer must assess the coverage impact, calculate the premium adjustment, obtain approval for the change, and apply the endorsement to the active policy. The premium adjustment depends on the impact assessment, and the endorsement is only applied after approval. If the pricing step fails, you need to retry it without re-assessing the impact.
 
@@ -40,6 +42,7 @@ edp_approve
     │
     ▼
 edp_apply
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ edp_apply
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/endorsement-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/endorsement-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow edp_endorsement_processing \
   --version 1 \
-  --input '{"policyId": "TEST-001", "changeType": "test-value", "details": "test-value"}'
+  --input '{"policyId": "TEST-001", "changeType": "standard", "details": "sample-details"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w edp_endorsement_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ endorsement-processing-endorsement-processing/
 └── src/test/java/endorsementprocessing/workers/
     ├── PriceWorkerTest.java        # 1 tests
     └── RequestChangeWorkerTest.java        # 1 tests
+
 ```

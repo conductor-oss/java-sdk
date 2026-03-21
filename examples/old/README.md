@@ -15,6 +15,7 @@ java -jar target/hello-world-1.0.0.jar
 
 # Or use the launcher script
 ./run.sh
+
 ```
 
 ## Examples by Category
@@ -234,6 +235,7 @@ examples/basics/hello-world/
 │   └── workflow.json                    # Workflow definition
 └── src/test/java/helloworld/workers/
     └── GreetWorkerTest.java             # Unit tests
+
 ```
 
 All examples support `--workers` flag for worker-only mode (useful when starting workflows via CLI or UI).
@@ -247,6 +249,7 @@ All examples support `--workers` flag for worker-only mode (useful when starting
 ```bash
 # Start Conductor locally
 docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+
 ```
 
 ## Legacy Examples

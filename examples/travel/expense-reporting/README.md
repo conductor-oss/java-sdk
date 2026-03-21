@@ -1,6 +1,8 @@
 # Expense Reporting in Java with Conductor
 
-Expense reporting: collect, categorize, submit, approve, reimburse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Expense reporting: collect, categorize, submit, approve, reimburse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to process a travel expense report from receipt collection through reimbursement. An employee returns from a trip with receipts for flights, hotels, meals, and transportation. You collect all receipts and line items. You categorize each expense (airfare, lodging, meals, ground transport, miscellaneous). You submit the categorized report for approval. The manager reviews and approves or rejects it. Finally, approved expenses are reimbursed to the employee's payroll or bank account.
 
@@ -42,6 +44,7 @@ exr_approve
     │
     ▼
 exr_reimburse
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ exr_reimburse
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/expense-reporting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/expense-reporting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow exr_expense_reporting \
   --version 1 \
   --input '{"employeeId": "TEST-001", "tripId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w exr_expense_reporting -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ expense-reporting-expense-reporting/
     ├── CollectWorkerTest.java        # 2 tests
     ├── ReimburseWorkerTest.java        # 2 tests
     └── SubmitWorkerTest.java        # 2 tests
+
 ```

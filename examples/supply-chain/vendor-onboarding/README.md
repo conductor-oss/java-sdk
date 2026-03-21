@@ -1,6 +1,8 @@
 # Vendor Onboarding in Java with Conductor :  Application, Credential Verification, Evaluation, Approval, and System Activation
 
-A Java Conductor workflow example for vendor onboarding .  receiving a new vendor application with business details, verifying their credentials (business licenses, insurance, certifications), evaluating the vendor on financial stability and capability, approving or rejecting based on the evaluation score, and activating approved vendors in the procurement system so they can receive purchase orders. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for vendor onboarding .  receiving a new vendor application with business details, verifying their credentials (business licenses, insurance, certifications), evaluating the vendor on financial stability and capability, approving or rejecting based on the evaluation score, and activating approved vendors in the procurement system so they can receive purchase orders. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to onboard new vendors into your supply chain. A prospective vendor submits an application with their business details, category, and country of operation. Their credentials must be verified .  business registration, insurance coverage, industry certifications (ISO, SOC 2). The vendor must be evaluated on financial health (D&B rating, credit check) and operational capability. Based on the evaluation score, procurement approves or rejects the application. Approved vendors must be activated in the ERP vendor master so buyers can issue purchase orders to them.
 
@@ -42,6 +44,7 @@ von_approve
     │
     ▼
 von_activate
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ von_activate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/vendor-onboarding-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/vendor-onboarding-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow von_vendor_onboarding \
   --version 1 \
-  --input '{"vendorName": "test", "category": "test-value", "country": 10}'
+  --input '{"vendorName": "test", "category": "general", "country": 10}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w von_vendor_onboarding -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ vendor-onboarding/
     ├── ApproveWorkerTest.java        # 3 tests
     ├── EvaluateWorkerTest.java        # 2 tests
     └── VerifyWorkerTest.java        # 2 tests
+
 ```

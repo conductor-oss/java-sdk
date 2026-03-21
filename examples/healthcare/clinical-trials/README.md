@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic trial management system that che
 
 **You just write the trial management workers. Participant screening, consent collection, arm randomization, adverse event monitoring, and outcome analysis. Conductor handles strict step sequencing, automatic retries, and a 21 CFR Part 11-compliant audit trail of every participant interaction.**
 
-Each stage of the trial enrollment pipeline is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running screening before consent, randomizing only after consent is obtained, triggering monitoring after randomization, analyzing only after monitoring is complete, and maintaining a 21 CFR Part 11-compliant audit trail of every step. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the trial enrollment pipeline is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running screening before consent, randomizing only after consent is obtained, triggering monitoring after randomization, analyzing only after monitoring is complete, and maintaining a 21 CFR Part 11-compliant audit trail of every step. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Five workers manage the trial enrollment pipeline: ScreenWorker checks eligibili
 | **AnalyzeTrialWorker** | `clt_analyze` | Runs the statistical analysis on collected trial data and generates outcome reports |
 
 Workers simulate clinical and administrative operations with realistic outputs so you can see the care workflow end-to-end. Replace with real EHR and system integrations, the workflow and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -53,6 +44,7 @@ clt_monitor
     │
     ▼
 clt_analyze
+
 ```
 
 ## Example Output
@@ -83,7 +75,9 @@ Step 4: Starting workflow...
   Output: {trialId=TRIAL-2024-CARDIO-001, participantId=SUBJ-4401, group=group-A, outcome=outcome-value}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -96,6 +90,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -104,13 +99,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -118,6 +114,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/clinical-trials-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -130,6 +127,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -145,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/clinical-trials-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -154,6 +153,7 @@ conductor workflow start \
   --workflow clinical_trials_workflow \
   --version 1 \
   --input '{"trialId": "TRIAL-2024-CARDIO-001", "participantId": "SUBJ-4401", "condition": "hypertension"}'
+
 ```
 
 ### Check workflow status
@@ -162,6 +162,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w clinical_trials_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -187,6 +188,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -211,4 +213,5 @@ clinical-trials/
 └── src/test/java/clinicaltrials/workers/
     ├── AnalyzeTrialWorkerTest.java        # 2 tests
     └── ScreenWorkerTest.java        # 2 tests
+
 ```

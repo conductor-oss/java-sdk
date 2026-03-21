@@ -1,6 +1,8 @@
 # Delivery Tracking in Java with Conductor
 
-Tracks a food delivery end-to-end: assigning a driver, recording pickup, tracking location en route, confirming delivery, and closing the order. Uses [Conductor](https://github.## The Problem
+Tracks a food delivery end-to-end: assigning a driver, recording pickup, tracking location en route, confirming delivery, and closing the order. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to track a food delivery from restaurant to customer. The workflow assigns an available delivery driver, records the pickup at the restaurant, tracks the driver's location en route, confirms delivery at the customer's address, and records completion. Late deliveries lead to cold food and unhappy customers; losing track of a driver means the customer has no ETA.
 
@@ -42,6 +44,7 @@ dlt_deliver
     │
     ▼
 dlt_confirm
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ dlt_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/delivery-tracking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/delivery-tracking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow delivery_tracking_733 \
   --version 1 \
-  --input '{"orderId": "TEST-001", "restaurantAddr": "test-value", "customerAddr": "test-value"}'
+  --input '{"orderId": "TEST-001", "restaurantAddr": "sample-restaurantAddr", "customerAddr": "sample-customerAddr"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w delivery_tracking_733 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ delivery-tracking/
 └── src/test/java/deliverytracking/workers/
     ├── AssignDriverWorkerTest.java
     └── ConfirmWorkerTest.java
+
 ```

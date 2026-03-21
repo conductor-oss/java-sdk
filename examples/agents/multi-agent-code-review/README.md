@@ -1,6 +1,8 @@
 # Multi-Agent Code Review in Java Using Conductor :  Security, Performance, and Style Review in Parallel
 
-Multi-Agent Code Review .  parses code, runs security/performance/style reviews in parallel, then compiles a final review report. Uses [Conductor](https://github.## Code Review Needs Multiple Specialized Perspectives
+Multi-Agent Code Review .  parses code, runs security/performance/style reviews in parallel, then compiles a final review report. Uses [Conductor](https://github.
+
+## Code Review Needs Multiple Specialized Perspectives
 
 A single code reviewer might catch a SQL injection vulnerability but miss an N+1 query performance issue. Or they might fix the N+1 query but overlook inconsistent naming conventions. Each review dimension .  security (injection, XSS, auth bypass), performance (algorithmic complexity, database query patterns, memory allocation), and style (naming conventions, code organization, documentation) ,  requires different expertise and different analytical approaches.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 cr_compile_review
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ cr_compile_review
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/multi-agent-code-review-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/multi-agent-code-review-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_agent_code_review \
   --version 1 \
-  --input '{"code": "test-value", "language": "test-value"}'express');\\nconst crypto = require('crypto');\\n// ... application code": "sample-const express = require('express');\\nconst crypto = require('crypto');\\n// ... application code", "language": "sample-language"}'
+  --input '{"code": "sample-code", "language": "en"}'express');\\nconst crypto = require('crypto');\\n// ... application code": "sample-const express = require('express');\\nconst crypto = require('crypto');\\n// ... application code", "language": "sample-language"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w multi_agent_code_review -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -161,4 +171,5 @@ multi-agent-code-review/
     ├── PerformanceReviewWorkerTest.java        # 7 tests
     ├── SecurityReviewWorkerTest.java        # 7 tests
     └── StyleReviewWorkerTest.java        # 8 tests
+
 ```

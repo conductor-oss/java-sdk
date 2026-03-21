@@ -1,6 +1,8 @@
 # Webhook Trigger in Java Using Conductor
 
-Webhook Trigger .  process incoming webhook event, validate payload, transform data, and store the result through a sequential pipeline. Uses [Conductor](https://github.## The Problem
+Webhook Trigger .  process incoming webhook event, validate payload, transform data, and store the result through a sequential pipeline. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process incoming webhook events through a validation and transformation pipeline. When a webhook arrives, the payload must be validated for required fields and correct structure, transformed into your internal data format, and stored for downstream consumption. Storing invalid or untransformed webhook data pollutes your data store and breaks downstream consumers.
 
@@ -38,6 +40,7 @@ wt_transform_data
     │
     ▼
 wt_store_result
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ wt_store_result
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/webhook-trigger-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/webhook-trigger-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow webhook_trigger_wf \
   --version 1 \
-  --input '{"eventType": "test-value", "payload": "test-value", "source": "test-value", "timestamp": "2026-01-01T00:00:00Z"}'
+  --input '{"eventType": "standard", "payload": {"key": "value"}, "source": "api", "timestamp": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w webhook_trigger_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ webhook-trigger/
     ├── StoreResultWorkerTest.java        # 9 tests
     ├── TransformDataWorkerTest.java        # 9 tests
     └── ValidatePayloadWorkerTest.java        # 9 tests
+
 ```

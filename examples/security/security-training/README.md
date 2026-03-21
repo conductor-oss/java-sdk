@@ -1,6 +1,8 @@
 # Implementing Security Awareness Training in Java with Conductor :  Module Assignment, Phishing Simulation, Evaluation, and Compliance Reporting
 
-A Java Conductor workflow example for automated security awareness campaigns .  assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for automated security awareness campaigns .  assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to run security awareness campaigns across your organization. Each campaign involves assigning training modules to a department's employees, sending simulated phishing emails to test their real-world response, evaluating who completed the training and who clicked the phishing link, and generating a compliance report showing pass/fail rates. Regulatory frameworks like SOC 2 and ISO 27001 require documented evidence that these campaigns ran and that results were recorded.
 
@@ -29,6 +31,7 @@ Workers simulate security checks and remediation actions with realistic findings
 
 ```
 Input -> StAssignTrainingWorker -> StEvaluateResultsWorker -> StReportComplianceWorker -> StSendPhishingSimWorker -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> StAssignTrainingWorker -> StEvaluateResultsWorker -> StReportCompliance
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/security-training-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/security-training-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow security_training \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w security_training -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -132,6 +142,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -154,4 +165,5 @@ security-training/
 │       └── StSendPhishingSimWorker.java
 └── src/test/java/securitytraining/workers/
     └── StAssignTrainingWorkerTest.java        # 8 tests
+
 ```

@@ -1,6 +1,8 @@
 # Shopping Cart in Java Using Conductor :  Add Items, Calculate Total, Apply Discounts, Reserve Inventory
 
-A Java Conductor workflow example for shopping cart processing .  adding items to a cart, calculating the subtotal, applying coupon-code discounts, and reserving inventory so items are not oversold before checkout. Uses [Conductor](https://github.## Shopping Carts Are More Complex Than They Look
+A Java Conductor workflow example for shopping cart processing .  adding items to a cart, calculating the subtotal, applying coupon-code discounts, and reserving inventory so items are not oversold before checkout. Uses [Conductor](https://github.
+
+## Shopping Carts Are More Complex Than They Look
 
 A customer adds 3 items to their cart with a coupon code. The system must validate each item (in stock, valid price, quantity limits), calculate the correct total (unit prices, quantity discounts, bundle pricing), apply the coupon (validate code, check eligibility, calculate discount), and reserve inventory (so the items aren't sold out before checkout).
 
@@ -35,6 +37,7 @@ cart_apply_discounts
     │
     ▼
 cart_reserve_inventory
+
 ```
 
 ## Running It
@@ -49,6 +52,7 @@ cart_reserve_inventory
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -57,6 +61,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -71,6 +76,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/shopping-cart-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -83,6 +89,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -98,6 +105,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/shopping-cart-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -106,7 +114,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow shopping_cart \
   --version 1 \
-  --input '{"userId": "TEST-001", "items": "test-value", "couponCode": "test-value"}'
+  --input '{"userId": "TEST-001", "items": [{"id": "ITEM-001", "quantity": 2}], "couponCode": "sample-couponCode"}'
+
 ```
 
 ### Check workflow status
@@ -115,6 +124,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w shopping_cart -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,4 +156,5 @@ shopping-cart/
 │   ├── ShoppingCartExample.java          # Main entry point (supports --workers mode)
 │   └── workers/
 │       └── AddItemsWorker.java
+
 ```

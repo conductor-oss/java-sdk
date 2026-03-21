@@ -1,6 +1,8 @@
 # Referral Management in Java Using Conductor :  Creation, Specialist Matching, Scheduling, Tracking, and Closure
 
-A Java Conductor workflow example for referral management .  creating a referral from a PCP with clinical reason, matching the patient to an in-network specialist by specialty and availability, scheduling the specialist appointment, tracking the referral through completion, and closing with the consultation report. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for referral management .  creating a referral from a PCP with clinical reason, matching the patient to an in-network specialist by specialty and availability, scheduling the specialist appointment, tracking the referral through completion, and closing with the consultation report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage patient referrals from creation through specialist consultation. A primary care physician creates a referral specifying the patient, specialty needed, and clinical reason. The system must match the patient to an appropriate in-network specialist based on specialty, location, availability, and insurance acceptance. An appointment must be scheduled with the matched specialist. The referral must be tracked to ensure the patient actually sees the specialist and the consultation report is sent back to the referring provider. Finally, the referral is closed when the consultation is complete. Lost referrals .  where patients never see the specialist or reports never reach the PCP ,  lead to gaps in care and potential liability.
 
@@ -42,6 +44,7 @@ ref_track
     │
     ▼
 ref_close
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ref_close
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/referral-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/referral-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow referral_management_workflow \
   --version 1 \
-  --input '{"referralId": "TEST-001", "patientId": "TEST-001", "specialty": "test-value", "reason": "test-value"}'
+  --input '{"referralId": "TEST-001", "patientId": "TEST-001", "specialty": "sample-specialty", "reason": "sample-reason"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w referral_management_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -174,4 +185,5 @@ referral-management/
     ├── MatchSpecialistWorkerTest.java        # 2 tests
     ├── ScheduleReferralWorkerTest.java        # 2 tests
     └── TrackReferralWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # Event Replay Testing in Java Using Conductor
 
-Event Replay Testing .  loads recorded events, sets up a sandbox environment, replays each event in a DO_WHILE loop comparing results, then generates a test report. Uses [Conductor](https://github.## The Problem
+Event Replay Testing .  loads recorded events, sets up a sandbox environment, replays each event in a DO_WHILE loop comparing results, then generates a test report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to test your event processing logic by replaying recorded production events in a sandbox environment. The workflow loads a set of recorded events, sets up an isolated test environment, replays each event through the processing pipeline while comparing actual results to expected results, and generates a test report summarizing pass/fail outcomes. Without replay testing, you only discover processing bugs when they corrupt production data.
 
@@ -40,6 +42,7 @@ DO_WHILE
     │
     ▼
 rt_test_report
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ rt_test_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-replay-testing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-replay-testing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_replay_testing \
   --version 1 \
-  --input '{"testSuiteId": "TEST-001", "eventSource": "test-value"}'
+  --input '{"testSuiteId": "TEST-001", "eventSource": "api"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_replay_testing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ event-replay-testing/
     ├── ReplayEventWorkerTest.java        # 9 tests
     ├── SetupSandboxWorkerTest.java        # 8 tests
     └── TestReportWorkerTest.java        # 9 tests
+
 ```

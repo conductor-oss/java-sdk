@@ -1,6 +1,6 @@
 # Chain-of-Thought in Java Using Conductor: Understand, Reason, Calculate, Verify, Answer
 
-You ask the model "What's the compound interest on $10,000 at 5% for 3 years?" and it confidently replies "$11,576.25." Wrong. The real answer is $11,576.25 only if compounded annually; but you didn't specify, and the model didn't ask. Worse, you can't tell where it went wrong because the entire reasoning happened inside a single opaque API call. Did it misunderstand the problem, pick the wrong formula, or botch the arithmetic? This example externalizes each reasoning step: understand, reason, calculate, verify, answer, as a separate Conductor worker, so you can see exactly which step failed and retry just that step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You ask the model "What's the compound interest on $10,000 at 5% for 3 years?" and it confidently replies "$11,576.25." Wrong. The real answer is $11,576.25 only if compounded annually; but you didn't specify, and the model didn't ask. Worse, you can't tell where it went wrong because the entire reasoning happened inside a single opaque API call. Did it misunderstand the problem, pick the wrong formula, or botch the arithmetic? This example externalizes each reasoning step: understand, reason, calculate, verify, answer, as a separate Conductor worker, so you can see exactly which step failed and retry just that step. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Making AI Reasoning Transparent and Debuggable
 
@@ -28,15 +28,6 @@ Five workers externalize the reasoning chain. Understanding the problem, choosin
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ ct_step_3_verify
     │
     ▼
 ct_final_answer
+
 ```
 
 ## Example Output
@@ -83,7 +75,9 @@ Step 4: Starting workflow...
   Output: {problem=What is the compound interest on $10,000 at 5% annual rate for 3 years?, understanding=Calculate compound interest on a $10,000 principal at 5% annual rate for 3 years, reasoning=Use compound interest formula: A = P(1 + r)^t where P=10000, r=0.05, t=3, calculation=10000 * (1 + 0.05)^3, verified=True, answer=The compound interest on $10,000 at 5% for 3 years yields $11576.25 (confidence: 1.0)}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -96,6 +90,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -104,13 +99,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -118,6 +114,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/chain-of-thought-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -130,6 +127,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -145,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/chain-of-thought-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -154,6 +153,7 @@ conductor workflow start \
   --workflow chain_of_thought \
   --version 1 \
   --input '{"problem": "What is the compound interest on $10,000 at 5% annual rate for 3 years?"}'
+
 ```
 
 ### Check workflow status
@@ -162,6 +162,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w chain_of_thought -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -204,4 +205,5 @@ chain-of-thought/
     ├── Step2CalculateWorkerTest.java        # 8 tests
     ├── Step3VerifyWorkerTest.java        # 8 tests
     └── UnderstandProblemWorkerTest.java        # 8 tests
+
 ```

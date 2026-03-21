@@ -1,6 +1,8 @@
 # Interview Scheduling in Java with Conductor :  Availability Check, Slot Selection, Candidate Invite, Confirmation, and Reminder
 
-A Java Conductor workflow example for interview scheduling .  checking interviewer panel calendar availability, selecting the best time slot, sending the candidate an invite with video link and details, confirming all participants, and sending day-of reminders. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for interview scheduling .  checking interviewer panel calendar availability, selecting the best time slot, sending the candidate an invite with video link and details, confirming all participants, and sending day-of reminders. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to coordinate interview scheduling across multiple busy interviewers and a candidate. Given an interview panel (e.g., hiring manager, two engineers, a product lead), you must find time slots where all interviewers are free. The best available slot is selected, and the candidate receives an invite with the date, time, role description, interviewer names, and a video conference link. Each interviewer must confirm their participation. On the day of the interview, all parties receive reminders with the agenda and join details. If any interviewer's calendar changes after booking, the system needs to detect the conflict and reschedule. Coordinating this manually across four or five calendars through back-and-forth emails regularly takes days and creates a poor candidate experience.
 
@@ -42,6 +44,7 @@ ivs_confirm
     │
     ▼
 ivs_remind
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ ivs_remind
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/interview-scheduling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/interview-scheduling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ivs_interview_scheduling \
   --version 1 \
-  --input '{"candidateName": "test", "interviewers": "test-value", "role": "test-value"}'
+  --input '{"candidateName": "test", "interviewers": "sample-interviewers", "role": "user"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ivs_interview_scheduling -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ interview-scheduling-interview-scheduling/
     ├── InviteWorkerTest.java        # 2 tests
     ├── RemindWorkerTest.java        # 2 tests
     └── ScheduleWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # Employee Onboarding in Java with Conductor :  Profile Creation, System Provisioning, Mentor Assignment, and Training Plan
 
-A Java Conductor workflow example for employee onboarding .  creating the new hire's profile in the HRIS, provisioning IT systems (laptop, email, Slack, Jira), assigning a department mentor, and generating a personalized training plan. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for employee onboarding .  creating the new hire's profile in the HRIS, provisioning IT systems (laptop, email, Slack, Jira), assigning a department mentor, and generating a personalized training plan. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to onboard a new employee across multiple departments and systems. When a hire is confirmed, the HR team must create the employee's profile with their name, department, and start date. IT must provision a laptop, create email and Slack accounts, and grant access to Jira and other department-specific tools. A mentor from the same department must be assigned to guide the new hire through their first weeks. Finally, a training plan must be generated with required compliance courses, department-specific skills training, and scheduled check-ins. Each step depends on the previous one. IT cannot provision accounts without the employee profile, and the training plan needs to know who the mentor is.
 
@@ -38,6 +40,7 @@ hro_assign_mentor
     │
     ▼
 hro_training
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ hro_training
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/hr-onboarding-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/hr-onboarding-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow hro_hr_onboarding \
   --version 1 \
-  --input '{"employeeName": "test", "department": "test-value", "startDate": "2026-01-01T00:00:00Z"}'
+  --input '{"employeeName": "test", "department": "engineering", "startDate": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w hro_hr_onboarding -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ hr-onboarding-hr-onboarding/
     ├── CreateProfileWorkerTest.java        # 3 tests
     ├── ProvisionWorkerTest.java        # 2 tests
     └── TrainingWorkerTest.java        # 2 tests
+
 ```

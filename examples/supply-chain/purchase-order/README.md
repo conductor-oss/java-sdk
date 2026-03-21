@@ -1,6 +1,8 @@
 # Purchase Order Lifecycle in Java with Conductor :  PO Creation, Approval, Vendor Transmission, Order Tracking, and Goods Receipt
 
-A Java Conductor workflow example for purchase order lifecycle management .  creating a PO with line items and vendor details, obtaining budget/authority approval, transmitting the order to the vendor, tracking fulfillment status, and confirming goods receipt at the warehouse. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for purchase order lifecycle management .  creating a PO with line items and vendor details, obtaining budget/authority approval, transmitting the order to the vendor, tracking fulfillment status, and confirming goods receipt at the warehouse. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage purchase orders from creation through delivery. A PO must be created with vendor, items, quantities, and pricing. It requires approval based on the total amount and the requester's authority level. The approved PO must be transmitted to the vendor (via EDI, email, or supplier portal). The order must be tracked for fulfillment status (acknowledged, shipped, partial delivery). Finally, goods receipt must be confirmed against the original PO line items.
 
@@ -42,6 +44,7 @@ po_track
     │
     ▼
 po_receive
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ po_receive
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/purchase-order-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/purchase-order-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow po_purchase_order \
   --version 1 \
-  --input '{"vendor": "test-value", "items": "test-value", "totalAmount": 100}'
+  --input '{"vendor": "sample-vendor", "items": [{"id": "ITEM-001", "quantity": 2}], "totalAmount": 100}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w po_purchase_order -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ purchase-order/
     ├── ReceiveWorkerTest.java        # 2 tests
     ├── SendWorkerTest.java        # 2 tests
     └── TrackWorkerTest.java        # 2 tests
+
 ```

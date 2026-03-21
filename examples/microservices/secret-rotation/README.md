@@ -1,6 +1,8 @@
 # Secret Rotation in Java with Conductor
 
-Rotate secrets across services securely. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Rotate secrets across services securely. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Secrets (API keys, database passwords, encryption keys) must be rotated periodically to limit the blast radius of a leak. Rotation involves generating a new secret, storing it in a vault, updating every dependent service to use the new secret, and verifying that all services have switched over and the old secret is revoked.
 
@@ -38,6 +40,7 @@ sr_update_services
     │
     ▼
 sr_verify_rotation
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ sr_verify_rotation
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/secret-rotation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/secret-rotation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow secret_rotation_300 \
   --version 1 \
-  --input '{"secretName": "test", "targetServices": "test-value"}'
+  --input '{"secretName": "test", "targetServices": "production"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w secret_rotation_300 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ secret-rotation/
     ├── StoreSecretWorkerTest.java        # 3 tests
     ├── UpdateServicesWorkerTest.java        # 3 tests
     └── VerifyRotationWorkerTest.java        # 3 tests
+
 ```

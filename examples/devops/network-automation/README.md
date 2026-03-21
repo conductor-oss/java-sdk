@@ -1,6 +1,8 @@
 # Network Automation in Java with Conductor :  Plan Changes, Apply Config, Audit, Verify Connectivity
 
-Automates network infrastructure changes using [Conductor](https://github.com/conductor-oss/conductor). This workflow audits the current network state (devices, configurations, topology), plans the required configuration changes, applies them to network devices, and verifies connectivity is intact after the changes.## Network Changes Without Outages
+Automates network infrastructure changes using [Conductor](https://github.com/conductor-oss/conductor). This workflow audits the current network state (devices, configurations, topology), plans the required configuration changes, applies them to network devices, and verifies connectivity is intact after the changes.
+
+## Network Changes Without Outages
 
 You need to update firewall rules across 12 switches to allow traffic from a new subnet. Doing this manually means SSHing into each device, running show commands to understand the current state, typing configuration commands, and hoping you do not fat-finger a rule that blocks production traffic. The safe approach: audit all devices first to understand the current configuration, plan the exact changes needed, apply them systematically, and verify connectivity end-to-end before declaring success.
 
@@ -29,6 +31,7 @@ Workers simulate infrastructure operations with realistic output so you can see 
 
 ```
 Input -> ApplyConfig -> AuditNetwork -> PlanChanges -> VerifyConnectivity -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> ApplyConfig -> AuditNetwork -> PlanChanges -> VerifyConnectivity -> Out
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/network-automation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/network-automation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow network_automation \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w network_automation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,4 +159,5 @@ network-automation/
     ├── AuditNetworkTest.java        # 8 tests
     ├── PlanChangesTest.java        # 8 tests
     └── VerifyConnectivityTest.java        # 8 tests
+
 ```

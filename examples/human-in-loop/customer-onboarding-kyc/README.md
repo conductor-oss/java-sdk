@@ -1,6 +1,6 @@
 # Customer Onboarding KYC in Java Using Conductor: Risk Assessment, SWITCH for Auto-Approve vs. Manual Review, and Account Activation
 
-A Java Conductor workflow example for Know Your Customer (KYC) onboarding. performing an automated risk assessment on the customer, using SWITCH to route low-risk customers to instant auto-approval or high-risk customers to a WAIT task for manual compliance review, and then activating the account. Demonstrates the pattern where automation handles the common case and humans only intervene when risk flags are raised. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for Know Your Customer (KYC) onboarding. performing an automated risk assessment on the customer, using SWITCH to route low-risk customers to instant auto-approval or high-risk customers to a WAIT task for manual compliance review, and then activating the account. Demonstrates the pattern where automation handles the common case and humans only intervene when risk flags are raised. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a monolithic KYC system that runs risk checks
 
 **You just write the KYC risk-check and account-activation workers. Conductor handles the routing between auto-approve and manual review.**
 
-The SWITCH + WAIT pattern is the key here. After the KYC check determines the risk level and whether manual review is needed, a SWITCH routes the workflow: if `needsReview` is true (high-risk), the workflow enters a WAIT task for a compliance analyst's decision; if false (low-risk), it auto-approves via SET_VARIABLE and proceeds directly to activation. Conductor takes care of routing based on risk assessment, holding the workflow durably while a compliance analyst reviews high-risk cases, activating accounts only after approval (automatic or manual), and providing a complete BSA/AML audit trail of every KYC decision. You get all of that for free, without writing a single line of orchestration code.
+The SWITCH + WAIT pattern is the key here. After the KYC check determines the risk level and whether manual review is needed, a SWITCH routes the workflow: if `needsReview` is true (high-risk), the workflow enters a WAIT task for a compliance analyst's decision; if false (low-risk), it auto-approves via SET_VARIABLE and proceeds directly to activation. Conductor takes care of routing based on risk assessment, holding the workflow durably while a compliance analyst reviews high-risk cases, activating accounts only after approval (automatic or manual), and providing a complete BSA/AML audit trail of every KYC decision. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +27,6 @@ KycCheckWorker assesses identity and watchlist risk, while KycActivateWorker ena
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,6 +39,7 @@ SWITCH (kyc_review_decision_ref)
     │
     ▼
 kyc_activate
+
 ```
 
 ## Running It
@@ -63,6 +54,7 @@ kyc_activate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -71,13 +63,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -85,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/customer-onboarding-kyc-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -97,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -133,6 +128,7 @@ Step 5: Waiting for completion...
   Output: {activated=true, customerId=C-1001, needsReview=false}
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -141,6 +137,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/customer-onboarding-kyc-1.0.0.jar --workers
+
 ```
 
 Then use the CLI in a separate terminal to start and manage workflows.
@@ -154,6 +151,7 @@ conductor workflow start \
   --workflow customer_onboarding_kyc \
   --version 1 \
   --input '{"customerId": "C-1001", "customerName": "Alice Smith", "riskLevel": "low"}'
+
 ```
 
 High-risk customer (requires compliance analyst review via WAIT):
@@ -163,6 +161,7 @@ conductor workflow start \
   --workflow customer_onboarding_kyc \
   --version 1 \
   --input '{"customerId": "C-2050", "customerName": "Ivan Petrov", "riskLevel": "high"}'
+
 ```
 
 ### Check workflow status
@@ -171,6 +170,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w customer_onboarding_kyc -s COMPLETED -c 5
+
 ```
 
 ### Completing the WAIT task (compliance analyst review)
@@ -182,6 +182,7 @@ When the workflow hits the `manual_kyc_review` WAIT task (high-risk customers on
 ```bash
 # Get the execution details: look for the task named "manual_kyc_review"
 conductor workflow get-execution <workflow_id> -c
+
 ```
 
 The task ID is in the `taskId` field of the `manual_kyc_review_ref` task.
@@ -191,17 +192,8 @@ The task ID is in the `taskId` field of the `manual_kyc_review_ref` task.
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "approved": true,
-      "reviewedBy": "compliance-analyst@example.com",
-      "reviewedAt": "2026-03-14T14:30:00Z",
-      "notes": "Enhanced due diligence completed. Source of funds verified."
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "COMPLETED", "outputData": {"approved": true, "reviewedBy": "compliance-analyst@example.com", "reviewedAt": "2026-03-14T14:30:00Z", "notes": "Enhanced due diligence completed. Source of funds verified."}}'
+
 ```
 
 **Step 2 (alternative): Reject the customer**
@@ -209,17 +201,8 @@ curl -X POST http://localhost:8080/api/tasks \
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<task_id>",
-    "status": "FAILED",
-    "reasonForIncompletion": "KYC review failed. Sanctions match confirmed",
-    "outputData": {
-      "approved": false,
-      "reviewedBy": "compliance-analyst@example.com",
-      "reason": "Confirmed match on OFAC SDN list"
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "FAILED", "reasonForIncompletion": "KYC review failed. Sanctions match confirmed", "outputData": {"approved": false, "reviewedBy": "compliance-analyst@example.com", "reason": "Confirmed match on OFAC SDN list"}}'
+
 ```
 
 After approval, the workflow automatically resumes and the `kyc_activate` worker activates the customer account.
@@ -247,6 +230,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -268,4 +252,5 @@ customer-onboarding-kyc/
 └── src/test/java/customeronboardingkyc/workers/
     ├── KycActivateWorkerTest.java   # 5 tests. Activation, defaults, types
     └── KycCheckWorkerTest.java      # 8 tests. High/low risk, case sensitivity, defaults
+
 ```

@@ -1,6 +1,8 @@
 # Leave Management in Java with Conductor :  Request, Balance Check, Manager Approval, Accrual Update, and Notification
 
-A Java Conductor workflow example for leave management .  submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for leave management .  submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage employee leave requests from submission through approval. An employee submits a leave request specifying the type (vacation, sick, personal, FMLA), start date, and number of days. The system must check the employee's available balance for that leave type to ensure they have sufficient hours. The request is then routed to the manager for approval, taking team coverage into account. Once approved, the leave balance must be debited and the payroll calendar updated. Finally, the employee receives confirmation, the team calendar is updated, and the manager is notified. If the balance check or approval is skipped, employees may overdraw their PTO or take leave without coverage arranged.
 
@@ -42,6 +44,7 @@ lvm_update
     │
     ▼
 lvm_notify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ lvm_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/leave-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/leave-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lvm_leave_management \
   --version 1 \
-  --input '{"employeeId": "TEST-001", "leaveType": "test-value", "startDate": "2026-01-01T00:00:00Z", "days": "test-value"}'
+  --input '{"employeeId": "TEST-001", "leaveType": "standard", "startDate": "2026-01-01T00:00:00Z", "days": "sample-days"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w lvm_leave_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -174,4 +185,5 @@ leave-management-leave-management/
     ├── NotifyWorkerTest.java        # 2 tests
     ├── RequestWorkerTest.java        # 2 tests
     └── UpdateWorkerTest.java        # 2 tests
+
 ```

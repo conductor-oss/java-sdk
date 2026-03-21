@@ -1,6 +1,8 @@
 # WAIT Task Completion via SDK (TaskClient) in Java Using Conductor :  Ticket Initialization, WAIT for Programmatic Resolution, and Ticket Finalization
 
-A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from Java code using the Conductor SDK's TaskClient .  initializing a support ticket with status "open", pausing at a WAIT task until a separate Java process (a background service, scheduled job, or another microservice) completes it via the SDK, then finalizing and closing the ticket. Unlike the REST API approach, the SDK method provides type-safe Java objects and integrates naturally into existing Java services without HTTP client setup. Uses [Conductor](https://github.## Programmatic Workflow Resumption via the Conductor SDK
+A Java Conductor workflow example demonstrating how to resume paused workflows programmatically from Java code using the Conductor SDK's TaskClient .  initializing a support ticket with status "open", pausing at a WAIT task until a separate Java process (a background service, scheduled job, or another microservice) completes it via the SDK, then finalizing and closing the ticket. Unlike the REST API approach, the SDK method provides type-safe Java objects and integrates naturally into existing Java services without HTTP client setup. Uses [Conductor](https://github.
+
+## Programmatic Workflow Resumption via the Conductor SDK
 
 Instead of using REST APIs directly, the Conductor SDK's TaskClient can complete WAIT tasks programmatically from Java code. This is useful when another Java service or a scheduled job needs to resume a paused workflow. The workflow initializes a ticket, pauses at a WAIT task, and a separate process uses the SDK to complete it. The finalization step closes the ticket.
 
@@ -32,6 +34,7 @@ WAIT [WAIT]
     │
     ▼
 wsdk_finalize
+
 ```
 
 ## Running It
@@ -46,6 +49,7 @@ wsdk_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -54,6 +58,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -68,6 +73,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/wait-sdk-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -80,6 +86,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -95,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/wait-sdk-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -104,6 +112,7 @@ conductor workflow start \
   --workflow wait_sdk_demo \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -112,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wait_sdk_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -133,6 +143,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -154,4 +165,5 @@ wait-sdk/
 └── src/test/java/waitsdk/workers/
     ├── FinalizeWorkerTest.java        # 6 tests
     └── InitWorkerTest.java        # 5 tests
+
 ```

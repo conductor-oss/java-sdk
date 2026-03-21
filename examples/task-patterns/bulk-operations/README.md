@@ -1,6 +1,8 @@
 # Bulk Operations in Java with Conductor
 
-Bulk operations demo .  two-step workflow used for bulk start, pause, resume, and terminate. Uses [Conductor](https://github.## The Problem
+Bulk operations demo .  two-step workflow used for bulk start, pause, resume, and terminate. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage hundreds or thousands of workflow instances at once .  starting a batch of data processing jobs, pausing them while a dependent system is down, resuming them when it recovers, or terminating stale runs. Each batch is identified by a batchId, and each instance runs a two-step pipeline (step1 produces intermediate data, step2 produces the final result). Operating on workflows one at a time through the UI is impractical at scale.
 
@@ -30,6 +32,7 @@ bulk_step1
     │
     ▼
 bulk_step2
+
 ```
 
 ## Running It
@@ -44,6 +47,7 @@ bulk_step2
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -52,6 +56,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -66,6 +71,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/bulk-operations-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -78,6 +84,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -93,6 +100,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/bulk-operations-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -102,6 +110,7 @@ conductor workflow start \
   --workflow bulk_ops_demo \
   --version 1 \
   --input '{"batchId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -110,6 +119,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w bulk_ops_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -131,6 +141,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -152,4 +163,5 @@ bulk-operations/
 └── src/test/java/bulkoperations/workers/
     ├── Step1WorkerTest.java        # 6 tests
     └── Step2WorkerTest.java        # 6 tests
+
 ```

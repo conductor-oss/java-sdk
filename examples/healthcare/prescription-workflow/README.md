@@ -1,6 +1,8 @@
 # Prescription Workflow in Java Using Conductor :  Verification, Interaction Checking, Filling, Dispensing, and Adherence Tracking
 
-A Java Conductor workflow example for prescription processing .  verifying the prescription and pulling the patient's current medication list, checking for drug-drug interactions, filling the prescription at the pharmacy, dispensing to the patient, and tracking refills and adherence. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for prescription processing .  verifying the prescription and pulling the patient's current medication list, checking for drug-drug interactions, filling the prescription at the pharmacy, dispensing to the patient, and tracking refills and adherence. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process prescriptions from the point a provider writes the order through dispensing and ongoing adherence monitoring. The prescription must first be verified .  confirming the prescriber's DEA number, the patient's identity, and the medication's formulary status. The patient's current medication list must be pulled and the new drug checked for interactions, contraindications, and duplicate therapy. Once cleared, the prescription is filled ,  the correct medication, strength, and quantity are prepared. The filled prescription is dispensed to the patient with counseling instructions. Finally, the prescription must be tracked for refill timing and adherence (medication possession ratio). A missed interaction check or dispensing error can cause serious patient harm.
 
@@ -30,6 +32,7 @@ Workers simulate clinical and administrative operations with realistic outputs s
 
 ```
 Input -> CheckInteractionsWorker -> DispenseWorker -> FillWorker -> TrackWorker -> VerifyWorker -> Output
+
 ```
 
 ## Running It
@@ -44,6 +47,7 @@ Input -> CheckInteractionsWorker -> DispenseWorker -> FillWorker -> TrackWorker 
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -52,6 +56,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -66,6 +71,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/prescription-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -78,6 +84,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -93,6 +100,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/prescription-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,7 +109,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow prescription_workflow \
   --version 1 \
-  --input '{"prescriptionId": "TEST-001", "patientId": "TEST-001", "medication": "test-value", "dosage": "test-value"}'
+  --input '{"prescriptionId": "TEST-001", "patientId": "TEST-001", "medication": "sample-medication", "dosage": "sample-dosage"}'
+
 ```
 
 ### Check workflow status
@@ -110,6 +119,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w prescription_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -135,6 +145,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -156,4 +167,5 @@ prescription-workflow/
 │       ├── FillWorker.java
 │       ├── TrackWorker.java
 │       └── VerifyWorker.java
+
 ```

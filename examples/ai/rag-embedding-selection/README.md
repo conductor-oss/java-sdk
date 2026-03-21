@@ -1,6 +1,6 @@
 # RAG Embedding Selection in Java Using Conductor :  Benchmark OpenAI, Cohere, and Local Models in Parallel
 
-A Java Conductor workflow that benchmarks three embedding providers (OpenAI, Cohere, and a local model) against the same test data in parallel, evaluates each on quality and latency metrics, and selects the best model for your use case. Conductor's `FORK_JOIN` runs all three embeddings simultaneously so the benchmark completes in the time of the slowest provider, not the sum. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel benchmarking, evaluation, and selection as independent workers .  you write the embedding and evaluation logic, Conductor handles parallelism, retries, durability, and observability.
+A Java Conductor workflow that benchmarks three embedding providers (OpenAI, Cohere, and a local model) against the same test data in parallel, evaluates each on quality and latency metrics, and selects the best model for your use case. Conductor's `FORK_JOIN` runs all three embeddings simultaneously so the benchmark completes in the time of the slowest provider, not the sum. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate parallel benchmarking, evaluation, and selection as independent workers.  you write the embedding and evaluation logic, Conductor handles parallelism, retries, durability, and observability.
 
 ## Choosing the Right Embedding Model
 
@@ -46,6 +46,7 @@ es_evaluate_embeddings
     │
     ▼
 es_select_best
+
 ```
 
 ## Running It
@@ -60,6 +61,7 @@ es_select_best
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -68,6 +70,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -82,6 +85,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/rag-embedding-selection-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -94,6 +98,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -110,6 +115,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/rag-embedding-selection-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -119,6 +125,7 @@ conductor workflow start \
   --workflow rag_embedding_selection \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -127,6 +134,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rag_embedding_selection -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -152,6 +160,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -181,4 +190,5 @@ rag-embedding-selection/
     ├── EvaluateEmbeddingsWorkerTest.java        # 3 tests
     ├── PrepareBenchmarkWorkerTest.java        # 4 tests
     └── SelectBestWorkerTest.java        # 3 tests
+
 ```

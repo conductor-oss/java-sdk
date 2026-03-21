@@ -1,6 +1,8 @@
 # Document Review in Java with Conductor
 
-A Java Conductor workflow example demonstrating Document Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+A Java Conductor workflow example demonstrating Document Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 A litigation matter requires reviewing 1,500 documents for production. You need to ingest the document batch, classify documents by relevance (420 relevant out of 1,500), have attorneys review for responsiveness (310 responsive), apply privilege designations to protected communications (25 privileged), and produce the final non-privileged responsive set (285 documents) to opposing counsel. Manual handling at this scale is error-prone and risks inadvertent privilege waiver.
 
@@ -42,6 +44,7 @@ drv_privilege
     │
     ▼
 drv_produce
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ drv_produce
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/document-review-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/document-review-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow drv_document_review \
   --version 1 \
-  --input '{"matterId": "TEST-001", "documentBatch": "test-value"}'
+  --input '{"matterId": "TEST-001", "documentBatch": "sample-documentBatch"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w drv_document_review -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ document-review/
     ├── PrivilegeWorkerTest.java        # 2 tests
     ├── ProduceWorkerTest.java        # 2 tests
     └── ReviewWorkerTest.java        # 2 tests
+
 ```

@@ -27,15 +27,6 @@ Four agents collaborate sequentially, the analyst produces findings, the strateg
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ ac_executor
     |
     v
 ac_compile_plan
+
 ```
 
 ## Running It
@@ -63,6 +55,7 @@ ac_compile_plan
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -71,13 +64,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -85,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/agent-collaboration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -97,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -134,13 +130,16 @@ Step 5: Waiting for completion...
   Output: {plan=Execute all steps, insightCount=4, strategyName=Stabilize & Retain, actionItemCount=6}
 
 Result: PASSED
+
 ```
+
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:
 
 ```bash
 java -jar target/agent-collaboration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -163,6 +162,7 @@ conductor workflow start \
   --workflow agent_collaboration_demo \
   --version 1 \
   --input '{"businessContext": "Mid-market fintech looking to expand into European markets while facing increasing regulatory pressure"}'
+
 ```
 
 ### Check workflow status
@@ -171,6 +171,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w agent_collaboration_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -195,6 +196,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -220,4 +222,5 @@ agent-collaboration/
     ├── StrategistWorkerTest.java    # 10 tests
     ├── ExecutorWorkerTest.java      # 8 tests
     └── CompilePlanWorkerTest.java   # 9 tests
+
 ```

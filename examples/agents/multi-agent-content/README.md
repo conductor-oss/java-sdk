@@ -1,6 +1,8 @@
 # Multi-Agent Content Creation in Java Using Conductor :  Research, Write, SEO Optimize, Edit, Publish
 
-Multi-Agent Content Creation .  research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents. Uses [Conductor](https://github.## Quality Content Requires Specialized Roles
+Multi-Agent Content Creation .  research, write, optimize SEO, edit, and publish content through a sequential pipeline of specialized agents. Uses [Conductor](https://github.
+
+## Quality Content Requires Specialized Roles
 
 Asking an LLM to "write a blog post about Kubernetes" in a single call produces generic, unresearched content with no SEO optimization and no editorial review. Quality content creation mirrors a real editorial workflow: a researcher gathers facts and sources, a writer crafts the narrative for a specific audience and word count, an SEO specialist adds keywords and meta descriptions and optimizes headings, an editor improves readability and catches errors, and a publisher formats and delivers the final piece.
 
@@ -42,6 +44,7 @@ cc_editor_agent
     │
     ▼
 cc_publish
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cc_publish
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/multi-agent-content-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/multi-agent-content-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_agent_content_creation \
   --version 1 \
-  --input '{"topic": "test-value", "targetAudience": "test-value", "wordCount": 10}'
+  --input '{"topic": "microservices best practices", "targetAudience": "production", "wordCount": 10}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w multi_agent_content_creation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -163,4 +173,5 @@ multi-agent-content/
     ├── ResearchAgentWorkerTest.java        # 8 tests
     ├── SeoAgentWorkerTest.java        # 8 tests
     └── WriterAgentWorkerTest.java        # 8 tests
+
 ```

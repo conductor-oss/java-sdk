@@ -1,6 +1,8 @@
 # Event Choreography in Java Using Conductor
 
-Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to coordinate an order fulfillment flow where each service communicates through events. The order service creates an order and emits an event, the payment service processes payment and emits a confirmation event, the inventory service reserves stock and emits a shipment event, and the notification service sends a confirmation to the customer. Each service reacts to the previous service's event rather than being called directly.
 
@@ -50,6 +52,7 @@ ch_emit_inventory_event
     │
     ▼
 ch_notification_service
+
 ```
 
 ## Running It
@@ -64,6 +67,7 @@ ch_notification_service
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -72,6 +76,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -86,6 +91,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-choreography-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -98,6 +104,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -113,6 +120,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-choreography-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -121,7 +129,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_choreography \
   --version 1 \
-  --input '{"orderId": "TEST-001", "items": "test-value", "customerId": "TEST-001"}'
+  --input '{"orderId": "TEST-001", "items": [{"id": "ITEM-001", "quantity": 2}], "customerId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -130,6 +139,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_choreography -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -153,6 +163,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -184,4 +195,5 @@ event-choreography/
     ├── NotificationServiceWorkerTest.java        # 8 tests
     ├── OrderServiceWorkerTest.java        # 8 tests
     └── PaymentServiceWorkerTest.java        # 8 tests
+
 ```

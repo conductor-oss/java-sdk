@@ -44,6 +44,7 @@ aop_validate
     │
     ▼
 aop_respond
+
 ```
 
 ## Running It
@@ -58,6 +59,7 @@ aop_respond
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -66,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -80,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/ai-orchestration-platform-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -92,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -108,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/ai-orchestration-platform-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -116,7 +122,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow aop_ai_orchestration_platform \
   --version 1 \
-  --input '{"requestType": "test-value", "payload": "test-value", "priority": "test-value"}'
+  --input '{"requestType": "standard", "payload": {"key": "value"}, "priority": "high"}'
+
 ```
 
 ### Check workflow status
@@ -125,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w aop_ai_orchestration_platform -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -171,4 +180,5 @@ ai-orchestration-platform-ai-orchestration-platform/
 └── src/test/java/aiorchestrationplatform/workers/
     ├── ReceiveRequestWorkerTest.java        # 1 tests
     └── ValidateWorkerTest.java        # 1 tests
+
 ```

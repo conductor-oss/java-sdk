@@ -1,6 +1,8 @@
 # Flash Sale in Java Using Conductor :  Prepare Inventory, Open Sale, Process Orders, Close, Report
 
-Flash sale: prepare inventory, open sale, process orders, close, report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Flash Sales Need Precise Timing and Inventory Control
+Flash sale: prepare inventory, open sale, process orders, close, report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Flash Sales Need Precise Timing and Inventory Control
 
 A 2-hour flash sale on 500 units at 60% off generates a traffic spike. The system must prepare inventory (reserve 500 units from general stock), open the sale at exactly the scheduled time (not a second early), process orders atomically (decrement inventory, no overselling), close when time expires or inventory hits zero, and produce a report showing units sold, revenue, peak order rate, and customer distribution.
 
@@ -42,6 +44,7 @@ fls_close_sale
     │
     ▼
 fls_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ fls_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/flash-sale-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/flash-sale-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow flash_sale_workflow \
   --version 1 \
-  --input '{"saleId": "TEST-001", "saleName": "test", "durationMinutes": "test-value"}'
+  --input '{"saleId": "TEST-001", "saleName": "test", "durationMinutes": "sample-durationMinutes"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w flash_sale_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ flash-sale/
 └── src/test/java/flashsale/workers/
     ├── ProcessOrdersWorkerTest.java        # 2 tests
     └── ReportWorkerTest.java        # 2 tests
+
 ```

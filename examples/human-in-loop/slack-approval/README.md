@@ -1,6 +1,8 @@
 # Slack Interactive Approval in Java Using Conductor :  Request Submission, Block Kit Message with Approve/Reject Buttons, WAIT for Slack Interaction Webhook, and Decision Finalization
 
-A Java Conductor workflow example for Slack-native approvals .  submitting a request, posting a Slack Block Kit message to a channel with interactive Approve and Reject buttons (styled with primary/danger), pausing at a WAIT task until someone clicks a button (which triggers Slack's interaction webhook to complete the WAIT via `POST /tasks/{taskId}`), and finalizing the decision. The PostSlackWorker builds the full Block Kit payload (header block, section with requestor and reason in mrkdwn, actions block with styled buttons), so the approver sees a rich, actionable message right in their Slack channel. Uses [Conductor](https://github.## Approvals Can Be Triggered via Slack Interactive Buttons
+A Java Conductor workflow example for Slack-native approvals .  submitting a request, posting a Slack Block Kit message to a channel with interactive Approve and Reject buttons (styled with primary/danger), pausing at a WAIT task until someone clicks a button (which triggers Slack's interaction webhook to complete the WAIT via `POST /tasks/{taskId}`), and finalizing the decision. The PostSlackWorker builds the full Block Kit payload (header block, section with requestor and reason in mrkdwn, actions block with styled buttons), so the approver sees a rich, actionable message right in their Slack channel. Uses [Conductor](https://github.
+
+## Approvals Can Be Triggered via Slack Interactive Buttons
 
 Many teams live in Slack, so approval requests should show up there as interactive messages with Approve/Reject buttons. The workflow submits the request, posts a Slack message with Block Kit interactive buttons, and pauses at a WAIT task until someone clicks a button. The button click (via Slack's interaction webhook) completes the WAIT task with the decision.
 
@@ -36,6 +38,7 @@ slack_response [WAIT]
     │
     ▼
 sa_finalize
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ sa_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/slack-approval-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/slack-approval-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow slack_approval_demo \
   --version 1 \
-  --input '{"requestor": "test-value", "reason": "test-value", "channel": "test-value"}'
+  --input '{"requestor": "sample-requestor", "reason": "sample-reason", "channel": "email"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w slack_approval_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -138,6 +148,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ slack-approval/
     ├── FinalizeWorkerTest.java        # 7 tests
     ├── PostSlackWorkerTest.java        # 9 tests
     └── SubmitWorkerTest.java        # 4 tests
+
 ```

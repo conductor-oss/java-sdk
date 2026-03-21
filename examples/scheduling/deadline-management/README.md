@@ -12,7 +12,7 @@ Without orchestration, deadline tracking lives in spreadsheets or dashboards tha
 
 **You just write the deadline evaluation and escalation rules. Conductor handles urgency-based routing via SWITCH tasks, retries on escalation service failures, and a full record of every deadline evaluation and routing decision.**
 
-A deadline checker worker evaluates the task's due date against current time. Conductor's SWITCH task routes to the appropriate handler: normal, urgent, or overdue, based on the urgency classification. Each handler takes the right action for its urgency level. Every deadline evaluation is tracked, so you can audit which items were escalated and when. You get all of that for free, without writing a single line of orchestration code.
+A deadline checker worker evaluates the task's due date against current time. Conductor's SWITCH task routes to the appropriate handler: normal, urgent, or overdue, based on the urgency classification. Each handler takes the right action for its urgency level. Every deadline evaluation is tracked, so you can audit which items were escalated and when. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,16 +27,6 @@ Workers handle each urgency level: CheckDeadlinesWorker evaluates how close a ta
 
 Workers simulate scheduled operations with realistic outputs so you can see the scheduling pattern without external systems. Replace with real job logic, the schedule triggers, retry behavior, and monitoring stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -47,6 +37,7 @@ SWITCH (ded_switch_ref)
     ├── urgent: ded_handle_urgent
     ├── overdue: ded_handle_overdue
     └── default: ded_handle_normal
+
 ```
 
 ## Example Output
@@ -74,7 +65,9 @@ Step 4: Starting workflow...
   Output: {urgency=urgent, hoursRemaining=4, action=urgent}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -87,6 +80,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -95,13 +89,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -109,6 +104,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/deadline-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -121,6 +117,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -136,6 +133,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/deadline-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -145,6 +143,7 @@ conductor workflow start \
   --workflow deadline_management_410 \
   --version 1 \
   --input '{"projectId": "proj-alpha", "taskId": "TASK-2201", "dueDate": "2026-03-08T18:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -153,6 +152,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w deadline_management_410 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -175,6 +175,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -197,4 +198,5 @@ deadline-management/
 │       └── HandleUrgentWorker.java
 └── src/test/java/deadlinemanagement/workers/
     └── CheckDeadlinesWorkerTest.java        # 2 tests
+
 ```

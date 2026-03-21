@@ -1,6 +1,8 @@
 # Property Maintenance Request in Java with Conductor :  Submit, Classify, Assign, Complete, and Invoice
 
-A Java Conductor workflow example for handling tenant maintenance requests end-to-end .  submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for handling tenant maintenance requests end-to-end .  submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to handle maintenance requests from tenants across your property portfolio. A tenant reports "kitchen faucet leaking" .  the request must be logged, classified by category (plumbing, electrical, HVAC, general) and priority (emergency, urgent, routine), assigned to an available technician with the right skills, tracked through completion with labor hours recorded, and invoiced for billing. Each step depends on the previous one: you can't assign a technician without knowing the category, and you can't invoice without knowing the labor hours.
 
@@ -42,6 +44,7 @@ mtr_complete
     │
     ▼
 mtr_invoice
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ mtr_invoice
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/maintenance-request-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/maintenance-request-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow mtr_maintenance_request \
   --version 1 \
-  --input '{"tenantId": "TEST-001", "propertyId": "TEST-001", "description": "test-value"}'
+  --input '{"tenantId": "TEST-001", "propertyId": "TEST-001", "description": "sample-description"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w mtr_maintenance_request -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ maintenance-request/
     ├── CompleteWorkerTest.java        # 2 tests
     ├── InvoiceWorkerTest.java        # 2 tests
     └── SubmitWorkerTest.java        # 2 tests
+
 ```

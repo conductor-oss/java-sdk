@@ -1,6 +1,8 @@
 # WAIT Task Timeout Escalation in Java Using Conductor :  Request Preparation, WAIT with Deadline, Timeout-Triggered Escalation to Manager, and Normal Response Processing
 
-A Java Conductor workflow example for deadline-driven escalation .  preparing a request, pausing at a WAIT task with a timeout, and routing to an escalation path if no one responds before the deadline. If the human responds in time, the workflow processes their response normally. If the WAIT task times out, the escalation worker notifies a manager (manager@company.com) and flags the request as escalated. This prevents approval requests from sitting indefinitely without action. Uses [Conductor](https://github.## WAIT Tasks Should Escalate When No One Responds in Time
+A Java Conductor workflow example for deadline-driven escalation .  preparing a request, pausing at a WAIT task with a timeout, and routing to an escalation path if no one responds before the deadline. If the human responds in time, the workflow processes their response normally. If the WAIT task times out, the escalation worker notifies a manager (manager@company.com) and flags the request as escalated. This prevents approval requests from sitting indefinitely without action. Uses [Conductor](https://github.
+
+## WAIT Tasks Should Escalate When No One Responds in Time
 
 If a human does not respond to a WAIT task within a deadline, the workflow should not hang indefinitely. Instead, it should escalate. Notify a manager, auto-approve, or take a default action. The workflow prepares the request, pauses at a WAIT task with a timeout, and a SWITCH routes to the escalation path if the timeout fires or to the normal processing path if the human responds in time.
 
@@ -33,6 +35,7 @@ wait_for_response [WAIT]
     │
     ▼
 wte_process
+
 ```
 
 ## Running It
@@ -47,6 +50,7 @@ wte_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -55,6 +59,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -69,6 +74,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/wait-timeout-escalation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -81,6 +87,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -96,6 +103,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/wait-timeout-escalation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,6 +113,7 @@ conductor workflow start \
   --workflow wait_timeout_escalation_demo \
   --version 1 \
   --input '{"requestId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -113,6 +122,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wait_timeout_escalation_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -135,6 +145,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -158,4 +169,5 @@ wait-timeout-escalation/
     ├── WteEscalateWorkerTest.java        # 5 tests
     ├── WtePrepareWorkerTest.java        # 4 tests
     └── WteProcessWorkerTest.java        # 5 tests
+
 ```

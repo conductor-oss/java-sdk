@@ -1,6 +1,8 @@
 # Time Tracking in Java with Conductor :  Timesheet Submission, Validation, Manager Approval, and Payroll Processing
 
-A Java Conductor workflow example for employee time tracking .  submitting a weekly timesheet with hours by project code, validating entries against overtime rules and project allocations, routing for manager approval, and processing approved hours into payroll. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for employee time tracking .  submitting a weekly timesheet with hours by project code, validating entries against overtime rules and project allocations, routing for manager approval, and processing approved hours into payroll. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process employee timesheets from submission through payroll every week. An employee submits their timesheet for the week ending date, logging hours against project codes and cost centers. The entries must be validated .  checking that total hours are within policy limits, overtime is flagged for FLSA compliance, and hours are charged to active project codes. The validated timesheet routes to the employee's manager for approval, where the manager reviews hours against expected allocations and overtime justifications. Once approved, the timesheet feeds into payroll processing ,  converting hours into gross pay calculations, applying overtime rates (1.5x for hours over 40), and posting to the general ledger by cost center. If validation is skipped, employees can charge hours to closed projects or exceed overtime limits without authorization.
 
@@ -38,6 +40,7 @@ ttk_approve
     │
     ▼
 ttk_process
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ttk_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/time-tracking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/time-tracking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ttk_time_tracking \
   --version 1 \
-  --input '{"employeeId": "TEST-001", "weekEnding": "test-value", "entries": "test-value"}'
+  --input '{"employeeId": "TEST-001", "weekEnding": "sample-weekEnding", "entries": "sample-entries"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ttk_time_tracking -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ time-tracking-time-tracking/
     ├── ProcessWorkerTest.java        # 2 tests
     ├── SubmitWorkerTest.java        # 2 tests
     └── ValidateWorkerTest.java        # 2 tests
+
 ```

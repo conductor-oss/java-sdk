@@ -1,6 +1,8 @@
 # Travel Analytics in Java with Conductor
 
-Travel analytics: collect, aggregate, analyze, report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Travel analytics: collect, aggregate, analyze, report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to generate a travel analytics report for a department and time period. Collecting all booking, expense, and reimbursement data, aggregating spending across categories (flights, hotels, car rentals, meals), analyzing trends to identify cost-saving opportunities (preferred vendor compliance, advance booking rates, policy exception frequency), and producing a report for management. Each transformation depends on the previous one's output.
 
@@ -38,6 +40,7 @@ tan_analyze
     │
     ▼
 tan_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ tan_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/travel-analytics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/travel-analytics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tan_travel_analytics \
   --version 1 \
-  --input '{"period": "test-value", "department": "test-value"}'
+  --input '{"period": "sample-period", "department": "engineering"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tan_travel_analytics -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ travel-analytics-travel-analytics/
     ├── AnalyzeWorkerTest.java        # 2 tests
     ├── CollectWorkerTest.java        # 2 tests
     └── ReportWorkerTest.java        # 2 tests
+
 ```

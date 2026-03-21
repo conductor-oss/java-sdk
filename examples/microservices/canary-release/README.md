@@ -1,6 +1,8 @@
 # Canary Release in Java with Conductor
 
-Canary release with progressive traffic increase. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Canary release with progressive traffic increase. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 A canary release progressively increases traffic to a new version in stages (e.g., 5% -> 50% -> 100%), monitoring health at each stage before proceeding. If anomalies are detected at any stage, the release is halted and traffic stays on the stable version.
 
@@ -41,6 +43,7 @@ cy_monitor_canary
     │
     ▼
 cy_full_rollout
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ cy_full_rollout
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/canary-release-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/canary-release-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow canary_release_297 \
   --version 1 \
-  --input '{"appName": "test", "newVersion": "test-value"}'
+  --input '{"appName": "test", "newVersion": "1.0"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w canary_release_297 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ canary-release/
     ├── FullRolloutWorkerTest.java        # 2 tests
     ├── IncreaseTrafficWorkerTest.java        # 2 tests
     └── MonitorCanaryWorkerTest.java        # 2 tests
+
 ```

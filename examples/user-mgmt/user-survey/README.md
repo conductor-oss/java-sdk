@@ -1,6 +1,8 @@
 # User Survey in Java Using Conductor :  Creation, Distribution, Collection, Analysis, and Reporting
 
-A Java Conductor workflow example for running user satisfaction surveys end-to-end .  creating a survey with custom questions, distributing it to a target audience, collecting responses, analyzing results (average satisfaction, top themes, sentiment breakdown), and generating a summary report. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for running user satisfaction surveys end-to-end .  creating a survey with custom questions, distributing it to a target audience, collecting responses, analyzing results (average satisfaction, top themes, sentiment breakdown), and generating a summary report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to gather structured feedback from users through surveys. That means creating a survey with a title and question set, sending it to a specific audience segment, collecting the responses, running analysis to extract satisfaction scores, recurring themes (ease of use, performance, pricing), and sentiment distribution (positive/neutral/negative), and finally producing a report that stakeholders can act on. Each step depends on the previous one .  you can't distribute a survey before it's created, you can't analyze responses before they're collected, and the report needs both the survey ID and the analysis results.
 
@@ -42,6 +44,7 @@ usv_analyze
     │
     ▼
 usv_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ usv_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/user-survey-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/user-survey-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow usv_user_survey \
   --version 1 \
-  --input '{"surveyTitle": "test-value", "questions": "test-value", "targetAudience": "test-value"}'
+  --input '{"surveyTitle": "sample-surveyTitle", "questions": "What is workflow orchestration?", "targetAudience": "production"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w usv_user_survey -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ user-survey/
     ├── CollectResponsesWorkerTest.java        # 3 tests
     ├── CreateSurveyWorkerTest.java        # 3 tests
     └── SurveyReportWorkerTest.java        # 2 tests
+
 ```

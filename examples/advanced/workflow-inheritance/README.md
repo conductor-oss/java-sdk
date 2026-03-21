@@ -1,6 +1,8 @@
 # Workflow Inheritance in Java Using Conductor :  Base Workflow with Init, Validate, Process, Finalize
 
-A Java Conductor workflow example for workflow inheritance .  defining a base workflow pattern (init, validate, process, finalize) that can be specialized for different processing tiers. The standard variant processes requests with standard logic, while other variants (premium, enterprise) can override the processing step while keeping the same init/validate/finalize structure. Uses [Conductor](https://github.## Different Customer Tiers Need Different Processing, Same Structure
+A Java Conductor workflow example for workflow inheritance .  defining a base workflow pattern (init, validate, process, finalize) that can be specialized for different processing tiers. The standard variant processes requests with standard logic, while other variants (premium, enterprise) can override the processing step while keeping the same init/validate/finalize structure. Uses [Conductor](https://github.
+
+## Different Customer Tiers Need Different Processing, Same Structure
 
 Every customer request follows the same lifecycle: initialize the processing context, validate the input, process the request, and finalize (cleanup, notifications). But premium customers get faster processing with dedicated resources, enterprise customers get custom transformation logic, and standard customers get the default path. Without inheritance, you'd duplicate the entire workflow for each tier, copy-pasting the init/validate/finalize steps and only changing the processing step.
 
@@ -39,6 +41,7 @@ wi_process_standard
     │
     ▼
 wi_finalize
+
 ```
 
 ## Running It
@@ -53,6 +56,7 @@ wi_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -61,6 +65,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -75,6 +80,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-inheritance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -87,6 +93,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -102,6 +109,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-inheritance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,7 +118,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow workflow_inheritance_standard_demo \
   --version 1 \
-  --input '{"requestId": "TEST-001", "data": "test-value"}'
+  --input '{"requestId": "TEST-001", "data": {"key": "value"}}'
+
 ```
 
 ### Check workflow status
@@ -119,6 +128,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w workflow_inheritance_standard_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ workflow-inheritance/
     ├── WiProcessPremiumWorkerTest.java        # 4 tests
     ├── WiProcessStandardWorkerTest.java        # 4 tests
     └── WiValidateWorkerTest.java        # 4 tests
+
 ```

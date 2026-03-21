@@ -1,6 +1,8 @@
 # Metrics Collection in Java with Conductor :  Parallel Source Collection via FORK_JOIN, Aggregate
 
-Collect metrics from multiple sources in parallel using FORK/JOIN, then aggregate the results. Pattern: FORK(collect_app, collect_infra, collect_business) -> JOIN -> aggregate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Metrics From Multiple Sources Need Unified Collection
+Collect metrics from multiple sources in parallel using FORK/JOIN, then aggregate the results. Pattern: FORK(collect_app, collect_infra, collect_business) -> JOIN -> aggregate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Metrics From Multiple Sources Need Unified Collection
 
 A complete system health picture requires metrics from multiple sources: application metrics (request rate, error rate, latency from Prometheus), infrastructure metrics (CPU, memory, disk from CloudWatch), and business metrics (orders per minute, revenue from the application database). Collecting them sequentially triples the collection time. Collecting them in parallel gives you all metrics in the time of the slowest source.
 
@@ -36,6 +38,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 mc_aggregate
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ mc_aggregate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/metrics-collection-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/metrics-collection-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow metrics_collection_411 \
   --version 1 \
-  --input '{"environment": "test-value", "timeRange": "2026-01-01T00:00:00Z"}'
+  --input '{"environment": "staging", "timeRange": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w metrics_collection_411 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -156,4 +166,5 @@ metrics-collection/
     ├── CollectAppMetricsTest.java        # 7 tests
     ├── CollectBusinessMetricsTest.java        # 7 tests
     └── CollectInfraMetricsTest.java        # 7 tests
+
 ```

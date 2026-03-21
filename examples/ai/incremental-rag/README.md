@@ -1,6 +1,6 @@
 # Incremental RAG in Java Using Conductor :  Sync Only Changed Documents to Your Vector Store
 
-A Java Conductor workflow that keeps a vector store in sync with a source document collection by detecting changes since the last sync, filtering new vs: updated documents, embedding only the changed ones, upserting vectors, and verifying the index is consistent. Instead of re-embedding your entire corpus on every update, this pipeline processes only what changed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the incremental sync pipeline as independent workers .  you write the change detection, embedding, and upsert logic, Conductor handles sequencing, retries, durability, and observability.
+A Java Conductor workflow that keeps a vector store in sync with a source document collection by detecting changes since the last sync, filtering new vs: updated documents, embedding only the changed ones, upserting vectors, and verifying the index is consistent. Instead of re-embedding your entire corpus on every update, this pipeline processes only what changed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the incremental sync pipeline as independent workers.  you write the change detection, embedding, and upsert logic, Conductor handles sequencing, retries, durability, and observability.
 
 ## The Cost of Full Re-Indexing
 
@@ -46,6 +46,7 @@ ir_upsert_vectors
     │
     ▼
 ir_verify_index
+
 ```
 
 ## Running It
@@ -60,6 +61,7 @@ ir_verify_index
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -68,6 +70,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -82,6 +85,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/incremental-rag-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -94,6 +98,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -116,6 +121,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/incremental-rag-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -125,6 +131,7 @@ conductor workflow start \
   --workflow incremental_rag \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -133,6 +140,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w incremental_rag -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,7 +153,7 @@ Each worker handles one sync stage .  swap in MongoDB change streams or S3 event
 - **UpsertVectorsWorker** (`ir_upsert_vectors`): swap in real upsert calls to Pinecone, Weaviate, pgvector, or Qdrant
 - **VerifyIndexWorker** (`ir_verify_index`): add real index health checks (vector count verification, sample query latency measurement)
 
-The change-detection contract stays fixed across workers .  swap in a real change feed, upgrade the embedding model, or switch vector stores without modifying the incremental pipeline.
+The change-detection contract stays fixed across workers.  swap in a real change feed, upgrade the embedding model, or switch vector stores without modifying the incremental pipeline.
 
 ## SDK
 
@@ -157,6 +165,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -184,4 +193,5 @@ incremental-rag/
     ├── FilterNewDocsWorkerTest.java        # 3 tests
     ├── UpsertVectorsWorkerTest.java        # 3 tests
     └── VerifyIndexWorkerTest.java        # 3 tests
+
 ```

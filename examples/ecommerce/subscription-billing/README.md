@@ -1,6 +1,8 @@
 # Subscription Billing in Java Using Conductor :  Check Period, Generate Invoice, Charge, Activate
 
-A Java Conductor workflow example for recurring subscription billing .  determining the current billing period, generating an invoice for the subscriber's plan, charging their payment method, and activating the next billing cycle. Uses [Conductor](https://github.## Subscription Billing Must Be Reliable and Retry-Safe
+A Java Conductor workflow example for recurring subscription billing .  determining the current billing period, generating an invoice for the subscriber's plan, charging their payment method, and activating the next billing cycle. Uses [Conductor](https://github.
+
+## Subscription Billing Must Be Reliable and Retry-Safe
 
 A customer on the $29/month Pro plan has their billing date today. The system must verify the billing period (not already billed, subscription is active, no pending cancellation), generate an invoice (pro-rated amounts for mid-cycle changes, usage-based add-ons, applicable taxes), charge the payment method (with retry logic for declined cards), and activate the next period (extending access, resetting usage counters).
 
@@ -38,6 +40,7 @@ sub_charge
     │
     ▼
 sub_activate
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ sub_activate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/subscription-billing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/subscription-billing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow subscription_billing \
   --version 1 \
-  --input '{"subscriptionId": "TEST-001", "customerId": "TEST-001", "plan": "test-value", "billingCycle": "test-value"}'
+  --input '{"subscriptionId": "TEST-001", "customerId": "TEST-001", "plan": "pro", "billingCycle": "sample-billingCycle"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w subscription_billing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -157,4 +167,5 @@ subscription-billing/
     ├── ChargeWorkerTest.java        # 2 tests
     ├── CheckPeriodWorkerTest.java        # 2 tests
     └── GenerateInvoiceWorkerTest.java        # 3 tests
+
 ```

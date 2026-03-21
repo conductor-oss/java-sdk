@@ -1,6 +1,8 @@
 # Switch Plus Fork in Java with Conductor
 
-SWITCH + FORK demo .  conditional parallel execution. Batch type triggers parallel lanes A and B; default runs single processing. Uses [Conductor](https://github.## The Problem
+SWITCH + FORK demo .  conditional parallel execution. Batch type triggers parallel lanes A and B; default runs single processing. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process items differently based on whether they arrive as a batch or individually. Batch processing requires two parallel lanes (Lane A and Lane B) that split the work and process simultaneously, then join before continuing. Single-item processing just runs one task. The decision .  parallel batch processing or sequential single-item processing ,  must be made at runtime based on the input type. After either path completes, a common finalization step runs.
 
@@ -34,6 +36,7 @@ SWITCH (route_by_type_ref)
     │
     ▼
 sf_finalize
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ sf_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/switch-plus-fork-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/switch-plus-fork-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow switch_fork_demo \
   --version 1 \
-  --input '{"type": "test-value", "items": "test-value"}'
+  --input '{"type": "standard", "items": [{"id": "ITEM-001", "quantity": 2}]}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w switch_fork_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -137,6 +147,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -162,4 +173,5 @@ switch-plus-fork/
     ├── ProcessAWorkerTest.java        # 7 tests
     ├── ProcessBWorkerTest.java        # 7 tests
     └── SingleProcessWorkerTest.java        # 5 tests
+
 ```

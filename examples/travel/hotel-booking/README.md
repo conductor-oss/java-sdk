@@ -1,6 +1,8 @@
 # Hotel Booking in Java with Conductor
 
-Hotel booking: search, filter, book, confirm, reminder. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Hotel booking: search, filter, book, confirm, reminder. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to book a hotel for a business traveler. Searching available hotels in the destination city for the travel dates, filtering results by company travel policy (maximum nightly rate, preferred chains, required amenities), reserving the selected hotel, confirming the booking with the hotel, and scheduling a check-in reminder for the traveler. Each step depends on the previous one's output.
 
@@ -42,6 +44,7 @@ htl_confirm
     │
     ▼
 htl_reminder
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ htl_reminder
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/hotel-booking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/hotel-booking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow htl_hotel_booking \
   --version 1 \
-  --input '{"travelerId": "TEST-001", "city": "test-value", "checkIn": "test-value", "checkOut": "test-value"}'
+  --input '{"travelerId": "TEST-001", "city": "us-east-1", "checkIn": "sample-checkIn", "checkOut": "sample-checkOut"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w htl_hotel_booking -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ hotel-booking-hotel-booking/
     ├── FilterWorkerTest.java        # 2 tests
     ├── ReminderWorkerTest.java        # 2 tests
     └── SearchWorkerTest.java        # 2 tests
+
 ```

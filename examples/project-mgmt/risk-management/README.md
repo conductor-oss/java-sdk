@@ -1,6 +1,8 @@
 # Project Risk Management in Java with Conductor :  Identification, Severity Assessment, and Mitigation Planning
 
-A Java Conductor workflow example for project risk management .  identifying risks, assessing their severity (high/medium/low), routing to severity-appropriate handling, and producing mitigation plans. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for project risk management .  identifying risks, assessing their severity (high/medium/low), routing to severity-appropriate handling, and producing mitigation plans. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage risks across a project portfolio. When a new risk is reported .  "key vendor may miss delivery deadline," "database migration could cause downtime" ,  someone has to identify and categorize it, assess severity and probability, route it to the right response process (executive escalation for high-severity, team-level review for medium, backlog tracking for low), and generate a mitigation plan. Each of these steps depends on the output of the previous one, and the routing logic changes based on the assessed severity.
 
@@ -43,6 +45,7 @@ SWITCH (switch_ref)
     │
     ▼
 rkm_mitigate
+
 ```
 
 ## Running It
@@ -57,6 +60,7 @@ rkm_mitigate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,6 +69,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -79,6 +84,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/risk-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,6 +97,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -106,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/risk-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -115,6 +123,7 @@ conductor workflow start \
   --workflow risk_management_risk-management \
   --version 1 \
   --input '{"projectId": "PROJ-42", "PROJ-42": "riskDescription", "riskDescription": "Key engineer may leave mid-project", "Key engineer may leave mid-project": "KEY ENGINEER MAY LEAVE M-PROJECT-001"}'
+
 ```
 
 ### Check workflow status
@@ -123,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w risk_management_risk-management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -176,4 +187,5 @@ risk-management-risk-management/
     ├── LowWorkerTest.java        # 2 tests
     ├── MediumWorkerTest.java        # 2 tests
     └── MitigateWorkerTest.java        # 2 tests
+
 ```

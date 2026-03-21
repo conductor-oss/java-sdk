@@ -1,6 +1,8 @@
 # GDPR Data Deletion in Java Using Conductor :  Record Discovery, Identity Verification, Cross-System Erasure, and Audit Logging
 
-A Java Conductor workflow example for GDPR Article 17 right-to-erasure compliance. discovering all records associated with a user across multiple systems (user accounts, analytics, billing, support, marketing), verifying the requester's identity before any deletion occurs, erasing the user's data from every system where records were found, and generating a GDPR-compliant audit log that proves the deletion was completed. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for GDPR Article 17 right-to-erasure compliance. discovering all records associated with a user across multiple systems (user accounts, analytics, billing, support, marketing), verifying the requester's identity before any deletion occurs, erasing the user's data from every system where records were found, and generating a GDPR-compliant audit log that proves the deletion was completed. Uses [Conductor](https://github.
+
+## The Problem
 
 When a user submits a GDPR erasure request, their data lives in five or more systems: profile and credentials in the user accounts database, clickstream and session events in analytics, invoices and payment info in billing, ticket messages and attachments in support, and email preferences in marketing. You need to find every record tied to that user across all of these systems, verify the requester's identity before touching anything (a deletion request from an unverified source must be rejected), delete from every system, and produce an audit trail that proves to regulators exactly what was found, when it was deleted, and from which systems. You have 30 days to comply.
 
@@ -38,6 +40,7 @@ gr_delete_data
     │
     ▼
 gr_generate_audit_log
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ gr_generate_audit_log
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/gdpr-data-deletion-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/gdpr-data-deletion-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gdpr_data_deletion \
   --version 1 \
-  --input '{"userId": "TEST-001", "requestId": "TEST-001", "verificationToken": "test-value"}'
+  --input '{"userId": "TEST-001", "requestId": "TEST-001", "verificationToken": "sample-verificationToken"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w gdpr_data_deletion -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ gdpr-data-deletion/
     ├── FindRecordsWorkerTest.java        # 7 tests
     ├── GenerateAuditLogWorkerTest.java        # 7 tests
     └── VerifyIdentityWorkerTest.java        # 6 tests
+
 ```

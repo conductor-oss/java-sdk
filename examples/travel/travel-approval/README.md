@@ -1,6 +1,6 @@
 # Travel Request Approval in Java with Conductor
 
-An engineer submits a $4,000 conference trip request. Their manager approves it by replying "looks good" to an email; but the reply lands in a spam filter. The engineer assumes it's approved (no rejection came back either), books the flights and hotel on their corporate card, and flies to Austin. Finance catches it during month-end reconciliation: no approval on file, $4,000 expensed against a cost center that already blew its Q3 travel budget. Now the manager has to retroactively justify it, the engineer gets flagged for policy violation, and nobody is sure whether the reply-based approval system ever worked. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate approval routing as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+An engineer submits a $4,000 conference trip request. Their manager approves it by replying "looks good" to an email; but the reply lands in a spam filter. The engineer assumes it's approved (no rejection came back either), books the flights and hotel on their corporate card, and flies to Austin. Finance catches it during month-end reconciliation: no approval on file, $4,000 expensed against a cost center that already blew its Q3 travel budget. Now the manager has to retroactively justify it, the engineer gets flagged for policy violation, and nobody is sure whether the reply-based approval system ever worked. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate approval routing as independent workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -27,16 +27,6 @@ Request submission, policy check, manager review, and approval notification work
 
 Workers simulate travel operations: booking, approval, itinerary generation, with realistic outputs. Replace with real GDS and travel API integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -49,6 +39,7 @@ tva_estimate
 SWITCH (tva_switch_ref)
     ├── auto_approve: tva_auto_approve
     ├── manager: tva_manager_approve
+
 ```
 
 ## Running It
@@ -63,6 +54,7 @@ SWITCH (tva_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -71,13 +63,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -85,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/travel-approval-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -97,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -112,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/travel-approval-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -120,12 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tva_travel_approval \
   --version 1 \
-  --input '{
-    "employeeId": "EMP-4521",
-    "destination": "San Francisco",
-    "purpose": "Q3 product launch planning",
-    "estimatedCost": 2500
-  }'
+  --input '{"employeeId": "EMP-4521", "destination": "San Francisco", "purpose": "Q3 product launch planning", "estimatedCost": 2500}'
+
 ```
 
 ### Check workflow status
@@ -134,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tva_travel_approval -s COMPLETED -c 5
+
 ```
 
 ## Example Output
@@ -160,6 +153,7 @@ Step 4: Starting workflow...
   Approval type: manager
 
 Result: PASSED
+
 ```
 
 ## How to Extend
@@ -185,6 +179,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -210,4 +205,5 @@ travel-approval/
     ├── EstimateWorkerTest.java      # 5 tests
     ├── ManagerApproveWorkerTest.java # 4 tests
     └── SubmitWorkerTest.java        # 4 tests
+
 ```

@@ -1,6 +1,8 @@
 # Multi-Level Approval Chain in Java Using Conductor :  Manager, Director, VP Sequential WAIT/SWITCH with Early Rejection Termination
 
-A Java Conductor workflow example for sequential multi-level approval .  routing a request through Manager, Director, and VP, each using a WAIT task for human input followed by a SWITCH to check the decision. If any level rejects, the workflow terminates immediately without advancing to the next level. All three must approve for finalization. Uses [Conductor](https://github.## High-Value Requests Must Pass Through Manager, Director, and VP Approval
+A Java Conductor workflow example for sequential multi-level approval .  routing a request through Manager, Director, and VP, each using a WAIT task for human input followed by a SWITCH to check the decision. If any level rejects, the workflow terminates immediately without advancing to the next level. All three must approve for finalization. Uses [Conductor](https://github.
+
+## High-Value Requests Must Pass Through Manager, Director, and VP Approval
 
 Some requests require sequential approval from multiple levels of management. First a Manager, then a Director, then a VP. Each level uses a WAIT task for human input, followed by a SWITCH that checks the decision. If any level rejects, the workflow terminates immediately. If all three approve, the request is finalized. If finalization fails after VP approval, you need to retry it without asking all three approvers to re-approve.
 
@@ -36,6 +38,7 @@ wait_manager_approval [WAIT]
 SWITCH (check_manager_decision)
     ├── false: terminate_manager_rejected
     └── default: wait_director_approval -> check_director_decision
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ SWITCH (check_manager_decision)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/multi-level-approval-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/multi-level-approval-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow multi_level_approval \
   --version 1 \
-  --input '{"requestId": "TEST-001", "requestor": "test-value"}'
+  --input '{"requestId": "TEST-001", "requestor": "sample-requestor"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w multi_level_approval -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -137,6 +147,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -158,4 +169,5 @@ multi-level-approval/
 └── src/test/java/multilevelapproval/workers/
     ├── FinalizeWorkerTest.java        # 5 tests
     └── SubmitWorkerTest.java        # 5 tests
+
 ```

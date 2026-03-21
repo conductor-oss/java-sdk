@@ -1,6 +1,8 @@
 # Competing Consumers in Java Using Conductor :  Publish, Compete, Process, Acknowledge
 
-A Java Conductor workflow example for the competing consumers pattern .  publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.## Scaling Throughput with Multiple Consumers
+A Java Conductor workflow example for the competing consumers pattern .  publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.
+
+## Scaling Throughput with Multiple Consumers
 
 When a single consumer can't keep up with the message rate on a queue, you add more consumers. But multiple consumers reading from the same queue introduces coordination problems: two consumers might grab the same message, a consumer might crash after claiming a message but before processing it, and you need to know which consumer actually handled each task for debugging and audit.
 
@@ -38,6 +40,7 @@ ccs_process
     │
     ▼
 ccs_acknowledge
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ccs_acknowledge
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/competing-consumers-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/competing-consumers-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ccs_competing_consumers \
   --version 1 \
-  --input '{"taskPayload": "test-value", "queueName": "test", "consumerCount": 10}'
+  --input '{"taskPayload": {"key": "value"}, "queueName": "test", "consumerCount": 10}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ccs_competing_consumers -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ competing-consumers/
     ├── CcsCompeteWorkerTest.java        # 4 tests
     ├── CcsProcessWorkerTest.java        # 4 tests
     └── CcsPublishWorkerTest.java        # 4 tests
+
 ```

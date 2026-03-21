@@ -1,6 +1,8 @@
 # Publish-Subscribe in Java Using Conductor :  Publish Event, Fan Out to Subscribers in Parallel, Confirm
 
-A Java Conductor workflow example for publish-subscribe .  publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.## One Event, Multiple Subscribers, All Must Succeed
+A Java Conductor workflow example for publish-subscribe .  publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.
+
+## One Event, Multiple Subscribers, All Must Succeed
 
 A user signs up and three things need to happen: the welcome email service sends an onboarding email, the analytics service records the signup event, and the provisioning service creates the user's workspace. These are independent subscribers .  none depends on the others; but all three must eventually succeed. If the email service is down, the signup shouldn't block provisioning, and you need to know which subscribers processed the event and which didn't.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 pbs_confirm
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ pbs_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/publish-subscribe-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/publish-subscribe-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pbs_publish_subscribe \
   --version 1 \
-  --input '{"event": "test-value", "topic": "test-value"}'
+  --input '{"event": "sample-event", "topic": "microservices best practices"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w pbs_publish_subscribe -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ publish-subscribe/
     ├── PbsSubscriber1WorkerTest.java        # 4 tests
     ├── PbsSubscriber2WorkerTest.java        # 4 tests
     └── PbsSubscriber3WorkerTest.java        # 4 tests
+
 ```

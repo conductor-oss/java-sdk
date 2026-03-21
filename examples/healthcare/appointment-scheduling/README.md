@@ -1,6 +1,8 @@
 # Healthcare Appointment Scheduling in Java Using Conductor :  Provider Availability, Booking, Confirmation, and Reminders
 
-A Java Conductor workflow example for healthcare appointment scheduling .  checking provider availability for a preferred date, booking the selected time slot, sending the patient a confirmation, and scheduling appointment reminders. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for healthcare appointment scheduling .  checking provider availability for a preferred date, booking the selected time slot, sending the patient a confirmation, and scheduling appointment reminders. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to schedule patient appointments across a healthcare organization. A scheduling request comes in with a provider ID, preferred date, and visit type. The system must query the provider's calendar for open slots (and suggest alternates if the preferred time is taken), reserve the chosen slot, send the patient a confirmation with the appointment details, and schedule a reminder notification before the visit. Each step depends on the previous one .  you cannot book without an available slot, and you cannot confirm without a booking.
 
@@ -29,6 +31,7 @@ Workers simulate clinical and administrative operations with realistic outputs s
 
 ```
 Input -> BookWorker -> CheckAvailabilityWorker -> ConfirmWorker -> RemindWorker -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> BookWorker -> CheckAvailabilityWorker -> ConfirmWorker -> RemindWorker 
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/appointment-scheduling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/appointment-scheduling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow appointment_scheduling \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w appointment_scheduling -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -134,6 +144,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -159,4 +170,5 @@ appointment-scheduling/
     ├── CheckAvailabilityWorkerTest.java        # 8 tests
     ├── ConfirmWorkerTest.java        # 7 tests
     └── RemindWorkerTest.java        # 8 tests
+
 ```

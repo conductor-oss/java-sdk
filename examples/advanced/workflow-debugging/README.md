@@ -1,6 +1,8 @@
 # Workflow Debugging in Java Using Conductor :  Instrument, Execute, Trace, Analyze, Report
 
-A Java Conductor workflow example for workflow debugging .  instrumenting a workflow with debug hooks, executing it with tracing enabled, collecting execution traces, analyzing the trace data for anomalies and bottlenecks, and generating a debug report. Uses [Conductor](https://github.## When Workflows Fail, You Need More Than a Stack Trace
+A Java Conductor workflow example for workflow debugging .  instrumenting a workflow with debug hooks, executing it with tracing enabled, collecting execution traces, analyzing the trace data for anomalies and bottlenecks, and generating a debug report. Uses [Conductor](https://github.
+
+## When Workflows Fail, You Need More Than a Stack Trace
 
 A 20-step workflow fails at step 14. The error says "null pointer exception." But the real question is: what were the inputs at step 14? What did step 13 output? How long did each step take? Did step 7 produce unexpected output that propagated silently until step 14 crashed? You need distributed tracing across the entire workflow execution .  not just the error at the failure point.
 
@@ -42,6 +44,7 @@ wfd_analyze
     │
     ▼
 wfd_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ wfd_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-debugging-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-debugging-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wfd_workflow_debugging \
   --version 1 \
-  --input '{"workflowName": "test", "debugLevel": "test-value"}'
+  --input '{"workflowName": "test", "debugLevel": "info"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wfd_workflow_debugging -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -156,4 +167,5 @@ workflow-debugging/
 │   ├── ConductorClientHelper.java   # SDK v5 client setup
 │   ├── WorkflowDebuggingExample.java          # Main entry point (supports --workers mode)
 │   └── workers/
+
 ```

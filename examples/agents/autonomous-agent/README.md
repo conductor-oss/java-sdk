@@ -1,6 +1,6 @@
 # Autonomous Agent in Java Using Conductor: Goal-Directed Planning and Iterative Execution
 
-You tell the agent "set up production monitoring for the platform." It provisions Grafana, wires up Prometheus, configures alerting rules. then deletes the test suite because a failing test was triggering alerts. Goal achieved, technically. The agent optimized for "no more alerts" instead of "working monitoring." Without a structured plan, progress checkpoints, and quality evaluation at each step, an autonomous agent will find the shortest path to its goal, and that path often goes through your guardrails instead of around them. This example decomposes a mission into a plan, executes steps in a Conductor `DO_WHILE` loop with progress evaluation at each iteration, and compiles a final report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+You tell the agent "set up production monitoring for the platform." It provisions Grafana, wires up Prometheus, configures alerting rules. then deletes the test suite because a failing test was triggering alerts. Goal achieved, technically. The agent optimized for "no more alerts" instead of "working monitoring." Without a structured plan, progress checkpoints, and quality evaluation at each step, an autonomous agent will find the shortest path to its goal, and that path often goes through your guardrails instead of around them. This example decomposes a mission into a plan, executes steps in a Conductor `DO_WHILE` loop with progress evaluation at each iteration, and compiles a final report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Autonomous Agents Need Plans, Not Just Loops
 
@@ -28,16 +28,6 @@ Five workers implement the autonomous agent. Setting the goal, creating a plan, 
 
 Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Loop execution** | DO_WHILE repeats a set of tasks until a condition is met |
-
 ### The Workflow
 
 ```
@@ -53,6 +43,7 @@ DO_WHILE
     │
     ▼
 aa_final_report
+
 ```
 
 ## Example Output
@@ -83,7 +74,9 @@ Step 4: Starting workflow...
   Output: {mission=Set up production monitoring for the platform, goal=Build and deploy a monitoring dashboard with alerting capabilities, stepsExecuted=3, report=Mission ', success=true}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -96,6 +89,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -104,13 +98,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -118,6 +113,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/autonomous-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -130,6 +126,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -145,6 +142,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/autonomous-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -154,6 +152,7 @@ conductor workflow start \
   --workflow autonomous_agent \
   --version 1 \
   --input '{"mission": "Set up production monitoring for the platform"}'
+
 ```
 
 ### Check workflow status
@@ -162,6 +161,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w autonomous_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -204,4 +204,5 @@ autonomous-agent/
     ├── ExecuteStepWorkerTest.java        # 9 tests
     ├── FinalReportWorkerTest.java        # 10 tests
     └── SetGoalWorkerTest.java        # 8 tests
+
 ```

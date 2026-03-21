@@ -1,6 +1,8 @@
 # Distributed Tracing in Java with Conductor
 
-Distributed tracing with end-to-end request tracking. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Distributed tracing with end-to-end request tracking. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Tracing a request across multiple microservices requires creating a trace context, propagating span IDs through each service call, recording timing for database operations, and exporting the complete trace to a backend like Jaeger or Zipkin. Each span must reference its parent to form a proper trace tree.
 
@@ -38,6 +40,7 @@ dt_db_span
     │
     ▼
 dt_export_trace
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ dt_export_trace
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/distributed-tracing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/distributed-tracing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow distributed_tracing_workflow \
   --version 1 \
-  --input '{"requestId": "TEST-001", "operation": "test-value"}'
+  --input '{"requestId": "TEST-001", "operation": "sample-operation"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w distributed_tracing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ distributed-tracing/
     ├── DbSpanWorkerTest.java        # 2 tests
     ├── ExportTraceWorkerTest.java        # 2 tests
     └── ServiceSpanWorkerTest.java        # 2 tests
+
 ```

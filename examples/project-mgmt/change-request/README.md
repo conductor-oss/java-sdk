@@ -1,6 +1,8 @@
 # Change Request Management in Java with Conductor :  Submit, Impact Assessment, Approval, Implementation, and Verification
 
-A Java Conductor workflow example for managing project change requests end-to-end .  from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for managing project change requests end-to-end .  from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage change requests across your project. When someone submits a change .  "swap the payment provider," "extend the timeline by two weeks," "add a new integration requirement" ,  the request must go through a controlled process: log the change formally, assess its impact on scope, timeline, and budget, get approval from the change control board, implement the approved change, and verify the result. Each step depends on the previous one, and you need a complete audit trail for compliance.
 
@@ -42,6 +44,7 @@ chr_implement
     │
     ▼
 chr_verify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ chr_verify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/change-request-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/change-request-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow change_request_change-request \
   --version 1 \
   --input '{"changeId": "CR-101", "CR-101": "description", "description": "Add mobile support to dashboard", "Add mobile support to dashboard": "requestedBy", "requestedBy": "Product Manager", "Product Manager": "sample-Product Manager"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w change_request_change-request -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ change-request-change-request/
     ├── ImplementWorkerTest.java        # 2 tests
     ├── SubmitWorkerTest.java        # 2 tests
     └── VerifyWorkerTest.java        # 2 tests
+
 ```

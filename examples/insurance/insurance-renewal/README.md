@@ -1,6 +1,8 @@
 # Insurance Renewal in Java with Conductor :  Notify, Review Risk, Reprice, Route Decision
 
-A Java Conductor workflow example for automated insurance policy renewal .  sending a renewal notice to the policyholder, reviewing the policy's claims history and computing a risk score, repricing the premium based on that risk score, then using a SWITCH to route the policy to either renewal processing (with the new premium) or cancellation (with the reason). The review step analyzes the claims count and produces a riskScore that feeds into repricing, and the reprice step outputs the decision ("renew" or "cancel") and the new premium amount that determines the SWITCH path. Uses [Conductor](https://github.## Policy Renewals Require Claims Review, Repricing, and Conditional Routing
+A Java Conductor workflow example for automated insurance policy renewal .  sending a renewal notice to the policyholder, reviewing the policy's claims history and computing a risk score, repricing the premium based on that risk score, then using a SWITCH to route the policy to either renewal processing (with the new premium) or cancellation (with the reason). The review step analyzes the claims count and produces a riskScore that feeds into repricing, and the reprice step outputs the decision ("renew" or "cancel") and the new premium amount that determines the SWITCH path. Uses [Conductor](https://github.
+
+## Policy Renewals Require Claims Review, Repricing, and Conditional Routing
 
 When an insurance policy approaches its renewal date, the insurer must review the policyholder's claims history, calculate a risk score, reprice the premium accordingly, and decide whether to renew or non-renew the policy. If the risk is acceptable, the policy renews at the adjusted premium. If the claims history is too costly, the policy is cancelled with a stated reason. The repricing step must use the risk score from the review .  if repricing fails, you need to retry it without re-reviewing the entire claims history.
 
@@ -40,6 +42,7 @@ irn_reprice
 SWITCH (irn_switch_ref)
     ├── renew: irn_process_renew
     ├── cancel: irn_process_cancel
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ SWITCH (irn_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/insurance-renewal-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/insurance-renewal-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow irn_insurance_renewal \
   --version 1 \
-  --input '{"policyId": "TEST-001", "customerId": "TEST-001", "claimHistory": "test-value"}'
+  --input '{"policyId": "TEST-001", "customerId": "TEST-001", "claimHistory": "sample-claimHistory"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w irn_insurance_renewal -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ insurance-renewal-insurance-renewal/
 └── src/test/java/insurancerenewal/workers/
     ├── RepriceWorkerTest.java        # 1 tests
     └── ReviewWorkerTest.java        # 1 tests
+
 ```

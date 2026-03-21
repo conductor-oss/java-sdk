@@ -1,6 +1,8 @@
 # Scholarship Processing in Java with Conductor :  Application, Evaluation, Ranking, Award, and Notification
 
-A Java Conductor workflow example for scholarship processing .  accepting student applications, evaluating them based on GPA and financial need, ranking applicants competitively, awarding the scholarship to qualified recipients, and notifying students of the outcome. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for scholarship processing .  accepting student applications, evaluating them based on GPA and financial need, ranking applicants competitively, awarding the scholarship to qualified recipients, and notifying students of the outcome. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process scholarship applications from submission to award. A student applies for a specific scholarship, the financial aid office evaluates their eligibility based on GPA and demonstrated financial need, applicants are ranked against the competition, an award decision is made based on ranking and available funds, and the student is notified whether they received the scholarship and for how much. Awarding without proper evaluation risks compliance violations; ranking without consistent criteria leads to unfair outcomes.
 
@@ -42,6 +44,7 @@ scp_award
     │
     ▼
 scp_notify
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ scp_notify
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/scholarship-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/scholarship-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow scp_scholarship_processing \
   --version 1 \
-  --input '{"studentId": "TEST-001", "scholarshipId": "TEST-001", "gpa": "test-value", "financialNeed": "test-value"}'
+  --input '{"studentId": "TEST-001", "scholarshipId": "TEST-001", "gpa": "sample-gpa", "financialNeed": "sample-financialNeed"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w scp_scholarship_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ scholarship-processing/
     ├── EvaluateWorkerTest.java        # 2 tests
     ├── NotifyWorkerTest.java        # 2 tests
     └── RankWorkerTest.java        # 3 tests
+
 ```

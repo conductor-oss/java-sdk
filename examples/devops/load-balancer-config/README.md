@@ -1,6 +1,8 @@
 # Load Balancer Configuration in Java with Conductor :  Discover Backends, Configure Rules, Apply, Health Check
 
-Load balancer configuration workflow: discover backends, configure rules, apply config, and health check. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Load Balancer Changes Need Discovery, Rules, and Verification
+Load balancer configuration workflow: discover backends, configure rules, apply config, and health check. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Load Balancer Changes Need Discovery, Rules, and Verification
 
 A new version of the API service is deployed to 3 instances. The load balancer needs to know about these instances (their IPs and ports), have the routing rules updated (path-based routing for /api/v2, header-based routing for canary traffic, weighted distribution across versions), apply the new configuration without dropping existing connections, and verify that health checks pass for all backends.
 
@@ -38,6 +40,7 @@ lb_apply_config
     │
     ▼
 lb_health_check
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ lb_health_check
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/load-balancer-config-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/load-balancer-config-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow load_balancer_config_workflow \
   --version 1 \
-  --input '{"loadBalancer": "test-value", "action": "test-value"}'
+  --input '{"loadBalancer": "sample-loadBalancer", "action": "process"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w load_balancer_config_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ load-balancer-config/
     ├── ConfigureRulesWorkerTest.java        # 4 tests
     ├── DiscoverBackendsWorkerTest.java        # 5 tests
     └── HealthCheckWorkerTest.java        # 4 tests
+
 ```

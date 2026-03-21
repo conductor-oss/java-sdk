@@ -1,6 +1,8 @@
 # Scheduled Event in Java Using Conductor
 
-Sequential scheduled-event workflow: queue_event -> check_schedule -> wait_until_ready -> execute_event -> confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Sequential scheduled-event workflow: queue_event -> check_schedule -> wait_until_ready -> execute_event -> confirm. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to process events at a scheduled future time. An event is queued with a target execution time, the system checks whether it is time to execute, waits until the scheduled moment, executes the event's action, and confirms completion. Use cases include scheduled notifications, time-delayed order cancellations, and appointment reminders. Executing before the scheduled time violates business requirements; losing the event during the wait period means it never fires.
 
@@ -42,6 +44,7 @@ se_execute_event
     │
     ▼
 se_confirm
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ se_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/scheduled-event-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/scheduled-event-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow scheduled_event_wf \
   --version 1 \
-  --input '{"eventId": "TEST-001", "payload": "test-value", "scheduledTime": "2026-01-01T00:00:00Z"}'
+  --input '{"eventId": "TEST-001", "payload": {"key": "value"}, "scheduledTime": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w scheduled_event_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ scheduled-event/
     ├── ExecuteEventWorkerTest.java        # 8 tests
     ├── QueueEventWorkerTest.java        # 9 tests
     └── WaitUntilReadyWorkerTest.java        # 8 tests
+
 ```

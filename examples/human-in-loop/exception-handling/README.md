@@ -1,6 +1,8 @@
 # Exception-Based Routing in Java Using Conductor :  Risk Analysis, SWITCH for Auto-Process vs. Human Review, and Finalization
 
-A Java Conductor workflow example demonstrating exception-based human-in-the-loop routing .  analyzing an item's risk score, using SWITCH to route low-risk items to automatic processing or high-risk items (risk > 7) to a WAIT task for human review, and finalizing the result regardless of which path was taken. Demonstrates the pattern where automation handles the happy path and humans intervene only for exceptions. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example demonstrating exception-based human-in-the-loop routing .  analyzing an item's risk score, using SWITCH to route low-risk items to automatic processing or high-risk items (risk > 7) to a WAIT task for human review, and finalizing the result regardless of which path was taken. Demonstrates the pattern where automation handles the happy path and humans intervene only for exceptions. Uses [Conductor](https://github.
+
+## The Problem
 
 Not every item needs human attention .  most can be auto-processed, but high-risk exceptions must be escalated to a person. The workflow analyzes the item's risk score (1-10) and routes accordingly: items scoring 7 or below go to automatic processing, while items above 7 pause at a WAIT task for human review. The human reviewer examines the flagged item and makes a decision. After either path completes (auto-processed or human-reviewed), a finalization step wraps up. Without this routing, you either manually review everything (expensive and slow) or auto-process everything (dangerous for high-risk items).
 
@@ -36,6 +38,7 @@ SWITCH (route_switch)
     │
     ▼
 eh_finalize
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ eh_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/exception-handling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/exception-handling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow exception_handling_demo \
   --version 1 \
-  --input '{"risk": "test-value"}'
+  --input '{"risk": "sample-risk"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w exception_handling_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -138,6 +148,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ exception-handling/
     ├── AnalyzeWorkerTest.java        # 9 tests
     ├── AutoProcessWorkerTest.java        # 4 tests
     └── FinalizeWorkerTest.java        # 4 tests
+
 ```

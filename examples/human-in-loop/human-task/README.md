@@ -1,6 +1,8 @@
 # Human Task with Form Input in Java Using Conductor :  Data Collection, WAIT for Structured Form Submission, and Form Processing
 
-A Java Conductor workflow example demonstrating human task forms .  collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.## Workflows Need to Pause for Human Input via Forms
+A Java Conductor workflow example demonstrating human task forms .  collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.
+
+## Workflows Need to Pause for Human Input via Forms
 
 Some workflows require a human to fill out a form. Reviewing an application, entering data, or making a decision with structured input fields. The workflow collects initial data, pauses at a WAIT task (simulating a HUMAN task with a form schema), and the human provides structured input. The form response is then processed to determine the outcome. If processing fails, you need to retry it with the form data intact.
 
@@ -32,6 +34,7 @@ human_review_wait [WAIT]
     │
     ▼
 ht_process_form
+
 ```
 
 ## Running It
@@ -46,6 +49,7 @@ ht_process_form
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -54,6 +58,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -68,6 +73,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/human-task-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -80,6 +86,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -95,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/human-task-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -104,6 +112,7 @@ conductor workflow start \
   --workflow human_task_form_demo \
   --version 1 \
   --input '{"applicantName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -112,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w human_task_form_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -133,6 +143,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -154,4 +165,5 @@ human-task/
 └── src/test/java/humantask/workers/
     ├── CollectDataWorkerTest.java        # 4 tests
     └── ProcessFormWorkerTest.java        # 7 tests
+
 ```

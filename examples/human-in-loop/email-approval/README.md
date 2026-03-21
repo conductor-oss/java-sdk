@@ -1,6 +1,8 @@
 # Email-Based Approval in Java Using Conductor :  Request Preparation, Approval Email with Click Links, WAIT for Response, and Decision Processing
 
-A Java Conductor workflow example for email-based approvals .  preparing a request, sending an email with embedded approve/reject URLs that map to the workflow's WAIT task, pausing until the approver clicks one of the links, and processing the resulting decision. Demonstrates how approvers who do not have dashboard access can approve directly from their inbox with a single click. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for email-based approvals .  preparing a request, sending an email with embedded approve/reject URLs that map to the workflow's WAIT task, pausing until the approver clicks one of the links, and processing the resulting decision. Demonstrates how approvers who do not have dashboard access can approve directly from their inbox with a single click. Uses [Conductor](https://github.
+
+## The Problem
 
 You need approvals from people who live in their email .  executives, external partners, or field workers who will never log into an approval dashboard. The workflow must prepare the request, send an email containing one-click approve and reject URLs, and wait for the approver to click one. Each URL maps to a unique Conductor WAIT task completion endpoint, so clicking "Approve" sends `{ "decision": "approved" }` and clicking "Reject" sends `{ "decision": "rejected" }` ,  completing the WAIT task and resuming the workflow. The decision must then be processed downstream. If the email provider is temporarily down, the send must retry without re-preparing the request. If the decision processing fails, it must retry without re-sending the email.
 
@@ -38,6 +40,7 @@ email_response [WAIT]
     │
     ▼
 ea_process_decision
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ea_process_decision
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/email-approval-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/email-approval-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow email_approval_workflow \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w email_approval_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ email-approval/
     ├── PrepareWorkerTest.java        # 4 tests
     ├── ProcessDecisionWorkerTest.java        # 7 tests
     └── SendEmailWorkerTest.java        # 8 tests
+
 ```

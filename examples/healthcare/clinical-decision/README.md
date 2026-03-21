@@ -1,6 +1,8 @@
 # Clinical Decision Support in Java Using Conductor :  Data Gathering, Guideline Application, Risk Scoring, and Treatment Recommendations
 
-A Java Conductor workflow example for clinical decision support .  gathering patient clinical data, applying evidence-based guidelines, computing a risk score, and generating treatment recommendations for the clinician. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for clinical decision support .  gathering patient clinical data, applying evidence-based guidelines, computing a risk score, and generating treatment recommendations for the clinician. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to provide real-time clinical decision support at the point of care. When a clinician is treating a patient, the system must pull the patient's clinical history (labs, vitals, medications, diagnoses), apply evidence-based clinical guidelines for the presenting condition, compute a risk score (e.g., Framingham for cardiovascular risk, CURB-65 for pneumonia severity), and generate specific treatment recommendations. Each step depends on the previous one .  you cannot apply guidelines without the patient's data, and you cannot recommend treatments without a risk score.
 
@@ -38,6 +40,7 @@ cds_score_risk
     │
     ▼
 cds_recommend
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ cds_recommend
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/clinical-decision-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/clinical-decision-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow clinical_decision_workflow \
   --version 1 \
-  --input '{"patientId": "TEST-001", "condition": "test-value", "clinicalContext": "test-value"}'
+  --input '{"patientId": "TEST-001", "condition": "sample-condition", "clinicalContext": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w clinical_decision_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -167,4 +178,5 @@ clinical-decision/
     ├── GatherDataWorkerTest.java        # 2 tests
     ├── RecommendWorkerTest.java        # 2 tests
     └── ScoreRiskWorkerTest.java        # 2 tests
+
 ```

@@ -1,6 +1,8 @@
 # Implementing Authentication Workflow in Java with Conductor :  Credential Validation, MFA Verification, Risk Assessment, and Token Issuance
 
-A Java Conductor workflow example implementing a multi-step authentication pipeline .  validating user credentials (password, biometric, API key), verifying a second factor via MFA, assessing login risk based on device and location signals, and issuing a signed JWT session token only after all checks pass. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example implementing a multi-step authentication pipeline .  validating user credentials (password, biometric, API key), verifying a second factor via MFA, assessing login risk based on device and location signals, and issuing a signed JWT session token only after all checks pass. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to authenticate users through multiple verification layers before granting access. First, the submitted credentials (password hash, biometric template, or API key) must be validated against the identity store. Then, if MFA is enabled, a second factor (TOTP, SMS code, hardware key) must be verified. Before issuing a token, a risk assessment must evaluate whether the login attempt looks suspicious .  new device, unusual geolocation, impossible travel, or velocity anomalies. Only after all three checks pass should a JWT be minted with the appropriate claims, scopes, and expiration. If any step fails, the login must be denied and the failure recorded for security monitoring.
 
@@ -38,6 +40,7 @@ auth_risk_assessment
     │
     ▼
 auth_issue_token
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ auth_issue_token
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/authentication-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/authentication-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow authentication_workflow \
   --version 1 \
-  --input '{"userId": "TEST-001", "authMethod": "test-value"}'
+  --input '{"userId": "TEST-001", "authMethod": "sample-authMethod"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w authentication_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ authentication-workflow/
     ├── IssueTokenWorkerTest.java        # 8 tests
     ├── RiskAssessmentWorkerTest.java        # 8 tests
     └── ValidateCredentialsWorkerTest.java        # 8 tests
+
 ```

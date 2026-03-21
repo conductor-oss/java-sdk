@@ -1,6 +1,8 @@
 # Wire Tap Pattern in Java Using Conductor :  Process Messages While Tapping an Audit Copy in Parallel
 
-A Java Conductor workflow example for the wire tap pattern .  receiving a message and simultaneously processing it through the main business flow while tapping a copy to an audit/monitoring system, using `FORK_JOIN` for parallel execution. Uses [Conductor](https://github.## Auditing Must Not Slow Down the Main Flow
+A Java Conductor workflow example for the wire tap pattern .  receiving a message and simultaneously processing it through the main business flow while tapping a copy to an audit/monitoring system, using `FORK_JOIN` for parallel execution. Uses [Conductor](https://github.
+
+## Auditing Must Not Slow Down the Main Flow
 
 Every payment transaction must be processed and also logged to the compliance audit trail. If you audit synchronously before processing, you add latency to every transaction. If you audit after processing, a crash between process and audit means a transaction exists without an audit record. The wire tap pattern solves this by running both in parallel .  the main flow and the audit tap execute simultaneously, so neither blocks the other.
 
@@ -36,6 +38,7 @@ FORK_JOIN
     │
     ▼
 JOIN (wait for all branches)
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ JOIN (wait for all branches)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/wire-tap-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/wire-tap-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow wtp_wire_tap \
   --version 1 \
-  --input '{"message": "test-value", "auditLevel": "test-value"}'
+  --input '{"message": "Process this order for customer C-100", "auditLevel": "info"}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w wtp_wire_tap -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -138,6 +148,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -161,4 +172,5 @@ wire-tap/
     ├── WtpMainFlowWorkerTest.java        # 4 tests
     ├── WtpReceiveWorkerTest.java        # 4 tests
     └── WtpTapAuditWorkerTest.java        # 4 tests
+
 ```

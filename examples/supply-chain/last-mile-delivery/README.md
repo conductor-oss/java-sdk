@@ -1,6 +1,8 @@
 # Last Mile Delivery in Java with Conductor :  Driver Assignment, Route Optimization, Package Delivery, and Delivery Confirmation
 
-A Java Conductor workflow example for last mile delivery .  assigning a driver to an order (e.g., ORD-2024-668 going to 742 Evergreen Terrace with a 2pm-4pm delivery window), optimizing the delivery route across all stops, executing the delivery, and confirming receipt with proof of delivery. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for last mile delivery .  assigning a driver to an order (e.g., ORD-2024-668 going to 742 Evergreen Terrace with a 2pm-4pm delivery window), optimizing the delivery route across all stops, executing the delivery, and confirming receipt with proof of delivery. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to deliver packages to customers within promised time windows. Order ORD-2024-668 has a 2pm-4pm delivery window at 742 Evergreen Terrace, Springfield. A driver must be assigned based on availability, location, and vehicle capacity. The route must be optimized across all the driver's stops to minimize distance while honoring each customer's time window. The delivery must be executed and confirmed with proof .  a signature, photo, or safe-place confirmation. If the delivery fails (customer not home, wrong address), a reattempt must be scheduled.
 
@@ -38,6 +40,7 @@ lmd_deliver
     │
     ▼
 lmd_confirm
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ lmd_confirm
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/last-mile-delivery-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/last-mile-delivery-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow lmd_last_mile_delivery \
   --version 1 \
-  --input '{"orderId": "TEST-001", "address": "test-value", "timeWindow": "2026-01-01T00:00:00Z"}'
+  --input '{"orderId": "TEST-001", "address": "sample-address", "timeWindow": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w lmd_last_mile_delivery -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ last-mile-delivery/
     ├── ConfirmWorkerTest.java        # 2 tests
     ├── DeliverWorkerTest.java        # 2 tests
     └── OptimizeRouteWorkerTest.java        # 2 tests
+
 ```

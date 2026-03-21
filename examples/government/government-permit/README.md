@@ -1,6 +1,8 @@
 # Government Permit in Java with Conductor
 
-Processes a government permit application: receiving the application, validating documents, routing to a zoning board review, and issuing or denying the permit via a SWITCH task. Uses [Conductor](https://github.## The Problem
+Processes a government permit application: receiving the application, validating documents, routing to a zoning board review, and issuing or denying the permit via a SWITCH task. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process a government permit application. A citizen submits an application for a permit (building, business, event), the application is validated for completeness and jurisdiction, a reviewer assesses it against regulations and zoning rules, and the permit is either issued or denied with explanation. Issuing a permit without proper review creates legal liability for the government; denying without explanation violates due process.
 
@@ -41,6 +43,7 @@ gvp_review
 SWITCH (gvp_switch_ref)
     ├── approve: gvp_issue
     ├── deny: gvp_deny
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ SWITCH (gvp_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/government-permit-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/government-permit-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow gvp_government_permit \
   --version 1 \
-  --input '{"applicantId": "TEST-001", "permitType": "test-value", "details": "test-value"}'
+  --input '{"applicantId": "TEST-001", "permitType": "standard", "details": "sample-details"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w gvp_government_permit -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -145,6 +155,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -172,4 +183,5 @@ government-permit-government-permit/
     ├── IssueWorkerTest.java
     ├── ReviewWorkerTest.java
     └── ValidateWorkerTest.java
+
 ```

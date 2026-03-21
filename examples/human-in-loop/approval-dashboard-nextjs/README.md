@@ -1,6 +1,8 @@
 # Next.js Approval Dashboard in Java Using Conductor :  Request Processing and Human Approval via WAIT Task
 
-A Java Conductor workflow example paired with a Next.js full-stack dashboard .  a SIMPLE task validates and processes an incoming approval request (type, title, amount, requester), then a WAIT task pauses the workflow until a human approver clicks approve or reject in the Next.js dashboard. The dashboard queries Conductor's API to list pending approvals and completes the WAIT task when the approver acts. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example paired with a Next.js full-stack dashboard .  a SIMPLE task validates and processes an incoming approval request (type, title, amount, requester), then a WAIT task pauses the workflow until a human approver clicks approve or reject in the Next.js dashboard. The dashboard queries Conductor's API to list pending approvals and completes the WAIT task when the approver acts. Uses [Conductor](https://github.
+
+## The Problem
 
 You need a web-based approval dashboard where managers can see all pending requests and approve or reject them with a single click. Requests come in with a type (expense, purchase, time-off), title, dollar amount, and requester name. The system must validate and process each request, then pause and wait .  potentially for hours or days ,  until a human approver makes a decision. The dashboard needs to show all pending, approved, and rejected requests in real time. Without a built-in WAIT mechanism, you'd poll a database for the approver's decision, building your own state management, timeout handling, and dashboard query logic.
 
@@ -30,6 +32,7 @@ nxt_process
     │
     ▼
 nxt_approval [WAIT]
+
 ```
 
 ## Running It
@@ -44,6 +47,7 @@ nxt_approval [WAIT]
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -52,6 +56,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -66,6 +71,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/approval-dashboard-nextjs-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -78,6 +84,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -93,6 +100,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/approval-dashboard-nextjs-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,7 +109,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow approval_dashboard_nextjs_demo \
   --version 1 \
-  --input '{"type": "test-value", "title": "test-value", "amount": 100, "requester": "test-value"}'
+  --input '{"type": "standard", "title": "sample-title", "amount": 100, "requester": "sample-requester"}'
+
 ```
 
 ### Check workflow status
@@ -110,6 +119,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w approval_dashboard_nextjs_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -134,6 +144,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -153,4 +164,5 @@ approval-dashboard-nextjs/
 │       └── NxtProcessWorker.java
 └── src/test/java/approvaldashboardnextjs/workers/
     └── NxtProcessWorkerTest.java        # 8 tests
+
 ```

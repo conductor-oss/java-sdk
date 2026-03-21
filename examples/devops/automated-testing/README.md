@@ -1,6 +1,8 @@
 # Automated Testing Pipeline in Java with Conductor :  Setup Environment, Parallel Test Suites, Aggregate Results
 
-Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Parallel Testing Cuts Pipeline Time by 3x
+Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Parallel Testing Cuts Pipeline Time by 3x
 
 A test suite takes 30 minutes to run sequentially: 10 minutes for unit tests, 15 minutes for integration tests, 5 minutes for performance tests. Running all three in parallel brings it down to 15 minutes (the slowest suite). But parallel execution requires a shared environment setup, independent test runners, and a final aggregation step that merges results from all three suites.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 at_aggregate_results
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ at_aggregate_results
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/automated-testing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/automated-testing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow automated_testing_workflow \
   --version 1 \
-  --input '{"suite": "test-value", "branch": "test-value"}'
+  --input '{"suite": "sample-suite", "branch": "sample-branch"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w automated_testing_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -159,4 +169,5 @@ automated-testing/
     ├── AggregateResultsTest.java        # 7 tests
     ├── RunUnitTest.java        # 7 tests
     └── SetupEnvTest.java        # 7 tests
+
 ```

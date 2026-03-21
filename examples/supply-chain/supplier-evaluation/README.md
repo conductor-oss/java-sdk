@@ -1,6 +1,8 @@
 # Supplier Evaluation in Java with Conductor :  Performance Data Collection, Scoring, Ranking, and Quarterly Reporting
 
-A Java Conductor workflow example for supplier evaluation .  collecting performance data across all raw-materials suppliers for a quarterly review period (e.g., Q4 2024), scoring each supplier on delivery, quality, cost, and responsiveness metrics, ranking suppliers against each other within the category, and generating the quarterly supplier performance report. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for supplier evaluation .  collecting performance data across all raw-materials suppliers for a quarterly review period (e.g., Q4 2024), scoring each supplier on delivery, quality, cost, and responsiveness metrics, ranking suppliers against each other within the category, and generating the quarterly supplier performance report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to evaluate your raw-materials suppliers at the end of each quarter. Performance data must be collected from multiple sources .  on-time delivery rates from the TMS, quality rejection rates from the QMS, cost variance from the ERP, and responsiveness scores from buyer surveys. Each supplier must be scored on a consistent rubric. Suppliers must be ranked within their category so procurement knows which to grow, maintain, or phase out. The final report must be ready for the quarterly business review.
 
@@ -38,6 +40,7 @@ spe_rank
     │
     ▼
 spe_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ spe_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/supplier-evaluation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/supplier-evaluation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow spe_supplier_evaluation \
   --version 1 \
-  --input '{"category": "test-value", "period": "test-value"}'
+  --input '{"category": "general", "period": "sample-period"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w spe_supplier_evaluation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ supplier-evaluation/
     ├── RankWorkerTest.java        # 2 tests
     ├── ReportWorkerTest.java        # 2 tests
     └── ScoreWorkerTest.java        # 2 tests
+
 ```

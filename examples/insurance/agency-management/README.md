@@ -1,6 +1,8 @@
 # Agency Management in Java with Conductor :  Onboard, License, Assign Territory, Track Performance, Review
 
-A Java Conductor workflow example demonstrating agency-management Agency Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Insurance Agent Management Has Regulatory Requirements
+A Java Conductor workflow example demonstrating agency-management Agency Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Insurance Agent Management Has Regulatory Requirements
 
 Bringing on a new insurance agent requires onboarding (background check, E&O insurance verification, appointment paperwork), licensing verification (state license active, lines of authority match, continuing education current), territory assignment (geographic boundaries, product lines, no overlap with existing agents), performance tracking (premium volume, policy count, loss ratio, retention rate), and periodic review (compensation adjustments, territory changes, license renewals).
 
@@ -42,6 +44,7 @@ agm_track
     │
     ▼
 agm_review
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ agm_review
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/agency-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/agency-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agm_agency_management \
   --version 1 \
-  --input '{"agentId": "TEST-001", "agentName": "test", "state": "test-value"}'
+  --input '{"agentId": "TEST-001", "agentName": "test", "state": "sample-state"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w agm_agency_management -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ agency-management-agency-management/
 └── src/test/java/agencymanagement/workers/
     ├── OnboardWorkerTest.java        # 1 tests
     └── ReviewWorkerTest.java        # 1 tests
+
 ```

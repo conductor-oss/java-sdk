@@ -1,6 +1,8 @@
 # Goal Decomposition in Java Using Conductor :  Break Down Goals, Execute Subgoals in Parallel, Aggregate
 
-Goal Decomposition .  decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results. Uses [Conductor](https://github.## Big Goals Need to Be Broken Down
+Goal Decomposition .  decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results. Uses [Conductor](https://github.
+
+## Big Goals Need to Be Broken Down
 
 "Improve customer satisfaction" is a goal, not a plan. A useful agent decomposes it into actionable subgoals: analyze current satisfaction scores and identify pain points, benchmark against competitors, and design improvement initiatives. These three subgoals are independent .  they can run simultaneously; but all must complete before the results can be aggregated into a coherent improvement plan.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 gd_aggregate
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ gd_aggregate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/goal-decomposition-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/goal-decomposition-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow goal_decomposition \
   --version 1 \
-  --input '{"goal": "test-value"}'
+  --input '{"goal": "sample-goal"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w goal_decomposition -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -161,4 +171,5 @@ goal-decomposition/
     ├── Subgoal1WorkerTest.java        # 8 tests
     ├── Subgoal2WorkerTest.java        # 8 tests
     └── Subgoal3WorkerTest.java        # 8 tests
+
 ```

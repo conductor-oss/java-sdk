@@ -1,6 +1,8 @@
 # Workflow Versioning in Java with Conductor
 
-Run multiple versions of the same workflow side by side .  version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.## The Problem
+Run multiple versions of the same workflow side by side .  version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to evolve a workflow without breaking existing executions. Version 1 does a calculation (value * 2) then an audit. Version 2 adds a bonus step (+10) between calculation and audit. Both versions must coexist. In-flight v1 executions continue on v1, while new executions can use v2. You need to start workflows against a specific version and compare their outputs.
 
@@ -28,6 +30,7 @@ Workers simulate their processing steps so you can see the pattern in action wit
 
 ```
 Input -> VerAuditWorker -> VerBonusWorker -> VerCalcWorker -> Output
+
 ```
 
 ## Running It
@@ -42,6 +45,7 @@ Input -> VerAuditWorker -> VerBonusWorker -> VerCalcWorker -> Output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -50,6 +54,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -64,6 +69,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/workflow-versioning-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -76,6 +82,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -91,6 +98,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/workflow-versioning-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -100,6 +108,7 @@ conductor workflow start \
   --workflow workflow_versioning \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -108,6 +117,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w workflow_versioning -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -130,6 +140,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -153,4 +164,5 @@ workflow-versioning/
     ├── VerAuditWorkerTest.java        # 5 tests
     ├── VerBonusWorkerTest.java        # 5 tests
     └── VerCalcWorkerTest.java        # 6 tests
+
 ```

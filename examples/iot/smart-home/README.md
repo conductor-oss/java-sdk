@@ -1,6 +1,8 @@
 # Smart Home Automation in Java with Conductor :  Event Detection, Rule Evaluation, and Device Actuation
 
-A Java Conductor workflow example that orchestrates smart home automation .  detecting sensor events (occupancy, temperature changes, motion), evaluating automation rules against home context (mode, current temperature), routing to the correct device actuator via SWITCH (lights, thermostat, or security system), and logging every automation event. Uses [Conductor](https://github.## Why Smart Home Automation Needs Orchestration
+A Java Conductor workflow example that orchestrates smart home automation .  detecting sensor events (occupancy, temperature changes, motion), evaluating automation rules against home context (mode, current temperature), routing to the correct device actuator via SWITCH (lights, thermostat, or security system), and logging every automation event. Uses [Conductor](https://github.
+
+## Why Smart Home Automation Needs Orchestration
 
 A smart home automation rule involves a decision chain: a sensor fires an event, the system evaluates context (is someone home? what mode is active? what is the current temperature?), and based on the matched rule, it actuates the right device .  dim the lights to 80% warm white, set the thermostat to a target temperature, or arm the security system for a specific zone. Different event types route to entirely different actuators, and every actuation must be logged for audit and debugging.
 
@@ -43,6 +45,7 @@ SWITCH (smh_switch_ref)
     │
     ▼
 smh_log_event
+
 ```
 
 ## Running It
@@ -57,6 +60,7 @@ smh_log_event
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,6 +69,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -79,6 +84,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/smart-home-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,6 +97,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -106,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/smart-home-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,7 +122,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow smart_home_workflow \
   --version 1 \
-  --input '{"eventId": "TEST-001", "sensorId": "TEST-001", "eventType": "test-value", "value": "test-value"}'
+  --input '{"eventId": "TEST-001", "sensorId": "TEST-001", "eventType": "standard", "value": "sample-value"}'
+
 ```
 
 ### Check workflow status
@@ -123,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w smart_home_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ smart-home/
 └── src/test/java/smarthome/workers/
     ├── DetectEventWorkerTest.java        # 2 tests
     └── EvaluateRulesWorkerTest.java        # 2 tests
+
 ```

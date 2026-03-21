@@ -30,16 +30,6 @@ Five workers split the self-healing pipeline across retrieval, relevance grading
 
 GenerateAnswerWorker and GenerateFromWebWorker require CONDUCTOR_OPENAI_API_KEY. RetrieveDocsWorker uses Jaccard similarity over bundled docs. WebSearchWorker fetches results from the Wikipedia API.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -52,6 +42,7 @@ cr_grade_relevance
 SWITCH (switch_ref)
     ├── relevant: cr_generate_answer
     └── default: cr_web_search -> cr_generate_from_web
+
 ```
 
 ## Running It
@@ -66,6 +57,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -74,13 +66,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -88,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/corrective-rag-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -100,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -149,6 +144,7 @@ Step 5: Waiting for completion...
   Automatically fell back to web search for fresh, relevant results.
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -157,6 +153,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/corrective-rag-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -166,6 +163,7 @@ conductor workflow start \
   --workflow corrective_rag \
   --version 1 \
   --input '{"question": "What are the benefits of workflow orchestration?"}'
+
 ```
 
 ### Check workflow status
@@ -174,6 +172,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w corrective_rag -s COMPLETED -c 5
+
 ```
 
 ## The Corrective RAG Pipeline
@@ -212,6 +211,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -239,4 +239,5 @@ corrective-rag/
     ├── GradeRelevanceWorkerTest.java
     ├── RetrieveDocsWorkerTest.java
     └── WebSearchWorkerTest.java
+
 ```

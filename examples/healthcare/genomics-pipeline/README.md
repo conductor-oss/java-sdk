@@ -1,6 +1,8 @@
 # Genomics Pipeline in Java Using Conductor :  Sequencing, Alignment, Variant Calling, Annotation, and Clinical Reporting
 
-A Java Conductor workflow example for a clinical genomics pipeline .  processing DNA samples through sequencing, aligning reads to a reference genome, calling genetic variants, annotating variants with clinical significance, and generating a diagnostic report. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for a clinical genomics pipeline .  processing DNA samples through sequencing, aligning reads to a reference genome, calling genetic variants, annotating variants with clinical significance, and generating a diagnostic report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to process genomic samples for clinical diagnostics. A DNA sample arrives from the lab and must be sequenced to produce raw reads (FASTQ). Those reads must be aligned to a reference genome (GRCh38) to produce a BAM file. Variant calling identifies SNPs, indels, and structural variants in the aligned data (VCF). Each variant must be annotated with clinical significance from databases like ClinVar, OMIM, and gnomAD. Finally, a clinical report must be generated summarizing pathogenic and likely pathogenic findings for the ordering physician. Each step produces large intermediate files and depends strictly on the previous step's output .  you cannot call variants without aligned reads, and you cannot annotate without called variants.
 
@@ -42,6 +44,7 @@ gen_annotate
     │
     ▼
 gen_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ gen_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/genomics-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/genomics-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow genomics_pipeline_workflow \
   --version 1 \
-  --input '{"sampleId": "TEST-001", "patientId": "TEST-001", "panelType": "test-value"}'
+  --input '{"sampleId": "TEST-001", "patientId": "TEST-001", "panelType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w genomics_pipeline_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -174,4 +185,5 @@ genomics-pipeline/
     ├── CallVariantsWorkerTest.java        # 2 tests
     ├── GenomicsReportWorkerTest.java        # 2 tests
     └── SequenceWorkerTest.java        # 2 tests
+
 ```

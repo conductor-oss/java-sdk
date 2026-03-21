@@ -28,15 +28,6 @@ Five workers implement plan-then-execute. Creating a structured plan, executing 
 
 The simulated workers produce realistic, deterministic output shapes so the workflow runs end-to-end. To go to production, replace the simulation with the real API call, the worker interface stays the same, and no workflow changes are needed.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -53,6 +44,7 @@ pe_execute_step_3
     |
     v
 pe_compile_results
+
 ```
 
 ## Running It
@@ -67,6 +59,7 @@ pe_compile_results
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -75,13 +68,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -89,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/plan-execute-agent-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -101,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -138,6 +134,7 @@ Step 5: Waiting for completion...
   Output: {objective=Develop go-to-market strategy for new SaaS product, plan=[Gather market data and competitor analysis, Analyze trends and identify opportunities, Generate strategic recommendations], finalReport=Objective: Develop go-to-market strategy for new SaaS product | Step 1: Collected data on 5 competitors; market size estimated at $4.2B | Step 2: Identified 3 growth opportunities: API platform, enterprise tier, international expansion | Step 3: Recommend prioritizing API platform (ROI: capacity-planning%) followed by enterprise tier (ROI: 210%)}
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -146,6 +143,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/plan-execute-agent-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -168,6 +166,7 @@ conductor workflow start \
   --workflow plan_execute_agent \
   --version 1 \
   --input '{"objective": "Create launch plan for mobile app expansion into European markets"}'
+
 ```
 
 ### Check workflow status
@@ -176,6 +175,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w plan_execute_agent -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -199,6 +199,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -226,4 +227,5 @@ plan-execute-agent/
     ├── ExecuteStep2WorkerTest.java   # 9 tests
     ├── ExecuteStep3WorkerTest.java   # 9 tests
     └── CompileResultsWorkerTest.java # 9 tests
+
 ```

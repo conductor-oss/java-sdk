@@ -1,6 +1,8 @@
 # APM Workflow in Java with Conductor :  Analyze Latency, Report Metrics, Collect Traces, Detect Bottlenecks
 
-Automates Application Performance Monitoring (APM) analysis using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects distributed traces for a service, analyzes latency percentiles (p50/p95/p99), detects performance bottlenecks like N+1 queries and large payload serialization, and generates an APM report with actionable recommendations.## Finding the Slow Endpoints
+Automates Application Performance Monitoring (APM) analysis using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects distributed traces for a service, analyzes latency percentiles (p50/p95/p99), detects performance bottlenecks like N+1 queries and large payload serialization, and generates an APM report with actionable recommendations.
+
+## Finding the Slow Endpoints
 
 Your checkout service handled 25,000 requests in the last hour. Most responded in 45ms, but the p99 is 520ms. Something is dragging the tail. Two endpoints are suspiciously slow: `/api/search` has an N+1 query problem, and `/api/export` is choking on large payload serialization. You need to collect the traces, crunch the latency numbers, pinpoint the bottlenecks, and produce a report the team can act on.
 
@@ -29,6 +31,7 @@ Workers simulate infrastructure operations with realistic output so you can see 
 
 ```
 Input -> AnalyzeLatency -> ApmReport -> CollectTraces -> DetectBottlenecks -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> AnalyzeLatency -> ApmReport -> CollectTraces -> DetectBottlenecks -> Ou
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/apm-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/apm-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow apm_workflow \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w apm_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,4 +159,5 @@ apm-workflow/
     ├── ApmReportTest.java        # 7 tests
     ├── CollectTracesTest.java        # 7 tests
     └── DetectBottlenecksTest.java        # 8 tests
+
 ```

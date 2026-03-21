@@ -1,6 +1,8 @@
 # Medical Imaging in Java Using Conductor :  Acquisition, Processing, AI Analysis, Radiology Reporting, and PACS Storage
 
-A Java Conductor workflow example for medical imaging .  acquiring DICOM images from modalities (CT, MRI, X-ray), processing raw images (windowing, reconstruction, de-identification), running AI-assisted analysis for findings detection, generating the radiology report, and archiving to PACS. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for medical imaging .  acquiring DICOM images from modalities (CT, MRI, X-ray), processing raw images (windowing, reconstruction, de-identification), running AI-assisted analysis for findings detection, generating the radiology report, and archiving to PACS. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage the lifecycle of a medical imaging study from acquisition through archival. An imaging modality (CT scanner, MRI, X-ray) produces DICOM images for a study. The raw images must be processed .  applying window/level adjustments, multi-planar reconstructions, and de-identification for research use. Processed images are then analyzed, potentially with AI-assisted detection (lung nodules, fractures, hemorrhage). A radiologist report must be generated with structured findings, impressions, and follow-up recommendations. Finally, the study and report must be archived to the PACS (Picture Archiving and Communication System) for long-term storage and retrieval. Each step depends on the previous one ,  you cannot analyze unprocessed images, and you cannot archive without a finalized report.
 
@@ -42,6 +44,7 @@ img_report
     │
     ▼
 img_store
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ img_store
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/medical-imaging-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/medical-imaging-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow medical_imaging_workflow \
   --version 1 \
-  --input '{"studyId": "TEST-001", "patientId": "TEST-001", "modality": "test-value", "bodyPart": "test-value"}'
+  --input '{"studyId": "TEST-001", "patientId": "TEST-001", "modality": "sample-modality", "bodyPart": "sample-bodyPart"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w medical_imaging_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -174,4 +185,5 @@ medical-imaging/
     ├── ProcessImageWorkerTest.java        # 2 tests
     ├── ReportWorkerTest.java        # 2 tests
     └── StoreWorkerTest.java        # 2 tests
+
 ```

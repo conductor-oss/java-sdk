@@ -27,50 +27,13 @@ Four workers manage the issue lifecycle: CreateIssueWorker opens tickets, Transi
 
 Workers simulate external API calls with realistic response shapes so you can see the integration flow end-to-end. Replace with real API clients, the workflow orchestration and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input -> CreateIssueWorker -> NotifyWorker -> TrackStatusWorker -> TransitionWorker -> Output
-```
-
-## Example Output
 
 ```
-=== Jira Integration Demo ===
 
-Step 1: Registering task definitions...
-  Registered: jra_create_issue, jra_track_status, jra_transition, jra_notify
-
-Step 2: Registering workflow 'jira_integration'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 4576757b-786b-37cd-9074-737a2bd65026
-
-  [create] Created issue : Fix login timeout issue
-  [create] : Fix login timeout issue
-  [track] Issue  status: To Do
-  [transition] : ... -> ...
-  [notify] Notified jane.doe about  -> ...
-
-
-  Status: COMPLETED
-  Output: {issueKey=, status=..., notified=true}
-
-Result: PASSED
-```
 ## Running It
 
 ### Prerequisites
@@ -83,6 +46,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -91,13 +55,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -105,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/jira-integration-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -117,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -135,6 +102,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/jira-integration-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -144,6 +112,7 @@ conductor workflow start \
   --workflow jira_integration \
   --version 1 \
   --input '{"project": "ENG", "summary": "Fix login timeout issue", "description": "Users experiencing timeout on login page", "assignee": "jane.doe"}'
+
 ```
 
 ### Check workflow status
@@ -152,6 +121,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w jira_integration -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -174,6 +144,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -199,4 +170,5 @@ jira-integration/
     ├── NotifyWorkerTest.java        # 8 tests
     ├── TrackStatusWorkerTest.java        # 7 tests
     └── TransitionWorkerTest.java        # 8 tests
+
 ```

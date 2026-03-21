@@ -1,6 +1,8 @@
 # Actuarial Workflow in Java with Conductor :  Collect Data, Build Model, Run Simulations, Analyze, Report
 
-A Java Conductor workflow example demonstrating actuarial-workflow Actuarial Workflow. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Actuarial Analysis Combines Statistics, Simulation, and Reporting
+A Java Conductor workflow example demonstrating actuarial-workflow Actuarial Workflow. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Actuarial Analysis Combines Statistics, Simulation, and Reporting
 
 Setting insurance rates requires actuarial analysis: collect 10 years of loss data for a line of business, build a frequency-severity model, run 10,000 Monte Carlo simulations to estimate the loss distribution, analyze the results (mean, percentiles, confidence intervals), and produce a report for rate filings and reserve setting.
 
@@ -42,6 +44,7 @@ act_analyze
     │
     ▼
 act_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ act_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/actuarial-workflow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/actuarial-workflow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow act_actuarial_workflow \
   --version 1 \
-  --input '{"lineOfBusiness": "test-value", "analysisYear": "test-value", "modelType": "test-value"}'
+  --input '{"lineOfBusiness": "sample-lineOfBusiness", "analysisYear": "sample-analysisYear", "modelType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w act_actuarial_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ actuarial-workflow-actuarial-workflow/
 └── src/test/java/actuarialworkflow/workers/
     ├── ModelWorkerTest.java        # 1 tests
     └── ReportWorkerTest.java        # 1 tests
+
 ```

@@ -1,6 +1,8 @@
 # Analytics Reporting Pipeline in Java Using Conductor :  Event Collection, Data Aggregation, KPI Computation, and Dashboard Generation
 
-A Java Conductor workflow example that orchestrates an analytics reporting pipeline .  collecting raw user events from multiple data sources into Parquet files, aggregating them into session-level metrics (total sessions, unique users, page views), computing business KPIs (DAU, WAU, MAU, bounce rate, conversion rate, revenue per user), and generating interactive dashboard reports with scheduled delivery via email and Slack. Uses [Conductor](https://github.## Why Analytics Pipelines Need Orchestration
+A Java Conductor workflow example that orchestrates an analytics reporting pipeline .  collecting raw user events from multiple data sources into Parquet files, aggregating them into session-level metrics (total sessions, unique users, page views), computing business KPIs (DAU, WAU, MAU, bounce rate, conversion rate, revenue per user), and generating interactive dashboard reports with scheduled delivery via email and Slack. Uses [Conductor](https://github.
+
+## Why Analytics Pipelines Need Orchestration
 
 Building an analytics report requires a strict data pipeline. You collect 1.25 million raw events from multiple sources and write them to a staging area. You aggregate those events into session-level summaries .  85K total sessions, 42K unique users, 320K page views, 245-second average session duration. You compute business-critical KPIs from the aggregated data: daily/weekly/monthly active users, 38.5% bounce rate, 4.2% conversion rate. Finally, you generate an interactive dashboard report and schedule delivery to stakeholders.
 
@@ -38,6 +40,7 @@ anr_compute_metrics
     │
     ▼
 anr_generate_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ anr_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/analytics-reporting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/analytics-reporting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow analytics_reporting_workflow \
   --version 1 \
-  --input '{"reportId": "TEST-001", "dateRange": "2026-01-01T00:00:00Z", "dataSources": "test-value"}'
+  --input '{"reportId": "TEST-001", "dateRange": "2026-01-01T00:00:00Z", "dataSources": "api"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w analytics_reporting_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ analytics-reporting/
 └── src/test/java/analyticsreporting/workers/
     ├── AggregateDataWorkerTest.java        # 2 tests
     └── CollectEventsWorkerTest.java        # 2 tests
+
 ```

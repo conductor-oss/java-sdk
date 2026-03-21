@@ -1,6 +1,6 @@
 # Checkout Flow in Java Using Conductor: Validate Cart, Calculate Tax, Process Payment, Confirm Order
 
-Your checkout abandonment rate is 68%. Not because customers changed their minds. because your checkout calls five APIs sequentially: inventory validation, price confirmation, tax calculation, payment processing, and order creation. Any one of them timing out kills the entire flow, and the customer sees a spinner for 12 seconds before a generic error page. They refresh, get a new cart with different prices, and leave. The tax service went down for 90 seconds during a Tuesday sale and you lost $40,000 in completed carts that never converted. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate checkout steps as independent workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+Your checkout abandonment rate is 68%. Not because customers changed their minds. because your checkout calls five APIs sequentially: inventory validation, price confirmation, tax calculation, payment processing, and order creation. Any one of them timing out kills the entire flow, and the customer sees a spinner for 12 seconds before a generic error page. They refresh, get a new cart with different prices, and leave. The tax service went down for 90 seconds during a Tuesday sale and you lost $40,000 in completed carts that never converted. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate checkout steps as independent workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## Checkout Must Be Reliable and Atomic
 
@@ -27,15 +27,6 @@ Four checkout workers: cart validation, tax calculation, payment processing, and
 
 Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ chk_process_payment
     │
     ▼
 chk_confirm_order
+
 ```
 
 ## Example Output
@@ -77,7 +69,9 @@ Step 4: Starting workflow...
   Output: {orderId=ORD-, grandTotal=<Math.round((subtotal>, paymentId=pay-, confirmed=True}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -90,6 +84,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -98,13 +93,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -112,6 +108,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/checkout-flow-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -124,6 +121,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -139,6 +137,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/checkout-flow-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -148,6 +147,7 @@ conductor workflow start \
   --workflow checkout_flow \
   --version 1 \
   --input '{"cartId": "cart-abc123", "userId": "usr-501", "shippingAddress": {"street": "123 Main St", "city": "San Francisco", "state": "CA", "zip": "94105"}, "paymentMethod": {"type": "credit_card", "last4": "4242"}}'
+
 ```
 
 ### Check workflow status
@@ -156,6 +156,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w checkout_flow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -196,4 +197,5 @@ checkout-flow/
     ├── ConfirmOrderWorkerTest.java        # 5 tests
     ├── ProcessPaymentWorkerTest.java        # 5 tests
     └── ValidateCartWorkerTest.java        # 5 tests
+
 ```

@@ -1,6 +1,6 @@
 # Multi-Level Escalation Chain in Java Using Conductor: Request Submission, WAIT for Analyst/Manager/VP Approval, and Finalization
 
-A Java Conductor workflow example for multi-level escalation: submitting a request, pausing at a WAIT task where the request starts with an analyst who can approve, reject, or escalate to a manager, who can in turn escalate to a VP. The decision and the level at which it was made flow into the finalization step. Demonstrates hierarchical escalation where any level can resolve the request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for multi-level escalation: submitting a request, pausing at a WAIT task where the request starts with an analyst who can approve, reject, or escalate to a manager, who can in turn escalate to a VP. The decision and the level at which it was made flow into the finalization step. Demonstrates hierarchical escalation where any level can resolve the request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a custom escalation system, the analyst recei
 
 **You just write the request submission and escalation finalization workers. Conductor handles the durable hold through the analyst-manager-VP chain.**
 
-The WAIT task is the key pattern here. After submitting the request, the workflow pauses at a single WAIT task. The external escalation logic (analyst -> manager -> VP) occurs outside the workflow, each person in the chain either completes the WAIT task with their decision or hands it to the next level. When someone finally decides, they complete the WAIT task with the decision and the level (respondedAt) at which it was made. The finalize worker then processes the outcome. Conductor takes care of holding the request durably through the entire escalation chain, accepting the final decision with the responder's level, tracking the complete timeline from submission through resolution, and retrying finalization if downstream systems are temporarily unavailable. You get all of that for free, without writing a single line of orchestration code.
+The WAIT task is the key pattern here. After submitting the request, the workflow pauses at a single WAIT task. The external escalation logic (analyst -> manager -> VP) occurs outside the workflow, each person in the chain either completes the WAIT task with their decision or hands it to the next level. When someone finally decides, they complete the WAIT task with the decision and the level (respondedAt) at which it was made. The finalize worker then processes the outcome. Conductor takes care of holding the request durably through the entire escalation chain, accepting the final decision with the responder's level, tracking the complete timeline from submission through resolution, and retrying finalization if downstream systems are temporarily unavailable. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -26,15 +26,6 @@ EscSubmitWorker prepares the request for the analyst-manager-VP chain, and EscFi
 
 Workers simulate the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -45,6 +36,7 @@ esc_approval [WAIT]
     │
     ▼
 esc_finalize
+
 ```
 
 ## Running It
@@ -59,6 +51,7 @@ esc_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -67,13 +60,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -81,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/escalation-chain-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -93,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -146,6 +142,7 @@ Step 7: Waiting for workflow completion...
   Responded at: VP level
 
 Result: PASSED
+
 ```
 
 ## Using the Conductor CLI
@@ -154,6 +151,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/escalation-chain-1.0.0.jar --workers
+
 ```
 
 Then use the CLI in a separate terminal to start and manage workflows.
@@ -165,6 +163,7 @@ conductor workflow start \
   --workflow escalation_chain_demo \
   --version 1 \
   --input '{"requestId": "REQ-2026-0089"}'
+
 ```
 
 ### Check workflow status
@@ -173,6 +172,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w escalation_chain_demo -s COMPLETED -c 5
+
 ```
 
 ### Completing the WAIT task (escalation chain approval)
@@ -184,6 +184,7 @@ When the workflow hits the `esc_approval` WAIT task, it pauses until someone in 
 ```bash
 # Get the execution details: look for the task named "esc_approval"
 conductor workflow get-execution <workflow_id> -c
+
 ```
 
 The task ID is in the `taskId` field of the `wait_ref` task.
@@ -193,17 +194,8 @@ The task ID is in the `taskId` field of the `wait_ref` task.
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "decision": "approved",
-      "respondedAt": "Analyst",
-      "respondedBy": "analyst@example.com",
-      "escalationLevel": 1
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "COMPLETED", "outputData": {"decision": "approved", "respondedAt": "Analyst", "respondedBy": "analyst@example.com", "escalationLevel": 1}}'
+
 ```
 
 **Step 2 (alternative): Manager approves after escalation**
@@ -211,17 +203,8 @@ curl -X POST http://localhost:8080/api/tasks \
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "decision": "approved",
-      "respondedAt": "Manager",
-      "respondedBy": "manager@example.com",
-      "escalationLevel": 2
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "COMPLETED", "outputData": {"decision": "approved", "respondedAt": "Manager", "respondedBy": "manager@example.com", "escalationLevel": 2}}'
+
 ```
 
 **Step 2 (alternative): VP rejects after full escalation**
@@ -229,18 +212,8 @@ curl -X POST http://localhost:8080/api/tasks \
 ```bash
 curl -X POST http://localhost:8080/api/tasks \
   -H 'Content-Type: application/json' \
-  -d '{
-    "workflowInstanceId": "<workflow_id>",
-    "taskId": "<task_id>",
-    "status": "COMPLETED",
-    "outputData": {
-      "decision": "rejected",
-      "respondedAt": "VP",
-      "respondedBy": "vp@example.com",
-      "escalationLevel": 3,
-      "reason": "Budget allocation not justified for Q2"
-    }
-  }'
+  -d '{"workflowInstanceId": "<workflow_id>", "taskId": "<task_id>", "status": "COMPLETED", "outputData": {"decision": "rejected", "respondedAt": "VP", "respondedBy": "vp@example.com", "escalationLevel": 3, "reason": "Budget allocation not justified for Q2"}}'
+
 ```
 
 After the WAIT task is completed, the `esc_finalize` worker records the decision and the level at which it was made.
@@ -266,6 +239,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -287,4 +261,5 @@ escalation-chain/
 └── src/test/java/escalationchain/workers/
     ├── EscFinalizeWorkerTest.java   # 5 tests. Analyst/manager/VP levels, null inputs
     └── EscSubmitWorkerTest.java     # 4 tests. Completion, null requestId, output shape
+
 ```

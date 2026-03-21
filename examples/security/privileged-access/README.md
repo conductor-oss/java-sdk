@@ -1,6 +1,8 @@
 # Implementing Privileged Access Management in Java with Conductor :  Just-In-Time Access Requests, Approval, Grant, and Auto-Revocation
 
-A Java Conductor workflow example for just-in-time privileged access management (PAM) .  receiving access requests with justification, running security approval, granting time-limited access to sensitive resources like production databases, and automatically revoking credentials when the window expires. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for just-in-time privileged access management (PAM) .  receiving access requests with justification, running security approval, granting time-limited access to sensitive resources like production databases, and automatically revoking credentials when the window expires. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage privileged access to sensitive resources .  production databases, cloud admin consoles, SSH bastion hosts. Engineers request elevated access tied to an incident or task, someone approves it, credentials are provisioned, and access must be revoked automatically after the approved duration (e.g., 2 hours). If revocation fails or gets skipped, you have standing privileged access that violates least-privilege and creates audit findings.
 
@@ -29,6 +31,7 @@ Workers simulate security checks and remediation actions with realistic findings
 
 ```
 Input -> PamApproveWorker -> PamGrantAccessWorker -> PamRequestWorker -> PamRevokeAccessWorker -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> PamApproveWorker -> PamGrantAccessWorker -> PamRequestWorker -> PamRevo
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/privileged-access-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/privileged-access-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow privileged_access \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w privileged_access -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -132,6 +142,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -157,4 +168,5 @@ privileged-access/
     ├── PamGrantAccessWorkerTest.java        # 8 tests
     ├── PamRequestWorkerTest.java        # 8 tests
     └── PamRevokeAccessWorkerTest.java        # 8 tests
+
 ```

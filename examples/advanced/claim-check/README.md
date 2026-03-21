@@ -1,6 +1,8 @@
 # Claim Check Pattern in Java Using Conductor :  Offload Large Payloads, Pass by Reference
 
-A Java Conductor workflow example for the claim check pattern .  storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.## Keeping Large Payloads Out of Your Message Bus
+A Java Conductor workflow example for the claim check pattern .  storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.
+
+## Keeping Large Payloads Out of Your Message Bus
 
 Workflow tasks exchange data through their inputs and outputs, but passing a 50 MB medical image or a 200 MB CSV dataset directly between tasks bloats every message, slows serialization, and can hit broker size limits. The claim check pattern solves this: store the large payload in blob storage, pass a small reference ID (the "claim check") through the pipeline, and retrieve the full data only in the task that actually needs it.
 
@@ -38,6 +40,7 @@ clc_retrieve
     │
     ▼
 clc_process
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ clc_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/claim-check-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/claim-check-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow clc_claim_check \
   --version 1 \
-  --input '{"payload": "test-value", "storageType": "test-value"}'
+  --input '{"payload": {"key": "value"}, "storageType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w clc_claim_check -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ claim-check/
     ├── ProcessWorkerTest.java        # 8 tests
     ├── RetrieveWorkerTest.java        # 8 tests
     └── StorePayloadWorkerTest.java        # 8 tests
+
 ```

@@ -1,6 +1,8 @@
 # Car Rental in Java with Conductor
 
-Car rental: search, select, book, pickup, return. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Car rental: search, select, book, pickup, return. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to manage a car rental for a business traveler. Searching available vehicles at the pickup location, selecting the right vehicle class (compact, midsize, SUV) based on traveler needs and company policy, booking the reservation, processing the vehicle pickup with documentation, and handling the vehicle return with final charges. Each step depends on the previous one's output.
 
@@ -42,6 +44,7 @@ crl_pickup
     │
     ▼
 crl_return
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ crl_return
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/car-rental-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/car-rental-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crl_car_rental \
   --version 1 \
-  --input '{"travelerId": "TEST-001", "location": "test-value", "pickupDate": "2026-01-01T00:00:00Z", "returnDate": "2026-01-01T00:00:00Z"}'
+  --input '{"travelerId": "TEST-001", "location": "us-east-1", "pickupDate": "2026-01-01T00:00:00Z", "returnDate": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w crl_car_rental -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ car-rental-car-rental/
     ├── ReturnWorkerTest.java        # 2 tests
     ├── SearchWorkerTest.java        # 2 tests
     └── SelectWorkerTest.java        # 2 tests
+
 ```

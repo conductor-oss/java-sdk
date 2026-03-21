@@ -1,6 +1,8 @@
 # Content Archival Pipeline in Java Using Conductor :  Inventory, Compression, Cold Storage, Indexing, and Integrity Verification
 
-A Java Conductor workflow example that orchestrates content archival .  scanning and identifying content eligible for archival (2,450 items totaling 15.2 GB), compressing with Zstandard to achieve 65% size reduction, transferring to cold storage (Glacier Deep Archive with 12-48 hour retrieval), building searchable indexes, and verifying data integrity with SHA-256 checksums and 7-year retention policies. Uses [Conductor](https://github.## Why Content Archival Needs Orchestration
+A Java Conductor workflow example that orchestrates content archival .  scanning and identifying content eligible for archival (2,450 items totaling 15.2 GB), compressing with Zstandard to achieve 65% size reduction, transferring to cold storage (Glacier Deep Archive with 12-48 hour retrieval), building searchable indexes, and verifying data integrity with SHA-256 checksums and 7-year retention policies. Uses [Conductor](https://github.
+
+## Why Content Archival Needs Orchestration
 
 Archiving content is a pipeline where ordering and integrity matter. You identify which content qualifies for archival based on age and access patterns .  2,450 items spanning 18 months. You compress everything into a tarball with Zstandard for 3:1 compression ratios while computing checksums. You transfer the compressed archive to cold storage (Glacier Deep Archive) where retrieval takes 12-48 hours. You index the archived content so it remains searchable without restoring from cold storage. Finally, you verify that the cold storage checksum matches the original, confirming zero data loss.
 
@@ -42,6 +44,7 @@ car_index_archive
     │
     ▼
 car_verify_integrity
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ car_verify_integrity
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/content-archival-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/content-archival-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow content_archival_workflow \
   --version 1 \
-  --input '{"archiveJobId": "TEST-001", "ageThresholdDays": "test-value", "contentCategory": "test-value"}'
+  --input '{"archiveJobId": "TEST-001", "ageThresholdDays": "sample-ageThresholdDays", "contentCategory": "Process this order for customer C-100"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w content_archival_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -170,4 +181,5 @@ content-archival/
 └── src/test/java/contentarchival/workers/
     ├── CompressWorkerTest.java        # 2 tests
     └── IdentifyContentWorkerTest.java        # 2 tests
+
 ```

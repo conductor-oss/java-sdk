@@ -1,6 +1,8 @@
 # Data Export in Java Using Conductor :  Parallel Multi-Format Export (CSV, JSON, Excel) and Bundling
 
-A Java Conductor workflow example for data export: querying a data source, then exporting the results to CSV, JSON, and Excel simultaneously using `FORK_JOIN` parallelism, and bundling all exported files into a single archive for download or delivery. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for data export: querying a data source, then exporting the results to CSV, JSON, and Excel simultaneously using `FORK_JOIN` parallelism, and bundling all exported files into a single archive for download or delivery. Uses [Conductor](https://github.
+
+## The Problem
 
 Users and downstream systems need data in different formats. The finance team wants Excel with formatted columns. The integration partner needs JSON. The data analyst wants CSV for import into R or pandas. You need to export the same dataset to all three formats, do it as fast as possible (in parallel, not sequentially), and bundle the results into a single deliverable. If the Excel export fails due to a formatting issue, the CSV and JSON exports should still complete successfully.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 dx_bundle_exports
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ dx_bundle_exports
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-export-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-export-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_export \
   --version 1 \
-  --input '{"query": "test-value", "formats": "test-value", "destination": "test-value"}'
+  --input '{"query": "What is workflow orchestration?", "formats": "json", "destination": "production"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_export -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ data-export/
     ├── ExportExcelWorkerTest.java        # 4 tests
     ├── ExportJsonWorkerTest.java        # 4 tests
     └── PrepareDataWorkerTest.java        # 6 tests
+
 ```

@@ -1,6 +1,8 @@
 # OCR Pipeline in Java Using Conductor :  Image Preprocessing, Text Extraction, Validation, and Structured Output
 
-A Java Conductor workflow example for document OCR. preprocessing a document image (deskewing, binarization, contrast enhancement), extracting raw text via OCR with a confidence score, validating the extracted text against the expected document type (invoice, receipt, form), and organizing the validated fields into structured output (invoice number, date, total, due date, payment terms). Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for document OCR. preprocessing a document image (deskewing, binarization, contrast enhancement), extracting raw text via OCR with a confidence score, validating the extracted text against the expected document type (invoice, receipt, form), and organizing the validated fields into structured output (invoice number, date, total, due date, payment terms). Uses [Conductor](https://github.
+
+## The Problem
 
 A scanned invoice arrives as a JPEG. slightly rotated, low contrast, with noise from the scanner. Before you can extract structured data (invoice number, date, total amount, due date), the image needs preprocessing: deskewing to straighten the text, binarization to convert to black-and-white, and contrast enhancement so faint characters are readable. The OCR engine then produces raw text with a confidence score, but raw OCR output contains errors, a "$12,450.00" might be read as "$12,45O.OO" if the engine confuses zeros and the letter O. You need to validate the extracted text against the expected document type (an invoice should have an invoice number matching a pattern like `INV-YYYY-NNNN`, a valid date, and a dollar amount) and then organize the validated fields into structured JSON that downstream systems can consume.
 
@@ -38,6 +40,7 @@ oc_validate_text
     │
     ▼
 oc_structure_output
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ oc_structure_output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/ocr-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/ocr-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow ocr_pipeline \
   --version 1 \
-  --input '{"imageUrl": "https://example.com", "documentType": "test-value", "language": "test-value"}'
+  --input '{"imageUrl": "https://example.com", "documentType": "standard", "language": "en"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w ocr_pipeline -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ ocr-pipeline/
     ├── PreprocessImageWorkerTest.java        # 4 tests
     ├── StructureOutputWorkerTest.java        # 4 tests
     └── ValidateTextWorkerTest.java        # 5 tests
+
 ```

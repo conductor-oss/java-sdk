@@ -1,6 +1,8 @@
 # Implementing Security Incident Response in Java with Conductor :  Triage, Containment, Investigation, and Remediation
 
-A Java Conductor workflow example for security incident response .  triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for security incident response .  triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to respond to security incidents .  unauthorized access attempts, data exfiltration, compromised credentials ,  following a structured playbook: triage the alert to determine severity (P1 through P4), contain the threat by isolating the affected system (e.g., an API gateway), investigate to identify root cause and blast radius, and remediate by patching the vulnerability or revoking compromised credentials. Mean time to containment directly impacts breach severity.
 
@@ -29,6 +31,7 @@ Workers simulate security checks and remediation actions with realistic findings
 
 ```
 Input -> ContainWorker -> InvestigateWorker -> RemediateWorker -> TriageWorker -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> ContainWorker -> InvestigateWorker -> RemediateWorker -> TriageWorker -
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/security-incident-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/security-incident-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow security_incident \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w security_incident -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -132,6 +142,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -157,4 +168,5 @@ security-incident/
     ├── InvestigateWorkerTest.java        # 8 tests
     ├── RemediateWorkerTest.java        # 8 tests
     └── TriageWorkerTest.java        # 8 tests
+
 ```

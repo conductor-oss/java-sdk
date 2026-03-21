@@ -27,15 +27,6 @@ Four workers track costs across providers. Calling GPT-4, Claude, and Gemini seq
 
 Each worker auto-detects its API key from the environment. Set one, two, or all three keys to mix live and simulated providers in the same workflow run. Without any keys, everything runs in simulated mode with realistic output shapes.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ ct_call_gemini
     |
     v
 ct_aggregate_costs
+
 ```
 
 ## Running It
@@ -67,6 +59,7 @@ Set any combination of API keys to enable live mode for individual providers:
 export CONDUCTOR_OPENAI_API_KEY="sk-..."        # Enables live GPT-4 calls
 export CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." # Enables live Claude calls
 export GOOGLE_API_KEY="AIza..."       # Enables live Gemini calls
+
 ```
 
 Without keys, workers run in simulated mode with fixed token counts and `` response prefix.
@@ -75,6 +68,7 @@ Without keys, workers run in simulated mode with fixed token counts and `` respo
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -83,19 +77,21 @@ To enable live API calls via Docker Compose, set the keys before running:
 
 ```bash
 CONDUCTOR_OPENAI_API_KEY="sk-..." CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." GOOGLE_API_KEY="AIza..." docker compose up --build
+
 ```
 
 If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -103,6 +99,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/llm-cost-tracking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -118,6 +115,7 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 # With live API calls:
 CONDUCTOR_OPENAI_API_KEY="sk-..." CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." GOOGLE_API_KEY="AIza..." ./run.sh
+
 ```
 
 ## Configuration
@@ -158,6 +156,7 @@ Step 5: Waiting for completion...
   ], totalCost=$0.0481, totalTokens=1390}
 
 Result: PASSED
+
 ```
 
 ### Live mode (with API keys)
@@ -170,6 +169,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/llm-cost-tracking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -179,6 +179,7 @@ conductor workflow start \
   --workflow llm_cost_tracking_workflow \
   --version 1 \
   --input '{"prompt": "Summarize the key benefits of microservices architecture"}'
+
 ```
 
 ### Check workflow status
@@ -187,6 +188,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w llm_cost_tracking_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -209,6 +211,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -234,4 +237,5 @@ llm-cost-tracking/
     ├── CallClaudeWorkerTest.java
     ├── CallGeminiWorkerTest.java
     └── CallGpt4WorkerTest.java
+
 ```

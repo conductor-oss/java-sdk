@@ -1,6 +1,8 @@
 # Agriculture IoT in Java with Conductor
 
-A Java Conductor workflow example that orchestrates precision agriculture .  reading soil moisture and pH from field sensors, fetching weather forecasts for rain probability and temperature, making irrigation decisions based on soil conditions, crop type, and weather outlook, and actuating irrigation valves across specific field zones for a calculated duration. Uses [Conductor](https://github.## Why Smart Irrigation Needs Orchestration
+A Java Conductor workflow example that orchestrates precision agriculture .  reading soil moisture and pH from field sensors, fetching weather forecasts for rain probability and temperature, making irrigation decisions based on soil conditions, crop type, and weather outlook, and actuating irrigation valves across specific field zones for a calculated duration. Uses [Conductor](https://github.
+
+## Why Smart Irrigation Needs Orchestration
 
 Deciding whether to irrigate a field requires data from multiple sources fed through a decision pipeline. You read soil sensors to get current moisture levels and pH for the crop type. You fetch weather data to check temperature and rain probability .  irrigating before a rainstorm wastes water and can damage crops. You feed soil and weather data into an irrigation decision engine that determines whether to irrigate, for how long, and which zones. Finally, you actuate the irrigation valves for the selected zones and duration.
 
@@ -38,6 +40,7 @@ agr_irrigation_decision
     │
     ▼
 agr_actuate
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ agr_actuate
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/agriculture-iot-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/agriculture-iot-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow agriculture_iot_demo \
   --version 1 \
-  --input '{"fieldId": "TEST-001", "cropType": "test-value"}'
+  --input '{"fieldId": "TEST-001", "cropType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w agriculture_iot_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ agriculture-iot/
 └── src/test/java/agricultureiot/workers/
     ├── SoilSensorsWorkerTest.java        # 2 tests
     └── WeatherDataWorkerTest.java        # 2 tests
+
 ```

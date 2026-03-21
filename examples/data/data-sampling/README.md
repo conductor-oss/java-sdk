@@ -1,6 +1,8 @@
 # Data Sampling in Java Using Conductor :  Sample Drawing, Quality Checks, and Conditional Approval Routing
 
-A Java Conductor workflow example for sample-based data quality gating: loading a dataset, drawing a representative sample at a configurable rate, running quality checks against the sample, and using a `SWITCH` to route the dataset to approval (if quality meets the threshold) or flag it for manual review (if quality falls short). Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for sample-based data quality gating: loading a dataset, drawing a representative sample at a configurable rate, running quality checks against the sample, and using a `SWITCH` to route the dataset to approval (if quality meets the threshold) or flag it for manual review (if quality falls short). Uses [Conductor](https://github.
+
+## The Problem
 
 You have a large incoming dataset, a vendor file, an ETL output, a batch import, and you need to decide whether it's good enough to accept before loading it into your production systems. Checking every record is too expensive, so you sample. That means drawing a statistically representative subset at a configurable sample rate, running quality checks on the sample (completeness, format validity, consistency), and making a pass/fail decision based on a threshold. Datasets that pass get approved for loading; datasets that fail get routed to a review queue with a list of specific issues found.
 
@@ -41,6 +43,7 @@ sm_run_quality_checks
 SWITCH (decision_switch_ref)
     ├── pass: sm_approve_dataset
     └── default: sm_flag_for_review
+
 ```
 
 ## Running It
@@ -55,6 +58,7 @@ SWITCH (decision_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -63,6 +67,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -77,6 +82,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-sampling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -89,6 +95,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -104,6 +111,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-sampling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,7 +120,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_sampling_wf \
   --version 1 \
-  --input '{"records": "test-value", "sampleRate": "test-value", "threshold": "test-value"}'
+  --input '{"records": "sample-records", "sampleRate": "sample-sampleRate", "threshold": "sample-threshold"}'
+
 ```
 
 ### Check workflow status
@@ -121,6 +130,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_sampling_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -147,6 +157,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -174,4 +185,5 @@ data-sampling/
     ├── FlagForReviewWorkerTest.java        # 9 tests
     ├── LoadDatasetWorkerTest.java        # 8 tests
     └── RunQualityChecksWorkerTest.java        # 10 tests
+
 ```

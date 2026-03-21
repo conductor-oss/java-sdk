@@ -1,6 +1,8 @@
 # Project Closure in Java with Conductor :  Deliverable Review, Sign-Off, Archival, and Lessons Learned
 
-A Java Conductor workflow example for closing out a project .  reviewing all deliverables against acceptance criteria, obtaining formal stakeholder sign-off, archiving project artifacts, and capturing lessons learned for future projects. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for closing out a project .  reviewing all deliverables against acceptance criteria, obtaining formal stakeholder sign-off, archiving project artifacts, and capturing lessons learned for future projects. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to formally close a project. Every deliverable must be reviewed against its acceptance criteria before anyone signs off. Sign-off must happen before archival .  you can't archive incomplete work. After archival, lessons learned need to be captured while the project is still fresh. Skip any step and you end up with unsigned deliverables sitting in limbo, project artifacts scattered across personal drives, and the same mistakes repeated on the next project.
 
@@ -38,6 +40,7 @@ pcl_archive
     │
     ▼
 pcl_lessons_learned
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ pcl_lessons_learned
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/project-closure-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/project-closure-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -110,6 +118,7 @@ conductor workflow start \
   --workflow project_closure_project-closure \
   --version 1 \
   --input '{"projectId": "PRJ-909", "PRJ-909": "projectName", "projectName": "Cloud Migration", "Cloud Migration": "manager", "manager": "Sarah Chen", "Sarah Chen": "sample-Sarah Chen"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w project_closure_project-closure -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -166,4 +177,5 @@ project-closure-project-closure/
     ├── LessonsLearnedWorkerTest.java        # 2 tests
     ├── ReviewDeliverablesWorkerTest.java        # 2 tests
     └── SignOffWorkerTest.java        # 2 tests
+
 ```

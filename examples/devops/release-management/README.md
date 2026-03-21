@@ -1,6 +1,8 @@
 # Release Management in Java with Conductor :  Preparation, Approval Gates, Deployment, and Announcements
 
-Orchestrates the software release lifecycle using [Conductor](https://github.com/conductor-oss/conductor). This workflow prepares a release by tagging the version and building artifacts, gates it through an approval step before anything goes to production, deploys the approved release, and announces the release to stakeholders via configured channels.## Shipping Without the Chaos
+Orchestrates the software release lifecycle using [Conductor](https://github.com/conductor-oss/conductor). This workflow prepares a release by tagging the version and building artifacts, gates it through an approval step before anything goes to production, deploys the approved release, and announces the release to stakeholders via configured channels.
+
+## Shipping Without the Chaos
 
 Version 2.4.0 is ready to ship. Someone needs to tag the commit, build release artifacts, get sign-off from the release manager, deploy to production, and announce the release to customers and internal teams. If deployment fails after approval, the release is in limbo. Approved but not deployed. If the announcement goes out before deployment actually succeeds, customers expect features that aren't live yet. Every step must happen in the right order, and every step's success must be confirmed before moving on.
 
@@ -38,6 +40,7 @@ rm_deploy
     │
     ▼
 rm_announce
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ rm_announce
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/release-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/release-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow release_management_workflow \
   --version 1 \
-  --input '{"version": "test-value", "product": "test-value"}'
+  --input '{"version": "1.0", "product": "widget-pro"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w release_management_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ release-management-release-management/
 │       └── PrepareWorker.java
 └── src/test/java/releasemanagement/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

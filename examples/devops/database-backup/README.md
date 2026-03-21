@@ -29,19 +29,11 @@ Six workers implement the full backup lifecycle. Configuration validation, snaps
 
 TakeSnapshot runs real dump commands when credentials are available, and falls back to mock mode with deterministic output otherwise. The remaining workers simulate storage and notification operations with realistic outputs. Replace with actual S3 SDK and Slack webhook calls, the workflow stays the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
 Input ->  -> Output
+
 ```
 
 ## Example Output
@@ -532,7 +524,9 @@ Step 4: Starting workflow...
   Output: {databaseName=default, filename=default_timestamp-valueextension-value, sizeBytes=2048, sizeFormatted=2048, storageUri=/output/result.json, verified=true, deletedCount=3, freedFormatted=2026-03-16, notificationStatus=completed}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -545,6 +539,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -553,13 +548,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -567,6 +563,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/database-backup-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -579,6 +576,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -595,6 +593,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/database-backup-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -604,6 +603,7 @@ conductor workflow start \
   --workflow database_backup \
   --version 1 \
   --input '{"database": {"type": "postgresql", "host": "db-primary.internal", "port": 5432, "name": "orders_production", "user": "backup_agent"}, "storage": {"type": "s3", "bucket": "acme-db-backups", "path": "postgresql/orders", "region": "us-east-1"}, "retention": {"days": 30, "maxBackups": 10}, "notification": {"channel": "slack", "recipients": ["dba-team@example.com", "oncall@example.com"]}}'
+
 ```
 
 ### Check workflow status
@@ -612,12 +612,12 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w database_backup -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
 
 Each worker handles one backup stage. Replace the simulated calls with pg_dump, AWS RDS snapshots, or S3 uploads for real database snapshots and offsite storage, and the backup workflow runs unchanged.
-
 
 
 Connect to your database and S3 APIs; the backup pipeline continues to work with the same snapshot-upload-verify interface.
@@ -640,4 +640,5 @@ database-backup/
 │   ├── ConductorClientHelper.java   # SDK v5 client setup
 │   ├── DatabaseBackupExample.java          # Main entry point (supports --workers mode)
 │   └── workers/
+
 ```

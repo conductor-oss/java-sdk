@@ -1,6 +1,8 @@
 # Recruitment Pipeline in Java with Conductor :  Job Posting, Resume Screening, Interview, Evaluation, and Offer
 
-A Java Conductor workflow example for recruitment .  posting a job requisition to job boards, screening candidate resumes against requirements, conducting structured interviews, evaluating composite scores from screening and interview, and extending an offer to the top candidate. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for recruitment .  posting a job requisition to job boards, screening candidate resumes against requirements, conducting structured interviews, evaluating composite scores from screening and interview, and extending an offer to the top candidate. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to manage the hiring pipeline from job posting through offer letter. A hiring manager opens a requisition for a role in their department. The job must be posted to job boards and the company careers page. As applications arrive, each candidate's resume must be screened against the role's requirements .  years of experience, required skills, education ,  producing a screening score (e.g., 85/100). Candidates who pass screening move to interviews, where structured questions produce an interview score. Both scores feed into a composite evaluation that generates a hire/no-hire recommendation. Top candidates receive an offer with compensation details. Each step depends on the previous ,  you cannot interview without screening, and you cannot make an offer without a composite evaluation.
 
@@ -42,6 +44,7 @@ rcp_evaluate
     │
     ▼
 rcp_offer
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ rcp_offer
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/recruitment-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/recruitment-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rcp_recruitment_pipeline \
   --version 1 \
-  --input '{"jobTitle": "test-value", "department": "test-value", "candidateName": "test"}'
+  --input '{"jobTitle": "sample-jobTitle", "department": "engineering", "candidateName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rcp_recruitment_pipeline -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -175,4 +186,5 @@ recruitment-pipeline-recruitment-pipeline/
     ├── OfferWorkerTest.java        # 2 tests
     ├── PostWorkerTest.java        # 2 tests
     └── ScreenWorkerTest.java        # 2 tests
+
 ```

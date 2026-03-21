@@ -1,6 +1,8 @@
 # Backend For Frontend in Java with Conductor
 
-Backend for Frontend pattern with platform-specific responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Backend for Frontend pattern with platform-specific responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Different client platforms (web, mobile, TV) need different response shapes from the same backend data. A web dashboard can display a full user profile with all fields, while a mobile app needs a compact summary to conserve bandwidth. The BFF pattern solves this by fetching shared data once and then branching into platform-specific transformers.
 
@@ -34,6 +36,7 @@ SWITCH (switch_ref)
     ├── web: bff_transform_web
     ├── mobile: bff_transform_mobile
     └── default: bff_transform_web
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/backend-for-frontend-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/backend-for-frontend-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow bff_workflow \
   --version 1 \
-  --input '{"userId": "TEST-001", "platform": "test-value"}'
+  --input '{"userId": "TEST-001", "platform": "sample-platform"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w bff_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -136,6 +146,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -159,4 +170,5 @@ backend-for-frontend/
     ├── FetchDataWorkerTest.java        # 2 tests
     ├── TransformMobileWorkerTest.java        # 2 tests
     └── TransformWebWorkerTest.java        # 2 tests
+
 ```

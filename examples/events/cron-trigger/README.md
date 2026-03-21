@@ -1,6 +1,8 @@
 # Cron Trigger in Java Using Conductor
 
-Cron-like scheduled workflow: check if the current time matches a schedule expression, decide whether to run via SWITCH, and execute or skip accordingly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Cron-like scheduled workflow: check if the current time matches a schedule expression, decide whether to run via SWITCH, and execute or skip accordingly. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to execute scheduled jobs based on cron expressions. The workflow must evaluate whether the current time falls within a cron schedule window, decide whether to run or skip the job, execute the scheduled tasks if triggered, and record the run for audit. Skipping a scheduled job without logging it means you lose visibility into why a task did not execute.
 
@@ -34,6 +36,7 @@ cn_check_schedule
 SWITCH (switch_ref)
     ├── yes: cn_execute_tasks -> cn_record_run
     ├── no: cn_log_skip
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/cron-trigger-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/cron-trigger-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow cron_trigger \
   --version 1 \
-  --input '{"cronExpression": "test-value", "jobName": "test"}'
+  --input '{"cronExpression": "sample-cronExpression", "jobName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cron_trigger -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -137,6 +147,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -162,4 +173,5 @@ cron-trigger/
     ├── ExecuteTasksWorkerTest.java        # 8 tests
     ├── LogSkipWorkerTest.java        # 8 tests
     └── RecordRunWorkerTest.java        # 8 tests
+
 ```

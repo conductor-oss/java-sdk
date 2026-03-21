@@ -1,6 +1,8 @@
 # Event Merge in Java Using Conductor
 
-Event merge workflow that collects events from three parallel streams via FORK_JOIN, merges the results, and processes the merged output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Event merge workflow that collects events from three parallel streams via FORK_JOIN, merges the results, and processes the merged output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 You need to collect events from multiple independent streams and merge them into a single unified dataset. Events from Stream A, Stream B, and Stream C must be collected in parallel (since they are independent), merged into a combined result set preserving source attribution, and then processed as a whole. Sequential collection would multiply latency by the number of streams.
 
@@ -40,6 +42,7 @@ mg_merge_streams
     │
     ▼
 mg_process_merged
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ mg_process_merged
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-merge-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-merge-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,7 +119,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_merge_wf \
   --version 1 \
-  --input '{"sourceA": "test-value", "sourceB": "test-value", "sourceC": "test-value"}'
+  --input '{"sourceA": "api", "sourceB": "api", "sourceC": "api"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_merge_wf -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -142,6 +152,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ event-merge/
     ├── CollectStreamCWorkerTest.java        # 8 tests
     ├── MergeStreamsWorkerTest.java        # 8 tests
     └── ProcessMergedWorkerTest.java        # 8 tests
+
 ```

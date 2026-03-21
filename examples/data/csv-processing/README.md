@@ -1,6 +1,6 @@
 # CSV Processing in Java Using Conductor: Parsing, Validation, Transformation, and Clean Output
 
-A partner sends you a 500MB CSV of customer records every Monday. Your API endpoint reads the whole file into memory, validates every row, transforms field formats, and writes clean output. all in a single synchronous request handler. At row 85,000, a salary field contains "N/A" instead of a number, `Double.parseDouble` throws, and the entire upload fails. The partner re-uploads. This time it gets to row 200,000 before your JVM runs out of heap and the API server crashes, taking down every other endpoint with it. You have no idea which rows were valid, which were rejected, or where the process actually failed, just a 502 in the partner's browser and an OOM in your logs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A partner sends you a 500MB CSV of customer records every Monday. Your API endpoint reads the whole file into memory, validates every row, transforms field formats, and writes clean output. all in a single synchronous request handler. At row 85,000, a salary field contains "N/A" instead of a number, `Double.parseDouble` throws, and the entire upload fails. The partner re-uploads. This time it gets to row 200,000 before your JVM runs out of heap and the API server crashes, taking down every other endpoint with it. You have no idea which rows were valid, which were rejected, or where the process actually failed, just a 502 in the partner's browser and an OOM in your logs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd build a single class that reads the CSV, runs valid
 
 **You just write the CSV parsing, row validation, field transformation, and output generation workers. Conductor handles row-level tracking across parse-validate-transform stages, automatic retries, and visibility into accept/reject counts at each step.**
 
-Each stage of the CSV pipeline is a simple, independent worker. The parser splits raw CSV text into structured rows using the configured delimiter and header mode. The validator checks each row for required fields and format constraints (non-empty name, valid email). The transformer normalizes field values. Title-casing names, lowercasing emails, uppercasing departments, parsing salary strings into doubles. The output generator assembles the clean records and computes summary statistics. Conductor executes them in sequence, passes rows between steps, retries if a step fails, and tracks exactly how many rows were parsed, validated, and transformed. You get all of that for free, without writing a single line of orchestration code.
+Each stage of the CSV pipeline is a simple, independent worker. The parser splits raw CSV text into structured rows using the configured delimiter and header mode. The validator checks each row for required fields and format constraints (non-empty name, valid email). The transformer normalizes field values. Title-casing names, lowercasing emails, uppercasing departments, parsing salary strings into doubles. The output generator assembles the clean records and computes summary statistics. Conductor executes them in sequence, passes rows between steps, retries if a step fails, and tracks exactly how many rows were parsed, validated, and transformed. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -27,15 +27,6 @@ Four workers handle the CSV lifecycle: parsing raw text into rows, validating na
 
 Workers simulate data processing stages with representative outputs so the pipeline runs end-to-end without external data stores. Swap in real data sources and sinks, the pipeline structure and error handling stay the same.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
 ### The Workflow
 
 ```
@@ -49,6 +40,7 @@ cv_transform_fields
     │
     ▼
 cv_generate_output
+
 ```
 
 ## Example Output
@@ -79,7 +71,9 @@ Step 4: Starting workflow...
   Output: {totalParsed=3, validRows=3, invalidRows=3, outputRecords=3, summary=Processing complete}
 
 Result: PASSED
+
 ```
+
 ## Running It
 
 ### Prerequisites
@@ -92,6 +86,7 @@ Result: PASSED
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -100,13 +95,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -114,6 +110,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/csv-processing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -126,6 +123,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -141,6 +139,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/csv-processing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -150,6 +149,7 @@ conductor workflow start \
   --workflow csv_processing \
   --version 1 \
   --input '{"csvData": "name,email,dept,salary\nAlice,alice@corp.com,engineering,95000\nBob,bob@corp.com,sales,82000\n,invalid-email,hr,70000\nDiana,diana@corp.com,engineering,105000", "delimiter": ",", "hasHeader": true}'
+
 ```
 
 ### Check workflow status
@@ -158,6 +158,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w csv_processing -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -183,6 +184,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -208,4 +210,5 @@ csv-processing/
     ├── ParseCsvWorkerTest.java        # 10 tests
     ├── TransformFieldsWorkerTest.java        # 9 tests
     └── ValidateRowsWorkerTest.java        # 9 tests
+
 ```

@@ -1,6 +1,6 @@
 # Uptime Monitoring in Java with Conductor: Endpoint Health Checks, Alerting, and Escalation
 
-A Java Conductor workflow example for uptime monitoring, endpoint health checks, Slack/email alerting, and on-call escalation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles parallelism, retries, failure routing, durability, and observability for free.
+A Java Conductor workflow example for uptime monitoring, endpoint health checks, Slack/email alerting, and on-call escalation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles parallelism, retries, failure routing, durability, and observability.
 
 ## The Problem
 
@@ -12,7 +12,7 @@ Without orchestration, you'd wire all of this together in a single monolithic sc
 
 **You write the endpoint checks and notification logic. Conductor handles parallel health checking, severity-based routing, escalation policies, and full execution history.**
 
-Each concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running them in parallel, routing based on results, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that for free, without writing a single line of orchestration code.
+Each concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running them in parallel, routing based on results, retrying on failure, tracking every execution, and resuming if the process crashes. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -51,22 +51,10 @@ public class CheckEndpoint implements Worker {
         return result;
     }
 }
+
 ```
 
 No retry logic. No error routing. No thread management. Just the business logic.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Parallel execution** | `FORK_JOIN_DYNAMIC` checks all endpoints simultaneously; `FORK_JOIN` sends all notifications at once |
-| **Dynamic fanout** | Number of endpoints isn't hardcoded. Conductor spawns one check per endpoint at runtime |
-| **Conditional routing** | `SWITCH` tasks route to failure notifications or healthy path based on results |
-| **Retries with backoff** | If a worker fails (network blip, timeout), Conductor retries automatically. Configurable per task |
-| **Failure handling** | A failed notification doesn't crash the pipeline; Conductor isolates failures and continues |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
 
 ### The Workflow
 
@@ -98,6 +86,7 @@ SWITCH (hasFailures?)
     │
     ▼
 StoreMetrics
+
 ```
 
 ## Running It
@@ -112,6 +101,7 @@ StoreMetrics
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the uptime monitor automatically.
@@ -120,13 +110,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -134,15 +125,17 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/uptime-monitor-1.0.0.jar
+
 ```
 
 If port 8080 is taken, use a different host port and set `CONDUCTOR_BASE_URL`:
 
 ```bash
-docker run -d -p 9090:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 9090:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 until curl -sf http://localhost:9090/health > /dev/null; do sleep 2; done
 mvn package -DskipTests
 CONDUCTOR_BASE_URL=http://localhost:9090/api java -jar target/uptime-monitor-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -155,6 +148,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 Detects if Conductor is already running at `CONDUCTOR_BASE_URL`. If not, starts it via Docker Compose on `CONDUCTOR_PORT`.
@@ -222,6 +216,7 @@ Each endpoint gets three real network checks:
   Metrics stored : 6 data points
 
 Result: UNHEALTHY. Failures detected (workflow completed successfully)
+
 ```
 
 ## Using the Conductor CLI
@@ -232,6 +227,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/uptime-monitor-1.0.0.jar --workers
+
 ```
 
 Then use the CLI in a separate terminal to start and manage workflows.
@@ -247,6 +243,7 @@ npm install -g @conductor-oss/conductor-cli
 
 # or direct download
 curl -fsSL https://raw.githubusercontent.com/conductor-oss/conductor-cli/main/install.sh | sh
+
 ```
 
 ### Start Conductor locally
@@ -254,6 +251,7 @@ curl -fsSL https://raw.githubusercontent.com/conductor-oss/conductor-cli/main/in
 ```bash
 conductor server start
 conductor server status
+
 ```
 
 ### Register tasks and workflow
@@ -264,6 +262,7 @@ conductor task create src/main/resources/task-defs.json
 
 # Register the workflow
 conductor workflow create src/main/resources/workflow.json
+
 ```
 
 ### Start a workflow run
@@ -272,17 +271,8 @@ conductor workflow create src/main/resources/workflow.json
 conductor workflow start \
   --workflow uptime_monitor \
   --version 1 \
-  --input '{
-    "endpoints": [
-      {"url": "https://www.google.com", "name": "Google", "expectedStatus": 200, "timeout": 5000},
-      {"url": "https://github.com", "name": "GitHub", "expectedStatus": 200, "timeout": 5000}
-    ],
-    "notificationChannels": {
-      "slack": {"webhook": "", "channel": "#ops-alerts"},
-      "email": {"recipients": ["oncall@example.com"]}
-    },
-    "escalationThreshold": 3
-  }'
+  --input '{"endpoints": [{"url": "https://www.google.com", "name": "Google", "expectedStatus": 200, "timeout": 5000}, {"url": "https://github.com", "name": "GitHub", "expectedStatus": 200, "timeout": 5000}], "notificationChannels": {"slack": {"webhook": "", "channel": "#ops-alerts"}, "email": {"recipients": ["oncall@example.com"]}}, "escalationThreshold": 3}'
+
 ```
 
 ### Check workflow status
@@ -296,6 +286,7 @@ conductor workflow get-execution <workflow_id> -c
 
 # Search for recent runs
 conductor workflow search -w uptime_monitor -s COMPLETED -c 5
+
 ```
 
 ### Debug a failed workflow
@@ -312,6 +303,7 @@ conductor workflow retry <workflow_id>
 
 # Restart from the beginning
 conductor workflow restart <workflow_id>
+
 ```
 
 ### List registered definitions
@@ -319,6 +311,7 @@ conductor workflow restart <workflow_id>
 ```bash
 conductor workflow list
 conductor task list
+
 ```
 
 ## SDK
@@ -331,6 +324,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## How to Extend
@@ -354,6 +348,7 @@ ses.sendEmail(SendEmailRequest.builder()
         .build());
 result.getOutputData().put("sent", true);
 result.getOutputData().put("messageId", response.messageId());
+
 ```
 
 - **SendSlackAlert** (`uptime_send_slack_alert`): set the `slack.webhook` input to a real Slack Incoming Webhook URL. The worker already makes a real HTTP POST when a webhook is configured.
@@ -391,4 +386,5 @@ uptime-monitor/
     ├── PrepareChecksTest.java       # 7 tests
     ├── AggregateResultsTest.java    # 9 tests
     └── CheckEndpointTest.java       # 5 tests
+
 ```

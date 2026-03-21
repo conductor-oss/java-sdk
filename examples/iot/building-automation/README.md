@@ -1,6 +1,8 @@
 # Building Automation in Java with Conductor
 
-A Java Conductor workflow example that orchestrates building automation .  monitoring HVAC, lighting, and occupancy systems on a per-floor basis, generating energy optimization recommendations based on current conditions, scheduling the optimizations for execution, and applying adjustments to building systems. Uses [Conductor](https://github.## Why Building Automation Needs Orchestration
+A Java Conductor workflow example that orchestrates building automation .  monitoring HVAC, lighting, and occupancy systems on a per-floor basis, generating energy optimization recommendations based on current conditions, scheduling the optimizations for execution, and applying adjustments to building systems. Uses [Conductor](https://github.
+
+## Why Building Automation Needs Orchestration
 
 Optimizing a building's HVAC and lighting systems requires a pipeline where each step depends on the previous one. You monitor building systems to get current HVAC status, lighting levels, and occupancy counts for a specific floor. You feed that data into an optimizer that identifies energy savings opportunities .  reducing HVAC output in unoccupied zones, dimming lights in daylit areas. You schedule those optimizations into a timed execution plan for the building management system. Finally, you apply the adjustments to the actual HVAC and lighting controllers.
 
@@ -38,6 +40,7 @@ bld_schedule
     │
     ▼
 bld_adjust
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ bld_adjust
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/building-automation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/building-automation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow building_automation_demo \
   --version 1 \
-  --input '{"buildingId": "TEST-001", "floor": "test-value"}'
+  --input '{"buildingId": "TEST-001", "floor": "sample-floor"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w building_automation_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -164,4 +175,5 @@ building-automation/
 └── src/test/java/buildingautomation/workers/
     ├── MonitorSystemsWorkerTest.java        # 2 tests
     └── OptimizeWorkerTest.java        # 2 tests
+
 ```

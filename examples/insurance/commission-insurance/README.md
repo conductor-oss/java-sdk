@@ -1,6 +1,8 @@
 # Insurance Commission Processing in Java with Conductor :  Calculate, Validate, Deduct Advances, Pay, Report
 
-A Java Conductor workflow example demonstrating commission-insurance Commission Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Agent Commissions Have Advances, Tiers, and Clawbacks
+A Java Conductor workflow example demonstrating commission-insurance Commission Insurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Agent Commissions Have Advances, Tiers, and Clawbacks
 
 An agent writes a $2,000 annual premium policy with a 15% new business commission rate ($300). But the agent received a $200 advance against future commissions last month. And if the policy cancels within 6 months, the commission must be clawed back. The commission calculation must apply the correct rate (new business vs: renewal, product-specific tiers), deduct any outstanding advances, process the net payment, and track the potential clawback liability.
 
@@ -42,6 +44,7 @@ cin_pay
     │
     ▼
 cin_report
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ cin_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/commission-insurance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/commission-insurance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,6 +122,7 @@ conductor workflow start \
   --workflow cin_commission_insurance \
   --version 1 \
   --input '{"agentId": "TEST-001", "policyId": "TEST-001", "premiumAmount": 100}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w cin_commission_insurance -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ commission-insurance-commission-insurance/
 └── src/test/java/commissioninsurance/workers/
     ├── CalculateWorkerTest.java        # 1 tests
     └── PayWorkerTest.java        # 1 tests
+
 ```

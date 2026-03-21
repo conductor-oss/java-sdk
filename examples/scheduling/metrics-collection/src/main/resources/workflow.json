@@ -1,9 +1,0 @@
-{"name":"metrics_collection_411","version":1,"schemaVersion":2,"inputParameters":["environment","timeRange"],
-"tasks":[
- {"name":"mc_fork_sources","taskReferenceName":"mc_fork_ref","type":"FORK_JOIN","forkTasks":[
-  [{"name":"mc_collect_app","taskReferenceName":"mc_app_ref","type":"SIMPLE","inputParameters":{"environment":"${workflow.input.environment}","timeRange":"${workflow.input.timeRange}","source":"application"}}],
-  [{"name":"mc_collect_infra","taskReferenceName":"mc_infra_ref","type":"SIMPLE","inputParameters":{"environment":"${workflow.input.environment}","timeRange":"${workflow.input.timeRange}","source":"infrastructure"}}],
-  [{"name":"mc_collect_business","taskReferenceName":"mc_biz_ref","type":"SIMPLE","inputParameters":{"environment":"${workflow.input.environment}","timeRange":"${workflow.input.timeRange}","source":"business"}}]]},
- {"name":"mc_join_sources","taskReferenceName":"mc_join_ref","type":"JOIN","joinOn":["mc_app_ref","mc_infra_ref","mc_biz_ref"]},
- {"name":"mc_aggregate","taskReferenceName":"mc_agg_ref","type":"SIMPLE","inputParameters":{"appMetrics":"${mc_app_ref.output.metricCount}","infraMetrics":"${mc_infra_ref.output.metricCount}","bizMetrics":"${mc_biz_ref.output.metricCount}"}}
-],"outputParameters":{"appMetrics":"${mc_app_ref.output.metricCount}","infraMetrics":"${mc_infra_ref.output.metricCount}","bizMetrics":"${mc_biz_ref.output.metricCount}","totalMetrics":"${mc_agg_ref.output.totalMetrics}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

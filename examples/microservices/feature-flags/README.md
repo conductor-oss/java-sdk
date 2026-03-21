@@ -1,6 +1,8 @@
 # Feature Flags in Java with Conductor
 
-Route execution based on feature flag status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Route execution based on feature flag status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Feature flags let you route users to different code paths (new feature vs legacy) without redeploying. This workflow checks a flag's status for a specific user, routes execution to either the new feature path or the legacy path based on the result, and logs the flag usage for analytics. If the flag status is unknown, a safe default path is used.
 
@@ -39,6 +41,7 @@ SWITCH (ff_switch_ref)
     │
     ▼
 ff_log_usage
+
 ```
 
 ## Running It
@@ -53,6 +56,7 @@ ff_log_usage
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -61,6 +65,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -75,6 +80,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/feature-flags-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -87,6 +93,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -102,6 +109,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/feature-flags-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -111,6 +119,7 @@ conductor workflow start \
   --workflow feature_flags_298 \
   --version 1 \
   --input '{"userId": "TEST-001", "featureName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -119,6 +128,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w feature_flags_298 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ feature-flags/
     ├── LegacyPathWorkerTest.java        # 2 tests
     ├── LogUsageWorkerTest.java        # 2 tests
     └── NewFeatureWorkerTest.java        # 2 tests
+
 ```

@@ -27,7 +27,7 @@ With the dead letter pattern, the failed message and its full context (original 
 
 **You just write the message processor and dead letter handler. Conductor handles retry exhaustion detection, automatic routing of poison messages to the dead-letter handler workflow, and a complete record of every failed message with its error context and retry history.**
 
-The processing worker handles the business logic, and when it fails with retries exhausted, Conductor's failure workflow mechanism captures the failed task with its full context. Original inputs, error details, retry history. A separate handler workflow receives the dead letter items and can log them, alert operators, or persist them for manual review. Every failed item is tracked with complete execution history, so you always know what failed, why, and how many times it was retried. You get all of that for free, without writing a single line of orchestration code.
+The processing worker handles the business logic, and when it fails with retries exhausted, Conductor's failure workflow mechanism captures the failed task with its full context. Original inputs, error details, retry history. A separate handler workflow receives the dead letter items and can log them, alert operators, or persist them for manual review. Every failed item is tracked with complete execution history, so you always know what failed, why, and how many times it was retried. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -40,32 +40,26 @@ ProcessWorker handles message processing and reports success or failure, while H
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Failure workflows** | When a workflow fails after exhausting retries, Conductor can automatically trigger a failure handler workflow |
-
 ### The Workflows
 
 **Main workflow** (`dead_letter_demo`):
+
 ```
 dl_process
     |
     |-- success: workflow COMPLETED with {result: "Processed: order-123"}
     |-- failure: workflow FAILED (retries exhausted). Triggers dead letter handler
+
 ```
 
 **Dead letter handler** (`dead_letter_handler`):
+
 ```
 dl_handle_failure
     |
     v
 (logs failure details, marks as handled, alerts operators)
+
 ```
 
 The main workflow has `retryCount: 0` on the process task, so a failure immediately triggers the dead letter path. In production, you would set retries to 2-3 so that transient failures resolve before reaching the dead letter queue.
@@ -82,6 +76,7 @@ The main workflow has `retryCount: 0` on the process task, so a failure immediat
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -90,13 +85,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -104,6 +100,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/dead-letter-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -116,6 +113,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Example Output
@@ -162,7 +160,9 @@ Step 6: Starting dead letter handler workflow...
   Output: {result=<"Processed: " + data>, mode=fail}
 
 Result: PASSED
+
 ```
+
 ## Configuration
 
 | Environment Variable | Default | Description |
@@ -176,6 +176,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/dead-letter-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -198,6 +199,7 @@ conductor workflow start \
   --workflow dead_letter_handler \
   --version 1 \
   --input '{"failedWorkflowId": "<failed_wf_id>", "failedTaskName": "dl_process", "error": "Processing failed for data: order-456-malformed"}'
+
 ```
 
 ### Check workflow status
@@ -207,6 +209,7 @@ conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w dead_letter_demo -s COMPLETED -c 5
 conductor workflow search -w dead_letter_demo -s FAILED -c 5
+
 ```
 
 ## How to Extend
@@ -230,6 +233,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -252,4 +256,5 @@ dead-letter/
 └── src/test/java/deadletter/workers/
     ├── HandleFailureWorkerTest.java # 7 tests
     └── ProcessWorkerTest.java       # 9 tests
+
 ```

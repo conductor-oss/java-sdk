@@ -1,6 +1,8 @@
 # Premium Calculation in Java with Conductor :  Collect Rating Factors, Calculate Base, Apply Modifiers, Finalize
 
-A Java Conductor workflow example for multi-step insurance premium calculation .  collecting rating factors (policy type, applicant age), computing the base premium from those factors and the coverage amount, applying discount and surcharge modifiers (good driver -10%, multi-policy -5%), and finalizing the adjusted premium. Each step builds on the previous: collected factors feed into the base rate calculation, the base premium and factors together determine which modifiers apply, and the adjusted premium is finalized into the quoted amount ($1,530/year from a $1,800 base). Uses [Conductor](https://github.## Premium Calculation Requires Sequential Factor Collection, Base Rating, and Modifier Application
+A Java Conductor workflow example for multi-step insurance premium calculation .  collecting rating factors (policy type, applicant age), computing the base premium from those factors and the coverage amount, applying discount and surcharge modifiers (good driver -10%, multi-policy -5%), and finalizing the adjusted premium. Each step builds on the previous: collected factors feed into the base rate calculation, the base premium and factors together determine which modifiers apply, and the adjusted premium is finalized into the quoted amount ($1,530/year from a $1,800 base). Uses [Conductor](https://github.
+
+## Premium Calculation Requires Sequential Factor Collection, Base Rating, and Modifier Application
 
 Insurance premiums are not a single calculation .  they require gathering rating factors (age, location, coverage type), computing a base premium from actuarial rate tables, applying eligible discounts and surcharges, and finalizing the quoted amount. Each step depends on the previous: you cannot apply modifiers without knowing the base premium, and you cannot calculate the base without collecting the factors. If the modifier step fails, you need to retry it without recalculating the base premium.
 
@@ -36,6 +38,7 @@ pmc_apply_modifiers
     │
     ▼
 pmc_finalize
+
 ```
 
 ## Running It
@@ -50,6 +53,7 @@ pmc_finalize
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -58,6 +62,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -72,6 +77,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/premium-calculation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -84,6 +90,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -99,6 +106,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/premium-calculation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -107,7 +115,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow pmc_premium_calculation \
   --version 1 \
-  --input '{"policyType": "test-value", "applicantAge": "test-value", "coverageAmount": 100}'
+  --input '{"policyType": "standard", "applicantAge": "sample-applicantAge", "coverageAmount": 100}'
+
 ```
 
 ### Check workflow status
@@ -116,6 +125,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w pmc_premium_calculation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -153,4 +163,5 @@ premium-calculation-premium-calculation/
 └── src/test/java/premiumcalculation/workers/
     ├── CalculateBaseWorkerTest.java        # 1 tests
     └── FinalizeWorkerTest.java        # 1 tests
+
 ```

@@ -1,6 +1,8 @@
 # Reverse Logistics in Java with Conductor :  Return Receipt, Condition Inspection, Refurbish/Recycle/Dispose Routing, and Processing
 
-A Java Conductor workflow example for reverse logistics .  receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for reverse logistics .  receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to handle product returns efficiently and recover maximum value. When a customer returns wireless headphones with a defective speaker (return ID RET-2024-669), the item must be received at the returns center, inspected to determine condition (cosmetic damage only? functional defect? beyond repair?), and routed to the appropriate disposition: refurbishment if repairable, recycling if materials can be recovered, or disposal if neither is viable. The final processing step updates inventory, triggers the customer refund, and records the disposition for sustainability reporting.
 
@@ -43,6 +45,7 @@ SWITCH (rvl_switch_ref)
     │
     ▼
 rvl_process
+
 ```
 
 ## Running It
@@ -57,6 +60,7 @@ rvl_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,6 +69,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -79,6 +84,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/reverse-logistics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,6 +97,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -106,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/reverse-logistics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -114,7 +122,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rvl_reverse_logistics \
   --version 1 \
-  --input '{"returnId": "TEST-001", "product": "test-value", "reason": "test-value"}'
+  --input '{"returnId": "TEST-001", "product": "widget-pro", "reason": "sample-reason"}'
+
 ```
 
 ### Check workflow status
@@ -123,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rvl_reverse_logistics -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -177,4 +188,5 @@ reverse-logistics/
     ├── ReceiveReturnWorkerTest.java        # 2 tests
     ├── RecycleWorkerTest.java        # 2 tests
     └── RefurbishWorkerTest.java        # 2 tests
+
 ```

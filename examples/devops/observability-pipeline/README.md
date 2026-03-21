@@ -1,6 +1,8 @@
 # Observability Pipeline in Java with Conductor
 
-Orchestrates a full observability pipeline using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects metrics from a service, correlates distributed traces across microservices, detects anomalies (latency spikes, error rate increases), and either fires alerts or stores the data for dashboarding.## Seeing Through the Noise
+Orchestrates a full observability pipeline using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects metrics from a service, correlates distributed traces across microservices, detects anomalies (latency spikes, error rate increases), and either fires alerts or stores the data for dashboarding.
+
+## Seeing Through the Noise
 
 Your checkout-service generated 15,000 metrics and 3,200 traces in the last hour. Somewhere in that data, there is a latency spike and an error rate increase. Finding the signal in the noise requires collecting metrics, correlating traces to understand request flow, detecting anomalies, and deciding whether to page someone or just store it for later analysis. Doing this manually means staring at Grafana dashboards hoping to spot the pattern.
 
@@ -38,6 +40,7 @@ op_detect_anomalies
     │
     ▼
 op_alert_or_store
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ op_alert_or_store
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/observability-pipeline-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/observability-pipeline-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow observability_pipeline_workflow \
   --version 1 \
-  --input '{"service": "test-value", "timeWindow": "2026-01-01T00:00:00Z"}'
+  --input '{"service": "order-service", "timeWindow": "2026-01-01T00:00:00Z"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w observability_pipeline_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -141,6 +151,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -163,4 +174,5 @@ observability-pipeline-observability-pipeline/
 │       └── DetectAnomaliesWorker.java
 └── src/test/java/observabilitypipeline/
     └── MainExampleTest.java        # 2 tests .  workflow resource loading, worker instantiation
+
 ```

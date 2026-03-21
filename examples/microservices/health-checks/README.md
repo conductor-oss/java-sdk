@@ -1,6 +1,8 @@
 # Health Checks in Java with Conductor
 
-Check health of multiple services in parallel. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## The Problem
+Check health of multiple services in parallel. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## The Problem
 
 Monitoring the health of multiple services (API gateway, database, cache) requires hitting each service's health endpoint, collecting status and latency data, and producing a consolidated health report. These checks should run in parallel to minimize total check time, and the report must account for partial failures.
 
@@ -34,6 +36,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 hc_generate_report
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ hc_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/health-checks-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/health-checks-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -106,6 +114,7 @@ conductor workflow start \
   --workflow health_checks_295 \
   --version 1 \
   --input '{"input": "test"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w health_checks_295 -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -135,6 +145,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -156,4 +167,5 @@ health-checks/
 └── src/test/java/healthchecks/workers/
     ├── CheckServiceWorkerTest.java        # 5 tests
     └── GenerateReportWorkerTest.java        # 4 tests
+
 ```

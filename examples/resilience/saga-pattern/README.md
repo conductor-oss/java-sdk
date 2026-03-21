@@ -24,7 +24,7 @@ The saga pattern solves this by defining a compensating action for every forward
 
 **You just write the booking and compensation logic for each service. Conductor handles forward sequencing, SWITCH-based failure detection, reverse-order compensation execution, retries on each booking and cancellation step, and a full audit trail of every saga with its forward and rollback paths.**
 
-Each forward step (book flight, reserve hotel, charge payment) and its compensation (cancel flight, cancel hotel, refund payment) are independent workers. Conductor runs the forward steps in sequence and, on failure, triggers the compensation workflow that runs undo steps in reverse order. Every step in both directions is tracked with full context. You get all of that for free, without writing a single line of orchestration code.
+Each forward step (book flight, reserve hotel, charge payment) and its compensation (cancel flight, cancel hotel, refund payment) are independent workers. Conductor runs the forward steps in sequence and, on failure, triggers the compensation workflow that runs undo steps in reverse order. Every step in both directions is tracked with full context. You get all of that, without writing a single line of orchestration code.
 
 ### What You Write: Workers
 
@@ -41,16 +41,6 @@ Six workers form the saga: ReserveHotelWorker, BookFlightWorker, and ChargePayme
 
 Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
 
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
 ### The Workflow
 
 ```
@@ -66,6 +56,7 @@ saga_charge_payment
 SWITCH (check_payment_ref)
     |-- "failed": saga_cancel_flight -> saga_cancel_hotel -> TERMINATE(ROLLED_BACK)
     |-- default:  workflow completes with booking details
+
 ```
 
 ## Running It
@@ -80,6 +71,7 @@ SWITCH (check_payment_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -88,13 +80,14 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 
 # Wait for Conductor to be ready
 until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
@@ -102,6 +95,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/saga-pattern-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -114,6 +108,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Example Output
@@ -155,6 +150,7 @@ when a step fails, the workflow runs compensating tasks in reverse order
 to undo the effects of previously completed steps.
 
 Result: PASSED
+
 ```
 
 ## Configuration
@@ -170,6 +166,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/saga-pattern-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -186,6 +183,7 @@ conductor workflow start \
   --workflow trip_booking_saga \
   --version 1 \
   --input '{"tripId": "TRIP-102", "shouldFail": true}'
+
 ```
 
 ### Check workflow status
@@ -194,6 +192,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w trip_booking_saga -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -217,6 +216,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -246,4 +246,5 @@ saga-pattern/
     ├── ChargePaymentWorkerTest.java  # 5 tests
     ├── RefundPaymentWorkerTest.java  # 4 tests
     └── ReserveHotelWorkerTest.java   # 4 tests
+
 ```

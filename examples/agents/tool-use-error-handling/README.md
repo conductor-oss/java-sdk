@@ -1,6 +1,8 @@
 # Tool Use Error Handling in Java Using Conductor :  Primary Tool with Fallback on Failure
 
-Tool Use Error Handling .  tries a primary tool and falls back to an alternative tool on failure via a SWITCH task. Uses [Conductor](https://github.## Tools Fail :  Have a Backup Plan
+Tool Use Error Handling .  tries a primary tool and falls back to an alternative tool on failure via a SWITCH task. Uses [Conductor](https://github.
+
+## Tools Fail :  Have a Backup Plan
 
 Your primary weather API returns a 503 because it's having an outage. Your primary search engine is rate-limiting you. Your primary database is under maintenance. If the agent simply reports "tool failed" to the user, it's a poor experience .  especially when an alternative tool could have answered the question.
 
@@ -34,6 +36,7 @@ te_try_primary_tool
 SWITCH (route_on_status_ref)
     ├── success: te_format_success
     └── default: te_try_fallback_tool -> te_format_fallback
+
 ```
 
 ## Running It
@@ -48,6 +51,7 @@ SWITCH (route_on_status_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -56,6 +60,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -70,6 +75,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/tool-use-error-handling-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -82,6 +88,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -97,6 +104,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/tool-use-error-handling-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -105,7 +113,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow tool_use_error_handling \
   --version 1 \
-  --input '{"query": "test-value", "primaryTool": "test-value", "fallbackTool": "test-value"}'
+  --input '{"query": "What is workflow orchestration?", "primaryTool": "sample-primaryTool", "fallbackTool": "sample-fallbackTool"}'
+
 ```
 
 ### Check workflow status
@@ -114,6 +123,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w tool_use_error_handling -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -153,4 +163,5 @@ tool-use-error-handling/
     ├── FormatSuccessWorkerTest.java        # 8 tests
     ├── TryFallbackToolWorkerTest.java        # 8 tests
     └── TryPrimaryToolWorkerTest.java        # 8 tests
+
 ```

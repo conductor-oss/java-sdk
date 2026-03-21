@@ -1,6 +1,8 @@
 # Self-Correction Agent in Java Using Conductor :  Generate Code, Test, Diagnose, Fix
 
-Self-Correction .  generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering. Uses [Conductor](https://github.## AI-Generated Code Needs Testing and Self-Repair
+Self-Correction .  generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering. Uses [Conductor](https://github.
+
+## AI-Generated Code Needs Testing and Self-Repair
 
 LLM-generated code works on the first try about 60-70% of the time. The remaining 30-40% has bugs .  off-by-one errors, missing edge cases, incorrect API usage. A self-correcting agent doesn't just generate code; it tests the code, and if tests fail, it diagnoses what went wrong and fixes it.
 
@@ -37,6 +39,7 @@ sc_run_tests
 SWITCH (test_result_switch_ref)
     ├── pass: sc_deliver
     ├── fail: sc_diagnose -> sc_fix -> sc_deliver
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ SWITCH (test_result_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/self-correction-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/self-correction-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow self_correction \
   --version 1 \
-  --input '{"requirement": "test-value"}'
+  --input '{"requirement": "sample-requirement"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w self_correction -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -159,4 +169,5 @@ self-correction/
     ├── FixWorkerTest.java        # 8 tests
     ├── GenerateCodeWorkerTest.java        # 8 tests
     └── RunTestsWorkerTest.java        # 8 tests
+
 ```

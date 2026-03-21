@@ -1,6 +1,8 @@
 # Reinsurance in Java with Conductor :  Assess Risk, Treaty Lookup, Cede, Confirm, Reconcile
 
-A Java Conductor workflow example demonstrating reinsurance Reinsurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Insurers Transfer Risk to Reinsurers for Large Exposures
+A Java Conductor workflow example demonstrating reinsurance Reinsurance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Insurers Transfer Risk to Reinsurers for Large Exposures
 
 An insurer writes a $10M commercial property policy. That's more risk than they want on their own books. Reinsurance transfers a portion of the risk (and premium) to reinsurers. The process assesses the risk profile (coverage amount, peril, territory, loss history), identifies which reinsurance treaties apply (quota share for the first $5M, excess of loss for amounts above $5M), cedes the appropriate share (notify the reinsurer, transfer premium), confirms the reinsurer's acceptance, and reconciles the accounts at period end.
 
@@ -42,6 +44,7 @@ rin_confirm
     │
     ▼
 rin_reconcile
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ rin_reconcile
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/reinsurance-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/reinsurance-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow rin_reinsurance \
   --version 1 \
-  --input '{"policyId": "TEST-001", "coverageAmount": 100, "riskCategory": "test-value"}'
+  --input '{"policyId": "TEST-001", "coverageAmount": 100, "riskCategory": "general"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rin_reinsurance -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -160,4 +170,5 @@ reinsurance-reinsurance/
 └── src/test/java/reinsurance/workers/
     ├── AssessRiskWorkerTest.java        # 1 tests
     └── CedeWorkerTest.java        # 1 tests
+
 ```

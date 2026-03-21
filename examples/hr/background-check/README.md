@@ -1,6 +1,8 @@
 # Background Check in Java with Conductor :  Consent, Parallel Criminal/Employment/Education Verification, and Report
 
-A Java Conductor workflow example for pre-employment background checks .  collecting candidate consent under FCRA, running criminal record, employment history, and education verification in parallel via FORK_JOIN, and compiling a final eligibility report. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for pre-employment background checks .  collecting candidate consent under FCRA, running criminal record, employment history, and education verification in parallel via FORK_JOIN, and compiling a final eligibility report. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to verify a candidate's background before their start date. The Fair Credit Reporting Act (FCRA) requires written consent before any checks can begin. Once consent is obtained, three independent verifications must run: a criminal record search across multiple jurisdictions (county, state, federal), an employment history verification confirming titles, dates, and employers from the candidate's resume, and an education verification confirming degrees and institutions. These three checks are independent .  each queries different databases and services ,  so they should run in parallel to minimize the total turnaround time. Once all three complete, a consolidated report determines the overall result (clear, flagged, or adverse) for the hiring decision. Running checks sequentially when they could run in parallel wastes days of time-to-hire.
 
@@ -40,6 +42,7 @@ FORK_JOIN
     ▼
 JOIN (wait for all branches)
 bgc_report
+
 ```
 
 ## Running It
@@ -54,6 +57,7 @@ bgc_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -62,6 +66,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -76,6 +81,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/background-check-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -88,6 +94,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -103,6 +110,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/background-check-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -112,6 +120,7 @@ conductor workflow start \
   --workflow bgc_background_check \
   --version 1 \
   --input '{"candidateName": "test", "candidateId": "TEST-001"}'
+
 ```
 
 ### Check workflow status
@@ -120,6 +129,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w bgc_background_check -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -146,6 +156,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -173,4 +184,5 @@ background-check-background-check/
     ├── EducationWorkerTest.java        # 2 tests
     ├── EmploymentWorkerTest.java        # 2 tests
     └── ReportWorkerTest.java        # 2 tests
+
 ```

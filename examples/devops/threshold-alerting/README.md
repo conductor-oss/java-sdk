@@ -1,6 +1,8 @@
 # Threshold Alerting in Java with Conductor :  Check Metric, Route by Severity via SWITCH
 
-Automates threshold-based alerting using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks a metric value against warning and critical thresholds, then routes to the appropriate action: logging for normal values, sending a Slack warning for elevated values, or paging the on-call engineer for critical breaches.## The Right Alert to the Right Person
+Automates threshold-based alerting using [Conductor](https://github.com/conductor-oss/conductor). This workflow checks a metric value against warning and critical thresholds, then routes to the appropriate action: logging for normal values, sending a Slack warning for elevated values, or paging the on-call engineer for critical breaches.
+
+## The Right Alert to the Right Person
 
 CPU usage is at 87%. Is that a problem? It depends on the thresholds. Below 70% is fine: just log it. Between 70% and 90% is a warning, send a Slack message so the team is aware. Above 90% is critical, page the on-call engineer immediately. Each severity level needs a different response, and the check needs to happen reliably every time, with the right routing for each outcome.
 
@@ -29,6 +31,7 @@ Workers simulate infrastructure operations with realistic output so you can see 
 
 ```
 Input -> CheckMetric -> LogOk -> PageOncall -> SendWarning -> Output
+
 ```
 
 ## Running It
@@ -43,6 +46,7 @@ Input -> CheckMetric -> LogOk -> PageOncall -> SendWarning -> Output
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -51,6 +55,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -65,6 +70,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/threshold-alerting-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -77,6 +83,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -92,6 +99,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/threshold-alerting-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -101,6 +109,7 @@ conductor workflow start \
   --workflow threshold_alerting \
   --version 1 \
   --input '{}'
+
 ```
 
 ### Check workflow status
@@ -109,6 +118,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w threshold_alerting -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -149,4 +159,5 @@ threshold-alerting/
     ├── LogOkTest.java        # 8 tests
     ├── PageOncallTest.java        # 7 tests
     └── SendWarningTest.java        # 8 tests
+
 ```

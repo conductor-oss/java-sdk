@@ -1,6 +1,6 @@
 # Conductor Java SDK Examples
 
-831 self-contained examples for the Conductor Java SDK. Each example is an independent Maven project with its own `pom.xml`, workers, workflow definition, tests, and launcher script.
+791 self-contained examples for the Conductor Java SDK. Each example is an independent Maven project with its own `pom.xml`, workers, workflow definition, tests, and launcher script.
 
 ## Quick Start
 
@@ -11,6 +11,7 @@ docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
 # Pick any example and run it
 cd examples/basics/hello-world
 mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
+
 ```
 
 ## Prerequisites
@@ -814,7 +815,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [failure-workflow](resilience/failure-workflow/) | A Java Conductor workflow example demonstrating Conductor's failure workflow feature .  when the mai... |
 | [fallback-tasks](resilience/fallback-tasks/) | A Java Conductor workflow example demonstrating tiered fallback .  trying a primary API first, falli... |
 | [graceful-degradation](resilience/graceful-degradation/) | The recommendation engine goes down at 9 AM on Black Friday. Your product page has a "You might also... |
-| [idempotent-workers](resilience/idempotent-workers/) | A Java Conductor workflow example demonstrating idempotent workers .  processing a payment charge an... |
+| [idempotent-workers](resilience/idempotent-workers/) | A Java Conductor workflow example demonstrating idempotent workers.  processing a payment charge an... |
 | [multi-step-compensation](resilience/multi-step-compensation/) | A Java Conductor workflow example demonstrating multi-step compensation .  creating an account, sett... |
 | [network-partitions](resilience/network-partitions/) | A Java Conductor workflow example demonstrating resilience to network partitions .  a worker that tr... |
 | [optional-tasks](resilience/optional-tasks/) | A Java Conductor workflow example demonstrating optional tasks .  a required core task that must suc... |
@@ -1045,6 +1046,7 @@ examples/<category>/<example>/
 ├── src/main/java/             # Main class + workers
 ├── src/main/resources/        # workflow.json
 └── src/test/java/             # Unit tests
+
 ```
 
 All examples support `--workers` flag for worker-only mode.

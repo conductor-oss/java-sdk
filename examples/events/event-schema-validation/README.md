@@ -1,6 +1,8 @@
 # Event Schema Validation in Java Using Conductor
 
-Event Schema Validation .  validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. Uses [Conductor](https://github.## The Problem
+Event Schema Validation .  validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to validate incoming events against a schema before processing them. Malformed events (missing required fields, wrong data types, extra fields) must be caught early and routed to a dead-letter queue rather than corrupting downstream systems. Valid events proceed to normal processing. Without schema validation, one malformed event can crash a consumer, corrupt a database, or produce silently incorrect results.
 
@@ -33,6 +35,7 @@ sv_validate_schema
 SWITCH (route_ref)
     ├── valid: sv_process_valid
     ├── invalid: sv_dead_letter
+
 ```
 
 ## Running It
@@ -47,6 +50,7 @@ SWITCH (route_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -55,6 +59,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -69,6 +74,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/event-schema-validation-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -81,6 +87,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -96,6 +103,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/event-schema-validation-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -104,7 +112,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow event_schema_validation \
   --version 1 \
-  --input '{"event": "test-value", "schemaName": "test"}'
+  --input '{"event": "sample-event", "schemaName": "test"}'
+
 ```
 
 ### Check workflow status
@@ -113,6 +122,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w event_schema_validation -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -135,6 +145,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -158,4 +169,5 @@ event-schema-validation/
     ├── DeadLetterWorkerTest.java        # 9 tests
     ├── ProcessValidWorkerTest.java        # 8 tests
     └── ValidateSchemaWorkerTest.java        # 11 tests
+
 ```

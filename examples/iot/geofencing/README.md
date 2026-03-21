@@ -1,6 +1,8 @@
 # Geofencing in Java with Conductor :  Location Tracking, Boundary Evaluation, and Zone-Based Alerts
 
-A Java Conductor workflow example that orchestrates geofence monitoring .  normalizing device GPS coordinates, computing distance from geofence boundaries, determining inside/outside zone status, and routing to different alert handlers based on whether the device has entered or exited the fence. Uses [Conductor](https://github.## Why Geofence Monitoring Needs Orchestration
+A Java Conductor workflow example that orchestrates geofence monitoring .  normalizing device GPS coordinates, computing distance from geofence boundaries, determining inside/outside zone status, and routing to different alert handlers based on whether the device has entered or exited the fence. Uses [Conductor](https://github.
+
+## Why Geofence Monitoring Needs Orchestration
 
 Geofencing requires a decision pipeline for every location update. You receive raw GPS coordinates from a device, normalize them, and compute the Euclidean distance to the geofence center. Based on whether the device is inside or outside the defined radius, you route to entirely different alert handlers .  an entry alert when a device enters a restricted zone, an exit alert when it leaves a monitored area. The alert type, the notification recipients, and the follow-up actions all depend on the zone status.
 
@@ -37,6 +39,7 @@ geo_evaluate_boundaries
 SWITCH (geo_switch_ref)
     ├── inside: geo_alert_inside
     ├── outside: geo_alert_outside
+
 ```
 
 ## Running It
@@ -51,6 +54,7 @@ SWITCH (geo_switch_ref)
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -59,6 +63,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -73,6 +78,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/geofencing-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -85,6 +91,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -100,6 +107,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/geofencing-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -108,7 +116,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow geofencing_demo \
   --version 1 \
-  --input '{"deviceId": "TEST-001", "latitude": "test-value", "longitude": "test-value"}'
+  --input '{"deviceId": "TEST-001", "latitude": "sample-latitude", "longitude": "sample-longitude"}'
+
 ```
 
 ### Check workflow status
@@ -117,6 +126,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w geofencing_demo -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ geofencing/
     ├── AlertOutsideWorkerTest.java        # 8 tests
     ├── CheckLocationWorkerTest.java        # 8 tests
     └── EvaluateBoundariesWorkerTest.java        # 8 tests
+
 ```

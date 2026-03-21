@@ -1,6 +1,8 @@
 # Milestone Tracking in Java with Conductor :  Progress Checking, Health Evaluation, Conditional Routing (On-Track / At-Risk / Delayed), and Action Execution
 
-A Java Conductor workflow example that automates milestone tracking .  checking progress by counting completed vs: total deliverables, evaluating milestone health to classify as on-track, at-risk, or delayed, routing to different response handlers based on the health status using a SWITCH task, and executing the appropriate action (continue as planned, escalate to the project lead, or trigger recovery). Uses [Conductor](https://github.## Why Milestone Tracking Needs Orchestration
+A Java Conductor workflow example that automates milestone tracking .  checking progress by counting completed vs: total deliverables, evaluating milestone health to classify as on-track, at-risk, or delayed, routing to different response handlers based on the health status using a SWITCH task, and executing the appropriate action (continue as planned, escalate to the project lead, or trigger recovery). Uses [Conductor](https://github.
+
+## Why Milestone Tracking Needs Orchestration
 
 Tracking milestones requires more than checking a percentage .  you need to evaluate progress against the deadline and take different actions depending on how healthy the milestone looks. You check progress by counting completed deliverables against the total (e.g., 7 of 10 done, 70% complete). You evaluate that progress against the timeline ,  70% complete at 80% of the timeline elapsed means the milestone is at risk, not on track. Based on the health status, you take fundamentally different actions: on-track milestones continue as planned, at-risk milestones get escalated to the project lead for attention, and delayed milestones trigger recovery plans with scope re-negotiation or deadline extension.
 
@@ -43,6 +45,7 @@ SWITCH (switch_ref)
     │
     ▼
 mst_act
+
 ```
 
 ## Running It
@@ -57,6 +60,7 @@ mst_act
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -65,6 +69,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -79,6 +84,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/milestone-tracking-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -91,6 +97,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -106,6 +113,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/milestone-tracking-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -115,6 +123,7 @@ conductor workflow start \
   --workflow milestone_tracking_milestone-tracking \
   --version 1 \
   --input '{"milestoneId": "MS-Q1-2026", "MS-Q1-2026": "projectName", "projectName": "Project Alpha", "Project Alpha": "sample-Project Alpha"}'
+
 ```
 
 ### Check workflow status
@@ -123,6 +132,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w milestone_tracking_milestone-tracking -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -177,4 +188,5 @@ milestone-tracking-milestone-tracking/
     ├── DelayedWorkerTest.java        # 2 tests
     ├── EvaluateWorkerTest.java        # 2 tests
     └── OnTrackWorkerTest.java        # 2 tests
+
 ```

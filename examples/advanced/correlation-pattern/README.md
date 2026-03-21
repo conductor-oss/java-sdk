@@ -1,6 +1,8 @@
 # Message Correlation in Java Using Conductor :  Group Related Messages by ID and Process Together
 
-A Java Conductor workflow example for message correlation .  receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.## Linking Messages That Belong Together
+A Java Conductor workflow example for message correlation .  receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.
+
+## Linking Messages That Belong Together
 
 A single customer order generates events from the payment service, the inventory service, and the shipping service. Each event arrives independently with its own schema, but they all share an order ID. To build a complete order view .  payment confirmed, items reserved, label printed ,  you need to match these messages by their correlation field, group them, and process each group as a whole.
 
@@ -38,6 +40,7 @@ crp_aggregate
     │
     ▼
 crp_process
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ crp_process
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/correlation-pattern-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/correlation-pattern-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow crp_correlation_pattern \
   --version 1 \
-  --input '{"messages": "test-value", "correlationField": "test-value"}'
+  --input '{"messages": "Process this order for customer C-100", "correlationField": "sample-correlationField"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w crp_correlation_pattern -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -140,6 +150,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -165,4 +176,5 @@ correlation-pattern/
     ├── CrpMatchByIdWorkerTest.java        # 4 tests
     ├── CrpProcessWorkerTest.java        # 4 tests
     └── CrpReceiveMessagesWorkerTest.java        # 4 tests
+
 ```

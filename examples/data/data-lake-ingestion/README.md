@@ -1,6 +1,8 @@
 # Data Lake Ingestion in Java Using Conductor :  Schema Validation, Date Partitioning, Format Conversion, and Catalog Registration
 
-A Java Conductor workflow example for data lake ingestion: validating incoming records against a schema, partitioning data by date for efficient querying, converting to an optimized storage format (Parquet, ORC, Avro), writing partitioned files to the lake path, and updating the data catalog so downstream consumers can discover the new data. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for data lake ingestion: validating incoming records against a schema, partitioning data by date for efficient querying, converting to an optimized storage format (Parquet, ORC, Avro), writing partitioned files to the lake path, and updating the data catalog so downstream consumers can discover the new data. Uses [Conductor](https://github.
+
+## The Problem
 
 You need to land data into your data lake in a way that's queryable, discoverable, and doesn't corrupt existing data. That means validating incoming records against the expected schema (rejecting malformed rows before they pollute the lake), partitioning records by date so queries only scan relevant partitions, converting from raw formats (JSON, CSV) into columnar formats (Parquet, ORC) for efficient analytics, writing the converted files to the correct lake path with atomic semantics, and updating the data catalog (Hive Metastore, AWS Glue, Apache Atlas) so tools like Athena, Presto, and Spark can find the new data.
 
@@ -42,6 +44,7 @@ li_write_to_lake
     │
     ▼
 li_update_catalog
+
 ```
 
 ## Running It
@@ -56,6 +59,7 @@ li_update_catalog
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -64,6 +68,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -78,6 +83,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/data-lake-ingestion-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -90,6 +96,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -105,6 +112,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/data-lake-ingestion-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -113,7 +121,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow data_lake_ingestion \
   --version 1 \
-  --input '{"records": "test-value", "lakePath": "test-value", "format": "test-value"}'
+  --input '{"records": "sample-records", "lakePath": "sample-lakePath", "format": "json"}'
+
 ```
 
 ### Check workflow status
@@ -122,6 +131,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w data_lake_ingestion -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -148,6 +158,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -169,4 +180,5 @@ data-lake-ingestion/
 │       ├── UpdateCatalogWorker.java
 │       ├── ValidateSchemaWorker.java
 │       └── WriteToLakeWorker.java
+
 ```

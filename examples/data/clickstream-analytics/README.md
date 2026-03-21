@@ -1,6 +1,8 @@
 # Clickstream Analytics in Java Using Conductor :  Event Ingestion, Sessionization, and Journey Analysis
 
-A Java Conductor workflow example for clickstream analytics: ingesting raw click events, grouping them into user sessions, analyzing navigation journeys for conversion patterns, and generating analytics reports. Uses [Conductor](https://github.## The Problem
+A Java Conductor workflow example for clickstream analytics: ingesting raw click events, grouping them into user sessions, analyzing navigation journeys for conversion patterns, and generating analytics reports. Uses [Conductor](https://github.
+
+## The Problem
 
 You have a stream of raw click events. Page views, button clicks, form submissions, and you need to turn them into actionable product analytics. That means grouping events by user and time gap into sessions, tracing the page-to-page journeys users take, calculating conversion rates and drop-off points, and producing reports that product teams can act on. Each step depends on the previous one: you can't analyze journeys without sessions, and you can't build sessions without ingested events.
 
@@ -38,6 +40,7 @@ ck_analyze_journeys
     │
     ▼
 ck_generate_report
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ ck_generate_report
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/clickstream-analytics-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/clickstream-analytics-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow clickstream_analytics \
   --version 1 \
-  --input '{"clickData": "test-value", "sessionTimeout": "2026-01-01T00:00:00Z", "analysisType": "test-value"}'
+  --input '{"clickData": {"key": "value"}, "sessionTimeout": "2026-01-01T00:00:00Z", "analysisType": "standard"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w clickstream_analytics -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -143,6 +153,7 @@ Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
     <artifactId>conductor-client</artifactId>
     <version>5.0.1</version>
 </dependency>
+
 ```
 
 ## Project Structure
@@ -168,4 +179,5 @@ clickstream-analytics/
     ├── GenerateReportWorkerTest.java        # 3 tests
     ├── IngestClicksWorkerTest.java        # 3 tests
     └── SessionizeWorkerTest.java        # 4 tests
+
 ```

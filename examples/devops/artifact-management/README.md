@@ -1,6 +1,8 @@
 # Artifact Management in Java with Conductor :  Build, Sign, Publish, Cleanup
 
-Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers .## Build Artifacts Need a Managed Lifecycle
+Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
+
+## Build Artifacts Need a Managed Lifecycle
 
 After building a JAR, Docker image, or npm package, the artifact needs signing (so consumers can verify it hasn't been tampered with), publishing to a repository (Artifactory, Docker Hub, npm registry), and old versions need cleanup (keeping the last 10 versions, deleting artifacts older than 90 days). Without lifecycle management, artifact repositories grow unbounded, unsigned artifacts create supply chain risks, and there's no audit trail of what was published when.
 
@@ -38,6 +40,7 @@ am_publish
     │
     ▼
 am_cleanup
+
 ```
 
 ## Running It
@@ -52,6 +55,7 @@ am_cleanup
 
 ```bash
 docker compose up --build
+
 ```
 
 Starts Conductor on port 8080 and runs the example automatically.
@@ -60,6 +64,7 @@ If port 8080 is already taken:
 
 ```bash
 CONDUCTOR_PORT=9090 docker compose up --build
+
 ```
 
 ### Option 2: Run locally
@@ -74,6 +79,7 @@ until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
 # Build and run
 mvn package -DskipTests
 java -jar target/artifact-management-1.0.0.jar
+
 ```
 
 ### Option 3: Use the run script
@@ -86,6 +92,7 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
+
 ```
 
 ## Configuration
@@ -101,6 +108,7 @@ Start the app in **worker-only mode** so workers keep polling while you use the 
 
 ```bash
 java -jar target/artifact-management-1.0.0.jar --workers
+
 ```
 
 Then in a separate terminal:
@@ -109,7 +117,8 @@ Then in a separate terminal:
 conductor workflow start \
   --workflow artifact_management_workflow \
   --version 1 \
-  --input '{"project": "test-value", "version": "test-value"}'
+  --input '{"project": "sample-project", "version": "1.0"}'
+
 ```
 
 ### Check workflow status
@@ -118,6 +127,7 @@ conductor workflow start \
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w artifact_management_workflow -s COMPLETED -c 5
+
 ```
 
 ## How to Extend
@@ -158,4 +168,5 @@ artifact-management/
     ├── CleanupWorkerTest.java        # 4 tests
     ├── PublishWorkerTest.java        # 3 tests
     └── SignWorkerTest.java        # 4 tests
+
 ```
