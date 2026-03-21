@@ -98,39 +98,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-## Example Output
-
-```
-=== Workflow Recovery After Server Restart Demo ===
-
-Step 1: Registering task definition for wr_durable_task...
-
-  Registered: wr_durable_task
-    Timeout: 60s total, 30s response
-
-Step 2: Registering workflow 'workflow_recovery_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 worker polling.
-
-Step 4: Starting workflow with batch='batch-001'...
-
-  Workflow ID: c4d5e6f7-...
-
-Step 5: Waiting for completion...
-  [wr_durable_task] Processing batch: batch-001
-  Status: COMPLETED
-  Output: {processed=true, batch=batch-001}
-
-Step 6: Looking up workflow to verify persistence...
-  Persisted status: COMPLETED
-  Persisted output: {processed=true, batch=batch-001}
-
-Result: PASSED. Workflow completed and state persisted successfully.
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

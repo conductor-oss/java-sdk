@@ -103,44 +103,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 | `CONDUCTOR_OPENAI_API_KEY` | _(not set)_ | OpenAI API key. When set, GenerateCitedWorker calls gpt-4o-mini instead of using simulated output |
 
-## Example Output
-
-```
-=== RAG Citation Demo: Generate with Source Citations and Verification ===
-
-Step 1: Registering task definitions...
-  Registered: cr_retrieve_docs, cr_generate_cited, cr_extract_citations, cr_verify_citations
-
-Step 2: Registering workflow 'citation_rag_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  [retrieve_docs] Retrieving documents for question
-  [retrieve_docs] Found 4 documents
-  [generate_cited] Generating cited answer for: How does Conductor work?
-  [generate_cited] Generated answer with 4 citations
-  [extract_citations] Extracting citations from answer
-  [extract_citations] Found 4 citations in answer text
-  [verify_citations] Verifying 4 citations against 4 documents
-  [verify_citations] Verified 4/4 citations
-
-  Workflow ID: b8c9d0e1-...
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Answer: Conductor employs a task-based workflow model [1] that supports workers in
-    multiple languages including Java, Python, Go, and TypeScript [2]. It also supports
-    running multiple workflow versions simultaneously for safe rollouts [3]. The system
-    provides automatic load balancing through task queues [4].
-  Citations: 4 verified, all passed
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

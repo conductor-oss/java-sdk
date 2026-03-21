@@ -95,37 +95,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Sample Output
-
-```
-=== Example 603: Password Reset ===
-
-Step 1: Registering task definitions...
-  Registered: pwd_request, pwd_verify, pwd_reset, pwd_notify
-
-Step 2: Registering workflow 'pwd_password_reset'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-
-  [request] Password reset requested for carol@example.com
-  [verify] Verifying reset token for user USR-A1B2C3
-  [reset] Password updated for user USR-A1B2C3
-  [notify] Password change confirmation sent to carol@example.com
-
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {userId=USR-A1B2C3, resetSuccess=true, notified=true}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

@@ -47,37 +47,6 @@ ivc_process_payment
 
 ```
 
-## Example Output
-
-```
-=== Example 506: Invoice Processing ===
-
-Step 1: Registering task definitions...
-  Registered: ivc_receive_invoice, ivc_ocr_extract, ivc_match_po, ivc_approve_invoice, ivc_process_payment
-
-Step 2: Registering workflow 'invoice_processing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: cb432c3e-3986-fdc2-723a-01028a9fc61d
-
-  [receive] Invoice INV-2026-5500 from vendor VND-330
-  [ocr] Extracting data from invoice INV-2026-5500
-  [match] Matching PO PO-2026-1234 for $8750
-  [approve] Invoice $8750, PO matched: true
-  [pay] Processing $8750 payment to vendor VND-330
-
-
-  Status: COMPLETED
-  Output: {invoiceId=INV-2026-5500, amount=8750, paymentStatus=scheduled, paymentId=PMT-506-001}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

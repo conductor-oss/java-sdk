@@ -49,59 +49,6 @@ mpr_output
 
 ```
 
-## Example Output
-
-```
-=== MapReduce Demo ===
-
-Step 1: Registering task definitions...
-  Registered: mpr_split_input, mpr_map_1, mpr_map_2, mpr_map_3, mpr_reduce, mpr_output
-
-Step 2: Registering workflow 'mpr_map_reduce'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: d0e0b16b-d545-f518-b611-852bbf329f4a
-
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-  [split] Processing
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-  [reduce] Processing
-  [output] Processing
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-  [map-1] Processing
-  [map-2] Processing
-  [map-3] Processing
-
-
-  Status: COMPLETED
-  Output: {searchTerm=error, totalOccurrences=5, result=Success}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

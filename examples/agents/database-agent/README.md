@@ -47,37 +47,6 @@ db_format
 
 ```
 
-## Example Output
-
-```
-=== Database Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: db_parse_question, db_generate_query, db_validate_query, db_execute_query, db_format
-
-Step 2: Registering workflow 'database_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 08e0f87b-31f7-cd37-d679-0c6a4e19cff6
-
-  [db_parse_question] Parsing question against database: unknown
-  [db_generate_query] Generating SQL for intent: aggregate_query
-  [db_validate_query] Validating SELECT query
-  [db_execute_query] Executing query (readOnly=true)
-  [db_format] Formatting 5 result rows
-
-
-  Status: COMPLETED
-  Output: {answer=The top 5 departments by total revenue are: , summary={totalRevenue=9850000, topDepartment=Engineering, departments=5}, query=SELECT d.name AS department,\n, rowCount=5, executionTimeMs=23}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -178,7 +147,6 @@ Wire in a real database and LLM for SQL generation; the query pipeline maintains
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

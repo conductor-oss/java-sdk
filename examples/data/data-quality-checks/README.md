@@ -97,38 +97,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Sample Output
-
-```
-=== Data Quality Checks Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: qc_load_data, qc_check_completeness, qc_check_accuracy, qc_check_consistency, qc_generate_report
-
-Step 2: Registering workflow 'data_quality_checks'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-
-  [load] Loaded 6 records for quality checks
-  [completeness] 23/24 fields filled -> score: 96%
-  [accuracy] 5/6 records accurate -> score: 83%
-  [consistency] Unique IDs: 6/6 -> score: 100%
-  [report] Quality Report: completeness=96%, accuracy=83%, consistency=100% -> overall=93% (A)
-
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {totalRecords=6, completenessScore=0.96, accuracyScore=0.83, consistencyScore=1.0, overallScore=0.93, grade=A}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

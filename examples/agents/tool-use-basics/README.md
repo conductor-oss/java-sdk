@@ -43,36 +43,6 @@ tu_format_result
 
 ```
 
-## Example Output
-
-```
-=== Tool Use Basics Demo ===
-
-Step 1: Registering task definitions...
-  Registered: tu_analyze_request, tu_select_tool, tu_execute_tool, tu_format_result
-
-Step 2: Registering workflow 'tool_use_basics'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 4081f851-e3a5-4528-4ccd-fe88d1d58cd0
-
-  [tu_analyze_request] Analyzing request: What's the weather like in San Francisco?
-  [tu_select_tool] Selecting tool for intent: get_weather
-  [tu_execute_tool] Executing tool: weather_api
-  [tu_format_result] Formatting result from tool: weather_api
-
-
-  Status: COMPLETED
-  Output: {answer=Success, toolUsed=weather_api, sourceData={location=location, temperature=62, units=units, condition=Partly Cloudy, humidity=72, windSpeed=12, windDirection=W, forecast=[{day=Tomorrow, high=65, low=54, condition=Sunny}, {day=Day After, high=63, low=52, condition=Cloudy}]}}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -173,7 +143,6 @@ Replace with real tool implementations; the analyze-select-execute-format pipeli
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

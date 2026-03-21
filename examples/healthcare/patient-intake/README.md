@@ -34,35 +34,6 @@ Input -> AssignWorker -> RegisterWorker -> TriageWorker -> VerifyInsuranceWorker
 
 ```
 
-## Example Output
-
-```
-=== Patient Intake Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pit_register, pit_verify_insurance, pit_triage, pit_assign
-
-Step 2: Registering workflow 'patient_intake_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 9062f2bc-4fe6-d6f2-585c-fc86f099ef61
-
-  [register] Patient Sarah Johnson (PAT-10234)
-  [insurance] Verifying insurance INS-BC-55012
-  [triage] Complaint: \"Severe headache and dizziness\" -> Level medium (dept-value)
-  [assign] Assigned to Emergency in dept-value
-
-  Status: COMPLETED
-  Output: {registrationResult=2026-03-16, insuranceVerified=true, triageLevel=medium, assignedProvider=ASSIGNEDPROVIDER-001}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

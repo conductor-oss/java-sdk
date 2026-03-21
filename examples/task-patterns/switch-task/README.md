@@ -136,59 +136,6 @@ conductor workflow search -w switch_demo -s COMPLETED -c 5
 
 ```
 
-## Example Output
-
-```
-=== SWITCH Task: Conditional Routing by Ticket Priority ===
-
-Step 1: Registering task definitions...
-  Registered: sw_auto_handle, sw_team_review, sw_escalate, sw_unknown_priority, sw_log_action
-
-Step 2: Registering workflow 'switch_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
---- Scenario 1: LOW priority ticket ---
-  Workflow ID: a1b2c3d4-...
-  [auto_handle] Ticket TKT-001 (priority: LOW) -> auto-resolved
-  [log_action] Logged action for ticket TKT-001 (priority: LOW)
-  Status: COMPLETED
-  Output: {ticketId=TKT-001, priority=LOW, logged=true}
-  As expected: LOW priority ticket auto-handled and logged.
-
---- Scenario 2: MEDIUM priority ticket ---
-  Workflow ID: b2c3d4e5-...
-  [team_review] Ticket TKT-002 (priority: MEDIUM) -> assigned to support-team-1
-  [log_action] Logged action for ticket TKT-002 (priority: MEDIUM)
-  Status: COMPLETED
-  Output: {ticketId=TKT-002, priority=MEDIUM, logged=true}
-  As expected: MEDIUM priority ticket assigned to team and logged.
-
---- Scenario 3: HIGH priority ticket ---
-  Workflow ID: c3d4e5f6-...
-  [escalate] Ticket TKT-003 (priority: HIGH) -> escalated to manager@example.com
-  [log_action] Logged action for ticket TKT-003 (priority: HIGH)
-  Status: COMPLETED
-  Output: {ticketId=TKT-003, priority=HIGH, logged=true}
-  As expected: HIGH priority ticket escalated and logged.
-
---- Scenario 4: CRITICAL priority (unknown. Hits default) ---
-  Workflow ID: d4e5f6a7-...
-  [unknown_priority] Ticket TKT-004 (priority: CRITICAL) -> needs classification
-  [log_action] Logged action for ticket TKT-004 (priority: CRITICAL)
-  Status: COMPLETED
-  Output: {ticketId=TKT-004, priority=CRITICAL, logged=true}
-  As expected: unknown priority ticket flagged for classification and logged.
-
-Key insight: SWITCH with value-param routes based on the exact value
-of the switchCaseValue input.; no JavaScript evaluation needed.
-
-Result: PASSED
-
-```
-
 ## How to Extend
 
 Connect the ticket handlers to Zendesk, PagerDuty, and your audit logging system, and the SWITCH-based priority routing works unchanged.

@@ -31,33 +31,6 @@ sdk_test_task
 
 ```
 
-## Example Output
-
-```
-=== SDK Setup: Installation, Configuration, and Smoke Test ===
-
-Step 1: Registering task definitions...
-  Registered: sdk_test_task
-
-Step 2: Registering workflow 'sdk_setup_test'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: ab6b7702-7ecf-08a7-211e-91f411bc5c22
-
-  [sdk_test_task worker] SDK check '
-
-
-  Status: COMPLETED
-  Output: {result=SDK check '}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -148,7 +121,6 @@ conductor workflow search -w sdk_setup_test -s COMPLETED -c 5
 ## How to Extend
 
 Once this smoke test passes, your Maven dependency, client configuration, and worker polling are verified. Start building real workers with the same SDK setup.
-
 
 The smoke test confirms your setup works. Build your real workers on the same foundation.
 

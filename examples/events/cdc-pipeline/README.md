@@ -43,36 +43,6 @@ cd_confirm_delivery
 
 ```
 
-## Example Output
-
-```
-=== CDC Pipeline Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cd_detect_changes, cd_transform_changes, cd_publish_downstream, cd_confirm_delivery
-
-Step 2: Registering workflow 'cdc_pipeline_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 84291621-77cc-b35d-4ea4-60d43205d3ac
-
-  [cd_detect_changes] Scanning table 'users' since 2026-03-08T10:00:00Z
-  [cd_transform_changes] Transforming 3 changes
-  [cd_publish_downstream] Publishing 3 messages to topic 'cdc.users.changes'
-  [cd_confirm_delivery] Confirming delivery of 3 messages
-
-
-  Status: COMPLETED
-  Output: {sourceTable=users, changesDetected=4, changesPublished=3, allDelivered=True}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

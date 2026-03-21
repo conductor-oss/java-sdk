@@ -47,37 +47,6 @@ clf_renew
 
 ```
 
-## Example Output
-
-```
-=== Example 662: Contract Lifecycle ===
-
-Step 1: Registering task definitions...
-  Registered: clf_draft, clf_review, clf_approve, clf_execute, clf_renew
-
-Step 2: Registering workflow 'clf_contract_lifecycle'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 719f127d-1921-3db0-31f1-84cd6bccf4f2
-
-  [draft] Contract for GlobalLogistics Corp: service-agreement, $250000
-  [review] Legal review of CTR-662-001.; no issues
-  [approve] CTR-662-001 approved
-  [execute] CTR-662-001 signed and executed
-  [renew] Renewal reminder set for 2025-04-01 (...-month term)
-
-
-  Status: COMPLETED
-  Output: {contractId=CTR-662-001, approved=true, executed=true, renewalDate=2025-04-01}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

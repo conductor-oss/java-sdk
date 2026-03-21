@@ -108,42 +108,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 All LLM workers (classify, generate, reasoning) require CONDUCTOR_OPENAI_API_KEY.
 Retrieval workers (SimpleRetrieveWorker, MultiHopRetrieveWorker) use Jaccard similarity over bundled documents.; no vector database needed.
 
-
-## Example Output
-
-```
-=== Adaptive RAG Demo: Route by Query Complexity ===
-
-Step 1: Registering task definitions...
-  Registered: ar_classify, ar_simple_ret, ar_simple_gen, ar_mhop_ret, ar_reason,
-    ar_anal_gen, ar_creative_gen
-
-Step 2: Registering workflow 'adaptive_rag'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  7 workers polling.
-
-Step 4: Starting workflow...
-  [classify] Question: "What is Conductor?" -> factual (confidence: 0.92)
-  [simple_ret] Retrieved 2 documents for factual query
-  [simple_gen] Generated direct answer from 2 documents
-
-  Workflow ID: a5b6c7d8-...
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Query type: factual
-  Confidence: 0.92
-
---- Adaptive RAG Pattern ---
-  Query classified as 'factual' with 0.92 confidence.
-  Routed to simple retrieval + direct generation (fast path).
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

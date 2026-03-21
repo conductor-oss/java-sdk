@@ -47,37 +47,6 @@ anom_alert
 
 ```
 
-## Example Output
-
-```
-=== Example 414: Anomaly Detectio ===
-
-Step 1: Registering task definitions...
-  Registered: anom_collect_data, anom_compute_baseline, anom_detect, anom_classify, anom_alert
-
-Step 2: Registering workflow 'anomaly_detection_414'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f928bef5-fc1f-19da-c6e4-b43144bbd0b6
-
-  [collect] Collecting 24h of request_latency_ms data
-  [baseline] Computing baseline from 720 data points
-  [detect] Z-Score: 85 - anomaly: True
-  [classify] request_latency_ms: normal (severity=info)
-  [alert] info alert for request_latency_ms: normal
-
-
-  Status: COMPLETED
-  Output: {isAnomaly=true, classification=normal, severity=info, alerted=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

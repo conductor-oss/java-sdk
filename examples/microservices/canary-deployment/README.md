@@ -43,36 +43,6 @@ cd_promote_or_rollback
 
 ```
 
-## Example Output
-
-```
-=== Canary Deployment Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cd_deploy_canary, cd_shift_traffic, cd_analyze_metrics, cd_promote_or_rollback
-
-Step 2: Registering workflow 'canary_deployment_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 9a8c7ef4-bb5d-c905-4ecb-8295d88ea75d
-
-  [deploy] Canary: user-service:4.1.0
-  [traffic] Shifted 10% to canary
-  [analyze] Error rate: 0.3%, p99 latency: 120ms (duration=5m)
-  [decision] proceed (error: 0.3%)
-
-
-  Status: COMPLETED
-  Output: {decision=approved, errorRate=0.3}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

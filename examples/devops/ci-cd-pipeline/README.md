@@ -47,37 +47,6 @@ cicd_deploy_prod
 
 ```
 
-## Example Output
-
-```
-=== CI/CD Pipeline Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cicd_build, cicd_deploy_prod, cicd_deploy_staging, cicd_integration_test, cicd_security_scan, cicd_unit_test
-
-Step 2: Registering workflow 'cicd_pipeline_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 5f3cd542-8bcc-6e5f-04f3-90d44546cb8f
-
-[cicd_build] Building main@...
-[cicd_unit_test] 342 tests passed
-[cicd_integration_test] 28 tests passed
-[cicd_security_scan] No vulnerabilities found
-[cicd_deploy_staging] Deployed app:1.2.3 to staging
-[cicd_deploy_prod] Deployed app:1.2.3 to production
-
-  Status: COMPLETED
-  Output: {buildId=BLD-100001, deployed=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

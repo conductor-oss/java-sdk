@@ -87,40 +87,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Example Output
-
-```
-=== Support Ticket Pipeline: End-to-End Application ===
-
-Step 1: Registering task definitions...
-  Registered: classify_ticket, assign_ticket, notify_customer
-
-Step 2: Registering workflow 'support_ticket_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Submitting 3 support tickets...
-
-  Submitted TKT-001. Workflow ID: <workflow-id>
-  Submitted TKT-002. Workflow ID: <workflow-id>
-  Submitted TKT-003. Workflow ID: <workflow-id>
-
-Step 5: Waiting for all tickets to be processed...
-
-=== Ticket Processing Summary ===
-
-  Ticket     | Priority   | Team                   | Response Time
-  ---------- | ---------- | ---------------------- | ---------------
-  TKT-001    | CRITICAL   | Engineering            | 30 minutes
-  TKT-002    | LOW        | Finance Support        | 4 hours
-  TKT-003    | MEDIUM     | Account Management     | 8 hours
-
-Result: PASSED. All 3 tickets processed successfully.
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

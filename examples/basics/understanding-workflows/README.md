@@ -89,35 +89,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Example Output
-
-```
-=== Order Pipeline: Understanding Workflows, Tasks, and Workers ===
-
-Step 1: Registering task definitions...
-  Registered: validate_order, calculate_total, send_confirmation
-
-Step 2: Registering workflow 'order_pipeline'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-
-  [validate_order] Validating order ORD-1001 with 2 items
-  [calculate_total] Subtotal: $1059.97, Tax: $84.8, Total: $1144.77
-  [send_confirmation] Sending confirmation to alice@example.com for order ORD-1001 ($1144.77)
-  Workflow ID: <workflow-id>
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {orderId=ORD-1001, itemCount=2, subtotal=1059.97, tax=84.8, total=1144.77, emailSent=true, recipient=alice@example.com}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

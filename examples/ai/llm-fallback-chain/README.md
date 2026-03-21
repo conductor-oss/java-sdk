@@ -123,52 +123,6 @@ CONDUCTOR_OPENAI_API_KEY=sk-... CONDUCTOR_ANTHROPIC_API_KEY=sk-ant-... GOOGLE_AP
 
 Each LLM worker independently checks for its API key. You can set any combination, for example, set only `GOOGLE_API_KEY` to make live Gemini calls while GPT-4 and Claude run in simulated mode.
 
-## Example Output
-
-```
-=== LLM Fallback Chain: Multi-Model Fallback ===
-
-Step 1: Registering task definitions...
-  Registered: fb_call_gpt4, fb_call_claude, fb_call_gemini, fb_format_result
-
-Step 2: Registering workflow 'llm_fallback_chain_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  [fb_call_gpt4] Calling OpenAI GPT-4 API with prompt: Explain how Conductor handles workflow orchestration
-  [fb_call_gpt4] GPT-4 returned success
-  [fb_call_gpt4] GPT-4 returned error: error-value
-  [fb_call_gpt4] GPT-4 call failed: error-value
-  [fb_call_gpt4] Attempting GPT-4 with prompt: Explain how Conductor handles workflow orchestration
-  [fb_call_gpt4] GPT-4 returned 503 Service Unavailable
-  [fb_call_claude] Calling Anthropic Claude API with prompt: Explain how Conductor handles workflow orchestration
-  [fb_call_claude] Claude returned success
-  [fb_call_claude] Claude returned error: error-value
-  [fb_call_claude] Claude call failed: error-value
-  [fb_call_claude] Attempting Claude with prompt: Explain how Conductor handles workflow orchestration
-  [fb_call_claude] Claude returned 429 Too Many Requests
-  [fb_call_gemini] Calling Google Gemini API with prompt: Explain how Conductor handles workflow orchestration
-  [fb_call_gemini] Gemini returned success
-  [fb_call_gemini] Gemini returned error: error-value
-  [fb_call_gemini] Gemini call failed: error-value
-  [fb_call_gemini] Attempting Gemini with prompt: Explain how Conductor handles workflow orchestration
-  [fb_call_gemini] Gemini returned success
-  [fb_format_result] Model used: primary-model, fallbacks triggered: 0
-
-  Workflow ID: d4e5f6a7-...
-
-Step 5: Waiting for completion...
-
-  Status: COMPLETED
-  Output: {response=Success, modelUsed=primary-model, fallbacksTriggered=0}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

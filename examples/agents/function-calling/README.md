@@ -43,36 +43,6 @@ fc_llm_synthesize
 
 ```
 
-## Example Output
-
-```
-=== Function Calling Demo ===
-
-Step 1: Registering task definitions...
-  Registered: fc_llm_plan, fc_extract_function_call, fc_execute_function, fc_llm_synthesize
-
-Step 2: Registering workflow 'function_calling'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 2bc402e2-160a-5755-7225-7c2db07fc296
-
-  [fc_llm_plan] Planning function call for query: What's the current price of Apple stock?
-  [fc_extract_function_call] Extracting function call from LLM output
-  [fc_execute_function] Executing function: unknown with args: <functionCall.get("ar>
-  [fc_llm_synthesize] Synthesizing answer for query: What's the current price of Apple stock?
-
-
-  Status: COMPLETED
-  Output: {answer=I was unable to retrieve the requested information for your query: , confidence=0.97, sourceFunctionUsed=unknown, executionStatus=error}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -173,7 +143,6 @@ Wire in a real LLM and function registry; the plan-extract-execute-synthesize pi
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -116,53 +116,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-## Example Output
-
-```
-=== Dead Letter Queue Pattern: Capture and Retry Failed Tasks ===
-
-Step 1: Registering task definitions...
-
-  Registered: dl_process (no retries. Failures go to dead letter)
-  Registered: dl_handle_failure
-    Timeout: 60s total, 30s response
-
-Step 2: Registering workflows...
-  Workflows registered: dead_letter_demo, dead_letter_handler
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow (mode=success)...
-
-  Workflow ID: a1b2c3d4-...
-  [dl_process] mode=success, data=order-123
-  [dl_process] Simulating failure
-  [dl_process] Processing succeeded
-
-
-  Status: COMPLETED
-  Output: {result=<"Processed: " + data>, mode=fail}
-
-Step 5: Starting workflow (mode=fail)...
-
-  Workflow ID: e5f6a7b8-...
-  Status: FAILED
-  Output: {result=<"Processed: " + data>, mode=fail}
-
-Step 6: Starting dead letter handler workflow...
-
-  Handler Workflow ID: c9d0e1f2-...
-    workflowId=e5f6a7b8-...
-    taskName=dl_process
-    error=Processing failed for data: order-456
-  Status: COMPLETED
-  Output: {result=<"Processed: " + data>, mode=fail}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

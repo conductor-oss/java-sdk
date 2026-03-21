@@ -14,7 +14,7 @@ Without orchestration, this becomes a fragile script where a single embedding AP
 
 **You write the extraction, chunking, embedding, and storage logic. Conductor handles the pipeline sequencing, retries, and observability.**
 
-Each stage of the ingestion pipeline is an independent worker. PDF extraction, text chunking, embedding generation, vector storage. Conductor sequences them, passes the output of each stage to the next, retries on transient failures (embedding API timeouts, vector store connection drops), and tracks every document's journey from PDF to stored vectors. You get a production-grade ingestion pipeline without writing retry loops or progress tracking.
+Each stage of the ingestion pipeline is an independent worker. PDF extraction, text chunking, embedding generation, vector storage. Conductor sequences them, passes the output of each stage to the next, retries on transient failures (embedding API timeouts, vector store connection drops), and tracks every document's journey from PDF to stored vectors. You get a example-grade ingestion pipeline without writing retry loops or progress tracking.
 
 ### What You Write: Workers
 
@@ -42,40 +42,6 @@ ingest_embed_chunks
     │
     ▼
 ingest_store_vectors
-
-```
-
-## Example Output
-
-```
-=== Example 141: Document Ingestion Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: ingest_extract_pdf, ingest_chunk_text, ingest_embed_chunks, ingest_store_vectors
-
-Step 2: Registering workflow 'document_ingestion_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 64c30ad7-f43b-ea15-5df9-19b3f53633da
-
-  [extract] Processing PDF: https://example.com/vector-databases-guide.pdf
-  [extract] Extracted 256 chars from 5 pages
-  [chunk] Split into 3 chunks (size=30 words, overlap=5)
-    - ID-001: 3 words, \"256\"
-  [embed] Generated 3 embeddings via OpenAI (LIVE)
-  [embed] Generated 3 embeddings (8-dim simulated)
-  [store] Upserting 3 vectors into collection \"knowledge_base\"
-    - ID-001: stored successfully
-
-
-  Status: COMPLETED
-  Output: {documentUrl=https://example.com/vector-databases-guide.pdf, pagesExtracted=5, chunksCreated=3, vectorsStored=3}
-
-Result: PASSED
 
 ```
 

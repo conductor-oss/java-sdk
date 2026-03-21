@@ -43,22 +43,6 @@ cr_verify
 
 ```
 
-## Example Output
-
-```
-=== Example 331: Certificate Rotation ===
-
-  [discover] Found expiring cert, expires in 15 days
-  [generate] New certificate issued
-  [deploy] Certificate deployed to load balancers
-  [verify] TLS handshake verified
-  discoverResult: {discoverId=DISCOVER-1331, success=true}
-  verifyResult: {verify=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -108,22 +92,6 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-### Sample Output
-
-```
-=== Example 331: Certificate Rotation ===
-
-  [discover] Found expiring cert, expires in 15 days
-  [generate] New certificate issued
-  [deploy] Certificate deployed to load balancers
-  [verify] TLS handshake verified
-  discoverResult: {discoverId=DISCOVER-1331, success=true}
-  verifyResult: {verify=true}
-
-Result: PASSED
 
 ```
 

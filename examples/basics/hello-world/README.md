@@ -81,33 +81,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Example Output
-
-```
-=== Hello World: Your First Conductor Workflow ===
-
-Step 1: Registering task definition...
-  Registered: greet
-
-Step 2: Registering workflow 'hello_world_workflow'...
-  Workflow registered.
-
-Step 3: Starting worker...
-  1 worker polling.
-
-Step 4: Starting workflow...
-
-  [greet worker] Hello, Developer!
-  Workflow ID: <workflow-id>
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {greeting=Hello, Developer! Welcome to Conductor.}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

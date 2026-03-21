@@ -111,42 +111,6 @@ All LLM workers (GenerateAnswerWorker, GenerateFromWebWorker) require CONDUCTOR_
 
 RetrieveDocsWorker uses Jaccard similarity over bundled technical documents. WebSearchWorker fetches real results from the Wikipedia search API. GradeRelevanceWorker uses algorithmic relevance scoring.
 
-## Example Output
-
-```
-=== Corrective RAG Demo: Self-Healing Retrieval ===
-
-Step 1: Registering task definitions...
-  Registered: cr_retrieve_docs, cr_grade_relevance, cr_generate_answer, cr_web_search, cr_generate_from_web
-
-Step 2: Registering workflow 'corrective_rag'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  [retrieve] Retrieved 3 documents
-  [grade] Grading 3 documents for relevance...
-  [grade] Avg relevance: 0.20 -> verdict: irrelevant
-  [web_search] Searching the web for: "What is Conductor?"
-  [generate_web] Generating answer from 3 web results
-
-  Workflow ID: f2a3b4c5-...
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Verdict: irrelevant (avg relevance: 0.20)
-  Source: webSearch
-
---- Corrective RAG Pattern ---
-  Vector store returned irrelevant results (avg score 0.20 < 0.50 threshold).
-  Automatically fell back to web search for fresh, relevant results.
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

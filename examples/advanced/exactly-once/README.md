@@ -47,37 +47,6 @@ exo_unlock
 
 ```
 
-## Example Output
-
-```
-=== Exactly-Once Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: exo_lock, exo_check_state, exo_process, exo_commit, exo_unlock
-
-Step 2: Registering workflow 'exo_exactly_once'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: dd56d88b-e888-2717-c05c-fcec72a5ddcf
-
-  [lock] Processing
-  [check] Processing
-  [process] Processing
-  [commit] Processing
-  [unlock] Processing
-
-
-  Status: COMPLETED
-  Output: {messageId=TXN-2024-5678, processed=true, committed=true, unlocked=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

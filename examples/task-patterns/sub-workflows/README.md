@@ -129,37 +129,6 @@ conductor workflow search -w sub_order_workflow -s COMPLETED -c 5
 
 ```
 
-## Example Output
-
-```
-=== Sub-Workflow Pattern: Order Processing with Payment Sub-Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: sub_calc_total, sub_validate_payment, sub_charge_payment, sub_confirm_order
-
-Step 2: Registering workflows...
-  Registered child: sub_payment_process
-  Registered parent: sub_order_workflow
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-
-  Workflow ID: 5a6b7c8d-...
-
-Step 5: Waiting for completion...
-  [sub_calc_total] Calculated total: 65.0 from 3 items
-  [sub_validate_payment] Payment validated (method=credit_card, amount=65.0)
-  [sub_charge_payment] Charged 65.0 via credit_card -> TXN-ORD-001
-  [sub_confirm_order] Order ORD-001 confirmed with transaction TXN-ORD-001
-  Status: COMPLETED
-  Output: {orderId=ORD-001, transactionId=TXN-ORD-001, confirmed=true}
-
-Result: PASSED
-
-```
-
 ## How to Extend
 
 Connect the order and payment workers to your product catalog, payment gateway (Stripe, Braintree), and OMS, and the SUB_WORKFLOW composition works unchanged.

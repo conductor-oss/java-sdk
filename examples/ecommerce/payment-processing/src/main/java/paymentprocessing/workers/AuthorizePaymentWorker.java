@@ -66,7 +66,7 @@ public class AuthorizePaymentWorker implements Worker {
             output.put("amountInCents", Math.round(amount * 100));
             output.put("currency", currency);
             output.put("expiresAt", Instant.now().plus(7, ChronoUnit.DAYS).toString());
-            output.put("simulated", true);
+            output.put("demoMode", true);
             result.setOutputData(output);
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;

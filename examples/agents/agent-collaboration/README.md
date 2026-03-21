@@ -102,37 +102,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Agent Collaboration Demo: Sequential Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: ac_analyst, ac_strategist, ac_executor, ac_compile_plan
-
-Step 2: Registering workflow 'agent_collaboration_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  [ac_analyst] Analyzing: E-commerce platform experiencing 15% customer churn rate with declining repeat purchases
-  [ac_strategist] Formulating strategy for: E-commerce platform experiencing 15% customer churn rate with declining repeat purchases
-  [ac_executor] Building execution plan...
-  [ac_compile_plan] Compiling final plan...
-
-  Workflow ID: 5d8e9f10-a1b2-3c4d-5e6f-604192a3b4c5
-
-Step 5: Waiting for completion...
-
-  Status: COMPLETED
-  Output: {plan=Execute all steps, insightCount=4, strategyName=Stabilize & Retain, actionItemCount=6}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

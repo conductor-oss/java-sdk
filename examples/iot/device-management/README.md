@@ -35,36 +35,6 @@ Input -> ConfigureWorker -> MonitorHealthWorker -> ProvisionWorker -> PushUpdate
 
 ```
 
-## Example Output
-
-```
-=== Device Management Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dev_register_device, dev_provision, dev_configure, dev_monitor_health, dev_push_update
-
-Step 2: Registering workflow 'device_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: e53eeba9-62dc-def6-e0bb-428c57a40b5a
-
-  [configure] Configuring temperature_sensor with cert CERTIFICATE-001
-  [health] Checking health of device
-  [provision] Provisioning credentials for
-  [update] Checking firmware updates for
-  [register] Registering temperature_sensor device DEV-532-TEMP-001
-
-  Status: COMPLETED
-  Output: {registrationId=REG-532-001, certificateId=CERT-532-ABC, configured=true, healthStatus=healthy, updateStatus=up_to_date}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

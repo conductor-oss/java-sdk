@@ -106,40 +106,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Tool Use Parallel Demo ===
-
-Step 1: Registering task definitions...
-  Registered: tp_plan_tools, tp_call_weather, tp_call_news, tp_call_stocks, tp_combine_results
-
-Step 2: Registering workflow 'tool_use_parallel'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  [tp_plan_tools] Planning tools for request: Give me my morning briefing (location: San Francisco, CA)
-  [tp_call_weather] Fetching weather for: San Francisco, CA
-  [tp_call_news] Fetching news for topics: {weather=weatherConfig, newsTopics=newsTopics, tickers=tickers}
-  [tp_call_stocks] Fetching stock quotes for: {weather=weatherConfig, newsTopics=newsTopics, tickers=tickers}
-  [tp_combine_results] Combining weather, news, and stocks into briefing
-
-  Workflow ID: 9c8d7e6f-5a4b-3c2d-1e0f-a9b8c7d6e5f4
-
-Step 5: Waiting for completion...
-
-  Status: COMPLETED
-  Output: {briefing={weather=weather != null ? weather : Map.of(), news=news != null ? news : List.of(), stocks=stocks != null ? stocks : List.of(), summary=Good morning! Current conditions show Morning Fog at 58F with a high of 68F expected. "
-                        + "In the news: AI breakthroughs and strong tech earnings dominate headlines. "
-                        + "Markets are bullish with AAPL, GOOGL, and AMZN all up over 1%.}, toolsUsed=[weather_api, news_api, stock_api], generatedAt=2026-03-08T08:00:00Z}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

@@ -56,7 +56,7 @@ public class CapturePaymentWorker implements Worker {
             output.put("stripeStatus", "succeeded");
             output.put("capturedAt", Instant.now().toString());
             output.put("amountCaptured", Math.round(amount * 100));
-            output.put("simulated", true);
+            output.put("demoMode", true);
             result.setOutputData(output);
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;

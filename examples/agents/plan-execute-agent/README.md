@@ -106,37 +106,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Plan-Execute Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pe_create_plan, pe_execute_step_1, pe_execute_step_2, pe_execute_step_3, pe_compile_results
-
-Step 2: Registering workflow 'plan_execute_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  [pe_create_plan] Creating plan for objective: Develop go-to-market strategy for new SaaS product
-  [pe_execute_step_1] Executing step 0: Gather market data and competitor analysis
-  [pe_execute_step_2] Executing step 1: Analyze trends and identify opportunities
-  [pe_execute_step_3] Executing step 2: Generate strategic recommendations
-  [pe_compile_results] Compiling results for objective: Develop go-to-market strategy for new SaaS product
-
-  Workflow ID: 3a7f8c12-e4b9-4d5a-b3c1-9f2d4e6a8b0c
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {objective=Develop go-to-market strategy for new SaaS product, plan=[Gather market data and competitor analysis, Analyze trends and identify opportunities, Generate strategic recommendations], finalReport=Objective: Develop go-to-market strategy for new SaaS product | Step 1: Collected data on 5 competitors; market size estimated at $4.2B | Step 2: Identified 3 growth opportunities: API platform, enterprise tier, international expansion | Step 3: Recommend prioritizing API platform (ROI: capacity-planning%) followed by enterprise tier (ROI: 210%)}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

@@ -44,37 +44,6 @@ al_summarize
 
 ```
 
-## Example Output
-
-```
-=== Agentic Loop Demo ===
-
-Step 1: Registering task definitions...
-  Registered: al_set_goal, al_think, al_act, al_observe, al_summarize
-
-Step 2: Registering workflow 'agentic_loop'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 865926d6-00fc-a6cb-6ccf-2e85a289bb51
-
-  [al_set_goal] Setting goal: Research best practices for distributed systems
-  [al_think] Iteration 3: Execute all steps
-  [al_act] Iteration 3: proceed
-  [al_observe] Iteration 3: 2026-03-16
-  [al_summarize] Achieved goal '
-
-
-  Status: COMPLETED
-  Output: {goal=Research best practices for distributed systems, iterations=3, summary=Achieved goal '}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -175,7 +144,6 @@ Plug in real LLM reasoning and tool execution; the think-act-observe loop uses t
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

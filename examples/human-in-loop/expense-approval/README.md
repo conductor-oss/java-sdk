@@ -98,35 +98,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Expense Approval Demo: Policy Validation with Conditional Approval ===
-
-Step 1: Registering task definitions...
-  Registered: exp_validate_policy, exp_process
-
-Step 2: Registering workflow 'expense_approval'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow (amount=50, category=office)...
-  [exp_validate_policy] amount=50.0, category=office -> approvalRequired=false
-
-  Workflow ID: b3f1a2c4-...
-
-Step 5: Waiting for completion...
-  [exp_process] Processing expense...
-  [exp_process] Expense processed.
-  Status: COMPLETED
-  Output: {approvalRequired=false, processed=true}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 You can use the [Conductor CLI](https://github.com/conductor-oss/conductor-cli) to register definitions, start workflows, and inspect executions. The CLI handles the Conductor server side; but **workers must still be running** to poll and execute tasks.

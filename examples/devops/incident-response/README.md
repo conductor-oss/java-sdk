@@ -43,34 +43,6 @@ ir_auto_remediate
 
 ```
 
-## Example Output
-
-```
-=== Example incident-response: Incident Response ===
-
-Step 1: Registering task definitions...
-  Registered: ir_create_incident, ir_notify_oncall, ir_gather_diagnostics, ir_auto_remediate
-
-Step 2: Registering workflow 'incident_response_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: a35bb4ce-4b7f-c5c1-7cc4-1afa188d70ca
-
-  [remediate] Scaled up 2 replicas
-  [create] INC-42 severity
-  [diagnostics] CPU 95%, error rate 5%
-  [notify] On-call notified
-
-  Status: COMPLETED
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -120,22 +92,6 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-### Sample Output
-
-```
-=== Example incident-response: Incident Response ===
-
-  [create] INC-42 severity P1
-  [notify] On-call notified
-  [diagnostics] CPU 95%, error rate 5%
-  [remediate] Scaled up 2 replicas
-  incidentId: INC-42
-  remediated: true
-
-Result: PASSED
 
 ```
 

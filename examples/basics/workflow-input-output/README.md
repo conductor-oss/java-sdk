@@ -93,52 +93,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Example Output
-
-```
-=== Price Calculator: Data Flow Between Workflow Tasks ===
-
-Step 1: Registering task definitions...
-  Registered: lookup_price, apply_discount, calculate_tax, format_invoice
-
-Step 2: Registering workflow 'price_calculator'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow with sample input...
-  Input: {productId=PROD-002, quantity=2, couponCode=SAVE20}
-
-  [lookup_price] 27" Monitor x2 = $699.98
-  [apply_discount] Coupon 'SAVE20' → 20% off $699.98 = -$140.00 → $559.98
-  [calculate_tax] $559.98 + 8.25% tax ($46.20) = $606.18
-  [format_invoice] Invoice generated.
-  Workflow ID: <workflow-id>
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-
-========================================
-              INVOICE
-========================================
-Product:    27" Monitor
-Unit Price: $349.99
-Quantity:   2
-Subtotal:   $699.98
-----------------------------------------
-Coupon:     SAVE20 (20% off)
-Discount:  -$140.00
-After Disc: $559.98
-Tax (8.25%): $46.20
-========================================
-TOTAL:      $606.18
-========================================
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

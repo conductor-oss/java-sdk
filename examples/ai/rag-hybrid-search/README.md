@@ -43,39 +43,6 @@ hs_generate_answer
 
 ```
 
-## Example Output
-
-```
-=== Example 146: RAG with Hybrid Search ===
-
-Step 1: Registering task definitions...
-  Registered: hs_vector_search, hs_keyword_search, hs_rrf_merge, hs_generate_answer
-
-Step 2: Registering workflow 'rag_hybrid_search'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: d2a72be7-0193-7860-c36a-33aa47799338
-
-  [vector] Embedding query: \"How does Conductor define and execute workflows?\"
-  [vector] Searching HNSW index (cosine similarity)...
-  [keyword] BM25 tokenizing: \"How does Conductor define and execute workflows?\"
-  [keyword] Searching inverted index...
-  [rrf] Applying reciprocal rank fusion (k=60)...
-  [rrf] Merged 3 unique docs from 3 vector + 3 keyword results
-  [llm] Answer (live OpenAI) from 2048 docs
-  [llm] Generating answer from 2048 docs...
-
-  Status: COMPLETED
-  Output: {question=How does Conductor define and execute workflows?, answer=Conductor workflows are defined using a JSON DSL. Workers poll for tasks , sourceDocs=[item1, item2, item3], vectorCount=3, keywordCount=3}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

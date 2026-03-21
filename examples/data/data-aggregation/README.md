@@ -47,37 +47,6 @@ agg_emit_results
 
 ```
 
-## Example Output
-
-```
-=== Data Aggregation Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: agg_load_data, agg_group_by_dimension, agg_compute_aggregates, agg_format_report, agg_emit_results
-
-Step 2: Registering workflow 'data_aggregation_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 49500fe3-2c38-62dd-50d0-1a44801e1389
-
-  [agg_load_data] Loaded 3 records
-  [agg_group_by_dimension] Grouped into 3 groups by 'region'
-  [agg_compute_aggregates] Computed aggregates for 3 groups
-  [agg_format_report] Formatted 3 report lines
-  [agg_emit_results] Aggregation complete: " + groupCount + " groups reported
-
-
-  Status: COMPLETED
-  Output: {summary=Aggregation complete: " + groupCount + " groups reported, report=Processing complete, groupCount=3}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

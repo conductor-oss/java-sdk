@@ -47,36 +47,6 @@ pay_reconcile
 
 ```
 
-## Example Output
-
-```
-=== Example 454: Payment Processing ===
-
-Step 1: Registering task definitions...
-  Registered: pay_validate, pay_authorize, pay_capture, pay_receipt, pay_reconcile
-
-Step 2: Registering workflow 'payment_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: e0f68fe2-8b12-34d5-0201-42194cb59039
-
-  [authorize] Order ORD-8801: authorized AUTHORIZATION-001 for $259.97
-  [capture] Authorization AUTHORIZATION-001: captured $259.97 -> CAPTURE-001
-  [receipt] Generated RECEIPT-001 for order ORD-8801: $259.97 USD
-  [reconcile] Capture CAPTURE-001: $259.97 reconciled for merchant merch-100
-  [validate] Order ORD-8801: $259.97 USD -> valid=True
-
-  Status: COMPLETED
-  Output: {authorizationId=AUTHORIZATION-001, captureId=CAPTURE-001, receiptId=RECEIPT-001, reconciled=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -178,7 +148,6 @@ Swap payment gateways or add new settlement logic and the processing pipeline re
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

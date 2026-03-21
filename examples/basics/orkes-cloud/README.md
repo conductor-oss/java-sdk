@@ -31,32 +31,6 @@ cloud_greet
 
 ```
 
-## Example Output
-
-```
-=== Orkes Conductor Cloud Connection Example ===
-
-Step 1: Registering task definitions...
-  Registered: ...
-
-Step 2: Registering workflow 'orkes_cloud'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 9aa5a789-1e5b-d257-4cce-02933c1151ce
-
-  [] [
-
-  Status: COMPLETED
-  Output: {greeting=${cloud_greet_ref.output.greeting}, mode=${cloud_greet_ref.output.mode}}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

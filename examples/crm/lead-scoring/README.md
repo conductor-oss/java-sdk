@@ -43,36 +43,6 @@ ls_route
 
 ```
 
-## Example Output
-
-```
-=== Example 622: Lead Scoring ===
-
-Step 1: Registering task definitions...
-  Registered: ls_collect_signals, ls_score, ls_classify, ls_route
-
-Step 2: Registering workflow 'ls_lead_scoring'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 4cff8158-cf74-73ed-c62f-a4dda902bf8a
-
-  [signals] Collected behavioral signals for lead LEAD-622
-  [score] Lead score calculated: 85
-  [classify] Lead classified as: high (score: 85)
-  [route] Lead LEAD-622 routed to team-lead
-
-
-  Status: COMPLETED
-  Output: {leadScore=85, classification=high, assignedTo=team-lead}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

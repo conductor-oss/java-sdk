@@ -39,35 +39,6 @@ bs_execute_batch
 
 ```
 
-## Example Output
-
-```
-=== Example 404: Batch Scheduling ===
-
-Step 1: Registering task definitions...
-  Registered: bs_prioritize_jobs, bs_allocate_resources, bs_execute_batch
-
-Step 2: Registering workflow 'batch_scheduling_404'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: e1670598-aa90-363e-8974-c1a7e7561f29
-
-  [prioritize] Prioritizing 3 jobs in batch batch-20260308-001...
-  [allocate] Allocating resources for batch batch-20260308-001 (max concurrency: 4)...
-  [execute] Executing batch batch-20260308-001 with allocated resources...
-
-
-  Status: COMPLETED
-  Output: {totalJobs=3, resourcesAllocated=True, jobsCompleted=3, totalDurationMs=11200}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

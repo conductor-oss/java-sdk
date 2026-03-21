@@ -47,36 +47,6 @@ tvb_itinerary
 
 ```
 
-## Example Output
-
-```
-=== Example 545: Travel Booking ===
-
-Step 1: Registering task definitions...
-  Registered: tvb_search, tvb_compare, tvb_book, tvb_confirm, tvb_itinerary
-
-Step 2: Registering workflow 'tvb_travel_booking'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: aabf227b-f21d-129c-62aa-668f83babbcf
-
-  [book] Booked flight for
-  [compare] Compared flights. Delta best value
-  [confirm] Booking BOOKING-001 confirmed
-  [itinerary] Itinerary sent to
-  [search] Searching flights
-
-  Status: COMPLETED
-  Output: {bookingId=BK-545, totalCost=420}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -126,24 +96,6 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-### Sample Output
-
-```
-=== Example 545: Travel Booking ===
-
-  [search] Searching flights SFO -> JFK
-  [compare] Compared flights. Delta best value
-  [book] Booked flight for TRV-100
-  [confirm] Booking BK-travel-booking confirmed
-  [itinerary] Itinerary sent to TRV-100
-  Status: COMPLETED
-  Booking ID: BK-travel-booking
-  Total cost: 420
-
-Result: PASSED
 
 ```
 

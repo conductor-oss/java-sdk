@@ -57,38 +57,6 @@ frd_decide
 
 ```
 
-## Example Output
-
-```
-=== Fraud Detection Demo ===
-
-Step 1: Registering task definitions...
-  Registered: frd_analyze_transaction, frd_rule_check, frd_ml_score, frd_velocity_check, frd_decide
-
-Step 2: Registering workflow 'fraud_detection_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 3a952c99-a1a4-aa6c-9dee-8e387172a72e
-
-  [analyze] Analyzing transaction TXN-98321 | amount=249.99 merchant=MERCH-1234 customer=CUST-5678
-  [rule_check] Evaluating rules for transaction TXN-98321 | amount=249.99
-  [ml_score] Scoring transaction TXN-98321 with ML model
-  [velocity] Checking velocity for customer CUST-5678 on transaction TXN-98321
-  [decide] Transaction TXN-98321 | rules=low_risk ml=0.19 velocity=normal
-  [decide] Decision: APPROVE (risk=0.19)
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {transactionId=TXN-98321, decision=APPROVE, riskScore=0.19}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

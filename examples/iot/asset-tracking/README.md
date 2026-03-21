@@ -47,37 +47,6 @@ ast_update_registry
 
 ```
 
-## Example Output
-
-```
-=== Example 540: Asset Tracking ===
-
-Step 1: Registering task definitions...
-  Registered: ast_tag_asset, ast_track_location, ast_geofence_check, ast_trigger_alert, ast_update_registry
-
-Step 2: Registering workflow 'asset_tracking_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: f12f7f7c-68c4-b214-3a2d-80d2071da395
-
-  [tag] Processing 2026-03-16
-  [track] Processing 2026-03-16
-  [geofence] Processing 2026-03-16
-  [alert] Processing 2026-03-16
-  [update] Processing 2026-03-16
-
-
-  Status: COMPLETED
-  Output: {assetId=ASSET-540-PALLET-001, insideGeofence=true, alertTriggered=true, registryUpdated=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

@@ -43,36 +43,6 @@ els_analyze
 
 ```
 
-## Example Output
-
-```
-=== Example 446: Elasticsearch Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: els_index_doc, els_search, els_aggregate, els_analyze
-
-Step 2: Registering workflow 'elasticsearch_integration_446'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 8d413d10-73ac-9997-f3fb-5255f5568bb3
-
-  [index] Indexed doc- into reports-2024
-  [search] Query "revenue report" -> 3 hits in reports-2024
-  [aggregate] Top category: analytics, avg score: 8.27
-  [analyze] Found 
-
-
-  Status: COMPLETED
-  Output: {documentId=<"" + doc>, totalHits=3, topCategory=analytics, insights=Found }
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

@@ -107,44 +107,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-## Example Output
-
-```
-=== Graceful Degradation Demo: Continue with Reduced Functionality ===
-
-Step 1: Registering task definitions...
-  Registered: gd_core_process, gd_enrich, gd_analytics, gd_finalize
-
-Step 2: Registering workflow 'graceful_degradation_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow with all services available...
-
-  Workflow ID: a2b3c4d5-...
-  [gd_core_process] Processing data: order-123
-  [gd_enrich] available=true
-  [gd_analytics] available=true
-  [gd_finalize] enriched=true analytics=true degraded=True
-
-
-  Status: COMPLETED
-  Output: {coreResult=processed-order-123, enriched=true, analytics=true, degraded=true}
-
-
-Step 5: Starting workflow with enrichment unavailable...
-
-  Workflow ID: e6f7a8b9-...
-  Status: COMPLETED
-  Output: {coreResult=processed-order-123, enriched=true, analytics=true, degraded=true}
-
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

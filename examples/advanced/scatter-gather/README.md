@@ -45,58 +45,6 @@ sgr_aggregate
 
 ```
 
-## Example Output
-
-```
-=== Scatter-Gather Demo ===
-
-Step 1: Registering task definitions...
-  Registered: sgr_broadcast, sgr_gather_1, sgr_gather_2, sgr_gather_3, sgr_aggregate
-
-Step 2: Registering workflow 'sgr_scatter_gather'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 80705ef7-c3e4-a85f-18d1-613dd5509558
-
-  [broadcast] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-  [aggregate] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-  [gather-1] Processing
-  [gather-2] Processing
-  [gather-3] Processing
-
-
-  Status: COMPLETED
-  Output: {query=laptop_model_X500, bestPrice=4500, aggregated=2026-03-16}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

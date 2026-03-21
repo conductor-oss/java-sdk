@@ -130,38 +130,6 @@ conductor workflow search -w do_while_demo -s COMPLETED -c 5
 
 ```
 
-## Example Output
-
-```
-=== DO_WHILE Loop Demo: Process Items in Batch ===
-
-Step 1: Registering task definitions...
-  Registered: dw_process_item, dw_summarize
-
-Step 2: Registering workflow 'do_while_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-
-  Workflow ID: 9e8f7a6b-...
-
-Step 5: Waiting for completion...
-  [dw_process_item] Processing item at iteration: 0
-  [dw_process_item] Processing item at iteration: 1
-  [dw_process_item] Processing item at iteration: 2
-  [dw_process_item] Processing item at iteration: 3
-  [dw_process_item] Processing item at iteration: 4
-  [dw_summarize] Summarizing 5 processed items
-  Status: COMPLETED
-  Output: {totalProcessed=5, summary=Processed 5 items successfully}
-
-Result: PASSED
-
-```
-
 ## How to Extend
 
 Replace the simulated item processor with your real per-item logic. Database writes, API calls, or file operations, and the DO_WHILE loop workflow runs unchanged.

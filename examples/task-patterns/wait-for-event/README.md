@@ -140,44 +140,6 @@ conductor workflow search -w wait_event_demo -s COMPLETED -c 5
 
 ```
 
-## Example Output
-
-```
-=== WAIT Task: Pause Until External Signal ===
-
-Step 1: Registering task definitions...
-  Registered: we_prepare, we_process_signal
-  Note: wait_for_signal is a system WAIT task.; no worker needed.
-
-Step 2: Registering workflow 'wait_event_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Running in worker-only mode. Use the Conductor CLI to start workflows.
-The WAIT task pauses execution until you complete it via the API.
-
-Example:
-  1. Start workflow:
-     conductor workflow start --workflow wait_event_demo --version 1 \
-       --input '{"requestId": "REQ-001", "requester": "alice"}'
-
-  2. Find the WAIT task ID in the Conductor UI, then complete it:
-     curl -X POST http://localhost:8080/api/tasks \
-       -H 'Content-Type: application/json' \
-       -d '{"taskId": "W-A-I-T_-T-A-S-K-001", "status": "COMPLETED", \
-            "outputData": {"decision": "approved", "signalData": "external-data"}}'
-
---- After starting workflow and completing the WAIT task ---
-  [prepare] Preparing request REQ-001 from alice
-  [process_signal] Processing signal for request REQ-001: decision=approved, signalData=manager-approved-2024
-
-  Status: COMPLETED
-  Output: {requestId=REQ-001, decision=approved, processed=true}
-
-```
-
 ## How to Extend
 
 Connect the preparation step to a real notification system (email, Slack, PagerDuty) and the signal processing to your fulfillment service, and the durable WAIT pattern works unchanged.

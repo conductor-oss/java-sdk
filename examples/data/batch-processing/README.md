@@ -92,39 +92,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Sample Output
-
-```
-=== Batch Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: bp_prepare_batches, bp_process_batch, bp_summarize
-
-Step 2: Registering workflow 'batch_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-
-  [prepare] 10 records -> 4 batches of 3
-  [batch] Iteration 1: processing records 1-3 (3 records)
-  [batch] Iteration 2: processing records 4-6 (3 records)
-  [batch] Iteration 3: processing records 7-9 (3 records)
-  [batch] Iteration 4: processing records 10-10 (1 records)
-  [summary] Batch processing complete: 10 records in 4 batches
-
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {totalRecords=10, totalBatches=4, iterationsCompleted=4, summary=Batch processing complete: 10 records in 4 batches}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

@@ -43,31 +43,6 @@ chain_validate
 
 ```
 
-## Example Output
-
-```
-=== LLM Chain: Simulated LLM Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: chain_prompt, chain_generate, chain_parse, chain_validate
-
-Step 2: Registering workflow 'llm_chain_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 7877adda-335e-c002-d670-523b2fb44525
-
-
-  Status: COMPLETED
-  Output: {validatedResult=2026-03-16, checks=[check1, check2], allChecksPassed=[check1, check2]}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

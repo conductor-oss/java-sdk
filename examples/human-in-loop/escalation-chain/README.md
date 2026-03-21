@@ -98,53 +98,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Multi-Level Escalation Chain: Analyst -> Manager -> VP ===
-
-Step 1: Registering task definitions...
-  Registered: esc_submit, esc_finalize
-  (WAIT is a system task.; no task definition needed)
-
-Step 2: Registering workflow 'escalation_chain_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  [esc_submit] REQ-CHAIN
-
-  Workflow ID: d7e8f9a0-...
-
-Step 5: Waiting for WAIT task to be reached...
-  WAIT task reached (taskId: 5a6b7c8d-...)
-
-Step 6: Simulating escalation chain...
-
-  Level: Analyst (analyst@co.com)
-  Waiting 1500ms for response...
-  No response. Escalating to next level
-
-  Level: Manager (manager@co.com)
-  Waiting 1500ms for response...
-  No response. Escalating to next level
-
-  Level: VP (vp@co.com)
-  Waiting 1500ms for response...
-  VP responds. Approved!
-
-Step 7: Waiting for workflow completion...
-  [esc_finalize] approved at VP
-  Status: COMPLETED
-  Decision: approved
-  Responded at: VP level
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

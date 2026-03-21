@@ -47,66 +47,6 @@ vid_publish
 
 ```
 
-### Sample Output
-
-When the workflow runs with `videoId=VID-001`, the workers produce these artifacts:
-
-```
-[vid_upload] Ingesting: VID-001 from https://uploads.example.com/raw/VID-001.mp4
-  Storage path: s3://video-raw/VID-001/original.mp4
-  Duration: 185s, Size: 742 MB, Codec: h264
-
-[vid_transcode] Transcoding to adaptive bitrate...
-  Resolutions: 1080p (5000k), 720p (2500k), 480p (1000k)
-  HLS URL: https://cdn.example.com/hls/VID-001/master.m3u8
-  Format: HLS
-
-[vid_thumbnail] Generating thumbnail...
-  Captured at: 61s (duration / 3)
-  URL: https://cdn.example.com/thumbs/VID-001/default.jpg
-  Dimensions: 1280x720
-
-[vid_metadata] Building metadata index...
-  Title: Introduction to Conductor Workflows
-  Duration: 185s, Content type: video/mp4
-  Resolutions: [1080p, 720p, 480p]
-
-[vid_publish] Publishing...
-  Watch URL: https://watch.example.com/v/VID-001
-  Status: published
-
-```
-
-## Example Output
-
-```
-=== Video Processing Pipeline ===
-
-Step 1: Registering task definitions...
-  Registered: vid_upload, vid_transcode, vid_thumbnail, vid_metadata, vid_publish
-
-Step 2: Registering workflow 'video_processing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 35df8ee9-7189-8d71-3acb-d9f474b2c56e
-
-  [metadata] Extracting metadata for video
-  [publish] Publishing video
-  [thumbnail] Generating thumbnail for video
-  [transcode] Transcoding video
-  [upload] Ingesting video
-
-  Status: COMPLETED
-  Output: {videoId=VID-001, publishUrl=https://api.example.com/v1, resolutions=sample-resolutions, duration=185}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

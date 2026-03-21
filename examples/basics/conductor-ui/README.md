@@ -39,35 +39,6 @@ ui_step_three
 
 ```
 
-## Example Output
-
-```
-=== Conductor UI Guide: Monitoring and Debugging Workflows ===
-
-Step 1: Registering task definitions...
-  Registered: ui_step_one, ui_step_three, ui_step_two
-
-Step 2: Registering workflow 'conductor_ui'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 5da5938f-a662-da15-e050-383b8a5f3198
-
-  [ui_step_one] Processed signup for user user-42
-  [ui_step_two] Enriched: Processed signup for user user-42
-  [ui_step_three] Pipeline complete. Step 1: n/a | Step 2: n/a
-
-
-  Status: COMPLETED
-  Output: {summary=Pipeline complete. Step 1: n/a | Step 2: n/a, path=ui_step_one -> ui_step_two -> ui_step_three}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

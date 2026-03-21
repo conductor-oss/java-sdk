@@ -113,48 +113,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-## Example Output
-
-```
-=== Circuit Breaker Pattern: Stop Calling Failed Services ===
-
-Step 1: Registering task definitions...
-  Registered: cb_check_circuit, cb_call_service, cb_fallback
-
-Step 2: Registering workflow 'circuit_breaker_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Scenario A. Circuit CLOSED (normal, calls go through)...
-
-  Workflow ID: f3a1b2c4-...
-  [cb_check_circuit] circuitState=null failureCount=0 threshold=3 => CLOSED
-  [cb_call_service] Calling service: payment-api
-  Status: COMPLETED
-  Output: {circuitState=CLOSED, result=Service payment-api responded successfully, source=live}
-
-Step 5: Scenario B. Circuit OPEN (too many failures, use fallback)...
-
-  Workflow ID: d7e8f9a0-...
-  [cb_check_circuit] circuitState=null failureCount=5 threshold=3 => OPEN
-  [cb_fallback] Returning fallback data for service: payment-api
-  Status: COMPLETED
-  Output: {circuitState=OPEN, result=Fallback data for payment-api, source=cache}
-
-Step 6: Scenario C. Circuit forced OPEN (manual override)...
-
-  Workflow ID: b5c6d7e8-...
-  [cb_check_circuit] circuitState=OPEN failureCount=0 threshold=3 => OPEN
-  [cb_fallback] Returning fallback data for service: payment-api
-  Status: COMPLETED
-  Output: {circuitState=OPEN, result=Fallback data for payment-api, source=cache}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

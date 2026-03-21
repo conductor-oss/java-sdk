@@ -43,37 +43,6 @@ inv_reorder
 
 ```
 
-## Example Output
-
-```
-=== Example 456: Inventory Management ===
-
-Step 1: Registering task definitions...
-  Registered: inv_check_stock, inv_reserve, inv_update, inv_reorder
-
-Step 2: Registering workflow 'inventory_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 008cc633-7314-c926-0420-acfccb06e325
-
-  [check] SKU WH-1000XM5 at WH-EAST-01: 45 units available
-  [reserve] SKU WH-1000XM5: requested=requested-value, reserved=reserved-value
-  [update] SKU WH-1000XM5 at WH-EAST-01: previous-value -> remainingQty-value units
-  [reorder] SKU WH-1000XM5: remaining-value <= threshold-value threshold -> reorder reorderQty-value units
-  [reorder] SKU WH-1000XM5: remaining-value > threshold-value threshold -> no reorder needed
-
-
-  Status: COMPLETED
-  Output: {availableQty=45, reserved=reserved-value, remainingQty=remainingQty-value, reorderPlaced=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -174,7 +143,6 @@ Switch warehouse management systems and the inventory workflow continues with no
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

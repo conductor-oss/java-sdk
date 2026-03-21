@@ -101,34 +101,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Four-Eyes Approval Demo: Two Independent Approvals Required ===
-
-Step 1: Registering task definitions...
-  Registered: fep_submit, fep_finalize
-
-Step 2: Registering workflow 'four_eyes_approval_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  [fep_submit] Submitting request for four-eyes approval...
-
-  Workflow ID: a1b2c3d4-...
-  Workflow will pause at two parallel WAIT tasks (approver_1, approver_2).
-  Both must be completed externally for the workflow to proceed.
-
-Step 5: Waiting for completion (WAIT tasks require external signals)...
-  Status: RUNNING
-
-Note: Workflow is paused at WAIT tasks. Complete approver_1 and approver_2 externally.
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

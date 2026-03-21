@@ -49,41 +49,6 @@ ra_write_report
 
 ```
 
-## Example Output
-
-```
-=== Multi-Agent Research Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ra_define_research, ra_search_web, ra_search_papers, ra_search_databases, ra_synthesize, ra_write_report
-
-Step 2: Registering workflow 'multi_agent_research'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 5055c795-816e-3f0a-5ddd-046c9afea7ee
-
-  [ra_define_research] Defining research scope for: Impact of large language models on software engineering
-  [ra_search_web] Searching web with 3 queries...
-  [ra_search_papers] Searching academic papers across 3 domains...
-  [ra_search_databases] Searching 3 databases...
-  [ra_synthesize] Synthesizing findings for: Impact of large language models on software engineering
-  [ra_write_report] Writing report on: Impact of large language models on software engineering
-
-
-  Status: COMPLETED
-  Output: {title=Research Report: , executiveSummary=<String.format(
-     >, sections=5, wordCount=3200}
-     >, sections=5, wordCount=3200}
-     >, sections=5, wordCount=3200}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -184,7 +149,6 @@ Plug in real search APIs and academic databases; the research pipeline preserves
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

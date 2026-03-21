@@ -43,36 +43,6 @@ ag_send_response
 
 ```
 
-## Example Output
-
-```
-=== API Gateway Pattern Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ag_authenticate, ag_route_request, ag_transform_response, ag_send_response
-
-Step 2: Registering workflow 'api_gateway_292'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: c8590c69-1717-9a51-8d3b-4818dbb26145
-
-  [ag_authenticate] Validating API key ak-premium-xyz789...
-  [ag_route_request] Routing GET /api/v1/users...
-  [ag_transform_response] Transforming response for client client-enterprise-01...
-  [ag_send_response] Sending response with status 200...
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {statusCode=200, body={data={users=[{id=1, name=Alice, email=alice@example.com}, {id=2, name=Bob, email=bob@example.com}]}, meta={count=2, page=1, totalPages=1}}, headers={Content-Type=application/json, X-Request-Id=req-abc-123, X-RateLimit-Remaining=9999}}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

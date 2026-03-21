@@ -43,36 +43,6 @@ bh_release_pool
 
 ```
 
-## Example Output
-
-```
-=== Bulkhead Pattern Demo ===
-
-Step 1: Registering task definitions...
-  Registered: bh_classify_request, bh_allocate_pool, bh_execute_request, bh_release_pool
-
-Step 2: Registering workflow 'bulkhead_pattern_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 1f1c19b2-2a7b-f311-f383-5a2f544b5ae7
-
-  [bh_classify_request] payment-service priority=high
-  [bh_allocate_pool] Allocated slot in default-pool (max: 10)
-  [bh_execute_request] Processing request in pool POOL-default-pool
-  [bh_release_pool] Released slot in POOL-default-pool
-
-
-  Status: COMPLETED
-  Output: {pool=default-pool, response={status=ok}}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

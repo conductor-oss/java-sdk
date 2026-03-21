@@ -95,37 +95,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Sample Output
-
-```
-=== PDF Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: pd_extract_text, pd_parse_sections, pd_analyze_content, pd_generate_summary
-
-Step 2: Registering workflow 'pdf_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-
-  [extract] Extracted text from PDF -- 1 pages, 249 chars
-  [parse] Parsed sections from extracted text
-  [analyze] Analyzed content and extracted keywords
-  [summary] Generated summary
-
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {pageCount=3, sectionCount=3, wordCount=67, summary=Document contains 3 chapters covering introduction, architecture, implementation. Average 22 words per section.}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

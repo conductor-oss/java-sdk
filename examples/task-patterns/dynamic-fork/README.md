@@ -40,38 +40,6 @@ df_aggregate
 
 ```
 
-## Example Output
-
-```
-=== Dynamic FORK: Parallel URL Fetching ===
-
-Step 1: Registering task definitions...
-  Registered: df_prepare_tasks, df_fetch_url, df_aggregate
-
-Step 2: Registering workflow 'dynamic_fork_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-
-  [df_prepare_tasks] Preparing 3 dynamic tasks
-  [df_fetch_url] Fetching https://example.com
-  [df_fetch_url] Fetching https://openai.com
-  [df_fetch_url] Fetching https://conductor.netflix.com
-  [df_aggregate] Aggregated 3 results, totalSize=45600
-
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {results=Success, totalProcessed=3, totalSize=45600}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

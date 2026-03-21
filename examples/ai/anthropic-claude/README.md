@@ -39,40 +39,6 @@ claude_process_response
 
 ```
 
-## Example Output
-
-```
-=== Example 113: Orchestrating Anthropic Claude ===
-
-Mode: LIVE (CONDUCTOR_ANTHROPIC_API_KEY detected)
-Model: claude-sonnet-4-20250514
-
-Step 1: Registering task definitions...
-  Registered: claude_build_messages, claude_call_api, claude_process_response
-
-Step 2: Registering workflow 'anthropic_claude_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: c7f90776-de16-9031-ac4d-309dfec055f1
-
-  [build] Claude request: model=claude-sonnet-4-20250514, system prompt set
-  [api] Calling Anthropic Claude API (LIVE, model=claude-sonnet-4-20250514)...
-  [process] Extracted 1 text block(s), 412 chars
-
-  Status: COMPLETED
-  Model: claude-sonnet-4-20250514
-  Stop reason: end_turn
-  Analysis: Critical: JWT tokens lack expiration claims. High: password reset tokens use predictable IDs...
-  Usage: {input_tokens=92, output_tokens=118}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

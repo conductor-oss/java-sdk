@@ -43,35 +43,6 @@ chk_confirm_order
 
 ```
 
-## Example Output
-
-```
-=== Example 453: Checkout Flow ===
-
-Step 1: Registering task definitions...
-  Registered: chk_validate_cart, chk_calculate_tax, chk_process_payment, chk_confirm_order
-
-Step 2: Registering workflow 'checkout_flow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 9a569756-e44d-3d56-5548-b3ae50f5461f
-
-  [validate] Cart cart-abc123: 3 items, subtotal = $184.96
-  [payment] Charged $<Math.round((subtotal> via card -> pay-
-  [confirm] Order ORD- confirmed: $<Math.round((subtotal>, payment pay-
-
-
-  Status: COMPLETED
-  Output: {orderId=ORD-, grandTotal=<Math.round((subtotal>, paymentId=pay-, confirmed=True}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

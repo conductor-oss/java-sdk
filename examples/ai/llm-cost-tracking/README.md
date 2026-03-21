@@ -128,41 +128,6 @@ CONDUCTOR_OPENAI_API_KEY="sk-..." CONDUCTOR_ANTHROPIC_API_KEY="sk-ant-..." GOOGL
 | `CONDUCTOR_ANTHROPIC_API_KEY` | _(unset)_ | Anthropic API key. Enables live Claude calls |
 | `GOOGLE_API_KEY` | _(unset)_ | Google API key. Enables live Gemini calls |
 
-## Example Output
-
-### Simulated mode (no API keys)
-
-```
-=== LLM Cost Tracking: Multi-Model Cost Aggregation ===
-
-Step 1: Registering task definitions...
-  Registered: ct_call_gpt4, ct_call_claude, ct_call_gemini, ct_aggregate_costs
-
-Step 2: Registering workflow 'llm_cost_tracking_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: e5f6a7b8-...
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {breakdown=[
-    {model=gpt-4, inputTokens=120, outputTokens=350, cost=$0.0246},
-    {model=claude-3, inputTokens=120, outputTokens=280, cost=$0.0228},
-    {model=gemini, inputTokens=120, outputTokens=400, cost=$0.0007}
-  ], totalCost=$0.0481, totalTokens=1390}
-
-Result: PASSED
-
-```
-
-### Live mode (with API keys)
-
-When API keys are set, workers call the real provider APIs and extract actual token usage. The cost breakdown reflects real token counts from each provider for the given prompt.
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

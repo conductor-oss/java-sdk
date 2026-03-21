@@ -104,36 +104,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Multi-Agent Customer Support Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cs_classify_ticket, cs_knowledge_search, cs_solution_propose, cs_feature_evaluate, cs_general_respond, cs_qa_validate
-
-Step 2: Registering workflow 'multi_agent_customer_support'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
-Step 4: Starting workflow...
-  [cs_classify_ticket] Classifying ticket: Application crashes on login
-  [cs_knowledge_search] Searching KB for: [error, crash, fail]
-  [cs_solution_propose] Proposing solution for severity: high
-  [cs_qa_validate] Validating response for ticket: TKT-9182
-
-  Workflow ID: 2f4a6b8c-d0e2-4f6a-8b0c-d2e4f6a8b0c2
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {ticketId=TKT-9182, category=bug, approved=true, finalResponse=Dear Customer, your ticket TKT-9182 (category: bug) has been reviewed and validated. Our team has ensured the response meets quality standards. Please review the proposed solution and let us know if you need further assistance.}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

@@ -47,36 +47,6 @@ acc_welcome
 
 ```
 
-## Example Output
-
-```
-=== Example 499: Account Opening ===
-
-Step 1: Registering task definitions...
-  Registered: acc_collect_info, acc_verify_identity, acc_credit_check, acc_open_account, acc_welcome
-
-Step 2: Registering workflow 'account_opening_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: c9f0b76f-1a93-8809-7b70-ca1c2a2aa392
-
-  [info] Collecting info for
-  [credit] Running ChexSystems check for
-  [open] Account 3 opened. Type: checking, deposit: $1000
-  [identity] Verifying identity for
-  [welcome] Welcome package sent to
-
-  Status: COMPLETED
-  Output: {applicationId=ACCTAPP-2024-001, accountNumber=3, accountType=checking, welcomeSent=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

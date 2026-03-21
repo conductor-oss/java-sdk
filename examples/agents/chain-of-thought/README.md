@@ -47,37 +47,6 @@ ct_final_answer
 
 ```
 
-## Example Output
-
-```
-=== Chain of Thought Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ct_understand_problem, ct_step_1_reason, ct_step_2_calculate, ct_step_3_verify, ct_final_answer
-
-Step 2: Registering workflow 'chain_of_thought'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: d7f1032a-ac6c-9b7e-6035-67c8d72477ef
-
-  [ct_understand_problem] Analyzing problem: What is the compound interest on $10,000 at 5% annual rate for 3 years?
-  [ct_step_1_reason] Reasoning about: Calculate compound interest on a $10,000 principal at 5% annual rate for 3 years
-  [ct_step_2_calculate] Calculating from reasoning: Use compound interest formula: A = P(1 + r)^t where P=10000, r=0.05, t=3
-  [ct_step_3_verify] Verifying calculation: 10000 * (1 + 0.05)^3
-  [ct_final_answer] Composing answer for: What is the compound interest on $10,000 at 5% annual rate for 3 years?
-
-
-  Status: COMPLETED
-  Output: {problem=What is the compound interest on $10,000 at 5% annual rate for 3 years?, understanding=Calculate compound interest on a $10,000 principal at 5% annual rate for 3 years, reasoning=Use compound interest formula: A = P(1 + r)^t where P=10000, r=0.05, t=3, calculation=10000 * (1 + 0.05)^3, verified=True, answer=The compound interest on $10,000 at 5% for 3 years yields $11576.25 (confidence: 1.0)}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -178,7 +147,6 @@ Plug in real LLM reasoning for each step; the reasoning chain uses the same unde
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

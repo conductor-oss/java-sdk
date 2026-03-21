@@ -44,35 +44,6 @@ SWITCH (route_ref)
 
 ```
 
-## Example Output
-
-```
-=== Event Routing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: eo_receive_event, eo_extract_type, eo_user_processor, eo_order_processor, eo_system_processor
-
-Step 2: Registering workflow 'event_routing_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 89a1c576-0871-7c3e-0aa5-ebc78170f40c
-
-  [eo_receive_event] Received event: evt-fixed-001 domain=user.profile_update
-  [eo_extract_type] Extracting type from: unknown
-  [eo_user_processor] Processing user event: evt-fixed-001 subType=profile_update
-
-
-  Status: COMPLETED
-  Output: {eventId=evt-fixed-001, domain=user, subType=profile_update, routed=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

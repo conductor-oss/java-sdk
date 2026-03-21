@@ -177,48 +177,6 @@ Each endpoint gets three real network checks:
 - **HTTP**: GET request with response time measurement via `HttpURLConnection`
 - **TLS**: certificate validation and expiry check via `SSLSocket`
 
-## Example Output
-
-```
-=== Uptime Monitor Demo: Endpoint Health Check Pipeline ===
-
-[uptime_check_endpoint] Checking: Google (https://www.google.com)
-  DNS: resolved to 2 address(es)
-  HTTP: 200 (183ms)
-  TLS: valid, expires in 30 days
-  Status: HEALTHY
-
-[uptime_check_endpoint] Checking: Intentional Failure (https://down.example.invalid)
-  DNS: FAILED. Down.example.invalid
-  Status: DOWN
-
-[uptime_aggregate_results] Aggregating endpoint check results...
-  Total: 4 | Healthy: 3 | Degraded: 0 | Down: 1
-  Overall: CRITICAL
-
-[uptime_send_slack_alert] Sending Slack alert...
-  [simulated] No webhook configured. Logging alert to console
-[uptime_send_email_alert] Sending email alert...
-[uptime_update_status_page] Updating status page...
-
-[uptime_check_escalation] Checking escalation threshold...
-  Failing endpoints: 1 (threshold: 3)
-  Escalate: false
-
-[uptime_store_metrics] Storing metrics...
-  Stored 6 data points
-
---- Monitor Results ---
-  Overall status : CRITICAL
-  Has failures   : true
-  Endpoints      : 4 total, 3 healthy, 0 degraded, 1 down
-  Avg response   : 210ms
-  Metrics stored : 6 data points
-
-Result: UNHEALTHY. Failures detected (workflow completed successfully)
-
-```
-
 ## Using the Conductor CLI
 
 You can use the [Conductor CLI](https://github.com/conductor-oss/conductor-cli) to register definitions, start workflows, and inspect executions. The CLI handles the Conductor server side; but **workers must still be running** to poll and execute tasks.

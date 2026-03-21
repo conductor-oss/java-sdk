@@ -45,37 +45,6 @@ en_record_delivery
 
 ```
 
-## Example Output
-
-```
-=== Event Notification Demo ===
-
-Step 1: Registering task definitions...
-  Registered: en_parse_event, en_send_email, en_send_sms, en_send_push, en_record_delivery
-
-Step 2: Registering workflow 'event_notification'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 8abede17-7267-0195-e11d-030aa0cd4b2d
-
-  [en_parse_event] Event type: order.shipped, recipient: user-9001
-  [en_send_email] Sent to user-9001: "Notification: order.shipped"
-  [en_send_sms] Sent to user-9001: "[order.shipped] Your order has been shipped!"
-  [en_send_push] Sent to user-9001: "Notification: order.shipped"
-  [en_record_delivery] email=sent, sms=sent, push=sent -> all_delivered
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {recipientId=user-9001, channelsUsed=3, overallDelivery=all_delivered}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

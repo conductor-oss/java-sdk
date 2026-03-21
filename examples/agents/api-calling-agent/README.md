@@ -106,37 +106,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== API Calling Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ap_plan_api_call, ap_authenticate, ap_call_api, ap_parse_response, ap_format_output
-
-Step 2: Registering workflow 'api_calling_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  [ap_plan_api_call] Planning API call for request: Tell me about the Conductor open-source repository on GitHub
-  [ap_authenticate] Authenticating for API: github (auth type: bearer_token)
-  [ap_call_api] Calling GET https://api.github.com/repos/conductor-oss/conductor
-  [ap_parse_response] Parsing response (status code: 200)
-  [ap_format_output] Formatting output for request: Tell me about the Conductor open-source repository on GitHub
-
-  Workflow ID: 1a2b3c4d-5e6f-7890-abcd-ef0123456789
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {answer=The repository conductor-oss/conductor is Conductor is an event driven orchestration platform. It is written in Java and has 16500 stars and 2100 forks. It is licensed under Apache License 2.0., dataSource=github_api, fieldsUsed=7, validationPassed=true}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

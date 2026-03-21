@@ -40,34 +40,6 @@ SWITCH (ded_switch_ref)
 
 ```
 
-## Example Output
-
-```
-=== Example 410: Deadline Management ===
-
-Step 1: Registering task definitions...
-  Registered: ded_check_deadlines, ded_handle_urgent, ded_handle_normal, ded_handle_overdue
-
-Step 2: Registering workflow 'deadline_management_410'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 4a76f54d-df78-f1b2-420e-11335b585688
-
-  [check] Checking deadline for task TASK-2201 (due: 2026-03-08T18:00:00Z)
-  [urgent] Escalating task TASK-2201 - 4h remaining
-
-
-  Status: COMPLETED
-  Output: {urgency=urgent, hoursRemaining=4, action=urgent}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

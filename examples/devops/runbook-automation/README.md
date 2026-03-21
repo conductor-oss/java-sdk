@@ -43,34 +43,6 @@ ra_log_outcome
 
 ```
 
-## Example Output
-
-```
-=== Example runbook-automation: Runbook Automatio ===
-
-Step 1: Registering task definitions...
-  Registered: ra_load_runbook, ra_execute_step, ra_verify_step, ra_log_outcome
-
-Step 2: Registering workflow 'runbook_automation_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 6f755406-5288-4313-024b-34ecc1a198ca
-
-  [execute] Promoted DB replica
-  [load] Runbook: database-failover v3
-  [log] Outcome: completed in 45s
-  [verify] New primary accepting connections
-
-  Status: COMPLETED
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -120,22 +92,6 @@ CONDUCTOR_PORT=9090 ./run.sh
 
 # Or pointing at an existing Conductor:
 CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-
-```
-
-### Sample Output
-
-```
-=== Example runbook-automation: Runbook Automation ===
-
-  [load] Runbook: database-failover v3
-  [execute] Promoted DB replica
-  [verify] New primary accepting connections
-  [log] Outcome: completed in 45s
-  runbookId: RB-100
-  outcome: success
-
-Result: PASSED
 
 ```
 

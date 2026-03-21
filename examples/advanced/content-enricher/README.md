@@ -43,36 +43,6 @@ enr_forward
 
 ```
 
-## Example Output
-
-```
-=== Example 592: Content Enricher ===
-
-Step 1: Registering task definitions...
-  Registered: enr_receive_message, enr_lookup_data, enr_enrich, enr_forward
-
-Step 2: Registering workflow 'enr_content_enricher'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 8e94a2b7-e998-9e44-03d0-0a2e6b632631
-
-  [receive] Message received. Customer: CUSTOMERID-001
-  [lookup] Looking up enrichment data for customer \"CUSTOMERID-001\"
-  [enrich] Message enriched with 3 additional fields
-  [forward] Forwarding enriched message for customer \"CUSTOMERID-001\" (tier: tier-value)
-
-
-  Status: COMPLETED
-  Output: {originalMessage=Operation completed successfully, enrichedMessage=Operation completed successfully, forwarded=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

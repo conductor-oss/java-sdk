@@ -6,7 +6,7 @@ Rate limiting demo. demonstrates task-level rate limiting with concurrency and f
 
 You need to call an external API that enforces rate limits. Say, 5 requests per 10-second window with a maximum of 2 concurrent connections. When hundreds of workflow instances are running simultaneously, each one trying to call the same API, you need to throttle at the task level so the API is not overwhelmed. Without throttling, you get 429 (Too Many Requests) errors, the API blocks your client, and workflows fail in bursts.
 
-Without orchestration, you'd implement a token bucket or sliding window rate limiter in your application code, shared across all threads via a concurrent data structure or Redis. That rate limiter must survive process restarts, handle distributed deployments where multiple instances share the same limit, and be tuned per-API. Building and maintaining a production-grade distributed rate limiter is a significant engineering effort.
+Without orchestration, you'd implement a token bucket or sliding window rate limiter in your application code, shared across all threads via a concurrent data structure or Redis. That rate limiter must survive process restarts, handle distributed deployments where multiple instances share the same limit, and be tuned per-API. Building and maintaining a example-grade distributed rate limiter is a significant engineering effort.
 
 ## The Solution
 
@@ -138,36 +138,6 @@ done
 conductor workflow status <workflow_id>
 conductor workflow get-execution <workflow_id> -c
 conductor workflow search -w rate_limit_demo -s COMPLETED -c 5
-
-```
-
-## Example Output
-
-```
-=== Rate Limiting Demo: Task-Level Rate Limiting ===
-
-Step 1: Registering task definition with rate limiting...
-  Registered: rl_api_call
-    rateLimitPerFrequency: 5
-    rateLimitFrequencyInSeconds: 10
-    concurrentExecLimit: 2
-
-Step 2: Registering workflow 'rate_limit_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 worker polling.
-
-Step 4: Starting workflow...
-
-  Workflow ID: 1a2b3c4d-...
-
-Step 5: Waiting for completion...
-  [rl_api_call] Processing batch: 42
-  Status: COMPLETED
-  Output: {result=batch-42-done}
-
-Result: PASSED
 
 ```
 

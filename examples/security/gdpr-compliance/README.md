@@ -43,34 +43,6 @@ gdpr_confirm_completion
 
 ```
 
-## Example Output
-
-```
-=== Example 357: GDPR Compliance ===
-
-Step 1: Registering task definitions...
-  Registered: gdpr_verify_identity, gdpr_locate_data, gdpr_process_request, gdpr_confirm_completion
-
-Step 2: Registering workflow 'gdpr_compliance_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: bd3bdc2b-9822-ffa6-7be8-21a4f8b067c5
-
-  [confirm] Confirmation sent to data subject within 30-day deadline
-  [locate] Data found in 4 systems: CRM, billing, analytics, logs
-  [process] right-to-erasure: data exported/deleted from 4 systems
-  [identity] Subject EU-USER-12345: identity verified
-
-  Status: COMPLETED
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

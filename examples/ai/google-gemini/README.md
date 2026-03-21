@@ -39,38 +39,6 @@ gemini_format_output
 
 ```
 
-## Example Output
-
-```
-=== Example 114: Orchestrating Google Gemini ===
-
-Mode: LIVE (GOOGLE_API_KEY detected)
-Model: gemini-2.5-flash
-
-Step 1: Registering task definitions...
-  Registered: gemini_prepare_content, gemini_generate, gemini_format_output
-
-Step 2: Registering workflow 'google_gemini_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 76e17bac-69d2-98e5-5b7f-b2d73dbec88e
-
-  [prep] Gemini request: model=gemini-2.5-flash, topK=40
-  [gen] Calling Google Gemini API (LIVE, model=gemini-2.5-flash)...
-  [fmt] Formatted result: Product launch plan for Q4...
-
-  Status: COMPLETED
-  Model: gemini-2.5-flash
-  Tokens: {promptTokenCount=78, candidatesTokenCount=132, totalTokenCount=210}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

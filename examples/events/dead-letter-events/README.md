@@ -43,35 +43,6 @@ SWITCH (result_switch_ref)
 
 ```
 
-## Example Output
-
-```
-=== Dead Letter Events Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dl_receive_event, dl_attempt_process, dl_finalize_success, dl_route_to_dlq, dl_send_alert
-
-Step 2: Registering workflow 'dead_letter_events_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: d4a30129-b50c-cffe-2529-f91cad44b7ee
-
-  [dl_receive_event] Received event: evt-fixed-001 type=payment.charge
-  [dl_attempt_process] Attempting to process event: evt-fixed-001
-  [dl_finalize_success] Finalizing event: evt-fixed-001
-
-
-  Status: COMPLETED
-  Output: {eventId=evt-fixed-001, processingResult=success, errorReason=errorReason-value}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

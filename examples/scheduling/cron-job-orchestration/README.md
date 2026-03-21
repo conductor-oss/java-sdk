@@ -43,37 +43,6 @@ cj_cleanup
 
 ```
 
-## Example Output
-
-```
-=== Example 401: Cron Job Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: cj_schedule_job, cj_execute_job, cj_log_result, cj_cleanup
-
-Step 2: Registering workflow 'cron_job_orchestration_401'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: eea96911-af80-2e95-baa5-e4b05016f684
-
-  [cleanup] Removing temp files for \"" + jobName + "\"...
-  [execute] Running job \"" + jobName + "\" at
-  [log] Logging result for \"" + jobName
-                + "\". Exit code:
-  [schedule] Scheduling cron job \"" + jobName
-                + "\" with expression \"" + cronExpression + "\"...
-
-  Status: COMPLETED
-  Output: {scheduledAt=2026-03-08T02:00:00Z, exitCode=0, logged=true, cleanedUp=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

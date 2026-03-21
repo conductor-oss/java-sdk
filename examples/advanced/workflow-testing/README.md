@@ -110,42 +110,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Example 571: Workflow Testing ===
-
-Step 1: Registering task definitions...
-  Registered 5 task definitions.
-
-Step 2: Registering workflow 'wft_workflow_testing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-
-  [setup] Preparing fixtures for suite \"order-processing-tests\"
-  [execute] Running workflow \"order_processing_workflow\" with fixtures
-  [assert] Checking assertions against expected output
-    Assertions: 3/3 passed
-  [teardown] Cleaning up test fixtures
-  [report] Generating report. Suite \"order-processing-tests\" passedPASSEDFAILED-value
-    Assertions: 0/0 passed
-    Teardown clean: true
-
-  Workflow ID: <workflow-id>
-
-Step 5: Waiting for completion...
-
-  Status: COMPLETED
-  Output: {testSuite=order-processing-tests, allPassed=true, assertions=[check1, check2], report={suite=testSuite, result=passed ? "PASSED" : "FAILED", totalAssertions=totalAssertions, passedAssertions=passedAssertions, teardownClean=teardownClean}}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

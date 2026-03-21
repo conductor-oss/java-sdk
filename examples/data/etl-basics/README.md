@@ -99,38 +99,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-### Sample Output
-
-```
-=== ETL Basics Demo ===
-
-Step 1: Registering task definitions...
-  Registered: el_extract_data, el_transform_data, el_validate_output, el_load_data, el_confirm_load
-
-Step 2: Registering workflow 'etl_basics_wf'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-
-  [el_extract_data] Extracted 3 records from inline JSON
-  [el_transform_data] Transforming 3 records
-  [el_validate_output] Validating 3 records
-  [el_load_data] Loaded 3 records to analytics-warehouse
-  [el_confirm_load] Confirming load of 3 records to analytics-warehouse
-
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {status=ETL_COMPLETE, loadedCount=3, destination=analytics-warehouse}
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

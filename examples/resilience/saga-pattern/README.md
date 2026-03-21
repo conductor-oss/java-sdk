@@ -111,48 +111,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-## Example Output
-
-```
-=== Saga Pattern: Orchestrated Compensation for Trip Booking ===
-
-Step 1: Registering task definitions...
-  Registered: saga_reserve_hotel, saga_book_flight, saga_charge_payment, saga_cancel_flight, saga_cancel_hotel, saga_refund_payment
-
-Step 2: Registering workflow 'trip_booking_saga'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
---- Scenario 1: Successful trip booking ---
-  Workflow ID: 85a1c3e0-...
-  [reserve_hotel] Reserving hotel for trip TRIP-001
-  [book_flight] Booking flight for trip TRIP-001
-  [charge_payment] Payment succeeded for trip TRIP-001
-  Status: COMPLETED
-  Output: {tripId=TRIP-001, hotel=HTL-TRIP-001, flight=FLT-TRIP-001, payment=success, transactionId=TXN-TRIP-001}
-  As expected: trip booked successfully with all services confirmed.
-
---- Scenario 2: Payment failure triggers saga rollback ---
-  Workflow ID: 92b4d7f1-...
-  [reserve_hotel] Reserving hotel for trip TRIP-002
-  [book_flight] Booking flight for trip TRIP-002
-  [charge_payment] Payment FAILED for trip TRIP-002
-  [cancel_flight] Cancelling flight for trip TRIP-002 (compensation)
-  [cancel_hotel] Cancelling hotel for trip TRIP-002 (compensation)
-  Status: COMPLETED
-  Output: {tripId=TRIP-002, status=ROLLED_BACK}
-  As expected: payment failed, saga compensated by cancelling flight and hotel.
-
-Key insight: The saga pattern uses orchestrated compensation --
-when a step fails, the workflow runs compensating tasks in reverse order
-to undo the effects of previously completed steps.
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

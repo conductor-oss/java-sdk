@@ -99,36 +99,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 | `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key. When set, `GenerateJsonWorker` calls the real API. When absent, runs in simulated mode. |
 
-## Example Output
-
-```
-=== Structured Output Demo: Generate, Validate, Transform ===
-
-Step 1: Registering task definitions...
-  Registered: so_generate_json, so_validate_schema, so_transform
-
-Step 2: Registering workflow 'structured_output_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  [so_generate_json] Generating JSON for entity: company, fields: [name, industry, founded, employees]
-  [so_validate_schema] Validating data against schema...
-  [so_transform] Transforming data, validated=true
-
-  Workflow ID: c3d4e5f6-...
-
-Step 5: Waiting for completion...
-
-  Status: COMPLETED
-  Output: {finalResult=Success}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

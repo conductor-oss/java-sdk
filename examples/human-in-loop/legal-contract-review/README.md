@@ -96,34 +96,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Legal Contract Review Demo: AI Extract Terms + Human Legal Review ===
-
-Step 1: Registering task definitions...
-  Registered: lcr_extract_terms, lcr_finalize
-
-Step 2: Registering workflow 'legal_contract_review_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  2 workers polling.
-
-Step 4: Starting workflow...
-  [lcr_extract_terms] Extracting contract terms...
-  [lcr_extract_terms] Extracted 5 terms, 3 risk flags.
-
-  Workflow ID: c4d5e6f7-...
-
-Step 5: Waiting for completion (WAIT task requires external signal)...
-  Status: RUNNING
-
-Note: Workflow is paused at the legal_review WAIT task.
-      A lawyer must review the extracted terms and risk flags, then complete the task.
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

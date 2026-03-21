@@ -44,37 +44,6 @@ rx_final_answer
 
 ```
 
-## Example Output
-
-```
-=== ReAct Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: rx_init_task, rx_reason, rx_act, rx_observe, rx_final_answer
-
-Step 2: Registering workflow 'react_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: b76d7575-fe60-fa8b-3c72-e4c50ebe00d6
-
-  [rx_init_task] Initializing ReAct agent for: What is the current world population?
-  [rx_reason] Iteration 3: thought-value
-  [rx_act] Action: proceed
-  [rx_observe] Iteration 
-  [rx_final_answer] Generating final answer after 3 iterations
-
-
-  Status: COMPLETED
-  Output: {question=What is the current world population?, iterations=3, answer=The world population is approximately 8.1 billion people as of 2024, confirmed by multiple sources.}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -175,7 +144,6 @@ Wire in real search APIs and LLM reasoning; the reason-act-observe loop uses the
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

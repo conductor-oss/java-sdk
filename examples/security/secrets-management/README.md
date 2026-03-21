@@ -43,34 +43,6 @@ sm_schedule_rotation
 
 ```
 
-## Example Output
-
-```
-=== Example 300: Secrets Management ===
-
-Step 1: Registering task definitions...
-  Registered: sm_create_secret, sm_distribute, sm_verify_access, sm_schedule_rotation
-
-Step 2: Registering workflow 'secrets_management_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 8fb478ac-0db3-0654-8b3a-52e0babfe1cc
-
-  [create] Secret db-prod-password (database) created
-  [distribute] Secret distributed to 3 authorized services
-  [rotation] Automatic rotation scheduled every 90 days
-  [verify] Access policies verified: only authorized services can read
-
-  Status: COMPLETED
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

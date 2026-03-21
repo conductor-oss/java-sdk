@@ -47,37 +47,6 @@ prw_pay
 
 ```
 
-## Example Output
-
-```
-=== Example 652: Procurement Workflow ===
-
-Step 1: Registering task definitions...
-  Registered: prw_requisition, prw_approve, prw_purchase, prw_receive, prw_pay
-
-Step 2: Registering workflow 'prw_procurement'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 3008efd9-fe78-8aff-5419-4a959f4aa0a1
-
-  [requisition] eng-manager requests 100x Office Laptops ($4500.0)
-  [approve] Approved. Cost $4500.0 vs budget $50000
-  [purchase] PO created for REQ-652-001
-  [receive] Goods received for PO-652-001
-  [pay] Payment of $4500 for PO-652-001
-
-
-  Status: COMPLETED
-  Output: {requisitionId=REQ-652-001, approved=true, poNumber=PO-652-001, paymentId=PAY-652-001}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

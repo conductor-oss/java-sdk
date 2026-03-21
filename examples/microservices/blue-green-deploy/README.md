@@ -42,35 +42,6 @@ bg_verify_deployment
 
 ```
 
-## Example Output
-
-```
-=== Example 296: Blue-Green Deployment ===
-
-Step 1: Registering task definitions...
-  Registered: bg_prepare_green, bg_test_green, bg_switch_traffic, bg_verify_deployment
-
-Step 2: Registering workflow 'blue_green_deploy_296'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 8e22af7b-9297-4b22-528e-cf8c9fb8dc7d
-
-  [prepare] Deploying payment-service v2.5.0 to green...
-  [switch] Switching traffic from
-  [test] Running smoke tests on green environment...
-  [verify] Verifying payment-service v2.5.0 on green...
-
-  Status: COMPLETED
-  Output: {deploymentStatus=success, activeEnvironment=production, version=2.5.0}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

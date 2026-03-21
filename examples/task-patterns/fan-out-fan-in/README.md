@@ -127,37 +127,6 @@ conductor workflow search -w fan_out_fan_in_demo -s COMPLETED -c 5
 
 ```
 
-## Example Output
-
-```
-=== Fan-Out/Fan-In: Parallel Image Processing ===
-
-Step 1: Registering task definitions...
-  Registered: fo_prepare, fo_process_image, fo_aggregate
-
-Step 2: Registering workflow 'fan_out_fan_in_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-
-  Workflow ID: 7c2d4e5f-...
-
-Step 5: Waiting for completion...
-  [fo_prepare] Preparing 3 dynamic tasks
-  [fo_process_image] Processing image #0: hero.jpg
-  [fo_process_image] Processing image #1: banner.png
-  [fo_process_image] Processing image #2: thumb.jpg
-  [fo_aggregate] Aggregated 3 results, savings=66.7%
-  Status: COMPLETED
-  Output: {processedCount=3, totalSize=3, results=Sample results}
-
-Result: PASSED
-
-```
-
 ## How to Extend
 
 Replace the image compression stub with real processing (ImageMagick, Thumbnailator, AWS Rekognition), and the scatter-gather parallelism works unchanged.

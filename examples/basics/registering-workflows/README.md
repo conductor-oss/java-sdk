@@ -31,33 +31,6 @@ echo_task
 
 ```
 
-## Example Output
-
-```
-=== Workflow Registration: SDK and JSON Approaches ===
-
-Step 1: Registering task definitions...
-  Registered: echo_task
-
-Step 2: Registering workflow 'registering_workflows'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 07e9970f-4311-6a5d-a137-6fb991beb8fb
-
-  [echo_task worker] Hello from v1!
-
-
-  Status: COMPLETED
-  Output: {result=(no message)}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

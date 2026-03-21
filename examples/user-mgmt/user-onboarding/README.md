@@ -102,35 +102,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Example 601: User Onboarding ===
-
-Step 1: Registering task definitions...
-  Registered: uo_create_account, uo_verify_email, uo_set_preferences, uo_welcome
-
-Step 2: Registering workflow 'uo_user_onboarding'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-
-  [create] Account created for Alice Johnson -> USR-7FE5E53D
-  [verify] Email verification sent to alice@example.com
-  [prefs] Default preferences set for USR-7FE5E53D
-  [welcome] Welcome email sent to Alice Johnson at alice@example.com
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {userId=USR-7FE5E53D, verified=true, welcomeSent=true}
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

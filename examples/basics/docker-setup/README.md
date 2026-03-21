@@ -31,33 +31,6 @@ docker_test_task
 
 ```
 
-## Example Output
-
-```
-=== Docker Setup Verificatio ===
-
-Step 1: Registering task definitions...
-  Registered: docker_test_task
-
-Step 2: Registering workflow 'docker_setup_test'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  1 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 56f449fa-3b28-4065-8d10-2777d9c2b2c3
-
-  [docker_test_task worker] Verifying Docker setup
-
-
-  Status: COMPLETED
-  Output: {message=Docker setup test, timestamp=2026-03-16T14:30:00Z}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -148,7 +121,6 @@ conductor workflow search -w docker_setup_test -s COMPLETED -c 5
 ## How to Extend
 
 Once this smoke test passes, you can start building real workflows, the Docker environment and worker connectivity are verified and ready for production workers.
-
 
 The smoke test worker verifies connectivity without coupling to any specific workflow definition.
 

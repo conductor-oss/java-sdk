@@ -43,41 +43,6 @@ gh_merge_pr
 
 ```
 
-## Example Output
-
-```
-=== Example 434: GitHub Integratio ===
-
-Step 1: Registering task definitions...
-  Registered: gh_receive_webhook, gh_create_pr, gh_run_checks, gh_merge_pr
-
-Step 2: Registering workflow 'github_integration_434'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 8d8c0f55-ca3e-8d93-b706-c89ed2842540
-
-  [webhook] Push to acme/api-service/feature/new-endpoint
-  [create_pr] PR #142: feat: add user preferences endpoint
-  [create_pr] ERROR: ...
-  [create_pr] ERROR: ...
-  [create_pr] PR #142: feat: add user preferences endpoint
-  [checks] PR #142: lint=passed, unit-tests=passed, build=passed
-  [merge] PR #142 merged (checks passed: true)
-  [merge] ERROR: ...
-  [merge] ERROR: ...
-  [merge] PR #142 merged (checks passed: true)
-
-  Status: COMPLETED
-  Output: {prNumber=142, checksPassed=true, merged=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

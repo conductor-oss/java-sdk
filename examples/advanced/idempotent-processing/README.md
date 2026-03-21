@@ -43,40 +43,6 @@ idp_record
 
 ```
 
-## Example Output
-
-The example submits message `msg-abc-123` twice. The first run processes it, the second detects the duplicate and skips:
-
-```
-=== Idempotent Processing Demo ===
-
-Step 1: Registering task definitions...
-  Tasks registered.
-
-Step 2: Registering workflow 'idp_idempotent_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-=== Run 1: First submission of msg-abc-123 ===
-
-[idp_check_processed] Message msg-abc-123: NOT previously processed
-[idp_process] Processing message msg-abc-123...
-[idp_record] Recording msg-abc-123 as processed
-  Status: COMPLETED
-
-=== Run 2: Duplicate submission of msg-abc-123 ===
-
-[idp_check_processed] Message msg-abc-123: ALREADY processed. Skipping
-[idp_skip] Skipping duplicate message msg-abc-123
-[idp_record] Recording msg-abc-123 as processed
-  Status: COMPLETED
-
-Result: PASSED. Both runs completed, duplicate was detected on Run 2
-
-```
-
 ## Running It
 
 ### Prerequisites

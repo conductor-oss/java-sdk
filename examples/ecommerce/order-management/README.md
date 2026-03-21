@@ -47,36 +47,6 @@ ord_deliver
 
 ```
 
-## Example Output
-
-```
-=== Example 455: Order Management ===
-
-Step 1: Registering task definitions...
-  Registered: ord_create, ord_validate, ord_fulfill, ord_ship, ord_deliver
-
-Step 2: Registering workflow 'order_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: ba500755-0f02-7841-8efa-277832205900
-
-  [validate] Order ORD-: 3 items, all in stock: true
-  [fulfill] Order ORD-: picked & packed at WH-EAST-01 -> FUL-
-  [ship] Order ORD-: express TRK to N/A
-  [deliver] Order ORD-: delivered (tracking: TRK)
-
-
-  Status: COMPLETED
-  Output: {orderId=ORD-, fulfillmentId=FUL-, trackingNumber=TRK, delivered=True}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -177,7 +147,6 @@ Connect each worker to your fulfillment systems and the order lifecycle operates
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -129,33 +129,6 @@ conductor workflow search -w tva_travel_approval -s COMPLETED -c 5
 
 ```
 
-## Example Output
-
-```
-=== Travel Request Approval ===
-
-Step 1: Registering task definitions...
-  Registered: tva_submit, tva_estimate, tva_auto_approve, tva_manager_approve
-
-Step 2: Registering workflow 'tva_travel_approval'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  [submit] Travel request: EMP-800 to New York
-  [estimate] Cost: $2500. Route: manager
-  [manager] Request TVA-1001 approved by manager ($2500)
-
-  Status: COMPLETED
-  Request ID: TVA-1001
-  Approval type: manager
-
-Result: PASSED
-
-```
-
 ## How to Extend
 
 Connect each worker to your real travel systems. Your cost estimation service for trip pricing, your HR directory for manager lookup, Slack or email for approval notifications, and the workflow runs identically in production.

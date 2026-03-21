@@ -47,37 +47,6 @@ clp_close_claim
 
 ```
 
-## Example Output
-
-```
-=== Example 501: Claims Processing ===
-
-Step 1: Registering task definitions...
-  Registered: clp_submit_claim, clp_verify_details, clp_assess_damage, clp_settle_amount, clp_close_claim
-
-Step 2: Registering workflow 'claims_processing_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 73541258-a494-1d27-aeaa-d19f417f4b31
-
-  [submit] Claim CLM-8810 for policy POL-3322
-  [verify] Verifying policy POL-3322. Status: active
-  [assess] Requested: $longrequested-value, Assessed: $assessed-value
-  [settle] Assessed: $longassessed-value, Settled: $True (after deductible)
-  [close] Claim closed. Settled $True via direct_deposit
-
-
-  Status: COMPLETED
-  Output: {claimId=CLM-8810, settledAmount=4500, claimStatus=closed}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

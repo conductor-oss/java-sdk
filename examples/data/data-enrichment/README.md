@@ -47,37 +47,6 @@ dr_merge_enriched
 
 ```
 
-## Example Output
-
-```
-=== Data Enrichment Workflow Demo ===
-
-Step 1: Registering task definitions...
-  Registered: dr_load_records, dr_lookup_geo, dr_lookup_company, dr_lookup_credit, dr_merge_enriched
-
-Step 2: Registering workflow 'data_enrichment'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 47bcf0b4-a603-a917-7ba2-f32acb0eaf34
-
-  [load] Loaded 3 records for enrichment
-  [geo] Enriched 3 records with geo data
-  [company] Enriched 3 records with company data
-  [credit] Enriched 3 records with credit scores
-  [merge] Enriched 
-
-
-  Status: COMPLETED
-  Output: {originalCount=3, enrichedCount=3, fieldsAdded=3, summary=Enriched }
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

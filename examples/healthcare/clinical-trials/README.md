@@ -47,37 +47,6 @@ clt_analyze
 
 ```
 
-## Example Output
-
-```
-=== Example 476: Clinical Trials ===
-
-Step 1: Registering task definitions...
-  Registered: clt_screen, clt_consent, clt_randomize, clt_monitor, clt_analyze
-
-Step 2: Registering workflow 'clinical_trials_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 5d2ecb67-05f6-979c-c07a-7cfb5134942c
-
-  [screen] Screening SUBJ-4401 for trial TRIAL-2024-CARDIO-001
-  [consent] Informed consent obtained from SUBJ-4401
-  [randomize] SUBJ-4401 assigned to group-A group
-  [monitor] Monitoring SUBJ-4401 in group-A group
-  [analyze] Outcome: outcome-value, compliance: 0%
-
-
-  Status: COMPLETED
-  Output: {trialId=TRIAL-2024-CARDIO-001, participantId=SUBJ-4401, group=group-A, outcome=outcome-value}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

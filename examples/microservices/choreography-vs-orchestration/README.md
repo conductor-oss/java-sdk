@@ -43,35 +43,6 @@ cvo_ship_order
 
 ```
 
-## Example Output
-
-```
-=== Example 330: Choreography vs Orchestratio ===
-
-Step 1: Registering task definitions...
-  Registered: cvo_place_order, cvo_reserve_inventory, cvo_process_payment, cvo_ship_order
-
-Step 2: Registering workflow 'orchestrated_order_flow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 8bc6398d-a8a4-3664-c029-5671bc015aec
-
-  [order] Order ORD-900 placed
-  [payment] $3 charged
-  [inventory] Items reserved
-  [ship] Shipped from
-
-  Status: COMPLETED
-  Output: {orderId=ORD-900, shipped=true, trackingId=TRACK-1718901234567}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

@@ -46,37 +46,6 @@ aa_final_report
 
 ```
 
-## Example Output
-
-```
-=== Autonomous Agent Demo ===
-
-Step 1: Registering task definitions...
-  Registered: aa_set_goal, aa_create_plan, aa_execute_step, aa_evaluate_progress, aa_final_report
-
-Step 2: Registering workflow 'autonomous_agent'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 6160fc78-0a29-4334-1318-0a76a49227e3
-
-  [aa_set_goal] Mission: Set up production monitoring for the platform
-  [aa_create_plan] Goal: Build and deploy a monitoring dashboard with alerting capabilities
-  [aa_execute_step] Iteration 3: Success
-  [aa_evaluate_progress] Iteration 3: assessment-value
-  [aa_final_report] Mission '
-
-
-  Status: COMPLETED
-  Output: {mission=Set up production monitoring for the platform, goal=Build and deploy a monitoring dashboard with alerting capabilities, stepsExecuted=3, report=Mission ', success=true}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites
@@ -177,7 +146,6 @@ Wire in LLM reasoning for real planning and execution; the autonomous pipeline k
 ## SDK
 
 Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
 
 ## Project Structure
 

@@ -43,37 +43,6 @@ cv_generate_output
 
 ```
 
-## Example Output
-
-```
-=== CSV Processing Demo ===
-
-Step 1: Registering task definitions...
-  Registered: cv_parse_csv, cv_validate_rows, cv_transform_fields, cv_generate_output
-
-Step 2: Registering workflow 'csv_processing'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 4587d80c-fe50-9def-a8f0-3a85954bde71
-
-  [parse] Parsed 3 rows with 0 columns: []
-  [validate] 3 valid, 3 invalid rows
-    Invalid: errors-value
-  [transform] Transformed 3 rows (normalized names, emails, departments)
-  [output] Processing complete
-
-
-  Status: COMPLETED
-  Output: {totalParsed=3, validRows=3, invalidRows=3, outputRecords=3, summary=Processing complete}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

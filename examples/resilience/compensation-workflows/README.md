@@ -108,50 +108,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 
 ```
 
-## Example Output
-
-```
-=== Compensation Workflows: Undo Completed Steps ===
-
-Step 1: Registering task definitions...
-  Registered 5 task definitions.
-
-Step 2: Registering workflows...
-  Registered: compensatable_workflow
-  Registered: compensation_workflow
-
-Step 3: Starting workers...
-  5 workers polling.
-
---- Scenario 1: All steps succeed ---
-  Workflow ID: a1b2c3d4-...
-  [Step A] Executing. Resource created
-  [Step B] Executing. Record inserted
-  [Step C] Executing. Notification sent
-  Status: COMPLETED
-  Output: {stepA=resource-A-created, stepB=record-B-inserted, stepC=notification-C-sent}
-
---- Scenario 2: Step C fails -> run compensation ---
-  Workflow ID: e5f6a7b8-...
-  [Step A] Executing. Resource created
-  [Step B] Executing. Record inserted
-  [Step C] FAILED. External service error
-  Main workflow: FAILED
-
-  Starting compensation workflow...
-  [Undo B] Reversing: record-B-inserted
-  [Undo A] Reversing: resource-A-created
-  Compensation: COMPLETED
-
---- Compensation Pattern ---
-  Forward: Step A -> Step B -> Step C (fails)
-  Reverse: Undo B -> Undo A (skip C, it never completed)
-  Key: compensation runs in reverse order of completed steps
-
-Result: PASSED
-
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |

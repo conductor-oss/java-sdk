@@ -43,35 +43,6 @@ SWITCH (switch_ref)
 
 ```
 
-## Example Output
-
-```
-=== Event-Driven Saga Demo ===
-
-Step 1: Registering task definitions...
-  Registered: ds_create_order, ds_process_payment, ds_ship_order, ds_compensate_payment, ds_cancel_order
-
-Step 2: Registering workflow 'event_driven_saga'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 922af98f-a213-9f82-1996-b67e8d99c54e
-
-  [ds_create_order] Created order ORD-2001 for $149.99
-  [ds_process_payment] Processing $149.99 for order UNKNOWN
-  [ds_ship_order] Shipping order UNKNOWN to 123 Main St, Springfield, IL
-
-
-  Status: COMPLETED
-  Output: {orderId=UNKNOWN, paymentStatus=success, sagaOutcome=success}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

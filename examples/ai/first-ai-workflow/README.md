@@ -39,38 +39,6 @@ ai_parse_response
 
 ```
 
-## Example Output
-
-```
-=== First AI Workflow: Chain of AI Workers ===
-
-Step 1: Registering task definitions...
-  Registered: ai_prepare_prompt, ai_call_llm, ai_parse_response
-
-Step 2: Registering workflow 'first_ai_workflow'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: 56bd0c02-ae75-9ec5-1c62-19b122dafe72
-
-  [ai_prepare_prompt worker] Prepared prompt for model gpt-4
-  [ai_call_llm] Live mode: CONDUCTOR_OPENAI_API_KEY detected
-  [ai_call_llm] Simulated mode: set CONDUCTOR_OPENAI_API_KEY for live API calls
-  [ai_call_llm worker] Calling gpt-4 (live) with prompt length 35
-  [ai_call_llm worker] OpenAI API call completed successfully
-  [ai_call_llm worker] Calling gpt-4 with prompt length 35
-  [ai_parse_response worker] Parsing response of length 80
-
-  Status: COMPLETED
-  Output: {question=What is Orkes Conductor?, answer=Orkes Conductor is a platform for building distributed applications , model=gpt-4, tokens={promptTokens=45, completionTokens=38, totalTokens=83}}
-
-Result: PASSED
-
-```
-
 ## Running It
 
 ### Prerequisites

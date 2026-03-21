@@ -106,46 +106,6 @@ CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
 | `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
-## Example Output
-
-```
-=== Example 168: Agent Supervisor ===
-
-Step 1: Registering task definitions...
-  Registered: sup_plan, sup_coder_agent, sup_tester_agent, sup_documenter_agent, sup_review
-
-Step 2: Registering workflow 'agent_supervisor'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  [plan] Created plan for feature 'user-authentication' with priority 'high'
-  [coder] Completed coding for 'user-authentication': 3 files, 245 lines
-  [tester] Completed testing for 'user-authentication': 17/18 passed, 82% coverage
-  [documenter] Completed documentation for 'user-authentication': 3 documents, 1200 words
-  [review] Review complete for 'user-authentication': NEEDS_REVISION
-
-  Workflow ID: 7b2c3d4e-5f6a-7890-abcd-ef0123456789
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Feature: user-authentication
-  Overall status: NEEDS_REVISION
-  Action items: [Fix failing test: testTokenExpirationEdgeCase, Increase test coverage from 82% to at least 90%, Add error handling documentation section]
-  Agents used: [coder, tester, documenter]
-
---- Agent Supervisor Pattern ---
-  - Plan: Create development plan with task assignments
-  - FORK: Coder, tester, and documenter agents work in parallel
-  - JOIN: Collect all agent results
-  - Review: Supervisor reviews and produces final report
-
-Result: PASSED
-
-```
-
 ## Using the Conductor CLI
 
 Start the app in **worker-only mode** so workers keep polling while you use the CLI:

@@ -128,39 +128,6 @@ conductor workflow search -w fork_join_demo -s COMPLETED -c 5
 
 ```
 
-## Example Output
-
-```
-=== FORK_JOIN Demo: Parallel Product Page Assembly ===
-
-Step 1: Registering task definitions...
-  Registered: fj_get_product, fj_get_inventory, fj_get_reviews, fj_merge_results
-
-Step 2: Registering workflow 'fork_join_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  4 workers polling.
-
-Step 4: Starting workflow...
-
-  Workflow ID: 3f8a1b2c-...
-
-Step 5: Waiting for completion...
-  [fj_get_product] Fetching product details for: PROD-001
-  [fj_get_inventory] Checking inventory for: PROD-001
-  [fj_get_reviews] Fetching reviews for: PROD-001
-  [fj_merge_results] Building product page:
-    -> Wireless Headphones | $79.99 |  | 0 stars (0 reviews)
-
-
-  Status: COMPLETED
-  Output: {productPage=productPage-value}
-
-Result: PASSED
-
-```
-
 ## How to Extend
 
 Connect the data-fetching workers to your product catalog, inventory system (SAP, NetSuite), and reviews service (Bazaarvoice, Yotpo), and the parallel assembly works unchanged.
