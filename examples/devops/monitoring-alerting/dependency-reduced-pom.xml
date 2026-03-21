@@ -4,7 +4,7 @@
   <groupId>io.orkes.examples</groupId>
   <artifactId>monitoring-alerting</artifactId>
   <name>monitoring-alerting Monitoring Alerting</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <build>
     <plugins>
       <plugin>

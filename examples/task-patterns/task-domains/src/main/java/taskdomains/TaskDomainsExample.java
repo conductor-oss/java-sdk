@@ -57,7 +57,8 @@ public class TaskDomainsExample {
         // Step 4 — Start the workflow
         System.out.println("Step 4: Starting workflow...\n");
         String workflowId = client.startWorkflow("task_domain_demo", 1,
-                Map.of("data", Map.of("type", "matrix", "value", 42)));
+                Map.of("data", Map.of("type", "matrix", "value", 42)),
+                Map.of("td_process", "gpu"));
         System.out.println("  Workflow ID: " + workflowId + "\n");
 
         // Step 5 — Wait for completion

@@ -4,7 +4,7 @@
   <groupId>io.orkes.examples</groupId>
   <artifactId>zero-trust-verification</artifactId>
   <name>zero-trust-verification Zero Trust Verification</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <build>
     <plugins>
       <plugin>

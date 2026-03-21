@@ -37,6 +37,7 @@ public class ErrorNotificationExample {
 
         TaskDef processOrderTask = new TaskDef();
         processOrderTask.setName("en_process_order");
+        processOrderTask.setRetryCount(0);
         processOrderTask.setTimeoutSeconds(60);
         processOrderTask.setResponseTimeoutSeconds(30);
         processOrderTask.setOwnerEmail("examples@orkes.io");

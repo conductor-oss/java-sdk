@@ -13,7 +13,7 @@ public class TaskAssignmentExample {
         client.startWorkers(List.of(new AnalyzeWorker(),new MatchSkillsWorker(),new AssignWorker(),new NotifyWorker(),new TrackWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("task_assignment_task-assignment", 1, Map.of("taskTitle","Build search feature","requiredSkills",List.of("JavaScript","React"),"priority","high"));
+        String wfId = client.startWorkflow("task_assignment_723", 1, Map.of("taskTitle","Build search feature","requiredSkills",List.of("JavaScript","React"),"priority","high"));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status); System.out.println("  Output: " + wf.getOutput());

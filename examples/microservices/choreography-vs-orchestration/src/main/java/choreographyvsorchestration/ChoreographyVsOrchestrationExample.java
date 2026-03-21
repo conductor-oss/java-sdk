@@ -34,6 +34,8 @@ public class ChoreographyVsOrchestrationExample {
         System.out.println("  Winner for complex flows: Orchestration");
 
         client.stopWorkers();
-        System.out.println("\nResult: PASSED");
+        String status = wf.getStatus().name();
+        System.out.println("COMPLETED".equals(status) ? "\nResult: PASSED" : "\nResult: FAILED");
+        System.exit("COMPLETED".equals(status) ? 0 : 1);
     }
 }

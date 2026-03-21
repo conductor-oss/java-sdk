@@ -45,7 +45,7 @@ public class ConductorClientHelper {
         List<TaskDef> defs = taskNames.stream().map(name -> {
             TaskDef def = new TaskDef();
             def.setName(name);
-            def.setRetryCount(2);
+            def.setRetryCount(0);
             def.setTimeoutSeconds(60);
             def.setResponseTimeoutSeconds(30);
             def.setOwnerEmail("examples@orkes.io");

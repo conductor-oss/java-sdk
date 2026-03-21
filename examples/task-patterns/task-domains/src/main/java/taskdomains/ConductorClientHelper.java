@@ -65,10 +65,18 @@ public class ConductorClientHelper {
     }
 
     public String startWorkflow(String name, int version, Map<String, Object> input) {
+        return startWorkflow(name, version, input, null);
+    }
+
+    public String startWorkflow(String name, int version, Map<String, Object> input,
+                                Map<String, String> taskToDomain) {
         var request = new StartWorkflowRequest();
         request.setName(name);
         request.setVersion(version);
         request.setInput(input);
+        if (taskToDomain != null) {
+            request.setTaskToDomain(taskToDomain);
+        }
         return workflowClient.startWorkflow(request);
     }
 

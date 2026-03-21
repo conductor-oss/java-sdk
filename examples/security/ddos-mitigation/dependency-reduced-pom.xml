@@ -4,7 +4,7 @@
   <groupId>io.orkes.examples</groupId>
   <artifactId>ddos-mitigation</artifactId>
   <name>ddos-mitigation Ddos Mitigation</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <build>
     <plugins>
       <plugin>

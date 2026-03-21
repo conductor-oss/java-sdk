@@ -17,7 +17,7 @@ public class ProjectClosureExample {
         client.startWorkers(List.of(new ReviewDeliverablesWorker(), new SignOffWorker(), new ArchiveWorker(), new LessonsLearnedWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("project_closure_project-closure", 1, Map.of("projectId", "PRJ-909", "projectName", "Cloud Migration", "manager", "Sarah Chen"));
+        String wfId = client.startWorkflow("project_closure_729", 1, Map.of("projectId", "PRJ-909", "projectName", "Cloud Migration", "manager", "Sarah Chen"));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status);

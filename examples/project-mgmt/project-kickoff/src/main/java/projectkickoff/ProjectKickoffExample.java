@@ -13,7 +13,7 @@ public class ProjectKickoffExample {
         client.startWorkers(List.of(new DefineScopeWorker(),new AssignTeamWorker(),new CreatePlanWorker(),new KickOffWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("project_kickoff_project-kickoff", 1, Map.of("projectName","Project Alpha","sponsor","VP Engineering","budget",150000));
+        String wfId = client.startWorkflow("project_kickoff_721", 1, Map.of("projectName","Project Alpha","sponsor","VP Engineering","budget",150000));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status);

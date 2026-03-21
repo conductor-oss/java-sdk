@@ -50,7 +50,8 @@
       "taskReferenceName": "trigger_alerts_ref",
       "type": "SIMPLE",
       "inputParameters": {
-        "anomalies": "${analyze_patterns_ref.output}",
+        "anomalies": "${analyze_patterns_ref.output.anomalies}",
+        "trend": "${analyze_patterns_ref.output.trend}",
         "sensorGroupId": "${workflow.input.sensorGroupId}"
       }
     }

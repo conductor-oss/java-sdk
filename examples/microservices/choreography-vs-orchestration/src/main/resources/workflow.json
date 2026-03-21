@@ -5,7 +5,7 @@
   "inputParameters": ["orderId", "items", "customerId"],
   "tasks": [
     {"name": "cvo_place_order", "taskReferenceName": "order_ref", "type": "SIMPLE",
-      "inputParameters": {"orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}"}},
+      "inputParameters": {"orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}", "customerId": "${workflow.input.customerId}"}},
     {"name": "cvo_reserve_inventory", "taskReferenceName": "inv_ref", "type": "SIMPLE",
       "inputParameters": {"orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}"}},
     {"name": "cvo_process_payment", "taskReferenceName": "pay_ref", "type": "SIMPLE",

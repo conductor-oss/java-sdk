@@ -13,7 +13,7 @@ public class RiskManagementExample {
         client.startWorkers(List.of(new IdentifyWorker(),new AssessWorker(),new HighWorker(),new MediumWorker(),new LowWorker(),new MitigateWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("risk_management_risk-management", 1, Map.of("projectId","PROJ-42","riskDescription","Key engineer may leave mid-project"));
+        String wfId = client.startWorkflow("risk_management_726", 1, Map.of("projectId","PROJ-42","riskDescription","Key engineer may leave mid-project"));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status); System.out.println("  Output: " + wf.getOutput());

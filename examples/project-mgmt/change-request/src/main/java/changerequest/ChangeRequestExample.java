@@ -13,7 +13,7 @@ public class ChangeRequestExample {
         client.startWorkers(List.of(new SubmitWorker(),new AssessImpactWorker(),new ApproveWorker(),new ImplementWorker(),new VerifyWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("change_request_change-request", 1, Map.of("changeId","CR-101","description","Add mobile support to dashboard","requestedBy","Product Manager"));
+        String wfId = client.startWorkflow("change_request_728", 1, Map.of("changeId","CR-101","description","Add mobile support to dashboard","requestedBy","Product Manager"));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status); System.out.println("  Output: " + wf.getOutput());

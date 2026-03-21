@@ -4,7 +4,7 @@
   <groupId>io.orkes.examples</groupId>
   <artifactId>devsecops-pipeline</artifactId>
   <name>devsecops-pipeline Devsecops Pipeline</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <build>
     <plugins>
       <plugin>

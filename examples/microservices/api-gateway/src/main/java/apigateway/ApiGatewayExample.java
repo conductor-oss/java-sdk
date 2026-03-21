@@ -65,7 +65,7 @@ public class ApiGatewayExample {
         System.out.println("  Secret \'gateway_api_key\' stored via Conductor Secrets API");
 
         String workflowId = client.startWorkflow("api_gateway_292", 1,
-                Map.of(, "endpoint", "/api/v1/users", "method", "GET", "payload", Map.of()));
+                Map.of("endpoint", "/api/v1/users", "method", "GET", "payload", Map.of()));
 
         System.out.println("Step 5: Waiting for completion...");
         Workflow workflow = client.waitForWorkflow(workflowId, "COMPLETED", 60000);

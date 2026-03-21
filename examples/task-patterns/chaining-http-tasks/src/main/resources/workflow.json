@@ -21,6 +21,7 @@
               "name": "${workflow.input.taskName}",
               "retryCount": 1,
               "timeoutSeconds": 30,
+              "responseTimeoutSeconds": 10,
               "ownerEmail": "http-demo@orkes.io"
             }
           ],

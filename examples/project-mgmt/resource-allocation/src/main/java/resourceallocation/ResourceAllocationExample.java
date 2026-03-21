@@ -13,7 +13,7 @@ public class ResourceAllocationExample {
         client.startWorkers(List.of(new AssessDemandWorker(),new CheckCapacityWorker(),new AllocateWorker(),new ConfirmWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("resource_allocation_resource-allocation", 1, Map.of("projectId","PROJ-42","resourceType","developer","hoursNeeded",40));
+        String wfId = client.startWorkflow("resource_allocation_725", 1, Map.of("projectId","PROJ-42","resourceType","developer","hoursNeeded",40));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status); System.out.println("  Output: " + wf.getOutput());

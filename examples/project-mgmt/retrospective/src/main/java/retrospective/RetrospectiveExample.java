@@ -17,7 +17,7 @@ public class RetrospectiveExample {
         client.startWorkers(List.of(new CollectFeedbackWorker(), new CategorizeWorker(), new PrioritizeWorker(), new ActionItemsWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("retrospective_retrospective", 1, Map.of("sprintId", "SPR-42", "teamName", "Platform Engineering", "facilitator", "Scrum Master"));
+        String wfId = client.startWorkflow("retrospective_730", 1, Map.of("sprintId", "SPR-42", "teamName", "Platform Engineering", "facilitator", "Scrum Master"));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status);

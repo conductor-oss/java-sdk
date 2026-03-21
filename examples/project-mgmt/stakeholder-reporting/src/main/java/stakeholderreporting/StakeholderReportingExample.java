@@ -13,7 +13,7 @@ public class StakeholderReportingExample {
         client.startWorkers(List.of(new CollectUpdatesWorker(),new AggregateWorker(),new FormatWorker(),new DistributeWorker()));
         if (workersOnly) { Thread.currentThread().join(); return; }
         Thread.sleep(2000);
-        String wfId = client.startWorkflow("stakeholder_reporting_stakeholder-reporting", 1, Map.of("projectId","PROJ-42","reportPeriod","2026-W10"));
+        String wfId = client.startWorkflow("stakeholder_reporting_727", 1, Map.of("projectId","PROJ-42","reportPeriod","2026-W10"));
         Workflow wf = client.waitForWorkflow(wfId, "COMPLETED", 60000);
         String status = wf.getStatus().name();
         System.out.println("  Status: " + status); System.out.println("  Output: " + wf.getOutput());
