@@ -1,7 +1,6 @@
 # Citizen Request in Java with Conductor
 
-Processes citizen service requests (pothole repairs, streetlight outages, noise complaints): submitting, classifying by type and urgency, routing to the responsible department, resolving, and notifying the citizen. Uses [Conductor](https://github.
-
+Processes citizen service requests (pothole repairs, streetlight outages, noise complaints): submitting, classifying by type and urgency, routing to the responsible department, resolving, and notifying the citizen. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process a citizen service request (pothole repair, streetlight outage, noise complaint, etc.). The request is submitted, classified by type and urgency, routed to the appropriate department or crew, resolved by the responsible team, and the citizen is notified of the resolution. Misclassifying a request sends it to the wrong department; failing to notify leaves citizens wondering if their government is responsive.

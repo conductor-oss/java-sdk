@@ -1,7 +1,6 @@
 # Performance Review in Java with Conductor :  Self-Evaluation, Manager Evaluation, Calibration, and Finalization
 
-A Java Conductor workflow example for performance reviews. collecting the employee's self-evaluation, gathering the manager's evaluation with competency ratings, running cross-team calibration to normalize ratings, and finalizing the review with a composite score and development plan. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for performance reviews. collecting the employee's self-evaluation, gathering the manager's evaluation with competency ratings, running cross-team calibration to normalize ratings, and finalizing the review with a composite score and development plan. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to run the annual performance review cycle. Each employee writes a self-evaluation covering goal progress, accomplishments, and development areas. Their manager completes an evaluation with competency ratings, goal achievement scores, and narrative feedback. The calibration step normalizes ratings across teams to ensure consistent standards. preventing rating inflation in lenient teams or deflation in strict ones. Finally, the review is finalized with a composite rating that feeds into compensation, promotion, and development decisions. Each step must complete before the next,  you cannot calibrate without both evaluations, and you cannot finalize without calibration.

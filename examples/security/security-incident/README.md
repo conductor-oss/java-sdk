@@ -1,7 +1,6 @@
 # Implementing Security Incident Response in Java with Conductor :  Triage, Containment, Investigation, and Remediation
 
-A Java Conductor workflow example for security incident response. triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for security incident response. triaging alerts by type and severity, containing the threat by isolating affected systems, investigating root cause through log and forensic analysis, and applying remediation fixes. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to respond to security incidents. unauthorized access attempts, data exfiltration, compromised credentials,  following a structured playbook: triage the alert to determine severity (P1 through P4), contain the threat by isolating the affected system (e.g., an API gateway), investigate to identify root cause and blast radius, and remediate by patching the vulnerability or revoking compromised credentials. Mean time to containment directly impacts breach severity.

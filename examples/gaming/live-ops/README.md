@@ -1,7 +1,6 @@
 # Live Ops in Java Using Conductor
 
-Runs a time-limited live ops event in a game: scheduling the event, configuring rewards and difficulty, deploying to servers across regions, monitoring engagement, and closing with reward distribution. Uses [Conductor](https://github.
-
+Runs a time-limited live ops event in a game: scheduling the event, configuring rewards and difficulty, deploying to servers across regions, monitoring engagement, and closing with reward distribution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to run a live operations event in your game. a time-limited in-game event with special content, challenges, and rewards. The workflow schedules the event for a start/end date, configures the event parameters (rewards, difficulty, matchmaking rules), deploys the configuration to game servers, monitors player engagement and server health during the event, and closes the event when it ends. Deploying without proper configuration breaks the player experience; not monitoring means missing critical issues during the event.

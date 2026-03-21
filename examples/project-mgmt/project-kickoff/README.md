@@ -1,7 +1,6 @@
 # Project Kickoff Automation in Java with Conductor :  Scope Definition, Team Assignment, Plan Creation, and Kickoff
 
-A Java Conductor workflow example that automates project kickoff. defining project scope with objectives, deliverables, and timeline, assigning a team with a lead and members based on the scope requirements, creating a phased project plan with milestones, and formally kicking off the project with sponsor notification and status activation. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that automates project kickoff. defining project scope with objectives, deliverables, and timeline, assigning a team with a lead and members based on the scope requirements, creating a phased project plan with milestones, and formally kicking off the project with sponsor notification and status activation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Project Kickoff Needs Orchestration
 
 Starting a project requires a sequence of decisions where each step depends on the one before it. You define the scope. listing objectives ("Deliver MVP", "User testing"), counting deliverables, and setting a timeline (12 weeks). You assign a team based on that scope,  selecting a project lead, adding team members with the right skills, and confirming headcount fits the budget. You create a project plan that maps the scope to the team,  breaking work into phases (Discovery, Design, Build, Launch) with milestones gating each transition. Finally, you formally kick off the project,  setting the status to ACTIVE, recording the kickoff date, and notifying the sponsor.

@@ -1,7 +1,6 @@
 # Amazon Bedrock Integration in Java Using Conductor :  Build Payload, Invoke Model, Parse Output
 
-A Java Conductor workflow example for orchestrating Amazon Bedrock model invocations. building the request payload with the prompt and use-case-specific parameters, invoking the Bedrock model, and parsing the response into a structured output. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for orchestrating Amazon Bedrock model invocations. building the request payload with the prompt and use-case-specific parameters, invoking the Bedrock model, and parsing the response into a structured output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Calling Bedrock Models Reliably in Production
 
 Amazon Bedrock provides access to foundation models from AI21, Anthropic, Cohere, Meta, and Stability AI. But calling `InvokeModel` in production means more than a single API call. you need to construct the model-specific payload format (Claude uses `messages`, Titan uses `inputText`), handle throttling and quota errors with retry logic, parse the model-specific response format, and log the prompt, response, and latency for cost tracking and debugging.

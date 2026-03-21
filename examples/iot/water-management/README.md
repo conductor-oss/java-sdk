@@ -1,7 +1,6 @@
 # Water Management in Java with Conductor :  Level Monitoring, Quality Analysis, Leak Detection, and Alerting
 
-A Java Conductor workflow example that orchestrates water infrastructure monitoring. reading water levels from reservoir and distribution sensors, analyzing water quality parameters (pH, turbidity, chlorine, contaminants), detecting leaks in the distribution network using pressure and flow anomalies, and triggering alerts when issues are found. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates water infrastructure monitoring. reading water levels from reservoir and distribution sensors, analyzing water quality parameters (pH, turbidity, chlorine, contaminants), detecting leaks in the distribution network using pressure and flow anomalies, and triggering alerts when issues are found. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Water Infrastructure Monitoring Needs Orchestration
 
 Managing a water distribution network requires a monitoring pipeline where each check feeds into the next. You read water levels across the zone. reservoir capacity, tank fill percentages, distribution pressure. You analyze water quality at multiple points in the network to detect contamination, pH drift, or chlorine depletion. You run leak detection algorithms that correlate pressure drops and flow rate anomalies to identify pipe segments losing water. If any check finds an issue,  low levels, quality violations, or a high-confidence leak,  you trigger alerts to the operations team.

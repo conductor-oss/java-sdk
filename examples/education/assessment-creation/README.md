@@ -1,7 +1,6 @@
 # Assessment Creation in Java with Conductor :  Criteria Definition, Question Generation, Review, and Publishing
 
-A Java Conductor workflow example for creating educational assessments. defining grading criteria from course topics, generating questions that align with those criteria, reviewing questions for quality and accuracy, and publishing the finalized assessment to the course. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for creating educational assessments. defining grading criteria from course topics, generating questions that align with those criteria, reviewing questions for quality and accuracy, and publishing the finalized assessment to the course. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to create exams, quizzes, or assignments for a course. This means defining the assessment criteria based on the course's topics and desired difficulty level, generating questions that cover those criteria (multiple choice, short answer, essay), having an instructor or peer review the question bank for accuracy and fairness, and publishing the finalized assessment so students can access it. Each step depends on the previous. you cannot generate questions without criteria, and you cannot publish without review.

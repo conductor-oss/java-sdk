@@ -1,7 +1,6 @@
 # Cold Chain Monitoring in Java with Conductor :  Temperature Sensing, Threshold Checks, Alert Routing, and Corrective Action
 
-A Java Conductor workflow example for cold chain monitoring. reading temperature sensor data for shipments of temperature-sensitive goods (e.g., frozen pharmaceuticals requiring 2-8C), checking readings against configured thresholds, routing to alert or OK handlers based on compliance status, and triggering corrective actions when excursions are detected. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for cold chain monitoring. reading temperature sensor data for shipments of temperature-sensitive goods (e.g., frozen pharmaceuticals requiring 2-8C), checking readings against configured thresholds, routing to alert or OK handlers based on compliance status, and triggering corrective actions when excursions are detected. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to continuously monitor temperature conditions for cold chain shipments. Frozen pharmaceuticals, vaccines, and biologics must stay within a narrow temperature range (e.g., 2-8C) throughout transit. When a sensor reading breaches the threshold, the logistics team needs an immediate alert, and corrective action must be triggered. rerouting to a backup refrigerated warehouse, dispatching a replacement shipment, or flagging the batch for quality review. Regulatory requirements (FDA 21 CFR Part 211, EU GDP) demand a documented chain of custody proving temperatures were maintained.

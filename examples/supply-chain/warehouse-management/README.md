@@ -1,7 +1,6 @@
 # Warehouse Management in Java with Conductor :  Receiving, Putaway, Picking, Packing, and Shipping
 
-A Java Conductor workflow example for warehouse management. receiving inbound goods at the dock, putting away items to assigned storage locations, picking items from bins to fulfill outbound orders, packing them for shipment, and shipping via the selected carrier. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for warehouse management. receiving inbound goods at the dock, putting away items to assigned storage locations, picking items from bins to fulfill outbound orders, packing them for shipment, and shipping via the selected carrier. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage the flow of goods through your warehouse from dock to door. Inbound shipments must be received, inspected, and logged. Received items must be put away to optimal storage locations based on product type, pick frequency, and available capacity. When outbound orders come in, items must be picked from the correct bins in the right sequence to minimize picker travel distance. Picked items must be packed into the right box size with appropriate dunnage. Finally, packed orders must be shipped via the customer's selected method with correct labels and documentation.

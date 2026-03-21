@@ -1,7 +1,6 @@
 # Workflow Composition in Java Using Conductor :  Compose Sub-Workflows into a Unified Order Pipeline
 
-A Java Conductor workflow example for workflow composition. combining two independent sub-workflows (payment processing and inventory management) into a single unified order pipeline, where each sub-workflow has its own steps and the results are merged at the end. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for workflow composition. combining two independent sub-workflows (payment processing and inventory management) into a single unified order pipeline, where each sub-workflow has its own steps and the results are merged at the end. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Complex Processes Are Made of Simpler Ones
 
 Fulfilling a customer order requires two independent processes: payment processing (validate card, charge amount) and inventory management (check stock, reserve items). Each process has its own steps, failure modes, and retry logic. Building them as a single monolithic workflow means a payment retry can block inventory reservation, and a stock check failure can prevent a valid payment from proceeding.

@@ -1,7 +1,6 @@
 # Certificate Issuance in Java with Conductor :  Completion Verification, Generation, Signing, Delivery, and Record-Keeping
 
-A Java Conductor workflow example for issuing educational certificates. verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for issuing educational certificates. verifying that a student completed all course requirements, generating a personalized certificate document, digitally signing it for authenticity, delivering it to the student, and recording the credential in the institution's permanent records. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to issue certificates when students complete a course. Before generating anything, you must verify the student actually finished all required coursework, assignments, and exams. Then you generate a certificate with the student's name, course title, and completion date, digitally sign it so it cannot be forged, deliver it to the student, and record the issued credential in the registrar's system. Issuing a certificate without verified completion is an institutional liability; losing the record makes the credential unverifiable.

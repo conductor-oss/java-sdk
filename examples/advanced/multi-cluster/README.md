@@ -1,7 +1,6 @@
 # Multi-Cluster Processing in Java Using Conductor :  Partition Data, Process in Parallel Across Clusters, Aggregate
 
-A Java Conductor workflow example for multi-cluster data processing. preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for multi-cluster data processing. preparing a job by partitioning the dataset, processing each partition on a different geographic cluster (us-east-1 and us-west-2) in parallel via `FORK_JOIN`, and aggregating the results into a unified output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## One Cluster Is Not Enough
 
 Your dataset has grown beyond what a single cluster can process in the required time window. You need to split the workload across clusters in different regions. sending partition A to us-east-1 and partition B to us-west-2,  then merge the results. This cuts processing time in half, adds geographic redundancy, and keeps data closer to regional users.

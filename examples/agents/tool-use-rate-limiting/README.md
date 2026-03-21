@@ -1,7 +1,6 @@
 # Tool Use Rate Limiting in Java Using Conductor :  Check Limits, Execute-or-Queue, Delayed Execution
 
-Tool Use Rate Limiting. checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.
-
+Tool Use Rate Limiting. checks API rate limits before tool execution, queuing and delaying requests when throttled. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## APIs Have Rate Limits :  Respect Them
 
 Most external APIs enforce rate limits: OpenAI allows a certain number of requests per minute, Google Maps has a daily quota, and many services return 429 (Too Many Requests) when you exceed the limit. Hitting rate limits causes errors, potential API key suspension, and degraded user experience.

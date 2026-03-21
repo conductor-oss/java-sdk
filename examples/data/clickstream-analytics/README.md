@@ -1,7 +1,6 @@
 # Clickstream Analytics in Java Using Conductor :  Event Ingestion, Sessionization, and Journey Analysis
 
-A Java Conductor workflow example for clickstream analytics: ingesting raw click events, grouping them into user sessions, analyzing navigation journeys for conversion patterns, and generating analytics reports. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for clickstream analytics: ingesting raw click events, grouping them into user sessions, analyzing navigation journeys for conversion patterns, and generating analytics reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You have a stream of raw click events. Page views, button clicks, form submissions, and you need to turn them into actionable product analytics. That means grouping events by user and time gap into sessions, tracing the page-to-page journeys users take, calculating conversion rates and drop-off points, and producing reports that product teams can act on. Each step depends on the previous one: you can't analyze journeys without sessions, and you can't build sessions without ingested events.

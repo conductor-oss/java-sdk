@@ -1,7 +1,6 @@
 # Implementing Security Awareness Training in Java with Conductor :  Module Assignment, Phishing Simulation, Evaluation, and Compliance Reporting
 
-A Java Conductor workflow example for automated security awareness campaigns. assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for automated security awareness campaigns. assigning training modules (e.g., secure coding) to department employees, running phishing simulations to test real-world awareness, evaluating completion rates and click-through results, and generating compliance reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to run security awareness campaigns across your organization. Each campaign involves assigning training modules to a department's employees, sending simulated phishing emails to test their real-world response, evaluating who completed the training and who clicked the phishing link, and generating a compliance report showing pass/fail rates. Regulatory frameworks like SOC 2 and ISO 27001 require documented evidence that these campaigns ran and that results were recorded.

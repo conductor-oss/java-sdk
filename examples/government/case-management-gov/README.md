@@ -1,7 +1,6 @@
 # Government Case Management in Java with Conductor :  Intake, Investigation, Evaluation, and Resolution
 
-A Java Conductor workflow example for government case management. opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for government case management. opening cases from citizen reports, conducting investigations, evaluating findings, rendering decisions, and closing cases with a full audit trail. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage government cases from intake through resolution. A citizen or agency files a report, which opens a case. An investigator gathers evidence and interviews witnesses. An evaluator reviews the findings and assesses severity. A decision-maker renders a formal determination based on the evaluation. Finally, the case is closed with a timestamp and resolution record. Each step depends on the output of the previous one. you cannot evaluate without investigation findings, and you cannot decide without an evaluation.

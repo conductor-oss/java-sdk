@@ -1,7 +1,6 @@
 # Multi-Agent Planning in Java Using Conductor :  Architect, Parallel Estimators, Project Manager Timeline
 
-Multi-Agent Project Planning. architect designs the system, three estimators run in parallel (frontend, backend, infra), then PM builds the timeline. Uses [Conductor](https://github.
-
+Multi-Agent Project Planning. architect designs the system, three estimators run in parallel (frontend, backend, infra), then PM builds the timeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Project Planning Needs Multiple Expert Perspectives
 
 A project estimate from a single person is always biased toward their specialty. The backend engineer underestimates frontend work. The infrastructure engineer forgets about API development. An accurate plan needs domain experts estimating their own areas independently. frontend complexity, backend API surface, infrastructure provisioning,  with an architect providing the overall design and a PM resolving the estimates into a realistic timeline.

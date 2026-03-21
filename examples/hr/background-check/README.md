@@ -1,7 +1,6 @@
 # Background Check in Java with Conductor :  Consent, Parallel Criminal/Employment/Education Verification, and Report
 
-A Java Conductor workflow example for pre-employment background checks. collecting candidate consent under FCRA, running criminal record, employment history, and education verification in parallel via FORK_JOIN, and compiling a final eligibility report. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for pre-employment background checks. collecting candidate consent under FCRA, running criminal record, employment history, and education verification in parallel via FORK_JOIN, and compiling a final eligibility report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to verify a candidate's background before their start date. The Fair Credit Reporting Act (FCRA) requires written consent before any checks can begin. Once consent is obtained, three independent verifications must run: a criminal record search across multiple jurisdictions (county, state, federal), an employment history verification confirming titles, dates, and employers from the candidate's resume, and an education verification confirming degrees and institutions. These three checks are independent. each queries different databases and services,  so they should run in parallel to minimize the total turnaround time. Once all three complete, a consolidated report determines the overall result (clear, flagged, or adverse) for the hiring decision. Running checks sequentially when they could run in parallel wastes days of time-to-hire.

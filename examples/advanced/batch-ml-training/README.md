@@ -1,7 +1,6 @@
 # Batch ML Model Training in Java Using Conductor :  Prepare Data, Train in Parallel, Evaluate
 
-A Java Conductor workflow example for batch ML training. loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for batch ML training. loading a dataset, splitting it into train/test sets, training multiple model architectures in parallel (random forest and gradient boosting), and evaluating them to pick the best performer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Running ML Experiments Without Losing Your Mind
 
 Training a single model is straightforward. Comparing multiple model architectures on the same dataset is where things get messy. You need to prepare the raw data (cleaning, feature engineering), split it consistently so every model trains on the same 80/20 partition, train a random forest and a gradient boosting model simultaneously to cut wall-clock time in half, then evaluate both against the held-out test set to determine which one wins.

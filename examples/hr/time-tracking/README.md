@@ -1,7 +1,6 @@
 # Time Tracking in Java with Conductor :  Timesheet Submission, Validation, Manager Approval, and Payroll Processing
 
-A Java Conductor workflow example for employee time tracking. submitting a weekly timesheet with hours by project code, validating entries against overtime rules and project allocations, routing for manager approval, and processing approved hours into payroll. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for employee time tracking. submitting a weekly timesheet with hours by project code, validating entries against overtime rules and project allocations, routing for manager approval, and processing approved hours into payroll. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process employee timesheets from submission through payroll every week. An employee submits their timesheet for the week ending date, logging hours against project codes and cost centers. The entries must be validated. checking that total hours are within policy limits, overtime is flagged for FLSA compliance, and hours are charged to active project codes. The validated timesheet routes to the employee's manager for approval, where the manager reviews hours against expected allocations and overtime justifications. Once approved, the timesheet feeds into payroll processing,  converting hours into gross pay calculations, applying overtime rates (1.5x for hours over 40), and posting to the general ledger by cost center. If validation is skipped, employees can charge hours to closed projects or exceed overtime limits without authorization.

@@ -1,7 +1,6 @@
 # Sprint Retrospective in Java with Conductor :  Feedback Collection, Categorization, Prioritization, and Action Items
 
-A Java Conductor workflow example for automating sprint retrospectives. collecting team feedback (what went well, what didn't, what to improve), categorizing it into themes, prioritizing by impact, and generating actionable improvement items for the next sprint. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for automating sprint retrospectives. collecting team feedback (what went well, what didn't, what to improve), categorizing it into themes, prioritizing by impact, and generating actionable improvement items for the next sprint. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to run retrospectives consistently across sprints and teams. After each sprint, the team provides feedback. blockers they hit, processes that worked, tools that slowed them down. That feedback needs to be collected from multiple sources (survey forms, Slack threads, meeting notes), categorized into themes (process, tooling, communication, technical debt), prioritized by how many people raised the issue and its impact on velocity, and turned into concrete action items assigned to owners with deadlines.

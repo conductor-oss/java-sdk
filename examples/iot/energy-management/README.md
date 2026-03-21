@@ -1,7 +1,6 @@
 # Building Energy Management in Java with Conductor :  Consumption Monitoring, Pattern Analysis, and Optimization
 
-A Java Conductor workflow example that orchestrates building energy management. collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates building energy management. collecting kWh consumption readings across time intervals, identifying usage patterns like peak-hour HVAC loads, generating optimization recommendations with projected savings, and producing energy reports. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Energy Optimization Needs Orchestration
 
 Managing energy consumption in a building involves a pipeline where each step depends on what came before. You pull meter readings over a time period to get per-hour kW consumption and total kWh. You feed those readings into pattern analysis to identify when demand spikes. midday HVAC peaks, overnight baseline loads, equipment-dominant periods. Those patterns drive optimization recommendations: shift HVAC schedules, reduce lighting during low-occupancy hours, project dollar savings. Finally, you compile everything into a report for facilities management.

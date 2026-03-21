@@ -1,7 +1,6 @@
 # Last Mile Delivery in Java with Conductor :  Driver Assignment, Route Optimization, Package Delivery, and Delivery Confirmation
 
-A Java Conductor workflow example for last mile delivery. assigning a driver to an order (e.g., ORD-2024-668 going to 742 Evergreen Terrace with a 2pm-4pm delivery window), optimizing the delivery route across all stops, executing the delivery, and confirming receipt with proof of delivery. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for last mile delivery. assigning a driver to an order (e.g., ORD-2024-668 going to 742 Evergreen Terrace with a 2pm-4pm delivery window), optimizing the delivery route across all stops, executing the delivery, and confirming receipt with proof of delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to deliver packages to customers within promised time windows. Order ORD-2024-668 has a 2pm-4pm delivery window at 742 Evergreen Terrace, Springfield. A driver must be assigned based on availability, location, and vehicle capacity. The route must be optimized across all the driver's stops to minimize distance while honoring each customer's time window. The delivery must be executed and confirmed with proof. a signature, photo, or safe-place confirmation. If the delivery fails (customer not home, wrong address), a reattempt must be scheduled.

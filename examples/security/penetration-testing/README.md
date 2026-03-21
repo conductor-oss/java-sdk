@@ -1,7 +1,6 @@
 # Implementing Penetration Testing in Java with Conductor :  Reconnaissance, Vulnerability Scanning, Exploit Validation, and Reporting
 
-A Java Conductor workflow example for automated penetration testing. discovering target endpoints and open ports, scanning for known vulnerabilities, validating which findings are actually exploitable, and generating a remediation report. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for automated penetration testing. discovering target endpoints and open ports, scanning for known vulnerabilities, validating which findings are actually exploitable, and generating a remediation report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to run structured pen tests against external-facing systems. Each engagement follows the same pipeline: reconnaissance to enumerate endpoints and open ports on the target, vulnerability scanning to identify known CVEs and misconfigurations, exploit testing to confirm which vulnerabilities are actually exploitable (not just theoretical), and report generation with prioritized remediation steps.

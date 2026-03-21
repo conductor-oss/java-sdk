@@ -1,7 +1,6 @@
 # Delivery Tracking in Java with Conductor
 
-Tracks a food delivery end-to-end: assigning a driver, recording pickup, tracking location en route, confirming delivery, and closing the order. Uses [Conductor](https://github.
-
+Tracks a food delivery end-to-end: assigning a driver, recording pickup, tracking location en route, confirming delivery, and closing the order. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to track a food delivery from restaurant to customer. The workflow assigns an available delivery driver, records the pickup at the restaurant, tracks the driver's location en route, confirms delivery at the customer's address, and records completion. Late deliveries lead to cold food and unhappy customers; losing track of a driver means the customer has no ETA.

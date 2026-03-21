@@ -1,7 +1,6 @@
 # Content Recommendation Engine in Java Using Conductor :  History Analysis, Similarity Scoring, Ranking, Filtering, and Serving
 
-A Java Conductor workflow example that orchestrates a content recommendation pipeline. analyzing user viewing history and preferences (liked items, top categories, activity scores), computing content similarity scores, ranking candidates by relevance, applying business filters (already-viewed removal, diversity rules), and serving personalized recommendations with tracking IDs for A/B evaluation. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates a content recommendation pipeline. analyzing user viewing history and preferences (liked items, top categories, activity scores), computing content similarity scores, ranking candidates by relevance, applying business filters (already-viewed removal, diversity rules), and serving personalized recommendations with tracking IDs for A/B evaluation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Recommendation Pipelines Need Orchestration
 
 Building a recommendation involves a multi-stage pipeline where each stage refines the previous one's output. You analyze the user's history. viewed items, liked items, top categories, activity score. You compute similarity scores between the user's preferences and the content catalog, generating candidate items with relevance scores. You rank those candidates using a learned ranking model. You apply business filters,  removing already-viewed content, enforcing category diversity, respecting content freshness rules. Finally, you serve the filtered, ranked list to the user with sub-200ms response time.

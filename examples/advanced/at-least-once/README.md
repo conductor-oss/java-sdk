@@ -1,7 +1,6 @@
 # At-Least-Once Message Delivery in Java Using Conductor :  Receive, Process, Acknowledge, Verify
 
-A Java Conductor workflow example for at-least-once message delivery. receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for at-least-once message delivery. receiving a message from a queue, processing its payload, acknowledging the receipt handle back to the broker, and verifying that delivery was recorded. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Guaranteeing Every Message Gets Processed
 
 Message queues like SQS and Kafka deliver messages with a receipt handle and a visibility timeout. If your consumer crashes after processing but before acknowledging, the message reappears on the queue and gets delivered again. If it crashes after acknowledging but before recording delivery, you lose the audit trail. The gap between "processed" and "acknowledged" is where messages get lost or silently duplicated.

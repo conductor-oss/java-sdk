@@ -1,7 +1,6 @@
 # Capacity Mgmt Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom network capacity management. monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates telecom network capacity management. monitoring current utilization and growth rate for a region's network infrastructure, forecasting when capacity will be exhausted, planning the capacity expansion, provisioning new network resources, and verifying the expanded capacity is live. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Capacity Management Needs Orchestration
 
 Managing network capacity requires a proactive pipeline from measurement through expansion. You monitor current utilization and subscriber growth rates for a region's network type (RAN, transport, core). You forecast when existing capacity will be exhausted based on current utilization and growth trends. You plan the expansion. determining what equipment, spectrum, or backhaul capacity to add and where. You provision the planned resources by deploying and configuring new network elements. Finally, you verify the provisioned capacity is live and the region's utilization has dropped to acceptable levels.

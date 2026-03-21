@@ -1,7 +1,6 @@
 # Container Deployment Pipeline in Java Using Conductor :  Build, Deploy, Scale, Monitor
 
-A Java Conductor workflow example for container deployment. building a Docker image from a service name and tag, deploying it with a specified replica count, configuring horizontal auto-scaling (min/max replicas), and enabling monitoring for the new deployment. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for container deployment. building a Docker image from a service name and tag, deploying it with a specified replica count, configuring horizontal auto-scaling (min/max replicas), and enabling monitoring for the new deployment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Deploying Containers End-to-End
 
 Shipping a new version of a containerized service means building the image, pushing it to a registry, creating a deployment with the right replica count, configuring the horizontal pod autoscaler so it can scale between 2 and 10 replicas based on load, and wiring up monitoring dashboards so you can see if the new version is healthy. Each step depends on the previous one. you can't deploy an image that hasn't been built, you can't configure scaling for a deployment that doesn't exist, and monitoring is useless if it's pointed at the wrong deployment ID.

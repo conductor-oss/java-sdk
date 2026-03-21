@@ -1,7 +1,6 @@
 # Change Request Management in Java with Conductor :  Submit, Impact Assessment, Approval, Implementation, and Verification
 
-A Java Conductor workflow example for managing project change requests end-to-end. from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for managing project change requests end-to-end. from initial submission through impact assessment, approval gate, implementation, and post-change verification. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage change requests across your project. When someone submits a change. "swap the payment provider," "extend the timeline by two weeks," "add a new integration requirement",  the request must go through a controlled process: log the change formally, assess its impact on scope, timeline, and budget, get approval from the change control board, implement the approved change, and verify the result. Each step depends on the previous one, and you need a complete audit trail for compliance.

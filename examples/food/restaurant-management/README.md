@@ -1,7 +1,6 @@
 # Restaurant Management in Java with Conductor
 
-Manages the full restaurant guest experience: locating a reservation, seating the party, taking a food order, preparing dishes in the kitchen, and generating the bill. Uses [Conductor](https://github.
-
+Manages the full restaurant guest experience: locating a reservation, seating the party, taking a food order, preparing dishes in the kitchen, and generating the bill. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage the full restaurant guest experience from reservation to checkout. When a guest arrives, their reservation is located, they are seated at an appropriate table, their food order is taken and sent to the kitchen, the kitchen prepares the dishes, and the guest checks out with the bill. A breakdown at any step. lost reservation, wrong table, kitchen miscommunication, billing error,  degrades the dining experience.

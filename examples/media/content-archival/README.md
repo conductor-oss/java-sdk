@@ -1,7 +1,6 @@
 # Content Archival Pipeline in Java Using Conductor :  Inventory, Compression, Cold Storage, Indexing, and Integrity Verification
 
-A Java Conductor workflow example that orchestrates content archival. scanning and identifying content eligible for archival (2,450 items totaling 15.2 GB), compressing with Zstandard to achieve 65% size reduction, transferring to cold storage (Glacier Deep Archive with 12-48 hour retrieval), building searchable indexes, and verifying data integrity with SHA-256 checksums and 7-year retention policies. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates content archival. scanning and identifying content eligible for archival (2,450 items totaling 15.2 GB), compressing with Zstandard to achieve 65% size reduction, transferring to cold storage (Glacier Deep Archive with 12-48 hour retrieval), building searchable indexes, and verifying data integrity with SHA-256 checksums and 7-year retention policies. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Content Archival Needs Orchestration
 
 Archiving content is a pipeline where ordering and integrity matter. You identify which content qualifies for archival based on age and access patterns. 2,450 items spanning 18 months. You compress everything into a tarball with Zstandard for 3:1 compression ratios while computing checksums. You transfer the compressed archive to cold storage (Glacier Deep Archive) where retrieval takes 12-48 hours. You index the archived content so it remains searchable without restoring from cold storage. Finally, you verify that the cold storage checksum matches the original, confirming zero data loss.

@@ -1,7 +1,6 @@
 # Clinical Decision Support in Java Using Conductor :  Data Gathering, Guideline Application, Risk Scoring, and Treatment Recommendations
 
-A Java Conductor workflow example for clinical decision support. gathering patient clinical data, applying evidence-based guidelines, computing a risk score, and generating treatment recommendations for the clinician. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for clinical decision support. gathering patient clinical data, applying evidence-based guidelines, computing a risk score, and generating treatment recommendations for the clinician. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to provide real-time clinical decision support at the point of care. When a clinician is treating a patient, the system must pull the patient's clinical history (labs, vitals, medications, diagnoses), apply evidence-based clinical guidelines for the presenting condition, compute a risk score (e.g., Framingham for cardiovascular risk, CURB-65 for pneumonia severity), and generate specific treatment recommendations. Each step depends on the previous one. you cannot apply guidelines without the patient's data, and you cannot recommend treatments without a risk score.

@@ -1,7 +1,6 @@
 # Title Search in Java with Conductor :  Record Search, Ownership Verification, Lien Check, and Certification
 
-A Java Conductor workflow example for performing property title searches. searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for performing property title searches. searching county records for the property's chain of title, verifying current ownership, checking for outstanding liens or encumbrances, and issuing a title certification. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to confirm that a property's title is clear before a sale can close. County records must be searched for the complete chain of title, current ownership must be verified against the recorded deeds, any outstanding liens (tax liens, mechanic's liens, HOA liens, judgments) must be identified, and only if ownership is verified and liens are clear can a title certificate be issued. If the certification step runs before lien checks complete, the buyer risks purchasing a property with hidden encumbrances. Missing a single lien can cost hundreds of thousands of dollars.

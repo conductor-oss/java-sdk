@@ -1,7 +1,6 @@
 # Competing Consumers in Java Using Conductor :  Publish, Compete, Process, Acknowledge
 
-A Java Conductor workflow example for the competing consumers pattern. publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for the competing consumers pattern. publishing a task to a shared queue, having multiple consumer instances race to claim it, processing the task with the winning consumer, and acknowledging completion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Scaling Throughput with Multiple Consumers
 
 When a single consumer can't keep up with the message rate on a queue, you add more consumers. But multiple consumers reading from the same queue introduces coordination problems: two consumers might grab the same message, a consumer might crash after claiming a message but before processing it, and you need to know which consumer actually handled each task for debugging and audit.

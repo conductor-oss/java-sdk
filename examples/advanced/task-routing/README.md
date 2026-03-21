@@ -1,7 +1,6 @@
 # Task Routing in Java Using Conductor :  Analyze Requirements, Select Worker Pool, Dispatch, Verify
 
-A Java Conductor workflow example for intelligent task routing. analyzing a task's resource requirements (CPU, GPU, memory) and region constraints, selecting the optimal worker pool to handle it, dispatching the task to that pool, and verifying successful execution. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for intelligent task routing. analyzing a task's resource requirements (CPU, GPU, memory) and region constraints, selecting the optimal worker pool to handle it, dispatching the task to that pool, and verifying successful execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Tasks Have Different Resource Needs :  Send Them to the Right Pool
 
 An ML inference task needs a GPU-equipped worker in us-east-1. A data transformation task needs a high-memory worker in any region. A simple validation task can run on any small worker anywhere. Sending all tasks to the same pool wastes GPU resources on validation and starves inference tasks when the general pool is full.

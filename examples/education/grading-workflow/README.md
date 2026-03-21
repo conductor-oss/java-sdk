@@ -1,7 +1,6 @@
 # Grading Workflow in Java with Conductor :  Submission, Scoring, Review, Recording, and Student Notification
 
-A Java Conductor workflow example for assignment grading. receiving a student submission, scoring it against the rubric, reviewing the grade for accuracy, recording the final score in the gradebook, and notifying the student of their result. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for assignment grading. receiving a student submission, scoring it against the rubric, reviewing the grade for accuracy, recording the final score in the gradebook, and notifying the student of their result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to grade student assignments end-to-end. A student submits their work, the grading system scores it against the assignment rubric, an instructor or peer reviews the score for fairness and accuracy, the final grade is recorded in the course gradebook, and the student is notified of their result. Recording a grade before review is complete risks posting inaccurate scores; failing to notify leaves students in the dark about their performance.

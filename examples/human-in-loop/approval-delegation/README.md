@@ -1,7 +1,6 @@
 # Approval Delegation in Java Using Conductor :  Request Preparation, WAIT for Approver, SWITCH to Delegate, and Finalization
 
-Approval delegation. prepares a request, pauses at a WAIT task for the initial approver, then uses a SWITCH to handle delegation: if the approver responds with "delegate" and a delegateTo target, a second WAIT task pauses for the delegate's decision. Whether approved directly or via delegation, the workflow finalizes the result. Uses [Conductor](https://github.
-
+Approval delegation. prepares a request, pauses at a WAIT task for the initial approver, then uses a SWITCH to handle delegation: if the approver responds with "delegate" and a delegateTo target, a second WAIT task pauses for the delegate's decision. Whether approved directly or via delegation, the workflow finalizes the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need approvals where the assigned approver can delegate to someone else. A manager receives an approval request but is on vacation, overloaded, or not the right person. they need to reassign it to a colleague or their backup. The original WAIT task must accept three possible actions: approve (finalize immediately), reject (finalize immediately), or delegate (specify who should handle it, then wait for that person). The delegation must be tracked,  who delegated to whom, when, and what the final decision was. Without a SWITCH after the WAIT, you cannot route delegation to a second WAIT task for the delegate's input.

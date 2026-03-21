@@ -1,7 +1,6 @@
 # Tool-Augmented Generation in Java Using Conductor :  Generate, Detect Gaps, Call Tools, Incorporate, Complete
 
-Tool-Augmented Generation. detect knowledge gaps during text generation, invoke external tools to fill them, and produce enriched output. Uses [Conductor](https://github.
-
+Tool-Augmented Generation. detect knowledge gaps during text generation, invoke external tools to fill them, and produce enriched output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## LLMs Need Tools When Their Knowledge Runs Out
 
 An LLM generating a response about current stock prices will hallucinate numbers because its training data is months old. Tool-augmented generation detects these knowledge gaps mid-generation and pauses to call external tools. a stock API for prices, a calculator for computations, a database for customer data,  then resumes generation with real data incorporated.

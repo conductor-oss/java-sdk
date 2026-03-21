@@ -1,7 +1,6 @@
 # EHR Integration in Java Using Conductor :  Patient Record Query, Cross-System Merge, Validation, and Master Record Update
 
-A Java Conductor workflow example for EHR integration. querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for EHR integration. querying patient records from a source system, merging data from multiple EHR instances, validating the merged record for completeness and consistency, and updating the master patient record. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to integrate patient records across multiple EHR systems. When a patient has data in more than one system (e.g., hospital Epic, clinic Cerner, lab system), the records must be queried by patient ID, merged into a unified view that reconciles demographics, medications, allergies, and diagnoses, validated against data quality rules (missing fields, conflicting entries, duplicate records), and then written back to the master patient index. Each step depends on the previous one. you cannot merge without querying, and you cannot update the master record with unvalidated data. A bad merge that promotes incorrect allergy data or drops a medication can directly harm the patient.

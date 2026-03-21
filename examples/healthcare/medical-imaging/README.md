@@ -1,7 +1,6 @@
 # Medical Imaging in Java Using Conductor :  Acquisition, Processing, AI Analysis, Radiology Reporting, and PACS Storage
 
-A Java Conductor workflow example for medical imaging. acquiring DICOM images from modalities (CT, MRI, X-ray), processing raw images (windowing, reconstruction, de-identification), running AI-assisted analysis for findings detection, generating the radiology report, and archiving to PACS. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for medical imaging. acquiring DICOM images from modalities (CT, MRI, X-ray), processing raw images (windowing, reconstruction, de-identification), running AI-assisted analysis for findings detection, generating the radiology report, and archiving to PACS. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage the lifecycle of a medical imaging study from acquisition through archival. An imaging modality (CT scanner, MRI, X-ray) produces DICOM images for a study. The raw images must be processed. applying window/level adjustments, multi-planar reconstructions, and de-identification for research use. Processed images are then analyzed, potentially with AI-assisted detection (lung nodules, fractures, hemorrhage). A radiologist report must be generated with structured findings, impressions, and follow-up recommendations. Finally, the study and report must be archived to the PACS (Picture Archiving and Communication System) for long-term storage and retrieval. Each step depends on the previous one,  you cannot analyze unprocessed images, and you cannot archive without a finalized report.

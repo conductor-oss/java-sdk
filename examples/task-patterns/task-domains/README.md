@@ -1,7 +1,6 @@
 # Task Domains in Java with Conductor
 
-Task Domains demo. route tasks to specific worker groups using domains. Uses [Conductor](https://github.
-
+Task Domains demo. route tasks to specific worker groups using domains. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to route tasks to specific worker groups, for example, sending GPU-intensive work to GPU-equipped workers or routing region-specific tasks to workers in that region. Task domains let you tag workers with domain labels so only workers in the matching domain pick up the task, without changing the workflow definition.

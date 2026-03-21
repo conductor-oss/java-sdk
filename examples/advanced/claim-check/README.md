@@ -1,7 +1,6 @@
 # Claim Check Pattern in Java Using Conductor :  Offload Large Payloads, Pass by Reference
 
-A Java Conductor workflow example for the claim check pattern. storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for the claim check pattern. storing a large payload (images, documents, sensor data) in external storage, passing a lightweight reference through the workflow pipeline, then retrieving and processing the full payload only when needed. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Keeping Large Payloads Out of Your Message Bus
 
 Workflow tasks exchange data through their inputs and outputs, but passing a 50 MB medical image or a 200 MB CSV dataset directly between tasks bloats every message, slows serialization, and can hit broker size limits. The claim check pattern solves this: store the large payload in blob storage, pass a small reference ID (the "claim check") through the pipeline, and retrieve the full data only in the task that actually needs it.

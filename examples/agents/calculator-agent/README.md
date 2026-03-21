@@ -1,7 +1,6 @@
 # Calculator Agent in Java Using Conductor :  Parse Expressions, Compute Steps, Explain Results
 
-Calculator Agent. parse a math expression, compute step-by-step following PEMDAS, and explain the result. Uses [Conductor](https://github.
-
+Calculator Agent. parse a math expression, compute step-by-step following PEMDAS, and explain the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Math Agents Need to Show Their Work
 
 An LLM asked to compute "(15.7 + 3.3) * 2.5 / (1 + 0.1)" will often get the wrong answer. large language models are unreliable at arithmetic. A calculator agent separates understanding from computation: first parse the expression into structured operations (identify operands, operators, and precedence), then compute each step with proper floating-point precision, then explain the solution process so the user understands the reasoning.

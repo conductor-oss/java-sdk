@@ -1,7 +1,6 @@
 # Bid Management in Java with Conductor :  RFP Creation, Vendor Distribution, Bid Collection, Evaluation, and Award
 
-A Java Conductor workflow example for competitive bid management. creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for competitive bid management. creating bid packages for projects (e.g., a warehouse expansion with a $100K budget), distributing RFPs to qualified vendors, collecting submitted bids by deadline, evaluating proposals against cost, timeline, and capability criteria, and awarding the contract to the winning bidder. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to run a competitive bidding process across multiple vendors. The procurement team creates a bid package with project specs and budget, distributes it to a shortlist of vendors (Alpha Corp, Beta Ltd, Gamma Inc), collects their proposals by a deadline, evaluates each bid on cost, schedule, and qualifications, and awards the contract. If a vendor's submission fails to upload, you need to retry without losing other submissions. If the evaluation step crashes, you need to resume without re-soliciting bids.

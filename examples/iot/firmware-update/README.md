@@ -1,7 +1,6 @@
 # OTA Firmware Update in Java with Conductor :  Version Check, Download, Validation, Deployment, and Verification
 
-A Java Conductor workflow example that orchestrates over-the-air firmware updates for IoT devices. checking for new versions, downloading firmware binaries, validating checksums and code signatures, deploying to the device with scheduled reboots, and verifying the device boots successfully on the new version. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates over-the-air firmware updates for IoT devices. checking for new versions, downloading firmware binaries, validating checksums and code signatures, deploying to the device with scheduled reboots, and verifying the device boots successfully on the new version. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Firmware Updates Need Orchestration
 
 Pushing a firmware update to an IoT device is a multi-step process where failure at any stage can brick the device. You check whether a newer version exists and get the download URL and SHA-256 checksum. You download the binary (potentially over a slow, unreliable link). You validate the checksum matches, the code signature is authentic, and the firmware is compatible with the device hardware. You deploy the firmware and schedule a reboot. After reboot, you verify the device came back online running the correct version, the self-test passed, and a rollback image is available.

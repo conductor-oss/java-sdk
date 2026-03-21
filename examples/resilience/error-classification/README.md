@@ -1,7 +1,6 @@
 # Implementing Error Classification in Java with Conductor :  Retryable vs Non-Retryable Error Routing
 
-A Java Conductor workflow example demonstrating error classification. distinguishing retryable errors (429 Too Many Requests, 503 Service Unavailable) from non-retryable errors (security-posture Bad Request) and routing each to the appropriate handling path. Uses [Conductor](https://github.
-
+A Java Conductor workflow example demonstrating error classification. distinguishing retryable errors (429 Too Many Requests, 503 Service Unavailable) from non-retryable errors (security-posture Bad Request) and routing each to the appropriate handling path. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You call an external API that returns different error codes. 429 (rate limited), 503 (service temporarily down), security-posture (bad request data). Each error type demands a different response: retryable errors should be retried with backoff, while non-retryable errors should be routed to an error handler that logs the issue, alerts the team, and prevents wasted retry attempts on requests that will never succeed.

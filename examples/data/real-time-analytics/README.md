@@ -1,7 +1,6 @@
 # Real-Time Analytics in Java Using Conductor :  Event Ingestion, Windowed Stream Processing, Aggregate Updates, and Alert Checking
 
-A Java Conductor workflow example for real-time analytics: ingesting a batch of events, processing them within a configurable time window to compute windowed metrics and flag anomalies, updating running aggregates with the latest window results, and evaluating alert rules against the current aggregates to trigger notifications when thresholds are breached. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for real-time analytics: ingesting a batch of events, processing them within a configurable time window to compute windowed metrics and flag anomalies, updating running aggregates with the latest window results, and evaluating alert rules against the current aggregates to trigger notifications when thresholds are breached. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 Events are arriving in batches from your application: page views, API calls, purchases, error occurrences, and you need analytics that reflect what's happening right now, not what happened yesterday. Each batch of events needs to be processed within a time window (last 5 minutes, last hour) to compute windowed metrics like requests per second, error rate, and 95th percentile latency. Those window metrics need to update running aggregates so dashboards show cumulative trends. And when an aggregate crosses a threshold, error rate exceeds 5%, latency spikes above 500ms, purchase volume drops below normal, alert rules need to fire immediately, not after a nightly batch job.

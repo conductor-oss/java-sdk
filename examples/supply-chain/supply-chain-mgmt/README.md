@@ -1,7 +1,6 @@
 # End-to-End Supply Chain Management in Java with Conductor :  Plan, Source, Make, Deliver, and Return
 
-A Java Conductor workflow example for end-to-end supply chain management following the SCOR model. creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for end-to-end supply chain management following the SCOR model. creating a production plan based on product and quantity, sourcing raw materials from suppliers, manufacturing the product, delivering the finished batch to the destination, and configuring the return policy for the shipment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to orchestrate the complete supply chain from demand to delivery. A production plan must be created specifying what to build and how much. Raw materials must be sourced from approved suppliers with the right lead times. Manufacturing must execute the production plan using the sourced materials. The finished goods must be shipped to the customer or distribution center. Finally, the return policy and reverse logistics path must be configured for the delivery. Each step depends on the previous one. you cannot manufacture without sourced materials, and you cannot ship without finished goods.

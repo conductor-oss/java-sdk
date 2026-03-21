@@ -1,7 +1,6 @@
 # Service Activation in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom service activation. validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates telecom service activation. validating a service order against the customer's account, provisioning network resources for the requested service type, running automated service tests, activating the service on the network, and notifying the customer that their service is live. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Service Activation Needs Orchestration
 
 Activating a new telecom service requires a strict sequence where each step must succeed before proceeding. You validate the service order. confirming the order exists, the customer's account is in good standing, and the requested service type is available at their location. You provision the network resources,  creating subscriber profiles in the HLR/HSS, configuring access ports, and allocating bandwidth. You test the provisioned service by running automated checks to confirm connectivity and quality. You activate the service so the customer can start using it. Finally, you notify the customer with their service ID and activation details.

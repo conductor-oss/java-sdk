@@ -1,7 +1,6 @@
 # Voting Workflow in Java with Conductor
 
-Processes a voter's participation in an election: confirming registration, verifying identity, casting the ballot, counting the vote, and certifying results. Uses [Conductor](https://github.
-
+Processes a voter's participation in an election: confirming registration, verifying identity, casting the ballot, counting the vote, and certifying results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process a voter's participation in an election. from registration verification to vote certification. The voter's registration is confirmed, their identity is verified against the voter roll, they cast their ballot, the vote is counted, and the results are certified. Every step must maintain ballot secrecy while ensuring auditability. Counting a vote from an unverified voter undermines election integrity; failing to count a legitimate vote disenfranchises a citizen.

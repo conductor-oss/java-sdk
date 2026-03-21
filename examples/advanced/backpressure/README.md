@@ -1,7 +1,6 @@
 # Queue Backpressure in Java Using Conductor :  Monitor Depth, Throttle Producers, Shed Load
 
-A Java Conductor workflow example for queue backpressure management. monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for queue backpressure management. monitoring queue depth against configurable thresholds, throttling producer rates when pressure builds, and shedding load when the queue hits critical levels. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## When Queues Overflow
 
 A downstream service slows down, consumers fall behind, and your queue depth starts climbing. At 10,000 messages, latency creeps up. At 50,000, memory pressure kicks in. At 100,000, the broker starts rejecting publishes and upstream services cascade-fail. The difference between a minor slowdown and a full outage is whether you react to queue pressure before it becomes critical.

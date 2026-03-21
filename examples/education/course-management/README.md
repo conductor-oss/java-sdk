@@ -1,7 +1,6 @@
 # Course Management in Java with Conductor :  Course Creation, Scheduling, Instructor Assignment, and Catalog Publishing
 
-A Java Conductor workflow example for setting up a new course. creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for setting up a new course. creating the course record with department and credit-hour details, scheduling class sessions for a semester, assigning a qualified instructor from the department, and publishing the fully configured course to the student-facing catalog. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to stand up a new course offering each semester. This means creating the course record in your student information system with the correct department and credit hours, scheduling class sessions into available time slots and rooms, assigning an instructor whose qualifications and availability match, and finally publishing the course to the catalog so students can register. Publishing a course without an assigned instructor or without scheduled sessions creates registration chaos.

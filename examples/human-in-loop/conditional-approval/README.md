@@ -1,7 +1,6 @@
 # Conditional Approval Routing in Java Using Conductor :  Amount-Based Tier Classification and Multi-Level Approval Chains via SWITCH
 
-Conditional approval routing. classifies a request amount into a tier (low/medium/high), then uses SWITCH to route to different approval chains: low-amount requests need only manager approval, medium requests need manager + director, and high-amount requests need manager + director + VP. Each approval level is a WAIT task pausing for that approver's human decision. Uses [Conductor](https://github.
-
+Conditional approval routing. classifies a request amount into a tier (low/medium/high), then uses SWITCH to route to different approval chains: low-amount requests need only manager approval, medium requests need manager + director, and high-amount requests need manager + director + VP. Each approval level is a WAIT task pausing for that approver's human decision. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need approval chains that vary based on the request amount. A $500 office supply purchase needs only a manager's sign-off. A $5,000 conference budget needs the manager and director. A $50,000 vendor contract needs manager, director, and VP. The system must classify the amount into a tier (low: under $1,000, medium: $1,000-$9,999, high: $10,000+), then route to the correct approval chain. each level pausing for a human decision before advancing to the next. If any approver rejects, the chain stops. Hardcoding these rules in if/else blocks makes them impossible to change without a code deploy, and there is no visibility into which tier a request was classified as or where it is in the approval chain.

@@ -1,7 +1,6 @@
 # User Registration in Java Using Conductor :  Validation, Account Creation, Confirmation, and Activation
 
-A Java Conductor workflow example for user registration. validating username and email format, creating the user record with a unique ID, sending a confirmation email, and activating the account. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for user registration. validating username and email format, creating the user record with a unique ID, sending a confirmation email, and activating the account. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need a registration flow that guards against invalid input before creating any records. The username must meet minimum length requirements, the email must be well-formed, and neither can already be taken. Only after validation passes should the system create a user record, send a confirmation email with the new user ID, and finally flip the account to active status. Each step depends on the one before it. you can't confirm a user that was never created, and you shouldn't activate an account before confirmation is sent.

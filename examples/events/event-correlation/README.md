@@ -1,7 +1,6 @@
 # Event Correlation in Java Using Conductor
 
-Event Correlation. init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process. Uses [Conductor](https://github.
-
+Event Correlation. init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to correlate related events that arrive independently from different sources. An order event, a payment event, and a shipping event may arrive at different times from different services, but they all belong to the same business transaction. The workflow must initialize a correlation session, receive all expected events (potentially in parallel), correlate them by matching fields, and process the fully correlated result.

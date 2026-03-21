@@ -1,7 +1,6 @@
 # Project Closure in Java with Conductor :  Deliverable Review, Sign-Off, Archival, and Lessons Learned
 
-A Java Conductor workflow example for closing out a project. reviewing all deliverables against acceptance criteria, obtaining formal stakeholder sign-off, archiving project artifacts, and capturing lessons learned for future projects. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for closing out a project. reviewing all deliverables against acceptance criteria, obtaining formal stakeholder sign-off, archiving project artifacts, and capturing lessons learned for future projects. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to formally close a project. Every deliverable must be reviewed against its acceptance criteria before anyone signs off. Sign-off must happen before archival. you can't archive incomplete work. After archival, lessons learned need to be captured while the project is still fresh. Skip any step and you end up with unsigned deliverables sitting in limbo, project artifacts scattered across personal drives, and the same mistakes repeated on the next project.

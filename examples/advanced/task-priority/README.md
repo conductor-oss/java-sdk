@@ -1,7 +1,6 @@
 # Task Priority Routing in Java Using Conductor :  Classify Urgency, Route to Priority-Specific Queues
 
-A Java Conductor workflow example for task priority routing. classifying incoming tasks by urgency and impact into high/medium/low priority, then routing each to the appropriate processing queue via a `SWITCH` task. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for task priority routing. classifying incoming tasks by urgency and impact into high/medium/low priority, then routing each to the appropriate processing queue via a `SWITCH` task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Not All Tasks Are Equal :  High Priority Must Jump the Queue
 
 A production incident alert, a routine log rotation, and a monthly report request arrive at the same time. The incident needs immediate attention with dedicated resources. The log rotation can wait. The report can run overnight. Without priority classification and routing, all three compete for the same worker pool, and the incident sits behind the report in the queue.

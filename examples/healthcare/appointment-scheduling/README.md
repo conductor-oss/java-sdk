@@ -1,7 +1,6 @@
 # Healthcare Appointment Scheduling in Java Using Conductor :  Provider Availability, Booking, Confirmation, and Reminders
 
-A Java Conductor workflow example for healthcare appointment scheduling. checking provider availability for a preferred date, booking the selected time slot, sending the patient a confirmation, and scheduling appointment reminders. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for healthcare appointment scheduling. checking provider availability for a preferred date, booking the selected time slot, sending the patient a confirmation, and scheduling appointment reminders. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to schedule patient appointments across a healthcare organization. A scheduling request comes in with a provider ID, preferred date, and visit type. The system must query the provider's calendar for open slots (and suggest alternates if the preferred time is taken), reserve the chosen slot, send the patient a confirmation with the appointment details, and schedule a reminder notification before the visit. Each step depends on the previous one. you cannot book without an available slot, and you cannot confirm without a booking.

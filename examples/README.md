@@ -385,11 +385,11 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [flash-sale](ecommerce/flash-sale/) | Flash sale: prepare inventory, open sale, process orders, close, report. Uses [Conductor](https://gi... |
 | [fraud-detection](ecommerce/fraud-detection/) | A legitimate customer buys a $5,000 camera for a trip leaving in 2 hours. Your fraud system flags it... |
 | [inventory-management](ecommerce/inventory-management/) | It's Black Friday. Your product page shows 500 units of the hot new headphones "in stock"; but that ... |
-| [loyalty-program](ecommerce/loyalty-program/) | Loyalty program: earn points, check tier, upgrade, deliver rewards. Uses [Conductor](https://github.... |
+| [loyalty-program](ecommerce/loyalty-program/) | Loyalty program: earn points, check tier, upgrade, deliver rewards. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.... |
 | [marketplace-seller](ecommerce/marketplace-seller/) | Marketplace seller onboarding: register, verify, list products, manage orders. Uses [Conductor](http... |
 | [order-management](ecommerce/order-management/) | A customer orders a laptop and a USB-C hub. The warehouse picks the laptop but grabs the wrong hub: ... |
 | [payment-processing](ecommerce/payment-processing/) | A customer pays $259.97 for their order. The payment gateway charges the card successfully, but the ... |
-| [price-optimization](ecommerce/price-optimization/) | A Java Conductor workflow example demonstrating Price Optimization. Uses [Conductor](https://github.... |
+| [price-optimization](ecommerce/price-optimization/) | A Java Conductor workflow example demonstrating Price Optimization. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.... |
 | [product-catalog](ecommerce/product-catalog/) | Product catalog management: add, validate, enrich, publish, and index products. Uses [Conductor](htt... |
 | [recommendation-engine](ecommerce/recommendation-engine/) | A Java Conductor workflow example demonstrating Recommendation Engine. Uses [Conductor](https://gith... |
 | [returns-processing](ecommerce/returns-processing/) | A Java Conductor workflow example for e-commerce returns. receiving returned items, inspecting the... |
@@ -465,14 +465,14 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | Example | Description |
 |---------|-------------|
 | [account-opening](finance/account-opening/) | A customer spent eight minutes filling out your online account application on their phone during the... |
-| [budget-approval](finance/budget-approval/) | Budget approval with SWITCH for approve/revise/reject decisions. Uses [Conductor](https://github.com... |
+| [budget-approval](finance/budget-approval/) | Budget approval with SWITCH for approve/revise/reject decisions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com... |
 | [claims-processing](finance/claims-processing/) | A policyholder rear-ends someone at a stoplight and files a claim that afternoon. Eight days pass be... |
 | [credit-scoring](finance/credit-scoring/) | Credit scoring: collect data, calculate factors, compute score, classify applicant. Uses [Conductor]... |
 | [cryptocurrency-trading](finance/cryptocurrency-trading/) | Crypto trading: monitor market, analyze signals, SWITCH(buy/sell/hold), confirm. Uses [Conductor](ht... |
 | [expense-management](finance/expense-management/) | Expense management: submit, validate receipts, categorize, approve, reimburse. Uses [Conductor](http... |
 | [financial-audit](finance/financial-audit/) | Financial audit: define scope, collect evidence, test controls, generate report, remediate. Uses [Co... |
 | [insurance-underwriting](finance/insurance-underwriting/) | Insurance underwriting with SWITCH decision routing for accept/decline/refer. Uses [Conductor](https... |
-| [investment-workflow](finance/investment-workflow/) | Investment lifecycle: research, analyze, decide, execute, monitor. Uses [Conductor](https://github.c... |
+| [investment-workflow](finance/investment-workflow/) | Investment lifecycle: research, analyze, decide, execute, monitor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
 | [invoice-processing](finance/invoice-processing/) | Invoices arrive as PDF email attachments, portal downloads, and occasionally faxes. An AP clerk spen... |
 | [kyc-aml](finance/kyc-aml/) | KYC/AML workflow that verifies customer identity, screens against watchlists, assesses risk, and mak... |
 | [loan-origination](finance/loan-origination/) | Loan origination: application intake, credit check, underwriting, approval, and funding. Uses [Condu... |
@@ -676,16 +676,16 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 
 | Example | Description |
 |---------|-------------|
-| [compliance-review](legal/compliance-review/) | A Java Conductor workflow example demonstrating Compliance Review. Uses [Conductor](https://github.c... |
-| [contract-analysis](legal/contract-analysis/) | A Java Conductor workflow example demonstrating Contract Analysis. Uses [Conductor](https://github.c... |
-| [document-review](legal/document-review/) | A Java Conductor workflow example demonstrating Document Review. Uses [Conductor](https://github.com... |
-| [e-discovery](legal/e-discovery/) | A Java Conductor workflow example demonstrating E Discovery. Uses [Conductor](https://github.com/con... |
-| [legal-billing](legal/legal-billing/) | A Java Conductor workflow example demonstrating Legal Billing. Uses [Conductor](https://github.com/c... |
+| [compliance-review](legal/compliance-review/) | A Java Conductor workflow example demonstrating Compliance Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
+| [contract-analysis](legal/contract-analysis/) | A Java Conductor workflow example demonstrating Contract Analysis. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
+| [document-review](legal/document-review/) | A Java Conductor workflow example demonstrating Document Review. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com... |
+| [e-discovery](legal/e-discovery/) | A Java Conductor workflow example demonstrating E Discovery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/con... |
+| [legal-billing](legal/legal-billing/) | A Java Conductor workflow example demonstrating Legal Billing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/c... |
 | [legal-case-management](legal/legal-case-management/) | A Java Conductor workflow example demonstrating Legal Case Management. Uses [Conductor](https://gith... |
-| [litigation-hold](legal/litigation-hold/) | A Java Conductor workflow example demonstrating Litigation Hold. Uses [Conductor](https://github.com... |
-| [patent-filing](legal/patent-filing/) | A Java Conductor workflow example demonstrating Patent Filing. Uses [Conductor](https://github.com/c... |
-| [regulatory-filing](legal/regulatory-filing/) | A Java Conductor workflow example demonstrating Regulatory Filing. Uses [Conductor](https://github.c... |
-| [trademark-search](legal/trademark-search/) | A Java Conductor workflow example demonstrating Trademark Search. Uses [Conductor](https://github.co... |
+| [litigation-hold](legal/litigation-hold/) | A Java Conductor workflow example demonstrating Litigation Hold. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com... |
+| [patent-filing](legal/patent-filing/) | A Java Conductor workflow example demonstrating Patent Filing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/c... |
+| [regulatory-filing](legal/regulatory-filing/) | A Java Conductor workflow example demonstrating Regulatory Filing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
+| [trademark-search](legal/trademark-search/) | A Java Conductor workflow example demonstrating Trademark Search. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.co... |
 
 ## Media (20)
 
@@ -718,44 +718,44 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 |---------|-------------|
 | [api-gateway](microservices/api-gateway/) | A mobile client hits your API. The request needs to be authenticated, routed to the right backend, a... |
 | [api-gateway-routing](microservices/api-gateway-routing/) | API gateway routing workflow that authenticates requests, checks rate limits, routes to backend serv... |
-| [backend-for-frontend](microservices/backend-for-frontend/) | Backend for Frontend pattern with platform-specific responses. Uses [Conductor](https://github.com/c... |
+| [backend-for-frontend](microservices/backend-for-frontend/) | Backend for Frontend pattern with platform-specific responses. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/c... |
 | [blue-green-deploy](microservices/blue-green-deploy/) | You need to ship v2.5.0 of the payment service. The old deploy process takes the service down for 90... |
 | [blue-green-deployment](microservices/blue-green-deployment/) | Orchestrates blue-green deployment: deploy to green, validate, switch traffic, and monitor. Uses [Co... |
 | [bulkhead-pattern](microservices/bulkhead-pattern/) | It's Tuesday at 3 AM. The recommendation service starts returning 504s because a third-party ML endp... |
 | [canary-deployment](microservices/canary-deployment/) | You merge the PR, CI goes green, and you deploy to prod. Two minutes later, 100% of your users are h... |
-| [canary-release](microservices/canary-release/) | Canary release with progressive traffic increase. Uses [Conductor](https://github.com/conductor-oss/... |
-| [centralized-config-management](microservices/centralized-config-management/) | Centralized config management with staged rollout. Uses [Conductor](https://github.com/conductor-oss... |
+| [canary-release](microservices/canary-release/) | Canary release with progressive traffic increase. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/... |
+| [centralized-config-management](microservices/centralized-config-management/) | Centralized config management with staged rollout. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss... |
 | [choreography-vs-orchestration](microservices/choreography-vs-orchestration/) | Service A publishes an `order.created` event. Service B picks it up and reserves inventory. Service ... |
-| [circuit-breaker-microservice](microservices/circuit-breaker-microservice/) | Circuit breaker pattern for resilient service calls. Uses [Conductor](https://github.com/conductor-o... |
-| [config-management](microservices/config-management/) | Load, validate, deploy, and verify configuration. Uses [Conductor](https://github.com/conductor-oss/... |
+| [circuit-breaker-microservice](microservices/circuit-breaker-microservice/) | Circuit breaker pattern for resilient service calls. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-o... |
+| [config-management](microservices/config-management/) | Load, validate, deploy, and verify configuration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/... |
 | [cqrs-pattern](microservices/cqrs-pattern/) | CQRS pattern - Command side with validation, persistence, and read model update. Uses [Conductor](ht... |
 | [data-migration](microservices/data-migration/) | Data migration with backup, transform, migrate, validate, and cutover. Uses [Conductor](https://gith... |
 | [database-per-service](microservices/database-per-service/) | Database per service pattern with parallel queries and view composition. Uses [Conductor](https://gi... |
-| [distributed-locking](microservices/distributed-locking/) | Distributed locking for concurrency control. Uses [Conductor](https://github.com/conductor-oss/condu... |
-| [distributed-tracing](microservices/distributed-tracing/) | Distributed tracing with end-to-end request tracking. Uses [Conductor](https://github.com/conductor-... |
-| [distributed-transactions](microservices/distributed-transactions/) | Distributed transactions with prepare-commit saga pattern. Uses [Conductor](https://github.com/condu... |
-| [event-driven-microservices](microservices/event-driven-microservices/) | Event-driven microservices choreography via Conductor. Uses [Conductor](https://github.com/conductor... |
-| [event-sourcing](microservices/event-sourcing/) | Event sourcing with append-only event log and state rebuild. Uses [Conductor](https://github.com/con... |
+| [distributed-locking](microservices/distributed-locking/) | Distributed locking for concurrency control. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/condu... |
+| [distributed-tracing](microservices/distributed-tracing/) | Distributed tracing with end-to-end request tracking. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-... |
+| [distributed-transactions](microservices/distributed-transactions/) | Distributed transactions with prepare-commit saga pattern. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/condu... |
+| [event-driven-microservices](microservices/event-driven-microservices/) | Event-driven microservices choreography via Conductor. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor... |
+| [event-sourcing](microservices/event-sourcing/) | Event sourcing with append-only event log and state rebuild. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/con... |
 | [feature-flag-rollout](microservices/feature-flag-rollout/) | Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or ... |
-| [feature-flags](microservices/feature-flags/) | Route execution based on feature flag status. Uses [Conductor](https://github.com/conductor-oss/cond... |
+| [feature-flags](microservices/feature-flags/) | Route execution based on feature flag status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/cond... |
 | [graceful-service-shutdown](microservices/graceful-service-shutdown/) | Orchestrates graceful shutdown: stop accepting new work, drain in-flight tasks, checkpoint state, de... |
-| [health-check-aggregation](microservices/health-check-aggregation/) | System-wide health check aggregation using FORK/JOIN. Uses [Conductor](https://github.com/conductor-... |
-| [health-checks](microservices/health-checks/) | Check health of multiple services in parallel. Uses [Conductor](https://github.com/conductor-oss/con... |
-| [idempotent-operations](microservices/idempotent-operations/) | Idempotent operations with duplicate detection. Uses [Conductor](https://github.com/conductor-oss/co... |
-| [inter-service-communication](microservices/inter-service-communication/) | Orchestrates request-response communication between microservices. Uses [Conductor](https://github.c... |
-| [load-balancing](microservices/load-balancing/) | Distribute requests across service instances in parallel. Uses [Conductor](https://github.com/conduc... |
-| [multi-tenancy](microservices/multi-tenancy/) | Tenant-isolated workflows with per-tenant routing. Uses [Conductor](https://github.com/conductor-oss... |
-| [outbox-pattern](microservices/outbox-pattern/) | Transactional outbox pattern for reliable event publishing. Uses [Conductor](https://github.com/cond... |
+| [health-check-aggregation](microservices/health-check-aggregation/) | System-wide health check aggregation using FORK/JOIN. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-... |
+| [health-checks](microservices/health-checks/) | Check health of multiple services in parallel. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/con... |
+| [idempotent-operations](microservices/idempotent-operations/) | Idempotent operations with duplicate detection. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/co... |
+| [inter-service-communication](microservices/inter-service-communication/) | Orchestrates request-response communication between microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
+| [load-balancing](microservices/load-balancing/) | Distribute requests across service instances in parallel. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conduc... |
+| [multi-tenancy](microservices/multi-tenancy/) | Tenant-isolated workflows with per-tenant routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss... |
+| [outbox-pattern](microservices/outbox-pattern/) | Transactional outbox pattern for reliable event publishing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/cond... |
 | [rate-limiter-microservice](microservices/rate-limiter-microservice/) | Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates co... |
 | [request-aggregation](microservices/request-aggregation/) | Aggregates data from multiple microservices in parallel using FORK_JOIN, then merges results into a ... |
-| [secret-rotation](microservices/secret-rotation/) | Rotate secrets across services securely. Uses [Conductor](https://github.com/conductor-oss/conductor... |
+| [secret-rotation](microservices/secret-rotation/) | Rotate secrets across services securely. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/conductor... |
 | [service-decomposition](microservices/service-decomposition/) | Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with opti... |
-| [service-discovery](microservices/service-discovery/) | Discover services, select instance, call with failover. Uses [Conductor](https://github.com/conducto... |
+| [service-discovery](microservices/service-discovery/) | Discover services, select instance, call with failover. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conducto... |
 | [service-mesh-orchestration](microservices/service-mesh-orchestration/) | Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policie... |
-| [service-orchestration](microservices/service-orchestration/) | Orchestrate auth, catalog, cart, and checkout microservices. Uses [Conductor](https://github.com/con... |
+| [service-orchestration](microservices/service-orchestration/) | Orchestrate auth, catalog, cart, and checkout microservices. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/con... |
 | [service-registry](microservices/service-registry/) | Service registry workflow that registers a service, performs a health check, and discovers the servi... |
-| [service-versioning](microservices/service-versioning/) | API version management with version routing. Uses [Conductor](https://github.com/conductor-oss/condu... |
-| [shared-nothing-architecture](microservices/shared-nothing-architecture/) | Shared nothing architecture with fully independent services. Uses [Conductor](https://github.com/con... |
+| [service-versioning](microservices/service-versioning/) | API version management with version routing. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/condu... |
+| [shared-nothing-architecture](microservices/shared-nothing-architecture/) | Shared nothing architecture with fully independent services. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/con... |
 
 ## Nonprofit (10)
 
@@ -763,13 +763,13 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 |---------|-------------|
 | [beneficiary-tracking](nonprofit/beneficiary-tracking/) | A Java Conductor workflow example demonstrating Beneficiary Tracking. Uses [Conductor](https://githu... |
 | [compliance-nonprofit](nonprofit/compliance-nonprofit/) | A Java Conductor workflow example demonstrating Compliance Nonprofit. Uses [Conductor](https://githu... |
-| [donor-management](nonprofit/donor-management/) | A Java Conductor workflow example demonstrating Donor Management. Uses [Conductor](https://github.co... |
-| [event-fundraising](nonprofit/event-fundraising/) | A Java Conductor workflow example demonstrating Event Fundraising. Uses [Conductor](https://github.c... |
+| [donor-management](nonprofit/donor-management/) | A Java Conductor workflow example demonstrating Donor Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.co... |
+| [event-fundraising](nonprofit/event-fundraising/) | A Java Conductor workflow example demonstrating Event Fundraising. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
 | [fundraising-campaign](nonprofit/fundraising-campaign/) | A Java Conductor workflow example demonstrating Fundraising Campaign. Uses [Conductor](https://githu... |
-| [grant-management](nonprofit/grant-management/) | A Java Conductor workflow example demonstrating Grant Management. Uses [Conductor](https://github.co... |
-| [impact-reporting](nonprofit/impact-reporting/) | A Java Conductor workflow example demonstrating Impact Reporting. Uses [Conductor](https://github.co... |
-| [nonprofit-donation](nonprofit/nonprofit-donation/) | A Java Conductor workflow example demonstrating Nonprofit Donation. Uses [Conductor](https://github.... |
-| [program-evaluation](nonprofit/program-evaluation/) | A Java Conductor workflow example demonstrating Program Evaluation. Uses [Conductor](https://github.... |
+| [grant-management](nonprofit/grant-management/) | A Java Conductor workflow example demonstrating Grant Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.co... |
+| [impact-reporting](nonprofit/impact-reporting/) | A Java Conductor workflow example demonstrating Impact Reporting. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.co... |
+| [nonprofit-donation](nonprofit/nonprofit-donation/) | A Java Conductor workflow example demonstrating Nonprofit Donation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.... |
+| [program-evaluation](nonprofit/program-evaluation/) | A Java Conductor workflow example demonstrating Program Evaluation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.... |
 | [volunteer-coordination](nonprofit/volunteer-coordination/) | A Java Conductor workflow example demonstrating Volunteer Coordination. Uses [Conductor](https://git... |
 
 ## Project Mgmt (10)
@@ -937,7 +937,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | Example | Description |
 |---------|-------------|
 | [bulk-operations](task-patterns/bulk-operations/) | Bulk operations demo. two-step workflow used for bulk start, pause, resume, and terminate. Uses [C... |
-| [chaining-http-tasks](task-patterns/chaining-http-tasks/) | Chain HTTP system tasks for API orchestration. Uses [Conductor](https://github.com/conductor-oss/con... |
+| [chaining-http-tasks](task-patterns/chaining-http-tasks/) | Chain HTTP system tasks for API orchestration. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/con... |
 | [do-while](task-patterns/do-while/) | DO_WHILE loop demo: processes items in a batch one at a time, iterating until the batch is complete,... |
 | [dynamic-fork](task-patterns/dynamic-fork/) | You need to process N items in parallel, but N is only known at runtime. a user submits 3 URLs today... |
 | [event-handlers](task-patterns/event-handlers/) | Workflow triggered by external events. Processes the event type and payload. Uses [Conductor](https:... |
@@ -953,28 +953,28 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [map-reduce](task-patterns/map-reduce/) | MapReduce Pattern. Splits log files into parallel analysis tasks using FORK_JOIN_DYNAMIC, then aggre... |
 | [nested-sub-workflows](task-patterns/nested-sub-workflows/) | Three-level nested order processing. order fulfillment (Level 1) delegates to a payment sub-workfl... |
 | [nested-switch](task-patterns/nested-switch/) | Multi-level decision tree using nested SWITCH tasks with value-param. Uses [Conductor](https://githu... |
-| [passing-output-to-input](task-patterns/passing-output-to-input/) | Shows all the ways to pass data between tasks. Uses [Conductor](https://github.com/conductor-oss/con... |
+| [passing-output-to-input](task-patterns/passing-output-to-input/) | Shows all the ways to pass data between tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/con... |
 | [rate-limiting](task-patterns/rate-limiting/) | Rate limiting demo. demonstrates task-level rate limiting with concurrency and frequency constraints... |
 | [sequential-tasks](task-patterns/sequential-tasks/) | Sequential ETL pipeline. extract, transform, load. Three workers process data in order. Uses [Cond... |
 | [set-variable](task-patterns/set-variable/) | Demonstrates SET_VARIABLE system task for storing intermediate state accessible via ${workflow.varia... |
 | [signals](task-patterns/signals/) | Signals demo. send data to running workflows via WAIT task completion. Two WAIT tasks pause the wo... |
-| [simple-plus-system](task-patterns/simple-plus-system/) | Combines SIMPLE workers with INLINE system tasks. Uses [Conductor](https://github.com/conductor-oss/... |
+| [simple-plus-system](task-patterns/simple-plus-system/) | Combines SIMPLE workers with INLINE system tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/... |
 | [sub-workflows](task-patterns/sub-workflows/) | SUB_WORKFLOW demo: an order processing workflow that delegates payment handling to a reusable child ... |
 | [switch-default-case](task-patterns/switch-default-case/) | Fallback routing for unmatched payment methods using SWITCH with defaultCase. Uses [Conductor](https... |
 | [switch-javascript](task-patterns/switch-javascript/) | SWITCH with JavaScript evaluator for complex routing based on amount, customerType, and region. Uses... |
 | [switch-plus-fork](task-patterns/switch-plus-fork/) | SWITCH + FORK demo. conditional parallel execution. Batch type triggers parallel lanes A and B; de... |
 | [switch-task](task-patterns/switch-task/) | SWITCH task demo. routes support tickets to different handlers based on priority level (LOW/MEDIUM/H... |
-| [sync-execution](task-patterns/sync-execution/) | Simple workflow for demonstrating sync vs async execution. Uses [Conductor](https://github.com/condu... |
+| [sync-execution](task-patterns/sync-execution/) | Simple workflow for demonstrating sync vs async execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/condu... |
 | [system-tasks](task-patterns/system-tasks/) | Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks. no workers needed. Uses [Conductor](https:... |
 | [task-definitions](task-patterns/task-definitions/) | Task definitions test. runs td_fast_task to verify task definition configuration. Uses [Conductor]... |
 | [task-domains](task-patterns/task-domains/) | Task Domains demo. route tasks to specific worker groups using domains. Uses [Conductor](https://g... |
-| [task-input-templates](task-patterns/task-input-templates/) | Shows reusable parameter mapping patterns. Uses [Conductor](https://github.com/conductor-oss/conduct... |
+| [task-input-templates](task-patterns/task-input-templates/) | Shows reusable parameter mapping patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/conduct... |
 | [task-priority](task-patterns/task-priority/) | Workflow priority demo. priority levels 0-99 (higher = more important). Uses [Conductor](https://g... |
-| [terminate-task](task-patterns/terminate-task/) | Early exit with TERMINATE based on validation. Uses [Conductor](https://github.com/conductor-oss/con... |
+| [terminate-task](task-patterns/terminate-task/) | Early exit with TERMINATE based on validation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/con... |
 | [wait-for-event](task-patterns/wait-for-event/) | WAIT task demo. pauses a workflow durably until an external system sends a signal (approval, webhook... |
 | [workflow-archival](task-patterns/workflow-archival/) | Archival demo workflow. single task for demonstrating cleanup policies. Uses [Conductor](https://g... |
-| [workflow-metadata](task-patterns/workflow-metadata/) | Demonstrates workflow metadata and search. Uses [Conductor](https://github.com/conductor-oss/conduct... |
-| [workflow-variables](task-patterns/workflow-variables/) | Shows how variables and expressions work across tasks. Uses [Conductor](https://github.com/conductor... |
+| [workflow-metadata](task-patterns/workflow-metadata/) | Demonstrates workflow metadata and search. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/conduct... |
+| [workflow-variables](task-patterns/workflow-variables/) | Shows how variables and expressions work across tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor... |
 | [workflow-versioning](task-patterns/workflow-versioning/) | Run multiple versions of the same workflow side by side. version 1 does calculate-then-audit, vers... |
 
 ## Telecom (10)
@@ -996,36 +996,36 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 
 | Example | Description |
 |---------|-------------|
-| [car-rental](travel/car-rental/) | Car rental: search, select, book, pickup, return. Uses [Conductor](https://github.com/conductor-oss/... |
-| [expense-reporting](travel/expense-reporting/) | Expense reporting: collect, categorize, submit, approve, reimburse. Uses [Conductor](https://github.... |
-| [hotel-booking](travel/hotel-booking/) | Hotel booking: search, filter, book, confirm, reminder. Uses [Conductor](https://github.com/conducto... |
-| [itinerary-planning](travel/itinerary-planning/) | Itinerary planning: preferences, search, optimize, book, finalize. Uses [Conductor](https://github.c... |
-| [reimbursement](travel/reimbursement/) | Reimbursement: submit, validate, approve, process, notify. Uses [Conductor](https://github.com/condu... |
-| [travel-analytics](travel/travel-analytics/) | Travel analytics: collect, aggregate, analyze, report. Uses [Conductor](https://github.com/conductor... |
+| [car-rental](travel/car-rental/) | Car rental: search, select, book, pickup, return. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/... |
+| [expense-reporting](travel/expense-reporting/) | Expense reporting: collect, categorize, submit, approve, reimburse. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.... |
+| [hotel-booking](travel/hotel-booking/) | Hotel booking: search, filter, book, confirm, reminder. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conducto... |
+| [itinerary-planning](travel/itinerary-planning/) | Itinerary planning: preferences, search, optimize, book, finalize. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
+| [reimbursement](travel/reimbursement/) | Reimbursement: submit, validate, approve, process, notify. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/condu... |
+| [travel-analytics](travel/travel-analytics/) | Travel analytics: collect, aggregate, analyze, report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor... |
 | [travel-approval](travel/travel-approval/) | An engineer submits a $4,000 conference trip request. Their manager approves it by replying "looks g... |
 | [travel-booking](travel/travel-booking/) | A traveler books a flight from SFO to JFK, a hotel in Manhattan, and then the car rental fails. the ... |
-| [travel-policy](travel/travel-policy/) | Travel policy with SWITCH for compliant/exception. Uses [Conductor](https://github.com/conductor-oss... |
-| [visa-processing](travel/visa-processing/) | Visa processing: collect docs, validate, submit, track, receive. Uses [Conductor](https://github.com... |
+| [travel-policy](travel/travel-policy/) | Travel policy with SWITCH for compliant/exception. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss... |
+| [visa-processing](travel/visa-processing/) | Visa processing: collect docs, validate, submit, track, receive. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com... |
 
 ## User Mgmt (20)
 
 | Example | Description |
 |---------|-------------|
-| [account-deletion](user-mgmt/account-deletion/) | A Java Conductor workflow example demonstrating Account Deletion. Uses [Conductor](https://github.co... |
-| [bulk-user-import](user-mgmt/bulk-user-import/) | A Java Conductor workflow example demonstrating Bulk User Import. Uses [Conductor](https://github.co... |
-| [data-export-request](user-mgmt/data-export-request/) | A Java Conductor workflow example demonstrating Data Export Request. Uses [Conductor](https://github... |
-| [email-verification](user-mgmt/email-verification/) | A Java Conductor workflow example demonstrating Email Verification. Uses [Conductor](https://github.... |
-| [gdpr-consent](user-mgmt/gdpr-consent/) | A Java Conductor workflow example demonstrating GDPR Consent. Uses [Conductor](https://github.com/co... |
-| [multi-factor-auth](user-mgmt/multi-factor-auth/) | A Java Conductor workflow example demonstrating Multi Factor Auth. Uses [Conductor](https://github.c... |
+| [account-deletion](user-mgmt/account-deletion/) | A Java Conductor workflow example demonstrating Account Deletion. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.co... |
+| [bulk-user-import](user-mgmt/bulk-user-import/) | A Java Conductor workflow example demonstrating Bulk User Import. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.co... |
+| [data-export-request](user-mgmt/data-export-request/) | A Java Conductor workflow example demonstrating Data Export Request. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers... |
+| [email-verification](user-mgmt/email-verification/) | A Java Conductor workflow example demonstrating Email Verification. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.... |
+| [gdpr-consent](user-mgmt/gdpr-consent/) | A Java Conductor workflow example demonstrating GDPR Consent. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/co... |
+| [multi-factor-auth](user-mgmt/multi-factor-auth/) | A Java Conductor workflow example demonstrating Multi Factor Auth. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.c... |
 | [notification-preferences](user-mgmt/notification-preferences/) | A Java Conductor workflow example demonstrating Notification Preferences. Uses [Conductor](https://g... |
-| [nps-scoring](user-mgmt/nps-scoring/) | A Java Conductor workflow example demonstrating NPS Scoring. Uses [Conductor](https://github.com/con... |
+| [nps-scoring](user-mgmt/nps-scoring/) | A Java Conductor workflow example demonstrating NPS Scoring. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/con... |
 | [password-reset](user-mgmt/password-reset/) | User clicks "Reset Password." The email takes eight minutes because your SMTP relay is backed up. Th... |
-| [permission-sync](user-mgmt/permission-sync/) | A Java Conductor workflow example demonstrating Permission Sync. Uses [Conductor](https://github.com... |
-| [profile-update](user-mgmt/profile-update/) | A Java Conductor workflow example demonstrating Profile Update. Uses [Conductor](https://github.com/... |
-| [role-management](user-mgmt/role-management/) | A Java Conductor workflow example demonstrating Role Management. Uses [Conductor](https://github.com... |
-| [session-management](user-mgmt/session-management/) | A Java Conductor workflow example demonstrating Session Management. Uses [Conductor](https://github.... |
-| [social-login](user-mgmt/social-login/) | A Java Conductor workflow example demonstrating Social Login. Uses [Conductor](https://github.com/co... |
-| [user-analytics](user-mgmt/user-analytics/) | A Java Conductor workflow example demonstrating User Analytics. Uses [Conductor](https://github.com/... |
+| [permission-sync](user-mgmt/permission-sync/) | A Java Conductor workflow example demonstrating Permission Sync. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com... |
+| [profile-update](user-mgmt/profile-update/) | A Java Conductor workflow example demonstrating Profile Update. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/... |
+| [role-management](user-mgmt/role-management/) | A Java Conductor workflow example demonstrating Role Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com... |
+| [session-management](user-mgmt/session-management/) | A Java Conductor workflow example demonstrating Session Management. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.... |
+| [social-login](user-mgmt/social-login/) | A Java Conductor workflow example demonstrating Social Login. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/co... |
+| [user-analytics](user-mgmt/user-analytics/) | A Java Conductor workflow example demonstrating User Analytics. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/... |
 | [user-feedback](user-mgmt/user-feedback/) | A Java Conductor workflow example for processing user feedback. ingesting submissions from any cha... |
 | [user-migration](user-mgmt/user-migration/) | A Java Conductor workflow example for migrating user records between databases. extracting from a ... |
 | [user-onboarding](user-mgmt/user-onboarding/) | A Java Conductor workflow example that onboards a new user end-to-end: creates an account with a det... |

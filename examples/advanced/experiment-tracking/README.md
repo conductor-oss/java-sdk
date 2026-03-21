@@ -1,7 +1,6 @@
 # ML Experiment Tracking in Java Using Conductor :  Define, Run, Log Metrics, Compare, Decide
 
-A Java Conductor workflow example for ML experiment tracking. defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for ML experiment tracking. defining an experiment with a hypothesis, running the training job, logging metrics, comparing the result against a baseline, and making a go/no-go decision based on statistical significance. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Experiments Without Reproducibility Are Guesswork
 
 You tuned a hyperparameter, retrained the model, and accuracy went up 2%. Was it the hyperparameter change, or did the training data shift? Without a structured experiment record. hypothesis, configuration, metrics, baseline comparison,  you can't answer that question. Teams run dozens of experiments a week, and without systematic tracking, knowledge about what was tried and what worked lives in Slack threads and Jupyter notebooks that nobody can find six months later.

@@ -1,7 +1,6 @@
 # Leave Management in Java with Conductor :  Request, Balance Check, Manager Approval, Accrual Update, and Notification
 
-A Java Conductor workflow example for leave management. submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for leave management. submitting a leave request with type and dates, checking the employee's available PTO balance, routing for manager approval, updating accrual balances upon approval, and notifying the employee and team. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage employee leave requests from submission through approval. An employee submits a leave request specifying the type (vacation, sick, personal, FMLA), start date, and number of days. The system must check the employee's available balance for that leave type to ensure they have sufficient hours. The request is then routed to the manager for approval, taking team coverage into account. Once approved, the leave balance must be debited and the payroll calendar updated. Finally, the employee receives confirmation, the team calendar is updated, and the manager is notified. If the balance check or approval is skipped, employees may overdraw their PTO or take leave without coverage arranged.

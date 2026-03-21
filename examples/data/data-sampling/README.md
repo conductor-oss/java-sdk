@@ -1,7 +1,6 @@
 # Data Sampling in Java Using Conductor :  Sample Drawing, Quality Checks, and Conditional Approval Routing
 
-A Java Conductor workflow example for sample-based data quality gating: loading a dataset, drawing a representative sample at a configurable rate, running quality checks against the sample, and using a `SWITCH` to route the dataset to approval (if quality meets the threshold) or flag it for manual review (if quality falls short). Uses [Conductor](https://github.
-
+A Java Conductor workflow example for sample-based data quality gating: loading a dataset, drawing a representative sample at a configurable rate, running quality checks against the sample, and using a `SWITCH` to route the dataset to approval (if quality meets the threshold) or flag it for manual review (if quality falls short). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You have a large incoming dataset, a vendor file, an ETL output, a batch import, and you need to decide whether it's good enough to accept before loading it into your production systems. Checking every record is too expensive, so you sample. That means drawing a statistically representative subset at a configurable sample rate, running quality checks on the sample (completeness, format validity, consistency), and making a pass/fail decision based on a threshold. Datasets that pass get approved for loading; datasets that fail get routed to a review queue with a list of specific issues found.

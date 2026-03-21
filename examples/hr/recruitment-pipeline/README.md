@@ -1,7 +1,6 @@
 # Recruitment Pipeline in Java with Conductor :  Job Posting, Resume Screening, Interview, Evaluation, and Offer
 
-A Java Conductor workflow example for recruitment. posting a job requisition to job boards, screening candidate resumes against requirements, conducting structured interviews, evaluating composite scores from screening and interview, and extending an offer to the top candidate. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for recruitment. posting a job requisition to job boards, screening candidate resumes against requirements, conducting structured interviews, evaluating composite scores from screening and interview, and extending an offer to the top candidate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage the hiring pipeline from job posting through offer letter. A hiring manager opens a requisition for a role in their department. The job must be posted to job boards and the company careers page. As applications arrive, each candidate's resume must be screened against the role's requirements. years of experience, required skills, education,  producing a screening score (e.g., 85/100). Candidates who pass screening move to interviews, where structured questions produce an interview score. Both scores feed into a composite evaluation that generates a hire/no-hire recommendation. Top candidates receive an offer with compensation details. Each step depends on the previous,  you cannot interview without screening, and you cannot make an offer without a composite evaluation.

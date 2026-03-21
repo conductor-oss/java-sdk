@@ -1,7 +1,6 @@
 # Implementing Privileged Access Management in Java with Conductor :  Just-In-Time Access Requests, Approval, Grant, and Auto-Revocation
 
-A Java Conductor workflow example for just-in-time privileged access management (PAM). receiving access requests with justification, running security approval, granting time-limited access to sensitive resources like production databases, and automatically revoking credentials when the window expires. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for just-in-time privileged access management (PAM). receiving access requests with justification, running security approval, granting time-limited access to sensitive resources like production databases, and automatically revoking credentials when the window expires. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage privileged access to sensitive resources. production databases, cloud admin consoles, SSH bastion hosts. Engineers request elevated access tied to an incident or task, someone approves it, credentials are provisioned, and access must be revoked automatically after the approved duration (e.g., 2 hours). If revocation fails or gets skipped, you have standing privileged access that violates least-privilege and creates audit findings.

@@ -1,7 +1,6 @@
 # Worker Pool Management in Java Using Conductor :  Categorize, Assign Pool, Execute, Return
 
-A Java Conductor workflow example for worker pool management. categorizing incoming tasks by type, assigning them to the appropriate specialized worker pool, executing the task on a worker from that pool, and returning the worker to the pool when done. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for worker pool management. categorizing incoming tasks by type, assigning them to the appropriate specialized worker pool, executing the task on a worker from that pool, and returning the worker to the pool when done. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Specialized Tasks Need Specialized Workers
 
 A video transcoding task needs workers with high-CPU instances and FFmpeg installed. An image recognition task needs GPU workers with CUDA drivers. A PDF generation task just needs a basic worker with LibreOffice. Sending all tasks to a single general-purpose pool wastes expensive GPU time on PDF generation and leaves transcoding tasks waiting behind image recognition jobs.

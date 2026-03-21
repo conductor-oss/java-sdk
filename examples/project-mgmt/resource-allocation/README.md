@@ -1,7 +1,6 @@
 # Resource Allocation Automation in Java with Conductor :  Demand Assessment, Capacity Checking, Resource Assignment, and Allocation Confirmation
 
-A Java Conductor workflow example that automates resource allocation for projects. assessing demand by hours needed with priority and start date, checking available capacity by resource type to find team members with free hours, allocating the best-fit resource to the project, and confirming the allocation with a locked commitment. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that automates resource allocation for projects. assessing demand by hours needed with priority and start date, checking available capacity by resource type to find team members with free hours, allocating the best-fit resource to the project, and confirming the allocation with a locked commitment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Resource Allocation Needs Orchestration
 
 Allocating people to projects requires a pipeline where each step narrows the decision based on real data. You assess demand. the project needs a specific number of hours (e.g., 30h), has a priority level (high), and a start date (2026-03-10). You check capacity for the requested resource type,  querying which team members have free hours, producing a ranked list (Alice with 30 free hours, Bob with 20). You allocate by matching the demand to the best available resource,  selecting Alice because her 30 free hours exactly cover the project's 30-hour need. Finally, you confirm the allocation,  locking Alice's hours against the project so no other allocation can double-book her.

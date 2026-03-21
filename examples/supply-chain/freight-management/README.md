@@ -1,7 +1,6 @@
 # Freight Management in Java with Conductor :  Carrier Booking, Shipment Tracking, Delivery Confirmation, Invoicing, and Reconciliation
 
-A Java Conductor workflow example for freight management. booking a carrier (e.g., FastFreight Express for a 2,500 lb shipment from Detroit to Houston), tracking the shipment in transit, confirming delivery at destination, generating the freight invoice, and reconciling charges against the contracted rate. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for freight management. booking a carrier (e.g., FastFreight Express for a 2,500 lb shipment from Detroit to Houston), tracking the shipment in transit, confirming delivery at destination, generating the freight invoice, and reconciling charges against the contracted rate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage freight shipments end-to-end. A 2,500 lb load needs to move from Detroit, MI to Houston, TX. you book a carrier at a quoted rate, track the shipment through pickup, in-transit, and delivery milestones, confirm proof of delivery at the destination, receive the carrier's freight invoice, and reconcile the billed amount against the contracted rate (catching accessorial charges, fuel surcharges, or billing errors). If tracking data from the carrier API goes missing, you lose visibility into a $3K+ shipment.

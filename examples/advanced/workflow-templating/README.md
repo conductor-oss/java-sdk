@@ -1,7 +1,6 @@
 # ETL Workflow Templating in Java Using Conductor :  Extract, Transform, Load, Verify
 
-A Java Conductor workflow example for ETL workflow templating. extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for ETL workflow templating. extracting data from a source (database, API, file), transforming it according to configurable rules, loading it into a destination (data warehouse, database), and verifying the load was successful. The template is reusable for any ETL job,  swap the extract/transform/load workers for different sources and destinations. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Every ETL Job Is Extract-Transform-Load, but the Details Differ
 
 Your company runs 50 ETL jobs. Each extracts from a different source (PostgreSQL, Salesforce API, S3 CSV files), transforms differently (currency conversion, deduplication, schema mapping), and loads to a different destination (Snowflake, Redshift, BigQuery). But the structure is always the same: extract, transform, load, verify. Without a template, each ETL job is built from scratch, duplicating retry logic, error handling, and verification.

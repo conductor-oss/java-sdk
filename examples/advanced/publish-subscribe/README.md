@@ -1,7 +1,6 @@
 # Publish-Subscribe in Java Using Conductor :  Publish Event, Fan Out to Subscribers in Parallel, Confirm
 
-A Java Conductor workflow example for publish-subscribe. publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for publish-subscribe. publishing an event to a topic, fanning it out to multiple subscribers in parallel via `FORK_JOIN`, and confirming that all subscribers received and processed the event. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## One Event, Multiple Subscribers, All Must Succeed
 
 A user signs up and three things need to happen: the welcome email service sends an onboarding email, the analytics service records the signup event, and the provisioning service creates the user's workspace. These are independent subscribers. none depends on the others; but all three must eventually succeed. If the email service is down, the signup shouldn't block provisioning, and you need to know which subscribers processed the event and which didn't.

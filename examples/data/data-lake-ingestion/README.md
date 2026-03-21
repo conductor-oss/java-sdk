@@ -1,7 +1,6 @@
 # Data Lake Ingestion in Java Using Conductor :  Schema Validation, Date Partitioning, Format Conversion, and Catalog Registration
 
-A Java Conductor workflow example for data lake ingestion: validating incoming records against a schema, partitioning data by date for efficient querying, converting to an optimized storage format (Parquet, ORC, Avro), writing partitioned files to the lake path, and updating the data catalog so downstream consumers can discover the new data. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for data lake ingestion: validating incoming records against a schema, partitioning data by date for efficient querying, converting to an optimized storage format (Parquet, ORC, Avro), writing partitioned files to the lake path, and updating the data catalog so downstream consumers can discover the new data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to land data into your data lake in a way that's queryable, discoverable, and doesn't corrupt existing data. That means validating incoming records against the expected schema (rejecting malformed rows before they pollute the lake), partitioning records by date so queries only scan relevant partitions, converting from raw formats (JSON, CSV) into columnar formats (Parquet, ORC) for efficient analytics, writing the converted files to the correct lake path with atomic semantics, and updating the data catalog (Hive Metastore, AWS Glue, Apache Atlas) so tools like Athena, Presto, and Spark can find the new data.

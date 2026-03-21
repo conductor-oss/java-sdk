@@ -1,7 +1,6 @@
 # Logistics Optimization in Java with Conductor :  Demand Analysis, Route Optimization, Vehicle Scheduling, and Fleet Dispatch
 
-A Java Conductor workflow example for logistics optimization. analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for logistics optimization. analyzing demand across 40+ orders distributed by ZIP code, computing optimal delivery routes, scheduling vehicles based on capacity and availability, and dispatching the fleet with optimized assignments. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to optimize logistics for a batch of 40+ orders spread across different ZIP codes. Demand must be analyzed to identify geographic clusters and volume patterns. Routes must be optimized across all delivery points to minimize total mileage. Vehicles must be scheduled based on load capacity, driver hours-of-service, and delivery time windows. The fleet must then be dispatched with each driver receiving their optimized stop list.

@@ -1,7 +1,6 @@
 # Conditional Tool Use in Java Using Conductor :  Classify Query, Route to Calculator/Interpreter/Search
 
-Tool Use Conditional. classifies a user query and routes to the appropriate tool (calculator, interpreter, or web search) via a SWITCH task. Uses [Conductor](https://github.
-
+Tool Use Conditional. classifies a user query and routes to the appropriate tool (calculator, interpreter, or web search) via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Different Questions Need Different Tools
 
 "What's the square root of 144?" needs a calculator. "Write a Python function to sort a list" needs a code interpreter. "What happened at the G7 summit?" needs web search. A tool-using agent must first determine which type of question it's looking at, then route to the appropriate tool.

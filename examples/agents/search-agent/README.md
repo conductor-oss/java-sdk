@@ -1,7 +1,6 @@
 # Search Agent in Java Using Conductor :  Formulate Queries, Parallel Google/Wiki Search, Rank, Synthesize
 
-Search Agent. formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. Uses [Conductor](https://github.
-
+Search Agent. formulate queries, search Google and Wikipedia in parallel, rank/merge results, and synthesize a final answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Good Answers Need Multiple Search Sources
 
 A question like "What are the environmental impacts of lithium mining?" benefits from both web search (current news, industry reports, environmental assessments) and Wikipedia (background knowledge, historical context, established science). Searching either alone gives incomplete results. Searching both sequentially doubles the latency.

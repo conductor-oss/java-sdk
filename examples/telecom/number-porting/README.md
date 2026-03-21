@@ -1,7 +1,6 @@
 # Number Porting in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates phone number porting between carriers. submitting a port request for a phone number, validating the number's eligibility with the losing carrier, coordinating the port window between both carriers, executing the number port in the routing database, and verifying the number is reachable on the new carrier. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates phone number porting between carriers. submitting a port request for a phone number, validating the number's eligibility with the losing carrier, coordinating the port window between both carriers, executing the number port in the routing database, and verifying the number is reachable on the new carrier. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Number Porting Needs Orchestration
 
 Porting a phone number between carriers requires precise coordination across independent systems. You submit a port request with the subscriber's phone number and destination carrier. You validate that the number is portable. confirming the number exists on the losing carrier's network and is not under contract lock. You coordinate with both the gaining and losing carriers to agree on a port window. You execute the actual port by updating routing tables in the Number Portability Administration Center (NPAC). Finally, you verify the number is reachable on the new carrier's network.

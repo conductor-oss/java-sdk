@@ -1,7 +1,6 @@
 # Data Reconciliation in Java Using Conductor :  Cross-System Comparison and Discrepancy Reporting
 
-A Java Conductor workflow example for data reconciliation. fetching records from two independent sources (e.g., billing system and fulfillment system), comparing them by a configurable key field to find matches, mismatches, and records missing from either side, and generating a discrepancy report with reconciliation rate. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for data reconciliation. fetching records from two independent sources (e.g., billing system and fulfillment system), comparing them by a configurable key field to find matches, mismatches, and records missing from either side, and generating a discrepancy report with reconciliation rate. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You have the same data in two systems. Orders in billing and orders in fulfillment, transactions in the ledger and transactions in the payment gateway, inventory in the warehouse system and inventory in the ERP. These systems should agree, but they drift. You need to fetch records from both sources, join them by a key field (order ID, transaction ID), identify records that match perfectly, records that exist in both but have different values (amount mismatches, status discrepancies), and records that exist in one system but not the other. The result is a reconciliation report showing exactly where the systems disagree.

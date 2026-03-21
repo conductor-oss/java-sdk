@@ -1,7 +1,6 @@
 # Translation Pipeline in Java Using Conductor :  Language Detection, Machine Translation, Human Review, and Locale Publishing
 
-A Java Conductor workflow example that orchestrates a content translation pipeline. detecting the source language with confidence scores and alternative language candidates, performing machine translation with quality scoring, routing through human review for corrections and quality assurance, and publishing the approved translation to locale-specific URLs. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates a content translation pipeline. detecting the source language with confidence scores and alternative language candidates, performing machine translation with quality scoring, routing through human review for corrections and quality assurance, and publishing the approved translation to locale-specific URLs. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Translation Pipelines Need Orchestration
 
 Translating content for international audiences involves a pipeline where quality gates prevent bad translations from going live. You detect the source language. sometimes user-submitted content is mislabeled or contains mixed languages, so automated detection with confidence scoring prevents translation from the wrong source. You run machine translation to produce a draft with word counts and quality scores. A human reviewer checks the machine output,  correcting errors, improving fluency, and assigning a review score. Only after human approval does the translation get published to its locale-specific URL.

@@ -1,7 +1,6 @@
 # Hospital Discharge Planning in Java Using Conductor :  Readiness Assessment, Care Plan, Education, and Follow-Up Scheduling
 
-A Java Conductor workflow example for hospital discharge planning. assessing patient readiness for discharge, creating a discharge care plan with post-acute needs, coordinating services (home health, DME, pharmacy), educating the patient on self-care, and scheduling follow-up appointments. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for hospital discharge planning. assessing patient readiness for discharge, creating a discharge care plan with post-acute needs, coordinating services (home health, DME, pharmacy), educating the patient on self-care, and scheduling follow-up appointments. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to safely discharge patients from the hospital while preventing readmissions. Each discharge requires assessing whether the patient meets clinical readiness criteria (stable vitals, ambulatory status, pain management). A discharge plan must be created covering medications, activity restrictions, wound care, and post-acute services. Services like home health nursing, durable medical equipment, and prescription delivery must be coordinated. The patient and family need education on medication schedules, warning signs, and when to seek emergency care. Finally, follow-up appointments must be scheduled with the PCP and any specialists within the appropriate timeframe. A missed step. like failing to schedule follow-up or educate the patient on medication changes,  directly increases 30-day readmission risk.

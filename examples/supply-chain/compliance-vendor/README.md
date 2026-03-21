@@ -1,7 +1,6 @@
 # Vendor Compliance Management in Java with Conductor :  Assessment, Audit, Certification, and Ongoing Monitoring
 
-A Java Conductor workflow example for vendor compliance management. assessing a vendor's adherence to standards like ISO 27001, conducting formal audits of their controls and practices, issuing or renewing compliance certifications, and setting up ongoing monitoring for compliance drift. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for vendor compliance management. assessing a vendor's adherence to standards like ISO 27001, conducting formal audits of their controls and practices, issuing or renewing compliance certifications, and setting up ongoing monitoring for compliance drift. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to verify that your supply chain vendors meet required compliance standards. For a vendor like SecureData Partners, you must assess their current posture against ISO 27001 controls, conduct a formal audit covering data handling, access management, and incident response processes, issue a certification if they pass (or document gaps if they don't), and establish continuous monitoring to catch compliance drift before the next audit cycle. Procurement cannot issue new purchase orders to non-compliant vendors.

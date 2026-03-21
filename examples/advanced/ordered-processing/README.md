@@ -1,7 +1,6 @@
 # Ordered Message Processing in Java Using Conductor :  Receive, Sort by Sequence, Process in Order, Verify
 
-A Java Conductor workflow example for ordered message processing. receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for ordered message processing. receiving a batch of out-of-order messages, sorting them by their sequence number, processing them in strict order, and verifying that the processing order was correct. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Messages Arrive Out of Order, but Must Be Processed Sequentially
 
 A financial trading system emits order updates. placed, partially filled, fully filled, cancelled. These events arrive over a message queue that doesn't guarantee ordering. Processing a cancellation before the placement, or a fill before the partial fill, produces incorrect portfolio state. The sequence numbers are embedded in the messages, but reconstructing order from a shuffled batch requires buffering, sorting, and then processing each message one at a time.

@@ -1,7 +1,6 @@
 # Pipeline Versioning in Java Using Conductor :  Snapshot Config, Tag, Test, Promote
 
-A Java Conductor workflow example for pipeline versioning. snapshotting the current pipeline configuration, tagging it with a version, running integration tests against the tagged version, and promoting it to the target environment. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for pipeline versioning. snapshotting the current pipeline configuration, tagging it with a version, running integration tests against the tagged version, and promoting it to the target environment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Pipeline Configs Change, and You Need to Know What Ran When
 
 Your ETL pipeline's configuration. source tables, transformation rules, destination schemas,  changes frequently. A config change on Tuesday breaks the Wednesday morning run, and nobody can tell which configuration was active when. Rolling back means guessing which version of the config file was deployed, or restoring from a backup that may include unrelated changes.

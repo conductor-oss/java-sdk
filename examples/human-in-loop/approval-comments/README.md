@@ -1,7 +1,6 @@
 # Approval with Comments and Attachments in Java Using Conductor :  Document Preparation, Human Review via WAIT, and Feedback Application
 
-Human-in-the-loop approval with rich feedback. prepares a document for review, pauses the workflow with a WAIT task until a human reviewer submits their decision along with comments, attachments, ratings, and tags, then applies that feedback to the document. Uses [Conductor](https://github.
-
+Human-in-the-loop approval with rich feedback. prepares a document for review, pauses the workflow with a WAIT task until a human reviewer submits their decision along with comments, attachments, ratings, and tags, then applies that feedback to the document. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need approvals that go beyond a simple approve/reject button. A reviewer needs to provide structured feedback. a decision (approve, reject, revise), free-text comments explaining their reasoning, file attachments (annotated screenshots, supporting documents, redlined versions), a quality rating, and classification tags. The workflow must pause and wait for this human input, then pass every piece of that feedback to downstream processing. Without a WAIT mechanism, you'd poll a database or queue for the reviewer's response, building your own timeout and notification logic.

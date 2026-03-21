@@ -1,7 +1,6 @@
 # User Migration in Java Using Conductor :  ETL Pipeline for Cross-Database User Transfer
 
-A Java Conductor workflow example for migrating user records between databases. extracting from a source system, transforming schemas (e.g., v1 to v2 with new fields like avatar and timezone), loading into the target database, verifying record counts match, and notifying stakeholders of the result. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for migrating user records between databases. extracting from a source system, transforming schemas (e.g., v1 to v2 with new fields like avatar and timezone), loading into the target database, verifying record counts match, and notifying stakeholders of the result. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to migrate user data from one database to another. a legacy system to a new platform, a monolith to microservices, or an old schema to a new one. The migration is a classic ETL pipeline: extract users in batches from the source, transform each record to the new schema (adding fields, renaming columns, converting formats), load the transformed records into the target database, verify that every extracted record made it through, and notify the team whether the migration succeeded or had mismatches.

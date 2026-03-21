@@ -1,7 +1,6 @@
 # Serverless Function Chain in Java Using Conductor :  Parse, Enrich, Score, Aggregate
 
-A Java Conductor workflow example for serverless function orchestration. invoking a parse function to extract structured data from an event, enriching it with external context, scoring the enriched data, and aggregating the final results. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for serverless function orchestration. invoking a parse function to extract structured data from an event, enriching it with external context, scoring the enriched data, and aggregating the final results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Chaining Lambda Functions Without Losing Control
 
 You have four Lambda functions that need to run in sequence: one parses raw event payloads into structured data, one enriches the parsed data with external API lookups, one scores the enriched records (fraud score, relevance score, risk score), and one aggregates the scored results into a summary. Each function's output is the next function's input.

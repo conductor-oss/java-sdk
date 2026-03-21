@@ -1,7 +1,6 @@
 # External Payload in Java with Conductor
 
-External payload storage. generate a summary and storage reference instead of returning large data, then process the summary. Uses [Conductor](https://github.
-
+External payload storage. generate a summary and storage reference instead of returning large data, then process the summary. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to pass large data between workflow tasks. a report with millions of rows, a dataset for ML training, or a full database export; but Conductor's task output has a size limit. Storing megabytes of raw data directly in task output would bloat the workflow execution record, slow down the Conductor server, and eventually hit payload size limits. The downstream task only needs a summary and a pointer to the full data, not the data itself.

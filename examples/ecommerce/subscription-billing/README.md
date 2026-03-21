@@ -1,7 +1,6 @@
 # Subscription Billing in Java Using Conductor :  Check Period, Generate Invoice, Charge, Activate
 
-A Java Conductor workflow example for recurring subscription billing. determining the current billing period, generating an invoice for the subscriber's plan, charging their payment method, and activating the next billing cycle. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for recurring subscription billing. determining the current billing period, generating an invoice for the subscriber's plan, charging their payment method, and activating the next billing cycle. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Subscription Billing Must Be Reliable and Retry-Safe
 
 A customer on the $29/month Pro plan has their billing date today. The system must verify the billing period (not already billed, subscription is active, no pending cancellation), generate an invoice (pro-rated amounts for mid-cycle changes, usage-based add-ons, applicable taxes), charge the payment method (with retry logic for declined cards), and activate the next period (extending access, resetting usage counters).

@@ -1,7 +1,6 @@
 # Usage Analytics in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates telecom usage analytics. collecting call detail records (CDRs) for a region and time period, processing raw records into normalized usage events, aggregating metrics and detecting anomalies, generating the usage analytics report, and raising alerts for any anomalies found. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates telecom usage analytics. collecting call detail records (CDRs) for a region and time period, processing raw records into normalized usage events, aggregating metrics and detecting anomalies, generating the usage analytics report, and raising alerts for any anomalies found. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Usage Analytics Needs Orchestration
 
 Analyzing telecom usage data requires a pipeline where each transformation depends on the previous one. You collect raw CDRs from network switches and media gateways for a region and time period. You process each record. normalizing formats, enriching with subscriber metadata, filtering duplicates, and converting to a standard usage event schema. You aggregate the processed records into metrics (total minutes, data volume, peak hours, geographic distribution) and detect anomalies (usage spikes, fraud patterns, revenue leakage). You generate the analytics report for business stakeholders. Finally, you raise alerts for any anomalies that need immediate attention.

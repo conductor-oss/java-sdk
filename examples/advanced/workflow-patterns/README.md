@@ -1,7 +1,6 @@
 # Workflow Patterns Showcase in Java Using Conductor :  Chain, Fork-Join, and Loop in One Workflow
 
-A Java Conductor workflow example showcasing multiple workflow patterns in a single definition. a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.
-
+A Java Conductor workflow example showcasing multiple workflow patterns in a single definition. a sequential chain step, a parallel fork-join that splits into two branches and merges results, and a `DO_WHILE` loop that iterates until a condition is met. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Real Workflows Combine Multiple Patterns
 
 Real-world processes don't fit a single pattern. An ETL pipeline starts with a sequential validation step (chain), then splits data processing across multiple workers (fork-join), then iterates over remaining unprocessed records until the batch is complete (loop). Most workflow tutorials show one pattern at a time, but production workflows combine sequential steps, parallel fan-out, and iterative loops in the same definition.

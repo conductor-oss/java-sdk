@@ -1,7 +1,6 @@
 # Splitter Pattern in Java Using Conductor :  Receive Composite Message, Split, Process Parts in Parallel, Combine
 
-A Java Conductor workflow example for the splitter pattern. receiving a composite message containing multiple items, splitting it into individual parts, processing each part independently and in parallel via `FORK_JOIN`, and combining the per-part results into a single unified response. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for the splitter pattern. receiving a composite message containing multiple items, splitting it into individual parts, processing each part independently and in parallel via `FORK_JOIN`, and combining the per-part results into a single unified response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Composite Messages Contain Independent Items That Can Be Processed in Parallel
 
 An order arrives with three line items. a laptop, a monitor, and a keyboard. Each item needs independent processing: inventory check, pricing lookup, tax calculation. Processing them sequentially triples the latency. Processing them in parallel requires splitting the order into individual items, dispatching each to its own processing pipeline, waiting for all three to complete, and reassembling the results into a single order response.

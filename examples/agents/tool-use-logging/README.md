@@ -1,7 +1,6 @@
 # Tool Use Logging in Java Using Conductor :  Request Log, Execute, Response Log, Audit Trail
 
-Tool Use Logging: log tool requests and responses, execute tools, and create audit entries through a sequential pipeline. Uses [Conductor](https://github.
-
+Tool Use Logging: log tool requests and responses, execute tools, and create audit entries through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Every Tool Call Needs an Audit Trail
 
 When an AI agent calls tools on behalf of users, you need to know exactly what was called, with what arguments, what it returned, how long it took, and who initiated it. Compliance (SOC2, HIPAA) requires audit logs. Debugging requires request-response pairs. Cost tracking requires knowing which tools are called how often.

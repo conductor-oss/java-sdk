@@ -1,7 +1,6 @@
 # Mental Health Workflow in Java Using Conductor :  Intake, Clinical Assessment, Treatment Planning, and Progress Tracking
 
-A Java Conductor workflow example for mental health care management. performing patient intake with referral reason, conducting clinical assessments (PHQ-9, GAD-7, Columbia Suicide Severity), building an individualized treatment plan, and tracking therapeutic progress over time. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for mental health care management. performing patient intake with referral reason, conducting clinical assessments (PHQ-9, GAD-7, Columbia Suicide Severity), building an individualized treatment plan, and tracking therapeutic progress over time. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage the clinical pathway for behavioral health patients. A referral comes in with a patient ID, referral reason, and assigned provider. The patient must go through intake. collecting demographics, insurance, presenting concerns, and safety screening. A clinical assessment must be performed using validated instruments (PHQ-9 for depression, GAD-7 for anxiety, AUDIT for substance use). Based on the assessment scores, an individualized treatment plan is created with therapy modality (CBT, DBT, EMDR), medication management if indicated, session frequency, and measurable goals. Progress must then be tracked against the treatment plan using outcome measures at each session. A missed safety screening or delayed treatment plan can result in harm to the patient and regulatory consequences.

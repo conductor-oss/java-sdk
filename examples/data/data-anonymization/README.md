@@ -1,7 +1,6 @@
 # Data Anonymization in Java Using Conductor :  PII Detection, Generalization, Suppression, and k-Anonymity Verification
 
-A Java Conductor workflow example for data anonymization. scanning datasets for personally identifiable information, generalizing quasi-identifiers (age ranges, zip code prefixes), suppressing direct identifiers (names, SSNs, emails), and verifying that the result meets k-anonymity thresholds. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for data anonymization. scanning datasets for personally identifiable information, generalizing quasi-identifiers (age ranges, zip code prefixes), suppressing direct identifiers (names, SSNs, emails), and verifying that the result meets k-anonymity thresholds. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to share or analyze datasets that contain personal information. Patient records for research, customer data for analytics, employee records for benchmarking. Regulations like GDPR, HIPAA, and CCPA require you to anonymize this data before it leaves controlled environments. That means scanning every field to identify PII (names, emails, SSNs, phone numbers, addresses), generalizing quasi-identifiers so individuals can't be re-identified (replacing exact ages with ranges, truncating zip codes), suppressing direct identifiers entirely (replacing names and SSNs with `[REDACTED]`), and verifying the result meets a k-anonymity threshold so no individual can be singled out from the anonymized dataset.

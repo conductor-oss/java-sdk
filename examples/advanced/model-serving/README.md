@@ -1,7 +1,6 @@
 # Model Serving Pipeline in Java Using Conductor :  Load, Validate, Deploy, Test, Promote
 
-A Java Conductor workflow example for deploying ML models to production serving. loading a model from storage, validating it against test inputs, deploying to a staging endpoint, running smoke tests, and promoting to production. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for deploying ML models to production serving. loading a model from storage, validating it against test inputs, deploying to a staging endpoint, running smoke tests, and promoting to production. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Deploying Models to Production Is Not Just Copying a File
 
 A data scientist trains a model and hands off a `.pt` file. Getting that file into production serving means loading it into the inference framework, validating that it produces expected outputs for known inputs (no NaN predictions, correct tensor shapes), deploying it to a staging endpoint, running smoke tests against real traffic patterns, and only then promoting it to handle production traffic. Skip any step and you risk serving garbage predictions.

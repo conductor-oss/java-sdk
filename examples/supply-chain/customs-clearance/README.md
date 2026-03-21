@@ -1,7 +1,6 @@
 # Customs Clearance in Java with Conductor :  Declaration, Document Validation, Duty Calculation, Clearance, and Cargo Release
 
-A Java Conductor workflow example for international customs clearance. filing customs declarations for imported goods (e.g., electronic components from Shanghai to Los Angeles), validating HS codes and commercial documents, calculating import duties and tariffs based on goods value and classification, obtaining customs clearance approval, and releasing cargo for domestic delivery. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for international customs clearance. filing customs declarations for imported goods (e.g., electronic components from Shanghai to Los Angeles), validating HS codes and commercial documents, calculating import duties and tariffs based on goods value and classification, obtaining customs clearance approval, and releasing cargo for domestic delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to clear imported shipments through customs. A container of electronic components (HS code 8542, $45K value) and packaging materials (HS code 4819, $5K value) arriving from Shanghai must be declared to US Customs, documents validated (commercial invoice, packing list, bill of lading), duties calculated based on tariff schedules and trade agreements, clearance obtained from CBP, and cargo released from the port. Each step depends on the previous one. you cannot calculate duty without validated HS codes, and cargo cannot be released without clearance.

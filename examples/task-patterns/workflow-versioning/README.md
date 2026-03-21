@@ -1,7 +1,6 @@
 # Workflow Versioning in Java with Conductor
 
-Run multiple versions of the same workflow side by side. version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.
-
+Run multiple versions of the same workflow side by side. version 1 does calculate-then-audit, version 2 adds a bonus step between them. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to evolve a workflow without breaking existing executions. Version 1 does a calculation (value * 2) then an audit. Version 2 adds a bonus step (+10) between calculation and audit. Both versions must coexist. In-flight v1 executions continue on v1, while new executions can use v2. You need to start workflows against a specific version and compare their outputs.

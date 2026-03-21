@@ -1,7 +1,6 @@
 # Returns Processing in Java Using Conductor :  Receive, Inspect, Route Decision via SWITCH
 
-A Java Conductor workflow example for e-commerce returns. receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for e-commerce returns. receiving returned items, inspecting their condition, and routing to refund, exchange, or rejection based on inspection results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Return Outcomes Depend on Product Condition and Policy
 
 A customer returns a pair of shoes they bought 10 days ago. The outcome depends on several factors: Is it within the 30-day return window? What's the product condition. unworn with tags (full refund eligible), worn but undamaged (store credit only), or damaged (rejection)? Is the return reason covered by policy (wrong size vs, changed mind vs, defective)?

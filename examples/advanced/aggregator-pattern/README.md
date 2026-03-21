@@ -1,7 +1,6 @@
 # Message Aggregation in Java Using Conductor :  Collect, Combine, and Forward Correlated Messages
 
-A Java Conductor workflow example for message aggregation. collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for message aggregation. collecting related messages that arrive independently, checking for completeness, computing a combined result (totals, counts, summaries), and forwarding the aggregated payload downstream. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Message Aggregation Needs Orchestration
 
 In distributed systems, a single business event often produces multiple messages. an order generates a payment confirmation, an inventory reservation, and a shipping request. These messages arrive at different times from different services, and you need to collect all of them before you can compute a meaningful aggregate (total order value, item count, combined status) and forward it to the next stage.

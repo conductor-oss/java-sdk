@@ -1,7 +1,6 @@
 # Message Broker Pipeline in Java Using Conductor :  Receive, Route, Deliver, Acknowledge, Log
 
-A Java Conductor workflow example for message brokering. receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for message brokering. receiving a message with topic and priority metadata, routing it to the correct destination based on topic rules, delivering the payload to the target subscriber, acknowledging successful delivery, and logging the transaction for audit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Messages Need Reliable Routing, Not Just Transport
 
 A message arrives on the `orders` topic with `high` priority. It needs to be routed to the order processing service, not the analytics pipeline. Another message arrives on `notifications` with `low` priority. it should go to the batch notification queue, not the real-time push service. Topic-based routing, priority handling, delivery confirmation, and audit logging are the core responsibilities of a message broker.

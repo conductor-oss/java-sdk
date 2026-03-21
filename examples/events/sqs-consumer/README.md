@@ -1,7 +1,6 @@
 # SQS Consumer in Java Using Conductor
 
-SQS Consumer. receive an SQS message, validate it, process the event, and delete the message from the queue. Uses [Conductor](https://github.
-
+SQS Consumer. receive an SQS message, validate it, process the event, and delete the message from the queue. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process messages from an AWS SQS queue. Each message must be received, validated for correct structure, processed according to your business logic, and deleted from the queue only after successful processing. If you delete before processing, you lose the message on failure; if you do not delete after success, SQS redelivers it after the visibility timeout expires.

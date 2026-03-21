@@ -1,7 +1,6 @@
 # Anti Cheat in Java Using Conductor
 
-Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task. Uses [Conductor](https://github.
-
+Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to detect and act on cheating in an online game. The workflow monitors a player's in-game behavior during a match, runs anomaly detection algorithms on metrics like aim accuracy, movement speed, and reaction time, and routes to one of three outcomes: clean (no action), suspect (flag for manual review), or confirmed cheat (ban or penalty). Failing to detect cheats ruins the experience for honest players; false positives unfairly punish legitimate players.

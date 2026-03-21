@@ -1,7 +1,6 @@
 # Event Ordering in Java Using Conductor
 
-Event Ordering. buffers incoming events, sorts them by sequence number, and processes each in order using a DO_WHILE loop. Uses [Conductor](https://github.
-
+Event Ordering. buffers incoming events, sorts them by sequence number, and processes each in order using a DO_WHILE loop. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process events in strict sequence order, even when they arrive out of order. In distributed systems, events with sequence numbers 1, 3, 2, 5, 4 may arrive in any order due to network jitter or parallel producers. The workflow must buffer incoming events, sort them by sequence number, and process each one in order using a loop. Processing out-of-order events corrupts state in systems that depend on causal ordering (e.g., bank transactions, state machines).

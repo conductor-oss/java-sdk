@@ -1,7 +1,6 @@
 # User Feedback Processing in Java Using Conductor :  Collection, Classification, Routing, and Auto-Response
 
-A Java Conductor workflow example for processing user feedback. ingesting submissions from any channel, classifying them by category and priority, routing to the right internal team, and sending an automatic acknowledgment. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for processing user feedback. ingesting submissions from any channel, classifying them by category and priority, routing to the right internal team, and sending an automatic acknowledgment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to handle incoming user feedback from multiple sources (in-app forms, email, support portals). Each submission must be ingested, classified as a bug report, feature request, or general feedback, assigned a priority based on severity signals like "crash" or "urgent," routed to the appropriate team (engineering for bugs, product for feature requests, support for everything else), and followed up with a personalized acknowledgment so the user knows their feedback landed.

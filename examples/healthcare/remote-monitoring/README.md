@@ -1,7 +1,6 @@
 # Remote Patient Monitoring in Java Using Conductor :  Vital Signs Collection, Trend Analysis, Alert Routing, and Clinical Action
 
-A Java Conductor workflow example for remote patient monitoring (RPM). collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for remote patient monitoring (RPM). collecting vital signs from connected devices, analyzing trends against the patient's baseline, routing to normal or alert pathways via SWITCH, and triggering the appropriate clinical action. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to monitor patients remotely using connected medical devices. Vital signs. blood pressure, heart rate, blood glucose, weight, oxygen saturation,  are transmitted from the patient's home device. Those readings must be analyzed against the patient's individual baseline and clinical thresholds to detect concerning trends (rising blood pressure over 3 days, weight gain suggesting fluid retention in CHF patients, glucose spikes in diabetics). Based on the analysis, the system must route to different clinical actions,  log the reading as normal, or trigger an alert that notifies the care team and may schedule an intervention. A missed alert on a deteriorating trend can result in an avoidable hospitalization or emergency visit.

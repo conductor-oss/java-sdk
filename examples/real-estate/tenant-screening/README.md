@@ -1,7 +1,6 @@
 # Tenant Screening in Java with Conductor :  Application, Background Check, Credit Check, and Decision
 
-A Java Conductor workflow example for screening prospective tenants. accepting the rental application, running a criminal background check, pulling a credit report against monthly rent, and making an approve/deny decision based on combined results. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for screening prospective tenants. accepting the rental application, running a criminal background check, pulling a credit report against monthly rent, and making an approve/deny decision based on combined results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to screen rental applicants before signing a lease. Each applicant submits their information, and you must run a background check (criminal history, eviction records, identity verification) and a credit check (credit score, debt-to-income ratio relative to monthly rent). Both checks must complete before the decision step can weigh the results and issue an approve, conditional approve, or deny decision. Screening must be consistent across applicants and comply with Fair Housing regulations. every applicant must go through the same steps with the same criteria.

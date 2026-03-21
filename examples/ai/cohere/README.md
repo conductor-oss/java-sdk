@@ -1,7 +1,6 @@
 # Cohere Marketing Copy Generation in Java Using Conductor :  Build Prompt, Generate Candidates, Select Best
 
-A Java Conductor workflow example for generating marketing copy using Cohere. building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.
-
+A Java Conductor workflow example for generating marketing copy using Cohere. building a prompt tailored for marketing content, generating multiple text candidates via the Cohere Generate API, and selecting the best candidate based on quality criteria (engagement, clarity, brand voice). Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## One Generation Is Not Enough for Production Copy
 
 Asking an LLM to write marketing copy once gives you one option, and it might be mediocre. The best practice is to generate multiple candidates with different temperature settings or prompt variations, then select the one that best matches your criteria: engagement score, reading level, brand voice alignment, and call-to-action strength. But generating multiple candidates, scoring each one, and selecting the winner requires coordinating three distinct steps.

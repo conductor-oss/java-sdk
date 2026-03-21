@@ -1,7 +1,6 @@
 # Student Progress in Java with Conductor :  Grade Collection, GPA Analysis, Progress Reports, and Notifications
 
-A Java Conductor workflow example for tracking student academic progress. collecting all course grades for a semester, analyzing performance to compute GPA and academic standing, generating a progress report, and notifying the student of their results. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for tracking student academic progress. collecting all course grades for a semester, analyzing performance to compute GPA and academic standing, generating a progress report, and notifying the student of their results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to evaluate a student's academic progress at the end of each semester. This means pulling grades from all enrolled courses, computing the semester GPA and cumulative standing (good standing, probation, dean's list), generating a formal progress report for the student's academic record, and notifying the student of their standing. Sending a progress report with incorrect GPA calculations undermines institutional credibility; failing to flag probation status delays critical academic interventions.

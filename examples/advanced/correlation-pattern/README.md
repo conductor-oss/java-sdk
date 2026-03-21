@@ -1,7 +1,6 @@
 # Message Correlation in Java Using Conductor :  Group Related Messages by ID and Process Together
 
-A Java Conductor workflow example for message correlation. receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for message correlation. receiving a batch of messages from different sources, matching them by a shared correlation field (order ID, session ID, transaction ID), aggregating the correlated groups, and processing each group as a unit. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Linking Messages That Belong Together
 
 A single customer order generates events from the payment service, the inventory service, and the shipping service. Each event arrives independently with its own schema, but they all share an order ID. To build a complete order view. payment confirmed, items reserved, label printed,  you need to match these messages by their correlation field, group them, and process each group as a whole.

@@ -1,7 +1,6 @@
 # Emergency Response in Java with Conductor :  Incident Detection, Severity Classification, Dispatch, and Debrief
 
-A Java Conductor workflow example for emergency response. detecting incidents, classifying severity, dispatching response units to a location, coordinating the on-scene response, and conducting a post-incident debrief. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for emergency response. detecting incidents, classifying severity, dispatching response units to a location, coordinating the on-scene response, and conducting a post-incident debrief. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage the lifecycle of an emergency incident from the moment it is reported through post-incident review. A report comes in with an incident type and location. The system must register the incident, classify its severity (fire, medical, hazmat, etc.), dispatch the appropriate response units based on severity and proximity, coordinate multi-agency action on scene, and produce a debrief record when the incident is resolved. Each step feeds the next. you cannot dispatch without a severity classification, and you cannot debrief without knowing which units responded and what the outcome was.

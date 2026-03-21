@@ -1,7 +1,6 @@
 # Graceful Worker Shutdown in Java Using Conductor :  Signal, Drain, Complete, Checkpoint, Stop
 
-A Java Conductor workflow example for graceful worker shutdown. signaling a worker group to stop accepting new tasks, draining the task queue within a configurable timeout, completing all in-flight tasks, checkpointing the current state, and finally stopping the workers. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for graceful worker shutdown. signaling a worker group to stop accepting new tasks, draining the task queue within a configurable timeout, completing all in-flight tasks, checkpointing the current state, and finally stopping the workers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Killing Workers Loses Work
 
 Sending `kill -9` to a worker process terminates it instantly. any in-flight tasks get orphaned, partial results are lost, and the next worker restart has no idea where the previous instance left off. Messages get redelivered, duplicates appear, and the ops team spends an hour figuring out which tasks need to be manually retried.

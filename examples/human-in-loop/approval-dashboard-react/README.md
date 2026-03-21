@@ -1,7 +1,6 @@
 # React Approval Dashboard in Java Using Conductor :  Task Processing and Priority-Based Pending Approval via WAIT Task
 
-A Java Conductor workflow example paired with a React dashboard. a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.
-
+A Java Conductor workflow example paired with a React dashboard. a SIMPLE task processes an incoming request with title, priority, and assignee, then a WAIT task pauses the workflow until the assigned approver acts through the React UI. The React dashboard queries Conductor's task search API to list all pending approvals, filter by priority and assignee, and complete them with an approval status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need a React-based approval dashboard where approvers can see their pending tasks, filter by priority (high, medium, low), and act on them. Each request comes in with a title describing what needs approval, a priority level, and the assigned approver. The system must process the request and then wait for the human approver to make a decision. which could take minutes or days depending on the priority. The dashboard needs to query for all pending tasks assigned to a specific person and display them sorted by priority, with real-time status updates as approvals are completed.

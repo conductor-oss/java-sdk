@@ -1,7 +1,6 @@
 # Content Review Pipeline in Java Using Conductor :  AI Draft Generation, Human Review via WAIT, and Publishing
 
-A Java Conductor workflow example for AI-assisted content creation. an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for AI-assisted content creation. an AI model generates a draft based on a topic and target audience, the workflow pauses at a WAIT task for a human editor to review, edit, and approve or reject the draft, and then the approved content is published. Demonstrates the AI-generates-human-reviews pattern where automation handles the initial draft and a person ensures quality before publication. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need a content pipeline where AI generates first drafts and humans review them before publishing. An AI model produces content for a given topic and audience. a blog post, marketing copy, product description, or documentation page. The draft includes the generated text, word count, and model used. A human editor must review the AI output for accuracy, tone, brand voice, and factual correctness. The editor may approve it as-is, edit it and approve the revised version, or reject it entirely. Only approved content should be published. Without a review step, AI hallucinations, off-brand tone, or factual errors reach your audience.

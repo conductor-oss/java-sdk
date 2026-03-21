@@ -1,7 +1,6 @@
 # Audio Transcription in Java Using Conductor :  Speech-to-Text, Speaker Diarization, and Keyword Extraction
 
-A Java Conductor workflow example for audio transcription pipelines: preprocessing raw audio, running speech-to-text with speaker diarization, generating word-level timestamps, and extracting keywords. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for audio transcription pipelines: preprocessing raw audio, running speech-to-text with speaker diarization, generating word-level timestamps, and extracting keywords. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to turn raw audio recordings into structured, searchable text. That means normalizing audio levels and reducing background noise, running speech-to-text transcription with speaker identification, aligning words to timestamps so you can jump to any point in the recording, and extracting keywords for indexing and search. Each step depends on the output of the one before it. You can't generate timestamps without a transcript, and you can't transcribe without clean audio.

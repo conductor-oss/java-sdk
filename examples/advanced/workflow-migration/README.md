@@ -1,7 +1,6 @@
 # Workflow Migration in Java Using Conductor :  Export from Legacy, Transform, Import to New, Verify
 
-A Java Conductor workflow example for workflow migration. exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for workflow migration. exporting workflow definitions and execution history from a legacy system, transforming them into the target format, importing them into the new orchestration platform, and verifying that the migrated workflows produce the same results. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Migrating from Legacy Orchestration Without Losing History
 
 You're moving from Airflow to Conductor (or Jenkins to Conductor, or a custom cron-based system). The legacy system has 200 workflow definitions, execution history that auditors need, and active runs that can't be interrupted. Migration means exporting the old definitions and history, transforming them into the target format (different task naming, different input/output schemas), importing them into the new system, and verifying that the migrated workflows produce identical results.

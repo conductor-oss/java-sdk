@@ -1,7 +1,6 @@
 # Worker Auto-Scaling in Java Using Conductor :  Monitor Queue, Calculate Capacity, Scale, Verify
 
-A Java Conductor workflow example for worker auto-scaling. monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for worker auto-scaling. monitoring queue depth and latency, calculating the number of workers needed to meet the target latency SLA, scaling the worker fleet up or down, and verifying the scaling action took effect. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Fixed Worker Counts Waste Money or Miss SLAs
 
 Your task queue processes 100 messages per second during business hours and 5 per second overnight. Running enough workers for peak load 24/7 wastes 95% of compute during off-hours. Running for average load means queue depth explodes during peaks and latency exceeds your SLA. You need to dynamically scale workers based on current queue depth and target latency.

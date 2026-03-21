@@ -1,7 +1,6 @@
 # Human Task with Form Input in Java Using Conductor :  Data Collection, WAIT for Structured Form Submission, and Form Processing
 
-A Java Conductor workflow example demonstrating human task forms. collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.
-
+A Java Conductor workflow example demonstrating human task forms. collecting initial data, pausing at a WAIT task that simulates a HUMAN task with a form schema (name, email, review decision), and processing the structured form response. Demonstrates how workflows can pause for human input through structured forms rather than simple approve/reject buttons. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Workflows Need to Pause for Human Input via Forms
 
 Some workflows require a human to fill out a form. Reviewing an application, entering data, or making a decision with structured input fields. The workflow collects initial data, pauses at a WAIT task (simulating a HUMAN task with a form schema), and the human provides structured input. The form response is then processed to determine the outcome. If processing fails, you need to retry it with the form data intact.

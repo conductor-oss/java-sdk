@@ -1,7 +1,6 @@
 # Mobile Approval with Flutter in Java Using Conductor :  Request Submission, FCM Push Notification, WAIT for Mobile Response, and Finalization
 
-A Java Conductor workflow example for mobile-first approvals. submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for mobile-first approvals. submitting a request, sending a push notification via Firebase Cloud Messaging (FCM) to the approver's mobile device, pausing at a WAIT task until the Flutter app sends back the decision, and finalizing the result. Demonstrates how approvers on the go can approve directly from their phone via push notification. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Mobile Users Need Push Notifications for Approvals
 
 When an approval is needed, the approver might not be at their desk. The workflow submits the request, sends a push notification to the approver's mobile device, and pauses at a WAIT task until the mobile app sends back the decision. If the push notification fails to send, you need to retry it without re-submitting the request. And you need to track whether the approval came via mobile or another channel.

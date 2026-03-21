@@ -1,7 +1,6 @@
 # Workflow Optimization in Java Using Conductor :  Analyze Execution, Find Waste, Parallelize, Benchmark
 
-A Java Conductor workflow example for workflow optimization. analyzing execution history to measure task durations, identifying wasted time (sequential tasks that could run in parallel, unnecessary waits), recommending parallelization opportunities, and benchmarking the optimized version against the original. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for workflow optimization. analyzing execution history to measure task durations, identifying wasted time (sequential tasks that could run in parallel, unnecessary waits), recommending parallelization opportunities, and benchmarking the optimized version against the original. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Slow Workflows Need Data-Driven Optimization, Not Guessing
 
 Your order fulfillment workflow takes 45 seconds end-to-end, but the SLA is 30 seconds. Which tasks are the bottleneck? Are there sequential tasks with no data dependency that could run in parallel? Is there a task that always takes 10 seconds but only does a simple lookup. suggesting it's waiting on a slow dependency?

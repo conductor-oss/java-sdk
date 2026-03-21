@@ -1,7 +1,6 @@
 # Digital Asset Management in Java Using Conductor :  Ingestion, AI Tagging, Version Control, Storage, and CDN Distribution
 
-A Java Conductor workflow example that orchestrates a digital asset management pipeline. ingesting media files with checksum and dimension extraction, running AI-powered auto-tagging (object detection, color palette extraction, content classification), managing version history with change tracking, storing assets with searchable indexes, and distributing to CDN endpoints for global delivery. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates a digital asset management pipeline. ingesting media files with checksum and dimension extraction, running AI-powered auto-tagging (object detection, color palette extraction, content classification), managing version history with change tracking, storing assets with searchable indexes, and distributing to CDN endpoints for global delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Digital Asset Management Needs Orchestration
 
 Managing media assets at scale involves a pipeline where each step enriches the asset with metadata and makes it available through more channels. You ingest the raw file. extracting dimensions, file size, format, and computing a checksum for integrity. You run AI auto-tagging to detect objects, extract the dominant color palette, and classify the content with confidence scores. You create a version record linking to the previous version with change type tracking. You store the asset in your primary storage with searchable indexing. Finally, you distribute to CDN nodes for low-latency global access.

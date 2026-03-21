@@ -1,7 +1,6 @@
 # Jq Transform Advanced in Java with Conductor
 
-Advanced JQ data transformations. flatten orders, aggregate by customer, classify into tiers. Uses [Conductor](https://github.
-
+Advanced JQ data transformations. flatten orders, aggregate by customer, classify into tiers. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to transform raw order data into customer analytics. starting with nested order objects containing customer details and line items, flattening them into a uniform structure with computed line totals, grouping by customer to calculate total spend and average order value, and finally classifying each customer into gold/silver/bronze tiers based on their spending. These are pure data transformations with no external API calls,  just reshaping, aggregating, and classifying JSON.

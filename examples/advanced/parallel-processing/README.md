@@ -1,7 +1,6 @@
 # Parallel Chunk Processing in Java Using Conductor :  Split, Process in Parallel, Merge
 
-A Java Conductor workflow example for parallel data processing. splitting a dataset into chunks based on a configurable chunk size, processing each chunk simultaneously via `FORK_JOIN`, and merging the per-chunk results into a single output. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for parallel data processing. splitting a dataset into chunks based on a configurable chunk size, processing each chunk simultaneously via `FORK_JOIN`, and merging the per-chunk results into a single output. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Processing Large Datasets Sequentially Wastes Time
 
 A 10 GB CSV file needs to be processed. parsing rows, applying transformations, computing aggregates. Doing it sequentially takes an hour. Splitting it into three chunks and processing them in parallel takes 20 minutes, but you need to manage the chunking logic, wait for all three to finish, handle a chunk that fails while the others succeed, and merge the partial results into a coherent whole.

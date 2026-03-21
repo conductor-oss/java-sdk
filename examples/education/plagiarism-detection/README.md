@@ -1,7 +1,6 @@
 # Plagiarism Detection in Java with Conductor :  Submission, Scanning, Comparison, Verdict Routing, and Reporting
 
-A Java Conductor workflow example for academic plagiarism detection. ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for academic plagiarism detection. ingesting a student submission, scanning the document for textual fingerprints, comparing against a corpus of known sources to compute a similarity score, routing to clean or flagged handling based on the verdict, and generating an integrity report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to check student submissions for plagiarism before grades are assigned. The document must be ingested, scanned to extract textual fingerprints and n-grams, compared against a database of published papers, web content, and prior student submissions, and then a similarity score determines the verdict. If the submission is clean, it proceeds to grading; if flagged, it must be routed to the academic integrity office for review. Either way, an originality report is generated for the instructor's records.

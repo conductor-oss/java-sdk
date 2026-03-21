@@ -1,7 +1,6 @@
 # Event Transformation in Java Using Conductor
 
-Event Transformation Pipeline. parse raw events, enrich with context, map to CloudEvents schema, and deliver to target. Uses [Conductor](https://github.
-
+Event Transformation Pipeline. parse raw events, enrich with context, map to CloudEvents schema, and deliver to target. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to transform raw events from one format into another before delivering them downstream. The pipeline must parse raw events (JSON, XML, CSV), enrich them with contextual data (geo-IP lookup, user profile enrichment), map them to a target schema (CloudEvents, custom schema), and deliver the transformed events to the target system. Without a transformation pipeline, every downstream consumer must implement its own parsing and enrichment logic.

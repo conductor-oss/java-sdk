@@ -1,7 +1,6 @@
 # CRM Agent in Java Using Conductor :  Customer Lookup, History Check, Record Update, Response Generation
 
-CRM Agent. lookup customer, check history, update record, and generate response through a sequential pipeline. Uses [Conductor](https://github.
-
+CRM Agent. lookup customer, check history, update record, and generate response through a sequential pipeline. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Personalized Responses Require Full Customer Context
 
 A customer contacts support saying "My order hasn't arrived." A generic response helps nobody. A good response requires knowing who they are (gold tier member, customer since 2019), what their history looks like (three prior shipping issues, last contacted two weeks ago about a different order), updating the CRM with this new interaction, and generating a response that acknowledges their loyalty and history.

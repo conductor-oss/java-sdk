@@ -1,7 +1,6 @@
 # Data Partitioning in Java Using Conductor :  Split, Parallel Process, and Merge
 
-A Java Conductor workflow example for data partitioning. splitting a dataset into two partitions based on a configurable partition key, processing both partitions simultaneously using `FORK_JOIN` parallelism, and merging the results back into a unified dataset. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for data partitioning. splitting a dataset into two partitions based on a configurable partition key, processing both partitions simultaneously using `FORK_JOIN` parallelism, and merging the results back into a unified dataset. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You have a large dataset that's too slow to process sequentially, but you can split it into independent partitions and process them in parallel. That means dividing records based on a partition key (region, category, hash), running the same processing logic against each partition simultaneously, and combining the results back into a single output. If one partition fails (bad data, timeout), the other partition's work shouldn't be lost.

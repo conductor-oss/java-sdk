@@ -1,7 +1,6 @@
 # Game Analytics in Java Using Conductor
 
-Runs a game analytics pipeline: collecting raw event data, processing it into structured records, aggregating time-series metrics, computing KPIs (DAU, retention, ARPU), and generating a report. Uses [Conductor](https://github.
-
+Runs a game analytics pipeline: collecting raw event data, processing it into structured records, aggregating time-series metrics, computing KPIs (DAU, retention, ARPU), and generating a report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to analyze game performance metrics over a date range. The workflow collects raw event data (sessions, purchases, achievements, crashes), processes it into structured records, aggregates it into time-series summaries, computes key performance indicators (DAU, retention, ARPU, session length), and generates an analytics report. Without analytics, you are flying blind. you do not know which features drive engagement, where players churn, or whether a new update improved retention.

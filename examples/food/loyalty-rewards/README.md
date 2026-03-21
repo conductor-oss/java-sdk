@@ -1,7 +1,6 @@
 # Loyalty Rewards in Java with Conductor
 
-Processes restaurant loyalty rewards: calculating points earned, evaluating tier status, applying redemptions, and updating the customer's loyalty account. Uses [Conductor](https://github.
-
+Processes restaurant loyalty rewards: calculating points earned, evaluating tier status, applying redemptions, and updating the customer's loyalty account. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process loyalty rewards for a restaurant customer. The workflow calculates points earned from the current order, checks the customer's loyalty tier (bronze, silver, gold, platinum), processes any point redemptions the customer wants to apply, and updates their loyalty account. Earning points without checking the tier means missing tier-specific bonuses; redeeming without validating the balance allows overdrafts.

@@ -1,7 +1,6 @@
 # Health Insurance Claims in Java Using Conductor :  Submission, Verification, Adjudication, Payment, and Closure
 
-A Java Conductor workflow example for health insurance claims processing. submitting claims with procedure codes and amounts, verifying member eligibility and provider credentials, adjudicating the claim against policy rules, issuing payment to the provider, and closing the claim with a final status. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for health insurance claims processing. submitting claims with procedure codes and amounts, verifying member eligibility and provider credentials, adjudicating the claim against policy rules, issuing payment to the provider, and closing the claim with a final status. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process health insurance claims from submission through payment. A provider submits a claim with the patient ID, procedure code, and billed amount. The claim must be verified. confirming the member's active coverage, the provider's network status, and that the procedure is a covered benefit. The verified claim is then adjudicated against the policy's benefit rules, applying deductibles, copays, coinsurance, and out-of-pocket maximums to determine the allowed amount. Payment is issued to the provider for the approved amount. Finally, the claim is closed with an explanation of benefits (EOB). Each step depends on the previous one,  you cannot adjudicate without verifying eligibility, and you cannot pay without adjudication.

@@ -1,7 +1,6 @@
 # Workflow Profiling in Java Using Conductor :  Instrument, Execute, Measure, Find Bottlenecks, Optimize
 
-A Java Conductor workflow example for workflow profiling. instrumenting a workflow to capture timing data, executing it across multiple iterations, measuring per-task execution times, identifying bottleneck tasks, and generating optimization recommendations. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for workflow profiling. instrumenting a workflow to capture timing data, executing it across multiple iterations, measuring per-task execution times, identifying bottleneck tasks, and generating optimization recommendations. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## You Can't Optimize What You Don't Measure
 
 Your workflow runs in 30 seconds, but where does the time go? Is it the database query in step 3 (takes 12 seconds) or the API call in step 7 (takes 8 seconds)? Running the workflow once gives you one data point. Running it 100 times and profiling each task across iterations reveals the real bottleneck. maybe step 3 averages 2 seconds but occasionally spikes to 12 seconds, while step 7 is consistently 8 seconds.

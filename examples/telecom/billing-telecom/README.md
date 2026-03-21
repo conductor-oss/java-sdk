@@ -1,7 +1,6 @@
 # Billing Telecom in Java Using Conductor
 
-A Java Conductor workflow example that orchestrates the telecom billing cycle. collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates the telecom billing cycle. collecting usage records (voice, data, SMS) for a customer's billing period, rating each record against the customer's plan tariffs, generating an itemized invoice with the total amount, delivering the invoice to the customer, and collecting payment. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Telecom Billing Needs Orchestration
 
 Running a billing cycle requires a strict pipeline where each step depends on the previous one. You collect all usage records (CDRs, IPDRs) for the customer's billing period. You rate each record by applying the correct tariff based on the customer's plan, time of day, destination, and any bundled allowances. You generate an invoice that itemizes the rated charges and calculates the total. You send the invoice to the customer via their preferred channel. Finally, you collect payment by charging the customer's payment method on file.

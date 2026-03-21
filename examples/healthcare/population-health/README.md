@@ -1,7 +1,6 @@
 # Population Health Management in Java Using Conductor :  Data Aggregation, Risk Stratification, Care Gap Identification, and Intervention
 
-A Java Conductor workflow example for population health management. aggregating clinical and claims data across a patient cohort, stratifying members by risk level, identifying care gaps (missed screenings, overdue vaccinations, uncontrolled chronic conditions), and triggering targeted interventions. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for population health management. aggregating clinical and claims data across a patient cohort, stratifying members by risk level, identifying care gaps (missed screenings, overdue vaccinations, uncontrolled chronic conditions), and triggering targeted interventions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage population health for a patient cohort with a specific condition during a reporting period. Clinical and claims data must be aggregated from multiple sources. EHRs, claims feeds, pharmacy records, and lab results. Members must be risk-stratified into tiers (low, moderate, high, rising risk) based on HCC scores, utilization patterns, and social determinants. Care gaps must be identified. patients overdue for A1C tests, mammograms, colonoscopies, or flu vaccines per HEDIS/STAR quality measures. Targeted interventions must then be triggered,  outreach calls, care coordinator assignments, appointment scheduling, or pharmacy consultations. Each step depends on the previous one,  you cannot identify care gaps without risk stratification, and you cannot intervene without knowing which gaps exist.

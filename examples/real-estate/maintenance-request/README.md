@@ -1,7 +1,6 @@
 # Property Maintenance Request in Java with Conductor :  Submit, Classify, Assign, Complete, and Invoice
 
-A Java Conductor workflow example for handling tenant maintenance requests end-to-end. submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for handling tenant maintenance requests end-to-end. submitting the request, classifying its category and priority, assigning a technician, tracking completion, and generating an invoice for labor and parts. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to handle maintenance requests from tenants across your property portfolio. A tenant reports "kitchen faucet leaking". the request must be logged, classified by category (plumbing, electrical, HVAC, general) and priority (emergency, urgent, routine), assigned to an available technician with the right skills, tracked through completion with labor hours recorded, and invoiced for billing. Each step depends on the previous one: you can't assign a technician without knowing the category, and you can't invoice without knowing the labor hours.

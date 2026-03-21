@@ -1,7 +1,6 @@
 # GPU Job Orchestration in Java Using Conductor :  Check, Allocate, Submit, Collect, Release
 
-A Java Conductor workflow example for GPU resource orchestration. checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for GPU resource orchestration. checking GPU availability by type (A100, V100, T4), allocating a GPU for a job, submitting the training/inference workload, collecting results from the output path, and releasing the GPU back to the pool. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## GPUs Are Expensive and Scarce
 
 A team of ML engineers shares a cluster of 8 A100 GPUs. Without resource management, jobs compete for the same GPU, one engineer's runaway training job holds a GPU for 12 hours while others wait, and when a job crashes the GPU isn't released. it sits idle until someone manually frees it. At $30+/hour per GPU, wasted allocation is real money.

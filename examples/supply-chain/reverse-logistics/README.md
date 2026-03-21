@@ -1,7 +1,6 @@
 # Reverse Logistics in Java with Conductor :  Return Receipt, Condition Inspection, Refurbish/Recycle/Dispose Routing, and Processing
 
-A Java Conductor workflow example for reverse logistics. receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for reverse logistics. receiving returned products (e.g., defective wireless headphones), inspecting their condition, routing to refurbishment, recycling, or disposal based on the inspection outcome, and processing the return for inventory adjustment and customer refund. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to handle product returns efficiently and recover maximum value. When a customer returns wireless headphones with a defective speaker (return ID RET-2024-669), the item must be received at the returns center, inspected to determine condition (cosmetic damage only? functional defect? beyond repair?), and routed to the appropriate disposition: refurbishment if repairable, recycling if materials can be recovered, or disposal if neither is viable. The final processing step updates inventory, triggers the customer refund, and records the disposition for sustainability reporting.

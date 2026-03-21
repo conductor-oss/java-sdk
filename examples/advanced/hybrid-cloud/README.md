@@ -1,7 +1,6 @@
 # Hybrid Cloud Data Routing in Java Using Conductor :  Classify Sensitivity, Route to On-Prem or Cloud
 
-A Java Conductor workflow example for hybrid cloud data routing. classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for hybrid cloud data routing. classifying incoming data by sensitivity level (PII, financial, public), then routing it to either on-premises infrastructure for sensitive workloads or cloud processing (AWS) for non-sensitive data. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Sensitive Data Can't Leave Your Data Center
 
 Regulations like GDPR, HIPAA, and PCI-DSS require that certain data. patient records, financial transactions, PII,  stays within controlled environments. But running everything on-premises wastes cloud elasticity for workloads that have no compliance constraints. The challenge is automatically determining which data must stay on-prem and which can be processed in the cloud, then routing each record to the right infrastructure.

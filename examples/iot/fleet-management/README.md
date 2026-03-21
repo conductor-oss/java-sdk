@@ -1,7 +1,6 @@
 # Fleet Management in Java with Conductor :  Vehicle Tracking, Route Optimization, Dispatch, and Trip Monitoring
 
-A Java Conductor workflow example that orchestrates fleet operations. tracking vehicle GPS positions and fuel levels, optimizing routes with distance and fuel estimates, dispatching drivers with ETA notifications, monitoring trip progress (speed, fuel consumption, duration), and generating delivery reports with cost breakdowns. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates fleet operations. tracking vehicle GPS positions and fuel levels, optimizing routes with distance and fuel estimates, dispatching drivers with ETA notifications, monitoring trip progress (speed, fuel consumption, duration), and generating delivery reports with cost breakdowns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Fleet Dispatch Needs Orchestration
 
 Running a delivery or logistics fleet means coordinating a pipeline of decisions for every trip. You query GPS trackers to find available vehicles with their locations and fuel levels. You feed those positions into a route optimizer that assigns the best vehicle and driver, calculates estimated distance, duration, and fuel consumption. You dispatch the assignment, notify the driver, and provide an ETA. You monitor the trip in real time. tracking actual distance, speed, fuel used, and completion time. Finally, you generate a report comparing actuals against estimates and calculating cost.

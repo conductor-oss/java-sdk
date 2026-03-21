@@ -1,7 +1,6 @@
 # Dataset Versioning in Java Using Conductor :  Snapshot, Tag, Diff, and Rollback
 
-A Java Conductor workflow example for dataset versioning. taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for dataset versioning. taking a point-in-time snapshot of a dataset, tagging it with a version name, storing the metadata, computing a diff against a previous version, and rolling back if the diff reveals problems. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Datasets Change, and You Need to Track How
 
 A data pipeline updates your ML training dataset daily. Yesterday's model performed well, but today's retrained model has degraded accuracy. Was it the new data? Which rows changed? Can you roll back to yesterday's version and retrain? Without versioning, you're guessing. there's no snapshot to compare against, no diff to show what changed, and no tag to identify which version produced the good model.

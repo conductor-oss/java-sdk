@@ -1,7 +1,6 @@
 # Inspection Workflow in Java with Conductor
 
-Conducts a government property inspection: scheduling the visit, performing the on-site assessment, documenting findings, and recording pass or fail via a SWITCH task with code violations cited. Uses [Conductor](https://github.
-
+Conducts a government property inspection: scheduling the visit, performing the on-site assessment, documenting findings, and recording pass or fail via a SWITCH task with code violations cited. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to conduct a government property inspection (building code, fire safety, health, environmental). The inspection is scheduled, the inspector visits the property and conducts the assessment, findings are documented with photos and notes, and the result is recorded as pass or fail with specific code violations cited. Passing a property without thorough inspection creates safety risks; failing without documented evidence invites legal challenges.

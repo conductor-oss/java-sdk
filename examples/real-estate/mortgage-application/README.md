@@ -1,7 +1,6 @@
 # Mortgage Application in Java with Conductor :  Apply, Credit Check, Underwriting, Approval, and Closing
 
-A Java Conductor workflow example for processing mortgage applications. accepting the application, running a credit check, performing underwriting analysis against loan-to-value ratios, issuing an approval decision, and closing the loan. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for processing mortgage applications. accepting the application, running a credit check, performing underwriting analysis against loan-to-value ratios, issuing an approval decision, and closing the loan. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process mortgage applications from submission to closing. An applicant requests a loan. the application must be logged, a credit check must be run to pull their score, underwriting must evaluate the risk by comparing credit score, loan amount, and property value (LTV ratio), an approval or denial decision must be issued, and approved loans must proceed to closing with final documentation. Each step feeds into the next: underwriting can't start without the credit score, approval can't happen without the underwriting assessment.

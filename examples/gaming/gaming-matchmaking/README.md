@@ -1,7 +1,6 @@
 # Gaming Matchmaking in Java Using Conductor
 
-Matches players into a fair, balanced game session: searching the player pool, rating skill levels, creating a balanced match, provisioning a lobby, and starting the game. Uses [Conductor](https://github.
-
+Matches players into a fair, balanced game session: searching the player pool, rating skill levels, creating a balanced match, provisioning a lobby, and starting the game. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to match players into a fair, balanced game session. The workflow searches for players queuing in the same game mode and region, evaluates each player's skill rating (ELO, MMR, Glicko), finds a balanced match that minimizes skill disparity, creates a game lobby with the matched players, and starts the session. Unbalanced matches frustrate both sides. skilled players get bored, new players get destroyed.

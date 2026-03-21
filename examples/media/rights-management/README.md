@@ -1,7 +1,6 @@
 # Media Rights Management in Java Using Conductor :  License Validation, Usage Verification, Royalty Tracking, and Compliance Reporting
 
-A Java Conductor workflow example that orchestrates media rights management. checking license validity (expiration dates, allowed usages, license types, royalty rates), verifying territorial usage restrictions against the content's distribution region, calculating royalty payments due to rights holders, and generating compliance reports for rights audits. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates media rights management. checking license validity (expiration dates, allowed usages, license types, royalty rates), verifying territorial usage restrictions against the content's distribution region, calculating royalty payments due to rights holders, and generating compliance reports for rights audits. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Rights Management Needs Orchestration
 
 Using licensed media content requires a compliance pipeline where each step validates a different aspect of the rights agreement. You check the license. verifying it has not expired, the intended usage (streaming, download, broadcast) is permitted, and noting the royalty rate. You verify that the content distribution region complies with territorial restrictions in the license agreement. You calculate royalty payments owed to the rights holder based on usage volume and the contractual rate. Finally, you generate a compliance report documenting every license check, usage verification, and royalty calculation for legal audit.

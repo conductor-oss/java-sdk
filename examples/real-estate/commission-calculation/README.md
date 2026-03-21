@@ -1,7 +1,6 @@
 # Real Estate Commission Calculation in Java with Conductor :  Base Rate, Tiered Adjustments, Deductions, and Payout
 
-A Java Conductor workflow example for calculating real estate agent commissions. computing the base commission from sale price, applying tiered adjustments based on agent performance, subtracting brokerage fees and deductions, and finalizing the payout. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for calculating real estate agent commissions. computing the base commission from sale price, applying tiered adjustments based on agent performance, subtracting brokerage fees and deductions, and finalizing the payout. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to calculate agent commissions when a property sale closes. The calculation is never as simple as "sale price times percentage." You start with a base commission rate, then apply tiered adjustments. senior agents earn a higher split, top performers get bonus percentages, team leads take an override. Then you subtract deductions: brokerage desk fees, marketing costs, referral fees paid to other agents. Finally, the net commission is finalized and a payment is issued. Each step depends on the previous one, and any error in the chain means an agent gets paid the wrong amount.

@@ -1,7 +1,6 @@
 # ML Model Registry in Java Using Conductor :  Register, Version, Validate, Approve, Deploy
 
-A Java Conductor workflow example for ML model lifecycle management. registering a trained model with its artifact and metrics, assigning a version number, validating performance against quality gates, routing through an approval process, and deploying the approved model to production. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for ML model lifecycle management. registering a trained model with its artifact and metrics, assigning a version number, validating performance against quality gates, routing through an approval process, and deploying the approved model to production. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Models Without a Registry Are Unmanageable
 
 Your team trains dozens of models a month. Without a registry, model artifacts live in S3 buckets with names like `model-final-v2-FIXED.pkl`, nobody knows which version is in production, and deploying a new model means SSH-ing into a server and swapping a file. When the new model degrades accuracy, there's no way to roll back to the previous version because nobody recorded which artifact, metrics, or approval was associated with it.

@@ -1,7 +1,6 @@
 # Menu Management in Java with Conductor
 
-Manages a restaurant menu lifecycle: creating items with descriptions, setting prices, categorizing into sections, publishing to ordering platforms, and syncing updates. Uses [Conductor](https://github.
-
+Manages a restaurant menu lifecycle: creating items with descriptions, setting prices, categorizing into sections, publishing to ordering platforms, and syncing updates. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage a restaurant's menu lifecycle. creating menu items with descriptions and photos, setting prices based on food costs and margins, organizing items into categories (appetizers, entrees, desserts), publishing the menu to ordering platforms, and updating items as ingredients or prices change. Publishing a menu with incorrect prices erodes margins; outdated items lead to orders the kitchen cannot fulfill.

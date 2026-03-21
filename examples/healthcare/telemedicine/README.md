@@ -1,7 +1,6 @@
 # Telemedicine Visit in Java Using Conductor :  Scheduling, Video Connection, Clinical Consultation, e-Prescribing, and Follow-Up
 
-A Java Conductor workflow example for telemedicine visits. scheduling the virtual appointment, establishing the secure video connection, conducting the clinical consultation, writing and transmitting e-prescriptions, and scheduling follow-up care. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for telemedicine visits. scheduling the virtual appointment, establishing the secure video connection, conducting the clinical consultation, writing and transmitting e-prescriptions, and scheduling follow-up care. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to manage the full lifecycle of a telemedicine visit. A patient requests a virtual visit with a provider for a specific clinical reason. The appointment must be scheduled on both the patient's and provider's calendars. At the appointment time, a secure healthcare-pattern video connection must be established. The provider conducts the consultation. reviewing the chief complaint, taking history, and making an assessment. If medication is indicated, an e-prescription must be transmitted to the patient's preferred pharmacy. Finally, follow-up care must be arranged,  a future appointment, lab orders, or referral to a specialist. Each step must complete before the next,  you cannot consult without a connection, and you cannot prescribe without a consultation.

@@ -1,7 +1,6 @@
 # Data Validation in Java Using Conductor :  Required Fields, Type Checking, Range Validation, and Reporting
 
-A Java Conductor workflow example for multi-layer data validation: loading records, checking that required fields (name, email, age) are present and non-empty, verifying data types (name is String, age is Number), validating value ranges (age between 0-150, email contains "@"), and generating a validation report with error counts per category and the number of records that passed all checks. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for multi-layer data validation: loading records, checking that required fields (name, email, age) are present and non-empty, verifying data types (name is String, age is Number), validating value ranges (age between 0-150, email contains "@"), and generating a validation report with error counts per category and the number of records that passed all checks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You receive data from external partners, user submissions, or upstream systems, and you need to validate it before it enters your production database. Validation is layered: first check that required fields exist (a record without an email is immediately invalid), then verify data types (age must be a number, not a string), then validate value ranges (age must be 0-150, email must contain "@"). Each layer filters out invalid records, so type checking only runs on records that passed required field checks. You need a report showing exactly how many records failed at each stage and why.

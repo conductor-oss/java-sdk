@@ -1,7 +1,6 @@
 # Lesson Planning in Java with Conductor :  Learning Objectives, Content Creation, Review, and Publishing
 
-A Java Conductor workflow example for building lesson plans. defining learning objectives for a course topic, creating instructional content aligned to those objectives, reviewing the lesson plan for quality and curriculum alignment, and publishing it to the course schedule for a given week. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for building lesson plans. defining learning objectives for a course topic, creating instructional content aligned to those objectives, reviewing the lesson plan for quality and curriculum alignment, and publishing it to the course schedule for a given week. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to prepare lesson plans for each week of a course. This means defining measurable learning objectives for the lesson topic, creating instructional content (lecture materials, activities, readings) that aligns with those objectives, having the plan reviewed for pedagogical quality and curriculum fit, and publishing it to the course so students and co-instructors can see the upcoming schedule. Creating content without clear objectives leads to unfocused lessons; publishing without review risks distributing incomplete or misaligned materials.

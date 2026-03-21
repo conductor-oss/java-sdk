@@ -1,7 +1,6 @@
 # Task Deduplication in Java Using Conductor :  Hash Input, Check Cache, Execute or Return Cached
 
-A Java Conductor workflow example for task deduplication. hashing the task input to create a fingerprint, checking whether that fingerprint has been seen before, and routing via `SWITCH` to either execute the task for the first time or return the cached result from a previous execution. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for task deduplication. hashing the task input to create a fingerprint, checking whether that fingerprint has been seen before, and routing via `SWITCH` to either execute the task for the first time or return the cached result from a previous execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Identical Inputs Should Produce Cached Results, Not Redundant Computation
 
 A report generation request comes in with the same parameters as yesterday's run. same date range, same filters, same output format. Regenerating the report takes 15 minutes and produces identical output. If you could detect that the input hasn't changed, you'd return yesterday's result in milliseconds instead of burning compute.

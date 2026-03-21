@@ -1,7 +1,6 @@
 # Data Export in Java Using Conductor :  Parallel Multi-Format Export (CSV, JSON, Excel) and Bundling
 
-A Java Conductor workflow example for data export: querying a data source, then exporting the results to CSV, JSON, and Excel simultaneously using `FORK_JOIN` parallelism, and bundling all exported files into a single archive for download or delivery. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for data export: querying a data source, then exporting the results to CSV, JSON, and Excel simultaneously using `FORK_JOIN` parallelism, and bundling all exported files into a single archive for download or delivery. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 Users and downstream systems need data in different formats. The finance team wants Excel with formatted columns. The integration partner needs JSON. The data analyst wants CSV for import into R or pandas. You need to export the same dataset to all three formats, do it as fast as possible (in parallel, not sequentially), and bundle the results into a single deliverable. If the Excel export fails due to a formatting issue, the CSV and JSON exports should still complete successfully.

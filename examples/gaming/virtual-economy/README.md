@@ -1,7 +1,6 @@
 # Virtual Economy in Java Using Conductor
 
-Processes virtual economy transactions: recording the transaction, validating balance and ownership, updating player balances, creating an audit trail for fraud detection, and generating a settlement report. Uses [Conductor](https://github.
-
+Processes virtual economy transactions: recording the transaction, validating balance and ownership, updating player balances, creating an audit trail for fraud detection, and generating a settlement report. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to process a virtual economy transaction in your game. a purchase, sale, trade, or currency conversion. The transaction must be recorded, validated for sufficient balance and item ownership, the sender and receiver balances updated atomically, an audit record created for fraud detection, and a transaction report generated. Processing transactions without validation enables item duplication and currency exploits; missing audit records makes fraud investigation impossible.

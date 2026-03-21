@@ -1,7 +1,6 @@
 # Public Health Surveillance in Java with Conductor :  Disease Monitoring, Outbreak Detection, and Response Coordination
 
-A Java Conductor workflow example for public health surveillance. monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for public health surveillance. monitoring disease case counts by region, detecting outbreaks against baseline thresholds, routing to alert or continued monitoring, and coordinating the public health response. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to run disease surveillance for a public health department. Case reports come in for a specific disease and region. The system must pull baseline epidemiological data, compare the current case count against expected levels to detect whether an outbreak is occurring, and then take the right action. issue a public health alert if cases exceed the threshold, or schedule continued monitoring if levels are elevated but not yet critical. Regardless of the branch taken, a response plan must be executed. The decision to alert versus monitor must be automatic and auditable.

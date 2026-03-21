@@ -1,7 +1,6 @@
 # Sequential Tool Use in Java Using Conductor :  Search, Read Page, Extract Data, Summarize
 
-Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of simulated tool calls. Uses [Conductor](https://github.
-
+Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of simulated tool calls. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Some Tools Need to Be Called in Order
 
 "Find the latest quarterly revenue for Acme Corp and summarize the key drivers" requires four sequential steps: search the web for Acme Corp quarterly results, read the most relevant page (likely an earnings report or press release), extract the revenue figures and key metrics from the page content, and summarize the findings in natural language.

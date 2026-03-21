@@ -1,7 +1,6 @@
 # Data Compression in Java Using Conductor :  Algorithm Selection, Compression, Integrity Verification, and Savings Report
 
-A Java Conductor workflow example for intelligent data compression. analyzing data characteristics to determine size and structure, selecting the optimal compression algorithm based on data profile and target format, compressing the data, verifying integrity via checksums, and reporting the compression ratio and storage savings. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for intelligent data compression. analyzing data characteristics to determine size and structure, selecting the optimal compression algorithm based on data profile and target format, compressing the data, verifying integrity via checksums, and reporting the compression ratio and storage savings. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## The Problem
 
 You need to compress datasets before archival, transfer, or storage; but not all data compresses the same way. Text-heavy records compress well with gzip, columnar data benefits from Snappy or LZ4, and already-compressed media gains little from further compression. You need to analyze the data to understand its size and structure, choose the right algorithm (gzip, LZ4, Snappy, zstd) based on the data profile, compress the data, verify that the compressed output is intact and decompressible, and report the actual compression ratio and bytes saved. If you compress corrupted data or skip verification, you might discover the archive is unrecoverable months later.

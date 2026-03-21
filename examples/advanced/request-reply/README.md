@@ -1,7 +1,6 @@
 # Request-Reply in Java Using Conductor :  Send Request, Wait for Response, Correlate, Deliver
 
-A Java Conductor workflow example for the request-reply pattern. sending an asynchronous request to a target service, waiting for the response with a configurable timeout, correlating the response back to the original request, and delivering the result to the caller. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for the request-reply pattern. sending an asynchronous request to a target service, waiting for the response with a configurable timeout, correlating the response back to the original request, and delivering the result to the caller. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Asynchronous Request-Reply Needs Correlation and Timeout Handling
 
 You send a credit check request to an external bureau, but the response comes back asynchronously. minutes later, on a different channel (a callback webhook or a reply queue). Your system needs to hold the request context, wait for the response within a timeout window, match the response to the original request using a correlation ID, and deliver the result. If the response never arrives, you need to handle the timeout gracefully rather than waiting forever.

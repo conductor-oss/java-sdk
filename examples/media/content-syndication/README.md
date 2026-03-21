@@ -1,7 +1,6 @@
 # Content Syndication Pipeline in Java Using Conductor :  Content Selection, Platform Formatting, Multi-Channel Distribution, and Performance Tracking
 
-A Java Conductor workflow example that orchestrates content syndication. selecting content from your CMS with metadata and word counts, reformatting for each target platform's requirements (Medium, Dev.to, Hashnode character limits and markup), distributing to all platforms simultaneously, and setting up UTM-tagged tracking pixels for cross-platform performance measurement. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates content syndication. selecting content from your CMS with metadata and word counts, reformatting for each target platform's requirements (Medium, Dev.to, Hashnode character limits and markup), distributing to all platforms simultaneously, and setting up UTM-tagged tracking pixels for cross-platform performance measurement. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Content Syndication Needs Orchestration
 
 Syndicating content to multiple platforms requires adapting the same source content for each destination's format constraints. You select the content and extract its body, category, and word count. You reformat it for each platform. Medium requires specific HTML, Dev.to uses front matter with liquid tags, Hashnode has its own markdown flavor, each with different character limits. You distribute to all platforms and collect the published URLs. You set up tracking with UTM campaign parameters and pixel tags to measure which syndication channels drive the most traffic back to your site.

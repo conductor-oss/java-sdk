@@ -1,7 +1,6 @@
 # Wire Tap Pattern in Java Using Conductor :  Process Messages While Tapping an Audit Copy in Parallel
 
-A Java Conductor workflow example for the wire tap pattern. receiving a message and simultaneously processing it through the main business flow while tapping a copy to an audit/monitoring system, using `FORK_JOIN` for parallel execution. Uses [Conductor](https://github.
-
+A Java Conductor workflow example for the wire tap pattern. receiving a message and simultaneously processing it through the main business flow while tapping a copy to an audit/monitoring system, using `FORK_JOIN` for parallel execution. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Auditing Must Not Slow Down the Main Flow
 
 Every payment transaction must be processed and also logged to the compliance audit trail. If you audit synchronously before processing, you add latency to every transaction. If you audit after processing, a crash between process and audit means a transaction exists without an audit record. The wire tap pattern solves this by running both in parallel. the main flow and the audit tap execute simultaneously, so neither blocks the other.

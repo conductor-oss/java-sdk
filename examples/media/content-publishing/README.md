@@ -1,7 +1,6 @@
 # Content Publishing Pipeline in Java Using Conductor :  Drafting, Editorial Review, Approval, Formatting, Publishing, and Multi-Channel Distribution
 
-A Java Conductor workflow example that orchestrates a content publishing pipeline. creating drafts with word counts and SEO slugs, routing through editorial review with quality scores, obtaining editorial approval, formatting content with SEO metadata for multiple output formats, publishing to the website with CDN cache invalidation, and distributing to social and newsletter channels on a schedule. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates a content publishing pipeline. creating drafts with word counts and SEO slugs, routing through editorial review with quality scores, obtaining editorial approval, formatting content with SEO metadata for multiple output formats, publishing to the website with CDN cache invalidation, and distributing to social and newsletter channels on a schedule. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Content Publishing Needs Orchestration
 
 Publishing content involves a strict editorial pipeline where each stage gates the next. A draft must be reviewed before it can be approved. Approved content must be formatted with SEO metadata before publishing. Publishing must invalidate CDN caches. Distribution to social channels and newsletters must happen only after the content is live. If a reviewer rejects the draft, it should loop back to editing. not proceed to publishing.

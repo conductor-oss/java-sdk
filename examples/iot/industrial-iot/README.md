@@ -1,7 +1,6 @@
 # Industrial IoT in Java with Conductor :  Machine Telemetry, Predictive Failure Analysis, and Repair Scheduling
 
-A Java Conductor workflow example that orchestrates industrial equipment monitoring. collecting machine telemetry (temperature, vibration, pressure, RPM, oil level, run hours), running predictive failure analysis to identify at-risk components and estimate remaining useful life, and automatically scheduling repair work orders with parts lists and downtime estimates. Uses [Conductor](https://github.
-
+A Java Conductor workflow example that orchestrates industrial equipment monitoring. collecting machine telemetry (temperature, vibration, pressure, RPM, oil level, run hours), running predictive failure analysis to identify at-risk components and estimate remaining useful life, and automatically scheduling repair work orders with parts lists and downtime estimates. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.
 ## Why Predictive Maintenance Pipelines Need Orchestration
 
 Industrial machines generate a constant stream of telemetry. bearing temperature at 185F, vibration at 4.2 mm/s, oil level at 72%. Turning that raw data into actionable maintenance decisions requires a pipeline. You collect telemetry from the machine's sensors. You feed those readings into a predictive model that estimates failure probability, identifies the likely component (bearing assembly, pump seal, motor winding), and predicts remaining useful life. If the failure probability exceeds a threshold, you schedule a repair work order with the right parts kit, a target date before predicted failure, and an estimated downtime window.
