@@ -33,7 +33,7 @@ class MistralChatWorkerTest {
         Map<String, Object> chatResponse = (Map<String, Object>) result.getOutputData().get("chatResponse");
         assertNotNull(chatResponse);
 
-        // In simulated mode, verify fixed response fields
+        // In demo mode, verify fixed response fields
         if (System.getenv("MISTRAL_API_KEY") == null || System.getenv("MISTRAL_API_KEY").isBlank()) {
             assertEquals("cmpl-mst-abc123xyz", chatResponse.get("id"));
             assertEquals("chat.completion", chatResponse.get("object"));
@@ -61,7 +61,7 @@ class MistralChatWorkerTest {
 
         Map<String, Object> message = (Map<String, Object>) choice.get("message");
         assertEquals("assistant", message.get("role"));
-        // In simulated mode, content starts with [SIMULATED]
+        // In demo mode, content starts with [DEMO]
         if (System.getenv("MISTRAL_API_KEY") == null || System.getenv("MISTRAL_API_KEY").isBlank()) {
             assertTrue(message.get("content").toString().contains("Key contract analysis"));
         }
@@ -79,7 +79,7 @@ class MistralChatWorkerTest {
         Map<String, Object> chatResponse = (Map<String, Object>) result.getOutputData().get("chatResponse");
         Map<String, Object> usage = (Map<String, Object>) chatResponse.get("usage");
 
-        // In simulated mode, verify fixed token counts
+        // In demo mode, verify fixed token counts
         if (System.getenv("MISTRAL_API_KEY") == null || System.getenv("MISTRAL_API_KEY").isBlank()) {
             assertEquals(156, usage.get("prompt_tokens"));
             assertEquals(134, usage.get("completion_tokens"));

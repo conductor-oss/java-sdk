@@ -29,7 +29,7 @@ class StreamCollectChunksWorkerTest {
 
         assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
 
-        // In simulated mode, verify the fixed assembled response
+        // In demo mode, verify the fixed assembled response
         if (System.getenv("CONDUCTOR_OPENAI_API_KEY") == null || System.getenv("CONDUCTOR_OPENAI_API_KEY").isBlank()) {
             assertEquals(
                     "Conductor orchestrates complex workflows with built-in durability, "
@@ -53,7 +53,7 @@ class StreamCollectChunksWorkerTest {
         )));
         TaskResult result = worker.execute(task);
 
-        // In simulated mode, chunk count is fixed at 11
+        // In demo mode, chunk count is fixed at 11
         if (System.getenv("CONDUCTOR_OPENAI_API_KEY") == null || System.getenv("CONDUCTOR_OPENAI_API_KEY").isBlank()) {
             assertEquals(11, result.getOutputData().get("chunkCount"));
         } else {
@@ -73,7 +73,7 @@ class StreamCollectChunksWorkerTest {
         assertNotNull(result.getOutputData().get("streamDurationMs"));
         assertNotNull(result.getOutputData().get("tokensPerSecond"));
 
-        // In simulated mode, verify fixed metrics
+        // In demo mode, verify fixed metrics
         if (System.getenv("CONDUCTOR_OPENAI_API_KEY") == null || System.getenv("CONDUCTOR_OPENAI_API_KEY").isBlank()) {
             assertEquals(1240, result.getOutputData().get("streamDurationMs"));
             assertEquals(45, result.getOutputData().get("tokensPerSecond"));

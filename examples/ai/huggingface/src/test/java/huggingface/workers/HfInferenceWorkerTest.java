@@ -21,7 +21,7 @@ class HfInferenceWorkerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void returnsSimulatedSummarizationOutput() {
+    void returnsDemoSummarizationOutput() {
         Task task = taskWith(new HashMap<>(Map.of(
                 "modelId", "facebook/bart-large-cnn",
                 "inputs", "Some article text"
@@ -36,7 +36,7 @@ class HfInferenceWorkerTest {
         assertEquals(1, rawOutput.size());
         assertTrue(rawOutput.get(0).containsKey("summary_text"));
 
-        // In simulated mode, text starts with [SIMULATED] and contains the key phrase
+        // In demo mode, text starts with [DEMO] and contains the key phrase
         if (System.getenv("HUGGINGFACE_TOKEN") == null || System.getenv("HUGGINGFACE_TOKEN").isBlank()) {
             assertTrue(rawOutput.get(0).get("summary_text").contains("hybrid work models"));
         }
@@ -51,7 +51,7 @@ class HfInferenceWorkerTest {
         TaskResult result1 = worker.execute(task1);
         TaskResult result2 = worker.execute(task2);
 
-        // In simulated mode, output should be deterministic
+        // In demo mode, output should be deterministic
         if (System.getenv("HUGGINGFACE_TOKEN") == null || System.getenv("HUGGINGFACE_TOKEN").isBlank()) {
             List<Map<String, String>> out1 =
                     (List<Map<String, String>>) result1.getOutputData().get("rawOutput");

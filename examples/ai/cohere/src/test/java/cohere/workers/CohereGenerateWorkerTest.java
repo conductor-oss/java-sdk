@@ -45,7 +45,7 @@ class CohereGenerateWorkerTest {
         Map<String, Object> apiResponse = (Map<String, Object>) result.getOutputData().get("apiResponse");
         List<Map<String, Object>> generations = (List<Map<String, Object>>) apiResponse.get("generations");
 
-        // In simulated mode (no COHERE_API_KEY), likelihoods are fixed
+        // In demo mode (no COHERE_API_KEY), likelihoods are fixed
         if (System.getenv("COHERE_API_KEY") == null || System.getenv("COHERE_API_KEY").isBlank()) {
             assertEquals(-1.82, ((Number) generations.get(0).get("likelihood")).doubleValue());
             assertEquals(-1.65, ((Number) generations.get(1).get("likelihood")).doubleValue());
@@ -63,7 +63,7 @@ class CohereGenerateWorkerTest {
         Map<String, Object> apiResponse = (Map<String, Object>) result.getOutputData().get("apiResponse");
         List<Map<String, Object>> generations = (List<Map<String, Object>>) apiResponse.get("generations");
 
-        // In simulated mode, verify finish_reason and text content
+        // In demo mode, verify finish_reason and text content
         if (System.getenv("COHERE_API_KEY") == null || System.getenv("COHERE_API_KEY").isBlank()) {
             for (Map<String, Object> gen : generations) {
                 assertEquals("COMPLETE", gen.get("finish_reason"));
@@ -83,7 +83,7 @@ class CohereGenerateWorkerTest {
 
         Map<String, Object> apiResponse = (Map<String, Object>) result.getOutputData().get("apiResponse");
 
-        // In simulated mode, meta is always present
+        // In demo mode, meta is always present
         if (System.getenv("COHERE_API_KEY") == null || System.getenv("COHERE_API_KEY").isBlank()) {
             Map<String, Object> meta = (Map<String, Object>) apiResponse.get("meta");
             assertNotNull(meta);
