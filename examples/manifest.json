@@ -3058,7 +3058,7 @@
     "example": "tool-use-sequential",
     "path": "agents/tool-use-sequential",
     "title": "Sequential Tool Use in Java Using Conductor",
-    "description": "Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of simulated tool calls",
+    "description": "Tool Use Sequential: search the web, read a page, extract data, and summarize through a sequential pipeline of demo tool calls",
     "workflow": "tool_use_sequential",
     "inputParameters": [
       "query",
